@@ -11,7 +11,6 @@ import {
 } from '@/hooks/hrms/leave-management/useLeaveTransactionManual';
 import { useReportGroupTypes, useReportDepartments, useReportDesignations, usePeriodLeaveReportEmployees } from '@/hooks/hrms/useReports';
 import {
-    useLeaveAuthorizationDropdowns,
     useMasterLeaveYear
 } from '@/hooks/hrms/leave-management/useMasters';
 import { Plus, X } from 'lucide-react';
@@ -96,13 +95,9 @@ function LeaveCreditTransactionPageContent({
     // PeriodLeaveReportEmployees takes arrays
     const { data: employeesData, isLoading: isLoadingEmployees } = usePeriodLeaveReportEmployees(selectedDeptIds, selectedDesignationIds);
 
-    // Leave Types from Leave Authorization Dropdowns
-    const { data: leaveDropdownsData, isLoading: isLoadingLeaveTypes } = useLeaveAuthorizationDropdowns();
-
-    // Leave Year Data
     // Leave Year Data
     const { data: yearData } = useMasterLeaveYear();
-
+    console.log("yearData", yearData);
     const years = useMemo(() => {
         return (yearData?.data || []).map((y: any) => ({
             id: Number(y.hrmlY_Id || y.id || 0),
@@ -160,16 +155,6 @@ function LeaveCreditTransactionPageContent({
         }).filter((i: any) => i !== null) as { id: number; employeeCode: string; employeeName: string }[];
     }, [employeesData]);
 
-    const leaveTypes = useMemo(() => {
-        if (!leaveDropdownsData?.data?.leaveTypes || !Array.isArray(leaveDropdownsData.data.leaveTypes)) {
-            return [];
-        }
-        return leaveDropdownsData.data.leaveTypes.map((item: any) => ({
-            value: item.value || '',
-            label: item.label || '',
-            code: item.leaveCode || item.hrmL_LeaveCode || item.label || '' // Map code if available
-        }));
-    }, [leaveDropdownsData]);
 
     const handleFilterChange = (type: 'types' | 'departments' | 'designations', values: number[]) => {
         if (type === 'types') {
@@ -229,7 +214,6 @@ function LeaveCreditTransactionPageContent({
                     departments={departments}
                     designations={designations}
                     employees={employees}
-                    leaveTypes={leaveTypes}
                     years={years}
                     activeYearId={activeYearId}
                     isLoadingTypes={isLoadingTypes}
@@ -249,7 +233,6 @@ function FormSections({
     departments,
     designations,
     employees,
-    leaveTypes,
     years,
     activeYearId,
     isLoadingTypes,
@@ -263,7 +246,6 @@ function FormSections({
     departments: Array<{ id: number; name: string }>;
     designations: Array<{ id: number; name: string }>;
     employees: Array<{ id: number; employeeCode: string; employeeName: string }>;
-    leaveTypes: Array<{ value: string; label: string; code?: string }>;
     years: Array<{ id: number; year: string; fromDate: string; toDate: string; isActive: boolean }>;
     activeYearId: number;
     isLoadingTypes: boolean;
@@ -288,6 +270,8 @@ function FormSections({
     const { mutate: updateTransaction } = useUpdateLeaveTransactionManual();
 
     const handleFormSubmit = (formData: LeaveCreditTransaction) => {
+
+        console.log('formData', formData);
         // Inject Active Year ID if missing
         const dataToSave = {
             ...formData,
@@ -340,7 +324,6 @@ function FormSections({
                                 departments={departments}
                                 designations={designations}
                                 employees={employees}
-                                leaveTypes={leaveTypes}
                                 years={years}
                                 activeYearId={activeYearId}
                                 isLoadingTypes={isLoadingTypes}
@@ -380,7 +363,6 @@ function FormSections({
                                 departments={departments}
                                 designations={designations}
                                 employees={employees}
-                                leaveTypes={leaveTypes}
                                 years={years}
                                 activeYearId={activeYearId}
                                 isLoadingTypes={isLoadingTypes}

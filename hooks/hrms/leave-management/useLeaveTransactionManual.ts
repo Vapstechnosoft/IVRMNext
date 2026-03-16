@@ -63,12 +63,21 @@ function mapLeaveTransactionManualToApiData(
 
     const fromDate = formatDate(data.fromDate || new Date());
     const toDate = formatDate(data.toDate || new Date());
-
+    console.log("final payload", {
+        hrelT_Id: data.transactionId || 0,
+        hreltD_Id: data.id || 0,
+        hrmE_Id: data.employeeId || 0,
+        hrmL_LeaveType: data.hrmL_LeaveType || 'LWP',
+        hrmlY_Id: data.hrmlY_Id || 0,
+        hrelT_FromDate: fromDate,
+        hrelT_ToDate: toDate,
+        hrelT_TotDays: data.totalDays || 0
+    });
     return {
         hrelT_Id: data.transactionId || 0,
         hreltD_Id: data.id || 0,
         hrmE_Id: data.employeeId || 0,
-        hrmL_LeaveType: data.hrmL_LeaveType || 'OD',
+        hrmL_LeaveType: data.hrmL_LeaveType || 'LWP',
         hrmlY_Id: data.hrmlY_Id || 0,
         hrelT_FromDate: fromDate,
         hrelT_ToDate: toDate,

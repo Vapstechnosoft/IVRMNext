@@ -254,16 +254,27 @@ export const studentAdmissionFormSchema = {
         fatherAadharNo: z.string().optional().nullable(),
 
         FatherEducation: z.string().optional().nullable(),
-        // pasR_FatherOccupation: createOptionalStringSchema('Father Occupation', 1, 100),
         fatherPAN: z.string().optional().nullable(),
         fatherDesignation: z.string().optional().nullable(),
-        fatherMobileNumbers: z.string().optional().nullable(),
+        fatherMobileNumbers: z
+            .array(
+                z.object({
+                    mobileNo: z.string().optional().nullable()
+                })
+            )
+            .optional(),
         fatherMaritalStatus: z.string().optional().nullable(),
 
-        fatherEmailIds: z.string().optional().nullable(),
+        fatherEmailIds: z
+            .array(
+                z.object({
+                    emailId: z.string().email().optional().nullable().or(z.literal(''))
+                })
+            )
+            .optional(),
         fatherHomePhone: z.string().optional().nullable(),
 
-        fatherNationality: z.string().optional().nullable(),
+        fatherNationality: z.preprocess((val) => (val === '' || val === null ? 0 : Number(val)), z.number().optional()),
 
         fatherPresentAddress: z
             .object({
@@ -276,7 +287,7 @@ export const studentAdmissionFormSchema = {
                     .nullable()
                     .transform((val) => (val ? String(val) : '')),
                 po: z.string().optional().nullable().or(z.literal('')),
-                country: z.string().optional().nullable().or(z.literal('')),
+                country: z.preprocess((val) => (val === '' || val === null ? 0 : Number(val)), z.number().optional()),
                 ps: z.string().optional().nullable().or(z.literal(''))
             })
             .optional()
@@ -294,7 +305,7 @@ export const studentAdmissionFormSchema = {
                     .transform((val) => (val ? String(val) : '')),
                 po: z.string().optional().nullable().or(z.literal('')),
                 ps: z.string().optional().nullable().or(z.literal('')),
-                country: z.string().optional().nullable().or(z.literal(''))
+                country: z.preprocess((val) => (val === '' || val === null ? 0 : Number(val)), z.number().optional())
             })
             .optional()
             .nullable(),
@@ -313,9 +324,16 @@ export const studentAdmissionFormSchema = {
             z.number({ invalid_type_error: 'Select Caste' }).int().optional().nullable()
         ),
         fatherSubCaste: z.string().optional().nullable(),
+        fatherTribe: z.string().optional().nullable(),
+        fatherChurchAffiliation: z.string().optional().nullable(),
+        fatherBankName: z.string().optional().nullable(),
+        fatherBankAccountNo: z.string().optional().nullable(),
+        fatherBankIFSCCode: z.string().optional().nullable(),
+        fatherBankBranch: z.string().optional().nullable(),
         fatherOfficePhone: z.string().optional().nullable(),
 
-        // New camelCase mother fields (aliases / API-friendly keys)
+
+        // Mother Details
         motherAliveFlag: z.boolean().optional(),
         MotherAliveFlag: z.boolean().optional(),
         motherName: z.string().optional().nullable(),
@@ -323,10 +341,22 @@ export const studentAdmissionFormSchema = {
         motherAadharNo: z.string().optional().nullable(),
         motherMaritalStatus: z.string().optional().nullable(),
 
-        motherMobileNumbers: z.string().optional().nullable(),
-        motherEmailIds: z.string().optional().nullable(),
+        motherMobileNumbers: z
+            .array(
+                z.object({
+                    mobileNo: z.string().optional().nullable()
+                })
+            )
+            .optional(),
+        motherEmailIds: z
+            .array(
+                z.object({
+                    emailId: z.string().email().optional().nullable().or(z.literal(''))
+                })
+            )
+            .optional(),
         motherHomePhone: z.string().optional().nullable(),
-        motherNationality: z.string().optional().nullable(),
+        motherNationality: z.preprocess((val) => (val === '' || val === null ? 0 : Number(val)), z.number().optional()),
 
         motherQualification: z.string().optional().nullable(),
         motherPassingYear: z.preprocess(
@@ -336,7 +366,7 @@ export const studentAdmissionFormSchema = {
         motherPresentAddress: z
             .object({
                 address: z.string().optional().nullable().or(z.literal('')),
-                country: z.string().optional().nullable().or(z.literal('')),
+                country: z.preprocess((val) => (val === '' || val === null ? 0 : Number(val)), z.number().optional()),
                 city: z.string().optional().nullable().or(z.literal('')),
                 state: z.number().optional().nullable(),
                 po: z.string().optional().nullable().or(z.literal('')),
@@ -353,7 +383,7 @@ export const studentAdmissionFormSchema = {
         motherPermanentAddress: z
             .object({
                 address: z.string().optional().nullable().or(z.literal('')),
-                country: z.string().optional().nullable().or(z.literal('')),
+                country: z.preprocess((val) => (val === '' || val === null ? 0 : Number(val)), z.number().optional()),
                 city: z.string().optional().nullable().or(z.literal('')),
                 state: z.number().optional().nullable(),
                 po: z.string().optional().nullable().or(z.literal('')),
@@ -377,11 +407,19 @@ export const studentAdmissionFormSchema = {
             z.number({ invalid_type_error: 'Select Caste' }).int().optional().nullable()
         ),
         motherSubCaste: z.string().optional().nullable(),
+        motherTribe: z.string().optional().nullable(),
+        motherChurchAffiliation: z.string().optional().nullable(),
+        motherBankName: z.string().optional().nullable(),
+        motherBankAccountNo: z.string().optional().nullable(),
+        motherBankIFSCCode: z.string().optional().nullable(),
+        motherBankBranch: z.string().optional().nullable(),
         motherAnnualIncome: z.number().optional().nullable(),
+
         amsT_MotherPermanentState: z.number().int().optional().nullable(),
         motherCasteCertificateNo: z.string().optional().nullable(),
         motherPAN: z.string().optional().nullable(),
         motherSelfEmployedFlg: z.boolean().optional(),
+
 
         //Step=4
 
@@ -473,6 +511,9 @@ export const studentAdmissionFormSchema = {
         //health
         amsT_Studentillness: createStringOnlyOptionalSchema('Student Illness', 1, 100).optional(),
         amsT_MedicalComplaints: createStringOnlyOptionalSchema('Medical Complaints', 1, 255).optional(),
+        amsT_UnderAge: createOptionalNumberOnlyStringSchema('Under Age', 1, 2).optional(),
+        amsT_Boarding: createStringOnlyOptionalSchema('Boarding', 1, 100).optional(),
+        amsT_LastPlayGrndAttnd: createStringOnlyOptionalSchema('Last Playground Attended', 1, 255).optional(),
         amsT_AdmissionReason: createStringOnlyOptionalSchema('Admission Reason', 1, 255).optional(),
         amsT_OtherResidential_Addr: createOptionalStringSchema('Other Residential Address', 1, 255).optional(),
         amsT_SchoolDISECode: createOptionalStringSchema('School DISE Code', 1, 50).optional(),
@@ -480,9 +521,11 @@ export const studentAdmissionFormSchema = {
         amsT_SecondLanguage: createStringOnlyOptionalSchema('Second Language', 1, 100).optional(),
         amsT_Thirdlanguage: createStringOnlyOptionalSchema('Third Language', 1, 100).optional(),
         amsT_Illnessdetails: createOptionalStringSchema('Illness Details', 1, 500).optional(),
+        amsT_OverAge: createOptionalNumberOnlyStringSchema('Over Age', 1, 2).optional(),
         amsT_OtherInformations: createOptionalStringSchema('Other Informations', 1, 500).optional(),
         amsT_ExtraActivity: createStringOnlyOptionalSchema('Extra Activity', 1, 100).optional(),
         amsT_Stayingwith: createStringOnlyOptionalSchema('Staying With', 1, 100).optional(),
+        amsT_MaritalStatus: createStringOnlyOptionalSchema('Marital Status', 1, 50).optional(),
         amsT_OtherPermanentAddr: createOptionalStringSchema('Other Permanent Address', 1, 255).optional(),
         amsT_Domicile: createStringOnlyOptionalSchema('Domicile', 1, 100).optional(),
 

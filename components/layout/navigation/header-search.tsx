@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import { setNavigationContext } from './navigation-context';
 import { searchDatabase } from '@/server/search-action';
 import type { IUserAccessibleModules } from '@/types';
+import { translateText } from '@/server/translate-action';
 
 interface SearchResult {
     type: 'page';
@@ -39,60 +40,56 @@ export function HeaderSearch() {
     const [isSearching, setIsSearching] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const debounceRef = useRef<NodeJS.Timeout | null>(null);
+    const activeSearchRef = useRef('');
+    const [selectedIndex, setSelectedIndex] = useState(-1);
+
+    useEffect(() => {
+        setSelectedIndex(-1);
+    }, [query, results, dbResults]);
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        const totalItems = results.length + dbResults.length;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (isOpen && totalItems > 0) {
+                setSelectedIndex(prev => {
+                    const next = prev < totalItems - 1 ? prev + 1 : -1;
+                    document.getElementById(`search-result-${next}`)?.scrollIntoView({ block: 'nearest' });
+                    return next;
+                });
+            }
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (isOpen && totalItems > 0) {
+                setSelectedIndex(prev => {
+                    const next = prev > 0 ? prev - 1 : totalItems - 1;
+                    document.getElementById(`search-result-${next}`)?.scrollIntoView({ block: 'nearest' });
+                    return next;
+                });
+            }
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (isOpen && selectedIndex >= 0 && selectedIndex < totalItems) {
+                if (selectedIndex < results.length) {
+                    handleSelect(results[selectedIndex]);
+                } else {
+                    handleDbSelect(dbResults[selectedIndex - results.length]);
+                }
+            } else {
+                performSearch(query);
+            }
+        } else if (e.key === 'Escape') {
+            setIsOpen(false);
+        }
+    };
 
     // Flatten accessible modules into searchable pages
     const getAllPages = () => {
-        const visualsModule: IUserAccessibleModules = {
-            id: 9999,
-            name: "Visual Insights",
-            icon: "BarChart3",
-            menu: [
-                {
-                    id: 9991,
-                    name: "Dashboard",
-                    icon: "LayoutDashboard",
-                    sub_menu: [
-                        {
-                            id: 9992,
-                            name: "Statistics & Graphs",
-                            icon: "BarChart",
-                            pages: [
-                                {
-                                    id: 9993,
-                                    name: "Statistics",
-                                    icon: "BarChart",
-                                    url: "/visual-insights/statistics-graphs",
-                                    title: "Statistics & Graphs",
-                                    description: "Visual analytics and reports"
-                                }
-                            ]
-                        },
-                        {
-                            id: 9994,
-                            name: "Templates",
-                            icon: "LayoutTemplate",
-                            pages: [
-                                {
-                                    id: 9995,
-                                    name: "Custom Templates",
-                                    icon: "LayoutTemplate",
-                                    url: "/visual-insights/custom-templates",
-                                    title: "Custom Templates",
-                                    description: "Create and manage report templates"
-                                }
-                            ]
-                        }
-                    ]
-                }
-            ]
-        };
-
         const baseModules = accessibleModule?.data || [];
-        const combinedModules = [...baseModules, visualsModule];
-
         const pages: SearchResult[] = [];
 
-        combinedModules.forEach((module) => {
+        baseModules.forEach((module) => {
             module.menu.forEach((menu) => {
                 menu.sub_menu.forEach((subMenu) => {
                     subMenu.pages.forEach((page) => {
@@ -142,7 +139,6 @@ export function HeaderSearch() {
                 }
 
                 setIsTranscribing(true);
-                setQuery("Transcribing...");
 
                 try {
                     const wavBlob = await enhanceAndConvertToWav(blob);
@@ -151,14 +147,25 @@ export function HeaderSearch() {
                     const formData = new FormData();
                     formData.append('audio', file);
 
-                    const res = await fetch('/api/transcribe', {
+                    const res = await fetch('/api/header-voice', {
                         method: 'POST',
                         body: formData
                     });
 
+                    if (!res.ok) {
+                        const errorText = await res.text();
+                        try {
+                            const errorJson = JSON.parse(errorText);
+                            toast.error(errorJson.error || 'Server error');
+                        } catch {
+                            toast.error(`Server error: ${res.status}`);
+                        }
+                        return;
+                    }
+
                     const result = await res.json();
 
-                    if (res.ok && result.text?.trim()) {
+                    if (result.text?.trim()) {
                         const transcript = result.text.trim();
                         setQuery(transcript);
                         setIsOpen(true);
@@ -179,15 +186,14 @@ export function HeaderSearch() {
             recorder.start();
             mediaRecorderRef.current = recorder;
             setIsRecording(true);
-            setQuery("Listening...");
             setIsOpen(true);
 
-            // Longer timeout for header search (5 seconds)
+            // Longer timeout for header search (10 seconds)
             recordingTimeoutRef.current = setTimeout(() => {
                 if (mediaRecorderRef.current?.state === 'recording') {
                     stopRecording();
                 }
-            }, 5000);
+            }, 10000);
 
         } catch (err: any) {
             console.error("Microphone error:", err);
@@ -210,9 +216,9 @@ export function HeaderSearch() {
         };
     }, []);
 
-    const performSearch = async (searchTerm: string) => {
-        if (!searchTerm.trim() || searchTerm === "Listening...") {
-            if (searchTerm !== "Listening...") {
+    const performSearch = async (originalSearchTerm: string) => {
+        if (!originalSearchTerm.trim() || originalSearchTerm === "Listening") {
+            if (originalSearchTerm !== "Listening") {
                 setResults([]);
                 setDbResults([]);
                 setIsSearching(false);
@@ -222,35 +228,79 @@ export function HeaderSearch() {
 
         setIsSearching(true);
 
-        // 1. Search Pages (Client-side)
+        let initialSearchTerm = originalSearchTerm;
+
+        // Immediately update what string is currently active
+        // This prevents race conditions from slow backend translation
+        activeSearchRef.current = originalSearchTerm;
+
+        // 1. Immediate Search Pages (Client-side)
+        // We do this immediately for instant feedback
         const allPages = getAllPages();
-        const searchTerms = searchTerm.toLowerCase().split(' ');
+        const searchTerms = initialSearchTerm.toLowerCase().split(' ');
         const filteredPages = allPages.filter(item => {
             const text = `${item.title} ${item.subtitle}`.toLowerCase();
             return searchTerms.every(term => text.includes(term));
-        }).slice(0, 6); // Limit 6 suggestions
+        }).slice(0, 7); // Limit 6 suggestions
         setResults(filteredPages);
 
-        try {
-            // 2. Search Database (Python Backend)
-            // Debounce DB search to avoid spamming the Python script
-            if (debounceRef.current) clearTimeout(debounceRef.current);
+        if (debounceRef.current) clearTimeout(debounceRef.current);
 
-            debounceRef.current = setTimeout(async () => {
+        debounceRef.current = setTimeout(async () => {
+            try {
+                let searchTerm = originalSearchTerm;
+
+                // Fast path: if starts with English alphabet, don't run heavy translation
+                const isEnglish = /^[a-zA-Z]/.test(searchTerm);
+
+                if (!isEnglish) {
+                    try {
+                        const translateResponse = await translateText(originalSearchTerm);
+                        // Abort if the user typed something else while we were translating
+                        if (activeSearchRef.current !== originalSearchTerm) return;
+
+                        if (translateResponse?.text) {
+                            searchTerm = translateResponse.text;
+
+                            // Re-filter client pages using translated string
+                            const translatedTerms = searchTerm.toLowerCase().split(' ');
+                            const newFilteredPages = allPages.filter(item => {
+                                const text = `${item.title} ${item.subtitle}`.toLowerCase();
+                                return translatedTerms.every(term => text.includes(term));
+                            }).slice(0, 7);
+                            setResults(newFilteredPages);
+                        }
+                    } catch (err) {
+                        console.warn('Translation step failed', err);
+                    }
+                }
+
+                // Abort if the user typed something else before DB fetch
+                if (activeSearchRef.current !== originalSearchTerm) return;
+
+                // 2. Search Database (Python Backend)
                 const response = await searchDatabase(searchTerm);
+
+                // Abort if the user typed something else during DB fetch
+                if (activeSearchRef.current !== originalSearchTerm) return;
+
                 if (response?.results) {
                     setDbResults(response.results.slice(0, 6).map((r: any) => ({
                         source: r.table || 'Database',
                         data: r.data
                     })));
+                } else {
+                    setDbResults([]);
                 }
-                setIsSearching(false);
-            }, 800);
-
-        } catch (error) {
-            console.error("DB Search failed", error);
-            setIsSearching(false);
-        }
+            } catch (error) {
+                console.error("Search failed", error);
+            } finally {
+                // Only clear searching state if this is the active search
+                if (activeSearchRef.current === originalSearchTerm) {
+                    setIsSearching(false);
+                }
+            }
+        }, 800);
     };
 
     useEffect(() => {
@@ -261,8 +311,8 @@ export function HeaderSearch() {
             return;
         }
 
-        // Only search on type if query length > 2 and not "Listening..."
-        if (query.length > 2 && query !== "Listening...") {
+        // Only search on type if query length > 1 and not "Listening"
+        if (query.length > 1 && query !== "Listening") {
             performSearch(query);
         }
     }, [query]);
@@ -360,31 +410,49 @@ export function HeaderSearch() {
                     onFocus={() => {
                         if (query) setIsOpen(true);
                     }}
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                            performSearch(query);
-                        }
-                    }}
+                    onKeyDown={handleKeyDown}
                     className='w-[300px] pl-9 pr-9 transition-all focus:w-[400px] focus:ring-2 focus:ring-primary/20 bg-background'
                 />
                 <button
                     onClick={isRecording ? stopRecording : startRecording}
                     disabled={isTranscribing}
-                    className={`absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full transition-colors ${isRecording
-                        ? "bg-red-100 text-red-600 animate-pulse"
-                        : "hover:bg-accent text-muted-foreground"
-                        } ${isTranscribing ? "opacity-50 cursor-not-allowed" : ""}`}
+                    className={cn(
+                        "absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full transition-all duration-300",
+                        isRecording
+                            ? "bg-white shadow-[0_0_20px_rgba(139,92,246,0.3)] scale-110 z-10"
+                            : "hover:bg-purple-50 text-muted-foreground hover:text-purple-600 group/mic"
+                    )}
                     title={isRecording ? "Stop recording" : "Voice search"}
                 >
                     {isTranscribing ? (
-                        <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                        <div className="flex gap-1 items-center justify-center">
+                            <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce [animation-delay:-0.3s]" />
+                            <div className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-bounce [animation-delay:-0.15s]" />
+                            <div className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-bounce" />
+                        </div>
                     ) : isRecording ? (
-                        <MicOff className="h-4 w-4" />
+                        <div className="flex gap-1 items-center justify-center">
+                            <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-purple-dot-1" />
+                            <div className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-purple-dot-2" />
+                            <div className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-purple-dot-3" />
+                            <div className="w-1.5 h-1.5 rounded-full bg-purple-700 animate-purple-dot-4" />
+                        </div>
                     ) : (
-                        <Mic className="h-4 w-4" />
+                        <Mic className="h-5 w-5 text-purple-600 transition-colors" />
                     )}
                 </button>
             </div>
+
+            <style jsx>{`
+                @keyframes purple-dot {
+                    0%, 100% { transform: translateY(0); opacity: 0.5; }
+                    50% { transform: translateY(-6px); opacity: 1; }
+                }
+                .animate-purple-dot-1 { animation: purple-dot 0.8s ease-in-out infinite; animation-delay: 0s; }
+                .animate-purple-dot-2 { animation: purple-dot 0.8s ease-in-out infinite; animation-delay: 0.1s; }
+                .animate-purple-dot-3 { animation: purple-dot 0.8s ease-in-out infinite; animation-delay: 0.2s; }
+                .animate-purple-dot-4 { animation: purple-dot 0.8s ease-in-out infinite; animation-delay: 0.3s; }
+            `}</style>
 
             {isOpen && (results.length > 0 || dbResults.length > 0 || isSearching) && (
                 <div className='absolute top-full left-0 mt-2 w-full min-w-[400px] max-w-[600px] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95 z-50'>
@@ -395,9 +463,13 @@ export function HeaderSearch() {
                                 <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase bg-muted/30">Application Pages</div>
                                 {results.map((result, index) => (
                                     <button
+                                        id={`search-result-${index}`}
                                         key={`page-${index}`}
                                         onClick={() => handleSelect(result)}
-                                        className='relative flex w-full cursor-default select-none items-center rounded-sm px-2 py-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground text-left group'
+                                        className={cn(
+                                            'relative flex w-full cursor-default select-none items-center rounded-sm px-2 py-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground text-left group',
+                                            selectedIndex === index && 'bg-accent text-accent-foreground'
+                                        )}
                                     >
                                         <div className='flex h-8 w-8 shrink-0 items-center justify-center rounded-md border bg-muted/50 mr-3 group-hover:bg-background'>
                                             <FileText className='h-4 w-4 text-muted-foreground' />
@@ -415,30 +487,37 @@ export function HeaderSearch() {
                         {dbResults.length > 0 && (
                             <div>
                                 <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase bg-muted/30 border-t mt-2 pt-2">Data Records</div>
-                                {dbResults.map((result, index) => (
-                                    <button
-                                        key={`db-${index}`}
-                                        onClick={() => handleDbSelect(result)}
-                                        className='relative flex flex-col w-full px-4 py-3 text-sm border-b last:border-0 hover:bg-accent/50 text-left transition-colors'
-                                    >
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <Database className="h-3 w-3 text-blue-500" />
-                                            <span className="text-xs font-semibold text-blue-600 truncate">{result.source}</span>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                                            {/* Render first 4 key-value pairs ignoring nulls */}
-                                            {Object.entries(result.data || {})
-                                                .filter(([_, v]) => v !== null && v !== '')
-                                                .slice(0, 4)
-                                                .map(([k, v]) => (
-                                                    <div key={k} className="flex gap-1 overflow-hidden">
-                                                        <span className="font-semibold shrink-0">{k}:</span>
-                                                        <span className="truncate" title={String(v)}>{String(v)}</span>
-                                                    </div>
-                                                ))}
-                                        </div>
-                                    </button>
-                                ))}
+                                {dbResults.map((result, index) => {
+                                    const actualIndex = results.length + index;
+                                    return (
+                                        <button
+                                            id={`search-result-${actualIndex}`}
+                                            key={`db-${index}`}
+                                            onClick={() => handleDbSelect(result)}
+                                            className={cn(
+                                                'relative flex flex-col w-full px-4 py-3 text-sm border-b last:border-0 hover:bg-accent/50 text-left transition-colors',
+                                                selectedIndex === actualIndex && 'bg-accent/50'
+                                            )}
+                                        >
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <Database className="h-3 w-3 text-blue-500" />
+                                                <span className="text-xs font-semibold text-blue-600 truncate">{result.source}</span>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                                                {/* Render first 4 key-value pairs ignoring nulls */}
+                                                {Object.entries(result.data || {})
+                                                    .filter(([_, v]) => v !== null && v !== '')
+                                                    .slice(0, 4)
+                                                    .map(([k, v]) => (
+                                                        <div key={k} className="flex gap-1 overflow-hidden">
+                                                            <span className="font-semibold shrink-0">{k}:</span>
+                                                            <span className="truncate" title={String(v)}>{String(v)}</span>
+                                                        </div>
+                                                    ))}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
                             </div>
                         )}
 

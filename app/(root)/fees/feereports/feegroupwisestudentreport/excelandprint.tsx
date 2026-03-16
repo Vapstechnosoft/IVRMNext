@@ -1,3 +1,5 @@
+import type { IFeeGroupWiseStudentReport } from '@/types/fees/reports/reports';
+import * as XLSX from 'xlsx';
 export function printTable(columns: string[] | any[], rows: any[], title?: string) {
     const printWindow = window.open('', '', 'width=1200,height=800');
     if (!printWindow) return;
@@ -56,7 +58,7 @@ export function printTable(columns: string[] | any[], rows: any[], title?: strin
             </style>
         </head>
         <body>
-            <h2>FEE TERMWISE REPORT</h2>
+            <h2>Fee Group Wise Students Report</h2>
             ${title ? `<div class="student-info">${title}</div>` : ''}
             <table>
                 <thead>
@@ -73,4 +75,62 @@ export function printTable(columns: string[] | any[], rows: any[], title?: strin
     printWindow.document.close();
     printWindow.focus();
     printWindow.print();
+}
+
+export function exportToExcel(
+    rows: IFeeGroupWiseStudentReport[],
+    fileName: string,
+    includeAmount?: boolean // Optional parameter
+) {
+    if (!rows || rows.length === 0) {
+        console.warn('No data to export');
+        return;
+    }
+
+    // Format data for Excel with conditional amount column
+    const dataForExcel = rows.map((row, index) => {
+        const baseRow: any = {
+            SLNO: index + 1,
+            'Adm. NO.': row.amsT_AdmNo || '',
+            'Student Name': row.amsT_FirstName || '',
+            Class: row.asmcL_ClassName || '',
+            Section: row.asmC_SectionName || '',
+            'Roll No.': row.amaY_RollNo || '',
+            'Fee Group': row.fmG_GroupName || ''
+        };
+
+        // Add amount column if requested
+        if (includeAmount) {
+            // biome-ignore lint/complexity/useLiteralKeys: <explanation>
+            baseRow['Amount'] = row.amount || 0;
+            // Format as number
+            if (typeof row.amount === 'number') {
+                // biome-ignore lint/complexity/useLiteralKeys: <explanation>
+                baseRow['Amount'] = row.amount;
+            }
+        }
+
+        return baseRow;
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(dataForExcel);
+    const workbook = XLSX.utils.book_new();
+
+    // Auto-size columns
+    if (dataForExcel.length > 0) {
+        const maxWidth = Object.keys(dataForExcel[0]).reduce((acc, key) => {
+            const maxLength = Math.max(key.length, ...dataForExcel.map((row: any) => String(row[key] || '').length));
+            return {
+                // biome-ignore lint/performance/noAccumulatingSpread: <explanation>
+                ...acc,
+                [key]: { wch: Math.min(maxLength + 2, 50) }
+            };
+        }, {});
+
+        worksheet['!cols'] = Object.values(maxWidth);
+    }
+
+    // Add sheet and download
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Fee Group Report');
+    XLSX.writeFile(workbook, `${fileName.replace(/[^a-z0-9]/gi, '_')}.xlsx`);
 }

@@ -22,10 +22,12 @@ export async function getEmployeeInOutReport(filters?: EmployeeInOutReportFilter
         const okDateFrom = filters.fromDate && r.date ? new Date(r.date) >= new Date(filters.fromDate) : true;
         const okDateTo = filters.toDate && r.date ? new Date(r.date) <= new Date(filters.toDate) : true;
         const okQuery =
-            filters.allOrIndividual === 'Individual' && filters.query
+            filters.allOrIndividual === 'Individual' && filters.query && filters.query.length > 0
                 ? filters.codeOrName === 'Code'
-                    ? (r.employeeCode || r.employee_code || '').includes(filters.query)
-                    : (r.employeeName || r.user_name || '').toLowerCase().includes(filters.query.toLowerCase())
+                    ? filters.query.includes(String(r.employeeCode || r.employee_code || ''))
+                    : filters.query.some((q) =>
+                          (r.employeeName || r.user_name || '').toLowerCase().includes(q.toLowerCase())
+                      )
                 : true;
         const okTimeInOut = filters.timeInTimeOut
             ? filters.timeInTimeOut === 'Time In'

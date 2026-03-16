@@ -19,7 +19,7 @@ import {
     getSubjectByFixing,
     getdetailsAllFixing
 } from '@/server/timetable/constraints/fixing';
-import { getDayPeriodEditDetails, saveDayPeriodDetail } from '@/server/timetable/constraints/subjectrestriction';
+import { getDayPeriodEditDetails, getSubjectRestrictionDayPeriodDetails, saveDayPeriodDetail } from '@/server/timetable/constraints/subjectrestriction';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, Save, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -145,6 +145,8 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
             return name && name.toLowerCase() !== 'test';
         });
     };
+    // Consolidate edit data loading into the isEditFormOpen effect below.
+    // Removed the redundant effect here to avoid conflicts and fix the ttrdsU_Id error.
 
     useEffect(() => {
         const loadDropdowns = async () => {
@@ -292,47 +294,67 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
         if (isEditFormOpen && selectedRow) {
             const fetchEditData = async () => {
                 try {
-                    const res = await getDayPeriodEditDetails((selectedRow as any).ttrdP_Id);
-                    const data = (res as any)?.dayperiodlist?.[0] || selectedRow;
+                    // Robust ID extraction following the "fixing" pattern
+                    let d = selectedRow as any;
+                    const id = d?.ttrdP_Id || d?.ttrdsU_Id || d?.ttfdP_Id || d?.TTFDP_Id || d?.ttfD_Id;
 
-                    const editYearId = (data as any).asmaY_Id || (data as any).ASMAY_Id;
-                    const editCategoryId = (data as any).ttmC_Id || (data as any).TTMC_Id;
-                    const editClassId = (data as any).asmcL_Id || (data as any).ASMCL_Id;
-                    const editSectionId = (data as any).asmS_Id || (data as any).ASMS_Id;
-                    const editStaffId = (data as any).hrmE_Id || (data as any).HRME_Id;
+                    if (id) {
+                        // Use the specific API requested by the user: /RestrictionFacade/DayPeriodEdit/
+                        const res = await getSubjectRestrictionDayPeriodDetails(id);
+                        const editData = (res as any)?.dayperiodlist || (res as any)?.data || res;
 
-                    if (editYearId && editCategoryId) {
-                        await fetchClasses(editYearId, editCategoryId);
-                        if (editClassId) {
-                            const secRes = await getSectionDropdownByClassCategory(editYearId, editClassId, editCategoryId);
-                            const sections = extractList(secRes, 'get_period_section1');
-                            setSectionList(sections || []);
-
-                            if (editSectionId) {
-                                await fetchStaff(editYearId, editCategoryId, editClassId, editSectionId);
-                                if (editStaffId) {
-                                    await fetchSubjects(editYearId, editCategoryId, editClassId, editSectionId, editStaffId);
-                                }
-                            }
+                        if (editData && Array.isArray(editData) && editData.length > 0) {
+                            d = editData[0];
+                        } else if (editData && !Array.isArray(editData)) {
+                            d = editData;
                         }
                     }
 
-                    reset({
-                        ttrdP_Id: (data as any).ttrdP_Id || (data as any).TTRDP_Id,
-                        asmaY_Id: editYearId,
-                        ttmC_Id: editCategoryId,
-                        asmcL_Id: editClassId,
-                        asmS_Id: editSectionId,
-                        hrmE_Id: editStaffId,
-                        ismS_Id: (data as any).ismS_Id || (data as any).ISMS_Id,
-                        ttmD_Id: (data as any).ttmD_Id || (data as any).TTMD_Id,
-                        ttmP_Id: (data as any).ttmP_Id || (data as any).TTMP_Id,
-                        ttrdP_SUbSelcFlag:
-                            (data as any).ttrdP_SUbSelcFlag === 1 ||
-                            (data as any).ttrdP_SUbSelcFlag === true ||
-                            (data as any).TTRDP_SUbSelcFlag === 1
-                    });
+                    if (d) {
+                        // Normalize keys (handle PascalCase and variant names)
+                        const editYearId = d.asmaY_Id ?? d.ASMAY_Id;
+                        const editCategoryId = d.ttmC_Id ?? d.TTMC_Id;
+                        const editClassId = d.asmcL_Id ?? d.ASMCL_Id;
+                        const editSectionId = d.asmS_Id ?? d.ASMS_Id ?? d.asmC_Id ?? d.ASMC_Id;
+                        const editStaffId = d.hrmE_Id ?? d.HRME_Id;
+
+                        // Sequentially fetch all dependent dropdowns before resetting the form
+                        if (editYearId && editCategoryId) {
+                            await fetchClasses(editYearId, editCategoryId);
+                            if (editClassId) {
+                                const secRes = await getSectionDropdownByClassCategory(editYearId, editClassId, editCategoryId);
+                                const sections = extractList(secRes, 'get_period_section1');
+                                setSectionList(sections || []);
+
+                                if (editSectionId) {
+                                    await fetchStaff(editYearId, editCategoryId, editClassId, editSectionId);
+                                    if (editStaffId) {
+                                        await fetchSubjects(editYearId, editCategoryId, editClassId, editSectionId, editStaffId);
+                                    }
+                                }
+                            }
+                        }
+
+                        // Reset form with normalized data
+                        reset({
+                            ttrdP_Id: d.ttrdP_Id ?? d.ttrdsU_Id ?? d.TTRDP_Id ?? d.ttfdP_Id ?? d.TTFDP_Id ?? 0,
+                            asmaY_Id: editYearId,
+                            ttmC_Id: editCategoryId,
+                            asmcL_Id: editClassId,
+                            asmS_Id: editSectionId,
+                            hrmE_Id: editStaffId,
+                            ismS_Id: d.ismS_Id ?? d.ISMS_Id,
+                            ttmD_Id: d.ttmD_Id ?? d.TTMD_Id,
+                            ttmP_Id: d.ttmP_Id ?? d.TTMP_Id,
+                            ttrdP_SUbSelcFlag:
+                                d.ttrdP_SUbSelcFlag === 1 ||
+                                d.ttrdP_SUbSelcFlag === true ||
+                                d.TTRDP_SUbSelcFlag === 1 ||
+                                d.ttrdsU_SUbSelcFlag === true
+                        });
+                    }
                 } catch (err) {
+                    console.error('Error fetching edit details:', err);
                     toast.error('Failed to load edit details');
                 }
             };
@@ -425,6 +447,7 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
                                                         Academic Year <span className='text-red-500'>*</span>
                                                     </FormLabel>
                                                     <Select
+                                                        key={field.value?.toString() || 'empty'}
                                                         onValueChange={(val) => handleYearChange(Number(val))}
                                                         value={field.value?.toString()}>
                                                         <FormControl>
@@ -458,6 +481,7 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
                                                         Category <span className='text-red-500'>*</span>
                                                     </FormLabel>
                                                     <Select
+                                                        key={field.value?.toString() || 'empty'}
                                                         onValueChange={(val) => handleCategoryChange(Number(val))}
                                                         value={field.value?.toString()}>
                                                         <FormControl>
@@ -489,6 +513,7 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
                                                 <FormItem>
                                                     <FormLabel>Class</FormLabel>
                                                     <Select
+                                                        key={field.value?.toString() || 'empty'}
                                                         onValueChange={(val) => handleClassChange(Number(val))}
                                                         value={field.value?.toString()}>
                                                         <FormControl>
@@ -520,6 +545,7 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
                                                 <FormItem>
                                                     <FormLabel>Section</FormLabel>
                                                     <Select
+                                                        key={field.value?.toString() || 'empty'}
                                                         onValueChange={(val) => handleSectionChange(Number(val))}
                                                         value={field.value?.toString()}>
                                                         <FormControl>
@@ -529,7 +555,7 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
                                                         </FormControl>
                                                         <SelectContent>
                                                             {sectionList.map((item: any) => {
-                                                                const id = item.asmS_Id || item.ASMS_Id || item.id;
+                                                                const id = item.asmS_Id || item.ASMS_Id || item.asmC_Id || item.ASMC_Id || item.id;
                                                                 const name =
                                                                     item.asmC_SectionName || item.asmS_SectionName || item.sectionName;
                                                                 return (
@@ -552,6 +578,7 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
                                                 <FormItem>
                                                     <FormLabel>Staff Name</FormLabel>
                                                     <Select
+                                                        key={field.value?.toString() || 'empty'}
                                                         onValueChange={(val) => handleStaffChange(Number(val))}
                                                         value={field.value?.toString()}>
                                                         <FormControl>
@@ -584,6 +611,7 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
                                                 <FormItem>
                                                     <FormLabel>Subject</FormLabel>
                                                     <Select
+                                                        key={field.value?.toString() || 'empty'}
                                                         onValueChange={(val) => field.onChange(Number(val))}
                                                         value={field.value?.toString()}>
                                                         <FormControl>
@@ -615,6 +643,7 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
                                                 <FormItem>
                                                     <FormLabel>Day</FormLabel>
                                                     <Select
+                                                        key={field.value?.toString() || 'empty'}
                                                         onValueChange={(val) => field.onChange(Number(val))}
                                                         value={field.value?.toString()}>
                                                         <FormControl>
@@ -646,6 +675,7 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
                                                 <FormItem>
                                                     <FormLabel>Period</FormLabel>
                                                     <Select
+                                                        key={field.value?.toString() || 'empty'}
                                                         onValueChange={(val) => field.onChange(Number(val))}
                                                         value={field.value?.toString()}>
                                                         <FormControl>

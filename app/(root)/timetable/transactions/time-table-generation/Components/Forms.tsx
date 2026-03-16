@@ -1,18 +1,23 @@
 'use client';
 
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { TimeTableGenerationValues, timeTableGenerationSchema } from '@/schemas/timetable/transactions/time-table-generation';
-import { generateTT, getGenerationDetails, getGenerationMasters, resetTT } from '@/server/timetable/transactions/time-table-generation';
+import { generateTT, getGenerationCounts, getGenerationMasters, resetTT } from '@/server/timetable/transactions/time-table-generation';
 import { AcademicYear, Category } from '@/types/timetable/Transaction/time-table-generation';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { RefreshCcw, RotateCcw, Trash2 } from 'lucide-react';
+import { Eye, FileSpreadsheet, RefreshCcw, RotateCcw, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
+import * as XLSX from 'xlsx';
 
 interface FormsProps {
     onFetch: (data: TimeTableGenerationValues | null) => void;
@@ -24,6 +29,22 @@ export default function Forms({ onFetch }: FormsProps) {
     const [isLoading, setIsLoading] = useState(true);
     const [generating, setGenerating] = useState(false);
     const [resetting, setResetting] = useState(false);
+    const [isCountLoading, setIsCountLoading] = useState(false);
+
+    const [counts, setCounts] = useState<any>({
+        totalperiods: 0,
+        totalalloted: 0,
+        totalnotalloted: 0,
+        totalpending: 0,
+        fixingperiodcnt: 0,
+        fixingperiodstaffcnt: 0,
+        consecutivecnt: 0,
+        bifurcationcnt: 0
+    });
+
+    const [workloadData, setWorkloadData] = useState<any[]>([]);
+    const [classWorkloadData, setClassWorkloadData] = useState<any[]>([]);
+    const [pendingPeriods, setPendingPeriods] = useState<any[]>([]);
 
     useEffect(() => {
         const fetchMasters = async () => {
@@ -62,28 +83,112 @@ export default function Forms({ onFetch }: FormsProps) {
     const asmaY_Id = useWatch({ control, name: 'asmaY_Id' });
     const ttmC_Id = useWatch({ control, name: 'ttmC_Id' });
 
-    useEffect(() => {
-        const fetchDetails = async () => {
-            if (asmaY_Id && ttmC_Id && ttmC_Id !== 'all') {
-                try {
-                    const details = await getGenerationDetails(Number(asmaY_Id), Number(ttmC_Id));
-                    setValue('asmcL_Id', details.totalPeriods.toString());
-                    setValue('asms_Id', details.allottedPeriods.toString());
-                    setValue('hrmE_Id', details.notAllottedPeriods.toString());
-                    setValue('notConfirmedPeriods', details.notConfirmedPeriods.toString());
-                } catch (error) {
-                    console.error('Failed to fetch generation details', error);
-                }
-            } else if (ttmC_Id === 'all') {
-                // Handle "All" case if needed. For now, clear them or could implement aggregate fetch.
-                setValue('asmcL_Id', '0');
-                setValue('asms_Id', '0');
-                setValue('hrmE_Id', '0');
-                setValue('notConfirmedPeriods', '0');
+    const fetchCounts = async () => {
+        if (!asmaY_Id || !ttmC_Id || categories.length === 0) {
+            setCounts({
+                totalperiods: 0,
+                totalalloted: 0,
+                totalnotalloted: 0,
+                totalpending: 0,
+                fixingperiodcnt: 0,
+                fixingperiodstaffcnt: 0,
+                consecutivecnt: 0,
+                bifurcationcnt: 0
+            });
+            setValue('asmcL_Id', '0');
+            setValue('asms_Id', '0');
+            setValue('hrmE_Id', '0');
+            setValue('notConfirmedPeriods', '0');
+            setWorkloadData([]);
+            setClassWorkloadData([]);
+            setPendingPeriods([]);
+            return;
+        }
+
+        setIsCountLoading(true);
+
+        try {
+            const albumNameArray =
+                String(ttmC_Id) === 'all'
+                    ? categories.map(c => ({ ttmC_Id: Number(c.ttmC_Id) }))
+                    : [{ ttmC_Id: Number(ttmC_Id) }];
+
+            const payload = {
+                asmaY_Id: Number(asmaY_Id),
+                ttmc_idslist: albumNameArray
+            };
+
+            const response = await getGenerationCounts(payload);
+            console.log("Generation Counts Response:", response);
+            const promise = response; // getGenerationCounts already returns the data directly or unwrapped
+
+            if (promise?.countArray?.length > 0) {
+                const countData = promise.countArray[0];
+
+                const totalperiods = countData.totalPeriods || 0;
+                const totalalloted = countData.totalAllotted || 0;
+                const totalpending = countData.notConfirmedPeriods || 0;
+                const totalnotalloted = Number(totalperiods) - Number(totalalloted);
+
+                setCounts({
+                    totalperiods,
+                    totalalloted,
+                    totalnotalloted: totalnotalloted >= 0 ? totalnotalloted : 0,
+                    totalpending,
+                    fixingperiodcnt: promise.fixingperiodcnt || 0,
+                    fixingperiodstaffcnt: promise.fixingperiodstaffcnt || 0,
+                    consecutivecnt: promise.consecutivecnt || 0,
+                    bifurcationcnt: promise.bifurcationcnt || 0
+                });
+
+                setValue('asmcL_Id', totalperiods.toString());
+                setValue('asms_Id', totalalloted.toString());
+                setValue('hrmE_Id', totalnotalloted.toString());
+                setValue('notConfirmedPeriods', totalpending.toString());
+
+                setWorkloadData(promise.workloadpdf || []);
+                setClassWorkloadData(promise.workloadpdf1 || []);
+                setPendingPeriods(promise.time_Table_new || []);
+            } else if (promise?.countdetails?.length > 0) {
+                // Fallback if data is in countdetails as mentioned by user
+                const countData = promise.countdetails[0];
+                const totalperiods = countData.totalPeriods || countData.totalpriodscount || 0;
+                const totalalloted = countData.totalAllotted || countData.totalallotedcount || 0;
+                const totalpending = countData.notConfirmedPeriods || countData.totalnotallotedcount || 0;
+                const totalnotalloted = Number(totalperiods) - Number(totalalloted);
+
+                setCounts({
+                    totalperiods,
+                    totalalloted,
+                    totalnotalloted: totalnotalloted >= 0 ? totalnotalloted : 0,
+                    totalpending,
+                    fixingperiodcnt: promise.fixingperiodcnt || 0,
+                    fixingperiodstaffcnt: promise.fixingperiodstaffcnt || 0,
+                    consecutivecnt: promise.consecutivecnt || 0,
+                    bifurcationcnt: promise.bifurcationcnt || 0
+                });
+
+                setValue('asmcL_Id', totalperiods.toString());
+                setValue('asms_Id', totalalloted.toString());
+                setValue('hrmE_Id', totalnotalloted.toString());
+                setValue('notConfirmedPeriods', totalpending.toString());
+
+                setWorkloadData(promise.workloadpdf || []);
+                setClassWorkloadData(promise.workloadpdf1 || []);
+                setPendingPeriods(promise.time_Table_new || []);
             }
-        };
-        fetchDetails();
-    }, [asmaY_Id, ttmC_Id, setValue]);
+
+        } catch (error: any) {
+            console.error(error?.message);
+            toast.error(error?.message || 'Failed to fetch counts');
+        } finally {
+            setIsCountLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchCounts();
+    }, [asmaY_Id, ttmC_Id, categories]);
 
     const handleGenerate = async (data: TimeTableGenerationValues) => {
         if (!data.asmaY_Id || !data.ttmC_Id) {
@@ -145,6 +250,28 @@ export default function Forms({ onFetch }: FormsProps) {
 
     const handleResetForm = () => {
         reset();
+    };
+
+    const handleExportExcel = () => {
+        if (!pendingPeriods || pendingPeriods.length === 0) {
+            toast.error('No pending periods data available to export');
+            return;
+        }
+
+        const dataToExport = pendingPeriods.map((user, idx) => ({
+            'SL. NO.': idx + 1,
+            'Class': user.asmcL_ClassName,
+            'Section': user.asmC_SectionName,
+            'Staff': user.staffName,
+            'Subject': user.ismS_SubjectName,
+            'Day': user.ttmD_DayName,
+            'Period': user.ttmP_PeriodName
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Pending Periods');
+        XLSX.writeFile(workbook, 'Workload_Pending_Periods.xlsx');
     };
 
     const FormSelect = ({ label, name, control, options, valueKey, labelKey, placeholder, error, isLoading, showAllOption }: any) => (
@@ -252,13 +379,59 @@ export default function Forms({ onFetch }: FormsProps) {
                                 readOnly={true}
                             />
 
-                            <FormInput
-                                label='Not Confirmed Periods'
-                                name='notConfirmedPeriods'
-                                control={control}
-                                error={errors.notConfirmedPeriods?.message}
-                                readOnly={true}
-                            />
+                            <div className='flex items-end gap-2'>
+                                <div className='flex-1'>
+                                    <FormInput
+                                        label='Not Confirmed Periods'
+                                        name='notConfirmedPeriods'
+                                        control={control}
+                                        error={errors.notConfirmedPeriods?.message}
+                                        readOnly={true}
+                                    />
+                                </div>
+                                {counts.totalpending > 0 && (
+                                    <Dialog>
+                                        <DialogTrigger asChild>
+                                            <Button variant='outline' size='icon' className='mb-2' title='Show Pending Periods'>
+                                                <Eye className='h-4 w-4' />
+                                            </Button>
+                                        </DialogTrigger>
+                                        <DialogContent className='max-w-4xl max-h-[80vh] overflow-hidden flex flex-col'>
+                                            <DialogHeader>
+                                                <DialogTitle>Not Confirmed (Pending) Periods</DialogTitle>
+                                            </DialogHeader>
+                                            <ScrollArea className='flex-1 mt-4'>
+                                                <Table>
+                                                    <TableHeader>
+                                                        <TableRow>
+                                                            <TableHead>SL. NO.</TableHead>
+                                                            <TableHead>Class</TableHead>
+                                                            <TableHead>Section</TableHead>
+                                                            <TableHead>Staff</TableHead>
+                                                            <TableHead>Subject</TableHead>
+                                                            <TableHead>Day</TableHead>
+                                                            <TableHead>Period</TableHead>
+                                                        </TableRow>
+                                                    </TableHeader>
+                                                    <TableBody>
+                                                        {pendingPeriods.map((user, idx) => (
+                                                            <TableRow key={idx}>
+                                                                <TableCell>{idx + 1}</TableCell>
+                                                                <TableCell>{user.asmcL_ClassName}</TableCell>
+                                                                <TableCell>{user.asmC_SectionName}</TableCell>
+                                                                <TableCell>{user.staffName}</TableCell>
+                                                                <TableCell>{user.ismS_SubjectName}</TableCell>
+                                                                <TableCell>{user.ttmD_DayName}</TableCell>
+                                                                <TableCell>{user.ttmP_PeriodName}</TableCell>
+                                                            </TableRow>
+                                                        ))}
+                                                    </TableBody>
+                                                </Table>
+                                            </ScrollArea>
+                                        </DialogContent>
+                                    </Dialog>
+                                )}
+                            </div>
                         </div>
 
                         <div className='flex flex-wrap items-center justify-center gap-4 pt-6 border-t'>
@@ -272,6 +445,16 @@ export default function Forms({ onFetch }: FormsProps) {
                                     <RefreshCcw className='mr-2 h-4 w-4' />
                                 )}
                                 Generate TT
+                            </Button>
+
+                            <Button
+                                type='button'
+                                variant='outline'
+                                className='min-w-[140px] border-blue-200 hover:bg-blue-50'
+                                onClick={handleExportExcel}
+                                disabled={!asmaY_Id || !ttmC_Id}>
+                                <FileSpreadsheet className='mr-2 h-4 w-4 text-blue-600' />
+                                Check Workload
                             </Button>
 
                             <Button

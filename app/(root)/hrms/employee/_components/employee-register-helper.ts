@@ -43,20 +43,15 @@ export function mapFormDataToApiFormat(
     employeeId = 0,
     selectedPhoto: string | null = null
 ): SavePersonalDetailsApiRequest {
-    // Get mobile and email from arrays (take first/default)
-    const defaultMobile = data.mobileDetails?.[0]?.mobileNo || '';
-    const defaultEmail = data.emailDetails?.[0]?.emailId || '';
     // Get bank account from bank details (take first/default)
     const defaultBankAccount = data.bankDetails?.[0]?.bankAccountNo || '';
 
     // Construct Employee Object
     const employee: any = {
         hrmE_Id: employeeId,
-        HRME_Id: employeeId, // Alias for PascalCase backend requirements
-        mI_Id: HRMS_MI_ID, // Fixed: Use HRMS_MI_ID (30) instead of department ID
         hrmeT_Id: Number(data.typeOfEmployment) || 0,
         hrmgT_Id: Number(data.employeeGroup) || 0,
-        hrmD_Id: Number(data.department) || 0, // Map Department to hrmD_Id correctly
+        hrmD_Id: Number(data.department) || 0,
         hrmdeS_Id: Number(data.designation) || 0,
         hrmG_Id: Number(data.grade) || 0,
         hrmE_EmployeeFirstName: toNullIfEmpty(data.firstName),
@@ -96,8 +91,8 @@ export function mapFormDataToApiFormat(
         hrmE_ExpectedRetirementDate: data.dateOfRetirement ? new Date(data.dateOfRetirement).toISOString() : null,
         hrmE_PFDate: data.pfDate ? new Date(data.pfDate).toISOString() : null,
         hrmE_ESIDate: data.esiDate ? new Date(data.esiDate).toISOString() : null,
-        hrmE_MobileNo: Number(defaultMobile) || 0,
-        hrmE_EmailId: toNullIfEmpty(defaultEmail),
+        hrmE_MobileNo: Number(data.mobileDetails?.[0]?.mobileNo) || 0,
+        hrmE_EmailId: toNullIfEmpty(data.emailDetails?.[0]?.emailId),
         hrmE_BloodGroup: toNullIfEmpty(data.bloodGroup) || '',
         hrmE_PaymentType: toNullIfEmpty(data.modeOfPayment) || '',
         hrmE_BankAccountNo: toNullIfEmpty(defaultBankAccount) || '',
@@ -145,46 +140,38 @@ export function mapFormDataToApiFormat(
         hrmE_FPFNotApplicableFlg: !data.ppf,
         hrmE_EPFNotApplicableFlg: !data.epf,
         hrmE_AllowSoftwareAccessFlg: true,
-        // PascalCase Aliases for flat API requirements (Medical, Other details etc.)
-        MI_Id: HRMS_MI_ID,
-        HRMET_Id: Number(data.typeOfEmployment) || 0,
-        HRMGT_Id: Number(data.employeeGroup) || 0,
-        HRMD_Id: Number(data.department) || 0,
-        HRMDES_Id: Number(data.designation) || 0,
-        HRMG_Id: Number(data.grade) || 0,
-        HRME_Height: toNullIfEmpty(data.employeeHeight) || '',
-        HRME_HeightUOM: toNullIfEmpty(data.employeeHeightUnit) || '',
-        HRME_Weight: Number(data.employeeWeight) || 0,
-        HRME_WeightUOM: toNullIfEmpty(data.employeeHeightUnit) || '',
-        HRME_IdentificationMark: toNullIfEmpty(data.identificationMark) || '',
-        HRME_AnyHealthIssue: toNullIfEmpty(data.anyHealthIssue) || '',
-        HRME_EyeSightIssue: toNullIfEmpty(data.eyeSightIssue) || '',
-        // Aliases for validation requirements
-        EmployeePhoto: toNullIfEmpty(selectedPhoto) || '',
-        HrmeId: employeeId
-    };
-
-    // Construct Payload
-    const payload: any = {
-        employee: employee
-    };
-
-    // Add Bank Request if details exist
-    if (data.bankDetails && data.bankDetails.length > 0) {
-        payload.bankRequest = {
-            mI_Id: HRMS_MI_ID, // Use consistent HRMS_MI_ID (30)
+        // Mobile list nested inside employee
+        mobile_list_dto: (data.mobileDetails || []).map((mob: any, idx: number) => ({
+            hrmemnO_Id: mob.hrmemnO_Id || 0,
             hrmE_Id: employeeId,
-            bankDetails: data.bankDetails.map((bank: any) => ({
+            hrmemnO_MobileNo: Number(mob.mobileNo) || 0,
+            hrmemnO_DeFaultFlag: idx === 0 ? 'Y' : mob.type || 'Default'
+        })),
+        // Email list nested inside employee
+        email_list_dto: (data.emailDetails || []).map((email: any, idx: number) => ({
+            hrmeeM_Id: email.hrmeeM_Id || 0,
+            hrmE_Id: employeeId,
+            hrmeM_EmailId: email.emailId || '',
+            hrmeM_DeFaultFlag: idx === 0 ? 'Y' : email.type || 'Default'
+        }))
+    };
+
+    // bankRequest always present at top level
+    const bankRequest: any = {
+        mI_Id: HRMS_MI_ID,
+        hrmE_Id: employeeId,
+        bankDetails: (data.bankDetails && data.bankDetails.length > 0)
+            ? data.bankDetails.map((bank: any) => ({
                 hrmeB_Id: bank.hrmeB_Id || 0,
                 hrmE_Id: employeeId,
                 hrmbD_Id: Number(bank.employerBankName) || 0,
                 hrmeB_AccountNo: bank.bankAccountNo || '',
                 hrmeB_ActiveFlag: bank.isActive ?? true
             }))
-        };
-    }
+            : []
+    };
 
-    return payload;
+    return { employee, bankRequest };
 }
 
 /**
@@ -954,14 +941,18 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
     let mobileDetails =
         mobileData.length > 0
             ? mobileData.map((mobile: any, idx: number) => {
+                const rawFlag = getValue(mobile, 'hrmemnO_DeFaultFlag') || getValue(mobile, 'hrmemno_DeFaultFlag') || '';
+                const resolvedType = rawFlag === 'Y' ? 'Default' : (rawFlag || 'Default');
+
                 const mapped = {
+                    hrmemnO_Id: getValue(mobile, 'hrmemnO_Id') || getValue(mobile, 'hrmemno_Id') || 0,
                     mobileNo: numToString(
                         getValue(mobile, 'hrmemno_MobileNo') ||
                         getValue(mobile, 'hrmemnO_MobileNo') ||
                         getValue(mobile, 'hrmem_MobileNo') ||
                         getValue(mobile, 'hrmE_MobileNo')
                     ),
-                    type: getValue(mobile, 'hrmemno_DeFaultFlag') || 'Default'
+                    type: resolvedType
                 };
                 console.log(`  - mobile[${idx}] mapped to:`, mapped);
                 return mapped;
@@ -975,9 +966,9 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
         const primaryMobile = v('hrmE_MobileNo') || v('hrme_MobileNo') || v('MobileNo') || v('hrmE_Mobile_No') || v('hrmE_Phno');
         if (primaryMobile) {
             console.log('🔍 [DEBUG] Falling back to primary mobile number:', primaryMobile);
-            mobileDetails = [{ mobileNo: numToString(primaryMobile), type: 'Default' }];
+            mobileDetails = [{ hrmemnO_Id: 0, mobileNo: numToString(primaryMobile), type: 'Default' }];
         } else if (mobileDetails.length === 0) {
-            mobileDetails = [{ mobileNo: '', type: 'Default' }];
+            mobileDetails = [{ hrmemnO_Id: 0, mobileNo: '', type: 'Default' }];
         }
     }
     console.log('🔍 [DEBUG] final mobileDetails mapped:', mobileDetails);
@@ -985,13 +976,17 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
     const emailData = getArrayFromResponse('hrmem_EmailId', 'selectedemail_list_dto', 'emailList', 'email', 'selectedEmailList', 'selectedemail_list');
     const emailDetails =
         emailData.length > 0
-            ? emailData.map((email: any) => ({
-                emailId: getValue(email, 'hrmem_EmailId') || getValue(email, 'hrmeM_EmailId') || '',
-                type: getValue(email, 'hrmem_DeFaultFlag') || 'Default'
-            }))
+            ? emailData.map((email: any) => {
+                const rawEmailFlag = getValue(email, 'hrmem_DeFaultFlag') || '';
+                return {
+                    hrmeeM_Id: getValue(email, 'hrmeeM_Id') || getValue(email, 'hrmeM_Id') || 0,
+                    emailId: getValue(email, 'hrmem_EmailId') || getValue(email, 'hrmeM_EmailId') || '',
+                    type: rawEmailFlag === 'Y' ? 'Default' : (rawEmailFlag || 'Default')
+                };
+            })
             : (v('hrmE_EmailId') || v('hrme_EmailId') || v('EmailId'))
-                ? [{ emailId: v('hrmE_EmailId') || v('hrme_EmailId') || v('EmailId'), type: 'Default' }]
-                : [{ emailId: '', type: 'Default' }];
+                ? [{ hrmeeM_Id: 0, emailId: v('hrmE_EmailId') || v('hrme_EmailId') || v('EmailId'), type: 'Default' }]
+                : [{ hrmeeM_Id: 0, emailId: '', type: 'Default' }];
 
     // Map spouse fields (if they exist in API)
     const spouseDetails = {
@@ -1339,12 +1334,13 @@ export function mapApiResponseToTab1Fields(apiData: any): Partial<FormFields> {
     const mobileDetails =
         Array.isArray(mobileData) && mobileData.length > 0
             ? mobileData.map((mobile: any) => ({
+                hrmemnO_Id: getValue(mobile, 'hrmemnO_Id') || getValue(mobile, 'hrmemno_Id') || 0, // ADDED: ID preservation
                 mobileNo: numToString(getValue(mobile, 'hrmemno_MobileNo') || getValue(mobile, 'hrmemnO_MobileNo')),
                 type: getValue(mobile, 'hrmemno_DeFaultFlag') || 'Default'
             }))
             : v('hrmE_MobileNo')
-                ? [{ mobileNo: numToString(v('hrmE_MobileNo')), type: 'Default' }]
-                : [{ mobileNo: '', type: 'Default' }];
+                ? [{ hrmemnO_Id: 0, mobileNo: numToString(v('hrmE_MobileNo')), type: 'Default' }]
+                : [{ hrmemnO_Id: 0, mobileNo: '', type: 'Default' }];
 
     // Map email details
     let emailData = v('selectedemail_list_dto');
@@ -1360,12 +1356,13 @@ export function mapApiResponseToTab1Fields(apiData: any): Partial<FormFields> {
     const emailDetails =
         Array.isArray(emailData) && emailData.length > 0
             ? emailData.map((email: any) => ({
+                hrmeeM_Id: getValue(email, 'hrmeeM_Id') || getValue(email, 'hrmeM_Id') || 0, // ADDED: ID preservation
                 emailId: getValue(email, 'hrmem_EmailId') || getValue(email, 'hrmeM_EmailId') || '',
                 type: getValue(email, 'hrmem_DeFaultFlag') || 'Default'
             }))
             : v('hrmE_EmailId')
-                ? [{ emailId: v('hrmE_EmailId'), type: 'Default' }]
-                : [{ emailId: '', type: 'Default' }];
+                ? [{ hrmeeM_Id: 0, emailId: v('hrmE_EmailId'), type: 'Default' }]
+                : [{ hrmeeM_Id: 0, emailId: '', type: 'Default' }];
 
     // Return only Tab 1 fields (Employee Information)
     return {
@@ -1422,7 +1419,15 @@ export function mapApiResponseToTab1Fields(apiData: any): Partial<FormFields> {
         // Documents (Tab 1)
         panCardNo: v('hrmE_PANCardNo') || '',
         aadharNo: numToString(v('hrmE_AadharCardNo')),
-        nationalSSN: v('hrmE_NationalSSN') || ''
+        nationalSSN: v('hrmE_NationalSSN') || '',
+        // Map bank details (ADDED) - CRITICAL for re-sync
+        bankDetails: (v('employeebankDetails') || []).map((bank: any) => ({
+            hrmeB_Id: getValue(bank, 'hrmeB_Id') || 0,
+            employerBankName: numToString(getValue(bank, 'hrmbD_Id')),
+            bankAccountNo: getValue(bank, 'hrmeB_AccountNo') || '',
+            accountType: '',
+            isActive: getValue(bank, 'hrmeB_ActiveFlag') === 'Y' || getValue(bank, 'hrmeB_ActiveFlag') === true
+        }))
     } as any;
 }
 
@@ -1679,6 +1684,7 @@ export function mapApiResponseToTab5Fields(apiData: any): Partial<FormFields> {
     }
     const documentList = Array.isArray(docData)
         ? docData.map((doc: any) => ({
+            hrmedS_Id: getValue(doc, 'hrmedS_Id') || 0, // RE-ADDED: ID for re-sync
             documentName: getValue(doc, 'hrmedS_DocumentName') || '',
             documentDescription: getValue(doc, 'hrmedS_DucumentDescription') || '',
             document: null, // File will be handled separately if needed
@@ -1833,6 +1839,8 @@ export function mapFormDataToPascalCaseApiFormat(data: FormFields, employeeId: n
 
     // Map to the EXACT hybrid casing and structure requested by the user in Step 1220
     const payload: any = {
+        MI_Id: 30, // Required for API requests
+        mI_Id: 30,
         hrmE_Id: employeeId || 0,
         hrmeT_Id: Number(data.typeOfEmployment) || 0,
         hrmgT_Id: Number(data.employeeGroup) || 0,
@@ -1840,10 +1848,10 @@ export function mapFormDataToPascalCaseApiFormat(data: FormFields, employeeId: n
         hrmdeS_Id: Number(data.designation) || 0,
         hrmG_Id: Number(data.grade) || 0,
 
-        hrmE_EmployeeFirstName: data.firstName || 'string',
+        hrmE_EmployeeFirstName: data.firstName || '',
         hrmE_EmployeeMiddleName: data.middleName || '',
         hrmE_EmployeeLastName: data.lastName || '',
-        hrmE_EmployeeCode: data.employeeCode || 'string',
+        hrmE_EmployeeCode: data.employeeCode || '',
         hrmE_BiometricCode: data.biometricCode || '',
         hrmE_RFCardId: data.rfCardId || '',
 
@@ -1869,8 +1877,8 @@ export function mapFormDataToPascalCaseApiFormat(data: FormFields, employeeId: n
         casteId: Number(data.caste) || 0,
         religionId: Number(data.religion) || 0,
 
-        hrmE_FatherName: data.fatherName || 'string',
-        hrmE_MotherName: data.motherName || 'string',
+        hrmE_FatherName: data.fatherName || '',
+        hrmE_MotherName: data.motherName || '',
         hrmE_SpouseName: (data as any).spouseName || '',
         hrmE_SpouseOccupation: (data as any).spouseOccupation || '',
         hrmE_SpouseMobileNo: Number((data as any).spouseMobileNo) || 0,
@@ -1901,11 +1909,11 @@ export function mapFormDataToPascalCaseApiFormat(data: FormFields, employeeId: n
         hrmE_LeftFlag: !!data.employeeLeft,
         hrmE_DOL: data.lastWorkingDay ? new Date(data.lastWorkingDay).toISOString() : new Date().toISOString(),
         hrmE_LeavingReason: data.reasonForLeaving || '',
-        hrmE_Height: String(data.employeeHeight || '0'),
+        hrmE_Height: data.employeeHeight ? String(data.employeeHeight) : '0',
         hrmE_HeightUOM: data.employeeHeightUnit || '',
-        hrmE_Weight: Number(data.employeeWeight) || 0,
+        hrmE_Weight: data.employeeWeight ? Number(data.employeeWeight) : 0,
         hrmE_WeightUOM: data.employeeWeightUnit || '',
-        hrmE_IdentificationMark: data.identificationMark || 'string',
+        hrmE_IdentificationMark: data.identificationMark || '',
         hrmE_ApprovalNo: '',
         hrmE_PANCardNo: data.panCardNo || '',
         hrmE_AadharCardNo: Number(data.aadharNo) || 0,
@@ -1919,10 +1927,10 @@ export function mapFormDataToPascalCaseApiFormat(data: FormFields, employeeId: n
         hrmE_SubjectsTaught: data.subjectTaught || '',
         hrmE_AppDownloadedDeviceId: '',
         hrmE_PHDResearchGuideFlg: !!data.phdResearchGuide,
-        hrmE_TechNonTeachingFlg: data.teachingNonTeaching || 'string',
+        hrmE_TechNonTeachingFlg: data.teachingNonTeaching || '',
         hrmE_RGRecognitionYear: Number(data.recognitionYear) || 0,
-        hrmE_AnyHealthIssue: data.anyHealthIssue || 'string',
-        hrmE_EyeSightIssue: data.eyeSightIssue || 'string',
+        hrmE_AnyHealthIssue: data.anyHealthIssue || '',
+        hrmE_EyeSightIssue: data.eyeSightIssue || '',
         hrmE_TransfferedTo: 0,
         hrmE_RecordTransferredFlg: false,
         hrmE_MSTeamsUserId: '',

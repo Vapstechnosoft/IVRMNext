@@ -146,6 +146,9 @@ export default function DaySubjectAddForm({ academicList, dayList, subjectList, 
 
     const onSubmit = async (data: FixingDaySubjectSchema) => {
         try {
+
+            console.log("Payload sent to API:", data);   // 👈 payload
+
             if (!data.ttfdsU_SUbSelcFlag) {
                 data.tempararyArrayList = [];
             } else {
@@ -154,20 +157,24 @@ export default function DaySubjectAddForm({ academicList, dayList, subjectList, 
                     return;
                 }
             }
+
             const res = await saveFixingDaySubject(data);
+
+            console.log("API Response:", res);
+
             if (res?.returnval === true || res?.success === true) {
-                toast.success(res?.message || 'Record Saved Successfully');
+                toast.success(res.message);
                 reset();
                 onSuccess();
             } else {
-                toast.error(res?.message || 'Failed to save');
+                toast.error(res.message);
             }
+
         } catch (e) {
             console.error(e);
             toast.error('An error occurred');
         }
     };
-
     return (
         <Form {...form}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-4 bg-white p-4 shadow-sm'>

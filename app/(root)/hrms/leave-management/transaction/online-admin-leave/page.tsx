@@ -546,6 +546,7 @@ export default function OnlineAdminLeavePage() {
                                 </div>
                             </CardHeader>
                             <CardContent className='p-0'>
+
                                 <GenericDataTable
                                     columns={historyColumns}
                                     isLoading={isHistoryLoading}

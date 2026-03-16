@@ -14,17 +14,21 @@ export function SpinnerTimePicker({ value, onChange }: SpinnerTimePickerProps) {
     const hour = hasValue ? value.getHours() % 12 : undefined;
     const minute = hasValue ? value.getMinutes() : undefined;
     const isPM = hasValue ? value.getHours() >= 12 : false;
-
     const updateTime = (h: number | undefined, m: number | undefined, pm: boolean) => {
         const d = value ? new Date(value) : new Date();
+
         if (!value) {
-            d.setHours(0, 0, 0, 0); // Default to start of day if no value
+            d.setHours(0, 0, 0, 0);
         }
 
         let newHour = (h ?? 0) % 12;
         if (pm) newHour += 12;
+
         d.setHours(newHour);
         d.setMinutes(m ?? 0);
+        d.setSeconds(0); // ✅ force seconds to 0
+        d.setMilliseconds(0); // optional but good practice
+
         onChange(d);
     };
 
@@ -33,14 +37,14 @@ export function SpinnerTimePicker({ value, onChange }: SpinnerTimePickerProps) {
             {/* Hour */}
             <TimeColumn>
                 <ArrowUp onClick={() => updateTime((hour ?? 0) === 11 ? 0 : (hour ?? 0) + 1, minute ?? 0, isPM)} />
-                <InputBox value={hour} max={12} onChange={(v) => updateTime(v, minute ?? 0, isPM)} />
+                <InputBox value={hour} max={12} placeholder='HH' onChange={(v) => updateTime(v, minute ?? 0, isPM)} />
                 <ArrowDown onClick={() => updateTime((hour ?? 0) === 0 ? 11 : (hour ?? 0) - 1, minute ?? 0, isPM)} />
             </TimeColumn>
 
             {/* Minute */}
             <TimeColumn>
                 <ArrowUp onClick={() => updateTime(hour ?? 0, ((minute ?? 0) + 1) % 60, isPM)} />
-                <InputBox value={minute} max={59} pad onChange={(v) => updateTime(hour ?? 0, v, isPM)} />
+                <InputBox value={minute} max={59} placeholder='MM' pad onChange={(v) => updateTime(hour ?? 0, v, isPM)} />
                 <ArrowDown onClick={() => updateTime(hour ?? 0, ((minute ?? 0) + 59) % 60, isPM)} />
             </TimeColumn>
 
@@ -77,11 +81,13 @@ function InputBox({
     value,
     max,
     pad,
+    placeholder,
     onChange
 }: {
     value: number | undefined;
     max: number;
     pad?: boolean;
+    placeholder?: string;
     onChange: (v: number) => void;
 }) {
     const formatValue = (v: number | undefined) => {
@@ -120,14 +126,20 @@ function InputBox({
 
     const handleBlur = () => {
         if (inputValue === '') {
-            setInputValue('0');
-            onChange(0);
+            return;
         } else if (pad && inputValue !== '0') {
             setInputValue(inputValue.padStart(2, '0'));
         }
     };
 
     return (
-        <Input type='text' value={inputValue} onBlur={handleBlur} onChange={handleInputChange} className='w-14 text-center font-semibold' />
+        <Input
+            type='text'
+            value={inputValue}
+            placeholder={placeholder}
+            onBlur={handleBlur}
+            onChange={handleInputChange}
+            className='w-14 text-center font-semibold'
+        />
     );
 }

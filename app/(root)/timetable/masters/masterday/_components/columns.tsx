@@ -9,7 +9,7 @@ import { useCallback } from 'react';
 export const masterDayColumns: ColumnDef<IMasterDayList>[] = [
     {
         accessorKey: 'ttmD_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='font-bold text-blue-600' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='font-bold text-black' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -21,14 +21,14 @@ export const masterDayColumns: ColumnDef<IMasterDayList>[] = [
     },
     {
         accessorKey: 'ttmD_DayName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Day Name' className='font-bold text-blue-600' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Day Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('ttmD_DayName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'ttmD_DayCode',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Day Code' className='font-bold text-blue-600' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Day Code' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('ttmD_DayCode')}</div>,
         enableSorting: true,
         enableHiding: true
@@ -36,7 +36,7 @@ export const masterDayColumns: ColumnDef<IMasterDayList>[] = [
 
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='font-bold text-blue-600' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='font-bold text-black' />,
         accessorFn: (row: any) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />

@@ -12,19 +12,19 @@ import { useCallback } from 'react';
 export const MasterEventsColumns: ColumnDef<IMasterEvent>[] = [
     {
         accessorKey: 'sno',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
-        cell: (info) => info.row.index + 1,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='justify-center text-center font-bold text-black' />,
+        cell: (info) => <div className='text-center'>{info.row.index + 1}</div>,
         enableSorting: false
     },
     {
         accessorKey: 'coemE_EventName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Event Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Event Name' className='justify-center text-center font-bold text-black' />,
         cell: (info) => info.getValue() as string,
         enableSorting: true
     },
     {
         accessorKey: 'coemE_EventDesc',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Description' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Description' className='justify-center text-center font-bold text-black' />,
         cell: (info) => {
             const desc = info.getValue() as string | null;
             return <div className='max-w-md truncate'>{desc || '-'}</div>;
@@ -32,7 +32,7 @@ export const MasterEventsColumns: ColumnDef<IMasterEvent>[] = [
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center font-bold text-black' />,
         accessorFn: (row: any) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />

@@ -830,11 +830,14 @@ export default function AddPromotionalSettingForm({
                                             value={bestOff || ''}
                                             onChange={(e) => {
                                                 const value = e.target.value ? Number.parseInt(e.target.value) : null;
+                                                setBestOff(value);
+                                            }}
+                                            onBlur={(e) => {
+                                                const value = e.target.value ? Number.parseInt(e.target.value) : null;
                                                 if (value && value <= 0) {
                                                     toast.error('Best Off must be greater than 0');
-                                                    return;
+                                                    setBestOff(null);
                                                 }
-                                                setBestOff(value);
                                             }}
                                             className='w-32'
                                             min='1'
@@ -874,12 +877,14 @@ export default function AddPromotionalSettingForm({
                                                 type='number'
                                                 value={headerMaxMarks}
                                                 onChange={(e) => {
+                                                    setHeaderMaxMarks(e.target.value);
+                                                }}
+                                                onBlur={(e) => {
                                                     const value = e.target.value;
                                                     if (value && Number.parseFloat(value) > 1000) {
                                                         toast.error('Max Marks cannot exceed 1000');
-                                                        return;
+                                                        setHeaderMaxMarks('');
                                                     }
-                                                    setHeaderMaxMarks(value);
                                                 }}
                                                 placeholder='All'
                                                 className='h-8 text-sm'
@@ -980,15 +985,22 @@ export default function AddPromotionalSettingForm({
                                                     value={subject.EMPS_MaxMarks || ''}
                                                     onChange={(e) => {
                                                         const value = e.target.value ? Number.parseFloat(e.target.value) : null;
-                                                        if (value && value > 1000) {
-                                                            toast.error('Max Marks cannot exceed 1000');
-                                                            return;
-                                                        }
                                                         setSubjects((prev) =>
                                                             prev.map((s) =>
                                                                 s.ismS_Id === subject.ismS_Id ? { ...s, EMPS_MaxMarks: value } : s
                                                             )
                                                         );
+                                                    }}
+                                                    onBlur={(e) => {
+                                                        const value = e.target.value ? Number.parseFloat(e.target.value) : null;
+                                                        if (value && value > 1000) {
+                                                            toast.error('Max Marks cannot exceed 1000');
+                                                            setSubjects((prev) =>
+                                                                prev.map((s) =>
+                                                                    s.ismS_Id === subject.ismS_Id ? { ...s, EMPS_MaxMarks: null } : s
+                                                                )
+                                                            );
+                                                        }
                                                     }}
                                                     className='h-8 text-sm'
                                                 />
@@ -999,15 +1011,22 @@ export default function AddPromotionalSettingForm({
                                                     value={subject.EMPS_MinMarks || ''}
                                                     onChange={(e) => {
                                                         const value = e.target.value ? Number.parseFloat(e.target.value) : null;
-                                                        if (value && subject.EMPS_MaxMarks && value > subject.EMPS_MaxMarks) {
-                                                            toast.error('Min Marks cannot exceed Max Marks');
-                                                            return;
-                                                        }
                                                         setSubjects((prev) =>
                                                             prev.map((s) =>
                                                                 s.ismS_Id === subject.ismS_Id ? { ...s, EMPS_MinMarks: value } : s
                                                             )
                                                         );
+                                                    }}
+                                                    onBlur={(e) => {
+                                                        const value = e.target.value ? Number.parseFloat(e.target.value) : null;
+                                                        if (value && subject.EMPS_MaxMarks && value > subject.EMPS_MaxMarks) {
+                                                            toast.error('Min Marks cannot exceed Max Marks');
+                                                            setSubjects((prev) =>
+                                                                prev.map((s) =>
+                                                                    s.ismS_Id === subject.ismS_Id ? { ...s, EMPS_MinMarks: null } : s
+                                                                )
+                                                            );
+                                                        }
                                                     }}
                                                     className='h-8 text-sm'
                                                     disabled={!subject.EMPS_MaxMarks}
@@ -1019,19 +1038,30 @@ export default function AddPromotionalSettingForm({
                                                     value={subject.EMPS_ConvertForMarks || ''}
                                                     onChange={(e) => {
                                                         const value = e.target.value ? Number.parseFloat(e.target.value) : null;
-                                                        if (value && value > 1000) {
-                                                            toast.error('Converted Marks cannot exceed 1000');
-                                                            return;
-                                                        }
-                                                        if (value && subject.EMPS_MinMarks && value < subject.EMPS_MinMarks) {
-                                                            toast.error('Converted Marks cannot be less than Min Marks');
-                                                            return;
-                                                        }
                                                         setSubjects((prev) =>
                                                             prev.map((s) =>
                                                                 s.ismS_Id === subject.ismS_Id ? { ...s, EMPS_ConvertForMarks: value } : s
                                                             )
                                                         );
+                                                    }}
+                                                    onBlur={(e) => {
+                                                        const value = e.target.value ? Number.parseFloat(e.target.value) : null;
+                                                        let hasError = false;
+                                                        if (value && value > 1000) {
+                                                            toast.error('Converted Marks cannot exceed 1000');
+                                                            hasError = true;
+                                                        } else if (value && subject.EMPS_MinMarks && value < subject.EMPS_MinMarks) {
+                                                            toast.error('Converted Marks cannot be less than Min Marks');
+                                                            hasError = true;
+                                                        }
+
+                                                        if (hasError) {
+                                                            setSubjects((prev) =>
+                                                                prev.map((s) =>
+                                                                    s.ismS_Id === subject.ismS_Id ? { ...s, EMPS_ConvertForMarks: null } : s
+                                                                )
+                                                            );
+                                                        }
                                                     }}
                                                     className='h-8 text-sm'
                                                     disabled={!subject.EMPS_MaxMarks}

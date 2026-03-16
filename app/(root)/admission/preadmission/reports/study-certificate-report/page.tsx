@@ -25,7 +25,7 @@ import {
     useStudyCertificateAcademicYearChange,
     useStudyCertificateConductDetails,
     // useStudyCertificateSearchFilter, 
-    useStudyCertificateQR
+    useStudyCertificateQRMutation as useStudyCertificateQR
 } from '@/hooks/admission/preadmission/useReports';
 import { useStudentSearchFilter } from '@/hooks/admission/preadmission/useStudentTc';
 import { getExcelStudyCertificateReport } from '@/server/admission/preadmission/reports/month_end_report';
@@ -137,13 +137,22 @@ export default function CertificateReportPage() {
 
     const studyReport = useStudyCertificateDetails(reportParams, false);
     const characterReport = useStudyCertificateConductDetails(reportParams, false);
-    const qrcodeGen = useStudyCertificateQR({
-        ...reportParams,
-        ASMAY_Id: reportParams.ASMAY_Id?.toString(),
-        ASCISS_CertificateNo: `SC${reportParams.ASMAY_Id}${reportParams.AMST_Id}`,
-        ASCISS_HtmlTemplate: '<html><body><h1>Study Certificate</h1><p>This is to certify that...</p></body></html>',
-        ASCISS_PDFFileName: `Study_Certificate_${reportParams.AMST_Id}.pdf`
-    }, false);
+    const qrcodeGen = useStudyCertificateQR();
+
+    const generateQRCodePayload = (student: any) => {
+        const certType = certificateType === '0' ? 'Study' : 'Character';
+        const certCode = certificateType === '0' ? 'SC' : 'CC';
+        const studentName = student.studentnam?.replace(/\s+/g, '_') || 'Student';
+
+        return {
+            ...reportParams,
+            ASMAY_Id: reportParams.ASMAY_Id?.toString(),
+            AMST_Id: student.AMST_Id,
+            ASCISS_CertificateNo: `${certCode}${reportParams.ASMAY_Id}${student.AMST_Id}`,
+            ASCISS_HtmlTemplate: `<html><body><h1>${certType} Certificate</h1><p>This is to certify that ${student.studentnam} is a bonafide student...</p></body></html>`,
+            ASCISS_PDFFileName: `${certType}_Certificate_${studentName}_${student.AMST_Id}.pdf`
+        };
+    };
 
     const { data: qrcodeload } = useadmissionStudentsDropdown();
 
@@ -174,8 +183,9 @@ export default function CertificateReportPage() {
                 // Auto-generate QR Code if student exists
                 if (academicYearId && studentId && selectedDate) {
                     try {
-                        const qrRes = await qrcodeGen.refetch();
-                        const qrCode = (qrRes.data as any)?.ascisS_QRCode || (qrRes.data as any)?.data?.ascisS_QRCode;
+                        const firstStudent = studentListResult[0];
+                        const qrRes = await qrcodeGen.mutateAsync(generateQRCodePayload(firstStudent));
+                        const qrCode = (qrRes as any)?.ascisS_QRCode || (qrRes as any)?.data?.ascisS_QRCode;
 
                         if (qrCode) {
                             setGeneratedQrCode(qrCode);
@@ -206,8 +216,15 @@ export default function CertificateReportPage() {
         }
 
         try {
-            const res = await qrcodeGen.refetch();
-            const qrCode = (res.data as any)?.ascisS_QRCode || (res.data as any)?.data?.ascisS_QRCode;
+            const currentStudent = studentData?.studentList?.find((s: any) => s.AMST_Id === studentId) || studentData?.studentList?.[0];
+
+            if (!currentStudent) {
+                toast.error('Student data not found for QR generation');
+                return;
+            }
+
+            const res = await qrcodeGen.mutateAsync(generateQRCodePayload(currentStudent));
+            const qrCode = (res as any)?.ascisS_QRCode || (res as any)?.data?.ascisS_QRCode;
 
             if (qrCode) {
                 setGeneratedQrCode(qrCode);
@@ -606,36 +623,13 @@ export default function CertificateReportPage() {
                 </div>
             </CollapsibleSection>
 
-            {/* Hidden Print Container - This is what react-to-print will capture */}
-            <div style={{ position: 'fixed', left: '-10000px', top: 0 }}>
-                {studentData && (
-                    certificateType === '0' ? (
-                        <StudyCertificate
-                            ref={printRef}
-                            data={studentData}
-                            selectedDate={selectedDate}
-                            addressType={addressType}
-                            parentType={parentType}
-                            qrCode={generatedQrCode}
-                            academicYearData={selectedAcademicYearData}
-                        />
-                    ) : (
-                        <CharacterCertificate
-                            ref={printRef}
-                            data={studentData}
-                            selectedDate={selectedDate}
-                            qrCode={generatedQrCode}
-                        />
-                    )
-                )}
-            </div>
-
             {/* UI Certificate Display (Preview Only) */}
             {showCertificate && studentData && (
                 <div className='mt-8 flex justify-center overflow-x-auto p-4 bg-gray-100 rounded-xl border-2 border-dashed border-gray-300'>
                     <div className='bg-white shadow-2xl origin-top transition-none'>
                         {certificateType === '0' ? (
                             <StudyCertificate
+                                ref={printRef}
                                 data={studentData}
                                 selectedDate={selectedDate}
                                 addressType={addressType}
@@ -645,6 +639,7 @@ export default function CertificateReportPage() {
                             />
                         ) : (
                             <CharacterCertificate
+                                ref={printRef}
                                 data={studentData}
                                 selectedDate={selectedDate}
                                 qrCode={generatedQrCode}

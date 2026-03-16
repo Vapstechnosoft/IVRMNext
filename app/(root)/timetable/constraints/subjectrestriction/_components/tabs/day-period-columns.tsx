@@ -64,19 +64,7 @@ export const columns: ColumnDef<IDayPeriodList>[] = [
         header: ({ column }) => <DataTableColumnHeader column={column} title='Period' />,
         cell: ({ row }) => <div>{row.getValue('ttmP_PeriodName')}</div>
     },
-    {
-        accessorKey: 'ttrdP_ActiveFlag',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Active' />,
-        cell: ({ row }) => (
-            <div>
-                {row.original.ttrdP_ActiveFlag ? (
-                    <span className='rounded bg-green-100 px-2 py-1 text-green-800 text-xs font-semibold'>Active</span>
-                ) : (
-                    <span className='rounded bg-red-100 px-2 py-1 text-red-800 text-xs font-semibold'>Inactive</span>
-                )}
-            </div>
-        )
-    },
+
     {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' />,

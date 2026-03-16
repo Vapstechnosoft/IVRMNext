@@ -9,7 +9,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
     useAcademicYearDropdown,
-    useMasterClass,
+    //useMasterClass,
+    useMasterClassDropdown,
     useMasterSectionDropdown,
     useMasterStudentList
 } from '@/hooks/admission/preadmission/useMasters';
@@ -63,7 +64,7 @@ export default function MasterActiveDeactiveStudentPage(props: {
 
     const { data: academicYear, isLoading: ayLoading } = useAcademicYearDropdown();
 
-    const { data: masterClass, isLoading: preadmissionClassLoading, isError: preadmissionClassError } = useMasterClass();
+    const { data: masterClass, isLoading: preadmissionClassLoading, isError: preadmissionClassError } = useMasterClassDropdown();
 
     const {
         control,
