@@ -2799,14 +2799,6 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/leave-management/transaction/online-admin-leave',
                                             title: 'Online Admin Leave',
                                             description: 'Apply for On Duty Leave'
-                                        },
-                                        {
-                                            id: 9,
-                                            name: 'Leave Details',
-                                            icon: 'info',
-                                            url: '/hrms/leave-management/transaction/leave-details',
-                                            title: 'Leave Details',
-                                            description: 'Leave Details'
                                         }
                                     ]
                                 },
@@ -3373,6 +3365,120 @@ export async function getUserAccessibleModules() {
                                         //     title: 'Alumni Student Birthday Report',
                                         //     description: 'Report of student birthdays in alumni community'
                                         // }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    id: 15,
+                    name: 'Visitor Management',
+                    icon: 'Users',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Transactions',
+                            icon: 'FileText',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Visitor Transactions',
+                                    icon: 'FileText',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Add Visitor',
+                                            icon: 'UserPlus',
+                                            url: '/visitors-management/transactions/add-visitor',
+                                            title: 'Add Visitor',
+                                            description: 'Add New Visitor'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Visitor Appointment',
+                                            icon: 'CalendarDays',
+                                            url: '/visitors-management/transactions/visitor-appointment',
+                                            title: 'Visitor Appointment',
+                                            description: 'Schedule Visitor Appointment'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Inward Entry',
+                                            icon: 'ArrowDownLeft',
+                                            url: '/visitors-management/transactions/inward',
+                                            title: 'Inward Entry',
+                                            description: 'Manage Visitor Inward Entry'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Outward Entry',
+                                            icon: 'ArrowUpRight',
+                                            url: '/visitors-management/transactions/outward',
+                                            title: 'Outward Entry',
+                                            description: 'Manage Visitor Outward Entry'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Gate Pass',
+                                            icon: 'Ticket',
+                                            url: '/visitors-management/transactions/gate-pass',
+                                            title: 'Gate Pass',
+                                            description: 'Generate Visitor Gate Pass'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+
+                        {
+                            id: 2,
+                            name: 'Masters',
+                            icon: 'Database',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Visitor Masters',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Master Location',
+                                            icon: 'MapPin',
+                                            url: '/visitors-management/masters/location',
+                                            title: 'Master Location',
+                                            description: 'Manage Visitor Locations'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            id: 3,
+                            name: 'Reports',
+                            icon: 'BarChart3',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Visitor Reports',
+                                    icon: 'BarChart3',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Visitor Report',
+                                            icon: 'FileBarChart',
+                                            url: '/visitors-management/reports/visitor-report',
+                                            title: 'Visitor Report',
+                                            description: 'View Visitor Reports'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Gate Pass Report',
+                                            icon: 'FileText',
+                                            url: '/visitors-management/reports/gate-pass-report',
+                                            title: 'Gate Pass Report',
+                                            description: 'View Gate Pass Reports'
+                                        }
                                     ]
                                 }
                             ]
@@ -4254,8 +4360,7 @@ export async function getUserAccessibleModules() {
                 //             ]
                 //         }
                 //     ]
-                // },
-
+                // }
                 {
                     id: 10,
                     name: 'Inventory Management',
@@ -4905,324 +5010,323 @@ export async function getUserAccessibleModules() {
                 //             ]
                 //         }
                 //     ]
-                //}
-                ,
-                {
-                    id: 11,
-                    name: 'Sports Management',
-                    icon: 'Trophy',
-                    menu: [
-                        {
-                            id: 1,
-                            name: 'Sports Management',
-                            icon: 'Activity',
-                            sub_menu: [
-                                {
-                                    id: 1,
-                                    name: 'Masters',
-                                    icon: 'Database',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Events',
-                                            icon: 'Trophy',
-                                            url: '/Sports/Masters/Events',
-                                            title: 'Sports Events',
-                                            description: 'Manage Sports Events'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Venue',
-                                            icon: 'Trophy',
-                                            url: '/Sports/Masters/Venue',
-                                            title: 'Sports Venue',
-                                            description: 'Manage Sports Venue'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Program Master',
-                                            icon: 'Trophy',
-                                            url: '/Sports/Masters/ProgramMaster',
-                                            title: 'Program Master',
-                                            description: 'Manage Program Master'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'Master Sponsor',
-                                            icon: 'Trophy',
-                                            url: '/Sports/Masters/Sponsors',
-                                            title: 'Master Sponsor',
-                                            description: 'Manage Master Sponsor'
-                                        },
-                                        {
-                                            id: 5,
-                                            name: 'Master Division',
-                                            icon: 'Trophy',
-                                            url: '/Sports/Masters/Division',
-                                            title: 'Master Division',
-                                            description: 'Manage Master Division'
-                                        },
-                                        {
-                                            id: 6,
-                                            name: 'Competition Level',
-                                            icon: 'Trophy',
-                                            url: '/Sports/Masters/CompetitionLevel',
-                                            title: 'Master Competition Level',
-                                            description: 'Manage Master Competition Level'
-                                        },
-                                        {
-                                            id: 7,
-                                            name: 'Master UOM',
-                                            icon: 'Trophy',
-                                            url: '/Sports/Masters/UOM',
-                                            title: 'Master UOM',
-                                            description: 'Manage Master UOM'
-                                        },
-                                        {
-                                            id: 8,
-                                            name: 'Master House',
-                                            icon: 'Trophy',
-                                            url: '/Sports/Masters/House',
-                                            title: 'Master House',
-                                            description: 'Manage Master House'
-                                        },
-                                        {
-                                            id: 9,
-                                            name: 'Master House Designation',
-                                            icon: 'Trophy',
-                                            url: '/Sports/Masters/HouseDesignation',
-                                            title: 'Master House Designation',
-                                            description: 'Manage Master House Designation'
-                                        },
-                                        {
-                                            id: 10,
-                                            name: 'Master Sports CC Group',
-                                            icon: 'Trophy',
-                                            url: '/Sports/Masters/MasterSportsCCGroup',
-                                            title: 'Master Sports CC Group',
-                                            description: 'Manage Master Sports CC Group'
-                                        },
-                                        {
-                                            id: 11,
-                                            name: 'Master Competition Category',
-                                            icon: 'Trophy',
-                                            url: '/Sports/Masters/CompetitionCategory',
-                                            title: 'Master Competition Category',
-                                            description: 'Manage Master Competition Category'
-                                        },
-                                        {
-                                            id: 12,
-                                            name: 'Master Sports CC Name UOM',
-                                            icon: 'Trophy',
-                                            url: '/Sports/Masters/SportsCCNameUOM',
-                                            title: 'Master Sports CC Name UOM',
-                                            description: 'Manage Master Sports CC Name UOM'
-                                        },
-                                        {
-                                            id: 13,
-                                            name: 'Student House Mapping',
-                                            icon: 'Trophy',
-                                            url: '/Sports/Masters/StudentHouseMapping',
-                                            title: 'Student House Mapping',
-                                            description: 'Map Students to Houses'
-                                        },
-                                        {
-                                            id: 14,
-                                            name: 'Master SportsCC Name',
-                                            icon: 'Settings',
-                                            url: '/Sports/Masters/SportsCCName',
-                                            title: 'Master SportsCC Name',
-                                            description: 'Manage Master SportsCC Name'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 2,
-                                    name: 'Transactions',
-                                    icon: 'Activity',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Events Sponsor Mapping',
-                                            icon: 'Activity',
-                                            url: '/Sports/Transactions/EventsSponsorMapping',
-                                            title: 'Events Sponsor Mapping',
-                                            description: 'Manage Events Sponsor Mapping'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'BMI Calculation',
-                                            icon: 'Activity',
-                                            url: '/Sports/Transactions/BMICalculation',
-                                            title: 'BMI Calculation',
-                                            description: 'Manage BMI Calculation'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Student Age Calculation',
-                                            icon: 'Activity',
-                                            url: '/Sports/Transactions/StudentAgeCalculation',
-                                            title: 'Student Age Calculation',
-                                            description: 'Manage Student Age Calculation'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'Sport Venuewise Participation Report',
-                                            icon: 'Activity',
-                                            url: '/Sports/Transactions/SportVenuewiseParticipationReport',
-                                            title: 'Sport Venuewise Participation Report',
-                                            description: 'Manage Sport Venuewise Participation Report'
-                                        },
-                                        {
-                                            id: 5,
-                                            name: 'Events Mapping',
-                                            icon: 'Activity',
-                                            url: '/Sports/Transactions/EventsMapping',
-                                            title: 'Events Mapping',
-                                            description: 'Manage Events Mapping'
-                                        },
-                                        {
-                                            id: 6,
-                                            name: 'Events Student Mapping',
-                                            icon: 'Activity',
-                                            url: '/Sports/Transactions/EventsStudentMapping',
-                                            title: 'Events Student Mapping',
-                                            description: 'Manage Events Student Mapping'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 3,
-                                    name: 'Reports',
-                                    icon: 'FileText',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Student Eligible Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/StudentEligbleReport',
-                                            title: 'Student Eligible Report',
-                                            description: 'Generate Student Eligible Report'
-                                        },
+                // },
+                // {
+                //     id: 11,
+                //     name: 'Sports Management',
+                //     icon: 'Trophy',
+                //     menu: [
+                //         {
+                //             id: 1,
+                //             name: 'Sports Management',
+                //             icon: 'Activity',
+                //             sub_menu: [
+                //                 {
+                //                     id: 1,
+                //                     name: 'Masters',
+                //                     icon: 'Database',
+                //                     pages: [
+                //                         {
+                //                             id: 1,
+                //                             name: 'Events',
+                //                             icon: 'Trophy',
+                //                             url: '/Sports/Masters/Events',
+                //                             title: 'Sports Events',
+                //                             description: 'Manage Sports Events'
+                //                         },
+                //                         {
+                //                             id: 2,
+                //                             name: 'Venue',
+                //                             icon: 'Trophy',
+                //                             url: '/Sports/Masters/Venue',
+                //                             title: 'Sports Venue',
+                //                             description: 'Manage Sports Venue'
+                //                         },
+                //                         {
+                //                             id: 3,
+                //                             name: 'Program Master',
+                //                             icon: 'Trophy',
+                //                             url: '/Sports/Masters/ProgramMaster',
+                //                             title: 'Program Master',
+                //                             description: 'Manage Program Master'
+                //                         },
+                //                         {
+                //                             id: 4,
+                //                             name: 'Master Sponsor',
+                //                             icon: 'Trophy',
+                //                             url: '/Sports/Masters/Sponsors',
+                //                             title: 'Master Sponsor',
+                //                             description: 'Manage Master Sponsor'
+                //                         },
+                //                         {
+                //                             id: 5,
+                //                             name: 'Master Division',
+                //                             icon: 'Trophy',
+                //                             url: '/Sports/Masters/Division',
+                //                             title: 'Master Division',
+                //                             description: 'Manage Master Division'
+                //                         },
+                //                         {
+                //                             id: 6,
+                //                             name: 'Competition Level',
+                //                             icon: 'Trophy',
+                //                             url: '/Sports/Masters/CompetitionLevel',
+                //                             title: 'Master Competition Level',
+                //                             description: 'Manage Master Competition Level'
+                //                         },
+                //                         {
+                //                             id: 7,
+                //                             name: 'Master UOM',
+                //                             icon: 'Trophy',
+                //                             url: '/Sports/Masters/UOM',
+                //                             title: 'Master UOM',
+                //                             description: 'Manage Master UOM'
+                //                         },
+                //                         {
+                //                             id: 8,
+                //                             name: 'Master House',
+                //                             icon: 'Trophy',
+                //                             url: '/Sports/Masters/House',
+                //                             title: 'Master House',
+                //                             description: 'Manage Master House'
+                //                         },
+                //                         {
+                //                             id: 9,
+                //                             name: 'Master House Designation',
+                //                             icon: 'Trophy',
+                //                             url: '/Sports/Masters/HouseDesignation',
+                //                             title: 'Master House Designation',
+                //                             description: 'Manage Master House Designation'
+                //                         },
+                //                         {
+                //                             id: 10,
+                //                             name: 'Master Sports CC Group',
+                //                             icon: 'Trophy',
+                //                             url: '/Sports/Masters/MasterSportsCCGroup',
+                //                             title: 'Master Sports CC Group',
+                //                             description: 'Manage Master Sports CC Group'
+                //                         },
+                //                         {
+                //                             id: 11,
+                //                             name: 'Master Competition Category',
+                //                             icon: 'Trophy',
+                //                             url: '/Sports/Masters/CompetitionCategory',
+                //                             title: 'Master Competition Category',
+                //                             description: 'Manage Master Competition Category'
+                //                         },
+                //                         {
+                //                             id: 12,
+                //                             name: 'Master Sports CC Name UOM',
+                //                             icon: 'Trophy',
+                //                             url: '/Sports/Masters/SportsCCNameUOM',
+                //                             title: 'Master Sports CC Name UOM',
+                //                             description: 'Manage Master Sports CC Name UOM'
+                //                         },
+                //                         {
+                //                             id: 13,
+                //                             name: 'Student House Mapping',
+                //                             icon: 'Trophy',
+                //                             url: '/Sports/Masters/StudentHouseMapping',
+                //                             title: 'Student House Mapping',
+                //                             description: 'Map Students to Houses'
+                //                         },
+                //                         {
+                //                             id: 14,
+                //                             name: 'Master SportsCC Name',
+                //                             icon: 'Settings',
+                //                             url: '/Sports/Masters/SportsCCName',
+                //                             title: 'Master SportsCC Name',
+                //                             description: 'Manage Master SportsCC Name'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 2,
+                //                     name: 'Transactions',
+                //                     icon: 'Activity',
+                //                     pages: [
+                //                         {
+                //                             id: 1,
+                //                             name: 'Events Sponsor Mapping',
+                //                             icon: 'Activity',
+                //                             url: '/Sports/Transactions/EventsSponsorMapping',
+                //                             title: 'Events Sponsor Mapping',
+                //                             description: 'Manage Events Sponsor Mapping'
+                //                         },
+                //                         {
+                //                             id: 2,
+                //                             name: 'BMI Calculation',
+                //                             icon: 'Activity',
+                //                             url: '/Sports/Transactions/BMICalculation',
+                //                             title: 'BMI Calculation',
+                //                             description: 'Manage BMI Calculation'
+                //                         },
+                //                         {
+                //                             id: 3,
+                //                             name: 'Student Age Calculation',
+                //                             icon: 'Activity',
+                //                             url: '/Sports/Transactions/StudentAgeCalculation',
+                //                             title: 'Student Age Calculation',
+                //                             description: 'Manage Student Age Calculation'
+                //                         },
+                //                         {
+                //                             id: 4,
+                //                             name: 'Sport Venuewise Participation Report',
+                //                             icon: 'Activity',
+                //                             url: '/Sports/Transactions/SportVenuewiseParticipationReport',
+                //                             title: 'Sport Venuewise Participation Report',
+                //                             description: 'Manage Sport Venuewise Participation Report'
+                //                         },
+                //                         {
+                //                             id: 5,
+                //                             name: 'Events Mapping',
+                //                             icon: 'Activity',
+                //                             url: '/Sports/Transactions/EventsMapping',
+                //                             title: 'Events Mapping',
+                //                             description: 'Manage Events Mapping'
+                //                         },
+                //                         {
+                //                             id: 6,
+                //                             name: 'Events Student Mapping',
+                //                             icon: 'Activity',
+                //                             url: '/Sports/Transactions/EventsStudentMapping',
+                //                             title: 'Events Student Mapping',
+                //                             description: 'Manage Events Student Mapping'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 3,
+                //                     name: 'Reports',
+                //                     icon: 'FileText',
+                //                     pages: [
+                //                         {
+                //                             id: 1,
+                //                             name: 'Student Eligible Report',
+                //                             icon: 'FileText',
+                //                             url: '/Sports/Reports/StudentEligbleReport',
+                //                             title: 'Student Eligible Report',
+                //                             description: 'Generate Student Eligible Report'
+                //                         },
 
-                                        {
-                                            id: 2,
-                                            name: 'Student Age Calculation Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/StudentAgeCalculationReport',
-                                            title: 'Student Age Calculation Report',
-                                            description: 'Student Age Calculation Report'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'BMI Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/BMIReport',
-                                            title: 'BMI Report',
-                                            description: 'BMI Report'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'Sport House Committee Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/SportHouseCommitteeReport',
-                                            title: 'Sport House Committee Report',
-                                            description: 'Sport House Committee Report'
-                                        },
-                                        {
-                                            id: 5,
-                                            name: 'House Incharge Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/HouseInchargeReport',
-                                            title: 'House Incharge Report',
-                                            description: 'House Incharge Report'
-                                        },
-                                        {
-                                            id: 6,
-                                            name: 'Sport House Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/SportHouseReport',
-                                            title: 'Sport House Report',
-                                            description: 'Sport House Report'
-                                        },
-                                        // {
-                                        //     id: 7,
-                                        //     name: 'Sport Student Participation Report',
-                                        //     icon: 'FileText',
-                                        //     url: '/Sports/Reports/SportStudentParticipationReport',
-                                        //     title: 'Sport Student Participation Report',
-                                        //     description: 'Sport Student Participation Report'
-                                        // },
-                                        {
-                                            id: 8,
-                                            name: 'Sport Topper List Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/SportTopperListReport',
-                                            title: 'Sport Topper List Report',
-                                            description: 'Sport Topper List Report'
-                                        },
-                                        {
-                                            id: 9,
-                                            name: 'Sports Year End Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/SportsYearEndReport',
-                                            title: 'Sports Year End Report',
-                                            description: 'Sports Year End Report'
-                                        },
-                                        {
-                                            id: 10,
-                                            name: 'SRKVS Sports Report Record',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/SRKVSSportsReportRecord',
-                                            title: 'SRKVS Sports Report Record',
-                                            description: 'View SRKVS Sports Report Record'
-                                        },
-                                        {
-                                            id: 11,
-                                            name: 'Venue Wise Participation',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/VenueWiseParticipationReport',
-                                            title: 'Venue Wise Participation',
-                                            description: 'View Venue Wise Participation Report'
-                                        },
-                                        {
-                                            id: 12,
-                                            name: 'Month End Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/MonthEndReport',
-                                            title: 'Month End Report',
-                                            description: 'View Month End Report'
-                                        },
-                                        {
-                                            id: 13,
-                                            name: 'Points Record Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/PointsRecordReport',
-                                            title: 'Points Record Report',
-                                            description: 'View Points Record Report'
-                                        },
-                                        {
-                                            id: 14,
-                                            name: 'Sport Points And Record Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/SportPointsAndRecordReport',
-                                            title: 'Sport Points And Record Report',
-                                            description: 'View Sport Points And Record Report'
-                                        },
-                                        {
-                                            id: 15,
-                                            name: 'Eligibility Certificate Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/EligibilityCertificateReport',
-                                            title: 'Eligibility Certificate Report',
-                                            description: 'Generate Eligibility Certificate Report'
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                },
+                //                         {
+                //                             id: 2,
+                //                             name: 'Student Age Calculation Report',
+                //                             icon: 'FileText',
+                //                             url: '/Sports/Reports/StudentAgeCalculationReport',
+                //                             title: 'Student Age Calculation Report',
+                //                             description: 'Student Age Calculation Report'
+                //                         },
+                //                         {
+                //                             id: 3,
+                //                             name: 'BMI Report',
+                //                             icon: 'FileText',
+                //                             url: '/Sports/Reports/BMIReport',
+                //                             title: 'BMI Report',
+                //                             description: 'BMI Report'
+                //                         },
+                //                         {
+                //                             id: 4,
+                //                             name: 'Sport House Committee Report',
+                //                             icon: 'FileText',
+                //                             url: '/Sports/Reports/SportHouseCommitteeReport',
+                //                             title: 'Sport House Committee Report',
+                //                             description: 'Sport House Committee Report'
+                //                         },
+                //                         {
+                //                             id: 5,
+                //                             name: 'House Incharge Report',
+                //                             icon: 'FileText',
+                //                             url: '/Sports/Reports/HouseInchargeReport',
+                //                             title: 'House Incharge Report',
+                //                             description: 'House Incharge Report'
+                //                         },
+                //                         {
+                //                             id: 6,
+                //                             name: 'Sport House Report',
+                //                             icon: 'FileText',
+                //                             url: '/Sports/Reports/SportHouseReport',
+                //                             title: 'Sport House Report',
+                //                             description: 'Sport House Report'
+                //                         },
+                //                         // {
+                //                         //     id: 7,
+                //                         //     name: 'Sport Student Participation Report',
+                //                         //     icon: 'FileText',
+                //                         //     url: '/Sports/Reports/SportStudentParticipationReport',
+                //                         //     title: 'Sport Student Participation Report',
+                //                         //     description: 'Sport Student Participation Report'
+                //                         // },
+                //                         {
+                //                             id: 8,
+                //                             name: 'Sport Topper List Report',
+                //                             icon: 'FileText',
+                //                             url: '/Sports/Reports/SportTopperListReport',
+                //                             title: 'Sport Topper List Report',
+                //                             description: 'Sport Topper List Report'
+                //                         },
+                //                         {
+                //                             id: 9,
+                //                             name: 'Sports Year End Report',
+                //                             icon: 'FileText',
+                //                             url: '/Sports/Reports/SportsYearEndReport',
+                //                             title: 'Sports Year End Report',
+                //                             description: 'Sports Year End Report'
+                //                         },
+                //                         {
+                //                             id: 10,
+                //                             name: 'SRKVS Sports Report Record',
+                //                             icon: 'FileText',
+                //                             url: '/Sports/Reports/SRKVSSportsReportRecord',
+                //                             title: 'SRKVS Sports Report Record',
+                //                             description: 'View SRKVS Sports Report Record'
+                //                         },
+                //                         {
+                //                             id: 11,
+                //                             name: 'Venue Wise Participation',
+                //                             icon: 'FileText',
+                //                             url: '/Sports/Reports/VenueWiseParticipationReport',
+                //                             title: 'Venue Wise Participation',
+                //                             description: 'View Venue Wise Participation Report'
+                //                         },
+                //                         {
+                //                             id: 12,
+                //                             name: 'Month End Report',
+                //                             icon: 'FileText',
+                //                             url: '/Sports/Reports/MonthEndReport',
+                //                             title: 'Month End Report',
+                //                             description: 'View Month End Report'
+                //                         },
+                //                         {
+                //                             id: 13,
+                //                             name: 'Points Record Report',
+                //                             icon: 'FileText',
+                //                             url: '/Sports/Reports/PointsRecordReport',
+                //                             title: 'Points Record Report',
+                //                             description: 'View Points Record Report'
+                //                         },
+                //                         {
+                //                             id: 14,
+                //                             name: 'Sport Points And Record Report',
+                //                             icon: 'FileText',
+                //                             url: '/Sports/Reports/SportPointsAndRecordReport',
+                //                             title: 'Sport Points And Record Report',
+                //                             description: 'View Sport Points And Record Report'
+                //                         },
+                //                         {
+                //                             id: 15,
+                //                             name: 'Eligibility Certificate Report',
+                //                             icon: 'FileText',
+                //                             url: '/Sports/Reports/EligibilityCertificateReport',
+                //                             title: 'Eligibility Certificate Report',
+                //                             description: 'Generate Eligibility Certificate Report'
+                //                         }
+                //                     ]
+                //                 }
+                //             ]
+                //         }
+                //     ]
+                // },
                 // {
                 //     id: 8,
                 //     name: 'Hostel Management',

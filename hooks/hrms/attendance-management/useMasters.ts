@@ -109,7 +109,7 @@ export const useMasterHoliday = (searchParams?: ApiSearchparams) => {
             const result = queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.MASTER_HOLIDAY]
             });
-            result.then(() => {}).catch((error) => {});
+            result.then(() => { }).catch((error) => { });
             return result;
         }
     };
@@ -154,11 +154,11 @@ export const useDeleteMasterHoliday = () => {
 };
 
 // Hook to get dates for selected days
-export const useHolidayDatesForDays = (request?: { calendarYear: string; holidayType: string; selectedDays: string[] }, enabled = true) => {
+export const useHolidayDatesForDays = (request?: { hrmlY_Id: number; days: string }, enabled = true) => {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.MASTER_HOLIDAY, 'dates', request],
         queryFn: async () => {
-            if (!request || !request.calendarYear || !request.holidayType || !request.selectedDays || request.selectedDays.length === 0) {
+            if (!request || !request.hrmlY_Id || !request.days) {
                 return { data: [], success: true };
             }
             return await getHolidayDatesForDays(request);
@@ -166,10 +166,8 @@ export const useHolidayDatesForDays = (request?: { calendarYear: string; holiday
         enabled:
             enabled &&
             !!request &&
-            !!request.calendarYear &&
-            !!request.holidayType &&
-            !!request.selectedDays &&
-            request.selectedDays.length > 0,
+            !!request.hrmlY_Id &&
+            !!request.days,
         staleTime: 0
     });
 };
