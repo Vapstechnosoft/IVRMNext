@@ -1,6 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { format } from 'date-fns';
+import { FileSpreadsheet, Printer, RotateCcw, Save } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { useReactToPrint } from 'react-to-print';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -21,6 +24,14 @@ export default function MonthendreportPage() {
     const [showReport, setShowReport] = useState(false);
     const [reportData, setReportData] = useState<ReportItem[]>([]);
     const [logo, setLogo] = useState<string>('/school-logo.png');
+    const [institutionDetails, setInstitutionDetails] = useState<any[]>([]);
+
+    const printRef = useRef<HTMLDivElement>(null);
+
+    const handlePrint = useReactToPrint({
+        contentRef: printRef,
+        documentTitle: 'MonthEndReport'
+    });
 
     const requestData = {
         ASMAY_Id: academicYearId,
@@ -65,6 +76,9 @@ export default function MonthendreportPage() {
         setSelectedMonth('');
         setSelectedYear(0);
         setImplementationName('');
+        setShowReport(false);
+        setReportData([]);
+        setInstitutionDetails([]);
     };
 
     // Handle Report Generate
@@ -82,11 +96,16 @@ export default function MonthendreportPage() {
             const res = await refetch();
             toast.dismiss(toastId);
 
-            const reportList = res?.data?.data?.reportdatelist || (Array.isArray(res?.data?.data) ? res.data.data : []);
+            const data = res?.data?.data;
+            const monthEndResponse = data?.monthEndResponse;
+            const reportList = monthEndResponse?.reportdatelist || (Array.isArray(data) ? data : []);
+            const instDetails = data?.institutionDetails || [];
+
             if (reportList?.length) {
                 const r = reportList[0];
-                const fetchedLogo = res?.data?.data?.amC_logo?.[0] || r.MI_Logo || r.mI_Logo || r.mi_logo || '/school-logo.png';
+                const fetchedLogo = instDetails[0]?.mI_Logo || monthEndResponse?.amC_logo?.[0] || r.MI_Logo || r.mI_Logo || r.mi_logo;
                 setLogo(fetchedLogo);
+                setInstitutionDetails(instDetails);
 
                 setReportData([
                     { name: 'Student Strength', count: r.totalcount },
@@ -285,33 +304,55 @@ export default function MonthendreportPage() {
                     </div>
                 </div>
 
-                {/* BUTTON SECTION */}
+                {/* FILTER BUTTON SECTION */}
                 <div className='flex gap-4 pt-4'>
                     <Button onClick={handleReset} variant='outline' className='w-fit'>
+                        <RotateCcw className='mr-2 h-4 w-4' />
                         Reset
                     </Button>
                     <Button onClick={handleGenerateReport} className='w-fit'>
+                        <Save className='mr-2 h-4 w-4' />
                         Generate Report
-                    </Button>
-                    <Button onClick={downloadExcel} className='w-fit'>
-                        Export to Excel
                     </Button>
                 </div>
             </div>
+
+            {showReport && (
+                <div className='mb-4 flex justify-end gap-4'>
+                    <Button
+                        onClick={() => handlePrint()}
+                        variant='outline'
+                        className='bg-primary/10 text-primary hover:bg-primary/20 shadow-sm transition-all duration-300'>
+                        <Printer className='mr-2 h-4 w-4' />
+                        Print Report
+                    </Button>
+                    <Button
+                        onClick={downloadExcel}
+                        variant='outline'
+                        className='bg-green-50 text-green-600 hover:bg-green-100 border-green-200 shadow-sm transition-all duration-300'>
+                        <FileSpreadsheet className='mr-2 h-4 w-4' />
+                        Download Excel
+                    </Button>
+                </div>
+            )}
+
             {showReport && (
                 <CollapsibleSection
                     defaultOpen={true}
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <AdmissionMonthEndReport
-                        reportData={reportData}
-                        month={selectedMonth}
-                        year={selectedYear}
-                        academicYear={academicYearId}
-                        implementationName={implementationName}
-                        logoBase64={logo}
-                    />
+                    <div ref={printRef} className='printable-content'>
+                        <AdmissionMonthEndReport
+                            reportData={reportData}
+                            month={selectedMonth}
+                            year={selectedYear}
+                            academicYear={academicYearId}
+                            implementationName={implementationName}
+                            logoBase64={logo}
+                            institutionDetails={institutionDetails}
+                        />
+                    </div>
                 </CollapsibleSection>
             )}
         </div>
