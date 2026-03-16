@@ -5,21 +5,22 @@
 
 // Shift Setting Master Types
 export interface IMasterShiftSettingList {
-    FOMST_Id: number;
-    FOMS_Id: number;
-    FOMS_ShiftName: string;
-    FOMS_ActiveFlg: boolean;
-    FOMST_FDWHrMin: string; // Total working hours per shift
-    FOMST_HDWHrMin: string; // Half day working hours per shift
-    FOMST_IHalfLoginTime: string; // Shift Start Time
-    FOMST_IHalfLogoutTime: string; // Lunch start time
-    FOMST_IIHalfLoginTime: string; // Lunch End time
-    FOMST_IIHalfLogoutTime: string; // Shift End Time
-    FOMST_DelayPerShiftHrMin: string; // Delay per shift
-    FOMST_EarlyPerShiftHrMin: string; // Early per shift
-    FOMST_LunchHoursDuration: string; // Lunch Hours
-    FOMST_BlockAttendance: string;
-    FOMST_FixTimings: string;
+    fomsT_Id: number;
+    fomS_Id: number;
+    fohwdT_Id?: number;
+    fomS_ShiftName: string;
+    fomS_ActiveFlg: boolean;
+    fomsT_FDWHrMin: string; // Total working hours per shift
+    fomsT_HDWHrMin: string; // Half day working hours per shift
+    fomsT_IHalfLoginTime: string; // Shift Start Time
+    fomsT_IHalfLogoutTime: string; // Lunch start time
+    fomsT_IIHalfLoginTime: string; // Lunch End time
+    fomsT_IIHalfLogoutTime: string; // Shift End Time
+    fomsT_DelayPerShiftHrMin: string; // Delay per shift
+    fomsT_EarlyPerShiftHrMin: string; // Early per shift
+    fomsT_LunchHoursDuration: string; // Lunch Hours
+    fomsT_BlockAttendance: string;
+    fomsT_FixTimings: string;
 }
 
 // Master Holiday Types

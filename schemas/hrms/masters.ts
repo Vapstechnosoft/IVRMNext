@@ -642,7 +642,7 @@ export const hrmsMasterSchemas = {
         }),
         update: z.object({
             fomsT_Id: z.number().optional(),
-            foms_Id: z.number().optional(),
+            fomS_Id: z.number().optional(),
             foms_ShiftName: z.string().min(1, 'Shift Name is required').max(100),
             fomsT_IHalfLoginTime: z.string().optional(), // Shift Start Time
             fomsT_IIHalfLogoutTime: z.string().optional(), // Shift End Time

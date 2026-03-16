@@ -17,10 +17,12 @@ interface ActionButtonsProps {
     onEdit?: (data: any) => void;
     onDelete?: (data: any) => void;
     onToggle?: (data: any, newState: boolean) => void;
+    onView?: (data: any) => void;
     disabled?: {
         edit?: boolean;
         delete?: boolean;
         toggle?: boolean;
+        view?: boolean;
     };
     toggleConditionKey?: string;
     className?: string;
@@ -30,12 +32,12 @@ interface ActionButtonsProps {
 
 export function ActionButtons({
     rowData,
-    buttons = { edit: true, delete: false, toggle: false },
-    disabled = { edit: false, delete: false, toggle: false },
+    buttons = { edit: true, delete: false, toggle: false, view: false },
+    disabled = { edit: false, delete: false, toggle: false, view: false },
     onEdit,
     onDelete,
     onToggle,
-
+    onView,
     toggleConditionKey = 'active_flag',
     className = '',
     size = 'sm',
@@ -63,12 +65,33 @@ export function ActionButtons({
         }
     };
 
-
+    const handleView = () => {
+        if (onView) {
+            onView(rowData);
+        }
+    };
 
     return (
         <TooltipProvider>
             <div className={`flex items-center gap-3 ${className}`}>
-
+                {/* View Button */}
+                {buttons.view && (
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                variant={variant}
+                                size={size}
+                                onClick={handleView}
+                                disabled={disabled.view}
+                                className='h-8 w-8 p-0 transition-all duration-200 hover:bg-purple-50 hover:text-purple-600'>
+                                <Eye className='h-4 w-4' />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>View</p>
+                        </TooltipContent>
+                    </Tooltip>
+                )}
 
                 {/* Edit Button */}
                 {buttons.edit && (
