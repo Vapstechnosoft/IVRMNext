@@ -8,6 +8,7 @@ export interface ApiResponse<T> extends Partial<PaginationData> {
     success: boolean;
     message: string;
     data: T | null;
+    rawResponse?: any; // Added to preserve full legacy response
     [key: string]: unknown;
 }
 

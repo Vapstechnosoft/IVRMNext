@@ -195,7 +195,7 @@ function CumulativeSalaryReportContent() {
             {
                 onSuccess: (res) => {
                     console.log('API Response:', res);
-                    if (res.success && res.data) {
+                    if (res.success && res.data.length > 0) {
                         setReportData(res.data);
                         toast.success('Report generated successfully');
                     } else {
@@ -480,7 +480,7 @@ function CumulativeSalaryReportContent() {
                 </form>
             </CollapsibleSection>
 
-            {reportData && (
+            {reportData && reportData.length > 0 && (
                 <CollapsibleSection
                     title='Report Details'
                     defaultOpen={true}

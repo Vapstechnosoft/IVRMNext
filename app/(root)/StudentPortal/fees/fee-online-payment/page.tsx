@@ -1,6 +1,8 @@
 import FeeOnlinePaymentClient from './_components/fee-online-payment-client';
 import { getFeeOnlinePaymentLoadData } from './actions';
 
+export const dynamic = 'force-dynamic';
+
 export default async function FeeOnlinePaymentPage() {
     const response = await getFeeOnlinePaymentLoadData({
         configset: 'G'

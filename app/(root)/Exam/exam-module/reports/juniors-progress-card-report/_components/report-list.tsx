@@ -1,164 +1,546 @@
 'use client';
 
+import React, { useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { FileSpreadsheet, Printer } from 'lucide-react';
-import { useRef } from 'react';
-import * as XLSX from 'xlsx';
+import { Printer } from 'lucide-react';
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    Title,
+    Tooltip,
+    Legend,
+    ArcElement
+} from 'chart.js';
+import { Pie } from 'react-chartjs-2';
+
+ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    Title,
+    Tooltip,
+    Legend,
+    ArcElement
+);
 
 interface ReportListProps {
     data: any;
+    params: any;
 }
 
-export const ReportList = ({ data }: ReportListProps) => {
-    const componentRef = useRef<HTMLDivElement>(null);
-
-    if (!data || !data.students || data.students.length === 0) {
-        return null;
-    }
+export const ReportList = ({ data, params }: ReportListProps) => {
+    const printRef = useRef<HTMLDivElement>(null);
 
     const handlePrint = () => {
-        const printContent = componentRef.current?.innerHTML;
-        const institution = data.institution;
-        if (printContent) {
-            const printWindow = window.open('', '', 'height=600,width=800');
-            if (printWindow) {
-                printWindow.document.write('<html><head><title>Juniors Progress Card</title>');
-                // Add basic styling for print
-                printWindow.document.write(`
-            <style>
-              body { font-family: Arial, sans-serif; }
-              .page-break { page-break-after: always; }
-              table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-              th, td { border: 1px solid black; padding: 6px; text-align: center; }
-              th { background-color: #f2f2f2; }
-              .text-left { text-align: left; }
-              .header { text-align: center; margin-bottom: 20px; }
-              .header img { max-width: 100px; height: auto; }
-              .student-info { margin-bottom: 15px; }
-              .student-info p { margin: 5px 0; font-weight: bold; }
-            </style>
-          `);
-                printWindow.document.write('</head><body>');
-                printWindow.document.write(printContent);
-                printWindow.document.write('</body></html>');
-                printWindow.document.close();
-                printWindow.print();
-            }
-        }
+        window.print();
     };
 
-    const handleExport = () => {
-        // Flatten data for Excel export
-        const flatData: any[] = [];
-        data.students.forEach((student: any) => {
-            const row: any = {
-                'Adm No': student.amsT_AdmNo,
-                'Student Name': student.studentname,
-                Class: data.class,
-                Section: data.section,
-                Total: student.total,
-                Percentage: student.percentage
-            };
-            student.subjects.forEach((sub: any) => {
-                row[`${sub.name} Marks`] = sub.marks;
-                row[`${sub.name} Grade`] = sub.grade;
-            });
-            flatData.push(row);
-        });
-        const ws = XLSX.utils.json_to_sheet(flatData);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'Progress Report');
-        XLSX.writeFile(wb, 'Juniors_Progress_Card.xlsx');
+    // Main Data Sources – using correct camelCase property names
+    const studentDetails = data.getstudentdetails || [];
+    const groupDetails = data.getgroupdetails || [];
+    const groupWiseExamList = data.groupwiseexamlist || [];
+    const institution = data.institutionList?.[0] || data.masterinstitution || data.institution || data.getinstitution;
+    const gradeDetails = data.getallgrade || [];
+    const skillDetails = data.getstudentwiseskillslist || data.getskill || [];
+    const examWiseTotalDetails = data.getexamwisetotaldetails || [];
+    const promotionRemarks = data.getpromotionremarksdetails || [];
+    const studentGraphDetails = data.studentdetailsgraph || [];
+
+    // Attendance Sources
+    const presentAttendance = data.present_attendence || [];
+
+    // Config Flags
+    const showLogo = params.printLogo;
+    const showSuperAverage = params.superAverage;
+    const examName = params.exmname;
+
+    // Helper to get attendance
+    const getAttendance = (amsT_Id: number) => {
+        const present = presentAttendance.find((a: any) => a.amsT_Id === amsT_Id);
+        return present ? present.attendancePercentage || 0 : 0;
     };
+
+    // Helper to get mark for a cell
+    const getMarkValue = (report: any, subjectId: number, examId: number, groupDisplayName: string, examNameDisplay: string) => {
+        const marksArray = report.studentmarks || report.marks || [];
+        const mark = marksArray.find((m: any) =>
+            m.ismS_Id === subjectId &&
+            m.emE_Id === examId &&
+            m.empsG_DisplayName === groupDisplayName
+        );
+
+        if (!mark) return null;
+
+        if (['AB', 'M', 'L'].includes(mark.passFailFlag)) {
+            return mark.passFailFlag;
+        }
+
+        const isAvgExam = examNameDisplay === 'AVG';
+
+        if (mark.obtainedMarks >= 0 && !['AB', 'M', 'L'].includes(mark.passFailFlag)) {
+            if (isAvgExam) {
+                return <b>{mark.obtainedMarks}</b>;
+            }
+            return mark.obtainedMarks;
+        }
+
+        if (isAvgExam && mark.esG_Id > 0) {
+            return <b>{mark.obtainedMarks}</b>;
+        }
+
+        if (mark.obtainedGrade && examNameDisplay === 'AVG') {
+            return mark.obtainedGrade;
+        }
+
+        return null;
+    };
+
+    // Get total/avg marks for total row
+    const getTotalMarkValue = (report: any, examId: number, groupDisplayName: string) => {
+        const marksArray = report.studentmarks || report.marks || [];
+        const mark = marksArray.find((m: any) =>
+            m.emE_Id === examId && m.empsG_DisplayName === groupDisplayName
+        );
+        return mark ? mark.obtainedMarks : null;
+    };
+
+    const getTotalPercentageValue = (report: any, examId: number, groupDisplayName: string) => {
+        const marksArray = report.studentmarks || report.marks || [];
+        const mark = marksArray.find((m: any) =>
+            m.emE_Id === examId && m.empsG_DisplayName === groupDisplayName
+        );
+        return mark ? mark.totalPercentage : null;
+    };
+
+    const getRankValue = (report: any, examId: number, groupDisplayName: string) => {
+        const marksArray = report.studentmarks || report.marks || [];
+        const mark = marksArray.find((m: any) =>
+            m.emE_Id === examId && m.empsG_DisplayName === groupDisplayName
+        );
+        return mark ? mark.estmppS_SectionRank : null;
+    };
+
+    // Personality Profile Questions
+    const personalityQuestions = [
+        "IS SELF-MOTIVATED AND COMPLETES TASK",
+        "WORKS WELL WITH MINIMUM DIRECTION",
+        "ORIGINATES IDEAS BUT NEEDS CONSTANT GUIDANCE",
+        "CONTRIBUTES READILY",
+        "SOMETIMES TAKES PART",
+        "EASILY DISTRACTED",
+        "VERY CAREFUL WORKER",
+        "USUALLY NEAT",
+        "ACCEPTS RESPONSIBILITY FOR LEARNING"
+    ];
 
     return (
-        <div className='space-y-4 bg-gray-200'>
-            <div className='flex justify-end gap-2 py-2'>
-                <Button onClick={handlePrint} className='flex w-fit text-white hover:bg-orange-800'>
-                    <Printer className='h-4 w-4' />
-                    <span>PRINT</span>
-                </Button>
-
-                <Button onClick={handleExport} className=' w-fit text-white'>
-                    <FileSpreadsheet className='h-4 w-4' />
-                    Export to Excel
+        <div className="space-y-6 printable-content font-serif">
+            <div className="flex justify-end no-print">
+                <Button onClick={handlePrint} className="flex items-center gap-2 w-fit">
+                    <Printer className="w-4 h-4" /> Print Report
                 </Button>
             </div>
-            <div ref={componentRef} className='space-y-8'>
-                {data.students.map((student: any, index: number) => (
-                    <div key={student.amsT_Id} className='page-break rounded-lg border bg-white p-6 shadow-sm'>
-                        {/* Header */}
-                        <div className='header'>
-                            {data.printLogo && data.institution?.mI_Logo && (
-                                <img src={data.institution.mI_Logo} alt={data.institution.mI_Name} className='mx-auto mb-2 h-50 w-full' />
-                            )}
 
-                            <h3 className='font-semibold text-lg uppercase'>Progress Report</h3>
-                            <p className='text-sm'>Academic Year: {data.year}</p>
-                        </div>
+            <div ref={printRef} className="print-area">
+                {studentDetails.length > 0 ? (
+                    studentDetails.map((report: any, index: number) => {
+                        // Use all subjects from studentsubjects (no filtering based on missing flag)
+                        const allSubjects = report.studentsubjects || [];
 
-                        {/* Student Details */}
-                        <div className='student-info mb-4 grid grid-cols-2 gap-4 border-b pb-4 text-sm'>
-                            <div>
-                                <p>
-                                    <strong>Name:</strong> {student.studentname}
-                                </p>
-                                <p>
-                                    <strong>Class:</strong> {data.class}
-                                </p>
-                            </div>
-                            <div>
-                                <p>
-                                    <strong>Adm. No:</strong> {student.amsT_AdmNo || 'A00' + (index + 1)}
-                                </p>
-                                <p>
-                                    <strong>Section:</strong> {data.section}
-                                </p>
-                            </div>
-                        </div>
+                        // Remarks for this student
+                        const remarks = promotionRemarks.filter((r: any) => r.amsT_Id === report.amsT_Id);
 
-                        {/* Marks Table */}
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead className='w-[40%] text-left'>Subject</TableHead>
-                                    <TableHead>Marks</TableHead>
-                                    <TableHead>Grade</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {student.subjects.map((sub: any, idx: number) => (
-                                    <TableRow key={idx}>
-                                        <TableCell className='text-left font-medium'>{sub.name}</TableCell>
-                                        <TableCell>{sub.marks}</TableCell>
-                                        <TableCell>{sub.grade}</TableCell>
-                                    </TableRow>
-                                ))}
-                                <TableRow className='bg-gray-50 font-bold'>
-                                    <TableCell className='text-left'>Total</TableCell>
-                                    <TableCell colSpan={2}>
-                                        {student.total} / {student.subjects.length * 100} ({student.percentage}%)
-                                    </TableCell>
-                                </TableRow>
-                            </TableBody>
-                        </Table>
+                        // Graph data (if any)
+                        const graphData = studentGraphDetails.find((g: any) => g.amsT_Id === report.amsT_Id);
 
-                        {/* Footer / Signatures */}
-                        <div className='mt-12 flex justify-between border-t pt-4 font-semibold text-sm'>
-                            <div className='text-center'>
-                                <p>Class Teacher</p>
+                        return (
+                            <div key={index} className='page-break-before-always mb-8 border border-gray-300 bg-white p-4 shadow-sm print:m-0 print:border-none print:p-0 print:shadow-none'>
+
+                                {/* Header with logo */}
+                                {showLogo && (
+                                    <div className='mb-4 flex flex-row items-center justify-between'>
+                                        <div className="flex-1 text-center">
+                                            <img src={institution?.mI_Logo} className='mx-auto h-auto w-auto object-contain' alt="Header Logo" />
+                                        </div>
+                                        <div className="w-24">&nbsp;</div>
+                                    </div>
+                                )}
+                                {!showLogo && <div className="mt-[130px]">&nbsp;</div>}
+
+                                <div className="relative">
+                                    {/* Watermark */}
+                                    {/* <div className='pointer-events-none absolute inset-0 z-0 flex items-center justify-center opacity-20 print:opacity-20'>
+                                        <img src={institution?.mI_BackgroundImage} className='h-[417px] w-[420px] object-contain' alt="Watermark" />
+                                    </div> */}
+
+                                    <div className="relative z-10">
+                                        {/* Exam Title */}
+                                        <table className='mb-2 w-full bg-transparent'>
+                                            <tbody>
+                                                <tr>
+                                                    <th className='w-full border-none text-center text-lg uppercase'>
+                                                        <span>{examName} REPORT CARD {report.academicYear || ''}</span>
+                                                    </th>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+
+                                        {/* Student Details */}
+                                        <table className='mb-2 w-full border-collapse border border-gray-400 bg-transparent text-sm'>
+                                            <tbody>
+                                                <tr>
+                                                    <td className='w-1/4 border border-gray-400 border-t-0 border-r-0 border-b-0 p-2 align-top'>
+                                                        <div className="flex gap-2 mb-1">
+                                                            <span className="font-bold">NAME :</span>
+                                                            <span className="font-bold">{report.studentname}</span>
+                                                        </div>
+                                                        <div className="flex gap-2">
+                                                            <span className="font-bold">CLASS :</span>
+                                                            <span className="font-bold">{report.classname || params.classs}-{report.sectionname || params.clasection}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className='w-1/4 border-none p-2 text-center align-middle'>
+                                                        <b>NO. IN CLASS: <span>{studentDetails.length}</span></b>
+                                                    </td>
+                                                    <td className="w-1/4 p-2 text-center border-none align-middle">
+                                                        <b>ATTENDANCE: <span>{getAttendance(report.amsT_Id).toFixed(0)}%</span></b>
+                                                    </td>
+                                                    <td className="w-1/4 p-2 text-right border-none align-middle pr-4">
+                                                        <b>STUDENT&apos;S ID: {report.admno}</b>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th colSpan={4} className="text-center text-[13px] border border-gray-400 border-l-0 border-r-0 pt-2 font-bold uppercase">
+                                                        STATEMENT OF MARKS
+                                                    </th>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+
+                                        {/* Marks Table */}
+                                        <table className="w-full border-collapse border border-gray-400 text-[12px] bg-transparent">
+                                            <thead>
+                                                <tr className="border-[0.5px] border-gray-500">
+                                                    <th className="border-[0.5px] border-gray-500 text-[13px] w-[250px] p-1">SUBJECTS</th>
+                                                    {groupDetails.map((grp: any, i: number) => (
+                                                        <th key={i} colSpan={grp.groupewiseexam?.length || 0} className="border-[0.5px] border-gray-500 text-[13px] p-1 uppercase">
+                                                            {grp.empG_DistplayName}
+                                                        </th>
+                                                    ))}
+                                                    <th colSpan={groupDetails.length + 1} className="border-[0.5px] border-gray-500 text-[13px] p-1 uppercase">
+                                                        SUPER AVERAGE
+                                                    </th>
+                                                </tr>
+                                                <tr>
+                                                    <th className="border-[0.5px] border-gray-500 p-1" />
+                                                    {groupWiseExamList.map((exa: any, i: number) => (
+                                                        <th key={i} className="border-[0.5px] border-gray-500 text-[13px] w-[70px] p-1 text-center font-normal">
+                                                            {exa.displayName !== 'Total' && exa.displayName !== 'AVG' && (
+                                                                <span>{exa.maxMarks}</span>
+                                                            )}
+                                                            {exa.displayName === 'Total' && (
+                                                                <span>{exa.maxMarks}/50</span>
+                                                            )}
+                                                            {exa.displayName === 'AVG' && (
+                                                                <span>{exa.displayName}</span>
+                                                            )}
+                                                        </th>
+                                                    ))}
+                                                    <th className="border-[0.5px] border-gray-500 text-[13px] w-[70px] p-1 text-center">100/50</th>
+                                                    <th className="border-[0.5px] border-gray-500 text-[13px] w-[70px] p-1 text-center"><b>AVG</b></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {/* All Subjects (no filtering) */}
+                                                {allSubjects.map((subj: any, i: number) => (
+                                                    <tr key={i}>
+                                                        <td className="border-[0.5px] border-gray-500 p-1 pl-2 text-left">
+                                                            {subj.groupAVGMarks > 0 ? (
+                                                                <span className="font-semibold">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{subj.ismS_SubjectName}</span>
+                                                            ) : (
+                                                                <span className="font-normal">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{subj.ismS_SubjectName}</span>
+                                                            )}
+                                                        </td>
+                                                        {groupWiseExamList.map((exa: any, j: number) => {
+                                                            // Find which group this exam belongs to – we need groupDisplayName
+                                                            // For simplicity, we assume groupWiseExamList entries have groupName property
+                                                            const groupDisplayName = exa.groupName;
+                                                            const val = getMarkValue(report, subj.ismS_Id, exa.examId, groupDisplayName, exa.displayName);
+                                                            return (
+                                                                <td key={j} className="border-[0.5px] border-gray-500 p-1 text-center w-[50px]">
+                                                                    {val}
+                                                                </td>
+                                                            );
+                                                        })}
+                                                        {/* Super Average Columns */}
+                                                        <td className="border-[0.5px] border-gray-500 p-1 text-center">
+                                                            {(subj.ismS_Id < 1000 && showSuperAverage) && (
+                                                                <span>{subj.estmppsG_GroupObtMarks}</span>
+                                                            )}
+                                                        </td>
+                                                        <td className="border-[0.5px] border-gray-500 p-1 text-center">
+                                                            {((subj.esG_Id === 0 || subj.ismS_Id > 1000) && showSuperAverage) && (
+                                                                <span className="font-semibold">{subj.groupAVGMarks}</span>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+
+                                                {/* Total Row */}
+                                                <tr>
+                                                    <td className="border-[0.5px] border-gray-500 p-1 text-left font-semibold">
+                                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TOTAL
+                                                    </td>
+                                                    {groupWiseExamList.map((exa: any, i: number) => {
+                                                        const isTotalExam = exa.displayName === 'Total';
+                                                        const isAvgExam = exa.displayName === 'AVG';
+                                                        const groupDisplayName = exa.groupName;
+
+                                                        let val = null;
+                                                        if (isTotalExam || isAvgExam) {
+                                                            const mVal = getTotalMarkValue(report, exa.examId, groupDisplayName);
+                                                            if (mVal !== null) val = <span className="font-bold">{Number(mVal).toFixed(0)}</span>;
+                                                        }
+
+                                                        return (
+                                                            <td key={i} className="border-[0.5px] border-gray-500 p-1 text-center">
+                                                                {val}
+                                                            </td>
+                                                        );
+                                                    })}
+                                                    {/* Super Average Totals */}
+                                                    <td className="border-[0.5px] border-gray-500 p-1 text-center">
+                                                        {showSuperAverage && (
+                                                            <span className="font-bold">
+                                                                {examWiseTotalDetails.find((t: any) => t.amsT_Id === report.amsT_Id)?.estmppsG_GroupObtMarks}
+                                                            </span>
+                                                        )}
+                                                    </td>
+                                                    <td className="border-[0.5px] border-gray-500 p-1 text-center">
+                                                        {showSuperAverage && (
+                                                            <span className="font-bold">
+                                                                {examWiseTotalDetails.find((t: any) => t.amsT_Id === report.amsT_Id)?.estmppsG_GroupAvgMarks}
+                                                            </span>
+                                                        )}
+                                                    </td>
+                                                </tr>
+
+                                                {/* Percentage Row */}
+                                                <tr>
+                                                    <td className="border-[0.5px] border-gray-500 p-1 text-left font-semibold">
+                                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PERCENTAGE
+                                                    </td>
+                                                    {groupWiseExamList.map((exa: any, i: number) => {
+                                                        const isTotalExam = exa.displayName === 'Total';
+                                                        const isAvgExam = exa.displayName === 'AVG';
+                                                        const groupDisplayName = exa.groupName;
+
+                                                        let val = null;
+                                                        if (isTotalExam || isAvgExam) {
+                                                            const pVal = getTotalPercentageValue(report, exa.examId, groupDisplayName);
+                                                            if (pVal !== null) val = <span className="font-bold">{Number(pVal).toFixed(0)}</span>;
+                                                        }
+
+                                                        return (
+                                                            <td key={i} className="border-[0.5px] border-gray-500 p-1 text-center">
+                                                                {val}
+                                                            </td>
+                                                        );
+                                                    })}
+                                                    <td className="border-[0.5px] border-gray-500 p-1 text-center">
+                                                        {showSuperAverage && (
+                                                            <span className="font-bold">
+                                                                {examWiseTotalDetails.find((t: any) => t.amsT_Id === report.amsT_Id)?.totalPercentage}
+                                                            </span>
+                                                        )}
+                                                    </td>
+                                                    <td className="border-[0.5px] border-gray-500 p-1 text-center">
+                                                        {showSuperAverage && (
+                                                            <span className="font-bold">
+                                                                {examWiseTotalDetails.find((t: any) => t.amsT_Id === report.amsT_Id)?.totaver}
+                                                            </span>
+                                                        )}
+                                                    </td>
+                                                </tr>
+
+                                                {/* Rank Row */}
+                                                <tr>
+                                                    <td className="border-[0.5px] border-gray-500 p-1 text-left font-semibold">
+                                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;RANK
+                                                    </td>
+                                                    {groupWiseExamList.map((exa: any, i: number) => {
+                                                        const isTotalExam = exa.displayName === 'Total';
+                                                        const groupDisplayName = exa.groupName;
+
+                                                        let val = null;
+                                                        if (isTotalExam) {
+                                                            const rVal = getRankValue(report, exa.examId, groupDisplayName);
+                                                            if (rVal !== null) val = <span className="font-bold">{rVal}</span>;
+                                                        }
+
+                                                        return (
+                                                            <td key={i} className="border-[0.5px] border-gray-500 p-1 text-center">
+                                                                {val}
+                                                            </td>
+                                                        );
+                                                    })}
+                                                    <td colSpan={2} className="border-[0.5px] border-gray-500 p-1 text-center" />
+                                                </tr>
+                                            </tbody>
+                                        </table>
+
+                                        {/* Bottom Section: Co-Scholastic & Personality */}
+                                        <div className="flex border-[0.5px] border-gray-500 border-t-0">
+                                            {/* Left Column: Graded Subjects & Personality */}
+                                            <div className="w-[60%] border-r-[0.5px] border-gray-500">
+                                                {/* Graded Subjects */}
+                                                <table className="w-full text-[13px] bg-transparent">
+                                                    <thead>
+                                                        <tr>
+                                                            <th className="border-[0.5px] border-gray-500 border-t-0 border-l-0 w-[180px] p-1 text-left">GRADED SUBJECTS</th>
+                                                            <th className="border-[0.5px] border-gray-500 border-t-0 w-[70px] p-1 text-center">HALF YEARLY</th>
+                                                            <th className="border-[0.5px] border-gray-500 border-t-0 border-r-0 w-[70px] p-1 text-center">FINAL</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {skillDetails.map((skill: any, i: number) => (
+                                                            <tr key={i} className="border-b-[0.5px] border-gray-500 last:border-b-0">
+                                                                <td className="border-r-[0.5px] border-gray-500 p-1 pl-4 text-left font-normal text-[13px]">&nbsp;&nbsp;&nbsp;{skill.ecactA_SkillArea || skill.skillName}</td>
+                                                                <td className="border-r-[0.5px] border-gray-500 p-1 text-center text-[11px]">
+                                                                    {gradeDetails
+                                                                        .filter((g: any) => g.amsT_Id === report.amsT_Id && g.ecacT_SkillName === skill.ecactA_SkillArea && g.emE_ExamName === 'First Unit Test')
+                                                                        .map((g: any) => g.emgD_Name)
+                                                                        .join(', ')}
+                                                                </td>
+                                                                <td className="p-1 text-center text-[11px]">
+                                                                    {gradeDetails
+                                                                        .filter((g: any) => g.amsT_Id === report.amsT_Id && g.ecacT_SkillName === skill.ecactA_SkillArea && g.emE_ExamName === 'FINAL EXAMINATION')
+                                                                        .map((g: any) => g.emgD_Name)
+                                                                        .join(', ')}
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+
+                                                {/* Personality Profile */}
+                                                <table className="w-full text-[13px] bg-transparent mt-2">
+                                                    <thead>
+                                                        <tr>
+                                                            <th className="border-[0.5px] border-gray-500 border-l-0 p-1 text-left text-[10px] font-medium">&nbsp;&nbsp;&nbsp;PERSONALITY PROFILE</th>
+                                                            <th className="border-[0.5px] border-gray-500 p-1 text-center w-[70px]">HALF YEARLY</th>
+                                                            <th className="border-[0.5px] border-gray-500 border-r-0 p-1 text-center w-[70px]">FINAL</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {personalityQuestions.map((q, idx) => (
+                                                            <tr key={idx} className="border-b-[0.5px] border-gray-500 last:border-b-0">
+                                                                <td className="border-r-[0.5px] border-gray-500 p-0.5 pl-2 text-left text-[11px]">&middot; &nbsp;{q}</td>
+                                                                <td className="border-r-[0.5px] border-gray-500 p-0.5 text-center"><input type="checkbox" className="w-3 h-3" /></td>
+                                                                <td className="p-0.5 text-center"><input type="checkbox" className="w-3 h-3" /></td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
+                                            {/* Right Column: Chart */}
+                                            <div className="w-[40%] p-2">
+                                                <table className="w-full">
+                                                    <thead>
+                                                        <tr>
+                                                            <th className="text-[13px] border-[0.5px] border-gray-500 border-r-0 border-t-0 border-l-0 text-center pb-2">PERFORMANCE ANALYSIS(TOTAL)</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td className="pt-4 flex justify-center h-[252px]">
+                                                                <div className="relative w-[250px] h-[250px]">
+                                                                    {/* Placeholder Pie Chart – replace with actual data */}
+                                                                    <Pie
+                                                                        data={{
+                                                                            labels: ['English', 'Maths', 'Science', 'Social', 'Hindi'],
+                                                                            datasets: [{
+                                                                                data: [80, 75, 90, 85, 88],
+                                                                                backgroundColor: [
+                                                                                    'rgba(255, 99, 132, 0.6)',
+                                                                                    'rgba(54, 162, 235, 0.6)',
+                                                                                    'rgba(255, 206, 86, 0.6)',
+                                                                                    'rgba(75, 192, 192, 0.6)',
+                                                                                    'rgba(153, 102, 255, 0.6)',
+                                                                                ]
+                                                                            }]
+                                                                        }}
+                                                                        options={{ responsive: true, maintainAspectRatio: false }}
+                                                                    />
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+
+                                        {/* Remarks */}
+                                        <table className="w-full border-collapse border border-gray-400 border-t-0 text-[12px] bg-transparent">
+                                            <tbody>
+                                                <tr>
+                                                    <td className="w-[183px] p-2 border-r-0 font-bold align-top h-[70px]">REMARKS :</td>
+                                                    <td className="p-2 border-l-0 align-top">
+                                                        {remarks.map((r: any, idx: number) => (
+                                                            <span key={idx} className="block">{r.remarks}</span>
+                                                        ))}
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+
+                                        {/* Signatures */}
+                                        <table className="w-full border-collapse border border-gray-400 border-t-0 text-[12px] bg-transparent">
+                                            <thead>
+                                                <tr>
+                                                    <th className="border border-gray-400 border-t-0 p-2 h-[70px] align-bottom w-1/4">DATE</th>
+                                                    <th className="border border-gray-400 border-t-0 p-2 h-[70px] align-bottom w-1/4">PRINCIPAL&apos;S SIGNATURE</th>
+                                                    <th className="border border-gray-400 border-t-0 p-2 h-[70px] align-bottom w-1/4">CLASS TEACHER&apos;S SIGNATURE</th>
+                                                    <th className="border border-gray-400 border-t-0 p-2 h-[70px] align-bottom w-1/4">PARENT&apos;S SIGNATURE</th>
+                                                </tr>
+                                            </thead>
+                                        </table>
+                                    </div>
+                                </div>
                             </div>
-                            <div className='text-center'>
-                                <p>Principal</p>
-                            </div>
-                            <div className='text-center'>
-                                <p>Parent</p>
-                            </div>
-                        </div>
+                        );
+                    })
+                ) : (
+                    <div className="text-center p-10 text-gray-500">
+                        No student details found to display report.
                     </div>
-                ))}
+                )}
             </div>
+
+            <style jsx global>{`
+                @media print {
+                    .no-print {
+                        display: none !important;
+                    }
+                    body {
+                        background: white !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        -webkit-print-color-adjust: exact;
+                    }
+                    .print-area {
+                        width: 100% !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                    }
+                    .page-break-before-always {
+                        page-break-before: always !important;
+                    }
+                }
+            `}</style>
         </div>
     );
 };

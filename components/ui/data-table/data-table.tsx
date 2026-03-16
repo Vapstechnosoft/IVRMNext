@@ -40,6 +40,7 @@ interface DataTableProps<TData, TValue> {
     showSearchColumns?: boolean;
     manualPagination?: boolean;
     manualFiltering?: boolean;
+    manualSorting?: boolean;
     scrollable?: boolean;
     maxHeight?: string;
 }
@@ -65,6 +66,7 @@ function DataTableInner<TData, TValue>(
         showSearchColumns = false,
         manualPagination = true,
         manualFiltering = true,
+        manualSorting = true,
         scrollable = false,
         maxHeight = '600px'
     }: DataTableProps<TData, TValue>,
@@ -157,7 +159,7 @@ function DataTableInner<TData, TValue>(
         getPaginationRowModel: getPaginationRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
         manualPagination: manualPagination,
-        manualSorting: true,
+        manualSorting: manualSorting,
         manualFiltering: manualFiltering,
         initialState: {
             columnPinning: columnPinning || { right: ['actions'] }
