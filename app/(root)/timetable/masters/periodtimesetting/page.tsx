@@ -68,7 +68,7 @@ function PeriodTimeSettingPageContent({
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                         <Plus className='h-4 w-4' />
-                        Add Break Time Settings
+                        Add Period Time Setting
                     </Button>
                 </div>
                 <CollapsibleSection

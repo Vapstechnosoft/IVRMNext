@@ -24,8 +24,16 @@ import {
     SRKVSSportsReportRecordFormSchema,
     SRKVSSportsReportRecordSchema,
     ISRKVSReportData,
+    ISRKVSYear,
+    ISRKVSMasterEvent,
+    ISRKVSCompetitionLevel,
+    ISRKVSCategory,
+    ISRKVSMainEvent,
+    ISRKVSSubEvent,
+    ISRKVSSubSubEvent,
+    ISRKVSReportItem,
 } from '@/types/sports/reports/srkvs-sports-report-record';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -37,9 +45,50 @@ interface ReportFormProps {
     onTypeChange: (type: any) => void;
 }
 
+// Helper to group data
+const groupData = (flatData: any[], type: string): ISRKVSReportData[] => {
+    if (!flatData || flatData.length === 0) return [];
+
+    // Check if already grouped (has RecordDetails)
+    if (flatData[0].RecordDetails) return flatData as ISRKVSReportData[];
+
+    const groups: { [key: string]: ISRKVSReportData } = {};
+
+    flatData.forEach((item: ISRKVSReportItem) => {
+        let key = '';
+        if (type === 'Record' || type === 'Consolidated' || type === 'Indoor' || type === 'Outdoor' || type === 'Team' || type === 'Externals' || type === 'Selection') {
+            key = item.SPCCMCC_CompitionCategory || 'Unknown';
+        } else if (type === 'Start' || type === 'Finish') {
+            // For Start/Finish, we might want to group by Category AND Event Group
+            key = (item.SPCCMCC_CompitionCategory || '') + '_' + (item.SPCCMSCCG_SportsCCGroupName || '');
+        } else {
+            key = item.SPCCMCC_CompitionCategory || 'Default';
+        }
+
+        if (!groups[key]) {
+            groups[key] = {
+                SPCCMCC_CompitionCategory: item.SPCCMCC_CompitionCategory,
+                SPCCMSCCG_SportsCCGroupName: item.SPCCMSCCG_SportsCCGroupName,
+                RecordDetails: []
+            };
+        }
+        groups[key].RecordDetails.push(item);
+    });
+
+    return Object.values(groups);
+};
+
 export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps) => {
-    const { loadData, generateReport } = useSRKVSSportsReportRecord();
-    const { data: dropdowns, isLoading: isDropdownsLoading } = loadData;
+    const { loadData, getClass, getSportsName, getUomName, generateReport } = useSRKVSSportsReportRecord();
+    const { data: initialData, isLoading: isInitialLoading } = loadData;
+
+    const [academicYears, setAcademicYears] = useState<ISRKVSYear[]>([]);
+    const [masterEvents, setMasterEvents] = useState<ISRKVSMasterEvent[]>([]);
+    const [competitionLevels, setCompetitionLevels] = useState<ISRKVSCompetitionLevel[]>([]);
+    const [categories, setCategories] = useState<ISRKVSCategory[]>([]);
+    const [mainEvents, setMainEvents] = useState<ISRKVSMainEvent[]>([]);
+    const [subEvents, setSubEvents] = useState<ISRKVSSubEvent[]>([]);
+    const [subSubEvents, setSubSubEvents] = useState<ISRKVSSubSubEvent[]>([]);
 
     const form = useForm<SRKVSSportsReportRecordFormSchema>({
         resolver: zodResolver(SRKVSSportsReportRecordSchema),
@@ -54,31 +103,109 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
     });
 
     const watchedType = useWatch({ control: form.control, name: 'Type' });
-    const watchedEvent = useWatch({ control: form.control, name: 'SPCCME_Id' });
-    const isMultiSelectType = watchedType === 'Record' || watchedType === 'Start';
-    const showLevelAndCategory = watchedType && watchedEvent;
+    const watchedYear = useWatch({ control: form.control, name: 'ASMAY_Id' });
+    const watchedMainEvent = useWatch({ control: form.control, name: 'spccmsccG_Id' }); // Group ID
+    const watchedSubEvent = useWatch({ control: form.control, name: 'spccmscC_Id' });
 
-    // Propagate type change up and reset fields
+    const isMultiSelectType = watchedType === 'Record' || watchedType === 'Start';
+    const isMultiLevel = watchedType === 'Record' || watchedType === 'Start';
+    const isMultiCategory = ['Record', 'Start', 'Consolidated', 'Indoor'].includes(watchedType);
+
+    // Initial Data Load
+    useEffect(() => {
+        if (initialData) {
+            setAcademicYears(initialData.yearlist || []);
+        }
+    }, [initialData]);
+
+    // Year Change -> Get Class (and other dropdowns)
+    useEffect(() => {
+        if (watchedYear) {
+            getClass.mutate({ asmaY_Id: watchedYear }, {
+                onSuccess: (data) => {
+                    setCategories(data?.categoryList || []);
+                    setCompetitionLevels(data?.competetionLevel || []);
+                    setMasterEvents(data?.masterEvent || []);
+                    setMainEvents(data?.getMasterEvent || []);
+                }
+            });
+        }
+    }, [watchedYear]);
+
+    // Main Event Change -> Get Sub Events (Sports Name)
+    useEffect(() => {
+        if (watchedYear && watchedMainEvent) {
+            if (['Start', 'Finish', 'Indoor', 'Outdoor', 'Team', 'Externals'].includes(watchedType)) {
+                getSportsName.mutate({ asmaY_Id: watchedYear, spccmsccG_Id: watchedMainEvent }, {
+                    onSuccess: (data) => {
+                        setSubEvents(data?.sportsCCList || []);
+                    }
+                });
+            }
+        }
+    }, [watchedYear, watchedMainEvent, watchedType]);
+
+    // Sub Event Change -> Get Sub Sub Events (UOM Name)
+    useEffect(() => {
+        if (watchedYear && watchedSubEvent) {
+            if (['Start', 'Finish', 'Indoor', 'Outdoor', 'Team', 'Externals'].includes(watchedType)) {
+                getUomName.mutate({ asmaY_Id: watchedYear, spccmscC_Id: watchedSubEvent }, {
+                    onSuccess: (data) => {
+                        setSubSubEvents(data?.getsubsubevent || []);
+                    }
+                });
+            }
+        }
+    }, [watchedYear, watchedSubEvent, watchedType]);
+
+    // Propagate type change up
     useEffect(() => {
         onTypeChange(watchedType);
+        // Reset dependent fields logic can be added here if reset is needed on type change
+    }, [watchedType, onTypeChange]);
 
-        // Reset dependent fields when Type changes
-        form.setValue('selectedCompetitionLevels', []);
-        form.setValue('selectedCategories', []);
-        form.setValue('spccmcL_Id', undefined);
-        form.setValue('spccmcC_Id', undefined);
-        // Reset other conditionals if needed
-        form.setValue('spccmsccG_Id', undefined);
-        form.setValue('spccmscC_Id', undefined);
-        form.setValue('spccmsccG_Idsub', undefined);
-        form.setValue('selectedSubSubEvents', []);
-
-    }, [watchedType, onTypeChange, form]);
 
     const onSubmit = (data: SRKVSSportsReportRecordFormSchema) => {
-        generateReport.mutate(data, {
+        const payload: any = {
+            ASMAY_Id: data.ASMAY_Id,
+            Type: data.Type,
+            SPCCME_Id: data.SPCCME_Id,
+            Sportleveltemps: [{ SPCCME_Id: data.SPCCME_Id }]
+        };
+
+        // Handle Category Lists
+        if (isMultiCategory) {
+            payload.Categorylists = data.selectedCategories?.map(c => ({ SPCCMCC_Id: c.spccmcC_Id })) || [];
+        } else if (data.spccmcC_Id) {
+            payload.Categorylists = [{ SPCCMCC_Id: data.spccmcC_Id }];
+        } else {
+            payload.Categorylists = [];
+        }
+
+        // Handle Competition Levels
+        if (isMultiLevel) {
+            payload.CompetetionLevels = data.selectedCompetitionLevels?.map(l => ({ SPCCMCL_Id: l.spccmcL_Id })) || [];
+        } else if (data.spccmcL_Id) {
+            payload.CompetetionLevels = [{ SPCCMCL_Id: data.spccmcL_Id }];
+        } else {
+            payload.CompetetionLevels = [];
+        }
+
+        // Handle Sub Event Lists
+        const isMultiSubSub = ['Indoor', 'Outdoor', 'Externals'].includes(data.Type);
+        const isSingleSubSub = ['Start', 'Team', 'Finish'].includes(data.Type);
+
+        if (isMultiSubSub) {
+            payload.SubEventLists = data.selectedSubSubEvents?.map(s => ({ SPCCMSCCG_Id: s.spccmsccG_Id })) || [];
+        } else if (isSingleSubSub && data.spccmsccG_Idsub) {
+            payload.SubEventLists = [{ SPCCMSCCG_Id: data.spccmsccG_Idsub }];
+        }
+
+        generateReport.mutate(payload, {
             onSuccess: (responseData) => {
-                onReportGenerated(responseData || []);
+                const rawData = responseData?.getReport || responseData?.getReportfinish || responseData || [];
+                const groupedData = groupData(rawData, data.Type);
+                onReportGenerated(groupedData);
                 toast.success('Report generated successfully');
             },
             onError: (error) => {
@@ -88,8 +215,8 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
         });
     };
 
-    if (isDropdownsLoading) {
-        return <div>Loading form data...</div>;
+    if (isInitialLoading) {
+        return <div className="flex justify-center p-4"><Loader2 className="h-6 w-6 animate-spin" /></div>;
     }
 
     return (
@@ -113,7 +240,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        {dropdowns?.academicYear.map((item) => (
+                                        {academicYears.map((item) => (
                                             <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
                                                 {item.asmaY_Year}
                                             </SelectItem>
@@ -142,7 +269,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        {dropdowns?.masterEvents.map((item) => (
+                                        {masterEvents.map((item) => (
                                             <SelectItem key={item.spccmE_Id} value={item.spccmE_Id.toString()}>
                                                 {item.spccmE_EventName}
                                             </SelectItem>
@@ -187,10 +314,10 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                         )}
                     />
 
-                    {/* Competition Level - Multi or Single */}
-                    {showLevelAndCategory && (
+                    {/* Competition Level */}
+                    {watchedType && (
                         <>
-                            {isMultiSelectType ? (
+                            {isMultiLevel ? (
                                 <FormField
                                     control={form.control}
                                     name="selectedCompetitionLevels"
@@ -200,7 +327,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                                                 <FormLabel>Competition Level <span className="text-red-500">*</span></FormLabel>
                                             </div>
                                             <ScrollArea className="h-[150px] w-full border rounded-md p-2">
-                                                {dropdowns?.competitionLevels.map((item) => (
+                                                {competitionLevels.map((item) => (
                                                     <FormField
                                                         key={item.spccmcL_Id}
                                                         control={form.control}
@@ -252,7 +379,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    {dropdowns?.competitionLevels.map((item) => (
+                                                    {competitionLevels.map((item) => (
                                                         <SelectItem key={item.spccmcL_Id} value={item.spccmcL_Id.toString()}>
                                                             {item.spccmcL_CompitionLevel}
                                                         </SelectItem>
@@ -264,9 +391,33 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                                     )}
                                 />
                             )}
+                        </>
+                    )}
 
-                            {/* Competition Category - Multi or Single */}
-                            {isMultiSelectType ? (
+                    {/* From Date */}
+                    <FormField
+                        control={form.control}
+                        name="FromDate"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Date <span className="text-red-500">*</span></FormLabel>
+                                <FormControl>
+                                    <DatePicker
+                                        date={field.value}
+                                        setDate={field.onChange}
+                                        placeholder="Select Date"
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+
+                    {/* Competition Category */}
+                    {watchedType && (
+                        <>
+                            {isMultiCategory ? (
                                 <FormField
                                     control={form.control}
                                     name="selectedCategories"
@@ -276,7 +427,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                                                 <FormLabel>Competition Category <span className="text-red-500">*</span></FormLabel>
                                             </div>
                                             <ScrollArea className="h-[150px] w-full border rounded-md p-2">
-                                                {dropdowns?.categories.map((item) => (
+                                                {categories.map((item) => (
                                                     <FormField
                                                         key={item.spccmcC_Id}
                                                         control={form.control}
@@ -328,7 +479,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    {dropdowns?.categories.map((item) => (
+                                                    {categories.map((item) => (
                                                         <SelectItem key={item.spccmcC_Id} value={item.spccmcC_Id.toString()}>
                                                             {item.spccmcC_CompitionCategory}
                                                         </SelectItem>
@@ -358,29 +509,11 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                         )}
                     />
 
-                    {/* From Date */}
-                    <FormField
-                        control={form.control}
-                        name="FromDate"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Date <span className="text-red-500">*</span></FormLabel>
-                                <FormControl>
-                                    <DatePicker
-                                        date={field.value}
-                                        setDate={field.onChange}
-                                        placeholder="Select Date"
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
                     {/* Conditional Event Fields */}
-                    {(watchedType === 'Start' || watchedType === 'Finish' || watchedType === 'Indoor' || watchedType === 'Outdoor' || watchedType === 'Team' || watchedType === 'Externals') && (
+                    {['Start', 'Finish', 'Indoor', 'Outdoor', 'Team', 'Externals'].includes(watchedType) && (
                         <>
-                            {/* <FormField
+                            {/* Main Event */}
+                            <FormField
                                 control={form.control}
                                 name="spccmsccG_Id"
                                 render={({ field }) => (
@@ -396,7 +529,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                {dropdowns?.mainEvents.map((item) => (
+                                                {mainEvents.map((item) => (
                                                     <SelectItem key={item.spccmsccG_Id} value={item.spccmsccG_Id.toString()}>
                                                         {item.spccmsccG_SportsCCGroupName}
                                                     </SelectItem>
@@ -406,10 +539,10 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                                         <FormMessage />
                                     </FormItem>
                                 )}
-                            /> */}
+                            />
 
-
-                            {/* <FormField
+                            {/* Sub Event */}
+                            <FormField
                                 control={form.control}
                                 name="spccmscC_Id"
                                 render={({ field }) => (
@@ -425,7 +558,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                {dropdowns?.subEvents.map((item) => (
+                                                {subEvents.map((item) => (
                                                     <SelectItem key={item.spccmscC_Id} value={item.spccmscC_Id.toString()}>
                                                         {item.spccmscC_SportsCCName}
                                                     </SelectItem>
@@ -435,7 +568,87 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                                         <FormMessage />
                                     </FormItem>
                                 )}
-                            /> */}
+                            />
+
+                            {/* Sub Sub Event */}
+                            {/* Multi for Indoor, Outdoor, Externals */}
+                            {['Indoor', 'Outdoor', 'Externals'].includes(watchedType) && (
+                                <FormField
+                                    control={form.control}
+                                    name="selectedSubSubEvents"
+                                    render={() => (
+                                        <FormItem>
+                                            <div className="mb-2">
+                                                <FormLabel>Sub Sub Event <span className="text-red-500">*</span></FormLabel>
+                                            </div>
+                                            <ScrollArea className="h-[150px] w-full border rounded-md p-2">
+                                                {subSubEvents.map((item) => (
+                                                    <FormField
+                                                        key={item.spccmsccG_Id}
+                                                        control={form.control}
+                                                        name="selectedSubSubEvents"
+                                                        render={({ field }) => {
+                                                            return (
+                                                                <FormItem
+                                                                    key={item.spccmsccG_Id}
+                                                                    className="flex flex-row items-start space-x-3 space-y-0 mb-2"
+                                                                >
+                                                                    <FormControl>
+                                                                        <Checkbox
+                                                                            checked={field.value?.some(val => val.spccmsccG_Id === item.spccmsccG_Id)}
+                                                                            onCheckedChange={(checked) => {
+                                                                                const current = field.value || [];
+                                                                                return checked
+                                                                                    ? field.onChange([...current, { spccmsccG_Id: item.spccmsccG_Id }])
+                                                                                    : field.onChange(current.filter(val => val.spccmsccG_Id !== item.spccmsccG_Id));
+                                                                            }}
+                                                                        />
+                                                                    </FormControl>
+                                                                    <FormLabel className="font-normal">
+                                                                        {item.spccmsccG_SportsCCGroupName}
+                                                                    </FormLabel>
+                                                                </FormItem>
+                                                            );
+                                                        }}
+                                                    />
+                                                ))}
+                                            </ScrollArea>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            )}
+
+                            {/* Single for Start, Team, Finish */}
+                            {['Start', 'Team', 'Finish'].includes(watchedType) && (
+                                <FormField
+                                    control={form.control}
+                                    name="spccmsccG_Idsub"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Sub Sub Event <span className="text-red-500">*</span></FormLabel>
+                                            <Select
+                                                onValueChange={(val) => field.onChange(Number(val))}
+                                                value={field.value?.toString()}
+                                            >
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select Sub Sub Event" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    {subSubEvents.map((item) => (
+                                                        <SelectItem key={item.spccmsccG_Id} value={item.spccmsccG_Id.toString()}>
+                                                            {item.spccmsccG_SportsCCGroupName}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            )}
                         </>
                     )}
 

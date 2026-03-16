@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, use, useRef } from 'react';
+import { useState, use, useRef, useEffect } from 'react';
 import { Heading } from '@/components/layout/heading';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -78,6 +78,10 @@ export default function InvRGRNPage(props: { searchParams: Promise<any> }) {
 
     // Handle initial report generation (Page 1)
     const handleReportGenerated = (data: IInvRGRNReportData[], payload: IInvRGRNPayload, total: number) => {
+        if (total === 0) {
+            toast.error("No record found");
+        }
+        
         // Seed the query cache with the data we just got from the form submit
         // This prevents the hook from needing to immediately re-fetch
         queryClient.setQueryData(['invRGRNReport', payload, { ...searchParams, page: 1, page_size: pageSize, search_query: '' }], {
@@ -94,6 +98,13 @@ export default function InvRGRNPage(props: { searchParams: Promise<any> }) {
         setCurrentPage(1);
         setSearchQuery(null);
     };
+
+    // Show toast for empty search results
+    useEffect(() => {
+        if (!isFetching && searchQuery && reportData.length === 0) {
+            toast.error("No record found");
+        }
+    }, [isFetching, reportData.length, searchQuery]);
 
     const columns = getColumns(currentPayload?.typeflag || 'All', (currentPayload as any)?.optionflag, currentPage, pageSize);
 
@@ -220,7 +231,7 @@ export default function InvRGRNPage(props: { searchParams: Promise<any> }) {
                 onReportGenerated={handleReportGenerated}
             />
 
-            {totalRecords > 0 && (
+            {currentPayload && (
                 <CollapsibleSection title="Report Result" defaultOpen={true}>
                     <div className="p-4 space-y-4">
                         <div className="flex justify-between items-center bg-muted/20 p-2 rounded border">
@@ -242,10 +253,10 @@ export default function InvRGRNPage(props: { searchParams: Promise<any> }) {
                             data={reportData}
                             columns={columns}
                             isLoading={isFetching} // Use isFetching to show loading on page changes/search
-
                             totalItems={totalRecords}
                             isSearchRequired={true}
-                        // enableSorting={true} - Handled by columns definitions usually
+                            noDataTitle="No GRN Found"
+                            noDataDescription="No records found matching your search criteria."
                         />
 
                         {/* Summary Card */}

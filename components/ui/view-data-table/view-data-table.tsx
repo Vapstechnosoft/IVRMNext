@@ -15,6 +15,7 @@ import {
     getCoreRowModel,
     getFilteredRowModel,
     getPaginationRowModel,
+    getSortedRowModel,
     useReactTable
 } from '@tanstack/react-table';
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
@@ -40,6 +41,9 @@ interface DataTableProps<TData, TValue> {
     defaultSelectedRowIds?: string[];
     onRowSelectionChange?: (selectedRows: TData[]) => void;
     currentApiParams?: ApiSearchparams;
+    manualPagination?: boolean;
+    manualSorting?: boolean;
+    manualFiltering?: boolean;
 }
 
 export interface DataTableRef {
@@ -63,7 +67,10 @@ function DataTableInner<TData, TValue>(props: DataTableProps<TData, TValue>, ref
         defaultSelectedRowIds,
         onRowSelectionChange,
         onSearchQueryChange,
-        currentApiParams
+        currentApiParams,
+        manualPagination = true,
+        manualSorting = true,
+        manualFiltering = true
     } = props;
 
     const { page = 1, page_size = 10, search_query = '', sort_column = '', sort_direction = 'desc' } = currentApiParams || {};
@@ -156,9 +163,10 @@ function DataTableInner<TData, TValue>(props: DataTableProps<TData, TValue>, ref
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
-        manualPagination: true,
-        manualSorting: true,
-        manualFiltering: true,
+        getSortedRowModel: getSortedRowModel(),
+        manualPagination,
+        manualSorting,
+        manualFiltering,
 
         initialState: {
             columnPinning: columnPinning || { right: ['actions'] }
