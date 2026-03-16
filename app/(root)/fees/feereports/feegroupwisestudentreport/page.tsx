@@ -10,11 +10,17 @@ import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 
 import { FormError } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
+import { useCategoryDropDown } from '@/hooks/fees/useReports';
 import { cn } from '@/lib/utils';
 import { feesGroupwiseStudentReportSchema } from '@/schemas/fees/reports';
 import { getFeesSectionListByClassId } from '@/server/fees/reports/fee_DefaulterReport';
 import { getClassAndFeeGroupDropDown, getReport, getStudentDropDown } from '@/server/fees/reports/fee_group_wise_student_report';
-import type { IFeeClassDropdownList, IFeeGroupWiseStudentReport, IFeeSectionDropdownList } from '@/types/fees/reports/reports';
+import type {
+    IFeeCategoryDropdown,
+    IFeeClassDropdownList,
+    IFeeGroupWiseStudentReport,
+    IFeeSectionDropdownList
+} from '@/types/fees/reports/reports';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
@@ -93,6 +99,7 @@ export default function FeeGroupwiseStudentReport() {
 
     // Hooks
     const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
+    const { data: categoryData, isLoading: loadingCategory } = useCategoryDropDown();
     // const { data: classListResponse, isLoading: loadingClasses, error: classListError } = useFeeClassListDefaulterreport();
     // const {
     //     data: feeInstallmentData,
@@ -179,10 +186,11 @@ export default function FeeGroupwiseStudentReport() {
     const groupIdsNew = watch('groupIdsNew');
     const studentids = watch('studentids');
     const amntchecked = watch('amntchecked');
+    const categoryId = watch('fmcC_Id');
 
     useEffect(() => {
         setReportData([]);
-    }, [selectedCatg, academicYearId, classId, sectionId, groupIdsNew, studentids, amntchecked]);
+    }, [selectedCatg, academicYearId, classId, sectionId, groupIdsNew, studentids, amntchecked, categoryId]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -412,7 +420,12 @@ export default function FeeGroupwiseStudentReport() {
                     fmcC_Id: 0,
                     stud_Id: 0
                 };
-            } else if (radioSelected === 'individual' || radioSelected === 'student_wise' || radioSelected === 'Termwise') {
+            } else if (
+                radioSelected === 'individual' ||
+                radioSelected === 'student_wise' ||
+                radioSelected === 'Termwise' ||
+                radioSelected === 'admCat'
+            ) {
                 payload = {
                     radio_selected: radioSelected,
                     asmaY_Id: academicYearId || 0,
@@ -420,7 +433,7 @@ export default function FeeGroupwiseStudentReport() {
                     asmcL_Id: classId,
                     asmS_Id: sectionId,
                     stud_Sel: radioSelected === 'individual' ? data.stud_sel : '',
-                    fmcC_Id: 0,
+                    fmcC_Id: radioSelected === 'admCat' ? categoryId : 0,
                     stud_Id: radioSelected === 'student_wise' || radioSelected === 'Termwise' ? studentids : 0
                 };
             }
@@ -804,11 +817,21 @@ export default function FeeGroupwiseStudentReport() {
                                                                     <SelectValue placeholder='--All--' />
                                                                 </SelectTrigger>
                                                                 <SelectContent>
-                                                                    {sections.map((sec) => (
-                                                                        <SelectItem key={sec.asmS_Id} value={sec.asmS_Id.toString()}>
-                                                                            {sec.asmC_SectionName}
+                                                                    {loadingCategory ? (
+                                                                        <SelectItem value='loading' disabled>
+                                                                            Loading Students...
                                                                         </SelectItem>
-                                                                    ))}
+                                                                    ) : categoryData?.data?.length === 0 ? (
+                                                                        <SelectItem value='nodata' disabled>
+                                                                            No Result Found
+                                                                        </SelectItem>
+                                                                    ) : (
+                                                                        categoryData?.data?.map((item: IFeeCategoryDropdown) => (
+                                                                            <SelectItem key={item.imcC_Id} value={item.imcC_Id.toString()}>
+                                                                                {item.imcC_CategoryName}
+                                                                            </SelectItem>
+                                                                        ))
+                                                                    )}
                                                                 </SelectContent>
                                                             </Select>
                                                         )}
@@ -884,6 +907,7 @@ export default function FeeGroupwiseStudentReport() {
                                                 {(selectedCatg === 'all' ||
                                                     selectedCatg === 'individual' ||
                                                     selectedCatg === 'student_wise' ||
+                                                    selectedCatg === 'admCat' ||
                                                     selectedCatg === 'unmapped' ||
                                                     selectedCatg === 'Termwise') && (
                                                     <div className='overflow-x-auto px-8 pb-8'>
