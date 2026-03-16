@@ -53,8 +53,6 @@ export default function GuestAllotmentPage() {
 
     return (
         <div className="container mx-auto p-4 space-y-8">
-            <h2 className="text-2xl font-bold text-gray-800">Guest Allotment</h2>
-
             <GuestAllotmentForm
                 dropdowns={dropdowns}
                 onSuccess={handleSuccess}

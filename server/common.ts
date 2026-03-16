@@ -5326,7 +5326,8 @@ export async function getUserAccessibleModules() {
                 //             ]
                 //         }
                 //     ]
-                // },
+                // }
+                ,
                 {
                     id: 8,
                     name: 'Hostel Management',
