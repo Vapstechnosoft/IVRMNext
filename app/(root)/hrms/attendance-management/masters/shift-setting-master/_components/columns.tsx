@@ -9,108 +9,69 @@ import { useCallback } from 'react';
 
 export const shiftSettingColumns: ColumnDef<IMasterShiftSettingList>[] = [
     {
-        accessorKey: 'FOMS_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
+        accessorKey: 'fomS_Id',
+        size: 10,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-fit pl-6' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
             const continuousIndex = pageIndex * pageSize + row.index + 1;
-            return <div className='w-full pl-6'>{continuousIndex}</div>;
+            return <div className='w-fit pl-6'>{continuousIndex}</div>;
         },
         enableSorting: true,
         enableHiding: false
     },
     {
-        accessorKey: 'FOMS_ShiftName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Shift Name' />,
-        cell: ({ row }) => <div>{row.getValue('FOMS_ShiftName')}</div>,
+        accessorKey: 'fomS_ShiftName',
+        header: ({ column }) => (
+            <div className='w-fit'>
+                <DataTableColumnHeader column={column} title="Shift Name" />
+            </div>
+        ),
+        cell: ({ row }) => (
+            <div className='w-fit'>
+                {row.getValue('fomS_ShiftName')}
+            </div>
+        ),
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'FOMST_IHalfLoginTime',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Shift Start Time' />,
-        cell: ({ row }) => <div>{row.getValue('FOMST_IHalfLoginTime') || '-'}</div>,
+        accessorKey: 'fomsT_IHalfLoginTime',
+        header: ({ column }) => (
+            <div className='w-fit'>
+                <DataTableColumnHeader column={column} title='Shift Start Time' />
+            </div>),
+        cell: ({ row }) => <div className='w-fit'>{row.getValue('fomsT_IHalfLoginTime') || '-'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'FOMST_IIHalfLogoutTime',
+        accessorKey: 'fomsT_IIHalfLogoutTime',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Shift End Time' />,
-        cell: ({ row }) => <div>{row.getValue('FOMST_IIHalfLogoutTime') || '-'}</div>,
+        cell: ({ row }) => <div>{row.getValue('fomsT_IIHalfLogoutTime') || '-'}</div>,
         enableSorting: true,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'FOMST_IHalfLogoutTime',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Lunch start time' />,
-        cell: ({ row }) => <div>{row.getValue('FOMST_IHalfLogoutTime') || '-'}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'FOMST_IIHalfLoginTime',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Lunch End time' />,
-        cell: ({ row }) => <div>{row.getValue('FOMST_IIHalfLoginTime') || '-'}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'FOMST_FDWHrMin',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Total working hours per shift' />,
-        cell: ({ row }) => <div>{row.getValue('FOMST_FDWHrMin') || '-'}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'FOMST_HDWHrMin',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Half day working hours per shift' />,
-        cell: ({ row }) => <div>{row.getValue('FOMST_HDWHrMin') || '-'}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'FOMST_LunchHoursDuration',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Lunch Hours' />,
-        cell: ({ row }) => <div>{row.getValue('FOMST_LunchHoursDuration') || '-'}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'FOMST_DelayPerShiftHrMin',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Delay per shift' />,
-        cell: ({ row }) => <div>{row.getValue('FOMST_DelayPerShiftHrMin') || '-'}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'FOMST_EarlyPerShiftHrMin',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Early per shift' />,
-        cell: ({ row }) => <div>{row.getValue('FOMST_EarlyPerShiftHrMin') || '-'}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'FOMS_ActiveFlg',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
-        cell: ({ row }) => {
-            const isActive = row.getValue('FOMS_ActiveFlg') as boolean;
-            return <div>{getStatusBadge(isActive ? 'active' : 'inactive')}</div>;
-        },
-        enableSorting: false,
         enableHiding: true
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
+        header: ({ column }) => (
+            <div className="flex justify-center w-full">
+                <DataTableColumnHeader column={column} title="Actions" />
+            </div>
+        ),
         accessorFn: (row: any) => row,
         enableSorting: false,
-        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
+        cell: ({ row }) => (
+            <div className="flex justify-center w-full">
+                <ActionButtonsCell rowData={row.original} />
+            </div>
+        )
     }
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IMasterShiftSettingList }) {
-    const { openEditForm, openToggleForm } = useFormContext<IMasterShiftSettingList>();
+    const { openEditForm, openToggleForm, openDetailsView } = useFormContext<IMasterShiftSettingList>();
 
     const handleEdit = useCallback(
         (data: IMasterShiftSettingList) => {
@@ -126,13 +87,21 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterShiftSettingList }) {
         [openToggleForm]
     );
 
+    const handleView = useCallback(
+        (data: IMasterShiftSettingList) => {
+            openDetailsView(data);
+        },
+        [openDetailsView]
+    );
+
     return (
         <ActionButtons
             rowData={rowData}
-            buttons={{ edit: true, toggle: true, delete: false }}
+            buttons={{ edit: true, toggle: true, delete: false, view: true }}
             onEdit={handleEdit}
             onToggle={handleToggle}
-            toggleConditionKey='FOMS_ActiveFlg'
+            onView={handleView}
+            toggleConditionKey='fomS_ActiveFlg'
         />
     );
 }

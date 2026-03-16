@@ -248,3 +248,28 @@ export async function getLeave(): Promise<ApiResponse<any[]>> {
         throw new Error(error?.message || 'Failed to fetch leaves');
     }
 }
+/**
+ * Get leave names for dropdown
+ * GET /api/MasterDropDown/get_leave_name_dropdown
+ * 
+ * @returns List of leave names with codes
+ */
+export async function getLeaveNameCodeDropdown(): Promise<ApiResponse<any[]>> {
+    const url = '/api/MasterDropDown/get_leave_name_dropdown';
+    console.log('📡 [SERVER] Fetching Leave Name Dropdown:', url);
+
+    try {
+        const response = await api.get<any[]>('hmslms', url);
+        console.log('📦 [SERVER] Leave Name Dropdown Response:', JSON.stringify(response, null, 2));
+
+        const res = response as any;
+        return {
+            success: res?.success ?? true,
+            message: res?.message || 'Data fetched successfully',
+            data: res?.data || res || []
+        };
+    } catch (error: any) {
+        console.error('❌ [SERVER] Leave Name Dropdown API Error:', error);
+        throw new Error(error?.message || 'Failed to fetch leave names');
+    }
+}

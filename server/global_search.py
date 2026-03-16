@@ -75,6 +75,8 @@ def perform_search(query):
     target_modules = []
     
     # Check if query contains a module name
+    
+    
     for module_name in MODULE_MAPPING.keys():
         if module_name.lower() in query_lower:
             target_modules.append(module_name)

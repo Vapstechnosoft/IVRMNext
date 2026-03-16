@@ -9,12 +9,13 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useHolidayDatesForDays, useMasterHoliday } from '@/hooks/hrms/attendance-management/useMasters';
-import { useMasterDepartment } from '@/hooks/hrms/useMasters';
+import { useHolidayDatesForDays, useMasterHoliday, useEmployeeShiftMappingHolidayTypes } from '@/hooks/hrms/attendance-management/useMasters';
+import { useMasterDepartment, useLeaveYearDropdown } from '@/hooks/hrms/useMasters';
 import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
 import { addOrUpdateMasterHoliday } from '@/server/hrms/attendance-management/masters/master-holiday';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Save } from 'lucide-react';
+import { format, isValid, parse } from 'date-fns';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Save } from 'lucide-react';
 import { useEffect, useId, useMemo, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -30,12 +31,26 @@ interface AddMasterHolidayFormProps {
 export default function AddMasterHolidayForm({ onSuccess, className = '' }: AddMasterHolidayFormProps) {
     const { refetchAll } = useMasterHoliday();
     const { data: departmentData } = useMasterDepartment();
+    const { data: leaveYearData } = useLeaveYearDropdown();
+    const holidayTypeQuery = useEmployeeShiftMappingHolidayTypes();
+    const { data: holidayTypeData, error: holidayTypeError, status: holidayTypeStatus } = holidayTypeQuery;
 
-    // Generate calendar years (current year - 10 to current year + 10)
-    const calendarYears = useMemo(() => {
-        const currentYear = new Date().getFullYear();
-        return Array.from({ length: 21 }, (_, i) => currentYear - 10 + i);
-    }, []);
+    useEffect(() => {
+        if (holidayTypeStatus === 'error') {
+            console.error("❌ [HOLIDAY TYPE ERROR]:", holidayTypeError);
+        }
+    }, [holidayTypeError, holidayTypeStatus]);
+    // Mapping Leave Year options
+    const leaveYearOptions = useMemo(() => {
+        const rawData = leaveYearData as any;
+        if (!rawData) return [];
+        const list = Array.isArray(rawData) ? rawData : (Array.isArray(rawData.data) ? rawData.data : []);
+
+        return list.map((year: any) => ({
+            label: year.hrmlY_LeaveYear || '',
+            value: String(year.hrmlY_Id || '')
+        }));
+    }, [leaveYearData]);
 
     // Get departments from API
     const departmentOptions = useMemo(() => {
@@ -50,20 +65,30 @@ export default function AddMasterHolidayForm({ onSuccess, className = '' }: AddM
             .filter((dept: { label: string; value: string }) => dept.label && dept.value);
     }, [departmentData]);
 
-    // Holiday types - placeholder, update when API is available
     const holidayTypeOptions = useMemo(() => {
-        // Sample data - replace with actual API call when available
-        return [
-            { label: 'Public Holiday', value: 'PUBLIC_HOLIDAY' },
-            { label: 'Week Day', value: 'WEEK_DAY' },
-            { label: 'Festival', value: 'FESTIVAL' }
-        ];
-    }, []);
+        // Robust response handling
+        const rawData = holidayTypeData as any;
+        if (!rawData) return [];
 
-    // Holiday types that require Start Date, End Date, Holiday Name, and Remarks
-    const holidayTypesRequiringDateFields = useMemo(() => ['PUBLIC_HOLIDAY'], []);
+        let list = [];
+        if (Array.isArray(rawData)) {
+            list = rawData;
+        } else if (rawData.data && Array.isArray(rawData.data)) {
+            list = rawData.data;
+        } else if (rawData.data && rawData.data.$values && Array.isArray(rawData.data.$values)) {
+            list = rawData.data.$values;
+        } else if (rawData.$values && Array.isArray(rawData.$values)) {
+            list = rawData.$values;
+        }
 
-    const calendarYearId = useId();
+        return list.map((type: any) => ({
+            label: type.value || type.Value || '',
+            value: String(type.key || type.Key || ''),
+            name: type.value || type.Value || ''
+        })).filter((opt: any) => opt.value && opt.value !== 'undefined');
+    }, [holidayTypeData]);
+
+    const leaveYearId = useId();
     const departmentId = useId();
     const holidayTypeId = useId();
     const selectedDaysId = useId();
@@ -83,37 +108,55 @@ export default function AddMasterHolidayForm({ onSuccess, className = '' }: AddM
         resolver: zodResolver(hrmsMasterSchemas.masterHoliday.add),
         mode: 'onChange',
         defaultValues: {
+            day_flag: true,
+            selectedDaysDate: [],
+            fomhwdD_ToDate: '',
+            fO_Start_Date: '',
+            fomhwD_HolidayWDName: '',
+            fO_Remark: '',
+            fohwdT_Id: 0,
+            hrmlY_Id: 0,
+            hrmD_Id: 0,
             calendarYear: '',
-            fomhwD_Department: '',
-            fomhwD_HolidayType: '',
-            selectedDays: [],
-            fomhwD_FromDate: '',
-            fomhwD_ToDate: '',
-            fomhwD_Name: '',
-            fomhwD_Remarks: ''
+            selectedDays: []
         }
     });
 
-    const calendarYear = watch('calendarYear');
-    const holidayType = watch('fomhwD_HolidayType');
+    const hrmlY_Id = watch('hrmlY_Id');
     const selectedDays = watch('selectedDays') || [];
+    const day_flag = watch('day_flag');
+    const fohwdT_Id = watch('fohwdT_Id');
 
-    // Check if date fields should be shown
-    const shouldShowDateFields = useMemo(() => {
-        return holidayType && holidayTypesRequiringDateFields.includes(holidayType) && (!selectedDays || selectedDays.length === 0);
-    }, [holidayType, selectedDays, holidayTypesRequiringDateFields]);
+    // Handle holiday type change logic from legacy
+    useEffect(() => {
+        if (fohwdT_Id && holidayTypeOptions.length > 0) {
+            const selectedType = holidayTypeOptions.find((o: { label: string; value: string; name: string }) => o.value === String(fohwdT_Id));
+            if (selectedType) {
+                const typeName = selectedType.name.toUpperCase();
+                const isDateBased = typeName === 'PUBLIC HOLIDAY' || typeName === 'WEEK END' || typeName === 'PAID HOLIDAY';
 
-    // State to track selected rows in the table
-    const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
+                if (isDateBased) {
+                    setValue('day_flag', false);
+                    setValue('selectedDays', []);
+                    setValue('selectedDaysDate', []);
+                } else {
+                    setValue('day_flag', true);
+                    setValue('fO_Start_Date', '');
+                    setValue('fomhwdD_ToDate', '');
+                    setValue('fomhwD_HolidayWDName', '');
+                    setValue('fO_Remark', '');
+                }
+            }
+        }
+    }, [fohwdT_Id, holidayTypeOptions, setValue]);
 
     // Call API when days are selected
     const { data: datesData, isLoading: isLoadingDates } = useHolidayDatesForDays(
-        calendarYear && holidayType && selectedDays.length > 0
+        hrmlY_Id && selectedDays.length > 0 && day_flag
             ? {
-                  calendarYear,
-                  holidayType,
-                  selectedDays
-              }
+                hrmlY_Id: Number(hrmlY_Id),
+                days: selectedDays.join(',')
+            }
             : undefined,
         true
     );
@@ -121,74 +164,71 @@ export default function AddMasterHolidayForm({ onSuccess, className = '' }: AddM
     // Parse dates from API response
     const holidayDates = useMemo(() => {
         if (!datesData?.data) return [];
-
-        // Handle different response structures
-        let data: any[] = [];
-        if (Array.isArray(datesData.data)) {
-            data = datesData.data;
-        } else if ((datesData.data as any)?.report_list) {
-            data = (datesData.data as any).report_list;
-        } else if ((datesData.data as any)?.data) {
-            data = Array.isArray((datesData.data as any).data) ? (datesData.data as any).data : [];
-        }
-
-        return data
-            .filter((item: any) => item && (item.Date || item.date || item.Dayname || item.dayname))
-            .map((item: { Date?: string; date?: string; Dayname?: string; dayname?: string; DayName?: string; dayName?: string }) => ({
-                id: `${item.Date || item.date || ''}_${item.Dayname || item.dayname || item.DayName || item.dayName || ''}_${Math.random()}`,
-                dayName: item.Dayname || item.dayname || item.DayName || item.dayName || '',
-                date: item.Date || item.date || ''
-            }))
-            .filter((item: { dayName: string; date: string }) => item.dayName && item.date); // Only include items with both dayName and date
+        return datesData.data.map((item: any, index: number) => ({
+            id: item.date ? `${item.date}_${item.dayname || index}` : `date_${index}`,
+            dayname: item.dayname || '',
+            date: item.date || ''
+        }));
     }, [datesData]);
 
-    // Handle select all checkbox
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+
+    // Reset page when data changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [holidayDates]);
+
+    const totalPages = Math.ceil(holidayDates.length / pageSize);
+    const paginatedData = useMemo(() => {
+        const start = (currentPage - 1) * pageSize;
+        return holidayDates.slice(start, start + pageSize);
+    }, [holidayDates, currentPage, pageSize]);
+
+    const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
+
     const handleSelectAll = (checked: boolean) => {
         if (checked) {
-            setSelectedRows(new Set(holidayDates.map((item: { id: string; dayName: string; date: string }) => item.id)));
+            setSelectedRows(new Set(holidayDates.map((item: any) => item.id)));
         } else {
             setSelectedRows(new Set());
         }
     };
 
-    // Handle individual row checkbox
     const handleRowSelect = (id: string, checked: boolean) => {
         const newSelected = new Set(selectedRows);
-        if (checked) {
-            newSelected.add(id);
-        } else {
-            newSelected.delete(id);
-        }
+        if (checked) newSelected.add(id);
+        else newSelected.delete(id);
         setSelectedRows(newSelected);
     };
 
-    // Reset selected rows when dates change
+    // Update selectedDaysDate in form state whenever selectedRows changes
     useEffect(() => {
-        setSelectedRows(new Set());
-    }, [holidayDates]);
+        const selectedData = holidayDates
+            .filter((item: any) => selectedRows.has(item.id))
+            .map((item: any) => ({ date: item.date, dayname: item.dayname }));
+        setValue('selectedDaysDate', selectedData);
+    }, [selectedRows, holidayDates, setValue]);
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            // Sample payload structure following project architecture
-            // Note: mI_Id is handled by JWT, not included in request body
+            // The new API expects keys matching the form fields (mostly lowercase)
             const payload = {
-                fomhwD_Id: 0, // 0 for add operation
-                calendarYear: data.calendarYear || '',
-                fomhwD_Department: data.fomhwD_Department || '',
-                fomhwD_HolidayType: data.fomhwD_HolidayType || '',
-                selectedDays: data.selectedDays || [],
-                fomhwD_FromDate: data.fomhwD_FromDate || '',
-                fomhwD_ToDate: data.fomhwD_ToDate || '',
-                fomhwD_Name: data.fomhwD_Name || '',
-                fomhwD_Remarks: data.fomhwD_Remarks || '',
-                fomhwD_ActiveFlag: true
+                ...data,
+                fohwdT_Id: Number(data.fohwdT_Id),
+                hrmlY_Id: Number(data.hrmlY_Id),
+                hrmD_Id: Number(data.hrmD_Id) || 0,
+                // Ensure dates are stringified if present and formatted without 'Z' to avoid backend conversion issues
+                fO_Start_Date: data.fO_Start_Date ? format(new Date(data.fO_Start_Date), "yyyy-MM-dd'T'HH:mm:ss.SSS") : undefined,
+                fomhwdD_ToDate: data.fomhwdD_ToDate ? format(new Date(data.fomhwdD_ToDate), "yyyy-MM-dd'T'HH:mm:ss.SSS") : undefined,
             };
 
             const response = await addOrUpdateMasterHoliday(payload);
-
             if (response?.success) {
                 toast.success(response?.message || 'Master holiday saved successfully');
                 reset();
+                setSelectedRows(new Set());
                 refetchAll();
                 onSuccess?.();
             } else {
@@ -199,285 +239,272 @@ export default function AddMasterHolidayForm({ onSuccess, className = '' }: AddM
         }
     };
 
-    const handleReset = () => {
-        reset();
-    };
-
     return (
         <div className={`${className}`}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        {/* Calendar Year */}
                         <div className='space-y-2'>
-                            <Label htmlFor={calendarYearId}>
-                                Calendar year <span className='text-red-500'>*</span>
-                            </Label>
+                            <Label htmlFor={leaveYearId}>Calendar Year <span className='text-red-500'>*</span></Label>
                             <Controller
-                                name='calendarYear'
+                                name='hrmlY_Id'
                                 control={control}
                                 render={({ field }) => (
-                                    <Select value={field.value} onValueChange={field.onChange}>
-                                        <SelectTrigger id={calendarYearId} className={errors.calendarYear ? 'border-red-500' : ''}>
+                                    <Select value={String(field.value)} onValueChange={field.onChange}>
+                                        <SelectTrigger id={leaveYearId}>
                                             <SelectValue placeholder='--Select--' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {calendarYears.map((year) => (
-                                                <SelectItem key={year} value={String(year)}>
-                                                    {year}
-                                                </SelectItem>
+                                            {leaveYearOptions.map((opt: any) => (
+                                                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
                                 )}
                             />
-                            {errors.calendarYear && <FormError>{errors.calendarYear.message}</FormError>}
+                            {errors.hrmlY_Id && <FormError>{errors.hrmlY_Id.message}</FormError>}
                         </div>
 
-                        {/* Department */}
                         <div className='space-y-2'>
                             <Label htmlFor={departmentId}>Department</Label>
                             <Controller
-                                name='fomhwD_Department'
+                                name='hrmD_Id'
                                 control={control}
                                 render={({ field }) => (
-                                    <Select value={field.value} onValueChange={field.onChange}>
-                                        <SelectTrigger id={departmentId} className={errors.fomhwD_Department ? 'border-red-500' : ''}>
+                                    <Select value={String(field.value)} onValueChange={field.onChange}>
+                                        <SelectTrigger id={departmentId}>
                                             <SelectValue placeholder='--Select--' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {departmentOptions.map((dept: { label: string; value: string }) => (
-                                                <SelectItem key={dept.value} value={dept.value}>
-                                                    {dept.label}
-                                                </SelectItem>
+                                            <SelectItem value='0'>All</SelectItem>
+                                            {departmentOptions.map((dept: any) => (
+                                                <SelectItem key={dept.value} value={dept.value}>{dept.label}</SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
                                 )}
                             />
-                            {errors.fomhwD_Department && <FormError>{errors.fomhwD_Department.message}</FormError>}
                         </div>
 
-                        {/* Holiday Type */}
                         <div className='space-y-2'>
-                            <Label htmlFor={holidayTypeId}>
-                                Holiday Type <span className='text-red-500'>*</span>
-                            </Label>
+                            <Label htmlFor={holidayTypeId}>Holiday Type <span className='text-red-500'>*</span></Label>
                             <Controller
-                                name='fomhwD_HolidayType'
+                                name='fohwdT_Id'
                                 control={control}
                                 render={({ field }) => (
-                                    <Select value={field.value} onValueChange={field.onChange}>
-                                        <SelectTrigger id={holidayTypeId} className={errors.fomhwD_HolidayType ? 'border-red-500' : ''}>
+                                    <Select
+                                        value={String(field.value || '')}
+                                        onValueChange={(val) => field.onChange(Number(val))}
+                                    >
+                                        <SelectTrigger id={holidayTypeId}>
                                             <SelectValue placeholder='--Select--' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {holidayTypeOptions.map((type) => (
-                                                <SelectItem key={type.value} value={type.value}>
-                                                    {type.label}
-                                                </SelectItem>
+                                            {holidayTypeOptions.map((type: { label: string; value: string; name: string }) => (
+                                                <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
                                 )}
                             />
-                            {errors.fomhwD_HolidayType && <FormError>{errors.fomhwD_HolidayType.message}</FormError>}
+                            {errors.fohwdT_Id && <FormError>{errors.fohwdT_Id.message}</FormError>}
                         </div>
 
-                        {/* Select Day */}
-                        <div className='space-y-2'>
-                            <Label htmlFor={selectedDaysId}>
-                                Select Day <span className='text-red-500'>*</span>
-                            </Label>
-                            <Controller
-                                name='selectedDays'
-                                control={control}
-                                render={({ field }) => (
-                                    <DaySelectionCheckbox
-                                        id={selectedDaysId}
-                                        label='Select Day'
-                                        selectedDays={field.value || []}
-                                        onDaysChange={(days) => {
-                                            field.onChange(days);
-                                            // Clear date fields when days are selected
-                                            if (days.length > 0) {
-                                                setValue('fomhwD_FromDate', '');
-                                                setValue('fomhwD_ToDate', '');
-                                                setValue('fomhwD_Name', '');
-                                                setValue('fomhwD_Remarks', '');
-                                            }
-                                        }}
-                                        checked={(field.value || []).length > 0}
-                                    />
-                                )}
-                            />
-                            {errors.selectedDays && <FormError>{errors.selectedDays.message}</FormError>}
-                        </div>
+                        {day_flag && (
+                            <div className='space-y-2'>
+                                <Label htmlFor={selectedDaysId}>Select Day <span className='text-red-500'>*</span></Label>
+                                <Controller
+                                    name='selectedDays'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <DaySelectionCheckbox
+                                            id={selectedDaysId}
+                                            label='Select Day'
+                                            selectedDays={field.value || []}
+                                            onDaysChange={field.onChange}
+                                            checked={(field.value || []).length > 0}
+                                        />
+                                    )}
+                                />
+                            </div>
+                        )}
                     </div>
 
-                    {/* Conditional Fields: Start Date, End Date, Holiday Name, Remarks */}
-                    {shouldShowDateFields && (
-                        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                            {/* Start Date */}
-                            <div className='space-y-2'>
-                                <Label htmlFor={startDateId}>Start Date</Label>
-                                <Controller
-                                    name='fomhwD_FromDate'
-                                    control={control}
-                                    render={({ field, fieldState }) => (
-                                        <DateField field={field} fieldState={fieldState} label='' fromDate={new Date()} />
-                                    )}
-                                />
-                                {errors.fomhwD_FromDate && <FormError>{errors.fomhwD_FromDate.message}</FormError>}
+                    {!day_flag && (
+                        <div className='space-y-4'>
+                            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                <div className='space-y-2'>
+                                    <Label htmlFor={startDateId}>Start Date <span className='text-red-500'>*</span></Label>
+                                    <Controller
+                                        name='fO_Start_Date'
+                                        control={control}
+                                        render={({ field, fieldState }) => (
+                                            <DateField field={field} fieldState={fieldState} label='' />
+                                        )}
+                                    />
+                                    {errors.fO_Start_Date && <FormError>{errors.fO_Start_Date.message}</FormError>}
+                                </div>
+                                <div className='space-y-2'>
+                                    <Label htmlFor={endDateId}>End Date <span className='text-red-500'>*</span></Label>
+                                    <Controller
+                                        name='fomhwdD_ToDate'
+                                        control={control}
+                                        render={({ field, fieldState }) => (
+                                            <DateField field={field} fieldState={fieldState} label='' />
+                                        )}
+                                    />
+                                    {errors.fomhwdD_ToDate && <FormError>{errors.fomhwdD_ToDate.message}</FormError>}
+                                </div>
                             </div>
 
-                            {/* End Date */}
                             <div className='space-y-2'>
-                                <Label htmlFor={endDateId}>End Date</Label>
+                                <Label htmlFor={holidayNameId}>Holiday Name <span className='text-red-500'>*</span></Label>
                                 <Controller
-                                    name='fomhwD_ToDate'
-                                    control={control}
-                                    render={({ field, fieldState }) => (
-                                        <DateField field={field} fieldState={fieldState} label='' fromDate={new Date()} />
-                                    )}
-                                />
-                                {errors.fomhwD_ToDate && <FormError>{errors.fomhwD_ToDate.message}</FormError>}
-                            </div>
-
-                            {/* Holiday Name */}
-                            <div className='space-y-2'>
-                                <Label htmlFor={holidayNameId}>Holiday Name</Label>
-                                <Controller
-                                    name='fomhwD_Name'
+                                    name='fomhwD_HolidayWDName'
                                     control={control}
                                     render={({ field }) => (
                                         <InputText
+                                            {...field}
                                             id={holidayNameId}
                                             placeholder='Enter holiday name'
-                                            maxLength={100}
-                                            {...field}
-                                            error={errors.fomhwD_Name?.message}
-                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                            maxLength={30}
                                         />
                                     )}
                                 />
-                                {errors.fomhwD_Name && <FormError>{errors.fomhwD_Name.message}</FormError>}
+                                {errors.fomhwD_HolidayWDName && <FormError>{errors.fomhwD_HolidayWDName.message}</FormError>}
                             </div>
 
-                            {/* Remarks */}
                             <div className='space-y-2'>
-                                <Label htmlFor={remarksId}>Remarks</Label>
+                                <Label htmlFor={remarksId}>Remarks <span className='text-red-500'>*</span></Label>
                                 <Controller
-                                    name='fomhwD_Remarks'
+                                    name='fO_Remark'
                                     control={control}
                                     render={({ field }) => (
                                         <InputTextarea
+                                            {...field}
                                             id={remarksId}
                                             placeholder='Enter remarks'
-                                            maxLength={250}
-                                            rows={4}
-                                            {...field}
-                                            error={errors.fomhwD_Remarks?.message}
-                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
                                         />
                                     )}
                                 />
-                                {errors.fomhwD_Remarks && <FormError>{errors.fomhwD_Remarks.message}</FormError>}
+                                {errors.fO_Remark && <FormError>{errors.fO_Remark.message}</FormError>}
                             </div>
                         </div>
                     )}
-
-                    {/* Root Error */}
-                    {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
-                {/* Holiday Dates Table - Show when days are selected */}
-                {selectedDays && selectedDays.length > 0 && (
+                {day_flag && selectedDays.length > 0 && (
                     <div className='space-y-4 rounded-md border border-input bg-background p-4'>
                         <h3 className='font-semibold text-sm'>Holiday List</h3>
-                        {!calendarYear || !holidayType ? (
-                            <div className='rounded-md border border-yellow-200 bg-yellow-50 p-4 text-center text-sm text-yellow-800'>
-                                Please select Calendar Year and Holiday Type to load holiday dates.
-                            </div>
+                        {isLoadingDates ? (
+                            <div className='text-center py-4'>Loading dates...</div>
+                        ) : holidayDates.length === 0 ? (
+                            <div className='text-center py-4'>No dates found for selected days in this year.</div>
                         ) : (
-                            <div className='overflow-x-auto'>
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead className='w-12'>
-                                                <Checkbox
-                                                    checked={holidayDates.length > 0 && selectedRows.size === holidayDates.length}
-                                                    onCheckedChange={handleSelectAll}
-                                                    aria-label='Select all'
-                                                />
-                                            </TableHead>
-                                            <TableHead>Day Name</TableHead>
-                                            <TableHead>Date</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {isLoadingDates ? (
+                            <div className='space-y-4'>
+                                <div className='overflow-x-auto overflow-y-auto max-h-[400px] border rounded-md'>
+                                    <Table>
+                                        <TableHeader className='sticky top-0 bg-background z-10'>
                                             <TableRow>
-                                                <TableCell colSpan={3} className='text-center'>
-                                                    Loading dates...
-                                                </TableCell>
+                                                <TableHead className='w-12'>
+                                                    <Checkbox
+                                                        checked={holidayDates.length > 0 && selectedRows.size === holidayDates.length}
+                                                        onCheckedChange={handleSelectAll}
+                                                    />
+                                                </TableHead>
+                                                <TableHead>Day Name</TableHead>
+                                                <TableHead>Date</TableHead>
                                             </TableRow>
-                                        ) : holidayDates.length === 0 ? (
-                                            <TableRow>
-                                                <TableCell colSpan={3} className='text-center'>
-                                                    No dates found
-                                                </TableCell>
-                                            </TableRow>
-                                        ) : (
-                                            holidayDates.map((item: { id: string; dayName: string; date: string }) => (
-                                                <TableRow key={item.id}>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {paginatedData.map((item: any) => (
+                                                <TableRow key={item.id} className={selectedRows.has(item.id) ? 'bg-muted/50' : ''}>
                                                     <TableCell>
                                                         <Checkbox
                                                             checked={selectedRows.has(item.id)}
                                                             onCheckedChange={(checked) => handleRowSelect(item.id, !!checked)}
-                                                            aria-label='Select row'
                                                         />
                                                     </TableCell>
-                                                    <TableCell>{item.dayName}</TableCell>
+                                                    <TableCell>{item.dayname}</TableCell>
                                                     <TableCell>
-                                                        {item.date
-                                                            ? new Date(item.date).toLocaleDateString('en-GB', {
-                                                                  day: '2-digit',
-                                                                  month: '2-digit',
-                                                                  year: 'numeric'
-                                                              })
-                                                            : '-'}
+                                                        {item.date ? new Date(item.date).toLocaleDateString('en-GB') : '-'}
                                                     </TableCell>
                                                 </TableRow>
-                                            ))
-                                        )}
-                                    </TableBody>
-                                </Table>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+
+                                {/* Pagination Footer */}
+                                <div className='flex items-center justify-between px-2 py-1 bg-muted/20 rounded-md border text-xs'>
+                                    <div className='text-muted-foreground'>
+                                        Showing {Math.min((currentPage - 1) * pageSize + 1, holidayDates.length)} to{' '}
+                                        {Math.min(currentPage * pageSize, holidayDates.length)} of {holidayDates.length} entries
+                                    </div>
+                                    <div className='flex items-center space-x-4'>
+                                        <div className='flex items-center space-x-2'>
+                                            <span className='text-muted-foreground'>Rows per page:</span>
+                                            <Select value={String(pageSize)} onValueChange={(val) => setPageSize(Number(val))}>
+                                                <SelectTrigger className='h-7 w-16 border-none bg-transparent shadow-none hover:bg-muted/50 focus:ring-0'>
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {[10, 20, 30, 50].map((size) => (
+                                                        <SelectItem key={size} value={String(size)}>
+                                                            {size}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className='flex items-center space-x-1'>
+                                            <Button
+                                                variant='ghost'
+                                                size='icon'
+                                                className='h-7 w-7'
+                                                onClick={() => setCurrentPage(1)}
+                                                disabled={currentPage === 1}>
+                                                <ChevronsLeft className='h-4 w-4' />
+                                            </Button>
+                                            <Button
+                                                variant='ghost'
+                                                size='icon'
+                                                className='h-7 w-7'
+                                                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                                                disabled={currentPage === 1}>
+                                                <ChevronLeft className='h-4 w-4' />
+                                            </Button>
+                                            <span className='px-2'>
+                                                Page {currentPage} of {totalPages}
+                                            </span>
+                                            <Button
+                                                variant='ghost'
+                                                size='icon'
+                                                className='h-7 w-7'
+                                                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                                                disabled={currentPage === totalPages}>
+                                                <ChevronRight className='h-4 w-4' />
+                                            </Button>
+                                            <Button
+                                                variant='ghost'
+                                                size='icon'
+                                                className='h-7 w-7'
+                                                onClick={() => setCurrentPage(totalPages)}
+                                                disabled={currentPage === totalPages}>
+                                                <ChevronsRight className='h-4 w-4' />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         )}
                     </div>
                 )}
 
-                {/* Action Buttons */}
-                <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
-                    <Button
-                        type='button'
-                        variant='outline'
-                        onClick={handleReset}
-                        disabled={isSubmitting}
-                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                        Cancel
-                    </Button>
-                    <Button
-                        type='submit'
-                        disabled={isSubmitting}
-                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
-                        isLoading={isSubmitting}
-                        loadingText='Saving...'>
-                        <div className='flex items-center'>
-                            <Save className='mr-2 h-4 w-4' />
-                            Save
-                        </div>
+                <div className='flex gap-3 justify-start border-t pt-4'>
+                    <Button type='button' variant='outline' onClick={() => reset()} disabled={isSubmitting}>Cancel</Button>
+                    <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting}>
+                        <Save className='mr-2 h-4 w-4' /> Save
                     </Button>
                 </div>
             </form>

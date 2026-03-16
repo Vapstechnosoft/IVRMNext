@@ -64,11 +64,11 @@ export async function getEmployeeShiftMappingGroupTypes() {
 
 /**
  * Get Holiday Types for Employee Shift Mapping
- * GET /api/EmployeeShiftMappingFacade/getholiday_types
+ * GET /api/MasterDropDown/get_holiday_workign_day_type
  */
 export async function getEmployeeShiftMappingHolidayTypes() {
-    const url = '/api/EmployeeShiftMappingFacade/getholiday_types';
-    return await api.get<IHolidayType[]>('hrmsfrontoffice', url);
+    const url = '/api/MasterDropDown/get_holiday_workign_day_type';
+    return await api.getArray<IHolidayType>('hrmsfrontoffice', url);
 }
 
 /**
