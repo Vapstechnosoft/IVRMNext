@@ -11,6 +11,7 @@ import {
     getAlumniLettersShowReport,
     getAlumniLettersYearData
 } from '@/server/alumni/alumni-letters';
+import { searchAlumniLettersData } from '@/server/alumni/alumni-friend-request';
 import type { IAcademicYear, IAlumniLetterStudent, IClassDetails } from '@/types/alumni/alumni-letters';
 import { Loader2 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -46,11 +47,15 @@ export default function AlumniLettersPage() {
                     : (classRes as any).newuser2 || [];
 
             if (yearData && Array.isArray(yearData)) {
-                setYears(yearData);
+                // Deduplicate years
+                const uniqueYears = Array.from(new Map(yearData.map((y) => [y.asmaY_Id, y])).values());
+                setYears(uniqueYears);
             }
 
             if (classData && Array.isArray(classData)) {
-                setClasses(classData);
+                // Deduplicate classes
+                const uniqueClasses = Array.from(new Map(classData.map((c) => [c.asmcL_Id, c])).values());
+                setClasses(uniqueClasses);
             }
 
             if (!yearData?.length && !classData?.length) {
@@ -78,16 +83,62 @@ export default function AlumniLettersPage() {
                 logoname: values.reporttype
             });
             if (res.success && res.data) {
-                const studentList = res.data;
-                setStudents(studentList);
+                // Deduplicate students
+                const uniqueStudents = Array.from(new Map(res.data.map((s: IAlumniLetterStudent) => [s.amsT_Id, s])).values());
+                setStudents(uniqueStudents);
                 setSelectedIds([]);
-                if (studentList.length === 0) {
+                if (uniqueStudents.length === 0) {
                     toast.info('No records found for the selected criteria.');
                 }
             }
             // biome-ignore lint/correctness/noUnusedVariables: <explanation>
         } catch (error) {
             toast.error('Error fetching students');
+        } finally {
+            setIsSearching(false);
+        }
+    }, []);
+
+    const handleSearchAlumni = useCallback(async (values: AlumniLettersSchema) => {
+        if (!values.searchRows || values.searchRows.length === 0) {
+            toast.error('Please add at least one search criterion.');
+            return;
+        }
+
+        setIsSearching(true);
+        setFilterValues(values);
+        try {
+            const payload = {
+                condition: values.searchRows.map((r, i) => (i < values.searchRows!.length - 1 ? r.condition || 'AND' : '')).filter(Boolean),
+                field: values.searchRows.map((r) => r.field),
+                operator: values.searchRows.map((r) => r.operator),
+                value: values.searchRows.map((r) => r.value)
+            };
+
+            // Ensure condition array has correct length (usually one less than fields or same if last is empty)
+            // But let's follow the payload provided: all same length or as per user request.
+            // Based on payload description: all are arrays.
+            const res = await searchAlumniLettersData({
+                condition: values.searchRows.map(r => r.condition || 'AND'),
+                field: values.searchRows.map(r => r.field),
+                operator: values.searchRows.map(r => r.operator),
+                value: values.searchRows.map(r => r.value)
+            });
+
+            if (res.success && res.data) {
+                // The API might return data in a different format, adapting based on typical patterns
+                const resultData = (Array.isArray(res.data) ? res.data : res.data.searchResult || []) as IAlumniLetterStudent[];
+                const uniqueStudents = Array.from(new Map(resultData.map((s) => [s.amsT_Id, s])).values());
+                setStudents(uniqueStudents);
+                setSelectedIds([]);
+                if (uniqueStudents.length === 0) {
+                    toast.info('No records found for the search criteria.');
+                }
+            } else {
+                toast.error(res.message || 'Error searching alumni');
+            }
+        } catch (error) {
+            toast.error('Error searching alumni');
         } finally {
             setIsSearching(false);
         }
@@ -152,7 +203,7 @@ export default function AlumniLettersPage() {
                     handlePrint();
                 }, 500);
             } else {
-                toast.error('Failed to generate report for selected students.');
+                toast.error('Failed to print report for selected students.');
             }
             // biome-ignore lint/correctness/noUnusedVariables: <explanation>
         } catch (error) {
@@ -187,6 +238,7 @@ export default function AlumniLettersPage() {
                         onShowReport={handleShowReport}
                         onClear={handleClear}
                         onPrint={generateReportAndPrint}
+                        onSearch={handleSearchAlumni}
                         canPrint={selectedIds.length > 0}
                     />
                 </CollapsibleSection>
@@ -210,7 +262,7 @@ export default function AlumniLettersPage() {
             </div>
 
             {/* Letter Templates - Only visible during printing or as requested */}
-            <div className='print-only'>
+            <div className='printable-content hidden'>
                 <LetterTemplates
                     ref={printRef}
                     students={reportStudents}
