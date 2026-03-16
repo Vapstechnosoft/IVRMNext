@@ -357,9 +357,7 @@ export default function StudentsYearlyAttendenceReport(props: {
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, 'Attendance Report');
 
-            // Apply some basic styling to headers if possible with xlsx (minimal)
             XLSX.writeFile(workbook, 'StudentYearlyAttendanceReport.xlsx');
-
             toast.success('Excel downloaded successfully');
         } catch (error) {
             console.error('Download error:', error);
