@@ -1,7 +1,7 @@
 
 
 'use client';
-import { useState, use } from 'react';
+import { useState, use, useEffect } from 'react';
 import { Heading } from '@/components/layout/heading';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -61,6 +61,10 @@ export default function InvRStockPage(props: { searchParams: Promise<any> }) {
     const totalRecords = reportResult?.total || 0;
 
     const handleReportGenerated = (data: IInvRStockReportData[], payload: any, total: number) => {
+        if (total === 0) {
+            toast.error("No record found");
+        }
+        
         // Seed the query cache to avoid immediate refetch
         queryClient.setQueryData(['invRStockReport', payload, { ...searchParams, page: 1, page_size: pageSize, search_query: '' }], {
             success: true,
@@ -75,6 +79,13 @@ export default function InvRStockPage(props: { searchParams: Promise<any> }) {
         setCurrentPage(1);
         setSearchQuery(null);
     };
+
+    // Show toast for empty search results or initial empty report
+    useEffect(() => {
+        if (!isFetching && currentPayload && totalRecords === 0) {
+            toast.error("No record found");
+        }
+    }, [isFetching, totalRecords, searchQuery, currentPayload]);
 
     const columns = getColumns(currentPayload?.optionflag || 'All', currentPayload?.overallflag || false);
 
@@ -169,7 +180,7 @@ export default function InvRStockPage(props: { searchParams: Promise<any> }) {
 
             <ReportForm onReportGenerated={handleReportGenerated} />
 
-            {reportData.length > 0 && (
+            {currentPayload && (
                 <CollapsibleSection title="Report Result" defaultOpen={true}>
                     <div className="p-4 space-y-4">
                         <div className="flex justify-between items-center bg-muted/20 p-2 rounded border">
@@ -188,14 +199,15 @@ export default function InvRStockPage(props: { searchParams: Promise<any> }) {
                         </div>
 
                         <div className="relative">
-                            <GenericDataTable
-                                data={reportData}
-                                columns={columns}
-                                isLoading={isFetching}
-                                totalItems={totalRecords}
-                                isSearchRequired={true}
-                            // enableSorting={true} // Usually handled by columns
-                            />
+                                <GenericDataTable
+                                    data={reportData}
+                                    columns={columns}
+                                    isLoading={isFetching}
+                                    totalItems={totalRecords}
+                                    isSearchRequired={true}
+                                    noDataTitle="No Stock Records Found"
+                                    noDataDescription="No records found matching your selection or search criteria."
+                                />
                         </div>
 
                         {/* Total Closing Stock (Only if OptionFlag is Item) */}
