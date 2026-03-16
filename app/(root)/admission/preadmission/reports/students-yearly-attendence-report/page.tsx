@@ -20,10 +20,10 @@ import React, { useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { useStudentYearlyAttendance } from '@/hooks/admission/preadmission/useReports';
-import { GetStudentYearlyAttendance } from '@/server/admission/preadmission/reports/student_yearly_attendance';
 import { getExcelStudentYearlyReport } from '@/server/admission/preadmission/reports/month_end_report';
-import { createStudentsYearlyAttendenceReportColumns } from './_components/columns';
+import { GetStudentYearlyAttendance } from '@/server/admission/preadmission/reports/student_yearly_attendance';
 import { useReactToPrint } from 'react-to-print';
+import { createStudentsYearlyAttendenceReportColumns } from './_components/columns';
 import { StudentYearlyReportPrint } from './_components/student-yearly-report-print';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -138,8 +138,9 @@ export default function StudentsYearlyAttendenceReport(props: {
         console.log('API Response:', response);
         console.log('Attendance Data:', attendanceData);
 
-        const studentList = attendanceData.studentAttendanceList || attendanceData.StudentAttendanceList;
-        const monthListVal = attendanceData.monthList || attendanceData.MonthList;
+        const realData = attendanceData.data || attendanceData;
+        const studentList = realData.studentAttendanceList || realData.StudentAttendanceList;
+        const monthListVal = realData.monthList || realData.MonthList;
 
         if (!studentList || !monthListVal) {
             return [];
@@ -153,7 +154,7 @@ export default function StudentsYearlyAttendenceReport(props: {
         const studentMap = new Map<string, IStudentYearlyAttendenceReportList>();
 
         studentAttendanceList.forEach((record: any) => {
-            const studentKey = record.AMST_AdmNo;
+            const studentKey = record.AMST_Id;
             if (!studentMap.has(studentKey)) {
                 studentMap.set(studentKey, {
                     RowNo: studentMap.size + 1,
@@ -196,7 +197,7 @@ export default function StudentsYearlyAttendenceReport(props: {
     const tableProps = useDataTableProps({
         ...response,
         data: paginatedData,
-        total: transformedData.length,
+        total: transformedData.length
     });
 
     const columns = useMemo(() => {
@@ -205,7 +206,8 @@ export default function StudentsYearlyAttendenceReport(props: {
         }
 
         const attendanceData = response.data as any;
-        const monthList = attendanceData.monthList || attendanceData.MonthList || [];
+        const realData = attendanceData.data || attendanceData;
+        const monthList = realData.monthList || realData.MonthList || [];
 
         return createStudentsYearlyAttendenceReportColumns(monthList);
     }, [response?.data]);
@@ -237,15 +239,16 @@ export default function StudentsYearlyAttendenceReport(props: {
                 return;
             }
 
+            const realData = attendanceData.data || attendanceData;
             // Transform data (same logic as in transformedData)
-            const studentList = attendanceData.studentAttendanceList || attendanceData.StudentAttendanceList || [];
-            const monthList = attendanceData.monthList || attendanceData.MonthList || [];
+            const studentList = realData.studentAttendanceList || realData.StudentAttendanceList || [];
+            const monthList = realData.monthList || realData.MonthList || [];
 
             const totalWorkingDays = monthList.reduce((sum: any, month: any) => sum + month.total, 0);
             const studentMap = new Map<string, IStudentYearlyAttendenceReportList>();
 
             studentList.forEach((record: any) => {
-                const studentKey = record.AMST_AdmNo;
+                const studentKey = record.AMST_Id;
                 if (!studentMap.has(studentKey)) {
                     studentMap.set(studentKey, {
                         RowNo: studentMap.size + 1,
@@ -331,8 +334,8 @@ export default function StudentsYearlyAttendenceReport(props: {
                 response instanceof Blob
                     ? response
                     : new Blob([new Uint8Array(response)], {
-                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                    });
+                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                      });
 
             // Create download link
             const url = window.URL.createObjectURL(blob);
@@ -347,7 +350,6 @@ export default function StudentsYearlyAttendenceReport(props: {
                 link.remove();
                 window.URL.revokeObjectURL(url);
             }, 100);
-
 
             toast.success('Excel downloaded successfully');
         } catch (error) {
@@ -378,16 +380,17 @@ export default function StudentsYearlyAttendenceReport(props: {
                 { ...searchParams, page_size: 100000, page: 1 }
             );
 
-            const attendanceData = (allDataResponse?.data as any);
+            const attendanceData = allDataResponse?.data as any;
             if (!attendanceData) {
                 toast.dismiss('print-fetch');
                 toast.error('Failed to fetch print data');
                 return;
             }
 
+            const realData = attendanceData.data || attendanceData;
             // Transform data for print
-            const studentList = attendanceData.studentAttendanceList || attendanceData.StudentAttendanceList || [];
-            const monthList = attendanceData.monthList || attendanceData.MonthList || [];
+            const studentList = realData.studentAttendanceList || realData.StudentAttendanceList || [];
+            const monthList = realData.monthList || realData.MonthList || [];
 
             setPrintMonthList(monthList); // Save month list for print headers
             const totalWorkingDays = monthList.reduce((sum: any, month: any) => sum + month.total, 0);
@@ -395,7 +398,7 @@ export default function StudentsYearlyAttendenceReport(props: {
             const studentMap = new Map<string, any>();
 
             studentList.forEach((record: any) => {
-                const studentKey = record.AMST_AdmNo;
+                const studentKey = record.AMST_Id;
                 if (!studentMap.has(studentKey)) {
                     studentMap.set(studentKey, {
                         ...record,
@@ -465,11 +468,12 @@ export default function StudentsYearlyAttendenceReport(props: {
         try {
             const result = await refetchAdmissionStudents();
             const attendanceData = result.data?.data as any;
-            const students = attendanceData?.studentAttendanceList || attendanceData?.StudentAttendanceList || [];
+            const realData = attendanceData?.data || attendanceData;
+            const students = realData?.studentAttendanceList || realData?.StudentAttendanceList || [];
 
             toast.dismiss('report-loading');
             if (students.length > 0) {
-                toast.success(`Report generated records`);
+                toast.success(`Report generated (${students.length} records)`);
             } else {
                 toast.error('No records found');
             }
@@ -482,8 +486,6 @@ export default function StudentsYearlyAttendenceReport(props: {
 
     return (
         <div className='min-h-screen p-8'>
-
-
             <div className='container space-y-4 p-1'>
                 <CollapsibleSection
                     title='Student Yearly Attendance Report'
@@ -613,8 +615,7 @@ export default function StudentsYearlyAttendenceReport(props: {
                                     <Button
                                         variant='outline'
                                         className='w-full transition-all duration-200 hover:scale-105 sm:w-fit'
-                                        onClick={handlePrint}
-                                    >
+                                        onClick={handlePrint}>
                                         <Printer className='mr-2 h-4 w-4' />
                                         Print
                                     </Button>
@@ -632,7 +633,6 @@ export default function StudentsYearlyAttendenceReport(props: {
                         variant='outline'
                         size='md'
                         className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-
                         {/* Select All Banner Removed */}
 
                         <GenericDataTable<IStudentYearlyAttendenceReportList>
@@ -652,11 +652,7 @@ export default function StudentsYearlyAttendenceReport(props: {
 
                 {/* Hidden Print Component */}
                 <div style={{ position: 'absolute', opacity: 0, zIndex: -1, overflow: 'visible', width: 0, height: 0 }}>
-                    <StudentYearlyReportPrint
-                        ref={printRef}
-                        data={printData}
-                        monthList={printMonthList}
-                    />
+                    <StudentYearlyReportPrint ref={printRef} data={printData} monthList={printMonthList} />
                 </div>
             </div>
         </div>
