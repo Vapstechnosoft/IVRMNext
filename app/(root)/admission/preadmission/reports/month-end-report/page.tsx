@@ -85,21 +85,35 @@ export default function MonthendreportPage() {
             const reportList = res?.data?.data?.reportdatelist || (Array.isArray(res?.data?.data) ? res.data.data : []);
             if (reportList?.length) {
                 const r = reportList[0];
-                const fetchedLogo = r.MI_Logo || r.mI_Logo || r.mi_logo || '/school-logo.png';
+                const fetchedLogo = res?.data?.data?.amC_logo?.[0] || r.MI_Logo || r.mI_Logo || r.mi_logo || '/school-logo.png';
                 setLogo(fetchedLogo);
 
                 setReportData([
                     { name: 'Student Strength', count: r.totalcount },
                     { name: 'TC Taken', count: r.total_tc },
-
+                    { name: 'Student Absent', count: r.total_absent },
                     {
                         name: 'New Admission',
                         count: r.totalnew,
-                        missingphoto: r.missingphoto,
-                        missingemail: r.missingemail,
-                        missingphone: r.missingphone
+                        missingphoto: r.missingphoto_new,
+                        missingemail: r.missingemail_new,
+                        missingphone: r.missingphone_new
                     },
 
+                    {
+                        name: 'Missing Photos for student strength',
+                        missingphoto: r.missingphoto
+                    },
+                    {
+                        name: 'Missing Email for student strength',
+                        missingemail: r.missingemail
+                    },
+                    {
+                        name: 'Missing Mobile for student strength',
+                        missingphone: r.missingphone
+                    },
+                    { name: 'SMS Sent', count: r.smscount },
+                    { name: 'Email Sent', count: r.emailcount },
                     { name: 'Bonafide Certificate', count: r.DOB_Certificate_count }
                 ]);
 
