@@ -38,20 +38,27 @@ export interface IMasterHolidayList {
 
 // Employee Shift Mapping Types
 export interface IMasterEmployeeShiftMappingList {
-    FOEST_Id: number;
-    EmployeeName: string;
-    ShiftName: string;
-    DayType: string;
-    Date: string;
-    FDWHrMin: string;
-    HDWHrMin: string;
-    IHalfLogin: string;
-    IHalfLogout: string;
-    IIHalfLogin: string;
-    IIHalfLogout: string;
-    DelayPerShift: string;
-    EarlyPerShift: string;
-    LunchDuration: string;
+    foesT_Id: number;
+    hrmE_EmployeeFirstName: string;
+    fohtwD_HolidayWDType: string;
+    foesT_Date: string;
+    fomS_ShiftName: string;
+    foesT_FDWHrMin: string;
+    foesT_HDWHrMin: string;
+    foesT_IHalfLoginTime: string;
+    foesT_IHalfLogoutTime: string;
+    foesT_IIHalfLoginTime: string;
+    foesT_IIHalfLogoutTime: string;
+    foesT_DelayPerShiftHrMin: string;
+    foesT_EarlyPerShiftHrMin: string;
+    foesT_LunchHoursDuration: string;
+    hrmD_Id?: number;
+    hrmD_DepartmentName?: string;
+    hrmdeS_Id?: number;
+    hrmdeS_DesignationName?: string;
+    hrmgT_Id?: number;
+    hrmgT_EmployeeGroupType?: string;
+    fohwdT_Id?: number;
 }
 
 // Employee Shift Mapping Dropdown Types
@@ -74,8 +81,8 @@ export interface IHolidayType {
 }
 
 export interface IShiftName {
-    Key: number;
-    Value: string;
+    fomS_Id: number;
+    fomS_ShiftName: string;
 }
 
 export interface IDepartment {

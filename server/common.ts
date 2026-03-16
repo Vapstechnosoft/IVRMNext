@@ -2401,6 +2401,14 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/attendance-management/masters/master-time-setting',
                                             title: 'Master Time Setting',
                                             description: 'Configure Time Settings'
+                                        },
+                                         {
+                                            id: 9,
+                                            name: 'Front Office Addlogs',
+                                            icon: 'ClipboardList',
+                                            url: '/hrms/attendance-management/masters/front-office-addlogs',
+                                            title: 'Front Office Addlogs',
+                                            description: 'Front Office Addlogs'
                                         }
                                     ]
                                 },

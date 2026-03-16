@@ -31,7 +31,7 @@ export default function DeleteEmployeeShiftMappingForm({ rowData, onClose }: Del
         resolver: zodResolver(hrmsMasterSchemas.employeeShiftMapping.delete),
         mode: 'onChange',
         defaultValues: {
-            foest_Id: Number(rowData.FOEST_Id) || 0
+            foest_Id: Number(rowData.foesT_Id) || 0
         }
     });
 
@@ -41,8 +41,14 @@ export default function DeleteEmployeeShiftMappingForm({ rowData, onClose }: Del
     }
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
+        console.log("foest_Id", rowData.foesT_Id);
         try {
-            const response = await deleteEmployeeShiftMapping(Number(rowData.FOEST_Id));
+            const payload = {
+                foesT_Id: Number(rowData.foesT_Id),
+                foesT_BlockAttendance: "true",
+                FOEST_BlockAttendance: "true"
+            };
+            const response = await deleteEmployeeShiftMapping(Number(rowData.foesT_Id));
 
             if (response?.success) {
                 toast.success(response.message || 'Employee shift mapping deleted successfully');
@@ -64,12 +70,12 @@ export default function DeleteEmployeeShiftMappingForm({ rowData, onClose }: Del
                         type='hidden'
                         {...register('foest_Id', {
                             valueAsNumber: true,
-                            value: Number(rowData.FOEST_Id) || 0
+                            value: Number(rowData.foesT_Id) || 0
                         })}
                     />
                     <p>
                         Are you sure you want to delete shift mapping for{' '}
-                        <strong>{rowData.EmployeeName || rowData.ShiftName || 'this record'}</strong>?
+                        <strong>{rowData.hrmE_EmployeeFirstName || rowData.fomS_ShiftName || 'this record'}</strong>?
                     </p>
                     <FormError>{errors.foest_Id?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>
