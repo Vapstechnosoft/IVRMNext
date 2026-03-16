@@ -25,6 +25,7 @@ import { getExcelStudentYearlyReport } from '@/server/admission/preadmission/rep
 import { createStudentsYearlyAttendenceReportColumns } from './_components/columns';
 import { useReactToPrint } from 'react-to-print';
 import { StudentYearlyReportPrint } from './_components/student-yearly-report-print';
+import * as XLSX from 'xlsx';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -318,36 +319,43 @@ export default function StudentsYearlyAttendenceReport(props: {
 
     const downloadExcel = async () => {
         try {
-            // Check if required filters are selected (allow 0 for sectionId as it means 'All')
-            if (!academicYearId || !classId || sectionId === undefined) {
-                toast.error('Please fill all required fields!');
+            if (!transformedData || transformedData.length === 0) {
+                toast.error('No data available to export');
                 return;
             }
 
-            const response = await getExcelStudentYearlyReport(academicYearId, classId, sectionId, searchParams);
+            const attendanceData = response?.data as any;
+            const monthList = attendanceData.monthList || attendanceData.MonthList || [];
+            const totalWorkingDays = monthList.reduce((sum: any, month: any) => sum + month.total, 0);
 
-            // Ensure we have a Blob
-            const blob =
-                response instanceof Blob
-                    ? response
-                    : new Blob([new Uint8Array(response)], {
-                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                    });
+            const excelData = transformedData.map((student) => {
+                const row: any = {
+                    'Sl. No.': student.RowNo,
+                    'Reg No.': student.AMST_RegistrationNo || 'N.A',
+                    'Adm No.': student.AMST_AdmNo || 'N.A',
+                    'Student Name': student.name,
+                    'Roll No.': student.AMAY_RollNo || 'N.A'
+                };
 
-            // Create download link
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'StudentYearlyAttendanceReport.xlsx';
-            document.body.appendChild(link);
-            link.click();
+                monthList.forEach((month: any) => {
+                    const monthKey = `${month.yearidname}-${month.monthidname}`;
+                    const monthName = month.monthnamee.trim();
+                    const header = `${monthName} ${month.yearidname}(${month.total})`;
+                    row[header] = student.monthlyAttendance[monthKey] ?? 0;
+                });
 
-            // Cleanup
-            setTimeout(() => {
-                link.remove();
-                window.URL.revokeObjectURL(url);
-            }, 100);
+                row[`Total (${totalWorkingDays})`] = Number(student.totalPresent).toFixed(2);
+                row['Percentage'] = student.percentage;
 
+                return row;
+            });
+
+            const worksheet = XLSX.utils.json_to_sheet(excelData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Attendance Report');
+
+            // Apply some basic styling to headers if possible with xlsx (minimal)
+            XLSX.writeFile(workbook, 'StudentYearlyAttendanceReport.xlsx');
 
             toast.success('Excel downloaded successfully');
         } catch (error) {
