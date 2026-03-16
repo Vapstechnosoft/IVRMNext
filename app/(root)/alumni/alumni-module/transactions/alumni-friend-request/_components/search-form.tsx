@@ -58,7 +58,7 @@ export default function SearchForm({ onSearch, onClear, isLoading }: SearchFormP
                                     <SelectValue placeholder='Select Field' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value='StudentName'>Alumni Name</SelectItem>
+                                    <SelectItem value='StudentName'>Alumni First Name</SelectItem>
                                 </SelectContent>
                             </Select>
                         )}
