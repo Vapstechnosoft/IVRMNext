@@ -2,8 +2,8 @@
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { TTGenerationGridData } from '@/types/timetable/Transaction/time-table-generation';
-import { ColumnDef } from '@tanstack/react-table';
+import type { TTGenerationGridData } from '@/types/timetable/Transaction/time-table-generation';
+import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 
 export const columns: ColumnDef<TTGenerationGridData>[] = [
@@ -47,13 +47,6 @@ export const columns: ColumnDef<TTGenerationGridData>[] = [
 function ActionButtonsCell({ rowData }: { rowData: TTGenerationGridData }) {
     const { openEditForm, openToggleForm } = useFormContext<TTGenerationGridData>();
 
-    const handleEdit = useCallback(
-        (data: TTGenerationGridData) => {
-            openEditForm(data);
-        },
-        [openEditForm]
-    );
-
     const handleToggle = useCallback(
         (data: TTGenerationGridData) => {
             openToggleForm(data);
@@ -63,9 +56,8 @@ function ActionButtonsCell({ rowData }: { rowData: TTGenerationGridData }) {
 
     return (
         <ActionButtons
-           rowData={rowData}
-            buttons={{ edit: true, toggle: true, delete: false }}
-            onEdit={() => handleEdit(rowData)}
+            rowData={rowData}
+            buttons={{ toggle: true, delete: false }}
             onToggle={() => handleToggle(rowData)}
             toggleConditionKey='ttfG_ActiveFlag'
         />

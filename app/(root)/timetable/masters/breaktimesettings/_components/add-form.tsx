@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { breakTimeSettingsSchema } from '@/schemas/timetable/masters';
 import { getMaximumPeriodsCount, saveBreakTimeSettings } from '@/server/timetable/masters/breaktimesettings';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
 import { CheckSquare, Save, Square } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
@@ -442,12 +443,18 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
                 return;
             }
 
+            const formatTime = (date: Date) => format(date, 'h:mm a');
+
             const payload = {
                 TTMB_Id: 0,
-                TTMB_BreakName: data.ttmB_BreakName,
-                TTMB_BreakStartTime: data.ttmB_BreakStartTime,
-                TTMB_BreakEndTime: data.ttmB_BreakEndTime,
+                ASMAY_Id: data.asmay_id,
+                TTMC_Id: data.ttmC_Id,
+                ArrayClassList: data.calssids.map((id: string) => ({ asmcL_Id: Number(id) })),
+                ArrayDayList: data.dayids.map((id: string) => ({ ttmD_Id: Number(id) })),
                 TTMB_AfterPeriod: data.ttmB_AfterPeriod,
+                TTMB_BreakName: data.ttmB_BreakName,
+                TTMB_BreakStartTime: formatTime(data.ttmB_BreakStartTime),
+                TTMB_BreakEndTime: formatTime(data.ttmB_BreakEndTime),
                 ArraybeforeperiodsList: selectedBeforePeriods.map((p) => ({ TTPeriodnameB: p })),
                 ArrayafterperiodsList: selectedAfterPeriods.map((p) => ({ TTPeriodnameA: p })),
                 TTMB_ActiveFlag: true

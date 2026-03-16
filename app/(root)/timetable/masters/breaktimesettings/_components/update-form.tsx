@@ -13,6 +13,7 @@ import { breakTimeSettingsSchema } from '@/schemas/timetable/masters';
 import { getBreakTimeSettingsById, getClassByCategory, saveBreakTimeSettings } from '@/server/timetable/masters/breaktimesettings';
 import type { IBreakTimeSettingsList, IMasterDayList } from '@/types/timetable/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
 import { Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
@@ -162,15 +163,17 @@ export default function UpdateBreakTimeSettingsForm({ onSuccess, selectedRow }: 
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {
+            const formatTime = (date: Date) => format(date, 'h:mm a');
+
             const payload = {
                 TTMB_Id: selectedRow.ttmB_Id,
                 ASMAY_Id: data.asmay_id,
                 TTMC_Id: data.ttmC_Id,
-                ArrayClassList: data.calssids,
-                ArrayDayList: data.dayids,
+                ArrayClassList: data.calssids.map((c: any) => ({ asmcL_Id: Number(c.asmcL_Id) })),
+                ArrayDayList: data.dayids.map((d: any) => ({ ttmD_Id: Number(d.ttmD_Id) })),
                 TTMB_BreakName: data.ttmB_BreakName,
-                TTMB_BreakStartTime: data.ttmB_BreakStartTime,
-                TTMB_BreakEndTime: data.ttmB_BreakEndTime,
+                TTMB_BreakStartTime: formatTime(data.ttmB_BreakStartTime),
+                TTMB_BreakEndTime: formatTime(data.ttmB_BreakEndTime),
                 TTMB_AfterPeriod: data.ttmB_AfterPeriod,
                 ArraybeforeperiodsList: periodsBefore.map((p) => ({ TTPeriodnameB: p.key })),
                 ArrayafterperiodsList: periodsAfter.map((p) => ({ TTPeriodnameA: p.key })),

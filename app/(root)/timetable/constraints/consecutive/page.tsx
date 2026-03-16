@@ -18,7 +18,6 @@ export default function MasterConsecutiveConstraintsPage(props: { searchParams: 
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error, refetchAll } = useConsecutive(searchParams);
 
-
     return (
         <FormProvider<IConsecutiveConstraintDetails>>
             <MasterConsecutiveConstraintsPageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
@@ -114,7 +113,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <ConsecutiveConstraintsForm onSuccess={closeAddForm} />
+                            <ConsecutiveConstraintsForm onSuccess={closeAddForm} onCancel={closeAddForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -143,9 +142,7 @@ function FormSections() {
                 </div>
             )}
 
-            {isToggleFormOpen && selectedRow && (
-                <ToggleConsecutiveConstraintsForm rowData={selectedRow} onClose={closeToggleForm} />
-            )}
+            {isToggleFormOpen && selectedRow && <ToggleConsecutiveConstraintsForm rowData={selectedRow} onClose={closeToggleForm} />}
 
             {/* {isDetailsViewOpen && selectedRow && <BifurcationViewModal rowData={selectedRow} onClose={closeDetailsView} />} */}
         </>
