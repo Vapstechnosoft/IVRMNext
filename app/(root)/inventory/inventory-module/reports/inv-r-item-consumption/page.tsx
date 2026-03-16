@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, use } from 'react';
+import { useState, use, useEffect } from 'react';
 import { Heading } from '@/components/layout/heading';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -62,6 +62,10 @@ export default function InvRItemConsumptionPage(props: { searchParams: Promise<a
 
     const handleReportGenerated = (payload: any) => {
         if (payload) {
+            // Show toast for empty initial report (check isFetching and payload updates)
+            if (totalRecords === 0 && !isFetching && currentPayload) {
+                toast.error("No record found");
+            }
             setCurrentPayload(payload);
             setCurrentPage(1);
             setSearchQuery(null);
@@ -71,6 +75,13 @@ export default function InvRItemConsumptionPage(props: { searchParams: Promise<a
             setSearchQuery(null);
         }
     };
+
+    // Show toast for empty search results or initial empty report
+    useEffect(() => {
+        if (!isFetching && currentPayload && totalRecords === 0) {
+            toast.error("No record found");
+        }
+    }, [isFetching, totalRecords, searchQuery, currentPayload]);
 
     const columns = getColumns(currentPayload?.typeflag || 'All', currentPayload?.optionflag);
 
@@ -192,7 +203,7 @@ export default function InvRItemConsumptionPage(props: { searchParams: Promise<a
 
             <ReportForm onReportGenerated={handleReportGenerated} isLoading={isFetching} />
 
-            {reportData.length > 0 && (
+            {currentPayload && (
                 <CollapsibleSection title="Report Result" defaultOpen={true}>
                     <div className="p-4 space-y-4">
                         <div className="flex justify-between items-center bg-muted/20 p-2 rounded border">
@@ -216,6 +227,8 @@ export default function InvRItemConsumptionPage(props: { searchParams: Promise<a
                             columns={columns}
                             isLoading={isFetching}
                             totalItems={totalRecords}
+                            noDataTitle="No Consumption Found"
+                            noDataDescription="No records found matching your search criteria."
                         />
                     </div>
                 </CollapsibleSection>
