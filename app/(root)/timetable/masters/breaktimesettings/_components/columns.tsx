@@ -94,22 +94,12 @@ function ActionButtonsCell({ rowData }: { rowData: BreakTimeSettingsGridData }) 
         [openToggleForm]
     );
 
-    const handleDelete = useCallback(
-        (data: BreakTimeSettingsGridData) => {
-            // Assuming no delete functionality in MasterDay, but user asked for it in general or the standard
-            // User code has deletedata function.
-            if (openDeleteForm) openDeleteForm(data);
-        },
-        [openDeleteForm]
-    );
-
     return (
         <ActionButtons
             rowData={rowData}
-            buttons={{ edit: true, toggle: true, delete: true }}
+            buttons={{ edit: true, toggle: true }}
             onEdit={handleEdit}
             onToggle={handleToggle}
-            onDelete={handleDelete}
             toggleConditionKey='ttmB_ActiveFlag'
         />
     );
