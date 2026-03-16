@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { FormError } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
@@ -162,7 +162,7 @@ export default function MasterActiveDeactiveStudentPage(props: {
     };
 
     const tableProps = {
-        data: students,
+        ...useDataTableProps(StudentListData),
         enableRowSelection: true,
         getRowId: (row: Student) => row.student_id.toString()
     };
