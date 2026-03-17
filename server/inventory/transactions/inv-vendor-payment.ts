@@ -168,10 +168,9 @@ export async function deactivateInvVendorPayment(invspT_Id: number) {
 }
 
 export async function getInvVendorPaymentModelDetails(invspT_Id: number) {
-    const url = `/INV_VendorPayment/getmodeldetail`;
-    const payload = { INVSPT_Id: invspT_Id };
+    const url = `/INV_VendorPaymentFacade/getmodeldetail?INVSPT_Id=${invspT_Id}`;
     try {
-        const response = await api.post<any>('inventory', url, payload);
+        const response = await api.post<any>('inventory', url, {});
         return {
             success: true,
             data: extractData(response, 'get_modeldetails')

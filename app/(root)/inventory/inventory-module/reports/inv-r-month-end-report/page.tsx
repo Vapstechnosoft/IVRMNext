@@ -28,13 +28,17 @@ export default function InvRMonthEndReportPage() {
         setIsLoading(true);
         const result = await getInvRMonthEndReport(data);
         if (result.success && result.data) {
+            const hasData = result.data.grnCount > 0 || result.data.salesCount > 0 || result.data.itemCount > 0;
+            if (!hasData) {
+                toast.error("No record found");
+            }
             setReportData(result.data);
-            setCurrentPayload({ ...data, ...extraPayload }); // Merge with extra info like Year/Month names
+            setCurrentPayload({ ...data, ...extraPayload });
             setShowReport(true);
         } else {
             setReportData(null);
             setShowReport(false);
-            toast.error(result.message || "No records found");
+            toast.error(result.message || "No record found");
         }
         setIsLoading(false);
     };
@@ -117,7 +121,7 @@ export default function InvRMonthEndReportPage() {
                 <ReportForm onReportGenerated={handleReportGenerated} isLoading={isLoading} />
             </div>
 
-            {showReport && reportData && currentPayload && (
+            {showReport && currentPayload && (
                 <CollapsibleSection title="Report Result" defaultOpen={true}>
                     <div className="p-6 space-y-8 bg-white text-slate-900 rounded-lg shadow-sm border border-slate-200" ref={componentRef}>
                         <style dangerouslySetInnerHTML={{
@@ -196,6 +200,8 @@ export default function InvRMonthEndReportPage() {
                                     totalItems={tableData.length}
                                     isSearchRequired={false}
                                     isPaginationRequired={false}
+                                    noDataTitle="No Month End Data"
+                                    noDataDescription="No records found for the selected period."
                                 />
                             </div>
                         </div>

@@ -19,7 +19,14 @@ export const LetterTemplates = forwardRef<HTMLDivElement, LetterTemplatesProps>(
                     __html: `
                 @media print {
                     .no-print, header, nav, [role="navigation"], .PolygonBanner { display: none !important; }
-                    .print-only { display: block !important; }
+                    .printable-content { 
+                        display: block !important; 
+                        visibility: visible !important;
+                        position: static !important;
+                    }
+                    .printable-content * {
+                        visibility: visible !important;
+                    }
                     .print-container { padding: 0 !important; margin: 0 !important; display: block !important; width: 100%; }
                     .page-break { page-break-after: always; }
                     @page { margin: 0.5cm; size: auto; }
@@ -43,7 +50,7 @@ export const LetterTemplates = forwardRef<HTMLDivElement, LetterTemplatesProps>(
                     className={`letter-page divob ${index < students.length - 1 ? 'page-break' : ''}`}
                     style={{ margin: '90px' }}>
                     <div className='margin-top-10'>
-                        <div className='row'>
+                        {/* <div className='row'>
                             <div className='col-sm-2'>
                                 <div className='baldwin text-center'>
                                     <img
@@ -54,8 +61,8 @@ export const LetterTemplates = forwardRef<HTMLDivElement, LetterTemplatesProps>(
                                     />
                                 </div>
                             </div>
-                        </div>
-                        <hr style={{ borderTop: '1px solid black', width: '100%', margin: '20px auto' }} />
+                        </div> */}
+                        {/* <hr style={{ borderTop: '1px solid black', width: '100%', margin: '20px auto' }} /> */}
 
                         <div className='margin-top-10'>
                             <div className=''>
