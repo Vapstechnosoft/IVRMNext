@@ -30,7 +30,7 @@ import {
     getMasterDayClassWiseDetails
 } from '@/server/timetable/masters/masterdayclasswise';
 import { CategorydropDownData, getMasterPeriodDetails } from '@/server/timetable/masters/masterperiod';
-import { getAllPeriodDetails } from '@/server/timetable/masters/periodallocation';
+import { getAllPeriodDetails, getPeriodAllocationmasterPeriodGrid } from '@/server/timetable/masters/periodallocation';
 import {
     getAcademicYearPeriodDistrubution,
     getCategoryPeriodDistrubution,
@@ -777,6 +777,24 @@ export const useConsecutiveConstraints = (searchParams?: ApiSearchparams) => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [TIMETABLE_QUERY_KEYS.MASTER_CONSECUTIVE_CONSTRAINTS]
+            });
+        }
+    };
+};
+
+export const getPeriodAllocationmasterPeriodGridData = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.MASTER_PERIOD_ALLOCATION_MASTERPERIOD, searchParams ?? {}],
+            queryFn: async () => getPeriodAllocationmasterPeriodGrid(searchParams),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.MASTER_PERIOD_ALLOCATION_MASTERPERIOD]
             });
         }
     };

@@ -87,5 +87,6 @@ export const TIMETABLE_QUERY_KEYS = {
 
     CONSECUTIVE_CONSTRAINTS: 'consecutive_constraints',
     STAFF_DROPDOWN_MASTERDAYCLASSWISE: 'staff_dropdown_masterdayclasswise',
-    STAFF_REPLACEMENT_IN_UNALLOCATED_PERIOD_REPORT: 'staff_replacement_in_unallocated_period_report'
+    STAFF_REPLACEMENT_IN_UNALLOCATED_PERIOD_REPORT: 'staff_replacement_in_unallocated_period_report',
+    MASTER_PERIOD_ALLOCATION_MASTERPERIOD: 'master_period_allocation_masterperiod'
 };
