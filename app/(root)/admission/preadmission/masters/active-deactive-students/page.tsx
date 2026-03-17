@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { FormError } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
@@ -9,7 +9,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
     useAcademicYearDropdown,
-    useMasterClass,
+    //useMasterClass,
+    useMasterClassDropdown,
     useMasterSectionDropdown,
     useMasterStudentList
 } from '@/hooks/admission/preadmission/useMasters';
@@ -63,7 +64,7 @@ export default function MasterActiveDeactiveStudentPage(props: {
 
     const { data: academicYear, isLoading: ayLoading } = useAcademicYearDropdown();
 
-    const { data: masterClass, isLoading: preadmissionClassLoading, isError: preadmissionClassError } = useMasterClass();
+    const { data: masterClass, isLoading: preadmissionClassLoading, isError: preadmissionClassError } = useMasterClassDropdown();
 
     const {
         control,
@@ -161,7 +162,7 @@ export default function MasterActiveDeactiveStudentPage(props: {
     };
 
     const tableProps = {
-        data: students,
+        ...useDataTableProps(StudentListData),
         enableRowSelection: true,
         getRowId: (row: Student) => row.student_id.toString()
     };

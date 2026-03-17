@@ -10,11 +10,12 @@ import { Eye } from 'lucide-react';
 import { useCallback } from 'react';
 
 export interface IBifurcationConstraintList {
-    acdYear: number;
+    acdYear: string;
     categoryName: string;
-    UpdatedDate: string;
+    updatedDate?: string;
+    UpdatedDate?: string;
     bifricationName: string;
-    periodname: number;
+    periodname: string;
     ttB_ActiveFlag: boolean;
     ttB_Id: number;
 }

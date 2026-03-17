@@ -45,6 +45,8 @@ export default function TransferApplicationStatusPage(props: { searchParams: Sea
             setStatusId(value);
         }
 
+        handleResetSelection();
+
         // Reset to page 1 when filter changes
         const params = new URLSearchParams(searchParams as any);
         params.set('page', '1');

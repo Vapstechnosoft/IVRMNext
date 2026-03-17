@@ -74,7 +74,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { Check, ChevronLeft, ChevronRight, Plus, Save, Trash2, Upload, X } from 'lucide-react';
 import type React from 'react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -87,6 +87,7 @@ import {
     tabFieldMap
 } from './employee-register-helper';
 import { PayrollTab } from './payroll-tab';
+import { uploadStaffPhoto } from '@/server/hrms/hrmsConfig/employee/register';
 
 // Helper component for Qualification State Dropdown
 function QualificationStateDropdown({
@@ -657,7 +658,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
     const { mutate: saveDocumentDetails, isPending: isSavingDocument } = useSaveEmployeeDocument();
     const { mutate: saveMedicalDetails, isPending: isSavingMedical } = useSaveEmployeeMedical();
     const { mutate: saveOtherDetails, isPending: isSavingOther } = useSaveEmployeeOtherDetails();
-    const { mutate: saveSalaryDetails, isPending: isSavingSalaryDetails } = useSaveEmployeeSalaryDetails();
+    const { mutate: saveSalaryDetails, isPending: isSavingSalaryDetails } = useSaveEmployeeSalaryDetails({ suppressSuccessToast: true });
     const savePersonalDetails = saveEmployeeMutation;
     const _saveBankDetails = saveEmployeeMutation;
     const isSavingBank = isPending;
@@ -674,6 +675,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
 
     // Add form - no edit mode (removed isEditMode variable - not needed)
     const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+    const [uploadedPhotoName, setUploadedPhotoName] = useState<string | null>(null);
+    const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
     // Local helper for PascalCase mapping used by Step 6/7
     const mapFormDataToPascalCaseLocal = (data: any) => {
@@ -696,7 +699,12 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
     };
 
     // Helper to get current tab key from step
-    const getCurrentTabKey = () => steps.find((s) => s.id === currentStep)?.tabKey || 'employee';
+    // const getCurrentTabKey = () => steps.find((s) => s.id === currentStep)?.tabKey || 'employee';
+
+    const getCurrentTabKey = useCallback(
+        () => steps.find((s) => s.id === currentStep)?.tabKey || "employee",
+        [currentStep]
+    );
 
     // Function to go to previous step
     const prevStep = () => {
@@ -788,6 +796,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
             // Save employee details without address (address fields will be null)
             const rawPayload = mapFormDataToApiFormatWithoutAddressLocal(data);
             // Force string conversion for required fields to match IEmployeeSaveRequest
+            console.log("rawPayload", rawPayload);
             const payload: any = fixPaymentMode({
                 ...rawPayload,
                 employee: {
@@ -946,10 +955,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                         console.log('✅ [DEBUG] Tab 1 - All key fields match between request and response!');
                     }
 
-                    // Show API response message
                     if (response?.success) {
-                        if (response.message) toast.success(response.message);
-
                         // API returns hrmE_Id (lowercase) in response
                         const employeeId =
                             response?.data?.hrmE_Id || response?.data?.HRME_Id || response?.hrmE_Id || response?.HRME_Id || 0;
@@ -965,15 +971,11 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                         }
                     } else {
                         console.warn('⚠️ [DEBUG] Tab 1 - API returned success: false');
-                        toast.error(response?.message || 'Failed to save employee details');
                     }
                 },
                 onError: (error: any) => {
                     console.error('❌ [DEBUG] Tab 1 (Employee Information) - Save Error:', error);
                     console.error('❌ [DEBUG] Tab 1 - Error Details:', JSON.stringify(error, null, 2));
-                    // Show API error message
-                    const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save employee details';
-                    toast.error(errorMessage);
                 }
             });
         } else if (currentStepId === 2) {
@@ -1111,27 +1113,18 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                         console.warn('⚠️ [DEBUG] Tab 2 - Other field mismatches:', otherFieldMismatches);
                     }
 
-                    // Show API response message
                     if (response?.success) {
-                        if (response.message) {
-                            if (addressMismatches.length > 0) {
-                                toast.warning(`${response.message} - But address fields may not have been saved.`);
-                            } else {
-                                toast.success(response.message);
-                            }
+                        if (addressMismatches.length > 0) {
+                            toast.warning(`Address fields may not have been saved completely. Please verify.`);
                         }
                         setCurrentStep(3);
                     } else {
                         console.warn('⚠️ [DEBUG] Tab 2 - API returned success: false');
-                        toast.error(response?.message || 'Failed to save address details');
                     }
                 },
                 onError: (error: any) => {
                     console.error('❌ [DEBUG] Tab 2 (Address Information) - Save Error:', error);
                     console.error('❌ [DEBUG] Tab 2 - Error Details:', JSON.stringify(error, null, 2));
-                    // Show API error message
-                    const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save address details';
-                    toast.error(errorMessage);
                 }
             });
         } else if (currentStepId === 3) {
@@ -1258,12 +1251,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                         console.warn('⚠️ [DEBUG] Tab 3 - Response data is not an array or is missing');
                     }
 
-                    // Show API response message
-                    if (response?.success && response?.message) {
-                        toast.success(response.message);
-                    } else if (response?.message) {
-                        toast.info(response.message);
-                    } else if (response?.success === false) {
+                    if (response?.success === false && !response?.message) {
                         console.warn('⚠️ [DEBUG] Tab 3 - API returned success: false');
                         toast.warning('Qualification saved but API returned success: false. Please verify the data was saved.');
                     }
@@ -1273,11 +1261,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 onError: (error: any) => {
                     console.error('❌ [DEBUG] Tab 3 (Qualification) - Save Error:', error);
                     console.error('❌ [DEBUG] Tab 3 - Error Details:', JSON.stringify(error, null, 2));
-                    console.error('❌ [DEBUG] Tab 3 - Error Response:', error?.response);
-                    console.error('❌ [DEBUG] Tab 3 - Error Message:', error?.message);
-                    // Show API error message
-                    const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save qualification details';
-                    toast.error(errorMessage);
                 }
             });
         } else if (currentStepId === 4) {
@@ -1406,12 +1389,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                             console.warn('⚠️ [DEBUG] Tab 4 - Response data is not an array or is missing');
                         }
 
-                        // Show API response message
-                        if (response?.success && response?.message) {
-                            toast.success(response.message);
-                        } else if (response?.message) {
-                            toast.info(response.message);
-                        } else if (response?.success === false) {
+                        if (response?.success === false && !response?.message) {
                             console.warn('⚠️ [DEBUG] Tab 4 - API returned success: false');
                             toast.warning('Experience saved but API returned success: false. Please verify the data was saved.');
                         }
@@ -1421,11 +1399,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                     onError: (error: any) => {
                         console.error('❌ [DEBUG] Tab 4 (Experience) - Save Error:', error);
                         console.error('❌ [DEBUG] Tab 4 - Error Details:', JSON.stringify(error, null, 2));
-                        console.error('❌ [DEBUG] Tab 4 - Error Response:', error?.response);
-                        console.error('❌ [DEBUG] Tab 4 - Error Message:', error?.message);
-                        // Show API error message
-                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save experience details';
-                        toast.error(errorMessage);
                     }
                 });
             } catch (error) {
@@ -1495,17 +1468,13 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                     onSuccess: (response: any) => {
                         console.log('✅ [API DEBUG] Tab 5 (Document) - Save Success Response:', response);
                         if (response?.success) {
-                            if (response.message) toast.success(response.message);
                             setCurrentStep(6);
                         } else {
                             console.error('❌ [API DEBUG] Tab 5 (Document) - API returned success: false', response);
-                            toast.error(response?.message || 'Failed to save document details');
                         }
                     },
                     onError: (error: any) => {
                         console.error('❌ [API DEBUG] Tab 5 (Document) - API Error:', error);
-                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save document details';
-                        toast.error(errorMessage);
                     }
                 });
             } catch (err) {
@@ -1526,17 +1495,13 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 onSuccess: (response: any) => {
                     console.log('✅ [API DEBUG] Tab 6 (Medical) - Save Success Response:', response);
                     if (response?.success) {
-                        toast.success(response.message || 'Medical details saved successfully');
                         setCurrentStep(7);
                     } else {
                         console.error('❌ [API DEBUG] Tab 6 (Medical) - API returned success: false', response);
-                        toast.error(response?.message || 'Failed to save medical details');
                     }
                 },
                 onError: (error: any) => {
                     console.error('❌ [API DEBUG] Tab 6 (Medical) - API Error:', error);
-                    const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save medical details';
-                    toast.error(errorMessage);
                 }
             });
         } else if (currentStepId === 7) {
@@ -1552,7 +1517,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 onSuccess: (response: any) => {
                     console.log('✅ [API DEBUG] Tab 7 (Other) - Save Success Response:', response);
                     if (response?.success) {
-                        toast.success(response.message || 'Other details saved successfully');
                         // Call salary details save API as requested by user
                         if (savedEmployeeId) {
                             saveSalaryDetails(
@@ -1576,13 +1540,10 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                         }
                     } else {
                         console.error('❌ [API DEBUG] Tab 7 (Other) - API returned success: false', response);
-                        toast.error(response?.message || 'Failed to save other details');
                     }
                 },
                 onError: (error: any) => {
                     console.error('❌ [API DEBUG] Tab 7 (Other) - API Error:', error);
-                    const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save other details';
-                    toast.error(errorMessage);
                 }
             });
         } else {
@@ -1892,19 +1853,34 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
         }
     };
 
-    const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            setPhotoFile(file);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const base64String = reader.result as string;
-                setSelectedPhoto(base64String);
-                setValue('employeePhoto', base64String, { shouldValidate: true, shouldDirty: true });
-                // Explicitly trigger validation to clear any "required" error
-                trigger('employeePhoto');
-            };
-            reader.readAsDataURL(file);
+            try {
+                setIsUploadingPhoto(true);
+                const formData = new FormData();
+                formData.append('employeePhoto', file);
+
+                const response = await uploadStaffPhoto(formData);
+                console.log("Upload API response:", response);
+
+                if (response?.success && response?.data) {
+                    setPhotoFile(file);
+                    setSelectedPhoto(response.data);
+                    setValue('employeePhoto', response.data);
+                    setUploadedPhotoName(file.name);
+                    toast.success('Photo uploaded successfully');
+                    trigger('employeePhoto');
+                } else {
+                    console.error("Upload failed internally:", response);
+                    toast.error(response?.message || 'Failed to upload photo');
+                }
+            } catch (error: any) {
+                console.error("Upload process crashed:", error);
+                toast.error(error?.message || 'Error processing photo');
+            } finally {
+                setIsUploadingPhoto(false);
+            }
         }
     };
 
@@ -2117,7 +2093,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                     />
                                                     <InputText
                                                         label='Last Name'
-                                                        placeholder= 'Enter Last Name'
+                                                        placeholder='Enter Last Name'
                                                         id='lastName'
                                                         maxLength={50}
                                                         onKeyDown={(e) => {
@@ -3070,6 +3046,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 fieldState={fieldState}
                                                                 label='Date Of Birth'
                                                                 placeholder='Pick date of birth'
+                                                                toDate={new Date()}
+                                                                restricted_tofieldName="Today's Date"
                                                             />
                                                         )}
                                                     />
@@ -3583,8 +3561,17 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                     type='button'
                                                                     variant='outline'
                                                                     className='w-full bg-gray-100'
+                                                                    disabled={isUploadingPhoto}
                                                                     onClick={() => document.getElementById('employeePhoto')?.click()}>
-                                                                    {selectedPhoto ? (
+                                                                    {isUploadingPhoto ? (
+                                                                        <span className='flex items-center gap-2'>
+                                                                            <svg className='h-4 w-4 animate-spin' xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'>
+                                                                                <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4' />
+                                                                                <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z' />
+                                                                            </svg>
+                                                                            Uploading...
+                                                                        </span>
+                                                                    ) : selectedPhoto ? (
                                                                         'Change Photo'
                                                                     ) : (
                                                                         <span>
@@ -3600,6 +3587,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                         onClick={() => {
                                                                             setSelectedPhoto(null);
                                                                             setPhotoFile(null);
+                                                                            setUploadedPhotoName(null);
                                                                             setValue('employeePhoto', '', { shouldValidate: true });
                                                                             const fileInput = document.getElementById(
                                                                                 'employeePhoto'
@@ -3608,6 +3596,14 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                         }}>
                                                                         Remove Photo
                                                                     </Button>
+                                                                )}
+                                                                {uploadedPhotoName && !isUploadingPhoto && (
+                                                                    <p className='flex items-center gap-1 truncate text-gray-600 text-xs'>
+                                                                        <svg xmlns='http://www.w3.org/2000/svg' className='h-3.5 w-3.5 flex-shrink-0 text-green-500' viewBox='0 0 20 20' fill='currentColor'>
+                                                                            <path fillRule='evenodd' d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z' clipRule='evenodd' />
+                                                                        </svg>
+                                                                        <span className='truncate font-medium' title={uploadedPhotoName}>{uploadedPhotoName}</span>
+                                                                    </p>
                                                                 )}
                                                             </div>
                                                         </div>

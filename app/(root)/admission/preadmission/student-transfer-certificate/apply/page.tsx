@@ -193,10 +193,9 @@ export default function StudentTCApplyPage() {
     const { data: studentListRaw, isLoading: studentListLoading } = useStudentsByAcademicYear(Number(asmayId));
     const { data: studentNameListRaw, isLoading: studentNameListLoading } = useStudentNameList(Number(asmayId));
 
-    // Effect for Search Filter
     useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
-            if (searchText && asmayId) {
+            if (searchText.length >= 1 && asmayId) {
                 let flag = 'N'; // Default Name
                 if (/^\d+$/.test(searchText)) {
                     flag = 'A'; // Adm No if digits
@@ -236,10 +235,10 @@ export default function StudentTCApplyPage() {
 
     // Consolidated Student List: Use Search Results if searching, else Initial List
     let studentList = [];
-    if (searchText) {
+    if (searchText.length >= 1) {
         studentList = searchResults;
     } else {
-        studentList = Array.isArray(studentNameData) ? studentNameData : (studentNameData?.studentList || studentNameData?.student_name_list || studentNameData?.$values || []);
+        studentList = [];
     }
 
     // New lists from backend
@@ -783,7 +782,11 @@ export default function StudentTCApplyPage() {
                                                 onValueChange={setSearchText}
                                             />
                                             <CommandList>
-                                                <CommandEmpty>No student found.</CommandEmpty>
+                                                <CommandEmpty>
+                                                    {searchText.length === 0 
+                                                        ? "Please type to search student..." 
+                                                        : "No student found."}
+                                                </CommandEmpty>
                                                 <CommandGroup>
                                                     {studentList?.map((student: any, index: number) => {
                                                         const displayName = student.amsT_FirstName || student.studentName;

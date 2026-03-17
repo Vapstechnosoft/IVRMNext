@@ -19,8 +19,10 @@ export async function savePeriodPeriodAllocation(data: any) {
     const url = '/TimeTableCommon/AddOrUpdateMasterPeriod';
     return await api.post<any>('timetable', url, data);
 }
+
+//Master Period Class save button
 export async function savePeriodClass(data: any) {
-    const url = '/PeriodAllocation/savedetail/';
+    const url = '/PeriodAllocationFacade/PeriodDistributionSavedetailClassWise';
     return await api.post<any>('timetable', url, data);
 }
 
@@ -37,6 +39,13 @@ export async function deactivatePeriodClass(TTMPC_Id: number) {
 export async function getPeriodClass(data: any) {
     const url = '/PeriodAllocation/getperiod_class';
     return await api.post<any>('timetable', url, data);
+}
+
+//period number
+export async function getPeriodDetails(period_count: number) {
+    const url = `/PeriodAllocationFacade/getperiod_Details/${period_count}`;
+    console.log('getperiod_details', url);
+    return await api.get<any>('timetable', url);
 }
 
 export async function getClassByCategory(data: any) {

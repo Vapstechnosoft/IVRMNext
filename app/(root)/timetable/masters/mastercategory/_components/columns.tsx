@@ -9,7 +9,7 @@ import { useCallback } from 'react';
 export const masterCategoryColumns: ColumnDef<ITimeTableMasterCategory>[] = [
     {
         accessorKey: 'ttmC_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='font-bold text-black' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -21,7 +21,7 @@ export const masterCategoryColumns: ColumnDef<ITimeTableMasterCategory>[] = [
     },
     {
         accessorKey: 'ttmC_CategoryName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Category Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Category Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('ttmC_CategoryName')}</div>,
         enableSorting: true,
         enableHiding: true
@@ -29,7 +29,7 @@ export const masterCategoryColumns: ColumnDef<ITimeTableMasterCategory>[] = [
 
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='font-bold text-black' />,
         accessorFn: (row: any) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />

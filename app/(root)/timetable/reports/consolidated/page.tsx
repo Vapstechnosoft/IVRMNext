@@ -22,6 +22,7 @@ export default function ConsolidatedReportPage() {
         const fetchDetails = async () => {
             try {
                 const response = await getConsolidatedReportDetails({});
+                console.log("Consolidated Report Details Response:", response);
                 if (response?.success && response.data) {
                     console.log("Consolidated Report Details Data Keys:", Object.keys(response.data));
                     setInitialData(response.data);
@@ -39,40 +40,52 @@ export default function ConsolidatedReportPage() {
     });
 
     const handleFormSubmit = async (payload: any) => {
+
+        console.log("Report Payload:", payload);
+
         if (payload.CLEAR) {
             setReportData([]);
             setFullReportResponse(null);
-            console.log("payload", payload)
             return;
-
         }
-        console.log("payload", payload)
 
         setLoading(true);
         setReportType(payload.TYPE);
 
         try {
             const response: any = await getConsolidatedReport(payload);
-            if (response) {
-                setFullReportResponse(response);
-                // Extract main table data based on response structure
-                const data = response.finaltable || response.data || (Array.isArray(response) ? response : []);
+
+            console.log("Consolidated Report Response:", response);
+
+            if (response?.success) {
+
+                const actualData = response.data || response;
+
+                setFullReportResponse(actualData);
+
+                const data =
+                    actualData.finaltable ||
+                    actualData.griddata ||
+                    actualData.reportdata ||
+                    (Array.isArray(actualData) ? actualData : []);
+
                 setReportData(data);
 
-                if (data.length === 0 && (!response.finaltable || response.finaltable.length === 0)) {
-                    toast.info('No data found for the selected criteria');
+                if (!data || data.length === 0) {
+                    toast.info(actualData?.message);
                 }
+
             } else {
-                toast.error('Failed to fetch report data');
+                toast.error(response?.message);
             }
-        } catch (error) {
-            console.error('Error fetching consolidated report:', error);
-            toast.error('An error occurred while generating the report');
+
+        } catch (error: any) {
+            console.error(error?.message);
+            toast.error(error?.message);
         } finally {
             setLoading(false);
         }
     };
-
     return (
         <div className='container mx-auto space-y-6 p-4'>
             <CollapsibleSection title='Consolidated Report' defaultOpen={true}>
@@ -97,6 +110,7 @@ export default function ConsolidatedReportPage() {
                             fullResponse={fullReportResponse}
                             onPrint={handlePrint}
                             reportType={reportType}
+                            initialData={initialData}
                         />
                     </div>
                 </CollapsibleSection>

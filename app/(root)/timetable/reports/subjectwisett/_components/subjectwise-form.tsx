@@ -49,6 +49,7 @@ export default function SubjectWiseForm({ initialData, onReportGenerated, onCanc
     } = useForm<FormFields>({
         resolver: zodResolver(subjectWiseReportSchema.search),
         defaultValues: {
+            asmaY_Id: undefined,
             classId: [],
             subjectId: []
         }
@@ -93,7 +94,11 @@ export default function SubjectWiseForm({ initialData, onReportGenerated, onCanc
                         control={control}
                         name='asmaY_Id'
                         render={({ field }) => (
-                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                            <Select
+                                key={field.value ?? 'empty'}
+                                onValueChange={(val) => field.onChange(Number(val))}
+                                value={field.value?.toString()}
+                            >
                                 <SelectTrigger>
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>

@@ -15,7 +15,7 @@ export async function getBreakTimeSettingsDetails(searchParams?: ApiSearchparams
 }
 
 export async function saveBreakTimeSettings(data: IBreakTimeSettingsDTO) {
-    const url = '/BreakTimeSettings/savedetail';
+    const url = '/BreaktimesettingsFacade/savedetail';
     return await api.post<any>('timetable', url, data);
 }
 

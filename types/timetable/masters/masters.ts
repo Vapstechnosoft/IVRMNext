@@ -210,9 +210,11 @@ export interface IMasterPeriodClassList {
 export interface IMasterPeriodDetailsList {
     impcM_Id: number;
     imP_Id: number;
+    amC_Id: number;
     categoryName: string;
     imP_PeriodName: number;
     imP_PeriodOrder: number;
+    half: string;
 }
 
 export interface BreakTimeSettingsGridData {

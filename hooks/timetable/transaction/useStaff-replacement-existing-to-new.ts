@@ -4,7 +4,8 @@ import {
     getStaffReplacementExistingToNewMasters,
     getStaffReplacementGridData,
     getStaffReplacementInitialDetails,
-    saveStaffReplacementExistingToNew
+    saveStaffReplacementExistingToNew,
+    getSectionDropdown
 } from '@/server/timetable/transactions/staff-replacement-existing-to-new';
 import type { ApiSearchparams } from '@/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -21,6 +22,13 @@ export const useSectionsByClass = (asmcL_Id: number) => {
         queryKey: [TIMETABLE_QUERY_KEYS.STAFF_REPLACEMENT_SECTIONS, asmcL_Id],
         queryFn: () => getSectionsByClass(asmcL_Id),
         enabled: !!asmcL_Id
+    });
+};
+
+export const useSectionDropdown = () => {
+    return useQuery({
+        queryKey: [TIMETABLE_QUERY_KEYS.STAFF_REPLACEMENT_SECTIONS],
+        queryFn: () => getSectionDropdown(),
     });
 };
 

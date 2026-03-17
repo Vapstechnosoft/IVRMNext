@@ -42,9 +42,9 @@ export async function getadmissionSectionDropdown(asmcl_id: number) {
     return await api.get('admission', url);
 }
 
-export async function GetClassTeacherReport(ASMAY_Id: number, flag: number, searchParams?: ApiSearchparams) {
+export async function GetClassTeacherReport(ASMAY_Id: number, flag: number, amcId?: number, searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'name,AMST_AdmNo,AMST_RegistrationNo,AMAY_RollNo,yearidname');
-    const url = `/ClassTeacherReportAttendance/GetReport?ASMAY_Id=${ASMAY_Id}&flag=${flag}&${urlParams}`;
+    const url = `/ClassTeacherReportAttendance/GetReport?ASMAY_Id=${ASMAY_Id}&Flag=${flag}&AMC_Id=${amcId || 0}&${urlParams}`;
 
     return await api.post<IPreadmissionClassDropdown[]>('admission', url);
 }
@@ -75,7 +75,7 @@ export async function getStudentSearch(
     searchParams?: ApiSearchparams
 ) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'amsT_RegistrationNo,amsT_FirstName,asmcL_ClassName');
-    const url = `/StudentSearch/GetStudentSearchData?stuStatus=${stuStatus}&field=${field}&Operator=${Operator}&value=${value}&condition=${condition}&${urlParams}`;
+    const url = `/StudentSearch/GetStudentSearchData?stuStatus=${stuStatus}&field=${field}&Operator=${Operator}&value=${value}&condition=${condition || 'AND'}&${urlParams}`;
 
     return await api.post<any[]>('admission', url);
 }

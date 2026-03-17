@@ -114,7 +114,7 @@ export default function ViewDetailModal({ rowData, isOpen, onClose }: ViewDetail
             accessorKey: 'asmC_SectionName',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Section' />,
             cell: ({ row }) => <div>{row.getValue('asmC_SectionName')}</div>,
-            enableSorting: true,
+            enableSorting: false,
             enableHiding: true
         },
         {

@@ -30,6 +30,7 @@ export async function getFixingLoadData(searchParams?: ApiSearchparams) {
 
 export async function saveFixingDayPeriod(data: FixingDayPeriodSchema) {
     const url = '/FixingFacade/FixingPeriodDaySave';
+    // /FixingFacade/FixingDaySubjectSave
     return await api.post<any>('timetable', url, data);
 }
 
@@ -96,6 +97,8 @@ export async function deactivateFixingDayStaff(data: { TTFDS_Id: number; TTFDS_A
 
 export async function saveFixingDaySubject(data: FixingDaySubjectSchema) {
     const url = '/FixingFacade/FixingDaySubjectSave';
+    // /FixingFacade/FixingDaySubjectSave
+    console.log("Saving Day Subject with data:", data);     
     return await api.post<any>('timetable', url, data);
 }
 

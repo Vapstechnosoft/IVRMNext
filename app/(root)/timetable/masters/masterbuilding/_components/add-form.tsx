@@ -74,6 +74,7 @@ export default function AddMasterBuildingForm({ onSuccess, buildingname = '' }: 
                                 <div className='w-full md:w-[250px]'>
                                     <InputText
                                         id='ttmB_BuildingName'
+                                        placeholder='Enter building name'
                                         {...register('ttmB_BuildingName')}
                                         error={errors.ttmB_BuildingName?.message}
                                         className='w-full transition-colors focus:ring-2 focus:ring-primary/20'

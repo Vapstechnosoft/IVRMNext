@@ -85,7 +85,9 @@ export const ExamSubjectWizardColumns: ColumnDef<IExamSubjectWizard>[] = [
                     <Eye className='h-4 w-4 text-blue-600' />
                 </button>
             );
-        }
+        },
+        enableHiding: true,
+        enableSorting: false
     },
 
     {

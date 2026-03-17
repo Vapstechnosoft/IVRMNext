@@ -1,6 +1,8 @@
 import { getSubjectRestrictionDetails } from '@/server/timetable/constraints/subjectrestriction';
 import SubjectRestriction from './_components/subject-restriction';
 
+export const dynamic = 'force-dynamic';
+
 export default async function SubjectRestrictionPage() {
     let initialData = null;
     try {
