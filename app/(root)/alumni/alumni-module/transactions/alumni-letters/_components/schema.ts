@@ -7,9 +7,9 @@ export const alumniLettersSchema = z.object({
         .string()
         .optional()
         .refine(
-            (val) => !val || /^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4} ([01][0-9]|2[0-3]):([0-5][0-9])$/.test(val),
+            (val) => !val || /^\d{4}\/(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])( ([01][0-9]|2[0-3]):([0-5][0-9]))?$/.test(val),
             {
-                message: 'Invalid format. Use dd-MM-yyyy HH:mm (e.g., 25-12-2023 14:30)'
+                message: 'please enter correct data format yyyy/MM/dd'
             }
         ),
     asmaY_Id: z.string().min(1, 'Select Academic Year'),
