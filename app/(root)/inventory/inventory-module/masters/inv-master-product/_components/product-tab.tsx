@@ -9,12 +9,11 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useInvMasterProduct } from '@/hooks/inventory/masters/use-inv-master-product';
-import { Edit, Trash2 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Edit } from 'lucide-react';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
-import { ColumnDef } from '@tanstack/react-table';
 import { parseAsInteger, useQueryState } from 'nuqs';
 import { tableSearchVariables } from '@/lib/data-table.config';
+import { getProductColumns } from './product-columns';
 
 const formSchema = z.object({
     invmP_Id: z.number().optional(),
@@ -44,7 +43,7 @@ export default function ProductTab() {
     );
 
     const searchParams = { page: currentPage, page_size: pageSize };
-    const { loadData, saveProductMutation, deactiveProductMutation, isLoadDataLoading, getTaxListMutation, getProductTaxMutation } = useInvMasterProduct(searchParams);
+    const { loadData, saveProductMutation, refreshAll, isLoadDataLoading, getTaxListMutation, getProductTaxMutation } = useInvMasterProduct(searchParams);
 
 
 
@@ -84,6 +83,7 @@ export default function ProductTab() {
         saveProductMutation.mutate(payload, {
             onSuccess: () => {
                 onCancel();
+                refreshAll();
             }
         });
     };
@@ -159,10 +159,6 @@ export default function ProductTab() {
         }
     };
 
-    const onDeactive = (item: any) => {
-        deactiveProductMutation.mutate(item);
-    };
-
     const onCancel = () => {
         form.reset({
             invmP_ProductName: '',
@@ -173,44 +169,7 @@ export default function ProductTab() {
         });
     };
 
-    const columns: ColumnDef<any>[] = [
-        {
-            accessorKey: 'index',
-            header: 'SL NO',
-            cell: ({ row, table }) => (table.getState().pagination.pageIndex * table.getState().pagination.pageSize) + row.index + 1,
-        },
-        {
-            accessorKey: 'invmP_ProductName',
-            header: 'Product Name',
-        },
-        {
-            accessorKey: 'invmP_ProductCode',
-            header: 'Product Code',
-        },
-        {
-            accessorKey: 'invmP_ProductPrice',
-            header: 'Product Price',
-        },
-        {
-            id: 'actions',
-            header: 'Action',
-            cell: ({ row }) => (
-                <div className="flex items-center space-x-2">
-                    <Button variant="ghost" size="icon" onClick={() => onEdit(row.original)}>
-                        <Edit className="h-4 w-4 text-blue-500" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => onDeactive(row.original)}>
-                        {row.original.invmP_ActiveFlg ? (
-                            <Trash2 className="h-4 w-4 text-red-500" />
-                        ) : (
-                            <Badge variant="outline" className="text-green-500 cursor-pointer">Activate</Badge>
-                        )}
-                    </Button>
-
-                </div>
-            )
-        }
-    ];
+    const columns = getProductColumns(onEdit);
 
     return (
         <div className="space-y-4">
