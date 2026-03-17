@@ -9,13 +9,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useInvMasterProduct } from '@/hooks/inventory/masters/use-inv-master-product';
 import { getInvMasterProductList, getInvMasterItemList } from '@/server/inventory/masters/inv-master-product';
-import { Edit, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
-import { ColumnDef } from '@tanstack/react-table';
-import { Badge } from '@/components/ui/badge';
 import { parseAsInteger, useQueryState } from 'nuqs';
 import { tableSearchVariables } from '@/lib/data-table.config';
+import { getProductQtyColumns } from './product-columns';
 
 const formSchema = z.object({
     invmpI_Id: z.number().optional(),
@@ -42,8 +40,7 @@ export default function ProductQtyTab() {
         productItemData,
         isProductItemLoading,
         saveProductQtyMutation,
-        deactiveProductQtyMutation,
-        refetchProductItemData
+        refreshAll
     } = useInvMasterProduct(undefined, itemSearchParams);
 
     const [products, setProducts] = useState<any[]>([]);
@@ -96,7 +93,7 @@ export default function ProductQtyTab() {
             onSuccess: (res: any) => {
                 if (res.success) {
                     onCancel();
-                    refetchProductItemData();
+                    refreshAll();
                 }
             }
         });
@@ -109,13 +106,6 @@ export default function ProductQtyTab() {
         form.setValue('invmpI_ItemQty', item.invmpI_ItemQty);
     };
 
-    const onDeactive = (item: any) => {
-        deactiveProductQtyMutation.mutate({
-            INVMPI_Id: item.invmpI_Id,
-            INVMPI_ActiveFlg: item.invmpI_ActiveFlg
-        });
-    };
-
     const onCancel = () => {
         form.reset({
             invmpI_Id: 0,
@@ -125,43 +115,7 @@ export default function ProductQtyTab() {
         });
     };
 
-    const columns: ColumnDef<any>[] = [
-        {
-            accessorKey: 'index',
-            header: 'SL NO',
-            cell: ({ row, table }) => (table.getState().pagination.pageIndex * table.getState().pagination.pageSize) + row.index + 1,
-        },
-        {
-            accessorKey: 'invmP_ProductName',
-            header: 'Product Name',
-        },
-        {
-            accessorKey: 'invmI_ItemName',
-            header: 'Item Name',
-        },
-        {
-            accessorKey: 'invmpI_ItemQty',
-            header: 'Quantity',
-        },
-        {
-            id: 'actions',
-            header: 'Action',
-            cell: ({ row }) => (
-                <div className="flex items-center space-x-2">
-                    <Button variant="ghost" size="icon" onClick={() => onEdit(row.original)}>
-                        <Edit className="h-4 w-4 text-blue-500" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => onDeactive(row.original)}>
-                        {row.original.invmpI_ActiveFlg ? (
-                            <Trash2 className="h-4 w-4 text-red-500" />
-                        ) : (
-                            <Badge variant="outline" className="text-green-500 cursor-pointer">Activate</Badge>
-                        )}
-                    </Button>
-                </div>
-            )
-        }
-    ];
+    const columns = getProductQtyColumns(onEdit);
 
     return (
         <div className="space-y-4">
