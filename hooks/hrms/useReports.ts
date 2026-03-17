@@ -172,7 +172,9 @@ export function useReportEmployeesByGroupTypeDeptAndDesignation( groupTypeIds: n
     return useQuery({
         queryKey: ['report-employees', groupTypeIds, deptIds, desigIds],
         queryFn: () => getEmployeesByGroupTypeDeptAndDesignation(groupTypeIds, deptIds, desigIds),
-        enabled: !!groupTypeIds && !!deptIds && !!desigIds,
+        enabled: Array.isArray(groupTypeIds) && groupTypeIds.length > 0 && 
+                 Array.isArray(deptIds) && deptIds.length > 0 && 
+                 Array.isArray(desigIds) && desigIds.length > 0,
         staleTime: 1000 * 60 * 5
     });
 }

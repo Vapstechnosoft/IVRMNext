@@ -1,9 +1,11 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { UserCog } from 'lucide-react';
 import type { CategoryDTO, ModuleDTO } from '@/types/super-admin/user-creation/staff-user-creation';
 import { useFormContext } from 'react-hook-form';
 
@@ -55,13 +57,17 @@ export default function UserDetails({
                             readOnly={isUserNameDisabled}
                             disabled={filterData === 'Multiple'}
                         />
-                        <button
+                        <Button
                             type='button'
+                            variant="secondary"
                             onClick={onChangeUsernameToggle}
                             disabled={filterData === 'Multiple' || !isUserNameDisabled}
-                            className='btn btn-info btn-xs whitespace-nowrap rounded bg-blue-500 px-3 py-1 text-[10px] text-white transition-colors hover:bg-blue-600 disabled:bg-gray-400'>
+                            size="sm"
+                            className='text-[10px] uppercase font-bold'
+                        >
+                            <UserCog className="mr-2 h-3.5 w-3.5" />
                             Change Username
-                        </button>
+                        </Button>
                     </div>
                 </div>
 

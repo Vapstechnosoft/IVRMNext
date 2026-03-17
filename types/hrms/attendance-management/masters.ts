@@ -116,3 +116,23 @@ export interface IMasterTimeSetting {
     fomtS_FixTimings: string;
     fomhwD_ActiveFlg: boolean;
 }
+
+export interface IPunchLog {
+    hrmE_Id: number;
+    foeP_PunchDate: string; // ISO string format "YYYY-MM-DDTHH:mm:ss.sssZ"
+    foepD_PunchTime: string; // Time format "HH:mm"
+    inOutFlag: 'I' | 'O';
+}
+
+export interface IPunchDetail {
+    foepD_Id: number;
+    hrmE_Id: number;
+    foeP_Id: number;
+    foepD_PunchTime: string;
+    foepD_InOutFlg: 'I' | 'O';
+    foeP_PunchDate: string;
+}
+
+export interface IEmployeePunchSaveRequest {
+    punchLogs: IPunchLog[];
+}

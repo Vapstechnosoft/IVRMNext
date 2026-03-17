@@ -105,7 +105,10 @@ function DataTableInner<TData, TValue>(
     }, [rowSelection]);
 
     const paginationState = { pageIndex: currentPage - 1, pageSize };
-    const pageCount = Math.ceil(totalItems / pageSize);
+    // In client-side mode (manualPagination=false), TanStack Table handles slicing, 
+    // but we still want to show the correct page count based on the data length.
+    const effectiveTotal = manualPagination ? totalItems : data.length;
+    const pageCount = Math.ceil(effectiveTotal / pageSize);
 
     const handlePaginationChange = (updaterOrValue: PaginationState | ((old: PaginationState) => PaginationState)) => {
         const pagination = typeof updaterOrValue === 'function' ? updaterOrValue(paginationState) : updaterOrValue;
@@ -270,11 +273,11 @@ function DataTableInner<TData, TValue>(
                                     </div>
                                 ) : (
                                     <div className='pagination-info'>
-                                        {totalItems > 0 ? (
+                                        {effectiveTotal > 0 ? (
                                             <>
                                                 Showing <span className="pagination-number">{paginationState.pageIndex * paginationState.pageSize + 1}</span>
-                                                to <span className="pagination-number">{Math.min((paginationState.pageIndex + 1) * paginationState.pageSize, totalItems)}</span>
-                                                of <span className="pagination-number">{totalItems}</span> entries
+                                                to <span className="pagination-number">{Math.min((paginationState.pageIndex + 1) * paginationState.pageSize, effectiveTotal)}</span>
+                                                of <span className="pagination-number">{effectiveTotal}</span> entries
                                             </>
                                         ) : (
                                             'No entries found'

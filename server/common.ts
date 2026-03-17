@@ -2409,7 +2409,8 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/attendance-management/masters/front-office-addlogs',
                                             title: 'Front Office Addlogs',
                                             description: 'Front Office Addlogs'
-                                        }
+                                        },
+                                        
                                     ]
                                 },
                                 {

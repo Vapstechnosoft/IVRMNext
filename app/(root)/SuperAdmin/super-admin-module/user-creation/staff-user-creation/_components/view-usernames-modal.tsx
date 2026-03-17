@@ -8,6 +8,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import {
     Table,
     TableBody,
@@ -118,12 +119,12 @@ export default function ViewUsernamesModal({
                 </ScrollArea>
 
                 <div className="p-4 border-t bg-gray-50 flex justify-end">
-                    <button
+                    <Button
                         onClick={onClose}
-                        className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-semibold transition-colors shadow-sm"
+                        className="px-6"
                     >
                         Close
-                    </button>
+                    </Button>
                 </div>
             </DialogContent>
         </Dialog>
