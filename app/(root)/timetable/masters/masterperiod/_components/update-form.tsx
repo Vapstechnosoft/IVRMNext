@@ -31,7 +31,18 @@ const extractList = (data: any, preferredKey?: string) => {
     if (Array.isArray(target)) return target;
     if (!target) return [];
     if (preferredKey && Array.isArray(target[preferredKey])) return target[preferredKey];
-    const keys = ['geteditmaster', 'academiclist', 'catelist', 'classlist', 'sectionlist', 'stafflist', 'subjectlist', 'categorylist'];
+    const keys = [
+        'geteditmaster',
+        'academiclist',
+        'catelist',
+        'classlist',
+        'sectionlist',
+        'stafflist',
+        'subjectlist',
+        'categorylist',
+        'categoryDropDown',
+        'gridDetails'
+    ];
     for (const key of keys) {
         if (Array.isArray(target[key])) return target[key];
     }
@@ -107,16 +118,15 @@ export default function MasterPeriodForm({ onSuccess, selectedRow }: MasterPerio
             setIsLoadingDetails(true);
             try {
                 const response = await getMasterPeriodEditDetails(selectedRow.imP_Id);
-                const editDataList = extractList(response, 'geteditmaster');
+                const editDataList = extractList(response, 'gridDetails');
 
                 if (editDataList && editDataList.length > 0) {
-                    const editData = editDataList[0];
+                    const filteredEditData = editDataList.filter(
+                        (item: any) => item.imP_Id === selectedRow.imP_Id || item.IMP_Id === selectedRow.imP_Id
+                    );
+                    const editData = filteredEditData.length > 0 ? filteredEditData[0] : editDataList[0];
                     // Extract all unique category IDs from the edit list
-                    const allCategoryIds = Array.from(new Set(
-                        editDataList
-                            .map((item: any) => getCategoryId(item))
-                            .filter(Boolean)
-                    ));
+                    const allCategoryIds = Array.from(new Set(filteredEditData.map((item: any) => getCategoryId(item)).filter(Boolean)));
 
                     reset({
                         periodname: Number(editData.imP_PeriodName || selectedRow.imP_PeriodName),
@@ -157,11 +167,11 @@ export default function MasterPeriodForm({ onSuccess, selectedRow }: MasterPerio
     const onSubmit = async (data: FormFields) => {
         try {
             const payload = {
-                imP_Id: selectedRow?.imP_Id || 0,
-                impcM_Id: selectedRow?.impcM_Id || 0,
-                imP_PeriodName: data.periodname,
-                imP_PeriodOrder: data.periodorder,
-                half: data.half,
+                IMP_Id: selectedRow?.imP_Id || 0,
+                IMPCM_Id: selectedRow?.impcM_Id || 0,
+                IMP_PeriodName: data.periodname,
+                IMP_PeriodOrder: data.periodorder,
+                Half: data.half,
                 selectedCategoryDetails: Category_ids.map((id) => ({ amC_Id: Number(id) }))
             };
 
@@ -198,14 +208,15 @@ export default function MasterPeriodForm({ onSuccess, selectedRow }: MasterPerio
                                 <Select
                                     key={field.value || 'empty'}
                                     value={field.value?.toString() || undefined}
-                                    onValueChange={(val) => field.onChange(Number(val))}
-                                >
+                                    onValueChange={(val) => field.onChange(Number(val))}>
                                     <SelectTrigger>
                                         <SelectValue placeholder='Select Period Name' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {Array.from({ length: 15 }, (_, i) => i + 1).map((n) => (
-                                            <SelectItem key={n} value={n.toString()}>{n}</SelectItem>
+                                            <SelectItem key={n} value={n.toString()}>
+                                                {n}
+                                            </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -225,14 +236,15 @@ export default function MasterPeriodForm({ onSuccess, selectedRow }: MasterPerio
                                 <Select
                                     key={field.value || 'empty'}
                                     value={field.value?.toString() || undefined}
-                                    onValueChange={(val) => field.onChange(Number(val))}
-                                >
+                                    onValueChange={(val) => field.onChange(Number(val))}>
                                     <SelectTrigger>
                                         <SelectValue placeholder='Select Period Order' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {Array.from({ length: 15 }, (_, i) => i + 1).map((n) => (
-                                            <SelectItem key={n} value={n.toString()}>{n}</SelectItem>
+                                            <SelectItem key={n} value={n.toString()}>
+                                                {n}
+                                            </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -242,7 +254,9 @@ export default function MasterPeriodForm({ onSuccess, selectedRow }: MasterPerio
                     </div>
 
                     <div className='space-y-2 pt-2'>
-                        <Label className='mb-3 block'>Select Half <span className='text-red-500'>*</span></Label>
+                        <Label className='mb-3 block'>
+                            Select Half <span className='text-red-500'>*</span>
+                        </Label>
                         <div className='flex items-center space-x-6'>
                             <div className='flex items-center space-x-2'>
                                 <Controller
@@ -258,7 +272,9 @@ export default function MasterPeriodForm({ onSuccess, selectedRow }: MasterPerio
                                         />
                                     )}
                                 />
-                                <label htmlFor='period-first-half' className='font-medium text-sm cursor-pointer'>I Half</label>
+                                <label htmlFor='period-first-half' className='cursor-pointer font-medium text-sm'>
+                                    I Half
+                                </label>
                             </div>
 
                             <div className='flex items-center space-x-2'>
@@ -275,7 +291,9 @@ export default function MasterPeriodForm({ onSuccess, selectedRow }: MasterPerio
                                         />
                                     )}
                                 />
-                                <label htmlFor='period-second-half' className='font-medium text-sm cursor-pointer'>II Half</label>
+                                <label htmlFor='period-second-half' className='cursor-pointer font-medium text-sm'>
+                                    II Half
+                                </label>
                             </div>
                         </div>
                         {errors.half && <p className='text-red-500 text-sm'>{errors.half.message}</p>}
@@ -331,20 +349,14 @@ export default function MasterPeriodForm({ onSuccess, selectedRow }: MasterPerio
             </div>
 
             <div className='flex items-center justify-start gap-3 border-t pt-6'>
-                <Button
-                    type='button'
-                    variant='outline'
-                    onClick={() => reset()}
-                    disabled={isSubmitting}
-                >
+                <Button type='button' variant='outline' onClick={() => reset()} disabled={isSubmitting}>
                     <RotateCcw className='mr-2 h-4 w-4' /> Reset
                 </Button>
                 <Button
                     type='submit'
                     disabled={isSubmitting}
                     isLoading={isSubmitting}
-                    loadingText={selectedRow ? 'Updating...' : 'Saving...'}
-                >
+                    loadingText={selectedRow ? 'Updating...' : 'Saving...'}>
                     <Save className='mr-2 h-4 w-4' /> {selectedRow ? 'Update' : 'Save'} Master Period
                 </Button>
             </div>

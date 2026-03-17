@@ -37,8 +37,8 @@ function MasterPeriodClassPageContent({
     refetchAll: any;
 }) {
     // The API returns all_list for class mapping in the response object
+    const dataList = response?.all_list || (Array.isArray(response?.data) ? response.data : []);
     const tableProps = useDataTableProps(response?.all_list ? { ...response, data: response.all_list } : response);
-    const dataList = response?.all_list || [];
     const { openAddForm } = useFormContext<IMasterPeriodClassList>();
 
     return (
@@ -132,7 +132,12 @@ function FormSections({ onSuccess }: { onSuccess: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <MasterPeriodClassForm onSuccess={closeAddForm} />
+                            <MasterPeriodClassForm
+                                onSuccess={() => {
+                                    closeAddForm();
+                                    onSuccess();
+                                }}
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>

@@ -45,7 +45,7 @@ export default function StaffReplacementGrid({ onFetch }: StaffReplacementGridPr
 
     const handleReset = () => {
         reset();
-        // onFetch(null);
+        onFetch(null);
     };
 
     return (
@@ -64,8 +64,6 @@ export default function StaffReplacementGrid({ onFetch }: StaffReplacementGridPr
                                     control={control}
                                     render={({ field }) => (
                                         <Select
-                                            // onValueChange={field.onChange}
-                                            //  value={field.value}
                                             key={field.value || 'empty'}
                                             onValueChange={(value) => {
                                                 field.onChange(value || '');

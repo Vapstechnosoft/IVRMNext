@@ -75,6 +75,7 @@ export default function AddMasterCategoryForm({ onSuccess, CategoryName = '' }: 
                                 <div className='w-full md:w-[250px]'>
                                     <InputText
                                         id='ttmC_CategoryName'
+                                        placeholder='Enter Category Name'
                                         {...register('ttmC_CategoryName')}
                                         error={errors.ttmC_CategoryName?.message}
                                         className='w-full transition-colors focus:ring-2 focus:ring-primary/20'

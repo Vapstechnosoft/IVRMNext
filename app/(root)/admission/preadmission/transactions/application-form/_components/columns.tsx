@@ -224,6 +224,12 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
                         const student = resp?.student_details || resp || {};
                         const payload = {
                             ...student,
+                            pasR_Id: student.pasR_Id || student.pasr_id || resp.pasr_id || resp.pasR_Id,
+                            pasR_DOB: student.pasR_DOB ? new Date(student.pasR_DOB) : undefined,
+                            asmcL_Id: Number(student.asmcL_Id || resp.pasR_AppliedClassId || resp.asmcL_Id || student.asmcL_id || 0),
+                            caste_Id: Number(student.caste_Id || resp.caste_id || resp.ic_Id || student.caste_id || 0),
+                            religion_Id: Number(student.religion_Id || resp.religion_id || student.religion_id || 0),
+                            casteCategory_Id: Number(student.casteCategory_Id || resp.casteCategory_Id || student.imCC_Id || 0),
                             selectedSourceDetails: (resp?.student_sources || resp?.studentSource || []).map((s: any) => ({
                                 pamS_Id: String(s.pamS_Id)
                             })),
