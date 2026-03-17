@@ -19,25 +19,27 @@ export function InteractionTabs({ initialData }: InteractionTabsProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [_composeMode, setComposeMode] = useState<'Group' | 'Individual'>('Individual');
 
-    const { roletype, configflag, userhrmE_Id, getinboxmsg } = initialData;
+    const { roletype, configflag, userhrmE_Id } = initialData;
+    // Support multiple possible key names for inbox messages
+    const inboxMessages = initialData?.getinboxmsg || initialData?.inboxmsg || initialData?.inboxList || initialData?.messageList || [];
 
     // Determine Role Flag
     const roleFlag = roletype?.[0]?.ivrmrT_Role || 'Student'; // Default or extracted
 
     useEffect(() => {
         // Initializing inbox messages from server load
-        if (getinboxmsg) {
-            setMessages(getinboxmsg);
+        if (Array.isArray(inboxMessages) && inboxMessages.length > 0) {
+            setMessages(inboxMessages);
         }
-    }, [getinboxmsg]);
+    }, [initialData]);
 
     const refreshInbox = useCallback(async () => {
         setIsLoading(true);
         try {
-            const response = await getInteractionLoadData({});
-            if (response?.getinboxmsg) {
-                setMessages(response.getinboxmsg);
-            }
+            const response = await getInteractionLoadData();
+            // Support multiple possible key names for inbox messages
+            const msgs = response?.getinboxmsg || response?.inboxmsg || response?.inboxList || response?.messageList || [];
+            setMessages(Array.isArray(msgs) ? msgs : []);
         } catch (error) {
             console.error('Failed to refresh inbox', error);
         } finally {
