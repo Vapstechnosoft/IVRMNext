@@ -84,6 +84,7 @@ export async function getSubjectPeriodDistrubution() {
 
 export async function saveperioddistribution(data: any) {
     const url = '/ClassMasterFacade/save-period-distribution';
+    console.info('saveperioddistribution', url);
     return await api.post<any>('timetable', url, data);
 }
 

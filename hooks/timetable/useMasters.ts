@@ -36,6 +36,7 @@ import {
     getCategoryPeriodDistrubution,
     getClassPeriodDistrubution,
     getPeriodDistributionDetails,
+    getPeriodDistributionEditDetails,
     getPeriodDistributionViewData,
     getPeriodDropdown,
     getSectionPeriodDistrubution,
@@ -467,6 +468,18 @@ export const usePeriodDistributionViewData = ({ id, enabled }: { id?: number; en
         queryFn: async () => {
             if (!id) return null;
             return getPeriodDistributionViewData(id);
+        },
+        enabled: enabled && !!id,
+        staleTime: 0
+    });
+};
+
+export const usePeriodDistributionEditDetails = ({ id, enabled }: { id?: number; enabled: boolean }) => {
+    return useQuery({
+        queryKey: [TIMETABLE_QUERY_KEYS.TT_PERIOD_DISTRIBUTION_EDIT, id],
+        queryFn: async () => {
+            if (!id) return null;
+            return getPeriodDistributionEditDetails(id);
         },
         enabled: enabled && !!id,
         staleTime: 0

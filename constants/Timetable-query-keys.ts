@@ -17,6 +17,7 @@ export const TIMETABLE_QUERY_KEYS = {
     TT_MASTER_DAYCLASSWISE_DETAILS: 'tt_master_dayclasswise_details',
     TT_PERIODTIME_SETTINGSDATA: 'tt_periodtimesettingsdata',
     TT_PERIOD_DISTRIBUTION_VIEW: 'tt_period_distribution_view',
+    TT_PERIOD_DISTRIBUTION_EDIT: 'tt_period_distribution_edit',
     MASTER_SUBJECT_DROPDOWN: 'master_subject_dropdown',
     ACADEMIC_YEAR_DROPDOWN_MASTERDAYCLASSWISE: 'academic_year_dropdown_masterdayclasswise',
     CATEGORY_DROPDOWN_MASTERDAYCLASSWISE: 'category_dropdown_masterdayclasswise',

@@ -90,6 +90,9 @@ export const deputationReportSchema = {
         }),
         flag: z.enum(['D', 'C'], {
             required_error: 'Report Type is required'
-        })
+        }),
+        Classids: z.array(z.number()).optional(),
+        sectionids: z.array(z.number()).optional(),
+        staffids: z.array(z.number()).optional()
     })
 };

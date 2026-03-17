@@ -8,7 +8,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { deputationReportSchema } from '@/schemas/timetable/reports';
-import { useDeputationAcademicYear } from '@/hooks/timetable/reports';
+import { useClassDetails, useDeputationAcademicYear, useDeputationReportDetails, useDeputationReportLoadData, useSectionDropDown } from '@/hooks/timetable/reports';
+import { MultiSelect } from '@/components/ui/multi-select';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, Download, Printer, Search, X } from 'lucide-react';
@@ -26,7 +27,15 @@ type FormValues = z.infer<typeof deputationReportSchema.search>;
 
 export default function DeputationReportForm() {
     const { data: academicYearData, isLoading: academicYearLoading } = useDeputationAcademicYear();
+    const { data: classData, isLoading: classLoading } = useClassDetails();
+    const { data: sectionData, isLoading: sectionLoading } = useSectionDropDown();
+    const { data: loadData, isLoading: loadDataLoading } = useDeputationReportLoadData();
+    const { mutateAsync: getReport, isPending: loadingReport } = useDeputationReportDetails();
+
     const academicList = Array.isArray(academicYearData) ? academicYearData : (academicYearData as any)?.data || [];
+    const classList = Array.isArray(classData) ? classData : (classData as any)?.data || [];
+    const sectionList = Array.isArray(sectionData) ? sectionData : (sectionData as any)?.data || [];
+    const staffList = (loadData as any)?.data?.stafflist || (loadData as any)?.stafflist || [];
 
     const [reportData, setReportData] = useState<any[]>([]);
     const [reportType, setReportType] = useState<'D' | 'C' | null>(null);
@@ -37,7 +46,10 @@ export default function DeputationReportForm() {
         defaultValues: {
             flag: 'D',
             fromdate: new Date(),
-            todate: new Date()
+            todate: new Date(),
+            Classids: [],
+            sectionids: [],
+            staffids: []
         }
     });
 
@@ -63,46 +75,30 @@ export default function DeputationReportForm() {
 
     const handleFormSubmit = async (data: FormValues) => {
         try {
-            // Updated randomization for mock data
-            if (data.flag === 'D') {
-                const staffNames = ['Rahul Sharma', 'Anjali Gupta', 'Vikram Singh', 'Sneha Patil', 'Rohan Mehra', 'Priya Iyer', 'Amit Verma', 'Sonia Das'];
-                const classes = ['10th', '9th', '8th', '7th', '6th'];
-                const sections = ['DIVISION A', 'DIVISION B', 'DIVISION C', 'DIVISION D'];
-                const days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
-                const periods = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
-                const remarks = ['Medical Leave', 'Late Duty', 'Personal Work', 'Emergency', 'School Duty', 'Official Work'];
+            const payload = {
+                ASMAY_Id: data.asmaY_Id,
+                date: format(data.fromdate, 'yyyy-MM-dd'),
+                fromdate: format(data.fromdate, 'yyyy-MM-dd'),
+                todate: format(data.todate, 'yyyy-MM-dd'),
+                flag: data.flag,
+                Classids: data.Classids || [],
+                sectionids: data.sectionids || [],
+                staffids: data.staffids || []
+            };
 
-                const mockDetails = Array.from({ length: 15 }, () => ({
-                    ttsd_date: new Date().toISOString(),
-                    asmcL_ClassName: classes[Math.floor(Math.random() * classes.length)],
-                    asmC_SectionName: sections[Math.floor(Math.random() * sections.length)],
-                    ttmD_DayName: days[Math.floor(Math.random() * days.length)],
-                    ttmP_PeriodName: periods[Math.floor(Math.random() * periods.length)],
-                    absentStaff: staffNames[Math.floor(Math.random() * staffNames.length)],
-                    deptStaff: staffNames[Math.floor(Math.random() * staffNames.length)],
-                    ttsD_Remarks: remarks[Math.floor(Math.random() * remarks.length)]
-                }));
-                setReportData(mockDetails);
+            const response = await getReport(payload);
+            const dataList = Array.isArray(response) ? response : (response?.data || []);
+            
+            if (dataList && dataList.length > 0) {
+                setReportData(dataList);
+                setReportType(data.flag as 'D' | 'C');
+                toast.success('Report generated successfully');
             } else {
-                const classes = ['10th', '9th', '8th', '7th', '6th'];
-                const sections = ['DIVISION A', 'DIVISION B', 'DIVISION C', 'DIVISION D'];
-
-                const mockCount = [];
-                for (const cls of classes) {
-                    for (const sec of sections) {
-                        mockCount.push({
-                            asmcL_ClassName: cls,
-                            asmC_SectionName: sec,
-                            count: Math.floor(Math.random() * 15) + 1
-                        });
-                    }
-                }
-                setReportData(mockCount);
+                setReportData([]);
+                toast.info('No records found for the selected criteria');
             }
-            setReportType(data.flag as 'D' | 'C');
-            toast.success('Report generated successfully (Randomized Data)');
-        } catch (error) {
-            toast.error("Failed to generate report");
+        } catch (error: any) {
+            toast.error(error.message || "Failed to generate report");
         }
     };
 
@@ -111,7 +107,10 @@ export default function DeputationReportForm() {
             flag: 'D',
             asmaY_Id: academicList && academicList.length > 0 ? (academicList[0].ttfG_Id || academicList[0].asmaY_Id) : undefined,
             fromdate: new Date(),
-            todate: new Date()
+            todate: new Date(),
+            Classids: [],
+            sectionids: [],
+            staffids: []
         });
         setReportData([]);
         setReportType(null);
@@ -258,6 +257,63 @@ export default function DeputationReportForm() {
                             />
                             {errors.todate && <span className='text-red-500 text-sm'>{errors.todate.message}</span>}
                         </div>
+                    </div>
+
+                    <div className='space-y-2'>
+                        <Label>Classes</Label>
+                        <Controller
+                            control={control}
+                            name='Classids'
+                            render={({ field }) => (
+                                <MultiSelect
+                                    options={classList.map((cls: any) => ({
+                                        label: cls.asmcL_ClassName,
+                                        value: cls.asmcL_Id.toString()
+                                    }))}
+                                    onValueChange={(vals) => field.onChange(vals.map(Number))}
+                                    defaultValue={field.value?.map(String)}
+                                    placeholder='Select Classes'
+                                />
+                            )}
+                        />
+                    </div>
+
+                    <div className='space-y-2'>
+                        <Label>Sections</Label>
+                        <Controller
+                            control={control}
+                            name='sectionids'
+                            render={({ field }) => (
+                                <MultiSelect
+                                    options={sectionList.map((sec: any) => ({
+                                        label: sec.asmC_SectionName,
+                                        value: sec.asmS_Id.toString()
+                                    }))}
+                                    onValueChange={(vals) => field.onChange(vals.map(Number))}
+                                    defaultValue={field.value?.map(String)}
+                                    placeholder='Select Sections'
+                                />
+                            )}
+                        />
+                    </div>
+
+                    <div className='space-y-2'>
+                        <Label>Staff</Label>
+                        <Controller
+                            control={control}
+                            name='staffids'
+                            render={({ field }) => (
+                                <MultiSelect
+                                    options={staffList.map((stf: any) => ({
+                                        label: stf.staffName,
+                                        value: stf.hrmE_Id.toString()
+                                    }))}
+                                    onValueChange={(vals) => field.onChange(vals.map(Number))}
+                                    defaultValue={field.value?.map(String)}
+                                    placeholder='Select Staff'
+                                />
+                            )}
+                        />
                     </div>
                 </div>
 
