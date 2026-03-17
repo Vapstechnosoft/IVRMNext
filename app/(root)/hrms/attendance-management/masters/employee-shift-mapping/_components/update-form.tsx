@@ -8,6 +8,7 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
     useEmployeeShiftMapping,
+    useEmployeeShiftMappingDetailsById,
     useEmployeeShiftMappingHolidayTypes,
     useEmployeeShiftMappingShiftDetails,
     useEmployeeShiftMappingShiftNamesList,
@@ -29,6 +30,7 @@ import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 import { ShiftTimingFields } from '../../_components/shift-timing-fields';
+import { parse } from 'node:path';
 
 type FormFields = z.infer<typeof hrmsMasterSchemas.employeeShiftMapping.update>;
 
@@ -54,6 +56,7 @@ export default function UpdateEmployeeShiftMappingForm({
 
     // Data Hooks from Reports
     const { data: groupTypesData } = useReportGroupTypes();
+    const { data: employeeDetailsData } = useEmployeeShiftMappingDetailsById(row?.foesT_Id || 0);
 
     // Fetch shift master data from API to get fomS_Id
     const { data: shiftMasterData } = useShiftSettingMaster();
@@ -74,7 +77,7 @@ export default function UpdateEmployeeShiftMappingForm({
 
     // Fetch shift names list
     const { data: shiftNamesListData } = useEmployeeShiftMappingShiftNamesList();
-
+    console.log("shiftNamesListData", shiftNamesListData);
     // Generate unique IDs for form fields
     const typeId = useId();
     const departmentId = useId();
@@ -150,6 +153,8 @@ export default function UpdateEmployeeShiftMappingForm({
             );
         }
     }, [row?.foesT_Id, reset]); // Only depend on row ID to avoid unnecessary resets
+
+    const isNewEntry = watch('foest_Id') === 0;
 
     const watchedGroupType = watch('foest_GroupType');
     const watchedDepartment = watch('foest_Department');
@@ -456,9 +461,16 @@ export default function UpdateEmployeeShiftMappingForm({
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            // Get shift master ID from selected shift name (which is now the key/ID)
-            const fomS_Id = data.foest_ShiftName ? Number.parseInt(data.foest_ShiftName, 10) : 0;
-
+            console.log('Final Payload:', data);
+            // Get shift master ID from selected value (which is the stringified fomS_Id)
+            // Find the shift object to verify it exists and get label if needed
+            const foundShift = shiftNamesListData?.data?.find((s: any) => 
+                String(s.fomS_Id) === String(data.foest_ShiftName) || 
+                s.fomS_ShiftName === data.foest_ShiftName
+            );
+            console.log("foundShift", foundShift);
+            const shiftIdToUse = foundShift?.fomS_Id || 0;
+            console.log("shiftIdToUse", shiftIdToUse);
             // Convert employee strings to IDs from dropdown data
             const employeeIds = (data.foest_Employee?.split(', ') || [])
                 .map((empString) => {
@@ -485,13 +497,12 @@ export default function UpdateEmployeeShiftMappingForm({
                 })
                 .filter((id): id is number => id !== null);
 
+            // Determine the final employee ID to use (prefer API response, then form data)
+            const finalEmployeeId = employeeDetailsData?.data?.hrmE_Id || employeeIds[0] || 0;
+
             // Validate required fields
-            if (fomS_Id === 0) {
-                toast.error('Shift Name is required. Please select a shift.');
-                return;
-            }
-            if (employeeIds.length === 0) {
-                toast.error('Employee IDs are required. Please ensure employees are selected correctly.');
+            if (!finalEmployeeId) {
+                toast.error('Employee ID is required. Please ensure an employee is selected.');
                 return;
             }
             if (dayTypeIds.length === 0) {
@@ -532,10 +543,10 @@ export default function UpdateEmployeeShiftMappingForm({
             // Payload structure matching API requirements
             // POST /api/EmployeeShiftMapping/add_or_update_employee_shift
             const payload = {
-                foesT_Id: data.foest_Id || 0,
-                hrmE_Id: employeeIds[0] || 0, // Use first employee ID for single update
+                foesT_Id: Number(data.foest_Id) || 0,
+                hrmE_Id: finalEmployeeId,
                 fohwdT_Id: dayTypeIds[0] || 0, // Use first day type ID for single update
-                fomS_Id: fomS_Id,
+                fomS_Id: shiftIdToUse,
                 foesT_FDWHrMin: data.foest_TotalWork || '00:00',
                 foesT_HDWHrMin: data.foest_HalfDayWork || '00:00',
                 foesT_IHalfLoginTime: data.foest_MorningLogin || '00:00',
@@ -550,7 +561,7 @@ export default function UpdateEmployeeShiftMappingForm({
                 FOEST_BlockAttendance: 'true', // Dual casing for robustness
                 FOEST_FixTimings: 'true',    // Dual casing for robustness
                 foesT_Date: data.foest_ApplicableDate ? new Date(data.foest_ApplicableDate).toISOString() : new Date().toISOString(),
-                hrmE_Ids: employeeIds,
+                hrmE_Ids: [finalEmployeeId],
                 fohwdT_Ids: dayTypeIds
             };
 
@@ -570,27 +581,29 @@ export default function UpdateEmployeeShiftMappingForm({
     };
 
     const handleReset = () => {
-        if (row) {
-            reset({
-                foest_Id: row.foesT_Id || 0,
-                foest_ShiftName: row.fomS_ShiftName || '',
-                foest_Employee: row.hrmE_EmployeeFirstName || '',
-                foest_HolidayType: row.fohtwD_HolidayWDType || '',
-                foest_ApplicableDate: row.foesT_Date || '',
-                foest_TotalWork: row.foesT_FDWHrMin || '',
-                foest_HalfDayWork: row.foesT_HDWHrMin || '',
-                foest_MorningLogin: row.foesT_IHalfLoginTime || '',
-                foest_MorningLogout: row.foesT_IHalfLogoutTime || '',
-                foest_AfternoonLogin: row.foesT_IIHalfLoginTime || '',
-                foest_AfternoonLogout: row.foesT_IIHalfLogoutTime || '',
-                foest_DelayShift: row.foesT_DelayPerShiftHrMin || '',
-                foest_EarlyShift: row.foesT_EarlyPerShiftHrMin || '',
-                foest_LunchHour: row.foesT_LunchHoursDuration || '',
-                foest_GroupType: '',
-                foest_Department: '',
-                foest_Designation: ''
-            });
-        }
+        reset({
+            foest_Id: 0,
+            foest_ShiftName: '',
+            foest_Employee: '',
+            foest_HolidayType: '',
+            foest_ApplicableDate: '',
+            foest_TotalWork: '',
+            foest_HalfDayWork: '',
+            foest_MorningLogin: '',
+            foest_MorningLogout: '',
+            foest_AfternoonLogin: '',
+            foest_AfternoonLogout: '',
+            foest_DelayShift: '',
+            foest_EarlyShift: '',
+            foest_LunchHour: '',
+            foest_GroupType: '',
+            foest_Department: '',
+            foest_Designation: ''
+        });
+        // Reset mapping flags
+        shiftMapped.current = false;
+        dayTypeMapped.current = false;
+        employeeMapped.current = false;
     };
 
     return (
@@ -612,7 +625,7 @@ export default function UpdateEmployeeShiftMappingForm({
                                         value={field.value ? field.value.split(', ').filter(Boolean) : []}
                                         onChange={(values) => field.onChange(values.join(', '))}
                                         height='150px'
-                                        disabled={true}
+                                        disabled={!isNewEntry}
                                     />
                                 )}
                             />
@@ -631,7 +644,7 @@ export default function UpdateEmployeeShiftMappingForm({
                                         value={field.value ? field.value.split(', ').filter(Boolean) : []}
                                         onChange={(values) => field.onChange(values.join(', '))}
                                         height='150px'
-                                        disabled={true}
+                                        disabled={!isNewEntry}
                                     />
                                 )}
                             />
@@ -650,7 +663,7 @@ export default function UpdateEmployeeShiftMappingForm({
                                         value={field.value ? field.value.split(', ').filter(Boolean) : []}
                                         onChange={(values) => field.onChange(values.join(', '))}
                                         height='150px'
-                                        disabled={true}
+                                        disabled={!isNewEntry}
                                     />
                                 )}
                             />
@@ -672,7 +685,7 @@ export default function UpdateEmployeeShiftMappingForm({
                                     value={field.value ? field.value.split(', ').filter(Boolean) : []}
                                     onChange={(values) => field.onChange(values.join(', '))}
                                     height='150px'
-                                    disabled={true}
+                                    disabled={!isNewEntry}
                                 />
                             )}
                         />
@@ -714,6 +727,29 @@ export default function UpdateEmployeeShiftMappingForm({
                 </div>
 
                 {/* Employee Selection */}
+                <div className='flex flex-col space-y-2'>
+                    <Label htmlFor={employeesId}>
+                        Employees <span className='text-red-500'>*</span>
+                    </Label>
+                    <Controller
+                        name='foest_Employee'
+                        control={control}
+                        render={({ field }) => (
+                            <MultiSelect
+                                options={employeesDataTransformed.map(emp => ({
+                                    label: emp.employeeName,
+                                    value: String(emp.id)
+                                }))}
+                                onValueChange={(values) => field.onChange(values.join(', '))}
+                                defaultValue={field.value ? field.value.split(', ').filter(Boolean) : []}
+                                placeholder="Select Employees"
+                                maxCount={3}
+                                disabled={!isNewEntry}
+                            />
+                        )}
+                    />
+                    {errors.foest_Employee && <FormError>{errors.foest_Employee.message}</FormError>}
+                </div>
 
                 {/* Timing Fields - Rendered dynamically when shift is selected */}
                 {selectedShiftName && (
@@ -757,7 +793,7 @@ export default function UpdateEmployeeShiftMappingForm({
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Update Employee Shift Mapping
+                            {isNewEntry ? 'Save Employee Shift Mapping' : 'Update Employee Shift Mapping'}
                         </div>
                     </Button>
                 </div>

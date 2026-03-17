@@ -150,3 +150,11 @@ export async function getEmployeeShiftMappingEmployeesFiltered(groupTypeIds: num
     return await api.get<any>('hrmsfrontoffice', url);
 }
 
+/**
+ * Get Employee Shift Mapping Details by ID
+ * GET /api/EmployeeShiftMapping/employee_shift_details_by_id/{id}
+ */
+export async function getEmployeeShiftMappingDetailsById(id: number) {
+    const url = `/api/EmployeeShiftMapping/employee_shift_details_by_id/${id}`;
+    return await api.get<any>('hrmsfrontoffice', url);
+}

@@ -14,6 +14,7 @@ import {
     getEmployeeShiftMappingDropdowns,
     getEmployeeShiftMappingEmployeesFiltered,
     getEmployeeShiftMappingEmployeesOld,
+    getEmployeeShiftMappingDetailsById,
     getEmployeeShiftMappingGroupTypes,
     getEmployeeShiftMappingHolidayTypes,
     getEmployeeShiftMappingShiftDetails,
@@ -370,6 +371,15 @@ export const useEmployeeShiftMappingEmployeesFiltered = (groupTypeIds?: number[]
             (!!groupTypeIds && groupTypeIds.length > 0) ||
             (!!departmentIds && departmentIds.length > 0) ||
             (!!designationIds && designationIds.length > 0), // Only fetch when at least one filter is provided
+        staleTime: 5 * 60 * 1000 // Cache for 5 minutes
+    });
+};
+
+export const useEmployeeShiftMappingDetailsById = (id: number) => {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_SHIFT_MAPPING, 'detailsById', id],
+        queryFn: async () => getEmployeeShiftMappingDetailsById(id),
+        enabled: !!id && id > 0,
         staleTime: 5 * 60 * 1000 // Cache for 5 minutes
     });
 };
