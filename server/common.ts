@@ -2413,85 +2413,85 @@ export async function getUserAccessibleModules() {
                                         
                                     ]
                                 },
-                                {
-                                    id: 2,
-                                    name: 'Reports',
-                                    icon: 'FileText',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Employee In/Out Report',
-                                            icon: 'ClipboardList',
-                                            url: '/hrms/attendance-management/reports/employee-inout-report',
-                                            title: 'Employee In/Out Report',
-                                            description: 'In/Out Timing Report'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Late In Early Out Report',
-                                            icon: 'Clock',
-                                            url: '/hrms/attendance-management/reports/employee-lateInEarlyOut-report',
-                                            title: 'Late In Early Out Report',
-                                            description: 'Track Late/Early Attendance'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Employee Log Report',
-                                            icon: 'FileSearch',
-                                            url: '/hrms/attendance-management/reports/employee-log-report',
-                                            title: 'Employee Log Report',
-                                            description: 'Detailed Log Report'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'Employee Yearly Report',
-                                            icon: 'Calendar',
-                                            url: '/hrms/attendance-management/reports/employee-yearly-report',
-                                            title: 'Employee Yearly Report',
-                                            description: 'Annual Attendance Summary'
-                                        },
-                                        {
-                                            id: 5,
-                                            name: 'Employee Monthly Report',
-                                            icon: 'CalendarDays',
-                                            url: '/hrms/attendance-management/reports/employee-monthly-report',
-                                            title: 'Employee Monthly Report',
-                                            description: 'Monthly Attendance Report'
-                                        },
-                                        {
-                                            id: 6,
-                                            name: 'Month End Report',
-                                            icon: 'CalendarCheck',
-                                            url: '/hrms/attendance-management/reports/fo-monthend-report',
-                                            title: 'Month End Report',
-                                            description: 'Monthly Attendance Summary'
-                                        },
-                                        // {
-                                        //     id: 6,
-                                        //     name: 'GPS Location Report',
-                                        //     icon: 'MapPin',
-                                        //     url: '/hrms/attendance-management/reports/gps-location-report',
-                                        //     title: 'GPS Location Report',
-                                        //     description: 'GPS Attendance Report'
-                                        // },
-                                        {
-                                            id: 7,
-                                            name: 'Holiday Report',
-                                            icon: 'Calendar',
-                                            url: '/hrms/attendance-management/reports/holiday-report',
-                                            title: 'Holiday Report',
-                                            description: 'Holiday Report'
-                                        },
-                                        {
-                                            id: 8,
-                                            name: 'Employee Absent Report',
-                                            icon: 'UserX',
-                                            url: '/hrms/attendance-management/reports/employee-absent-report',
-                                            title: 'Employee Absent Report',
-                                            description: 'Employee Absent Detail Report'
-                                        }
-                                    ]
-                                }
+                                // {
+                                //     id: 2,
+                                //     name: 'Reports',
+                                //     icon: 'FileText',
+                                //     pages: [
+                                //         {
+                                //             id: 1,
+                                //             name: 'Employee In/Out Report',
+                                //             icon: 'ClipboardList',
+                                //             url: '/hrms/attendance-management/reports/employee-inout-report',
+                                //             title: 'Employee In/Out Report',
+                                //             description: 'In/Out Timing Report'
+                                //         },
+                                //         {
+                                //             id: 2,
+                                //             name: 'Late In Early Out Report',
+                                //             icon: 'Clock',
+                                //             url: '/hrms/attendance-management/reports/employee-lateInEarlyOut-report',
+                                //             title: 'Late In Early Out Report',
+                                //             description: 'Track Late/Early Attendance'
+                                //         },
+                                //         {
+                                //             id: 3,
+                                //             name: 'Employee Log Report',
+                                //             icon: 'FileSearch',
+                                //             url: '/hrms/attendance-management/reports/employee-log-report',
+                                //             title: 'Employee Log Report',
+                                //             description: 'Detailed Log Report'
+                                //         },
+                                //         {
+                                //             id: 4,
+                                //             name: 'Employee Yearly Report',
+                                //             icon: 'Calendar',
+                                //             url: '/hrms/attendance-management/reports/employee-yearly-report',
+                                //             title: 'Employee Yearly Report',
+                                //             description: 'Annual Attendance Summary'
+                                //         },
+                                //         {
+                                //             id: 5,
+                                //             name: 'Employee Monthly Report',
+                                //             icon: 'CalendarDays',
+                                //             url: '/hrms/attendance-management/reports/employee-monthly-report',
+                                //             title: 'Employee Monthly Report',
+                                //             description: 'Monthly Attendance Report'
+                                //         },
+                                //         {
+                                //             id: 6,
+                                //             name: 'Month End Report',
+                                //             icon: 'CalendarCheck',
+                                //             url: '/hrms/attendance-management/reports/fo-monthend-report',
+                                //             title: 'Month End Report',
+                                //             description: 'Monthly Attendance Summary'
+                                //         },
+                                //         // {
+                                //         //     id: 6,
+                                //         //     name: 'GPS Location Report',
+                                //         //     icon: 'MapPin',
+                                //         //     url: '/hrms/attendance-management/reports/gps-location-report',
+                                //         //     title: 'GPS Location Report',
+                                //         //     description: 'GPS Attendance Report'
+                                //         // },
+                                //         {
+                                //             id: 7,
+                                //             name: 'Holiday Report',
+                                //             icon: 'Calendar',
+                                //             url: '/hrms/attendance-management/reports/holiday-report',
+                                //             title: 'Holiday Report',
+                                //             description: 'Holiday Report'
+                                //         },
+                                //         {
+                                //             id: 8,
+                                //             name: 'Employee Absent Report',
+                                //             icon: 'UserX',
+                                //             url: '/hrms/attendance-management/reports/employee-absent-report',
+                                //             title: 'Employee Absent Report',
+                                //             description: 'Employee Absent Detail Report'
+                                //         }
+                                //     ]
+                                // }
                             ]
                         },
 
