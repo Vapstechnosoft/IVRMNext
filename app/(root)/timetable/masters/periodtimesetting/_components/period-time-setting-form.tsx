@@ -73,7 +73,7 @@ export default function PeriodTimeSettingForm({ onSuccess }: PeriodTimeSettingFo
     // Reset endTime when startTime changes (Requirement: ng-change="validateTomintime(StartTime)")
     useEffect(() => {
         if (startTime) {
-            setValue('endTime', undefined as any, { shouldValidate: true });
+            setValue('endTime', undefined as any, { shouldValidate: false });
         }
     }, [startTime, setValue]);
 
@@ -173,8 +173,13 @@ export default function PeriodTimeSettingForm({ onSuccess }: PeriodTimeSettingFo
 
             console.log('Submitting Payload:', JSON.stringify(payload));
             const response = await savePeriodTimeSetting(payload);
-            if (response.returnval) {
+
+            const isSuccess =
+                response?.returnval === true || response?.success === true || response?.message?.toLowerCase().includes('success');
+
+            if (isSuccess) {
                 toast.success(response.message);
+                await refetch();
                 onSuccess?.();
                 cancelEdit();
             } else {

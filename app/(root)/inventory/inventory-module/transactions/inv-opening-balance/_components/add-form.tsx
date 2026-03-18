@@ -158,29 +158,11 @@ export default function AddOBForm({ onSuccess, storeList: initialStoreList, item
         }
     };
 
-    // Auto-calculate Total Amount (Qty * Purchase Rate) for each row
     const watchedRows = watch('transrows');
-    useEffect(() => {
-        if (watchedRows) {
-            watchedRows.forEach((row, index) => {
-                const qty = Number(row.invoB_Qty) || 0;
-                const rate = Number(row.invstO_PurchaseRate) || 0;
-                const total = qty * rate;
-                // Only update if value is different to avoid infinite loop
-                const currentTotal = form.getValues(`transrows.${index}.invoB_TotalAmount`);
-                if (currentTotal !== total) {
-                    setValue(`transrows.${index}.invoB_TotalAmount`, total, { shouldDirty: true, shouldTouch: true });
-                }
-            });
-        }
-    }, [JSON.stringify(watchedRows?.map(r => ({ q: r.invoB_Qty, p: r.invstO_PurchaseRate })))]); // Efficient dependency tracking
 
-    const totals = useMemo(() => {
-        return (watchedRows || []).reduce((acc, row) => ({
-            qty: acc.qty + (Number(row.invoB_Qty) || 0),
-            amount: acc.amount + (Number(row.invoB_TotalAmount) || 0)
-        }), { qty: 0, amount: 0 });
-    }, [watchedRows]);
+    const totalQty = watchedRows?.reduce((sum, row) => sum + (Number(row.invoB_Qty) || 0), 0) || 0;
+    const grandTotal = watchedRows?.reduce((sum, row) => sum + (Number(row.invoB_TotalAmount) || 0), 0) || 0;
+    const totalItems = watchedRows?.length || 0;
 
     const onSubmit = (data: TInvOpeningBalance) => {
         saveMutation.mutate(data, {
@@ -360,22 +342,46 @@ export default function AddOBForm({ onSuccess, storeList: initialStoreList, item
                                     <TableCell className="border">
                                         <Input
                                             type="number"
-                                            {...register(`transrows.${index}.invoB_Qty`, { valueAsNumber: true })}
+                                            {...register(`transrows.${index}.invoB_Qty`, { 
+                                                valueAsNumber: true,
+                                                onChange: (e) => {
+                                                    const qty = Number(e.target.value) || 0;
+                                                    const rate = Number(form.getValues(`transrows.${index}.invstO_PurchaseRate`)) || 0;
+                                                    form.setValue(`transrows.${index}.invoB_TotalAmount`, Number((qty * rate).toFixed(2)));
+                                                }
+                                            })}
                                             className="h-9 text-right border-primary/10 focus:border-primary/40 font-medium"
                                         />
                                     </TableCell>
                                     <TableCell className="border">
                                         <Input
                                             type="number"
-                                            {...register(`transrows.${index}.invstO_PurchaseRate`, { valueAsNumber: true })}
+                                            {...register(`transrows.${index}.invstO_PurchaseRate`, { 
+                                                valueAsNumber: true,
+                                                onChange: (e) => {
+                                                    const rate = Number(e.target.value) || 0;
+                                                    const qty = Number(form.getValues(`transrows.${index}.invoB_Qty`)) || 0;
+                                                    form.setValue(`transrows.${index}.invoB_TotalAmount`, Number((qty * rate).toFixed(2)));
+                                                }
+                                            })}
                                             className="h-9 text-right border-primary/10 focus:border-primary/40 font-medium"
                                         />
                                     </TableCell>
                                     <TableCell className="border">
-                                        <div className="h-9 flex items-center justify-end px-3 bg-muted/20 rounded-md font-bold text-primary border border-dashed border-primary/10">
-                                            {Number(watch(`transrows.${index}.invoB_TotalAmount`)).toFixed(2) || '0.00'}
-                                        </div>
-                                        <input type="hidden" {...register(`transrows.${index}.invoB_TotalAmount`)} />
+                                        <Input
+                                            type="number"
+                                            {...register(`transrows.${index}.invoB_TotalAmount`, { 
+                                                valueAsNumber: true,
+                                                onChange: (e) => {
+                                                    const amt = Number(e.target.value) || 0;
+                                                    const qty = Number(form.getValues(`transrows.${index}.invoB_Qty`)) || 0;
+                                                    if(qty > 0) {
+                                                        form.setValue(`transrows.${index}.invstO_PurchaseRate`, Number((amt / qty).toFixed(2)));
+                                                    }
+                                                }
+                                            })}
+                                            className="h-9 text-right border-primary/10 focus:border-primary/40 font-bold text-primary bg-primary/5"
+                                        />
                                     </TableCell>
                                     <TableCell className="border">
                                         <Input
@@ -441,15 +447,15 @@ export default function AddOBForm({ onSuccess, storeList: initialStoreList, item
                     <div className="flex gap-4 p-3 rounded-lg border border-primary/10 bg-muted/30 ml-auto">
                         <div className="flex flex-col items-center px-4 border-r border-primary/10">
                             <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-tight">Total Items</span>
-                            <span className="text-md font-bold text-primary">{fields.length}</span>
+                            <span className="text-md font-bold text-primary">{totalItems}</span>
                         </div>
                         <div className="flex flex-col items-center px-4 border-r border-primary/10">
                             <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-tight">Total Qty</span>
-                            <span className="text-md font-bold text-primary">{totals.qty}</span>
+                            <span className="text-md font-bold text-primary">{totalQty}</span>
                         </div>
                         <div className="flex flex-col items-center px-4">
                             <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-tight">Grand Total</span>
-                            <span className="text-md font-bold text-primary">₹ {totals.amount.toFixed(2)}</span>
+                            <span className="text-md font-bold text-primary">₹ {grandTotal.toFixed(2)}</span>
                         </div>
                     </div>
                 </div>

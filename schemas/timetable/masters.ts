@@ -99,6 +99,8 @@ export const breakTimeSettingsSchema = {
 
 export const masterPeriodSchema = {
     save: z.object({
+        imP_Id: z.number().optional(),
+        impcM_Id: z.number().optional(),
         periodname: number().min(1, 'Please select Period Name'),
         periodorder: number().min(1, 'Please enter Period Order'),
         categoryids: z.array(z.string()).nonempty('Please select at least one Category'),

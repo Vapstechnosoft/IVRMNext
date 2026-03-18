@@ -179,7 +179,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                     normalized = typeof normalized === 'number' ? String(normalized) : normalized;
                 }
 
-                if (['pasR_ConState', 'pasR_PerState'].includes(key) && normalized !== undefined) {
+                if (['pasR_ConState', 'pasR_PerState', 'asmcL_Id', 'caste_Id', 'religion_Id'].includes(key) && normalized !== undefined) {
                     normalized = typeof normalized === 'string' ? Number(normalized) : normalized;
                 }
 
@@ -356,6 +356,14 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                     validClasses.push(classItem);
                 }
             });
+
+            const currentClassId = rowData.asmcL_Id || rowData.asmcL_id;
+            if (currentClassId && !validClasses.some((c) => c.asmcL_Id === currentClassId)) {
+                const currentClass = allClasses.find((c: any) => c.asmcL_Id === currentClassId);
+                if (currentClass) {
+                    validClasses.push(currentClass);
+                }
+            }
 
             setFilteredClasses(validClasses);
             setIsClassDisabled(false);
@@ -1218,8 +1226,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
             setIsClassDisabled(false);
             // Don't reset class selection in update form if current class is still valid
             const currentClassId = getValues('asmcL_Id');
+            const initialClassId = rowData?.asmcL_Id || rowData?.asmcL_id;
             const isCurrentClassValid = validClasses.some((c) => c.asmcL_Id === currentClassId);
-            if (!isCurrentClassValid) {
+            if (!isCurrentClassValid && currentClassId !== initialClassId) {
                 setValue('asmcL_Id', 0);
             }
         }
@@ -1767,6 +1776,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
+                                                            key={`${field.value}-${watch('religion_Id')}`}
                                                             onValueChange={(value) => field.onChange(Number(value))}
                                                             value={field.value?.toString() || undefined}
                                                             disabled={!watch('religion_Id')}>
@@ -1841,14 +1851,17 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                 Applying For Class <span className='ml-1 text-red-500'>*</span>
                                                             </Label>
                                                             <Select
+                                                                key={`${field.value}-${filteredClasses.length}`}
+                                                                onValueChange={(value) => {
+                                                                    const selectedVal = Number(value);
+                                                                    field.onChange(selectedVal);
+                                                                }}
                                                                 value={
                                                                     field.value === null || field.value === 0
                                                                         ? ''
                                                                         : field.value?.toString() || ''
                                                                 }
-                                                                onValueChange={(value) => field.onChange(Number(value))}
-                                                                disabled={isClassDisabled}
-                                                                searchable={false}>
+                                                                disabled={isClassDisabled}>
                                                                 <SelectTrigger className={cn('w-full', error && 'border-red-500')}>
                                                                     <SelectValue
                                                                         placeholder={

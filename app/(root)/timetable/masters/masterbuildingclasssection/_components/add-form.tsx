@@ -216,7 +216,7 @@ export default function AddMasterBuildingForm({ onSuccess, buildingname = '' }: 
                                         field.onChange(value ? Number(value) : '');
                                     }}
                                     value={field.value?.toString() || undefined}>
-                                    <SelectTrigger className='w-full'>
+                                    <SelectTrigger className='w-full text-gray-500'>
                                         <SelectValue placeholder='Select Building Name' />
                                     </SelectTrigger>
                                     <SelectContent>

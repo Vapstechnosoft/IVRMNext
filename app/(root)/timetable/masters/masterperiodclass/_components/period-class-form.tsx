@@ -13,7 +13,7 @@ import {
 import { cn } from '@/lib/utils';
 import { masterPeriodClassSchema } from '@/schemas/timetable/masters';
 import { getClassDropDownMasterDayClasswiseOnchnageofCatandyr } from '@/server/timetable/masters/masterdayclasswise';
-import { savePeriodClass } from '@/server/timetable/masters/periodallocation';
+import { getPeriodDetails, savePeriodClass } from '@/server/timetable/masters/periodallocation';
 import type { ClassDropDownDataTT } from '@/types/timetable/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckSquare, Save, Square } from 'lucide-react';
@@ -162,19 +162,57 @@ export default function MasterPeriodClassForm({ onSuccess }: MasterPeriodClassFo
     // Filter classes based on search
     const filteredClasses = classList.filter((h) => h.asmcL_ClassName.toLowerCase().includes(classSearch.toLowerCase()));
 
-    // Generate periods based on number input
+    // Generate periods based on number input using the API
     useEffect(() => {
-        const count = Number(watchedNoOfPeriods);
-        if (!Number.isNaN(count) && count > 0 && count <= 20) {
-            const arr: PeriodItem[] = [];
-            for (let i = 1; i <= count; i++) {
-                arr.push({ key: i, label: `Period ${i}` });
+        const fetchPeriods = async () => {
+            const count = Number(watchedNoOfPeriods);
+            if (!Number.isNaN(count) && count > 0 && count <= 20) {
+                try {
+                    // Call the specified API to fetch period details
+                    const res = await getPeriodDetails(count);
+                    console.log('res', res);
+
+                    // biome-ignore lint/complexity/useOptionalChain: <explanation>
+                    if (res && res.data && res.data.length > 0) {
+                        let fetchedPeriods = res.data;
+                        if (fetchedPeriods.length > count) {
+                            fetchedPeriods = fetchedPeriods.slice(0, count);
+                        }
+                        const arr: PeriodItem[] = fetchedPeriods.map((item: any, index: number) => ({
+                            key: item.ttmP_Id || item.TTMP_Id || index + 1,
+                            label: item.ttmP_PeriodName || item.TTMP_PeriodName || (index + 1).toString()
+                        }));
+
+                        // If the backend returns fewer periods than the count, fill the rest as numbers
+                        while (arr.length < count) {
+                            const nextKey = arr.length + 1;
+                            arr.push({ key: nextKey, label: nextKey.toString() });
+                        }
+                        setPeriods(arr);
+                    } else {
+                        // Fallback to numbers by default
+                        const arr: PeriodItem[] = [];
+                        for (let i = 1; i <= count; i++) {
+                            arr.push({ key: i, label: `${i}` });
+                        }
+                        setPeriods(arr);
+                    }
+                } catch (error) {
+                    console.error('Error fetching period details', error);
+                    // Fallback to numbers by default
+                    const arr: PeriodItem[] = [];
+                    for (let i = 1; i <= count; i++) {
+                        arr.push({ key: i, label: `${i}` });
+                    }
+                    setPeriods(arr);
+                }
+            } else {
+                setPeriods([]);
             }
-            setPeriods(arr);
-        } else {
-            setPeriods([]);
-        }
-    }, [watchedNoOfPeriods]);
+        };
+
+        fetchPeriods();
+    }, [watchedNoOfPeriods, watchedAcademicYear, watchedCategory]);
 
     const handleReset = () => {
         reset();
@@ -204,18 +242,16 @@ export default function MasterPeriodClassForm({ onSuccess }: MasterPeriodClassFo
             console.log('Submitting payload:', payload);
 
             const response = await savePeriodClass(payload);
-            if (response.returnval) {
-                toast.success('Data successfully saved');
+            if (response.success) {
+                toast.success(response.message);
                 handleReset();
                 onSuccess?.();
-            } else if (response.returnduplicatestatus === 'Duplicate') {
-                toast.error('Records already exist!');
             } else {
-                toast.error('Data not saved!');
+                toast.error(response.message);
             }
         } catch (error: any) {
             console.error('Submit error:', error);
-            toast.error(error.message || 'An error occurred');
+            toast.error(error.message);
         }
     };
 

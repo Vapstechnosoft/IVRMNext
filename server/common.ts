@@ -2816,14 +2816,6 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/leave-management/transaction/online-admin-leave',
                                             title: 'Online Admin Leave',
                                             description: 'Apply for On Duty Leave'
-                                        },
-                                        {
-                                            id: 9,
-                                            name: 'Leave Details',
-                                            icon: 'info',
-                                            url: '/hrms/leave-management/transaction/leave-details',
-                                            title: 'Leave Details',
-                                            description: 'Leave Details'
                                         }
                                     ]
                                 },
@@ -3396,6 +3388,120 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 },
+                {
+                    id: 15,
+                    name: 'Visitor Management',
+                    icon: 'Users',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Transactions',
+                            icon: 'FileText',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Visitor Transactions',
+                                    icon: 'FileText',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Add Visitor',
+                                            icon: 'UserPlus',
+                                            url: '/visitors-management/transactions/add-visitor',
+                                            title: 'Add Visitor',
+                                            description: 'Add New Visitor'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Visitor Appointment',
+                                            icon: 'CalendarDays',
+                                            url: '/visitors-management/transactions/visitor-appointment',
+                                            title: 'Visitor Appointment',
+                                            description: 'Schedule Visitor Appointment'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Inward Entry',
+                                            icon: 'ArrowDownLeft',
+                                            url: '/visitors-management/transactions/inward',
+                                            title: 'Inward Entry',
+                                            description: 'Manage Visitor Inward Entry'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Outward Entry',
+                                            icon: 'ArrowUpRight',
+                                            url: '/visitors-management/transactions/outward',
+                                            title: 'Outward Entry',
+                                            description: 'Manage Visitor Outward Entry'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Gate Pass',
+                                            icon: 'Ticket',
+                                            url: '/visitors-management/transactions/gate-pass',
+                                            title: 'Gate Pass',
+                                            description: 'Generate Visitor Gate Pass'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+
+                        {
+                            id: 2,
+                            name: 'Masters',
+                            icon: 'Database',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Visitor Masters',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Master Location',
+                                            icon: 'MapPin',
+                                            url: '/visitors-management/masters/location',
+                                            title: 'Master Location',
+                                            description: 'Manage Visitor Locations'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            id: 3,
+                            name: 'Reports',
+                            icon: 'BarChart3',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Visitor Reports',
+                                    icon: 'BarChart3',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Visitor Report',
+                                            icon: 'FileBarChart',
+                                            url: '/visitors-management/reports/visitor-report',
+                                            title: 'Visitor Report',
+                                            description: 'View Visitor Reports'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Gate Pass Report',
+                                            icon: 'FileText',
+                                            url: '/visitors-management/reports/gate-pass-report',
+                                            title: 'Gate Pass Report',
+                                            description: 'View Gate Pass Reports'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
                 // {
                 //     id: 25,
                 //     name: 'COE',
@@ -3631,586 +3737,586 @@ export async function getUserAccessibleModules() {
                 //     ]
                 // },
 
-                // {
-                //     id: 6,
-                //     name: 'Time Table',
-                //     icon: 'Clock',
-                //     menu: [
-                //         {
-                //             id: 1,
-                //             name: 'Time Table',
-                //             icon: 'Clock',
-                //             sub_menu: [
-                //                 {
-                //                     id: 1,
-                //                     name: 'Masters',
-                //                     icon: 'Clock',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Master Day',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/masterday',
-                //                             title: 'Master Day',
-                //                             description: 'Manage Master Day Details'
-                //                         },
-                //                         {
-                //                             id: 9,
-                //                             name: 'Master Day Class Wise',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/masterdayclasswise',
-                //                             title: 'Master Day Class Wise',
-                //                             description: 'Manage Master Day Class Wise Details'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Master Building',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/masterbuilding',
-                //                             title: 'Master Building',
-                //                             description: 'Manage Master Building Details'
-                //                         },
-                //                         {
-                //                             id: 11111111,
-                //                             name: 'Master Building Class Section',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/masterbuildingclasssection',
-                //                             title: 'Master Building Class Section',
-                //                             description: 'Manage Master Building Class Section Details'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'Staff Abbreviation',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/staffabbreviations',
-                //                             title: 'Staff Abbreviation',
-                //                             description: 'Manage Staff Abbreviation Details'
-                //                         },
-                //                         {
-                //                             id: 4,
-                //                             name: 'Subject Abbreviation',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/subjectabbreviations',
-                //                             title: 'Subject Abbreviation',
-                //                             description: 'Manage Subject Abbreviation Details'
-                //                         },
-                //                         {
-                //                             id: 5,
-                //                             name: 'Category Class Mapping',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/categoryclassmapping',
-                //                             title: 'Category Class Mapping',
-                //                             description: 'Manage Category Class Mapping Details'
-                //                         },
-                //                         {
-                //                             id: 6,
-                //                             name: 'Master Category',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/mastercategory',
-                //                             title: 'Master Category',
-                //                             description: 'Manage Master Category Details'
-                //                         },
-                //                         {
-                //                             id: 7,
-                //                             name: 'Master Break Time Settings',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/breaktimesettings',
-                //                             title: 'Master Break Time Settings',
-                //                             description: 'Manage Master Break Time Settings Details'
-                //                         },
-                //                         {
-                //                             id: 8,
-                //                             name: 'Master Period',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/masterperiod',
-                //                             title: 'Master Period',
-                //                             description: 'Manage Master Period Details'
-                //                         },
+                {
+                    id: 6,
+                    name: 'Time Table',
+                    icon: 'Clock',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Time Table',
+                            icon: 'Clock',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Masters',
+                                    icon: 'Clock',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Master Day',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/masterday',
+                                            title: 'Master Day',
+                                            description: 'Manage Master Day Details'
+                                        },
+                                        {
+                                            id: 9,
+                                            name: 'Master Day Class Wise',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/masterdayclasswise',
+                                            title: 'Master Day Class Wise',
+                                            description: 'Manage Master Day Class Wise Details'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Master Building',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/masterbuilding',
+                                            title: 'Master Building',
+                                            description: 'Manage Master Building Details'
+                                        },
+                                        {
+                                            id: 11111111,
+                                            name: 'Master Building Class Section',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/masterbuildingclasssection',
+                                            title: 'Master Building Class Section',
+                                            description: 'Manage Master Building Class Section Details'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Staff Abbreviation',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/staffabbreviations',
+                                            title: 'Staff Abbreviation',
+                                            description: 'Manage Staff Abbreviation Details'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Subject Abbreviation',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/subjectabbreviations',
+                                            title: 'Subject Abbreviation',
+                                            description: 'Manage Subject Abbreviation Details'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Category Class Mapping',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/categoryclassmapping',
+                                            title: 'Category Class Mapping',
+                                            description: 'Manage Category Class Mapping Details'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Master Category',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/mastercategory',
+                                            title: 'Master Category',
+                                            description: 'Manage Master Category Details'
+                                        },
+                                        {
+                                            id: 7,
+                                            name: 'Master Break Time Settings',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/breaktimesettings',
+                                            title: 'Master Break Time Settings',
+                                            description: 'Manage Master Break Time Settings Details'
+                                        },
+                                        {
+                                            id: 8,
+                                            name: 'Master Period',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/masterperiod',
+                                            title: 'Master Period',
+                                            description: 'Manage Master Period Details'
+                                        },
 
-                //                         {
-                //                             id: 10,
-                //                             name: 'Period Distribution',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/perioddistribution',
-                //                             title: 'Period Distribution',
-                //                             description: 'Manage Period Distribution Details'
-                //                         },
-                //                         {
-                //                             id: 11,
-                //                             name: 'Period Allocation Master Period',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/periodallocationmasterperiod',
-                //                             title: 'Period Allocation Master Period',
-                //                             description: 'Manage Period Allocation Master Period Details'
-                //                         },
-                //                         {
-                //                             id: 12,
-                //                             name: 'Master Period Class',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/masterperiodclass',
-                //                             title: 'Master Period Class',
-                //                             description: 'Manage Master Period Class Details'
-                //                         },
+                                        {
+                                            id: 10,
+                                            name: 'Period Distribution',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/perioddistribution',
+                                            title: 'Period Distribution',
+                                            description: 'Manage Period Distribution Details'
+                                        },
+                                        {
+                                            id: 11,
+                                            name: 'Period Allocation Master Period',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/periodallocationmasterperiod',
+                                            title: 'Period Allocation Master Period',
+                                            description: 'Manage Period Allocation Master Period Details'
+                                        },
+                                        {
+                                            id: 12,
+                                            name: 'Master Period Class',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/masterperiodclass',
+                                            title: 'Master Period Class',
+                                            description: 'Manage Master Period Class Details'
+                                        },
 
-                //                         {
-                //                             id: 13,
-                //                             name: 'Period Time Setting',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/masters/periodtimesetting',
-                //                             title: 'Period Time Setting',
-                //                             description: 'Manage Period Time Settings'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 3,
-                //                     name: 'Constraints',
-                //                     icon: 'Clock',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Bifurcation Constraints',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/constraints/bifurcationconstraints',
-                //                             title: 'Bifurcation Constraints',
-                //                             description: 'Manage Bifurcation Constraints Details'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'consecutive',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/constraints/consecutive',
-                //                             title: 'Consecutive Constraints',
-                //                             description: 'Manage Consecutive Constraints Details'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'Fixing',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/constraints/fixing',
-                //                             title: 'Fixing Constraints',
-                //                             description: 'Manage Fixing Constraints Details'
-                //                         },
-                //                         {
-                //                             id: 4,
-                //                             name: 'Lab Constraints',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/constraints/labconstraints',
-                //                             title: 'Lab Constraints',
-                //                             description: 'Manage Lab Constraints Details'
-                //                         },
-                //                         {
-                //                             id: 5,
-                //                             name: 'Subject Restrictions',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/constraints/subjectrestriction',
-                //                             title: 'Subject Restrictions',
-                //                             description: 'Manage Subject Restrictions Details'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 4,
-                //                     name: 'Transactions',
-                //                     icon: 'Clock',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Class Section Time Table Report',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/transactions/class-section-report/class-section-report',
-                //                             title: 'Class Section Time Table Report',
-                //                             description: 'View and generate class-wise timetable grids'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Deputation',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/transactions/deputation',
-                //                             title: 'Deputation',
-                //                             description: 'ABSENT STAFF ALLOTMENT DETAILS'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'Manual Period Insertion',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/transactions/manual-Period-insersion',
-                //                             title: 'Manual Period Insertion',
-                //                             description: 'ABSENT STAFF ALLOTMENT DETAILS'
-                //                         },
-                //                         {
-                //                             id: 4,
-                //                             name: 'Staff Period Transfer',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/transactions/staff-Periods-Transfer',
-                //                             title: 'Staff Period Transfer',
-                //                             description: 'Transfer Staff Periods Between Classes and Sections'
-                //                         },
-                //                         {
-                //                             id: 5,
-                //                             name: 'Staff Replacement Existing To New',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/transactions/staff-replacement-existing-to-new',
-                //                             title: 'Staff Replacement Existing To New',
-                //                             description: 'Replacing staff Existing To New'
-                //                         },
-                //                         {
-                //                             id: 6,
-                //                             name: 'Staff Replacement In Their TimeTable',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/transactions/staff-replacement-In-their-timeTable',
-                //                             title: 'Staff Replacement In Their TimeTable',
-                //                             description: 'Staff Replacement In Their TimeTable'
-                //                         },
-                //                         {
-                //                             id: 7,
-                //                             name: 'Staff Replacement In Unallocated Period',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/transactions/staff-replacement-in-unallocated-period',
-                //                             title: 'Staff Replacement In Unallocated Period',
-                //                             description: 'Staff Replacement In Unallocated Period'
-                //                         },
-                //                         {
-                //                             id: 8,
-                //                             name: 'Time Table Generation',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/transactions/time-table-generation',
-                //                             title: 'Time Table Generation',
-                //                             description: 'Time Table Generation'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 2,
-                //                     name: 'Reports',
-                //                     icon: 'Clock',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Consolidated Report',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/reports/consolidated',
-                //                             title: 'Consolidated Report',
-                //                             description: 'TimeTable Consolidated Report'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Class Wise TimeTable',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/reports/classwisett',
-                //                             title: 'Class Wise TimeTable',
-                //                             description: 'Class Wise TimeTable Report'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'Subject Wise TimeTable',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/reports/subjectwisett',
-                //                             title: 'Subject Wise TimeTable',
-                //                             description: 'Subject Wise TimeTable Report'
-                //                         },
-                //                         {
-                //                             id: 4,
-                //                             name: 'Staff Wise TimeTable',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/reports/staffwisett',
-                //                             title: 'Staff Wise TimeTable',
-                //                             description: 'Staff Wise TimeTable Report'
-                //                         },
-                //                         {
-                //                             id: 5,
-                //                             name: 'Deputation Report',
-                //                             icon: 'Clock',
-                //                             url: '/timetable/reports/deputationreport',
-                //                             title: 'Deputation Report',
-                //                             description: 'Deputation Report'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         }
-                //     ]
-                // },
-                // {
-                //     id: 7,
-                //     name: 'Library',
-                //     icon: 'BookOpen',
-                //     menu: [
-                //         {
-                //             id: 1,
-                //             name: 'Library',
-                //             icon: 'BookOpen',
-                //             sub_menu: [
-                //                 {
-                //                     id: 3000,
-                //                     name: 'masters',
-                //                     icon: 'Database',
-                //                     pages: [
-                //                         {
-                //                             id: 30001,
-                //                             name: 'Master Library',
-                //                             icon: 'BookOpen',
-                //                             url: '/library/masters/masterlibrary',
-                //                             title: 'Master Library',
-                //                             description: 'Master Library  Details'
-                //                         },
-                //                         {
-                //                             id: 30002,
-                //                             name: 'Master Vendor',
-                //                             icon: 'BookOpen',
-                //                             url: '/library/masters/libraryvendor',
-                //                             title: 'Master Library Vendor',
-                //                             description: 'Library Vendor Details'
-                //                         },
-                //                         {
-                //                             id: 30003,
-                //                             name: 'Master Publisher',
-                //                             icon: 'BookOpen',
-                //                             url: '/library/masters/librarypublisher',
-                //                             title: 'Master Library Publisher',
-                //                             description: 'Library Master Publisher Details'
-                //                         },
-                //                         {
-                //                             id: 30004,
-                //                             name: 'Master Author',
-                //                             icon: 'BookOpen',
-                //                             url: '/library/masters/masterauthor',
-                //                             title: 'Master Author',
-                //                             description: 'Library Master Author Details'
-                //                         },
+                                        {
+                                            id: 13,
+                                            name: 'Period Time Setting',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/periodtimesetting',
+                                            title: 'Period Time Setting',
+                                            description: 'Manage Period Time Settings'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 3,
+                                    name: 'Constraints',
+                                    icon: 'Clock',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Bifurcation Constraints',
+                                            icon: 'Clock',
+                                            url: '/timetable/constraints/bifurcationconstraints',
+                                            title: 'Bifurcation Constraints',
+                                            description: 'Manage Bifurcation Constraints Details'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'consecutive',
+                                            icon: 'Clock',
+                                            url: '/timetable/constraints/consecutive',
+                                            title: 'Consecutive Constraints',
+                                            description: 'Manage Consecutive Constraints Details'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Fixing',
+                                            icon: 'Clock',
+                                            url: '/timetable/constraints/fixing',
+                                            title: 'Fixing Constraints',
+                                            description: 'Manage Fixing Constraints Details'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Lab Constraints',
+                                            icon: 'Clock',
+                                            url: '/timetable/constraints/labconstraints',
+                                            title: 'Lab Constraints',
+                                            description: 'Manage Lab Constraints Details'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Subject Restrictions',
+                                            icon: 'Clock',
+                                            url: '/timetable/constraints/subjectrestriction',
+                                            title: 'Subject Restrictions',
+                                            description: 'Manage Subject Restrictions Details'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 4,
+                                    name: 'Transactions',
+                                    icon: 'Clock',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Class Section Time Table Report',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/class-section-report/class-section-report',
+                                            title: 'Class Section Time Table Report',
+                                            description: 'View and generate class-wise timetable grids'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Deputation',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/deputation',
+                                            title: 'Deputation',
+                                            description: 'ABSENT STAFF ALLOTMENT DETAILS'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Manual Period Insertion',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/manual-Period-insersion',
+                                            title: 'Manual Period Insertion',
+                                            description: 'ABSENT STAFF ALLOTMENT DETAILS'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Staff Period Transfer',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/staff-Periods-Transfer',
+                                            title: 'Staff Period Transfer',
+                                            description: 'Transfer Staff Periods Between Classes and Sections'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Staff Replacement Existing To New',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/staff-replacement-existing-to-new',
+                                            title: 'Staff Replacement Existing To New',
+                                            description: 'Replacing staff Existing To New'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Staff Replacement In Their TimeTable',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/staff-replacement-In-their-timeTable',
+                                            title: 'Staff Replacement In Their TimeTable',
+                                            description: 'Staff Replacement In Their TimeTable'
+                                        },
+                                        {
+                                            id: 7,
+                                            name: 'Staff Replacement In Unallocated Period',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/staff-replacement-in-unallocated-period',
+                                            title: 'Staff Replacement In Unallocated Period',
+                                            description: 'Staff Replacement In Unallocated Period'
+                                        },
+                                        {
+                                            id: 8,
+                                            name: 'Time Table Generation',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/time-table-generation',
+                                            title: 'Time Table Generation',
+                                            description: 'Time Table Generation'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Reports',
+                                    icon: 'Clock',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Consolidated Report',
+                                            icon: 'Clock',
+                                            url: '/timetable/reports/consolidated',
+                                            title: 'Consolidated Report',
+                                            description: 'TimeTable Consolidated Report'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Class Wise TimeTable',
+                                            icon: 'Clock',
+                                            url: '/timetable/reports/classwisett',
+                                            title: 'Class Wise TimeTable',
+                                            description: 'Class Wise TimeTable Report'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Subject Wise TimeTable',
+                                            icon: 'Clock',
+                                            url: '/timetable/reports/subjectwisett',
+                                            title: 'Subject Wise TimeTable',
+                                            description: 'Subject Wise TimeTable Report'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Staff Wise TimeTable',
+                                            icon: 'Clock',
+                                            url: '/timetable/reports/staffwisett',
+                                            title: 'Staff Wise TimeTable',
+                                            description: 'Staff Wise TimeTable Report'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Deputation Report',
+                                            icon: 'Clock',
+                                            url: '/timetable/reports/deputationreport',
+                                            title: 'Deputation Report',
+                                            description: 'Deputation Report'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    id: 7,
+                    name: 'Library',
+                    icon: 'BookOpen',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Library',
+                            icon: 'BookOpen',
+                            sub_menu: [
+                                {
+                                    id: 3000,
+                                    name: 'masters',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 30001,
+                                            name: 'Master Library',
+                                            icon: 'BookOpen',
+                                            url: '/library/masters/masterlibrary',
+                                            title: 'Master Library',
+                                            description: 'Master Library  Details'
+                                        },
+                                        {
+                                            id: 30002,
+                                            name: 'Master Vendor',
+                                            icon: 'BookOpen',
+                                            url: '/library/masters/libraryvendor',
+                                            title: 'Master Library Vendor',
+                                            description: 'Library Vendor Details'
+                                        },
+                                        {
+                                            id: 30003,
+                                            name: 'Master Publisher',
+                                            icon: 'BookOpen',
+                                            url: '/library/masters/librarypublisher',
+                                            title: 'Master Library Publisher',
+                                            description: 'Library Master Publisher Details'
+                                        },
+                                        {
+                                            id: 30004,
+                                            name: 'Master Author',
+                                            icon: 'BookOpen',
+                                            url: '/library/masters/masterauthor',
+                                            title: 'Master Author',
+                                            description: 'Library Master Author Details'
+                                        },
 
-                //                         {
-                //                             id: 30005,
-                //                             name: 'Master Subject',
-                //                             icon: 'BookOpen',
-                //                             url: '/library/masters/mastersubject',
-                //                             title: 'Add Master Subject',
-                //                             description: 'Add Master Subject'
-                //                         },
+                                        {
+                                            id: 30005,
+                                            name: 'Master Subject',
+                                            icon: 'BookOpen',
+                                            url: '/library/masters/mastersubject',
+                                            title: 'Add Master Subject',
+                                            description: 'Add Master Subject'
+                                        },
 
-                //                         {
-                //                             id: 30010,
-                //                             name: 'MASTER BOOKS CATEGORY ',
-                //                             icon: 'BookOpen',
-                //                             url: '/library/masters/mastercategory',
-                //                             title: 'MASTER BOOKS CATEGORY ',
-                //                             description: 'MASTER BOOKS CATEGORY '
-                //                         },
+                                        {
+                                            id: 30010,
+                                            name: 'MASTER BOOKS CATEGORY ',
+                                            icon: 'BookOpen',
+                                            url: '/library/masters/mastercategory',
+                                            title: 'MASTER BOOKS CATEGORY ',
+                                            description: 'MASTER BOOKS CATEGORY '
+                                        },
 
-                //                         {
-                //                             id: 30006,
-                //                             name: 'Master Language',
-                //                             icon: 'BookOpen',
-                //                             url: '/library/masters/masterlanguage',
-                //                             title: 'Master Language',
-                //                             description: 'Library Master Language Details'
-                //                         },
+                                        {
+                                            id: 30006,
+                                            name: 'Master Language',
+                                            icon: 'BookOpen',
+                                            url: '/library/masters/masterlanguage',
+                                            title: 'Master Language',
+                                            description: 'Library Master Language Details'
+                                        },
 
-                //                         {
-                //                             id: 30007,
-                //                             name: 'Master Accessories',
-                //                             icon: 'BookOpen',
-                //                             url: '/library/masters/accessories-master',
-                //                             title: 'Master Accessories',
-                //                             description: 'Master Accessories Details'
-                //                         },
-                //                         {
-                //                             id: 30008,
-                //                             name: 'Master Class Category',
-                //                             icon: 'BookOpen',
-                //                             url: '/library/masters/master-class-category',
-                //                             title: 'Master Class Category',
-                //                             description: 'Master Class Category Entry'
-                //                         },
+                                        {
+                                            id: 30007,
+                                            name: 'Master Accessories',
+                                            icon: 'BookOpen',
+                                            url: '/library/masters/accessories-master',
+                                            title: 'Master Accessories',
+                                            description: 'Master Accessories Details'
+                                        },
+                                        {
+                                            id: 30008,
+                                            name: 'Master Class Category',
+                                            icon: 'BookOpen',
+                                            url: '/library/masters/master-class-category',
+                                            title: 'Master Class Category',
+                                            description: 'Master Class Category Entry'
+                                        },
 
-                //                         {
-                //                             id: 30009,
-                //                             name: 'Master Book Category',
-                //                             icon: 'BookOpen',
-                //                             url: '/library/masters/mastercategory',
-                //                             title: 'Master Book Category',
-                //                             description: 'Master Book Category Details'
-                //                         },
+                                        {
+                                            id: 30009,
+                                            name: 'Master Book Category',
+                                            icon: 'BookOpen',
+                                            url: '/library/masters/mastercategory',
+                                            title: 'Master Book Category',
+                                            description: 'Master Book Category Details'
+                                        },
 
-                //                         {
-                //                             id: 30010,
-                //                             name: 'Master Department',
-                //                             icon: 'BookOpen',
-                //                             url: '/library/masters/department-master',
-                //                             title: 'Master Department',
-                //                             description: 'Master Department Details'
-                //                         },
+                                        {
+                                            id: 30010,
+                                            name: 'Master Department',
+                                            icon: 'BookOpen',
+                                            url: '/library/masters/department-master',
+                                            title: 'Master Department',
+                                            description: 'Master Department Details'
+                                        },
 
-                //                         {
-                //                             id: 30011,
-                //                             name: 'Master Rack Details',
-                //                             icon: 'BookOpen',
-                //                             url: '/library/masters/master-rack-details',
-                //                             title: 'Master Rack Details',
-                //                             description: 'Master Rack Details Entry'
-                //                         },
-                //                         {
-                //                             id: 30012,
-                //                             name: 'Master Time Slab',
-                //                             icon: 'Clock',
-                //                             url: '/library/masters/master-time-slab',
-                //                             title: 'Master Time Slab',
-                //                             description: 'Master Time Slab Details'
-                //                         }
-                //                         // ,
+                                        {
+                                            id: 30011,
+                                            name: 'Master Rack Details',
+                                            icon: 'BookOpen',
+                                            url: '/library/masters/master-rack-details',
+                                            title: 'Master Rack Details',
+                                            description: 'Master Rack Details Entry'
+                                        },
+                                        {
+                                            id: 30012,
+                                            name: 'Master Time Slab',
+                                            icon: 'Clock',
+                                            url: '/library/masters/master-time-slab',
+                                            title: 'Master Time Slab',
+                                            description: 'Master Time Slab Details'
+                                        }
+                                        // ,
 
-                //                         // {
-                //                         //     id: 30010,
-                //                         //     name: 'Master Category',
-                //                         //     icon: 'BookOpen',
-                //                         //     url: '/library/masters/category',
-                //                         //     title: 'Library Category',
-                //                         //     description: 'Library Category Details'
-                //                         // }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 2,
-                //                     name: 'Transactions',
-                //                     icon: 'BookOpen',
+                                        // {
+                                        //     id: 30010,
+                                        //     name: 'Master Category',
+                                        //     icon: 'BookOpen',
+                                        //     url: '/library/masters/category',
+                                        //     title: 'Library Category',
+                                        //     description: 'Library Category Details'
+                                        // }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Transactions',
+                                    icon: 'BookOpen',
 
-                //                     pages: [
-                //                         {
-                //                             id: 30013,
-                //                             name: 'Book Register',
-                //                             icon: 'BookOpen',
-                //                             url: '/library/transactions/book-register',
-                //                             title: 'Book Register',
-                //                             description: 'Book Register Details'
-                //                         },
+                                    pages: [
+                                        {
+                                            id: 30013,
+                                            name: 'Book Register',
+                                            icon: 'BookOpen',
+                                            url: '/library/transactions/book-register',
+                                            title: 'Book Register',
+                                            description: 'Book Register Details'
+                                        },
 
-                //                         {
-                //                             id: 30014,
-                //                             name: 'Book Return',
-                //                             icon: 'BookOpen',
-                //                             url: '/library/transactions/book-return',
-                //                             title: 'Book Return',
-                //                             description: 'Book Return Transaction Details'
-                //                         },
-                //                         {
-                //                             id: 30015,
-                //                             name: 'Circulation Parameter',
-                //                             icon: 'Settings',
-                //                             url: '/library/transactions/circulation-parameter',
-                //                             title: 'Circulation Parameter',
-                //                             description: 'Manage Circulation Parameters'
-                //                         },
+                                        {
+                                            id: 30014,
+                                            name: 'Book Return',
+                                            icon: 'BookOpen',
+                                            url: '/library/transactions/book-return',
+                                            title: 'Book Return',
+                                            description: 'Book Return Transaction Details'
+                                        },
+                                        {
+                                            id: 30015,
+                                            name: 'Circulation Parameter',
+                                            icon: 'Settings',
+                                            url: '/library/transactions/circulation-parameter',
+                                            title: 'Circulation Parameter',
+                                            description: 'Manage Circulation Parameters'
+                                        },
 
-                //                         {
-                //                             id: 30016,
-                //                             name: 'Book Transaction',
-                //                             icon: 'BookOpen',
-                //                             url: '/library/transactions/lib-book-transaction',
-                //                             title: 'Book Transaction',
-                //                             description: 'Lib Book Transaction Details'
-                //                         },
-                //                         {
-                //                             id: 30017,
-                //                             name: 'LOST BOOK',
-                //                             icon: 'BookOpen',
-                //                             url: '/library/transactions/lostbook',
-                //                             title: 'LOST BOOK',
-                //                             description: 'LOST BOOK Details'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 3,
-                //                     name: 'Reports',
-                //                     icon: 'BookOpen',
+                                        {
+                                            id: 30016,
+                                            name: 'Book Transaction',
+                                            icon: 'BookOpen',
+                                            url: '/library/transactions/lib-book-transaction',
+                                            title: 'Book Transaction',
+                                            description: 'Lib Book Transaction Details'
+                                        },
+                                        {
+                                            id: 30017,
+                                            name: 'LOST BOOK',
+                                            icon: 'BookOpen',
+                                            url: '/library/transactions/lostbook',
+                                            title: 'LOST BOOK',
+                                            description: 'LOST BOOK Details'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 3,
+                                    name: 'Reports',
+                                    icon: 'BookOpen',
 
-                //                     pages: [
-                //                         {
-                //                             id: 30018,
-                //                             name: 'Available Books Report',
-                //                             icon: 'FileText',
-                //                             url: '/library/reports/available-books-report',
-                //                             title: 'Available Books Report',
-                //                             description: 'View Available Books Report'
-                //                         },
-                //                         {
-                //                             id: 30019,
-                //                             name: 'Book Arrival Report',
-                //                             icon: 'FileText',
-                //                             url: '/library/reports/book-arrival-report',
-                //                             title: 'Book Arrival Report',
-                //                             description: 'View Book Arrival Report'
-                //                         },
-                //                         {
-                //                             id: 30020,
-                //                             name: 'Rack Report',
-                //                             icon: 'FileText',
-                //                             url: '/library/reports/rack-report',
-                //                             title: 'Rack Report',
-                //                             description: 'View Rack Report'
-                //                         },
-                //                         {
-                //                             id: 30021,
-                //                             name: 'Book Circulation Report',
-                //                             icon: 'FileText',
-                //                             url: '/library/reports/book-circulation-report',
-                //                             title: 'Book Circulation Report',
-                //                             description: 'View Book Circulation Report'
-                //                         },
-                //                         {
-                //                             id: 30022,
-                //                             name: 'Purchase/Donate/New Arrival Report',
-                //                             icon: 'FileText',
-                //                             url: '/library/reports/purchase-donate-report',
-                //                             title: 'Purchase/Donate/New Arrival Report',
-                //                             description: 'View Purchase Donate Report'
-                //                         },
-                //                         {
-                //                             id: 30023,
-                //                             name: 'Transaction Count Report',
-                //                             icon: 'FileText',
-                //                             url: '/library/reports/lib-transaction-report',
-                //                             title: 'Transaction Count Report',
-                //                             description: 'View Lib Transaction Report'
-                //                         },
-                //                         {
-                //                             id: 30024,
-                //                             name: 'Lost Book Report',
-                //                             icon: 'FileText',
-                //                             url: '/library/reports/lib-lost-book-report',
-                //                             title: 'Lost Book Report',
-                //                             description: 'View Lost Book Report'
-                //                         },
-                //                         {
-                //                             id: 30025,
-                //                             name: 'Student Transaction Count Report',
-                //                             icon: 'FileText',
-                //                             url: '/library/reports/clg-transaction-count-report',
-                //                             title: 'Student Transaction Count Report',
-                //                             description: 'View Student Transaction Count Report'
-                //                         },
-                //                         {
-                //                             id: 30026,
-                //                             name: 'Book Register Report',
-                //                             icon: 'FileText',
-                //                             url: '/library/reports/book-register-report',
-                //                             title: 'Book Register Report',
-                //                             description: 'View Book Register Report'
-                //                         },
-                //                         {
-                //                             id: 30027,
-                //                             name: 'Library Month End Report',
-                //                             icon: 'FileText',
-                //                             url: '/library/reports/library-month-end-report',
-                //                             title: 'Library Month End Report',
-                //                             description: 'View Library Month End Report'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         }
-                //     ]
-                // },
+                                    pages: [
+                                        {
+                                            id: 30018,
+                                            name: 'Available Books Report',
+                                            icon: 'FileText',
+                                            url: '/library/reports/available-books-report',
+                                            title: 'Available Books Report',
+                                            description: 'View Available Books Report'
+                                        },
+                                        {
+                                            id: 30019,
+                                            name: 'Book Arrival Report',
+                                            icon: 'FileText',
+                                            url: '/library/reports/book-arrival-report',
+                                            title: 'Book Arrival Report',
+                                            description: 'View Book Arrival Report'
+                                        },
+                                        {
+                                            id: 30020,
+                                            name: 'Rack Report',
+                                            icon: 'FileText',
+                                            url: '/library/reports/rack-report',
+                                            title: 'Rack Report',
+                                            description: 'View Rack Report'
+                                        },
+                                        {
+                                            id: 30021,
+                                            name: 'Book Circulation Report',
+                                            icon: 'FileText',
+                                            url: '/library/reports/book-circulation-report',
+                                            title: 'Book Circulation Report',
+                                            description: 'View Book Circulation Report'
+                                        },
+                                        {
+                                            id: 30022,
+                                            name: 'Purchase/Donate/New Arrival Report',
+                                            icon: 'FileText',
+                                            url: '/library/reports/purchase-donate-report',
+                                            title: 'Purchase/Donate/New Arrival Report',
+                                            description: 'View Purchase Donate Report'
+                                        },
+                                        {
+                                            id: 30023,
+                                            name: 'Transaction Count Report',
+                                            icon: 'FileText',
+                                            url: '/library/reports/lib-transaction-report',
+                                            title: 'Transaction Count Report',
+                                            description: 'View Lib Transaction Report'
+                                        },
+                                        {
+                                            id: 30024,
+                                            name: 'Lost Book Report',
+                                            icon: 'FileText',
+                                            url: '/library/reports/lib-lost-book-report',
+                                            title: 'Lost Book Report',
+                                            description: 'View Lost Book Report'
+                                        },
+                                        {
+                                            id: 30025,
+                                            name: 'Student Transaction Count Report',
+                                            icon: 'FileText',
+                                            url: '/library/reports/clg-transaction-count-report',
+                                            title: 'Student Transaction Count Report',
+                                            description: 'View Student Transaction Count Report'
+                                        },
+                                        {
+                                            id: 30026,
+                                            name: 'Book Register Report',
+                                            icon: 'FileText',
+                                            url: '/library/reports/book-register-report',
+                                            title: 'Book Register Report',
+                                            description: 'View Book Register Report'
+                                        },
+                                        {
+                                            id: 30027,
+                                            name: 'Library Month End Report',
+                                            icon: 'FileText',
+                                            url: '/library/reports/library-month-end-report',
+                                            title: 'Library Month End Report',
+                                            description: 'View Library Month End Report'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
 
                 // {
                 //     id: 25,
@@ -4271,8 +4377,7 @@ export async function getUserAccessibleModules() {
                 //             ]
                 //         }
                 //     ]
-                // },
-
+                // }
                 {
                     id: 10,
                     name: 'Inventory Management',
@@ -4922,324 +5027,323 @@ export async function getUserAccessibleModules() {
                 //             ]
                 //         }
                 //     ]
-                //}
-                ,
-                {
-                    id: 11,
-                    name: 'Sports Management',
-                    icon: 'Trophy',
-                    menu: [
-                        {
-                            id: 1,
-                            name: 'Sports Management',
-                            icon: 'Activity',
-                            sub_menu: [
-                                {
-                                    id: 1,
-                                    name: 'Masters',
-                                    icon: 'Database',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Events',
-                                            icon: 'Trophy',
-                                            url: '/Sports/Masters/Events',
-                                            title: 'Sports Events',
-                                            description: 'Manage Sports Events'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Venue',
-                                            icon: 'Trophy',
-                                            url: '/Sports/Masters/Venue',
-                                            title: 'Sports Venue',
-                                            description: 'Manage Sports Venue'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Program Master',
-                                            icon: 'Trophy',
-                                            url: '/Sports/Masters/ProgramMaster',
-                                            title: 'Program Master',
-                                            description: 'Manage Program Master'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'Master Sponsor',
-                                            icon: 'Trophy',
-                                            url: '/Sports/Masters/Sponsors',
-                                            title: 'Master Sponsor',
-                                            description: 'Manage Master Sponsor'
-                                        },
-                                        {
-                                            id: 5,
-                                            name: 'Master Division',
-                                            icon: 'Trophy',
-                                            url: '/Sports/Masters/Division',
-                                            title: 'Master Division',
-                                            description: 'Manage Master Division'
-                                        },
-                                        {
-                                            id: 6,
-                                            name: 'Competition Level',
-                                            icon: 'Trophy',
-                                            url: '/Sports/Masters/CompetitionLevel',
-                                            title: 'Master Competition Level',
-                                            description: 'Manage Master Competition Level'
-                                        },
-                                        {
-                                            id: 7,
-                                            name: 'Master UOM',
-                                            icon: 'Trophy',
-                                            url: '/Sports/Masters/UOM',
-                                            title: 'Master UOM',
-                                            description: 'Manage Master UOM'
-                                        },
-                                        {
-                                            id: 8,
-                                            name: 'Master House',
-                                            icon: 'Trophy',
-                                            url: '/Sports/Masters/House',
-                                            title: 'Master House',
-                                            description: 'Manage Master House'
-                                        },
-                                        {
-                                            id: 9,
-                                            name: 'Master House Designation',
-                                            icon: 'Trophy',
-                                            url: '/Sports/Masters/HouseDesignation',
-                                            title: 'Master House Designation',
-                                            description: 'Manage Master House Designation'
-                                        },
-                                        {
-                                            id: 10,
-                                            name: 'Master Sports CC Group',
-                                            icon: 'Trophy',
-                                            url: '/Sports/Masters/MasterSportsCCGroup',
-                                            title: 'Master Sports CC Group',
-                                            description: 'Manage Master Sports CC Group'
-                                        },
-                                        {
-                                            id: 11,
-                                            name: 'Master Competition Category',
-                                            icon: 'Trophy',
-                                            url: '/Sports/Masters/CompetitionCategory',
-                                            title: 'Master Competition Category',
-                                            description: 'Manage Master Competition Category'
-                                        },
-                                        {
-                                            id: 12,
-                                            name: 'Master Sports CC Name UOM',
-                                            icon: 'Trophy',
-                                            url: '/Sports/Masters/SportsCCNameUOM',
-                                            title: 'Master Sports CC Name UOM',
-                                            description: 'Manage Master Sports CC Name UOM'
-                                        },
-                                        {
-                                            id: 13,
-                                            name: 'Student House Mapping',
-                                            icon: 'Trophy',
-                                            url: '/Sports/Masters/StudentHouseMapping',
-                                            title: 'Student House Mapping',
-                                            description: 'Map Students to Houses'
-                                        },
-                                        {
-                                            id: 14,
-                                            name: 'Master SportsCC Name',
-                                            icon: 'Settings',
-                                            url: '/Sports/Masters/SportsCCName',
-                                            title: 'Master SportsCC Name',
-                                            description: 'Manage Master SportsCC Name'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 2,
-                                    name: 'Transactions',
-                                    icon: 'Activity',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Events Sponsor Mapping',
-                                            icon: 'Activity',
-                                            url: '/Sports/Transactions/EventsSponsorMapping',
-                                            title: 'Events Sponsor Mapping',
-                                            description: 'Manage Events Sponsor Mapping'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'BMI Calculation',
-                                            icon: 'Activity',
-                                            url: '/Sports/Transactions/BMICalculation',
-                                            title: 'BMI Calculation',
-                                            description: 'Manage BMI Calculation'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Student Age Calculation',
-                                            icon: 'Activity',
-                                            url: '/Sports/Transactions/StudentAgeCalculation',
-                                            title: 'Student Age Calculation',
-                                            description: 'Manage Student Age Calculation'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'Sport Venuewise Participation Report',
-                                            icon: 'Activity',
-                                            url: '/Sports/Transactions/SportVenuewiseParticipationReport',
-                                            title: 'Sport Venuewise Participation Report',
-                                            description: 'Manage Sport Venuewise Participation Report'
-                                        },
-                                        {
-                                            id: 5,
-                                            name: 'Events Mapping',
-                                            icon: 'Activity',
-                                            url: '/Sports/Transactions/EventsMapping',
-                                            title: 'Events Mapping',
-                                            description: 'Manage Events Mapping'
-                                        },
-                                        {
-                                            id: 6,
-                                            name: 'Events Student Mapping',
-                                            icon: 'Activity',
-                                            url: '/Sports/Transactions/EventsStudentMapping',
-                                            title: 'Events Student Mapping',
-                                            description: 'Manage Events Student Mapping'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 3,
-                                    name: 'Reports',
-                                    icon: 'FileText',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Student Eligible Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/StudentEligbleReport',
-                                            title: 'Student Eligible Report',
-                                            description: 'Generate Student Eligible Report'
-                                        },
+                // },
+                // {
+                //     id: 11,
+                //     name: 'Sports Management',
+                //     icon: 'Trophy',
+                //     menu: [
+                //         {
+                //             id: 1,
+                //             name: 'Sports Management',
+                //             icon: 'Activity',
+                //             sub_menu: [
+                //                 {
+                //                     id: 1,
+                //                     name: 'Masters',
+                //                     icon: 'Database',
+                //                     pages: [
+                //                         {
+                //                             id: 1,
+                //                             name: 'Events',
+                //                             icon: 'Trophy',
+                //                             url: '/Sports/Masters/Events',
+                //                             title: 'Sports Events',
+                //                             description: 'Manage Sports Events'
+                //                         },
+                //                         {
+                //                             id: 2,
+                //                             name: 'Venue',
+                //                             icon: 'Trophy',
+                //                             url: '/Sports/Masters/Venue',
+                //                             title: 'Sports Venue',
+                //                             description: 'Manage Sports Venue'
+                //                         },
+                //                         {
+                //                             id: 3,
+                //                             name: 'Program Master',
+                //                             icon: 'Trophy',
+                //                             url: '/Sports/Masters/ProgramMaster',
+                //                             title: 'Program Master',
+                //                             description: 'Manage Program Master'
+                //                         },
+                //                         {
+                //                             id: 4,
+                //                             name: 'Master Sponsor',
+                //                             icon: 'Trophy',
+                //                             url: '/Sports/Masters/Sponsors',
+                //                             title: 'Master Sponsor',
+                //                             description: 'Manage Master Sponsor'
+                //                         },
+                //                         {
+                //                             id: 5,
+                //                             name: 'Master Division',
+                //                             icon: 'Trophy',
+                //                             url: '/Sports/Masters/Division',
+                //                             title: 'Master Division',
+                //                             description: 'Manage Master Division'
+                //                         },
+                //                         {
+                //                             id: 6,
+                //                             name: 'Competition Level',
+                //                             icon: 'Trophy',
+                //                             url: '/Sports/Masters/CompetitionLevel',
+                //                             title: 'Master Competition Level',
+                //                             description: 'Manage Master Competition Level'
+                //                         },
+                //                         {
+                //                             id: 7,
+                //                             name: 'Master UOM',
+                //                             icon: 'Trophy',
+                //                             url: '/Sports/Masters/UOM',
+                //                             title: 'Master UOM',
+                //                             description: 'Manage Master UOM'
+                //                         },
+                //                         {
+                //                             id: 8,
+                //                             name: 'Master House',
+                //                             icon: 'Trophy',
+                //                             url: '/Sports/Masters/House',
+                //                             title: 'Master House',
+                //                             description: 'Manage Master House'
+                //                         },
+                //                         {
+                //                             id: 9,
+                //                             name: 'Master House Designation',
+                //                             icon: 'Trophy',
+                //                             url: '/Sports/Masters/HouseDesignation',
+                //                             title: 'Master House Designation',
+                //                             description: 'Manage Master House Designation'
+                //                         },
+                //                         {
+                //                             id: 10,
+                //                             name: 'Master Sports CC Group',
+                //                             icon: 'Trophy',
+                //                             url: '/Sports/Masters/MasterSportsCCGroup',
+                //                             title: 'Master Sports CC Group',
+                //                             description: 'Manage Master Sports CC Group'
+                //                         },
+                //                         {
+                //                             id: 11,
+                //                             name: 'Master Competition Category',
+                //                             icon: 'Trophy',
+                //                             url: '/Sports/Masters/CompetitionCategory',
+                //                             title: 'Master Competition Category',
+                //                             description: 'Manage Master Competition Category'
+                //                         },
+                //                         {
+                //                             id: 12,
+                //                             name: 'Master Sports CC Name UOM',
+                //                             icon: 'Trophy',
+                //                             url: '/Sports/Masters/SportsCCNameUOM',
+                //                             title: 'Master Sports CC Name UOM',
+                //                             description: 'Manage Master Sports CC Name UOM'
+                //                         },
+                //                         {
+                //                             id: 13,
+                //                             name: 'Student House Mapping',
+                //                             icon: 'Trophy',
+                //                             url: '/Sports/Masters/StudentHouseMapping',
+                //                             title: 'Student House Mapping',
+                //                             description: 'Map Students to Houses'
+                //                         },
+                //                         {
+                //                             id: 14,
+                //                             name: 'Master SportsCC Name',
+                //                             icon: 'Settings',
+                //                             url: '/Sports/Masters/SportsCCName',
+                //                             title: 'Master SportsCC Name',
+                //                             description: 'Manage Master SportsCC Name'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 2,
+                //                     name: 'Transactions',
+                //                     icon: 'Activity',
+                //                     pages: [
+                //                         {
+                //                             id: 1,
+                //                             name: 'Events Sponsor Mapping',
+                //                             icon: 'Activity',
+                //                             url: '/Sports/Transactions/EventsSponsorMapping',
+                //                             title: 'Events Sponsor Mapping',
+                //                             description: 'Manage Events Sponsor Mapping'
+                //                         },
+                //                         {
+                //                             id: 2,
+                //                             name: 'BMI Calculation',
+                //                             icon: 'Activity',
+                //                             url: '/Sports/Transactions/BMICalculation',
+                //                             title: 'BMI Calculation',
+                //                             description: 'Manage BMI Calculation'
+                //                         },
+                //                         {
+                //                             id: 3,
+                //                             name: 'Student Age Calculation',
+                //                             icon: 'Activity',
+                //                             url: '/Sports/Transactions/StudentAgeCalculation',
+                //                             title: 'Student Age Calculation',
+                //                             description: 'Manage Student Age Calculation'
+                //                         },
+                //                         {
+                //                             id: 4,
+                //                             name: 'Sport Venuewise Participation Report',
+                //                             icon: 'Activity',
+                //                             url: '/Sports/Transactions/SportVenuewiseParticipationReport',
+                //                             title: 'Sport Venuewise Participation Report',
+                //                             description: 'Manage Sport Venuewise Participation Report'
+                //                         },
+                //                         {
+                //                             id: 5,
+                //                             name: 'Events Mapping',
+                //                             icon: 'Activity',
+                //                             url: '/Sports/Transactions/EventsMapping',
+                //                             title: 'Events Mapping',
+                //                             description: 'Manage Events Mapping'
+                //                         },
+                //                         {
+                //                             id: 6,
+                //                             name: 'Events Student Mapping',
+                //                             icon: 'Activity',
+                //                             url: '/Sports/Transactions/EventsStudentMapping',
+                //                             title: 'Events Student Mapping',
+                //                             description: 'Manage Events Student Mapping'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 3,
+                //                     name: 'Reports',
+                //                     icon: 'FileText',
+                //                     pages: [
+                //                         {
+                //                             id: 1,
+                //                             name: 'Student Eligible Report',
+                //                             icon: 'FileText',
+                //                             url: '/Sports/Reports/StudentEligbleReport',
+                //                             title: 'Student Eligible Report',
+                //                             description: 'Generate Student Eligible Report'
+                //                         },
 
-                                        {
-                                            id: 2,
-                                            name: 'Student Age Calculation Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/StudentAgeCalculationReport',
-                                            title: 'Student Age Calculation Report',
-                                            description: 'Student Age Calculation Report'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'BMI Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/BMIReport',
-                                            title: 'BMI Report',
-                                            description: 'BMI Report'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'Sport House Committee Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/SportHouseCommitteeReport',
-                                            title: 'Sport House Committee Report',
-                                            description: 'Sport House Committee Report'
-                                        },
-                                        {
-                                            id: 5,
-                                            name: 'House Incharge Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/HouseInchargeReport',
-                                            title: 'House Incharge Report',
-                                            description: 'House Incharge Report'
-                                        },
-                                        {
-                                            id: 6,
-                                            name: 'Sport House Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/SportHouseReport',
-                                            title: 'Sport House Report',
-                                            description: 'Sport House Report'
-                                        },
-                                        // {
-                                        //     id: 7,
-                                        //     name: 'Sport Student Participation Report',
-                                        //     icon: 'FileText',
-                                        //     url: '/Sports/Reports/SportStudentParticipationReport',
-                                        //     title: 'Sport Student Participation Report',
-                                        //     description: 'Sport Student Participation Report'
-                                        // },
-                                        {
-                                            id: 8,
-                                            name: 'Sport Topper List Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/SportTopperListReport',
-                                            title: 'Sport Topper List Report',
-                                            description: 'Sport Topper List Report'
-                                        },
-                                        {
-                                            id: 9,
-                                            name: 'Sports Year End Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/SportsYearEndReport',
-                                            title: 'Sports Year End Report',
-                                            description: 'Sports Year End Report'
-                                        },
-                                        {
-                                            id: 10,
-                                            name: 'SRKVS Sports Report Record',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/SRKVSSportsReportRecord',
-                                            title: 'SRKVS Sports Report Record',
-                                            description: 'View SRKVS Sports Report Record'
-                                        },
-                                        {
-                                            id: 11,
-                                            name: 'Venue Wise Participation',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/VenueWiseParticipationReport',
-                                            title: 'Venue Wise Participation',
-                                            description: 'View Venue Wise Participation Report'
-                                        },
-                                        {
-                                            id: 12,
-                                            name: 'Month End Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/MonthEndReport',
-                                            title: 'Month End Report',
-                                            description: 'View Month End Report'
-                                        },
-                                        {
-                                            id: 13,
-                                            name: 'Points Record Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/PointsRecordReport',
-                                            title: 'Points Record Report',
-                                            description: 'View Points Record Report'
-                                        },
-                                        {
-                                            id: 14,
-                                            name: 'Sport Points And Record Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/SportPointsAndRecordReport',
-                                            title: 'Sport Points And Record Report',
-                                            description: 'View Sport Points And Record Report'
-                                        },
-                                        {
-                                            id: 15,
-                                            name: 'Eligibility Certificate Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/EligibilityCertificateReport',
-                                            title: 'Eligibility Certificate Report',
-                                            description: 'Generate Eligibility Certificate Report'
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                },
+                //                         {
+                //                             id: 2,
+                //                             name: 'Student Age Calculation Report',
+                //                             icon: 'FileText',
+                //                             url: '/Sports/Reports/StudentAgeCalculationReport',
+                //                             title: 'Student Age Calculation Report',
+                //                             description: 'Student Age Calculation Report'
+                //                         },
+                //                         {
+                //                             id: 3,
+                //                             name: 'BMI Report',
+                //                             icon: 'FileText',
+                //                             url: '/Sports/Reports/BMIReport',
+                //                             title: 'BMI Report',
+                //                             description: 'BMI Report'
+                //                         },
+                //                         {
+                //                             id: 4,
+                //                             name: 'Sport House Committee Report',
+                //                             icon: 'FileText',
+                //                             url: '/Sports/Reports/SportHouseCommitteeReport',
+                //                             title: 'Sport House Committee Report',
+                //                             description: 'Sport House Committee Report'
+                //                         },
+                //                         {
+                //                             id: 5,
+                //                             name: 'House Incharge Report',
+                //                             icon: 'FileText',
+                //                             url: '/Sports/Reports/HouseInchargeReport',
+                //                             title: 'House Incharge Report',
+                //                             description: 'House Incharge Report'
+                //                         },
+                //                         {
+                //                             id: 6,
+                //                             name: 'Sport House Report',
+                //                             icon: 'FileText',
+                //                             url: '/Sports/Reports/SportHouseReport',
+                //                             title: 'Sport House Report',
+                //                             description: 'Sport House Report'
+                //                         },
+                //                         // {
+                //                         //     id: 7,
+                //                         //     name: 'Sport Student Participation Report',
+                //                         //     icon: 'FileText',
+                //                         //     url: '/Sports/Reports/SportStudentParticipationReport',
+                //                         //     title: 'Sport Student Participation Report',
+                //                         //     description: 'Sport Student Participation Report'
+                //                         // },
+                //                         {
+                //                             id: 8,
+                //                             name: 'Sport Topper List Report',
+                //                             icon: 'FileText',
+                //                             url: '/Sports/Reports/SportTopperListReport',
+                //                             title: 'Sport Topper List Report',
+                //                             description: 'Sport Topper List Report'
+                //                         },
+                //                         {
+                //                             id: 9,
+                //                             name: 'Sports Year End Report',
+                //                             icon: 'FileText',
+                //                             url: '/Sports/Reports/SportsYearEndReport',
+                //                             title: 'Sports Year End Report',
+                //                             description: 'Sports Year End Report'
+                //                         },
+                //                         {
+                //                             id: 10,
+                //                             name: 'SRKVS Sports Report Record',
+                //                             icon: 'FileText',
+                //                             url: '/Sports/Reports/SRKVSSportsReportRecord',
+                //                             title: 'SRKVS Sports Report Record',
+                //                             description: 'View SRKVS Sports Report Record'
+                //                         },
+                //                         {
+                //                             id: 11,
+                //                             name: 'Venue Wise Participation',
+                //                             icon: 'FileText',
+                //                             url: '/Sports/Reports/VenueWiseParticipationReport',
+                //                             title: 'Venue Wise Participation',
+                //                             description: 'View Venue Wise Participation Report'
+                //                         },
+                //                         {
+                //                             id: 12,
+                //                             name: 'Month End Report',
+                //                             icon: 'FileText',
+                //                             url: '/Sports/Reports/MonthEndReport',
+                //                             title: 'Month End Report',
+                //                             description: 'View Month End Report'
+                //                         },
+                //                         {
+                //                             id: 13,
+                //                             name: 'Points Record Report',
+                //                             icon: 'FileText',
+                //                             url: '/Sports/Reports/PointsRecordReport',
+                //                             title: 'Points Record Report',
+                //                             description: 'View Points Record Report'
+                //                         },
+                //                         {
+                //                             id: 14,
+                //                             name: 'Sport Points And Record Report',
+                //                             icon: 'FileText',
+                //                             url: '/Sports/Reports/SportPointsAndRecordReport',
+                //                             title: 'Sport Points And Record Report',
+                //                             description: 'View Sport Points And Record Report'
+                //                         },
+                //                         {
+                //                             id: 15,
+                //                             name: 'Eligibility Certificate Report',
+                //                             icon: 'FileText',
+                //                             url: '/Sports/Reports/EligibilityCertificateReport',
+                //                             title: 'Eligibility Certificate Report',
+                //                             description: 'Generate Eligibility Certificate Report'
+                //                         }
+                //                     ]
+                //                 }
+                //             ]
+                //         }
+                //     ]
+                // },
                 // {
                 //     id: 8,
                 //     name: 'Hostel Management',
@@ -5936,23 +6040,23 @@ export async function getUserAccessibleModules() {
                                     name: 'Home',
                                     icon: 'Database',
                                     pages: [
-                                        // {
-                                        //     id: 40000,
-                                        //     name: 'Dashboard',
-                                        //     icon: 'LayoutDashboard',
-                                        //     url: '/StudentPortal/student-dashboard',
-                                        //     title: 'StudentDashboard',
-                                        //     description: 'Main Dashboard'
-                                        // },
-
                                         {
-                                            id: 402000,
-                                            name: 'Dashboard Demo',
+                                            id: 40000,
+                                            name: 'Dashboard',
                                             icon: 'LayoutDashboard',
-                                            url: '/StudentPortal/StudentPortalDashboard',
+                                            url: '/StudentPortal/student-dashboard',
                                             title: 'StudentDashboard',
                                             description: 'Main Dashboard'
                                         }
+
+                                        // {
+                                        //     id: 402000,
+                                        //     name: 'Dashboard Demo',
+                                        //     icon: 'LayoutDashboard',
+                                        //     url: '/StudentPortal/StudentPortalDashboard',
+                                        //     title: 'StudentDashboard',
+                                        //     description: 'Main Dashboard'
+                                        // }
                                     ]
                                 }
                             ]

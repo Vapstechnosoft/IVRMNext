@@ -293,7 +293,7 @@ export default function AddCoScholasticActivityAreaMapping({ onSuccess }: CoScho
                     </div>
 
                     <div className='flex w-fit gap-4'>
-                        <Button type='submit' disabled={isSubmitting}>
+                        <Button type='submit' disabled={isSubmitting} className='w-fit'>
                             {isSubmitting ? 'Saving...' : 'Save'}
                         </Button>
                         <Button
@@ -310,7 +310,8 @@ export default function AddCoScholasticActivityAreaMapping({ onSuccess }: CoScho
                                     ecactaM_IndicatorDescription: '',
                                     ecactaM_ActiveFlag: true
                                 })
-                            }>
+                            }
+                            className='w-fit'>
                             {' '}
                             Reset{' '}
                         </Button>
