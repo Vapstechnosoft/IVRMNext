@@ -40,8 +40,9 @@ export function useEmployeeInOutReport(searchParams?: ApiSearchparams) {
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_INOUT_REPORT, searchParams ?? {}],
-            queryFn: async () => getEmployeeInOutReport({}, searchParams),
-            staleTime: 0
+            queryFn: async () => getEmployeeInOutReport({} as any, searchParams),
+            staleTime: 0,
+            enabled: false
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({

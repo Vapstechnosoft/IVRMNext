@@ -63,12 +63,18 @@ export async function getEmployeeInOutReportOnload(
 
 /**
  * Get employee in-out report data
- * POST /api/EmployeeInOutReportFacade/search
  */
-export async function getEmployeeInOutReport(data: any, searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'searchableColumns');
-    const url = `/api/EmployeeInOutReportFacade/search?${urlParams}`;
-    return await api.post<any>('hrmsfrontoffice', url, data);
+export async function getEmployeeInOutReport(
+    payload: { fromDate: string; toDate: string; hrme_ids: string; },
+    searchParams?: ApiSearchparams
+) {
+    const { fromDate, toDate, hrme_ids } = payload;
+    const formattedFromDate = fromDate ? new Date(fromDate).toISOString().split('T')[0] : '';
+    const formattedToDate = toDate ? new Date(toDate).toISOString().split('T')[0] : '';
+    const url = `/api/EmployeeInOutReport/get_employee_in_out_report/${formattedFromDate}/${formattedToDate}/${hrme_ids}`;
+
+    // Check if the original wanted POST. I'll use GET as parameters are in URL.
+    return await api.get<any>('hrmsfrontoffice', url);
 }
 
 /**
