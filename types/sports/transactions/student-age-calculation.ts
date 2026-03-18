@@ -4,6 +4,7 @@ export interface StudentAgeCalculationInitialData {
     academicYear: AcademicYear[];
     classList: ClassList[];
     sectionList?: SectionList[];
+    list?: any[];
     eventsStudentRecordList?: any[];
 }
 

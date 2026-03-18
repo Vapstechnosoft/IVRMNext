@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { use, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, Loader2 } from 'lucide-react';
 import { DataTable } from '@/components/ui/data-table';
@@ -8,36 +8,24 @@ import { createColumns } from './_components/columns';
 import { AddForm } from './_components/add-form';
 import { UpdateForm } from './_components/update-form';
 import { ToggleForm } from './_components/toggle-form';
-import { getSportsCCNameDetails } from '@/server/sports/masters/sports-cc-name';
-import { SportsCCNameDTO, SportsCCNameGroupDTO } from '@/types/sports/masters/sports-cc-name';
+import { SportsCCNameDTO } from '@/types/sports/masters/sports-cc-name';
+import { useSportsCCName } from '@/hooks/sports/useSportsCCName';
 
-export default function SportsCCNamePage() {
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+export default function SportsCCNamePage(props: { searchParams: SearchParams }) {
+    const searchParams = use(props.searchParams);
+
     const [isAdding, setIsAdding] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
     const [deletingId, setDeletingId] = useState<number | null>(null);
     const [deletingActiveFlag, setDeletingActiveFlag] = useState<boolean>(false);
-    const [data, setData] = useState<SportsCCNameDTO[]>([]);
-    const [groupNameList, setGroupNameList] = useState<SportsCCNameGroupDTO[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
 
-    const loadData = async () => {
-        setIsLoading(true);
-        try {
-            const result = await getSportsCCNameDetails();
-            if (result && result.data) {
-                setData(result.data.sportsccName || []);
-                setGroupNameList(result.data.groupNameList || []);
-            }
-        } catch (error) {
-            console.error("Failed to load data", error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    const { data: response, isLoading, refetchAll } = useSportsCCName(searchParams);
 
-    useEffect(() => {
-        loadData();
-    }, []);
+    const data = response?.data?.sportsccName || [];
+    const groupNameList = response?.data?.groupNameList || [];
+    const totalItems = response?.total || response?.data?.count || data.length;
 
     const handleEdit = (item: SportsCCNameDTO) => {
         setEditingId(item.spccmscC_Id);
@@ -53,7 +41,7 @@ export default function SportsCCNamePage() {
         setIsAdding(false);
         setEditingId(null);
         setDeletingId(null);
-        loadData();
+        refetchAll();
     };
 
     const handleCancel = () => {
@@ -63,10 +51,6 @@ export default function SportsCCNamePage() {
     };
 
     const columns = createColumns({ onEdit: handleEdit, onDelete: handleDelete });
-
-    if (isLoading && !data.length && !isAdding) {
-        return <div className="flex justify-center p-10"><Loader2 className="h-8 w-8 animate-spin" /></div>;
-    }
 
     return (
         <div className="space-y-6">
@@ -97,8 +81,16 @@ export default function SportsCCNamePage() {
                     )}
                 </div>
             ) : (
-                <div className="border rounded-lg bg-card">
-                    <DataTable columns={columns} data={data} totalItems={data.length} />
+                <div className="border rounded-lg bg-card overflow-hidden">
+                    <DataTable
+                        columns={columns}
+                        data={data}
+                        totalItems={totalItems}
+                        isLoading={isLoading}
+                        manualPagination={true}
+                        manualSorting={true}
+                        manualFiltering={true}
+                    />
                 </div>
             )}
 

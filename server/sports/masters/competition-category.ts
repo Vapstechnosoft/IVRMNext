@@ -21,8 +21,11 @@ export async function saveMasterCompetitionCategory(data: any) {
 }
 
 export async function deactivateMasterCompetitionCategory(data: any) {
-    const url = '/MasterCompetitionCategory/deactivate';
-    const res = await api.post<any>('sports', url, data);
+    const SPCCMCC_Id = data.spccmcC_Id;
+    const SPCCMCC_ActiveFlag = data.spccmcC_ActiveFlag;
+
+    const url = `/MasterCompetitionCategory/deactivate?SPCCMCC_Id=${SPCCMCC_Id}&SPCCMCC_ActiveFlag=${SPCCMCC_ActiveFlag}`;
+    const res = await api.post<any>('sports', url, {});
     revalidatePath('/Sports/Masters/CompetitionCategory');
     return res;
 }

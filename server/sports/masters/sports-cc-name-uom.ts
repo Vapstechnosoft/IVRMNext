@@ -24,8 +24,11 @@ export async function editMasterSportsCCNameUOM(id: number) {
 }
 
 export async function deactivateMasterSportsCCNameUOM(data: any) {
-    const url = `/MasterSportsCCNameUOM_/deactivate`;
-    const res = await api.post<any>(BASE_URL, url, data);
+    const SPCCMNUOM_Id = data.spccmnuoM_Id;
+    const SPCCMNUOM_ActiveFlag = data.spccmnuoM_ActiveFlag;
+
+    const url = `/MasterSportsCCNameUOM_/deactivate?SPCCMNUOM_Id=${SPCCMNUOM_Id}&SPCCMNUOM_ActiveFlag=${SPCCMNUOM_ActiveFlag}`;
+    const res = await api.post<any>(BASE_URL, url, {});
     revalidatePath('/Sports/Masters/SportsCCNameUOM');
     return res;
 }

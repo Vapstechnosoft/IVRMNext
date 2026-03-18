@@ -1,7 +1,7 @@
 'use server';
 
-import { api, type ApiResponse } from '@/lib/apiService';
-import { IDropdown } from '@/types';
+import { api, getSearchParamsUrl, type ApiResponse } from '@/lib/apiService';
+import { IDropdown, type ApiSearchparams } from '@/types';
 import { StudentAgeCalculationFormData, StudentAgeRecord } from '@/schemas/sports/transactions/student-age-calculation';
 import { StudentAgeCalculationInitialData } from '@/types/sports/transactions/student-age-calculation';
 
@@ -38,7 +38,7 @@ export async function getInitialData(): Promise<ApiResponse<{ academicYears: IDr
             name: item.asmC_SectionName
         })) || [];
 
-        const records: StudentAgeRecord[] = (response.data?.eventsStudentRecordList || []).map((r: any, index: number) => ({
+        const records: StudentAgeRecord[] = (response.data?.list || []).map((r: any, index: number) => ({
             id: index + 1,
             asmaY_Year: r.asmaY_Year,
             studentName: r.studentName,
@@ -122,19 +122,23 @@ export async function saveStudentAge(data: StudentAgeCalculationFormData): Promi
     }
 }
 
-export async function getStudentAgeRecords(data: any): Promise<ApiResponse<StudentAgeRecord[]>> {
+export async function getStudentAgeRecords(data: any, searchParams?: ApiSearchparams): Promise<ApiResponse<StudentAgeRecord[]>> {
     try {
-        const response = await api.post<any>('sports', '/StudentAgeCalc/report', data);
+        const urlParams = getSearchParamsUrl(searchParams ?? {}, 'asmaY_Year,studentName,asmcL_ClassName,asmC_SectionName');
+        const url = `/StudentAgeCalc/Getdetails?${urlParams}`;
+        // Passing data in body for APIRequestDto binding
+        const response = await api.post<any>('sports', url, data);
         if (!response.success) {
             return {
                 success: false,
                 message: response.message || 'Failed to fetch records',
-                data: []
+                data: [],
+                total: 0
             };
         }
 
-        // Mapping report data to StudentAgeRecord using correct property 'datareport'
-        const rawData = response.data?.datareport || response.data?.reportData || [];
+        // Mapping report data to StudentAgeRecord using 'list' property as seen in backend code
+        const rawData = response.data?.list || [];
         const records: StudentAgeRecord[] = rawData.map((r: any, index: number) => ({
             id: index + 1,
             asmaY_Year: r.asmaY_Year,
@@ -149,7 +153,8 @@ export async function getStudentAgeRecords(data: any): Promise<ApiResponse<Stude
         return {
             success: true,
             message: 'Records fetched successfully',
-            data: records
+            data: records,
+            total: response.total || response.data?.total || records.length
         };
     } catch (error: any) {
         return {

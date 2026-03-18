@@ -2,7 +2,7 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 import { StudentHouseMappingDTO } from '@/types/sports/masters/student-house-mapping';
-import { Checkbox } from '@/components/ui/checkbox';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { Button } from '@/components/ui/button';
 import { ArrowUpDown, Pencil, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -14,28 +14,15 @@ export const columns = (
     onDelete: (id: number, activeFlag: boolean) => void
 ): ColumnDef<StudentHouseMappingDTO>[] => [
         {
-            id: 'select',
-            header: ({ table }) => (
-                <Checkbox
-                    checked={table.getIsAllPageRowsSelected()}
-                    onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                    aria-label="Select all"
-                />
-            ),
-            cell: ({ row }) => (
-                <Checkbox
-                    checked={row.getIsSelected()}
-                    onCheckedChange={(value) => row.toggleSelected(!!value)}
-                    aria-label="Select row"
-                />
-            ),
+            id: 'serialNumber',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Sl. No' className='pl-6' />,
+            cell: ({ row, table }) => {
+                const pageIndex = table.getState().pagination.pageIndex;
+                const pageSize = table.getState().pagination.pageSize;
+                return <div className='pl-6'>{pageIndex * pageSize + row.index + 1}</div>;
+            },
             enableSorting: false,
-            enableHiding: false,
-        },
-        {
-            accessorKey: 'index',
-            header: 'SL. No.',
-            cell: ({ row }) => row.index + 1,
+            enableHiding: false
         },
         {
             accessorKey: 'asmaY_Year',

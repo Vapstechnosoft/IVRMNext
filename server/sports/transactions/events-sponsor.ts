@@ -45,10 +45,10 @@ export async function getEditEventsSponsorMapping(id: number): Promise<ApiRespon
 /**
  * Deactivate or Activate Events Sponsor Mapping.
  */
-export async function deactivateEventsSponsorMapping(data: { spccesP_Id: number, spccesP_ActiveFlag: boolean }): Promise<ApiResponse<any>> {
-    const payload = {
-        SPCCESP_Id: data.spccesP_Id,
-        SPCCESP_ActiveFlag: data.spccesP_ActiveFlag
-    };
-    return await api.post<any>('sports', '/EventsSponsor/deactivate', payload);
+export async function deactivateEventsSponsorMapping(data: { spccesP_Id: number; spccesP_ActiveFlag: boolean }): Promise<ApiResponse<any>> {
+    const SPCCESP_Id = data.spccesP_Id;
+    const SPCCESP_ActiveFlag = data.spccesP_ActiveFlag;
+
+    const url = `/EventsSponsor/deactivate?SPCCESP_Id=${SPCCESP_Id}&SPCCESP_ActiveFlag=${SPCCESP_ActiveFlag}`;
+    return await api.post<any>('sports', url, {});
 }

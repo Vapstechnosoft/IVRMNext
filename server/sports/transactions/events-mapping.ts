@@ -20,7 +20,7 @@ export async function editEventMapping(data: { ASMAY_Id: number; SPCCE_Id: numbe
 
 export async function deactivateEventMapping(data: { ASMAY_Id: number; SPCCE_Id: number }) {
     const url = `/EventVenueMapping/deactivate?ASMAY_Id=${data.ASMAY_Id}&SPCCE_Id=${data.SPCCE_Id}`;
-    return await api.post<any>('sports', url, data);
+    return await api.post<any>('sports', url, {});
 }
 
 export async function getModelData(data: { ASMAY_Id: number; SPCCE_Id: number }) {

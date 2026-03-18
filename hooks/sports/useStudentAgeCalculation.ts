@@ -1,8 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getInitialData, getStudents, saveStudentAge, getStudentAgeRecords } from '@/server/sports/transactions/student-age-calculation';
 import { toast } from 'sonner';
+import type { ApiSearchparams } from '@/types';
 
-export const useStudentAgeCalculation = () => {
+export const useStudentAgeCalculation = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
     const initialData = useQuery({
         queryKey: ['studentAgeCalculationInitial'],
@@ -35,8 +36,8 @@ export const useStudentAgeCalculation = () => {
     // Based on requirements, grid shows on load? The prompt says "show the grid also on onload".
     // So we fetch initial grid data.
     const gridData = useQuery({
-        queryKey: ['studentAgeCalculationGrid'],
-        queryFn: () => getStudentAgeRecords({}),
+        queryKey: ['studentAgeCalculationGrid', searchParams],
+        queryFn: () => getStudentAgeRecords({}, searchParams),
     });
 
     return {

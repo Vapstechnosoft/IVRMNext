@@ -2,7 +2,8 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DataTable } from '@/components/ui/data-table/data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
@@ -13,9 +14,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { use } from 'react';
 
-export default function StudentAgeCalculationPage() {
-    const { initialData, studentsData, saveData, gridData } = useStudentAgeCalculation();
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+export default function StudentAgeCalculationPage(props: { searchParams: SearchParams }) {
+    const searchParams = use(props.searchParams);
+    const { initialData, studentsData, saveData, gridData } = useStudentAgeCalculation(searchParams);
     const [studentOptions, setStudentOptions] = useState<{ label: string; value: string }[]>([]);
 
     const {
@@ -75,13 +80,13 @@ export default function StudentAgeCalculationPage() {
 
     const columns = [
         { accessorKey: 'id', header: 'SL. No.', cell: ({ row }: any) => <div>{row.index + 1}</div> },
-        { accessorKey: 'asmaY_Year', header: 'Academic Year' },
-        { accessorKey: 'studentName', header: 'Student Name' },
-        { accessorKey: 'asmcL_ClassName', header: 'Class' },
-        { accessorKey: 'asmC_SectionName', header: 'Section' },
-        { accessorKey: 'age_Years', header: 'Age Year' },
-        { accessorKey: 'age_Months', header: 'Month' },
-        { accessorKey: 'age_Days', header: "Day's" }
+        { accessorKey: 'asmaY_Year', header: ({ column }: any) => <DataTableColumnHeader column={column} title='Academic Year' /> },
+        { accessorKey: 'studentName', header: ({ column }: any) => <DataTableColumnHeader column={column} title='Student Name' /> },
+        { accessorKey: 'asmcL_ClassName', header: ({ column }: any) => <DataTableColumnHeader column={column} title='Class' /> },
+        { accessorKey: 'asmC_SectionName', header: ({ column }: any) => <DataTableColumnHeader column={column} title='Section' /> },
+        { accessorKey: 'age_Years', header: ({ column }: any) => <DataTableColumnHeader column={column} title='Age Year' /> },
+        { accessorKey: 'age_Months', header: ({ column }: any) => <DataTableColumnHeader column={column} title='Month' /> },
+        { accessorKey: 'age_Days', header: ({ column }: any) => <DataTableColumnHeader column={column} title="Day's" /> }
     ];
 
     if (initialData.isLoading) {
@@ -95,6 +100,9 @@ export default function StudentAgeCalculationPage() {
     const academicYears = initialData.data?.data?.academicYears || [];
     const classes = initialData.data?.data?.classes || [];
     const sections = initialData.data?.data?.sections || [];
+
+    const tableData = gridData.data?.data || initialData.data?.data?.records || [];
+    const tableProps = useDataTableProps(gridData.data);
 
     return (
         <div className='space-y-6'>
@@ -235,11 +243,13 @@ export default function StudentAgeCalculationPage() {
                     <CardTitle>Age Calculated Record</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <DataTable
+                    <GenericDataTable
+                        {...tableProps}
                         columns={columns}
-                        data={gridData.data?.data || initialData.data?.data?.records || []}
-                        totalItems={gridData.data?.data?.length || initialData.data?.data?.records?.length || 0}
-                    //manualPagination={false}
+                        isLoading={gridData.isLoading || initialData.isLoading}
+                        manualPagination={true}
+                        manualSorting={true}
+                        manualFiltering={true}
                     />
                 </CardContent>
             </Card>

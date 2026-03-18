@@ -34,14 +34,9 @@ export async function saveMasterUOM(data: any) {
 }
 
 export async function deactivateMasterUOM(data: any) {
-    // Controller expects DTO with PascalCase properties
-    const payload = {
-        ...data,
-        SPCCMUOM_Id: data.spccmuoM_Id ?? data.SPCCMUOM_Id,
-        SPCCMUOM_ActiveFlag: data.spccmuoM_ActiveFlag ?? data.SPCCMUOM_ActiveFlag,
-        MI_Id: data.mI_Id || 0
-    };
+    const SPCCMUOM_Id = data.spccmuoM_Id ?? data.SPCCMUOM_Id;
+    const SPCCMUOM_ActiveFlag = data.spccmuoM_ActiveFlag ?? data.SPCCMUOM_ActiveFlag;
 
-    const url = `/SportMasterUOM/deactivate`;
-    return await api.post<any>('sports', url, payload);
+    const url = `/SportMasterUOM/deactivate?SPCCMUOM_Id=${SPCCMUOM_Id}&SPCCMUOM_ActiveFlag=${SPCCMUOM_ActiveFlag}`;
+    return await api.post<any>('sports', url, {});
 }

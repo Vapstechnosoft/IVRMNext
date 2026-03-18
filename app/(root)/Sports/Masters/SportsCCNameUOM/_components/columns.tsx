@@ -2,6 +2,7 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import type { IMasterSportsCCNameUOM } from '@/types/sports/masters/sports-cc-name-uom';
 import type { ColumnDef } from '@tanstack/react-table';
@@ -9,8 +10,15 @@ import { Pencil, Power, PowerOff } from 'lucide-react';
 
 export const MasterSportsCCNameUOMColumns: ColumnDef<IMasterSportsCCNameUOM>[] = [
     {
-        header: 'SL.NO.',
-        cell: ({ row }) => row.index + 1
+        id: 'serialNumber',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl. No' className='pl-6' />,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            return <div className='pl-6'>{pageIndex * pageSize + row.index + 1}</div>;
+        },
+        enableSorting: false,
+        enableHiding: false
     },
     {
         accessorKey: 'sportsCCName',
