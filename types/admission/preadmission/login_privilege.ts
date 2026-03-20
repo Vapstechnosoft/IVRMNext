@@ -25,7 +25,6 @@ export interface ILoginPrivilegeDTO {
     asalU_EntryTypeFlag: number;
     asmaY_Id: number;
     hrmE_Id: number;
-    mI_Id: number;
     classSections: {
         asmcL_Id: number;
         asmC_Id: number;
