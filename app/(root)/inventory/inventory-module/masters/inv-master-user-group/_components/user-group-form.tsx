@@ -134,6 +134,7 @@ function UserGroupForm({ onSuccess, initialData, mode, mainGroupOptions }: UserG
                     </Label>
                     <Input
                         id='invmG_GroupName'
+                        placeholder='Enter User Group Name'
                         {...register('invmG_GroupName')}
                         className={errors.invmG_GroupName ? 'border-destructive' : ''}
                     />
@@ -144,6 +145,7 @@ function UserGroupForm({ onSuccess, initialData, mode, mainGroupOptions }: UserG
                     <Label htmlFor='invmG_AliasName'>Alias Name</Label>
                     <Input
                         id='invmG_AliasName'
+                        placeholder='Enter Alias Name'
                         {...register('invmG_AliasName')}
                         className={errors.invmG_AliasName ? 'border-destructive' : ''}
                     />

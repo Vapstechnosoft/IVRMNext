@@ -66,7 +66,10 @@ export default function AddCustomerForm({ onSuccess }: AddCustomerFormProps) {
                     {...register('invmC_CustomerContactNo')}
                     error={errors.invmC_CustomerContactNo?.message}
                     required
-                    maxLength={15}
+                    maxLength={10}
+                    onInput={(e) => {
+                        e.currentTarget.value = e.currentTarget.value.replace(/[^0-9]/g, '');
+                    }}
                 />
             </div>
 

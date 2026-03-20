@@ -83,7 +83,10 @@ export default function UpdateCustomerForm({ selectedRow, onSuccess }: UpdateCus
                     {...register('invmC_CustomerContactNo')}
                     error={errors.invmC_CustomerContactNo?.message}
                     required
-                    maxLength={15}
+                    maxLength={10}
+                    onInput={(e) => {
+                        e.currentTarget.value = e.currentTarget.value.replace(/[^0-9]/g, '');
+                    }}
                 />
             </div>
 
