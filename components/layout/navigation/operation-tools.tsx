@@ -32,7 +32,8 @@ export function OperationTools() {
     React.useEffect(() => {
         setIsOpen(false);
     }, [pathname]);
-
+    console.log('backend_modules', accessibleModules);
+    console.info('accessibleModules', accessibleModules);
     const filteredModules = React.useMemo(() => {
         if (!accessibleModules?.data) return [];
         return accessibleModules.data.filter((module) =>
