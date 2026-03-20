@@ -165,7 +165,8 @@ export default function StudentDashboardPage() {
                     icon={<ClipboardList className='h-6 w-6' />}
                     colorClass='bg-yellow-500'
                     footerText='ATTENDANCE DETAILS'
-                    onViewClick={() => router.push('/StudentPortal/student-dashboard/EnrolledStudents/Transaction/AttendanceDetails')}>
+                    // onViewClick={() => router.push('/StudentPortal/student-dashboard/EnrolledStudents/Transaction/AttendanceDetails')}>
+                    onViewClick={() => router.push('/StudentPortal/masters/attendance-details')}>
                     <div className='mt-2 space-y-1 text-slate-700 text-sm dark:text-slate-300'>
                         <div className='flex justify-between'>
                             <span>Classes Held:</span>
