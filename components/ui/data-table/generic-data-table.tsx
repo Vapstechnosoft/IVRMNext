@@ -80,9 +80,10 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         ErrorComponent,
         showSearchColumns = false,
         showExportOptions = false,
-        manualPagination = true,
-        manualSorting = true,
-        manualFiltering = true,
+        // Smart defaults: if we have less data than total items, we need manual pagination
+        manualPagination = totalItems > data.length,
+        manualSorting = totalItems > data.length,
+        manualFiltering = totalItems > data.length,
         scrollable = false,
         maxHeight = '600px'
     }: GenericDataTableProps<T>,

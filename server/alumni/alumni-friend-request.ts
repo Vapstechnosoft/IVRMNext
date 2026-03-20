@@ -15,11 +15,6 @@ export async function getAlumniFriendRequestData(searchParams?: ApiSearchparams)
     return await api.get<IAlumniFriendRequestLoadResponse>('alumni', url);
 }
 
-export async function searchAlumniFriendRequest(data: any) {
-    const url = '/AlumniSearch';
-    return await api.post<IAlumniFriendRequestLoadResponse>('alumni', url, data);
-}
-
 export async function viewAlumniProfile(data: { almsT_Id: number }) {
     const url = '/Alumni_Student_FriendRequest/viewprofile';
     const payload = {
@@ -56,7 +51,7 @@ export async function handleFriendRequestAction(data: {
     return await api.post<any>('alumni', url, payload);
 }
 
-export async function searchAlumniLettersData(data: {
+export async function getAlumniSearchData(data: {
     condition: string[];
     field: string[];
     operator: string[];

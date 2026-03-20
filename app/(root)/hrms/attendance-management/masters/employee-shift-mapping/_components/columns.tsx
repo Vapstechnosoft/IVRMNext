@@ -8,7 +8,7 @@ import { useCallback } from 'react';
 
 export const employeeShiftMappingColumns: ColumnDef<IMasterEmployeeShiftMappingList>[] = [
     {
-        accessorKey: 'FOEST_Id',
+        accessorKey: 'foesT_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
@@ -20,96 +20,96 @@ export const employeeShiftMappingColumns: ColumnDef<IMasterEmployeeShiftMappingL
         enableHiding: false
     },
     {
-        accessorKey: 'ShiftName',
+        accessorKey: 'fomS_ShiftName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Shift Name' />,
-        cell: ({ row }) => <div>{row.getValue('ShiftName') || '-'}</div>,
+        cell: ({ row }) => <div>{row.getValue('fomS_ShiftName') || '-'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'EmployeeName',
+        accessorKey: 'hrmE_EmployeeFirstName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Employee' />,
-        cell: ({ row }) => <div>{row.getValue('EmployeeName') || '-'}</div>,
+        cell: ({ row }) => <div>{row.getValue('hrmE_EmployeeFirstName') || '-'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'DayType',
+        accessorKey: 'fohtwD_HolidayWDType',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Day Type' />,
-        cell: ({ row }) => <div>{row.getValue('DayType') || '-'}</div>,
+        cell: ({ row }) => <div>{row.getValue('fohtwD_HolidayWDType') || '-'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'Date',
+        accessorKey: 'foesT_Date',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Date' />,
         cell: ({ row }) => {
-            const date = row.getValue('Date') as string;
-            return <div>{date ? new Date(date).toLocaleDateString() : '-'}</div>;
+            const date = row.getValue('foesT_Date') as string;
+            return <div>{date ? new Date(date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}</div>;
         },
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'FDWHrMin',
+        accessorKey: 'foesT_FDWHrMin',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Total Work Hour' />,
-        cell: ({ row }) => <div>{row.getValue('FDWHrMin') || '-'}</div>,
+        cell: ({ row }) => <div>{row.getValue('foesT_FDWHrMin') || '-'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'HDWHrMin',
+        accessorKey: 'foesT_HDWHrMin',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Half Day Work Hour' />,
-        cell: ({ row }) => <div>{row.getValue('HDWHrMin') || '-'}</div>,
+        cell: ({ row }) => <div>{row.getValue('foesT_HDWHrMin') || '-'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'IHalfLogin',
+        accessorKey: 'foesT_IHalfLoginTime',
         header: ({ column }) => <DataTableColumnHeader column={column} title='First Half Login' />,
-        cell: ({ row }) => <div>{row.getValue('IHalfLogin') || '-'}</div>,
+        cell: ({ row }) => <div>{row.getValue('foesT_IHalfLoginTime') || '-'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'IHalfLogout',
+        accessorKey: 'foesT_IHalfLogoutTime',
         header: ({ column }) => <DataTableColumnHeader column={column} title='First Half Logout' />,
-        cell: ({ row }) => <div>{row.getValue('IHalfLogout') || '-'}</div>,
+        cell: ({ row }) => <div>{row.getValue('foesT_IHalfLogoutTime') || '-'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'IIHalfLogin',
+        accessorKey: 'foesT_IIHalfLoginTime',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Second Half Login' />,
-        cell: ({ row }) => <div>{row.getValue('IIHalfLogin') || '-'}</div>,
+        cell: ({ row }) => <div>{row.getValue('foesT_IIHalfLoginTime') || '-'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'IIHalfLogout',
+        accessorKey: 'foesT_IIHalfLogoutTime',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Second Half Logout' />,
-        cell: ({ row }) => <div>{row.getValue('IIHalfLogout') || '-'}</div>,
+        cell: ({ row }) => <div>{row.getValue('foesT_IIHalfLogoutTime') || '-'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'DelayPerShift',
+        accessorKey: 'foesT_DelayPerShiftHrMin',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Delay Per Shift' />,
-        cell: ({ row }) => <div>{row.getValue('DelayPerShift') || '-'}</div>,
+        cell: ({ row }) => <div>{row.getValue('foesT_DelayPerShiftHrMin') || '-'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'EarlyPerShift',
+        accessorKey: 'foesT_EarlyPerShiftHrMin',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Early Per Shift' />,
-        cell: ({ row }) => <div>{row.getValue('EarlyPerShift') || '-'}</div>,
+        cell: ({ row }) => <div>{row.getValue('foesT_EarlyPerShiftHrMin') || '-'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'LunchDuration',
+        accessorKey: 'foesT_LunchHoursDuration',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Lunch Duration' />,
-        cell: ({ row }) => <div>{row.getValue('LunchDuration') || '-'}</div>,
+        cell: ({ row }) => <div>{row.getValue('foesT_LunchHoursDuration') || '-'}</div>,
         enableSorting: true,
         enableHiding: true
     },

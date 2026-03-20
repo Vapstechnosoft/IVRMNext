@@ -1,6 +1,7 @@
 import * as z from 'zod';
 
 export const StaffRepacementExistingToNewSchema = z.object({
+    asmaY_Id: z.string().optional(), //Academic Year
     ttmC_Id: z.string().min(1, 'Please Provide Category'), //category
     asmcL_Id: z.string().optional(), //Class
     asms_Id: z.string().optional(), //Section

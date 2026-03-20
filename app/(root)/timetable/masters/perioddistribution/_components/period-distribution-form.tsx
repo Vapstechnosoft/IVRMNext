@@ -9,6 +9,7 @@ import {
     useCategtoryPeriodDistrubution,
     useClassPeriodDistrubution,
     usePeriodDistributionDetails,
+    usePeriodDistributionEditDetails,
     useSectionPeriodDistrubution,
     useStaffPeriodDistrubution,
     useSubjectPeriodDistrubution
@@ -16,9 +17,10 @@ import {
 import { periodDistributionSchema } from '@/schemas/timetable/masters';
 import { saveperioddistribution } from '@/server/timetable/masters/perioddistribution';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowRight, Save, Trash2 } from 'lucide-react';
+import { ArrowRight, Loader2, Save, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
@@ -48,6 +50,16 @@ export default function PeriodDistributionForm({ onSuccess, initialData }: Perio
     const subjectList = (subjectData as any) || [];
     const classList = (classData as any) || [];
 
+    const { data: session } = useSession();
+    const mi_id =
+        (session as any)?.mi_id ||
+        (session as any)?.mi_Id ||
+        (session as any)?.user?.mi_Id ||
+        (session as any)?.user?.mi_id ||
+        0;
+    // if (status === "loading") return null;
+    const [editLoaded, setEditLoaded] = useState(false);
+
     const {
         register,
         handleSubmit,
@@ -68,7 +80,57 @@ export default function PeriodDistributionForm({ onSuccess, initialData }: Perio
     const watchedAcademicYear = watch('asmaY_Id');
     const watchedCategory = watch('ttmC_Id');
     const watchedTotalWeeklyPeriods = watch('nop1');
-    // const watchedNoOfPeriodsByUser = watch('nop2');
+    const watchedStaff = watch('hrmE_Id');
+
+    // Fetch full details if editing
+    const { data: editData, isLoading: isLoadingEdit } = usePeriodDistributionEditDetails({
+        id: initialData?.ttfpD_Id,
+        enabled: !!initialData?.ttfpD_Id
+    });
+
+    // Populate form for editing
+    useEffect(() => {
+        if (initialData && !isLoadingEdit && !editLoaded) {
+
+            const fullData = (editData as any) || {};
+
+            const asmaY_Id = fullData.asmaY_Id || initialData.asmaY_Id;
+            const hrmE_Id = fullData.hrmE_Id || initialData.hrmE_Id;
+            const nop1 = fullData.ttfpD_TotWeekPeriods || initialData.ttfpD_TotWeekPeriods;
+            const ttfpD_StaffConsecutive =
+                fullData.ttfpD_StaffConsecutive || initialData.ttfpD_StaffConsecutive || 1;
+
+            if (asmaY_Id) setValue('asmaY_Id', Number(asmaY_Id));
+            if (hrmE_Id) setValue('hrmE_Id', Number(hrmE_Id));
+            if (nop1) setValue('nop1', Number(nop1));
+
+            setValue('ttfpD_StaffConsecutive', Number(ttfpD_StaffConsecutive));
+
+            const details =
+                (editData as any)?.periodDistributionDetails ||
+                (editData as any)?.data?.periodDistributionDetails;
+
+            if (details && Array.isArray(details)) {
+                const mappedDetails = details.map((detail: any) => ({
+                    id: detail.ttfpdD_Id || Date.now() + Math.random(),
+                    catDisplay: detail.ttmC_CategoryName,
+                    clsDisplay: detail.asmcL_ClassName,
+                    sectDisplay: detail.asmC_SectionName,
+                    subDisplay: detail.ismS_SubjectName,
+                    pedDisplay: detail.ttfpD_TotalPeriods,
+                    asmcL_Id: detail.asmcL_Id,
+                    asmS_Id: detail.asmS_Id,
+                    ismS_Id: detail.ismS_Id,
+                    ttmC_Id: detail.ttmC_Id,
+                    ttfpdD_Id: detail.ttfpdD_Id
+                }));
+
+                setTempList(mappedDetails);
+            }
+
+            setEditLoaded(true);
+        }
+    }, [initialData, editData, isLoadingEdit]);
 
     // Calculate Available Periods
     useEffect(() => {
@@ -122,10 +184,10 @@ export default function PeriodDistributionForm({ onSuccess, initialData }: Perio
         // Check duplicate
         const isDuplicate = tempList.some(
             (item) =>
-                item.catDisplay === catName &&
-                item.clsDisplay === className &&
-                item.sectDisplay === sectionName &&
-                item.subDisplay === subjectName
+                item.ttmC_Id === data.ttmC_Id &&
+                item.asmcL_Id === data.asmcL_Id &&
+                item.asmS_Id === data.asmS_Id &&
+                item.ismS_Id === data.ismS_Id
         );
 
         if (isDuplicate) {
@@ -189,18 +251,18 @@ export default function PeriodDistributionForm({ onSuccess, initialData }: Perio
         }
 
         const payload = {
-            ttfpD_Id: 0,
-            mI_Id: 0,
+            ttfpD_Id: initialData?.ttfpD_Id || 0,
+            mI_Id: mi_id || initialData?.mI_Id || 0,
             asmaY_Id: data.asmaY_Id,
             hrmE_Id: data.hrmE_Id,
             ttfpD_TotWeekPeriods: data.nop1,
             ttfpD_ActiveFlag: true,
             ttfpD_StaffConsecutive: data.ttfpD_StaffConsecutive,
-            createdDate: new Date().toISOString(),
+            createdDate: initialData?.createdDate || new Date().toISOString(),
             updatedDate: new Date().toISOString(),
             periodDistributionDetails: tempList.map((item) => ({
-                ttfpdD_Id: 0,
-                ttfpD_Id: 0,
+                ttfpdD_Id: item.ttfpdD_Id || 0,
+                ttfpD_Id: initialData?.ttfpD_Id || 0,
                 ttmC_Id: item.ttmC_Id,
                 asmcL_Id: item.asmcL_Id,
                 asmS_Id: item.asmS_Id,
@@ -216,6 +278,7 @@ export default function PeriodDistributionForm({ onSuccess, initialData }: Perio
         console.log('payload', JSON.stringify(payload));
 
         const response = await saveperioddistribution(payload);
+        console.log('response', response);
         if (response.success) {
             toast.success(response.message);
             reset();
@@ -225,6 +288,15 @@ export default function PeriodDistributionForm({ onSuccess, initialData }: Perio
             toast.error(response.message);
         }
     };
+
+    if (initialData && isLoadingEdit) {
+        return (
+            <div className='flex h-40 items-center justify-center rounded-md border bg-white shadow-sm'>
+                <Loader2 className='h-8 w-8 animate-spin text-primary' />
+                <span className='ml-2 text-muted-foreground'>Loading details...</span>
+            </div>
+        );
+    }
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
@@ -240,7 +312,7 @@ export default function PeriodDistributionForm({ onSuccess, initialData }: Perio
                                 control={control}
                                 name='asmaY_Id'
                                 render={({ field }) => (
-                                    <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                                    <Select key={field.value?.toString() || 'empty'} onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                         <SelectTrigger>
                                             <SelectValue placeholder='--Select--' />
                                         </SelectTrigger>
@@ -291,7 +363,7 @@ export default function PeriodDistributionForm({ onSuccess, initialData }: Perio
                                 control={control}
                                 name='hrmE_Id'
                                 render={({ field }) => (
-                                    <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                                    <Select key={field.value?.toString() || 'empty'} onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                         <SelectTrigger>
                                             <SelectValue placeholder='--Select Staff--' />
                                         </SelectTrigger>
@@ -331,7 +403,7 @@ export default function PeriodDistributionForm({ onSuccess, initialData }: Perio
                             control={control}
                             name='ttmC_Id'
                             render={({ field }) => (
-                                <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                                <Select key={field.value?.toString() || 'empty'} onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                     <SelectTrigger>
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
@@ -353,7 +425,7 @@ export default function PeriodDistributionForm({ onSuccess, initialData }: Perio
                             control={control}
                             name='asmcL_Id'
                             render={({ field }) => (
-                                <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                                <Select key={field.value?.toString() || 'empty'} onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                     <SelectTrigger>
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
@@ -379,7 +451,7 @@ export default function PeriodDistributionForm({ onSuccess, initialData }: Perio
                             control={control}
                             name='asmS_Id'
                             render={({ field }) => (
-                                <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                                <Select key={field.value?.toString() || 'empty'} onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                     <SelectTrigger>
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
@@ -401,7 +473,7 @@ export default function PeriodDistributionForm({ onSuccess, initialData }: Perio
                             control={control}
                             name='ismS_Id'
                             render={({ field }) => (
-                                <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                                <Select key={field.value?.toString() || 'empty'} onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                     <SelectTrigger>
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>

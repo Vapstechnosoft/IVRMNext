@@ -53,9 +53,7 @@ export default function ToggleInvMasterSupplierForm({ rowData, onClose }: Toggle
                 </AlertDialogHeader>
 
                 <AlertDialogFooter className="flex gap-2">
-                    <AlertDialogCancel asChild>
-                        <Button variant="secondary">Cancel</Button>
-                    </AlertDialogCancel>
+                    <AlertDialogCancel className="hover:bg-transparent">Cancel</AlertDialogCancel>
 
                     <AlertDialogAction asChild>
                         <Button
