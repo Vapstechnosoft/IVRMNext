@@ -464,7 +464,6 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
             if (response.success) {
                 toast.success(response.message);
                 reset();
-                // Reset period selections
                 setSelectedBeforePeriods([]);
                 setSelectedAfterPeriods([]);
                 refetchAll();
@@ -746,7 +745,7 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
                                                 : 'border-gray-300 hover:border-primary/40'
                                         )}>
                                         {day_ids.length === (daySearch.trim() ? filteredDayIds.length : Masterdaydata.data.length) &&
-                                        day_ids.length ? (
+                                            day_ids.length ? (
                                             <CheckSquare className='h-4 w-4 text-primary' />
                                         ) : (
                                             <Square className='h-4 w-4 text-gray-400' />

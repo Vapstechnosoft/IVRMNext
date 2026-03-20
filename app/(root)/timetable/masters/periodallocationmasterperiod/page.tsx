@@ -3,7 +3,7 @@
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { usePeriodAllocation } from '@/hooks/timetable/useMasters';
+import { getPeriodAllocationmasterPeriodGridData } from '@/hooks/timetable/useMasters';
 import type { IPeriodAllocationMasterDay } from '@/types/timetable/masters/masters';
 import { use } from 'react';
 import { masterPeriodColumns } from './_components/columns';
@@ -17,7 +17,7 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function MasterPeriodPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error, refetchAll } = usePeriodAllocation(searchParams);
+    const { data: response, isLoading, error, refetchAll } = getPeriodAllocationmasterPeriodGridData(searchParams);
 
     return (
         <FormProvider<IPeriodAllocationMasterDay>>

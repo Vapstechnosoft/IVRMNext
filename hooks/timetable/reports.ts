@@ -1,10 +1,14 @@
 import { TIMETABLE_QUERY_KEYS } from '@/constants/Timetable-query-keys';
 import { getClassDetails, getSectionDetailsTT } from '@/server/timetable/reports/classwisett';
-import { getAcademicYear } from '@/server/timetable/reports/deputationreport';
+import {
+    getAcademicYear,
+    getDeputationReportDetails,
+    getDeputationReportLoadData
+} from '@/server/timetable/reports/deputationreport';
 import { getstaffdropdowndatattstaffreport } from '@/server/timetable/reports/staffwisett';
 
 import type { ApiSearchparams } from '@/types';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const useSectionDropDown = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
@@ -77,3 +81,16 @@ export const useDeputationAcademicYear = (searchParams?: ApiSearchparams) => {
         }
     };
 };
+
+export const useDeputationReportLoadData = () => {
+    return useQuery({
+        queryKey: [TIMETABLE_QUERY_KEYS.DEPUTATION_MASTERS],
+        queryFn: getDeputationReportLoadData
+    });
+};
+
+export const useDeputationReportDetails = () => {
+    return useMutation({
+        mutationFn: (data: any) => getDeputationReportDetails(data)
+    });
+};
