@@ -432,6 +432,7 @@ export const HRMS_QUERY_KEYS = {
     MASTER_DRIVER_SHIFT: 'attendance_master_driver_shift',
     EMPLOYEE_MISSING_LOGS: 'attendance_employee_missing_logs',
     GPS_LOCATION_ATTENDANCE: 'attendance_gps_location_attendance',
+    MASTER_TIME_SETTING: 'attendance_master_time_setting',
     // Attendance Management Reports
     EMPLOYEE_INOUT_REPORT: 'attendance_employee_inout_report',
     EMPLOYEE_INOUT_REPORT_ONLOAD: 'attendance_employee_inout_report_onload',

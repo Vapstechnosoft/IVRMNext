@@ -57,3 +57,9 @@ export async function getCategory(data: any) {
     const url = '/PeriodAllocation/get_catg';
     return await api.post<any>('timetable', url, data);
 }
+
+export async function getPeriodAllocationmasterPeriodGrid(searchParams?: ApiSearchparams) {
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'ttmP_PeriodName');
+    const url = `/PeriodAllocationFacade/PeriodAllocationmasterPeriodgrid?${urlParams}`;
+    return await api.get<IPeriodAllocationMasterDay[]>('timetable', url);
+}

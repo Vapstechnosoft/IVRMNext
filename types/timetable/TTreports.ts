@@ -29,3 +29,24 @@ export interface IDeputationAcademicYear {
     ttfG_Id: number;
     asmaY_Year: string;
 }
+
+export interface IDeputationStaff {
+    hrmE_Id: number;
+    staffName: string;
+}
+
+export interface IDeputationDay {
+    ttmD_Id: number;
+    mI_Id: number;
+    ttmD_DayName: string;
+    ttmD_DayCode: string;
+    order_Id: number;
+    ttmD_ActiveFlag: boolean;
+    createdDate: string;
+    updatedDate: string;
+}
+
+export interface IDeputationLoadData {
+    stafflist: IDeputationStaff[];
+    gridweeks: IDeputationDay[];
+}

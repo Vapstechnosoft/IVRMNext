@@ -374,7 +374,7 @@ export default function OnlineAdminLeavePage() {
                     </div>
 
                     <div className='w-full md:w-[400px] space-y-1.5'>
-                        <label className='text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1'>Select Employee</label>
+                        <label className='text-[12px] font-black uppercase  tracking-widest ml-1'>Select Employee</label>
                         <Select
                             searchable={false}
                             onValueChange={(value) => {
@@ -385,7 +385,7 @@ export default function OnlineAdminLeavePage() {
                             }}
                             value={selectedEmployeeId && selectedEmployeeId > 0 ? selectedEmployeeId.toString() : ''}
                         >
-                            <SelectTrigger className='h-12 border-primary/20 bg-slate-50/50 hover:bg-slate-50 rounded-xl focus:ring-primary/20 transition-all'>
+                            <SelectTrigger className='h-12 border-primary/20  hover:bg-slate-50 rounded-xl focus:ring-primary/20 transition-all'>
                                 <SelectValue placeholder='Search and Select Staff...' />
                             </SelectTrigger>
                             <SelectContent className='max-h-80'>

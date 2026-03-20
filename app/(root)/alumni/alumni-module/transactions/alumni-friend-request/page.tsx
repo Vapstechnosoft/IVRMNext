@@ -3,7 +3,7 @@
 import RequestList from '@/app/(root)/alumni/alumni-module/transactions/alumni-friend-request/_components/request-list';
 import SearchForm from '@/app/(root)/alumni/alumni-module/transactions/alumni-friend-request/_components/search-form';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { getAlumniFriendRequestData, searchAlumniFriendRequest } from '@/server/alumni/alumni-friend-request';
+import { getAlumniFriendRequestData, getAlumniSearchData } from '@/server/alumni/alumni-friend-request';
 import type { IAlumniFriendRequest } from '@/types/alumni/alumni-friend-request';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -67,7 +67,7 @@ export default function AlumniFriendRequestPage() {
                 value: [values.value],
                 condition: ['AND'] // Providing default condition
             };
-            const res = await searchAlumniFriendRequest(payload);
+            const res = await getAlumniSearchData(payload);
             if (res.success && res.data) {
                 if (res.data.almsT_Id) {
                     setCurrentAlumniId(res.data.almsT_Id);

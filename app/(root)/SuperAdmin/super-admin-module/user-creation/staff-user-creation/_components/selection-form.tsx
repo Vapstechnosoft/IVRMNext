@@ -7,6 +7,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import type { RoleTypeDTO, TrustDTO, InstitutionDTO, StaffDTO } from '@/types/super-admin/user-creation/staff-user-creation';
 
@@ -207,13 +208,14 @@ export default function SelectionForm({
                 {/* VIEW ADMIN USERNAMES!! - Strictly for Admin/Super Admin as requested */}
                 {isAdmin && watch('institution') && (
                     <div className="pt-1">
-                        <button
+                        <Button
                             type="button"
+                            variant="link"
                             onClick={onViewUsernames}
-                            className="text-red-500 hover:text-red-700 text-xs font-bold uppercase underline decoration-2 underline-offset-4"
+                            className="text-red-500 hover:text-red-700 px-0 h-auto font-bold uppercase underline decoration-2 underline-offset-4"
                         >
                             VIEW ADMIN USERNAMES!!
-                        </button>
+                        </Button>
                     </div>
                 )}
             </div>

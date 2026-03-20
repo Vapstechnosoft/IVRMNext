@@ -178,11 +178,12 @@ export default function PeriodTimeSettingForm({ onSuccess }: PeriodTimeSettingFo
                 response?.returnval === true || response?.success === true || response?.message?.toLowerCase().includes('success');
 
             if (isSuccess) {
-                toast.success(response.message || 'Saved successfully');
+                toast.success(response.message);
+                await refetch();
                 onSuccess?.();
                 cancelEdit();
             } else {
-                toast.error(response.message || 'Something went wrong');
+                toast.error(response.message);
             }
         } catch (error: any) {
             toast.error(error.message);

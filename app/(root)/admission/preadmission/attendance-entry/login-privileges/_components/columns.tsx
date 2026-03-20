@@ -42,10 +42,17 @@ export const loginPrivilegeColumns: ColumnDef<ILoginPrivilege>[] = [
     {
         accessorKey: 'asmC_SectionName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Section' className='font-bold text-black' />,
-        cell: ({ row }) => <div>{row.getValue('asmC_SectionName')}</div>,
+        cell: ({ row }) => <div className='text-center'>{row.getValue('asmC_SectionName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
+    // {
+    //     accessorKey: 'pamS_SubjectName',
+    //     header: ({ column }) => <DataTableColumnHeader column={column} title='Subject' className='font-bold text-black' />,
+    //     cell: ({ row }) => <div className='text-center'>{row.getValue('pamS_SubjectName') || '-'}</div>,
+    //     enableSorting: true,
+    //     enableHiding: true
+    // },
     {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Action' className='text-center font-bold text-black' />,
@@ -83,7 +90,7 @@ function ActionButtonsCell({ rowData }: { rowData: ILoginPrivilege }) {
         <ActionButtons
             rowData={rowData}
             buttons={{ edit: true, toggle: false, delete: true }}
-            disabled={{ edit: true }}
+            disabled={{ edit: false }}
             onEdit={handleEdit}
             onToggle={handleToggle}
             onDelete={handleDelete}
