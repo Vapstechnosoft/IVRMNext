@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useMasterCompetitionCategories } from '@/hooks/sports/useMasterCompetitionCategory';
@@ -151,11 +151,7 @@ function MasterCompetitionCategoryPageContent({
 
                 {/* Toggle Form */}
                 {isToggleFormOpen && selectedRow && (
-                    <ToggleMasterCompetitionCategoryForm
-                        rowData={selectedRow}
-                        onClose={closeToggleForm}
-                        onSuccess={refetchAll}
-                    />
+                    <ToggleMasterCompetitionCategoryForm rowData={selectedRow} onClose={closeToggleForm} onSuccess={refetchAll} />
                 )}
             </div>
         </div>
