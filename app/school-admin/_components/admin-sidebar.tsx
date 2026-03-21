@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const menuItems = [
-    { title: 'Dashboard', icon: LayoutDashboard, url: '/school-admin' },
+    { title: 'Dashboard', icon: LayoutDashboard, url: '/chairman' },
     { title: 'Students', icon: Users, url: '/school-admin/students' },
     { title: 'Teachers', icon: UserCircle, url: '/school-admin/teachers' },
     { title: 'Classes', icon: BookOpen, url: '/school-admin/classes' },

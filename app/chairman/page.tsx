@@ -26,6 +26,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+
 import {
     ResponsiveContainer,
     BarChart,
@@ -38,17 +39,8 @@ import {
     Cell
 } from 'recharts';
 import { cn } from '@/lib/utils';
-
+import { getDashboardCounts } from '@/server/dashboards/chairman-dashboard';
 // --- Data from Reference Images ---
-
-const statsCards = [
-    { title: 'SMS SENT FROM PRINCIPAL', value: '0', icon: MessageSquare, color: 'text-cyan-600', bg: 'bg-cyan-500/10', glow: 'shadow-cyan-500/20' },
-    { title: 'EMAIL SENT FROM PRINCIPAL', value: '0', icon: Mail, color: 'text-emerald-600', bg: 'bg-emerald-500/10', glow: 'shadow-emerald-500/20' },
-    { title: 'Total Collected Fee', value: '₹ 19,54,75,970', icon: DollarSign, color: 'text-amber-600', bg: 'bg-amber-500/10', glow: 'shadow-amber-500/20' },
-    { title: 'Total Student', value: '1940', icon: Users, color: 'text-rose-600', bg: 'bg-rose-500/10', glow: 'shadow-rose-500/20' },
-    { title: 'Over All Institution Collected Fee', value: '₹ 25.4M', icon: Wallet, color: 'text-indigo-600', bg: 'bg-indigo-500/10', glow: 'shadow-indigo-500/20' },
-    { title: 'STUDENT ABSENT', subtitle: '(Feb 21, 2026)', value: '142', icon: UserMinus, color: 'text-green-700', bg: 'bg-green-600/10', glow: 'shadow-green-500/20' },
-];
 
 const studentStrengthData = [
     { name: 'PCMB', value: 280, color: '#06b6d4' },
@@ -89,7 +81,7 @@ const eventDetails = [
 
 // --- Sub-Components ---
 
-const StatCard = ({ item }: { item: typeof statsCards[0] }) => (
+const StatCard = ({ item }: { item: any }) => (
     <Card className={cn(
         "border-none shadow-xl rounded-3xl overflow-hidden group hover:scale-[1.02] transition-all duration-500 card-premium relative",
         item.glow
@@ -141,6 +133,36 @@ const ChartCard = ({ title, children, className }: { title: string, children: Re
 );
 
 export default function ChairmanDashboard() {
+    const [dashboardData, setDashboardData] = React.useState<any>(null);
+
+    React.useEffect(() => {
+        const fetchData = async () => {
+            const { data } = await getDashboardCounts();
+            console.log('preadmission data', data?.data)
+            setDashboardData(data?.data);
+        };
+
+        fetchData();
+    }, []);
+
+    const statsCards = [
+        { title: 'SMS SENT FROM PRINCIPAL', value: '0', icon: MessageSquare, color: 'text-cyan-600', bg: 'bg-cyan-500/10', glow: 'shadow-cyan-500/20' },
+        { title: 'EMAIL SENT FROM PRINCIPAL', value: '0', icon: Mail, color: 'text-emerald-600', bg: 'bg-emerald-500/10', glow: 'shadow-emerald-500/20' },
+        { title: 'Total Collected Fee', value: '₹ 19,54,75,970', icon: DollarSign, color: 'text-amber-600', bg: 'bg-amber-500/10', glow: 'shadow-amber-500/20' },
+
+        {
+            title: 'Total Student',
+            value: dashboardData?.studentCount ?? '0',
+            icon: Users,
+            color: 'text-rose-600',
+            bg: 'bg-rose-500/10',
+            glow: 'shadow-rose-500/20'
+        },
+
+        { title: 'Over All Institution Collected Fee', value: '₹ 25.4M', icon: Wallet, color: 'text-indigo-600', bg: 'bg-indigo-500/10', glow: 'shadow-indigo-500/20' },
+        { title: 'STUDENT ABSENT', subtitle: '(Feb 21, 2026)', value: '142', icon: UserMinus, color: 'text-green-700', bg: 'bg-green-600/10', glow: 'shadow-green-500/20' },
+    ];
+
     return (
         <div className="space-y-10 pb-20 animate-in fade-in slide-in-from-bottom-6 duration-1000">
             {/* Header Section */}
