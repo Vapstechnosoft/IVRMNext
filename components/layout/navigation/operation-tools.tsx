@@ -141,6 +141,7 @@ export function OperationTools() {
                                         const Icon = getIconByName(module.icon) || Boxes;
                                         const isActive = selectedModuleId === module.id;
                                         return (
+                                            // biome-ignore lint/a11y/useButtonType: <explanation>
                                             <button
                                                 key={module.id}
                                                 onMouseEnter={() => setSelectedModuleId(module.id)}
@@ -237,6 +238,7 @@ export function OperationTools() {
                                                                 {subMenu.pages.map((page, pageIdx) => {
                                                                     const PageIcon = getIconByName(page.icon) || Boxes;
                                                                     return (
+                                                                        // biome-ignore lint/a11y/useButtonType: <explanation>
                                                                         <button
                                                                             key={pageIdx}
                                                                             onClick={() => handlePageClick(page, menu, subMenu)}
