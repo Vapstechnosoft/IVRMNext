@@ -456,6 +456,7 @@ export const HRMS_QUERY_KEYS = {
     GPS_LOCATION_REPORT: 'attendance_gps_location_report',
     HOLIDAY_REPORT: 'attendance_holiday_report',
     FO_MONTHEND_REPORT: 'attendance_fo_monthend_report',
+    EMPLOYEE_MONTH_REPORT: 'attendance_employee_month_report',
     // Leave Management Masters
     MASTER_LEAVE: 'leave_master_leave',
     LEAVE_AUTHORIZATION: 'leave_leave_authorization',
