@@ -463,6 +463,7 @@ export const employeeLogReportFilterSchema = z
         }),
         date: z.string().optional(),
         month: z.string().optional(),
+        year: z.string().optional(),
         fromDate: z.string().optional(),
         toDate: z.string().optional(),
         metric: z.enum(['Punch Time', 'Late In', 'Early Out'], {
@@ -487,7 +488,7 @@ export const employeeLogReportFilterSchema = z
                 return !!data.date;
             }
             if (data.dateMode === 'Monthly') {
-                return !!data.month;
+                return !!data.month && !!data.year;
             }
             if (data.dateMode === 'From Date') {
                 return !!data.fromDate && !!data.toDate;
@@ -495,7 +496,7 @@ export const employeeLogReportFilterSchema = z
             return true;
         },
         {
-            message: 'Date, Monthly, or Date Range is required based on selected mode',
+            message: 'Date, Monthly (Month & Year), or Date Range is required based on selected mode',
             path: ['date']
         }
     )
@@ -601,8 +602,8 @@ export const foMonthEndReportFilterSchema = z.object({
  * Holiday Report Filter Schema
  */
 export const holidayReportFilterSchema = z.object({
-    calendarYear: z.string().min(1, 'Calendar Year is required'),
-    holidayType: z.string().min(1, 'Holiday Type is required')
+    hrmlY_Id: z.string().min(1, 'Calendar Year is required'),
+    fohwdT_Id: z.string().min(1, 'Holiday Type is required')
 });
 
 /**

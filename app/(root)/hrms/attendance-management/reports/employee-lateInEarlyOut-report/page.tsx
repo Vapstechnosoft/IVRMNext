@@ -7,12 +7,11 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { useEmployeeLateInEarlyOutReport } from '@/hooks/hrms/attendance-management/useReports';
 import { exportToExcel } from '@/lib/utils';
 import { format } from 'date-fns';
-import { FileSpreadsheet, Printer, X } from 'lucide-react';
-import { useState } from 'react';
-import { use } from 'react';
+import { FileSpreadsheet, X } from 'lucide-react';
+import { useMemo, use } from 'react';
 import AddEmployeeLateInEarlyOutReportForm from './_components/add-from';
 import type { LIEORow } from './_components/columns';
-import { employeeLateInEarlyOutReportColumns } from './_components/columns';
+import { getEmployeeLateInEarlyOutReportColumns } from './_components/columns';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -20,11 +19,16 @@ export default function EmployeeLateInEarlyOutReportPage(props: {
     searchParams: SearchParams;
 }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useEmployeeLateInEarlyOutReport(searchParams);
+    const { data: response, isLoading, error } = useEmployeeLateInEarlyOutReport({});
 
     return (
         <FormProvider<LIEORow>>
-            <EmployeeLateInEarlyOutReportPageContent response={response} isLoading={isLoading} error={error} searchParams={searchParams} />
+            <EmployeeLateInEarlyOutReportPageContent 
+                response={response} 
+                isLoading={isLoading} 
+                error={error} 
+                searchParams={searchParams} 
+            />
         </FormProvider>
     );
 }
@@ -33,29 +37,19 @@ function FormSections({ searchParams }: { searchParams?: any }) {
     const { closeAddForm, addFormRef } = useFormContext<LIEORow>();
 
     return (
-        <>
-            <div ref={addFormRef}>
-                <CollapsibleSection
-                    title='Generate Employee Late In/Early Out Report'
-                    description='Fill in the details below to generate the report'
-                    defaultOpen={true}
-                    variant='outline'
-                    size='md'
-                    className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                    <div className='relative'>
-                        <Button
-                            type='button'
-                            onClick={closeAddForm}
-                            variant='ghost'
-                            size='sm'
-                            className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                            <X className='h-4 w-4 text-destructive' /> Close
-                        </Button>
-                        <AddEmployeeLateInEarlyOutReportForm onSuccess={closeAddForm} searchParams={searchParams} />
-                    </div>
-                </CollapsibleSection>
-            </div>
-        </>
+        <div ref={addFormRef}>
+            <CollapsibleSection
+                title='Generate Employee Late In/Early Out Report'
+                description='Fill in the details below to generate the report'
+                defaultOpen={true}
+                variant='outline'
+                size='md'
+                className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                <div className='relative'>
+                    <AddEmployeeLateInEarlyOutReportForm onSuccess={closeAddForm} searchParams={searchParams} />
+                </div>
+            </CollapsibleSection>
+        </div>
     );
 }
 
@@ -70,137 +64,117 @@ function EmployeeLateInEarlyOutReportPageContent({
     error: any;
     searchParams?: any;
 }) {
-    const [selectedRows, setSelectedRows] = useState<LIEORow[]>([]);
-    const tableProps = useDataTableProps(response);
+    const transformedResponse = useMemo(() => {
+        if (!response?.data || !Array.isArray(response.data)) {
+            return { data: [], columnnames: [], success: response?.success, message: response?.message, mode: response?.mode };
+        }
 
-    const handleRowSelectionChange = (rows: LIEORow[]) => {
-        setSelectedRows(rows);
+        const reportData = response.data;
+        const mode = response.mode; // 'Late By', 'Early Out', 'Late In Early Out'
+        const groupedByEmployee = new Map<number, LIEORow>();
+        const dateSet = new Set<string>();
+
+        reportData.forEach((row: any) => {
+            const empId = row.hrmE_Id;
+            const dateStr = row.punchdate?.split('T')[0];
+            
+            if (dateStr) {
+                dateSet.add(dateStr);
+            }
+
+            if (!groupedByEmployee.has(empId)) {
+                groupedByEmployee.set(empId, {
+                    hrmE_Id: empId,
+                    ecode: row.ecode,
+                    ename: row.ename,
+                    depname: row.depname,
+                    desgname: row.desgname,
+                    gtype: row.gtype
+                });
+            }
+
+            const empData = groupedByEmployee.get(empId)!;
+            if (dateStr) {
+                if (mode === 'Late In Early Out') {
+                    // Store both in and out for nested display
+                    empData[dateStr] = {
+                        in: row.intime || '--',
+                        out: row.outtime || '--'
+                    };
+                } else if (mode === 'Late By') {
+                    empData[dateStr] = row.lateby || '--';
+                } else if (mode === 'Early Out') {
+                    empData[dateStr] = row.earlyby || '--';
+                } else {
+                    empData[dateStr] = row.intime || '--';
+                }
+            }
+        });
+
+        // Sort dates chronologically
+        const columnnames = Array.from(dateSet).sort();
+
+        return {
+            success: response.success,
+            message: response.message,
+            data: Array.from(groupedByEmployee.values()),
+            columnnames,
+            mode,
+            fromDate: response.fromDate,
+            toDate: response.toDate
+        };
+    }, [response]);
+
+    const tableProps = useDataTableProps(transformedResponse);
+    const dynamicColumns = useMemo(() => 
+        getEmployeeLateInEarlyOutReportColumns(transformedResponse.columnnames, transformedResponse.mode),
+        [transformedResponse.columnnames, transformedResponse.mode]
+    );
+
+    const formatDate = (dateString: string) => {
+        if (!dateString) return '';
+        try {
+            return format(new Date(dateString), 'dd-MM-yyyy');
+        } catch (e) {
+            return dateString;
+        }
     };
 
     const handleExportToExcel = () => {
-        if (selectedRows.length === 0) return;
+        const dataToExport = transformedResponse.data;
+        if (!dataToExport || dataToExport.length === 0) return;
 
-        // Get all column keys from the first row (to handle dynamic date columns)
-        const firstRow = selectedRows[0];
-        const allKeys = Object.keys(firstRow || {});
+        const columnnames = transformedResponse.columnnames;
+        const mode = transformedResponse.mode;
 
-        // Filter out internal keys and prepare column headers
-        const excludeKeys = ['user_id', 'id', '_id'];
-        const columnKeys = allKeys.filter((key) => !excludeKeys.includes(key));
-
-        // Prepare data for export with all columns dynamically
-        const exportData = selectedRows.map((row, index) => {
-            const exportRow: Record<string, any> = {
-                'Sl.No': index + 1
+        const exportData = dataToExport.map((row, index) => {
+            const exportRow: any = {
+                'Sl.No': index + 1,
+                'Employee Name': row.ename,
+                'Code': row.ecode,
+                'Designation': row.desgname
             };
 
-            // Add all other columns dynamically
-            columnKeys.forEach((key) => {
-                if (key === 'date' && row[key]) {
-                    exportRow['Date'] = format(new Date(row[key]), 'dd-MM-yyyy');
+            columnnames.forEach(dateStr => {
+                const val = row[dateStr];
+                const header = format(new Date(dateStr), 'dd-MMM EEE');
+                
+                if (mode === 'Late In Early Out' && typeof val === 'object') {
+                    exportRow[header] = `In: ${val.in}, Out: ${val.out}`;
                 } else {
-                    // Convert snake_case to Title Case for headers
-                    const headerName = key
-                        .split('_')
-                        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                        .join(' ');
-                    exportRow[headerName] = row[key] ?? '';
+                    exportRow[header] = val || '--';
                 }
             });
 
             return exportRow;
         });
 
-        exportToExcel(exportData, 'Employee_LateIn_EarlyOut_Report');
+        exportToExcel(exportData, `Employee_${(mode || 'LIEO').replace(/\s+/g, '_')}_Report`);
     };
 
-    const handlePrint = () => {
-        if (selectedRows.length === 0) return;
-
-        // Get all column keys from the first row
-        const firstRow = selectedRows[0];
-        const allKeys = Object.keys(firstRow || {});
-        const excludeKeys = ['user_id', 'id', '_id'];
-        const columnKeys = allKeys.filter((key) => !excludeKeys.includes(key));
-
-        // Create column headers
-        const columnHeaders = [
-            'Sl.No',
-            ...columnKeys.map((key) => {
-                if (key === 'date') return 'Date';
-                if (key === 'late_by') return 'Late By';
-                if (key === 'early_out') return 'Early Out';
-                return key
-                    .split('_')
-                    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                    .join(' ');
-            })
-        ];
-
-        // Create a print-friendly table
-        const printWindow = window.open('', '_blank');
-        if (!printWindow) return;
-
-        const formatValue = (value: any, key: string): string => {
-            if (value === null || value === undefined || value === '') return '';
-            if (key === 'date' && value) {
-                return format(new Date(value), 'dd-MM-yyyy');
-            }
-            return String(value);
-        };
-
-        const printContent = `
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Employee Late In/Early Out Report</title>
-                <style>
-                    body { font-family: Arial, sans-serif; margin: 20px; }
-                    h1 { text-align: center; margin-bottom: 20px; }
-                    table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 10px; }
-                    th, td { border: 1px solid #ddd; padding: 6px; text-align: left; }
-                    th { background-color: #4f46e5; color: white; font-weight: bold; }
-                    tr:nth-child(even) { background-color: #f2f2f2; }
-                    @media print {
-                        body { margin: 0; }
-                        @page { margin: 1cm; landscape: true; }
-                        table { font-size: 8px; }
-                    }
-                </style>
-            </head>
-            <body>
-                <h1>Employee Late In/Early Out Report</h1>
-                <table>
-                    <thead>
-                        <tr>
-                            ${columnHeaders.map((header) => `<th>${header}</th>`).join('')}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${selectedRows
-                            .map(
-                                (row, index) => `
-                            <tr>
-                                <td>${index + 1}</td>
-                                ${columnKeys.map((key) => `<td>${formatValue(row[key], key)}</td>`).join('')}
-                            </tr>
-                        `
-                            )
-                            .join('')}
-                    </tbody>
-                </table>
-            </body>
-            </html>
-        `;
-
-        printWindow.document.write(printContent);
-        printWindow.document.close();
-        printWindow.focus();
-        setTimeout(() => {
-            printWindow.print();
-            printWindow.close();
-        }, 250);
-    };
+    const headerTitle = transformedResponse.mode 
+        ? `Employee ${transformedResponse.mode} Report` 
+        : 'Employee Late In/Early Out Report';
 
     return (
         <div className='min-h-screen'>
@@ -208,56 +182,42 @@ function EmployeeLateInEarlyOutReportPageContent({
                 {/* Add Form Section (shown first) */}
                 <FormSections searchParams={searchParams} />
 
-                {/* Action Buttons - Show when rows are selected */}
-                {selectedRows.length > 0 && (
-                    <div className='flex items-center gap-2 rounded-lg border bg-blue-50 p-4 shadow-sm'>
-                        <span className='font-medium text-gray-700 text-sm'>
-                            {selectedRows.length} row{selectedRows.length > 1 ? 's' : ''} selected
-                        </span>
-                        <div className='ml-auto flex items-center gap-2'>
-                            <Button
-                                type='button'
-                                variant='outline'
-                                size='sm'
-                                onClick={handleExportToExcel}
-                                className='border-green-500 text-green-700 hover:bg-green-50'>
-                                <FileSpreadsheet className='mr-2 h-4 w-4' />
-                                Excel
-                            </Button>
-                            <Button
-                                type='button'
-                                variant='outline'
-                                size='sm'
-                                onClick={handlePrint}
-                                className='border-blue-500 text-blue-700 hover:bg-blue-50'>
-                                <Printer className='mr-2 h-4 w-4' />
-                                Print
-                            </Button>
+                {/* Data Table Section */}
+                {transformedResponse.data.length > 0 && (
+                    <div className='mt-8 space-y-4 rounded-lg bg-white p-6 shadow'>
+                        <div className='flex items-center justify-between border-b pb-4'>
+                            <h2 className='font-semibold text-lg text-gray-800'>Report Results</h2>
+                            <div className='flex gap-2'>
+                                <Button
+                                    variant='outline'
+                                    size='sm'
+                                    onClick={handleExportToExcel}
+                                    className='bg-green-50 text-green-700 hover:bg-green-100 hover:text-green-800 transition-all duration-200'>
+                                    <FileSpreadsheet className='mr-2 h-4 w-4' />
+                                    Export Excel
+                                </Button>
+                            </div>
+                        </div>
+
+                        <div className="rounded-md shadow-sm ">
+                            <div className="bg-gray-400 py-2 px-4 mb-4 text-center text-black font-bold text-sm tracking-wide shadow-inner">
+                                {headerTitle} from {formatDate(transformedResponse.fromDate)} to {formatDate(transformedResponse.toDate)}
+                            </div>
+                            <GenericDataTable<LIEORow>
+                                {...tableProps}
+                                columns={dynamicColumns as any}
+                                isLoading={isLoading}
+                                error={error}
+                                showViewOptions={false}
+                                isPaginationRequired={true}
+                                loadingMessage='Loading Employee Late In/Early Out Reports...'
+                                noDataTitle='No Employee Late In/Early Out Reports Found'
+                                noDataDescription='Get started by generating your first Employee Late In/Early Out Report'
+                                errorTitle='Error Loading Employee Late In/Early Out Reports'
+                            />
                         </div>
                     </div>
                 )}
-
-                {/* Data Table Section */}
-                <CollapsibleSection
-                    defaultOpen={true}
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<LIEORow>
-                        {...tableProps}
-                        columns={employeeLateInEarlyOutReportColumns}
-                        isLoading={isLoading}
-                        error={error}
-                        showViewOptions={false}
-                        columnPinning={{ right: ['actions'] }}
-                        isPaginationRequired={true}
-                        onRowSelectionChange={handleRowSelectionChange}
-                        loadingMessage='Loading Employee Late In/Early Out Reports...'
-                        noDataTitle='No Employee Late In/Early Out Reports Found'
-                        noDataDescription='Get started by generating your first Employee Late In/Early Out Report'
-                        errorTitle='Error Loading Employee Late In/Early Out Reports'
-                    />
-                </CollapsibleSection>
             </div>
         </div>
     );
