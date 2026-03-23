@@ -26,17 +26,44 @@ export default function AddMasterVenueForm({ onSuccess }: AddMasterVenueFormProp
                 spccmeV_ActiveFlag: true
             }}
             onSubmit={async (values) => {
-                const response = await saveMasterVenue(values);
-                if (response?.success || response?.returnval == true || response?.message === 'saved') {
-                    refetchAll();
-                } else {
-                    throw new Error(response?.message || 'Failed to save Master Venue');
+                try {
+                    const response = await saveMasterVenue(values);
+
+                    // Robust success check for IVRM backend responses
+                    const msg = (response?.message || response?.Message || '') as string;
+                    const isSuccess = response?.success || 
+                                     response?.returnval == true || 
+                                     response?.returnVal == true ||
+                                     response?.returnVal === 'saved' || 
+                                     response?.returnVal === 'updated' || 
+                                     msg.toLowerCase() === 'saved' ||
+                                     msg.toLowerCase() === 'updated' ||
+                                     msg.toLowerCase().includes('success');
+
+                    if (isSuccess) {
+                        toast.success('Record saved successfully');
+                    } else if (response?.returnVal === 'duplicate' || msg.toLowerCase() === 'duplicate') {
+                        toast.error('Record already exists');
+                        throw new Error('duplicate');
+                    } else {
+                        const errorMsg = (response?.message || response?.Message || 'Failed to save record') as string;
+                        toast.error(errorMsg);
+                        throw new Error(errorMsg);
+                    }
+                } catch (error: any) {
+                    if (error.message !== 'duplicate' && !error.message?.includes('Failed to save venue')) {
+                        toast.error(error.message || 'Something went wrong');
+                    }
+                    throw error;
                 }
             }}
             mode='create'
-            successMessage='Master Venue saved successfully'
-            errorMessage='Failed to save Master Venue'
-            onSuccess={onSuccess}
+            successMessage={''}
+            errorMessage={''}
+            onSuccess={() => {
+                refetchAll();
+                onSuccess?.();
+            }}
             className='space-y-4'>
             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                 <GenericInputField name='spccmeV_EventVenue' label='Event Venue' placeholder='Enter Event Venue' required />

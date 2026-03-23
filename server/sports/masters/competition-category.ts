@@ -1,10 +1,12 @@
 'use server';
 
-import { api } from '@/lib/apiService';
+import { api, getSearchParamsUrl } from '@/lib/apiService';
 import { revalidatePath } from 'next/cache';
+import type { ApiSearchparams } from '@/types';
 
-export async function getMasterCompetitionCategories() {
-    const url = '/MasterCompetitionCategory/getDetails';
+export async function getMasterCompetitionCategories(searchParams?: ApiSearchparams) {
+    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const url = `/MasterCompetitionCategory/getDetails?${urlParams}`;
     return await api.post<any>('sports', url, {});
 }
 

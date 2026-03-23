@@ -83,12 +83,24 @@ export const AddForm = ({ onSuccess, onCancel, groupNameList }: AddFormProps) =>
                 })),
             };
             const result = await saveSportsCCName(payload);
-            if (result.success) {
-                toast.success(result.message);
+            const msg = (result?.message || result?.Message || '') as string;
+            const isSuccess = result.success || 
+                             result?.returnval == true || 
+                             result?.returnVal == true ||
+                             result?.returnVal === 'updated' || 
+                             msg.toLowerCase() === 'saved' ||
+                             msg.toLowerCase() === 'updated' ||
+                             msg.toLowerCase().includes('success');
+
+            if (isSuccess) {
+                toast.success('Record saved successfully');
                 form.reset();
                 onSuccess();
+            } else if (result?.returnVal === 'duplicate' || msg.toLowerCase() === 'duplicate') {
+                toast.error('Record already exists');
             } else {
-                toast.error(result.message);
+                const errorMsg = (result?.message || result?.Message || 'Failed to save record') as string;
+                toast.error(errorMsg);
             }
         } catch (error) {
             console.error(error);

@@ -2,7 +2,6 @@
 
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { IMasterUOM } from '@/types/sports/masters/uom';
 import type { ColumnDef, Row } from '@tanstack/react-table';
@@ -29,22 +28,15 @@ function ActionsCell({ row }: { row: Row<IMasterUOM> }) {
 
 export const MasterUOMColumns: ColumnDef<IMasterUOM>[] = [
     {
-        id: 'select',
-        header: ({ table }) => (
-            <Checkbox
-                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label='Select all'
-            />
-        ),
-        cell: ({ row }) => (
-            <Checkbox
-                checked={row.getIsSelected()}
-                onCheckedChange={(value) => row.toggleSelected(!!value)}
-                aria-label='Select row'
-            />
-        ),
-        enableSorting: false,
+        accessorKey: 'spccmuoM_Id',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            const continuousIndex = pageIndex * pageSize + row.index + 1;
+            return <div className='pl-6'>{continuousIndex}</div>;
+        },
+        enableSorting: true,
         enableHiding: false
     },
     {
@@ -52,19 +44,6 @@ export const MasterUOMColumns: ColumnDef<IMasterUOM>[] = [
         id: 'spccmuoM_UOMName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='UOM Name' />,
         cell: ({ row }) => <div className='font-medium'>{row.getValue('spccmuoM_UOMName')}</div>
-    },
-    {
-        accessorFn: (row: any) => row.spccmuoM_ActiveFlag ?? row.SPCCMUOM_ActiveFlag ?? row.spccmuom_ActiveFlag ?? row.activeFlag,
-        id: 'spccmuoM_ActiveFlag',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
-        cell: ({ row }) => {
-            const isActive = row.getValue('spccmuoM_ActiveFlag');
-            return (
-                <Badge variant={isActive ? 'success' : 'destructive'} className='font-semibold'>
-                    {isActive ? 'Active' : 'Deactivated'}
-                </Badge>
-            );
-        }
     },
     {
         id: 'actions',
