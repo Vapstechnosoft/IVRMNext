@@ -51,3 +51,9 @@ export async function getCategoryByAcademicYear(data: any) {
     const url = '/BreakTimeSettings/get_catg';
     return await api.post<any>('timetable', url, data);
 }
+
+//toggle button
+export async function getBreakTimeSettingsToggle(ttmb_id: number) {
+    const url = `/BreakTimeSettings/getdetails/${ttmb_id}`;
+    return await api.get<any>('timetable', url);
+}

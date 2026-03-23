@@ -170,9 +170,8 @@ export default function DaySubjectAddForm({ academicList, dayList, subjectList, 
                 toast.error(res.message);
             }
 
-        } catch (e) {
-            console.error(e);
-            toast.error('An error occurred');
+        } catch (error: any) {
+            toast.error(error.message);
         }
     };
     return (

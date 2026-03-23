@@ -14,6 +14,7 @@ import { Save } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { extractList, filterData } from '../dayperiod/utils';
 
 interface PeriodStaffUpdateProps {
     academicList: any[];
@@ -23,54 +24,6 @@ interface PeriodStaffUpdateProps {
     onSuccess: () => void;
     onCancel: () => void;
 }
-
-const extractList = (data: any, preferredKey?: string) => {
-    if (!data) return [];
-    if (Array.isArray(data)) return data;
-
-    let target = data?.data !== undefined ? data.data : data;
-    if (target && !Array.isArray(target) && typeof target === 'object' && target.data !== undefined) {
-        target = target.data;
-    }
-
-    if (Array.isArray(target)) return target;
-    if (!target || typeof target !== 'object') return [];
-
-    if (preferredKey) {
-        const foundKey = Object.keys(target).find((k) => k.toLowerCase() === preferredKey.toLowerCase());
-        const result = foundKey ? target[foundKey] : undefined;
-        if (Array.isArray(result)) return result;
-    }
-
-    const keys = [
-        'classlist', 'clssbystaff', 'clsbystaff',
-        'sectionlist', 'secsbystaff', 'sectionlistbystaff',
-        'subjectlist', 'subsbystaff', 'subjectlistbystaff', 'subsbyall',
-        'stafflist', 'staffbyall', 'subjectbystaff', 'sectionbyclass', 'classbycategory'
-    ];
-
-    for (const key of keys) {
-        const foundKey = Object.keys(target).find((k) => k.toLowerCase() === key.toLowerCase());
-        const result = foundKey ? target[foundKey] : undefined;
-        if (Array.isArray(result)) return result;
-    }
-
-    const firstArray = Object.values(target).find((v) => Array.isArray(v));
-    return Array.isArray(firstArray) ? (firstArray as any[]) : [];
-};
-
-const uniqueById = (list: any[], idKey: string) => {
-    const seen = new Set();
-    return (list || []).filter((item: any) => {
-        if (!item) return false;
-        const actualKey = Object.keys(item).find((k) => k.toLowerCase() === idKey.toLowerCase());
-        const id = actualKey ? item[actualKey] : undefined;
-        if (id === undefined || id === null) return false;
-        if (seen.has(id)) return false;
-        seen.add(id);
-        return true;
-    });
-};
 
 export default function PeriodStaffUpdate({ academicList, periodList, staffList, selectedRow, onSuccess, onCancel }: PeriodStaffUpdateProps) {
     const [classList, setClassList] = useState<any[]>([]);
@@ -85,7 +38,7 @@ export default function PeriodStaffUpdate({ academicList, periodList, staffList,
     const [selectedClass, setSelectedClass] = useState<number | undefined>();
     const [selectedSection, setSelectedSection] = useState<number | undefined>();
     const [selectedSubject, setSelectedSubject] = useState<number | undefined>();
-    const [nod, setNod] = useState<string>('');
+    const [nop, setNop] = useState<string>('');
 
     const form = useForm<FixingPeriodStaffSchema>({
         resolver: zodResolver(fixingPeriodStaffSchema),
@@ -94,8 +47,8 @@ export default function PeriodStaffUpdate({ academicList, periodList, staffList,
             asmaY_Id: undefined,
             ttmP_Id: undefined,
             hrmE_Id: undefined,
+            ttfpscC_Id: undefined,
             ttfpS_SUbSelcFlag: false,
-            ttfpscC_Id: 0,
             tempararyArrayList: []
         }
     });
@@ -104,75 +57,123 @@ export default function PeriodStaffUpdate({ academicList, periodList, staffList,
     const asmaY_Id = watch('asmaY_Id');
     const ttfpS_SUbSelcFlag = watch('ttfpS_SUbSelcFlag');
 
-    const { fields, append, remove } = useFieldArray({
+    const { fields, append, remove, replace } = useFieldArray({
         control,
         name: 'tempararyArrayList'
     });
 
+    // --- Helper for Case-Insensitive Field Lookup ---
+    const getVal = (obj: any, fieldName: string) => {
+        if (!obj) return undefined;
+        const key = Object.keys(obj).find(k => k.toLowerCase() === fieldName.toLowerCase());
+        return key ? obj[key] : undefined;
+    };
+
+    // --- Helper to find an array in payload that contains items with a specific field ---
+    const findArrayWithField = (payload: any, fieldName: string, excludeArray?: any[]) => {
+        if (!payload) return [];
+        for (const key of Object.keys(payload)) {
+            const val = payload[key];
+            if (Array.isArray(val) && val.length > 0 && val !== excludeArray) {
+                const hasField = Object.keys(val[0]).some(k => k.toLowerCase() === fieldName.toLowerCase());
+                if (hasField) return val;
+            }
+        }
+        return [];
+    };
+
     useEffect(() => {
         const loadEditData = async () => {
+            if (!selectedRow) return;
+
             try {
-                let d = selectedRow;
-                const id = d?.ttfpS_Id || d?.TTFPS_Id;
-                let fullRes = null;
-                if (id) {
-                    fullRes = await getFixingPeriodStaffDetails(id);
-                    const editData = fullRes?.data?.fix_period_staff_edit || fullRes?.fix_period_staff_edit || (Array.isArray(fullRes?.data) ? fullRes.data : undefined) || fullRes?.data;
-                    if (editData && Array.isArray(editData) && editData.length > 0) {
-                        d = editData[0];
-                    } else if (editData && !Array.isArray(editData)) {
-                        d = editData;
-                    }
+                const id = selectedRow?.ttfpS_Id;
+                if (!id) return;
+
+                const res = await getFixingPeriodStaffDetails(id);
+                const responseData = res?.data || res;
+
+                // 1. Greedily find main record (contains hrmE_Id or asmaY_Id)
+                const editData = findArrayWithField(responseData, 'ttfpS_Id') ||
+                    findArrayWithField(responseData, 'hrmE_Id') ||
+                    responseData?.fixing_period_subject ||
+                    responseData?.fixing_period_staff ||
+                    (Array.isArray(responseData) ? responseData : undefined);
+
+                const main = (editData && Array.isArray(editData)) ? editData[0] : null;
+                if (!main) return;
+
+                // 2. Greedily find sub-details (contains asmcL_Id or asms_Id and is NOT the main array)
+                const subDetails: any[] = findArrayWithField(responseData, 'asmcL_Id', editData) ||
+                    findArrayWithField(responseData, 'asmcl_id', editData) ||
+                    responseData?.fixing_period_staff_class_edit ||
+                    responseData?.fix_period_staff__classecedit || [];
+
+                // Resolve IDs for form reset
+                const staffId = getVal(main, 'hrmE_Id') || selectedRow?.hrmE_Id;
+                const yearId = getVal(main, 'asmaY_Id') || selectedRow?.asmaY_Id;
+                const periodId = getVal(main, 'ttmP_Id') || selectedRow?.ttmP_Id;
+
+                reset({
+                    ttfpS_Id: getVal(main, 'ttfpS_Id') || selectedRow?.ttfpS_Id,
+                    ttmP_Id: periodId,
+                    asmaY_Id: yearId,
+                    hrmE_Id: staffId,
+                    ttfpS_SUbSelcFlag: !!(getVal(main, 'ttfpS_SUbSelcFlag') ?? selectedRow?.ttfpS_SUbSelcFlag),
+                    ttfpscC_Id: getVal(subDetails?.[0], 'ttfdscC_Id'),
+                    tempararyArrayList: []
+                });
+
+                // Load master lists using resolved IDs
+                let masterData = { classes: [] as any[], sections: [] as any[], subjects: [] as any[] };
+                if (staffId && yearId) {
+                    masterData = await handleStaffChange(staffId, yearId);
                 }
 
-                if (d) {
-                    const normalizedData = {
-                        ttfpS_Id: d.ttfpS_Id ?? d.TTFPS_Id ?? 0,
-                        asmaY_Id: d.asmaY_Id ?? d.ASMAY_Id,
-                        ttmP_Id: d.ttmP_Id ?? d.TTMP_Id,
-                        hrmE_Id: d.hrmE_Id ?? d.HRME_Id,
-                        ttfpS_SUbSelcFlag: d.ttfpS_SUbSelcFlag ?? d.TTFPS_SUbSelcFlag ?? false,
-                        ttfpscC_Id: d.ttfpscC_Id ?? d.TTFPSCC_Id ?? 0
-                    };
+                if (subDetails && Array.isArray(subDetails)) {
+                    replace(
+                        subDetails.map((sub: any) => {
+                            const cid = sub.asmcL_Id || sub.ASMCL_Id || sub.asmcl_id;
+                            const sid = sub.asmS_Id || sub.ASMS_Id || sub.asms_id;
+                            const isid = sub.ismS_Id || sub.ISMS_Id || sub.isms_id || sub.ismS_id;
 
-                    if (normalizedData.hrmE_Id && normalizedData.asmaY_Id) {
-                        await handleStaffChange(normalizedData.hrmE_Id, normalizedData.asmaY_Id);
-                    }
+                            const clsName =
+                                sub.asmcL_ClassName || sub.ASMCL_ClassName ||
+                                masterData.classes.find(c => Number(c.asmcL_Id || c.ASMCL_Id) === Number(cid))?.asmcL_ClassName ||
+                                masterData.classes.find(c => Number(c.asmcL_Id || c.ASMCL_Id) === Number(cid))?.className || '';
 
-                    reset({
-                        ttfpS_Id: normalizedData.ttfpS_Id,
-                        asmaY_Id: normalizedData.asmaY_Id,
-                        ttmP_Id: normalizedData.ttmP_Id,
-                        hrmE_Id: normalizedData.hrmE_Id,
-                        ttfpS_SUbSelcFlag: normalizedData.ttfpS_SUbSelcFlag,
-                        ttfpscC_Id: normalizedData.ttfpscC_Id,
-                        tempararyArrayList: []
-                    });
+                            const sectName =
+                                sub.asmC_SectionName || sub.ASMC_SectionName || sub.asmS_SectionName ||
+                                masterData.sections.find(s => Number(s.asmS_Id || s.ASMS_Id) === Number(sid))?.asmC_SectionName ||
+                                masterData.sections.find(s => Number(s.asmS_Id || s.ASMS_Id) === Number(sid))?.asmS_SectionName ||
+                                masterData.sections.find(s => Number(s.asmS_Id || s.ASMS_Id) === Number(sid))?.sectionName || '';
 
-                    const subDetails = fullRes?.data?.fix_period_staff__classecedit || fullRes?.fix_period_staff__classecedit || selectedRow?.data?.fix_period_staff__classecedit || selectedRow?.fix_period_staff__classecedit;
+                            const subName =
+                                sub.ismS_SubjectName || sub.ISMS_SubjectName ||
+                                masterData.subjects.find(s => Number(s.ismS_Id || s.ISMS_Id) === Number(isid))?.ismS_SubjectName ||
+                                masterData.subjects.find(s => Number(s.ismS_Id || s.ISMS_Id) === Number(isid))?.subjectName ||
+                                masterData.subjects.find(s => Number(s.ismS_Id || s.ISMS_Id) === Number(isid))?.ismS_SubjectCode || '';
 
-                    if (normalizedData.ttfpS_SUbSelcFlag && subDetails && Array.isArray(subDetails)) {
-                        subDetails.forEach((sub: any) => {
-                            append({
-                                asmcL_Id: sub.asmcL_Id ?? sub.ASMCL_Id,
-                                asmS_Id: sub.asmS_Id ?? sub.ASMS_Id ?? sub.asmC_Id ?? sub.ASMC_Id,
-                                ismS_Id: sub.ismS_Id ?? sub.ISMS_Id,
-                                nod: sub.ttfpscC_Days ?? sub.nod ?? sub.TTFPSCC_Days,
-                                clsDisplay: sub.asmcL_ClassName ?? sub.ASMCL_ClassName,
-                                sectDisplay: sub.asmC_SectionName ?? sub.ASMC_SectionName ?? sub.asmS_SectionName ?? sub.ASMS_SectionName,
-                                subDisplay: sub.ismS_SubjectName ?? sub.ISMS_SubjectName
-                            });
-                        });
-                    }
+                            return {
+                                ttfdscC_Id: sub.ttfdscC_Id || sub.TTFDSCC_Id,
+                                asmcL_Id: cid,
+                                asmS_Id: sid,
+                                ismS_Id: isid,
+                                nop: Number(sub.ttfdscC_Periods ?? sub.ttfdsc_Periods ?? sub.ttfdsc_NoOfPeriods ?? sub.ttfdscC_NoOfPeriods ?? sub.TTFDSC_NoOfPeriods ?? sub.NOP ?? sub.nop ?? 0),
+                                clsDisplay: clsName,
+                                sectDisplay: sectName,
+                                subDisplay: subName
+                            };
+                        })
+                    );
                 }
-            } catch (error) {
-                console.error('Error processing edit data:', error);
-                toast.error('Failed to load edit details');
+            } catch (e) {
+                console.error(e);
+                toast.error("Failed to load edit data");
             }
         };
 
-        if (selectedRow) loadEditData();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        loadEditData();
     }, [selectedRow]);
 
     const handleAcademicYearChange = (yearId: number) => {
@@ -180,6 +181,9 @@ export default function PeriodStaffUpdate({ academicList, periodList, staffList,
         setSelectedClass(undefined);
         setSelectedSection(undefined);
         setSelectedSubject(undefined);
+        setClassList([]);
+        setSectionList([]);
+        setSubSubjectList([]);
 
         const currentStaffId = form.getValues('hrmE_Id');
         if (yearId && currentStaffId) {
@@ -191,11 +195,30 @@ export default function PeriodStaffUpdate({ academicList, periodList, staffList,
         setSelectedClass(classId);
         setSelectedSection(undefined);
         setSelectedSubject(undefined);
+
+        const filtered = masterSections.filter(
+            (s) =>
+                (s.asmcL_Id !== undefined && Number(s.asmcL_Id) === classId)
+        );
+
+        setSectionList(filterData(filtered.length > 0 ? filtered : masterSections, 'asmC_SectionName'));
+        setSubSubjectList([]);
     };
 
-    const handleSectionChange = (sectionId: number) => {
+    const handleSectionChange = async (sectionId: number) => {
         setSelectedSection(sectionId);
         setSelectedSubject(undefined);
+
+        const filtered = masterSubjects.filter(
+            (sub) =>
+                (sub.asmS_Id !== undefined && Number(sub.asmS_Id) === sectionId)
+        );
+
+        if (filtered.length > 0) {
+            setSubSubjectList(filterData(filtered, 'ismS_SubjectName'));
+        } else {
+            setSubSubjectList(filterData(masterSubjects, 'ismS_SubjectName'));
+        }
     };
 
     const handleStaffChange = async (staffId: number, yearId?: number) => {
@@ -203,41 +226,56 @@ export default function PeriodStaffUpdate({ academicList, periodList, staffList,
         setSelectedClass(undefined);
         setSelectedSection(undefined);
         setSelectedSubject(undefined);
+        setClassList([]);
+        setSectionList([]);
+        setSubSubjectList([]);
 
         const effectiveYearId = yearId ?? form.getValues('asmaY_Id');
 
         if (effectiveYearId && staffId) {
             try {
                 const res = await getFixingClassSectionSubjectByStaff(effectiveYearId, staffId);
-                if (res && (res.success || res.success === undefined)) {
-                    const classes = extractList(res, 'clsbystaff').length > 0 ? extractList(res, 'clsbystaff') : extractList(res, 'classlist');
-                    const sections = extractList(res, 'secsbystaff').length > 0 ? extractList(res, 'secsbystaff') : extractList(res, 'sectionlist');
-                    const subjects = extractList(res, 'subsbystaff').length > 0 ? extractList(res, 'subsbystaff') : extractList(res, 'subjectlist');
+                const payload = res?.data ?? res;
 
-                    setMasterClasses(classes);
-                    setMasterSections(sections);
-                    setMasterSubjects(subjects);
+                if (res) {
+                    // Extract data using case-insensitive field detection
+                    const classes = extractList(res, 'classlist').length > 0 ? extractList(res, 'classlist') : findArrayWithField(payload, 'asmcL_Id');
+                    const sections = extractList(res, 'sectionlist').length > 0 ? extractList(res, 'sectionlist') : findArrayWithField(payload, 'asmS_Id');
+                    const subjects = extractList(res, 'subjectlist').length > 0 ? extractList(res, 'subjectlist') : findArrayWithField(payload, 'ismS_Id');
 
-                    setClassList(uniqueById(classes, 'asmcL_Id'));
-                    setSectionList(uniqueById(sections, 'asmS_Id'));
-                    setSubSubjectList(uniqueById(subjects, 'ismS_Id'));
+                    console.log('[PeriodStaffUpdate] Resolved → classes:', classes.length, 'sections:', sections.length, 'subjects:', subjects.length);
+
+                    setMasterClasses(classes || []);
+                    setMasterSections(sections || []);
+                    setMasterSubjects(subjects || []);
+
+                    if (classes.length > 0) setClassList(filterData(classes, 'asmcL_ClassName'));
+                    if (sections.length > 0) setSectionList(filterData(sections, 'asmC_SectionName'));
+                    if (subjects.length > 0) setSubSubjectList(filterData(subjects, 'ismS_SubjectName'));
+
+                    return {
+                        classes: classes || [],
+                        sections: sections || [],
+                        subjects: subjects || []
+                    };
                 }
             } catch (e) {
                 console.error(e);
                 toast.error('Failed to load details for selected staff');
             }
         }
+        return { classes: [], sections: [], subjects: [] };
     };
 
     const addToGrid = () => {
-        if (!selectedClass || !selectedSection || !selectedSubject || !nod) {
+        if (!selectedClass || !selectedSection || !selectedSubject || !nop) {
             toast.warning('Please select all fields');
             return;
         }
 
-        const clsObj = classList.find((c) => c.asmcL_Id === selectedClass);
-        const secObj = sectionList.find((s) => s.asmS_Id === selectedSection);
-        const subObj = subSubjectList.find((s) => s.ismS_Id === selectedSubject);
+        const clsObj = masterClasses.find((c) => Number(getVal(c, 'asmcL_Id')) === selectedClass);
+        const secObj = masterSections.find((s) => Number(getVal(s, 'asmS_Id')) === selectedSection);
+        const subObj = masterSubjects.find((s) => Number(getVal(s, 'ismS_Id')) === selectedSubject);
 
         const exists = fields.some(
             (f: any) => f.asmcL_Id === selectedClass && f.asmS_Id === selectedSection && f.ismS_Id === selectedSubject
@@ -251,11 +289,17 @@ export default function PeriodStaffUpdate({ academicList, periodList, staffList,
             asmcL_Id: selectedClass,
             asmS_Id: selectedSection,
             ismS_Id: selectedSubject,
-            nod: Number(nod),
-            clsDisplay: clsObj?.asmcL_ClassName,
-            sectDisplay: secObj?.asmC_SectionName,
-            subDisplay: subObj?.ismS_SubjectName
+            nop: Number(nop),
+            clsDisplay: getVal(clsObj, 'asmcL_ClassName') || getVal(clsObj, 'className'),
+            sectDisplay: getVal(secObj, 'asmC_SectionName') || getVal(secObj, 'asmS_SectionName') || getVal(secObj, 'sectionName'),
+            subDisplay: getVal(subObj, 'ismS_SubjectName') || getVal(subObj, 'subjectName')
         });
+
+        // Clear selections after adding
+        setSelectedClass(undefined);
+        setSelectedSection(undefined);
+        setSelectedSubject(undefined);
+        setNop('');
     };
 
     const subColumns: ColumnDef<any>[] = useMemo(
@@ -263,7 +307,7 @@ export default function PeriodStaffUpdate({ academicList, periodList, staffList,
             { accessorKey: 'clsDisplay', header: 'Class' },
             { accessorKey: 'sectDisplay', header: 'Section' },
             { accessorKey: 'subDisplay', header: 'Subject' },
-            { accessorKey: 'nod', header: 'No Of Days' },
+            { accessorKey: 'nop', header: 'No Of Periods' },
             {
                 id: 'actions',
                 header: 'Actions',
@@ -281,21 +325,23 @@ export default function PeriodStaffUpdate({ academicList, periodList, staffList,
         try {
             if (!data.ttfpS_SUbSelcFlag) {
                 data.tempararyArrayList = [];
-            } else if (!data.tempararyArrayList || data.tempararyArrayList.length === 0) {
-                toast.warning('Please add at least one Class-Section details');
-                return;
+            } else {
+                if (!data.tempararyArrayList || data.tempararyArrayList.length === 0) {
+                    toast.warning("Please add at least one Class Details");
+                    return;
+                }
             }
+
             const res = await saveFixingPeriodStaff(data);
             if (res?.returnval === true || res?.success === true) {
-                toast.success(res?.message || 'Record Updated Successfully');
+                toast.success(res.message);
                 reset();
                 onSuccess();
             } else {
-                toast.error(res?.message || 'Failed to update');
+                toast.error(res.message);
             }
-        } catch (e) {
-            console.error(e);
-            toast.error('An error occurred');
+        } catch (error: any) {
+            toast.error(error.message);
         }
     };
 
@@ -315,13 +361,16 @@ export default function PeriodStaffUpdate({ academicList, periodList, staffList,
                             <FormItem>
                                 <FormLabel>Academic Year</FormLabel>
                                 <Select
-                                    key={field.value?.toString() || 'empty'}
-                                    onValueChange={(v) => handleAcademicYearChange(Number(v))}
-                                    value={field.value?.toString()}>
+                                    value={field.value !== undefined ? String(field.value) : undefined}
+                                    onValueChange={(v) => {
+                                        field.onChange(Number(v));
+                                        handleAcademicYearChange(Number(v));
+                                    }}
+                                >
                                     <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
                                     <SelectContent>
-                                        {academicList?.map((item: any) => (
-                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id?.toString()}>
+                                        {academicList?.map((item: any, idx: number) => (
+                                            <SelectItem key={item.asmaY_Id || `acad-${idx}`} value={String(item.asmaY_Id)}>
                                                 {item.asmaY_Year}
                                             </SelectItem>
                                         ))}
@@ -338,13 +387,16 @@ export default function PeriodStaffUpdate({ academicList, periodList, staffList,
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Period</FormLabel>
-                                <Select key={field.value?.toString() || 'empty'} onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
+                                <Select
+                                    onValueChange={(v) => field.onChange(Number(v))}
+                                    value={field.value !== undefined ? String(field.value) : undefined}
+                                >
                                     <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
                                     <SelectContent>
-                                        {periodList.map((item: any) => {
+                                        {periodList?.map((item: any, idx: number) => {
                                             const id = item.ttmP_Id ?? item.ttmp_id ?? item.TTMP_Id;
                                             return (
-                                                <SelectItem key={id} value={id?.toString()}>
+                                                <SelectItem key={id || `period-${idx}`} value={String(id)}>
                                                     {item.ttmP_PeriodName || item.ttmp_periodname || item.periodName}
                                                 </SelectItem>
                                             );
@@ -362,17 +414,20 @@ export default function PeriodStaffUpdate({ academicList, periodList, staffList,
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Staff</FormLabel>
-                                <Select key={field.value?.toString() || 'empty'} onValueChange={(v) => handleStaffChange(Number(v))} value={field.value?.toString()}>
+                                <Select
+                                    value={field.value !== undefined ? String(field.value) : undefined}
+                                    onValueChange={(v) => {
+                                        field.onChange(Number(v));
+                                        handleStaffChange(Number(v));
+                                    }}
+                                >
                                     <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
                                     <SelectContent>
-                                        {staffList?.map((item: any) => {
-                                            const id = item.hrmE_Id ?? item.hrme_id ?? item.HRME_Id;
-                                            return (
-                                                <SelectItem key={id} value={id?.toString()}>
-                                                    {item.staffName || item.hrmE_EmployeeFirstName || item.employeeName}
-                                                </SelectItem>
-                                            );
-                                        })}
+                                        {staffList?.filter((item: any) => item.hrmE_Id).map((item: any, idx: number) => (
+                                            <SelectItem key={item.hrmE_Id || `staff-${idx}`} value={String(item.hrmE_Id)}>
+                                                {item.staffName?.trim()}
+                                            </SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -388,7 +443,10 @@ export default function PeriodStaffUpdate({ academicList, periodList, staffList,
                         render={({ field }) => (
                             <FormItem className='flex flex-row items-start space-x-3 space-y-0 p-4'>
                                 <FormControl>
-                                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                    <Checkbox
+                                        checked={field.value}
+                                        onCheckedChange={(val) => field.onChange(!!val)}
+                                    />
                                 </FormControl>
                                 <div className='space-y-1 leading-none'>
                                     <FormLabel>Fixing Class-Section Wise</FormLabel>
@@ -405,20 +463,20 @@ export default function PeriodStaffUpdate({ academicList, periodList, staffList,
                             <div className='space-y-2'>
                                 <FormLabel>Class</FormLabel>
                                 <Select
-                                    key={selectedClass?.toString() || 'empty'}
+                                    key={selectedClass?.toString()}
                                     onValueChange={(v) => handleClassChange(Number(v))}
-                                    value={selectedClass?.toString()}>
+                                    value={selectedClass?.toString()}
+                                >
                                     <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
                                     <SelectContent>
                                         {isClassLoading ? (
                                             <SelectItem value='loading'>Loading...</SelectItem>
                                         ) : (
-                                            classList.map((item: any) => {
+                                            classList.map((item: any, idx: number) => {
                                                 const id = item.asmcL_Id ?? item.asmcl_id ?? item.ASMCL_Id;
+                                                const name = item.asmcL_ClassName ?? item.className ?? '';
                                                 return (
-                                                    <SelectItem key={id} value={id?.toString()}>
-                                                        {item.asmcL_ClassName}
-                                                    </SelectItem>
+                                                    <SelectItem key={id || `cls-${idx}`} value={id?.toString()}>{name}</SelectItem>
                                                 );
                                             })
                                         )}
@@ -428,17 +486,17 @@ export default function PeriodStaffUpdate({ academicList, periodList, staffList,
                             <div className='space-y-2'>
                                 <FormLabel>Section</FormLabel>
                                 <Select
-                                    key={selectedSection?.toString() || 'empty'}
+                                    key={selectedSection?.toString()}
                                     onValueChange={(v) => handleSectionChange(Number(v))}
-                                    value={selectedSection?.toString()}>
+                                    value={selectedSection?.toString()}
+                                >
                                     <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
                                     <SelectContent>
-                                        {sectionList.map((item: any) => {
+                                        {sectionList.map((item: any, idx: number) => {
                                             const id = item.asmS_Id ?? item.asms_id ?? item.ASMS_Id;
+                                            const name = item.asmC_SectionName ?? item.asmS_SectionName ?? item.sectionName ?? '';
                                             return (
-                                                <SelectItem key={id} value={id?.toString()}>
-                                                    {item.asmC_SectionName}
-                                                </SelectItem>
+                                                <SelectItem key={id || `sec-${idx}`} value={id?.toString()}>{name}</SelectItem>
                                             );
                                         })}
                                     </SelectContent>
@@ -447,30 +505,29 @@ export default function PeriodStaffUpdate({ academicList, periodList, staffList,
                             <div className='space-y-2'>
                                 <FormLabel>Subject</FormLabel>
                                 <Select
-                                    key={selectedSubject?.toString() || 'empty'}
+                                    key={selectedSubject?.toString()}
                                     onValueChange={(v) => setSelectedSubject(Number(v))}
-                                    value={selectedSubject?.toString()}>
+                                    value={selectedSubject?.toString()}
+                                >
                                     <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
                                     <SelectContent>
-                                        {subSubjectList.map((item: any) => {
+                                        {subSubjectList.map((item: any, idx: number) => {
                                             const id = item.ismS_Id ?? item.isms_id ?? item.ISMS_Id;
+                                            const name = item.ismS_SubjectName ?? item.subjectName ?? '';
                                             return (
-                                                <SelectItem key={id} value={id?.toString()}>
-                                                    {item.ismS_SubjectName}
-                                                </SelectItem>
+                                                <SelectItem key={id || `sub-${idx}`} value={id?.toString()}>{name}</SelectItem>
                                             );
                                         })}
                                     </SelectContent>
                                 </Select>
                             </div>
                             <div className='space-y-2'>
-                                <FormLabel>No Of Days</FormLabel>
-                                <Input type='number' value={nod} onChange={(e) => setNod(e.target.value)} />
+                                <FormLabel>Periods</FormLabel>
+                                <Input type='number' value={nop} onChange={(e) => setNop(e.target.value)} />
                             </div>
                         </div>
-                        <Button type='button' onClick={addToGrid}>
-                            Add
-                        </Button>
+                        <Button type='button' onClick={addToGrid}>Add</Button>
+
                         {fields.length > 0 && <DataTable data={fields} columns={subColumns} totalItems={fields.length} />}
                     </div>
                 )}

@@ -200,9 +200,18 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
             { accessorKey: 'clsDisplay', header: 'Class' },
             { accessorKey: 'sectDisplay', header: 'Section' },
             { accessorKey: 'subDisplay', header: 'Subject' },
-            { accessorKey: 'nop', header: 'No Of Periods' }
+            { accessorKey: 'nop', header: 'No Of Periods' },
+            {
+                id: 'actions',
+                header: 'Actions',
+                cell: ({ row }) => (
+                    <Button type='button' variant='ghost' size='sm' onClick={() => remove(row.index)}>
+                        <span className='text-red-500'>Delete</span>
+                    </Button>
+                )
+            }
         ],
-        []
+        [remove]
     );
 
     const onSubmit = async (data: FixingDayStaffSchema) => {
@@ -218,15 +227,14 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
 
             const res = await saveFixingDayStaff(data);
             if (res?.returnval === true || res?.success === true) {
-                toast.success(res?.message || 'Saved Successfully');
+                toast.success(res.message);
                 reset();
                 onSuccess();
             } else {
-                toast.error(res?.message || 'Failed to save');
+                toast.error(res.message);
             }
-        } catch (e) {
-            console.error(e);
-            toast.error('An error occurred');
+        } catch (error: any) {
+            toast.error(error.message);
         }
     };
 

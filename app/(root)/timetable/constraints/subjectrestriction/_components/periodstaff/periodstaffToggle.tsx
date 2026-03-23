@@ -19,7 +19,7 @@ interface ToggleSubjectPeriodStaffProps {
     onClose: () => void;
 }
 
-export default function TogglePeriodStaffForm({ rowData, onClose }: ToggleSubjectPeriodStaffProps) {
+export default function PeriodStaffToggle({ rowData, onClose }: ToggleSubjectPeriodStaffProps) {
     const { refetchAll } = useSubjectRestrictionPeriodStaffGridData({ ASMAY_Id: 0, TTMC_Id: 0 });
     const isActive = rowData.ttrpS_ActiveFlag;
 
@@ -43,14 +43,14 @@ export default function TogglePeriodStaffForm({ rowData, onClose }: ToggleSubjec
             const response = await ToggleSubjectPeriodStaff(Number(rowData.ttrpS_Id));
 
             if (response.success || response.returnval === true) {
-                toast.success(response.message || 'Status updated successfully');
+                toast.success(response.message);
                 refetchAll();
                 closeDialog();
             } else {
-                toast.error(response.message || 'Failed to update status');
+                toast.error(response.message);
             }
         } catch (error: any) {
-            toast.error(error.message || 'An error occurred');
+            toast.error(error.message);
         }
     };
 

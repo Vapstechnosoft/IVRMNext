@@ -12,11 +12,11 @@ export interface IDaySubjectList {
     ttmD_DayName: string;
     ismS_SubjectName: string;
     ttrdsU_ActiveFlag: boolean;
-    ttrdsU_SUbSelcFlag: boolean; // Added from your backend data
+    ttrdsU_SUbSelcFlag: boolean;
     asmaY_Id: number;
 }
 
-export const columns: ColumnDef<IDaySubjectList>[] = [
+export const daySubjectColumns: ColumnDef<IDaySubjectList>[] = [
     {
         accessorKey: 'ttrdsU_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
@@ -54,7 +54,7 @@ export const columns: ColumnDef<IDaySubjectList>[] = [
         )
     },
     {
-        id: 'actions', // Changed ID to 'actions' for clearer pinning
+        id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' />,
         accessorFn: (row) => row,
         enableSorting: false,

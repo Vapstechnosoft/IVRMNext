@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+export type DayPeriodSchema = z.infer<typeof dayPeriodSchema>;
+
 export const dayPeriodSchema = z.object({
     ttrdP_Id: z.number().optional(),
     asmaY_Id: z.number().min(1, 'Academic Year is required'),
@@ -24,6 +26,7 @@ export const dayPeriodSchema = z.object({
         .optional()
 });
 
+export type DayStaffSchema = z.infer<typeof dayStaffSchema>;
 export const dayStaffSchema = z.object({
     ttrdS_Id: z.number().optional(),
     ttrpS_Id: z.number().optional(),
@@ -49,6 +52,7 @@ export const dayStaffSchema = z.object({
         .optional()
 });
 
+export type DaySubjectSchema = z.infer<typeof daySubjectSchema>;
 export const daySubjectSchema = z.object({
     ttrdsU_Id: z.number().optional(),
     asmaY_Id: z.number(),
@@ -71,10 +75,13 @@ export const daySubjectSchema = z.object({
         .optional()
 });
 
+
+export type PeriodStaffSchema = z.infer<typeof periodStaffSchema>;
 export const periodStaffSchema = z.object({
     TTRPS_Id: z.number().optional(),
     ASMAY_Id: z.number().min(1, 'Academic Year is required'),
     TTMP_Id: z.number().min(1, 'Period is required'),
+    ismS_Id: z.number().min(1, 'Subject is required'),
     HRME_Id: z.number().min(1, 'Staff is required'),
     TTRPS_SUbSelcFlag: z.boolean().optional(),
     combinationlist: z
@@ -89,6 +96,8 @@ export const periodStaffSchema = z.object({
         .optional()
 });
 
+
+export type PeriodSubjectSchema = z.infer<typeof periodSubjectSchema>;
 export const periodSubjectSchema = z.object({
     ttrpsU_Id: z.number().optional(),
     asmaY_Id: z.number().min(1, 'Academic Year is required'),
