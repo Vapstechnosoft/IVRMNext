@@ -129,16 +129,27 @@ export default function ReportGrid({ data, searchQuery, onSearchChange, manualPa
             </div>
 
             <div ref={componentRef} className="bg-white p-6 rounded-lg shadow-sm border min-h-[400px]">
+                <style jsx global>{`
+                    @media screen {
+                        .print-only { display: none !important; }
+                    }
+                    @media print {
+                        .screen-only { display: none !important; }
+                        .print-only { display: block !important; }
+                        body { -webkit-print-color-adjust: exact !important; background: white !important; }
+                    }
+                `}</style>
                 <div className="mb-6 text-center">
                     <h1 className="text-2xl font-bold uppercase underline text-primary">House Incharge Report</h1>
                 </div>
-                <div className="print:hidden">
+
+                <div className="screen-only">
                     {filteredData.length > 0 ? (
                         <DataTable
                             columns={columns}
                             data={filteredData}
                             totalItems={filteredData.length}
-                            manualPagination={manualPagination}
+                            manualPagination={false}
                         />
                     ) : (
                         <div className="py-20 text-center border-2 border-dashed rounded-xl bg-muted/30">
@@ -151,13 +162,13 @@ export default function ReportGrid({ data, searchQuery, onSearchChange, manualPa
                     )}
                 </div>
 
-                <div className="hidden print:block overflow-x-auto">
+                <div className="print-only overflow-x-auto">
                     <table className="w-full border-collapse border border-gray-300 text-center text-[10pt]">
                         <thead>
                             <tr className="bg-gray-100">
                                 {columns.map((col: any, i) => (
-                                    <th key={i} className="border border-gray-300 p-2 font-bold bg-gray-50">
-                                        {col.header?.toString() || ''}
+                                    <th key={i} className="border border-gray-300 p-2 font-bold whitespace-nowrap">
+                                        {typeof col.header === 'string' ? col.header : ''}
                                     </th>
                                 ))}
                             </tr>
@@ -176,7 +187,7 @@ export default function ReportGrid({ data, searchQuery, onSearchChange, manualPa
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={columns.length} className="border border-gray-300 p-8 text-center text-muted-foreground font-medium">
+                                    <td colSpan={columns.length} className="border border-gray-300 p-10 text-center text-muted-foreground font-medium">
                                         No Records Found
                                     </td>
                                 </tr>
