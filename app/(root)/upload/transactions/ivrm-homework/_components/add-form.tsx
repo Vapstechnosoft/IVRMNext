@@ -8,8 +8,15 @@ import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { cn } from '@/lib/utils';
-import { homeWorkSchema, type IHomeWork } from '@/schemas/upload/transactions/ivrm-homework.schema';
+import { type IHomeWork, homeWorkSchema } from '@/schemas/upload/transactions/ivrm-homework.schema';
+import {
+    getClassDropDownByAcademicYearlist,
+    getSectionsDropDownByAcademicYearandClasslist
+} from '@/server/exam/exam-module/reports/cumulative-report';
+import { uploadDocument } from '@/server/fees/trasactions/waived_off';
+import { getSubjectsDropDownByAcademicYearandClassandSectionlist } from '@/server/upload/transactions/ivrm-classwork/server-action';
 import { saveHomeWork } from '@/server/upload/transactions/ivrm-homework/server-action';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
@@ -17,15 +24,6 @@ import { CalendarIcon, Eye, Loader2, Minus, Plus, Save, Upload, X } from 'lucide
 import { useEffect, useRef, useState } from 'react';
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
-import { uploadDocument } from '@/server/fees/trasactions/waived_off';
-import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
-import {
-    getClassDropDownByAcademicYearlist,
-    getSectionsDropDownByAcademicYearandClasslist
-} from '@/server/exam/exam-module/reports/cumulative-report';
-import {
-    getSubjectsDropDownByAcademicYearandClassandSectionlist
-} from '@/server/upload/transactions/ivrm-classwork/server-action';
 
 interface AddHomeWorkFormProps {
     onSuccess: () => void;
@@ -60,7 +58,12 @@ export default function AddHomeWorkForm({ onSuccess, classList }: AddHomeWorkFor
         }
     });
 
-    const { control, handleSubmit, formState: { isSubmitting }, setValue } = methods;
+    const {
+        control,
+        handleSubmit,
+        formState: { isSubmitting },
+        setValue
+    } = methods;
     const selectedYear = useWatch({ control, name: 'asmaY_Id' });
     const selectedClass = useWatch({ control, name: 'asmcL_Id' });
     const selectedSections = useWatch({ control, name: 'hm_section_list' });
@@ -152,7 +155,9 @@ export default function AddHomeWorkForm({ onSuccess, classList }: AddHomeWorkFor
                 setSubjects([]);
             }
         })();
-        return () => { mounted = false; };
+        return () => {
+            mounted = false;
+        };
     }, [selectedYear, selectedClass, selectedSections]);
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
@@ -224,15 +229,15 @@ export default function AddHomeWorkForm({ onSuccess, classList }: AddHomeWorkFor
         try {
             // Merge files and URLs into ihW_FilePath_Array
             const mergedAttachments = [
-                ...(data.ihW_FilePath_Array?.filter(f => f.ihW_FilePath && f.fileName) || []),
-                ...(data.ihW_Attachment_Array?.filter(f => f.ihW_FilePath) || [])
+                ...(data.ihW_FilePath_Array?.filter((f) => f.ihW_FilePath && f.fileName) || []),
+                ...(data.ihW_Attachment_Array?.filter((f) => f.ihW_FilePath) || [])
             ];
 
             const payload: IHomeWork = {
                 ...data,
                 ihW_FilePath_Array: mergedAttachments
             };
-            console.log("home work payload", payload);
+            console.log('home work payload', payload);
 
             const result = await saveHomeWork(payload);
             if (result.success) {
@@ -259,7 +264,9 @@ export default function AddHomeWorkForm({ onSuccess, classList }: AddHomeWorkFor
                         name='asmaY_Id'
                         render={({ field, fieldState }) => (
                             <div>
-                                <Label >Academic Year <span className='text-red-500'>*</span></Label>
+                                <Label>
+                                    Academic Year <span className='text-red-500'>*</span>
+                                </Label>
                                 <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                     <SelectTrigger>
                                         <SelectValue placeholder='Select Year' />
@@ -282,7 +289,9 @@ export default function AddHomeWorkForm({ onSuccess, classList }: AddHomeWorkFor
                         name='asmcL_Id'
                         render={({ field, fieldState }) => (
                             <div>
-                                <Label >Class <span className='text-red-500'>*</span></Label>
+                                <Label>
+                                    Class <span className='text-red-500'>*</span>
+                                </Label>
                                 <Select
                                     onValueChange={(val) => {
                                         field.onChange(Number(val));
@@ -357,7 +366,9 @@ export default function AddHomeWorkForm({ onSuccess, classList }: AddHomeWorkFor
                         name='ismS_Id'
                         render={({ field, fieldState }) => (
                             <div>
-                                <Label >Subject <span className='text-red-500'>*</span></Label>
+                                <Label>
+                                    Subject <span className='text-red-500'>*</span>
+                                </Label>
                                 <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                     <SelectTrigger>
                                         <SelectValue placeholder='Select Subject' />
@@ -380,7 +391,9 @@ export default function AddHomeWorkForm({ onSuccess, classList }: AddHomeWorkFor
                         name='ihW_Topic'
                         render={({ field, fieldState }) => (
                             <div>
-                                <Label >Topic <span className='text-red-500'>*</span></Label>
+                                <Label>
+                                    Topic <span className='text-red-500'>*</span>
+                                </Label>
                                 <Input {...field} placeholder='Enter Topic' />
                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                             </div>
@@ -392,10 +405,14 @@ export default function AddHomeWorkForm({ onSuccess, classList }: AddHomeWorkFor
                         name='ihW_Date'
                         render={({ field, fieldState }) => (
                             <div className='flex flex-col'>
-                                <Label >H.W Date <span className='text-red-500'>*</span></Label>
+                                <Label>
+                                    H.W Date <span className='text-red-500'>*</span>
+                                </Label>
                                 <Popover>
                                     <PopoverTrigger asChild>
-                                        <Button variant='outline' className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
+                                        <Button
+                                            variant='outline'
+                                            className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
                                             <CalendarIcon className='mr-2 h-4 w-4 opacity-50' />
                                             {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
                                         </Button>
@@ -405,7 +422,12 @@ export default function AddHomeWorkForm({ onSuccess, classList }: AddHomeWorkFor
                                             mode='single'
                                             selected={field.value}
                                             onSelect={field.onChange}
-                                            disabled={(date) => date < new Date('1900-01-01')}
+                                            disabled={(date) => {
+                                                // Disable dates before today
+                                                const today = new Date();
+                                                today.setHours(0, 0, 0, 0);
+                                                return date < today;
+                                            }}
                                             initialFocus
                                         />
                                     </PopoverContent>
@@ -433,7 +455,9 @@ export default function AddHomeWorkForm({ onSuccess, classList }: AddHomeWorkFor
                         name='ihW_Assignment'
                         render={({ field }) => (
                             <div>
-                                <Label>Assignment <span className='text-red-500'>*</span></Label>
+                                <Label>
+                                    Assignment <span className='text-red-500'>*</span>
+                                </Label>
                                 <Textarea {...field} value={field.value || ''} placeholder='Enter Assignment' rows={3} />
                             </div>
                         )}
@@ -474,7 +498,8 @@ export default function AddHomeWorkForm({ onSuccess, classList }: AddHomeWorkFor
                                                     onClick={() => fileInputRefs.current[index]?.click()}
                                                     className='h-8'
                                                     // @ts-ignore
-                                                    disabled={item.isUploading}>
+                                                    disabled={item.isUploading}
+                                                >
                                                     {/* @ts-ignore */}
                                                     {item.isUploading ? (
                                                         <>
@@ -539,7 +564,8 @@ export default function AddHomeWorkForm({ onSuccess, classList }: AddHomeWorkFor
                                                         className='h-8 w-8'
                                                         onClick={() => removeFile(index)}
                                                         // @ts-ignore
-                                                        disabled={item.isUploading}>
+                                                        disabled={item.isUploading}
+                                                    >
                                                         <Minus className='h-4 w-4' />
                                                     </Button>
                                                 )}
@@ -587,7 +613,7 @@ export default function AddHomeWorkForm({ onSuccess, classList }: AddHomeWorkFor
                                 </Button>
                             </div>
                         )}
-                        <p className='mt-2 text-sm text-green-700'>
+                        <p className='mt-2 text-green-700 text-sm'>
                             <span className='font-bold text-red-500'>Accept File:</span> jpg, jpeg, png, doc, ppt, excel, mp3, mp4, wmv, pdf
                         </p>
                     </div>
@@ -623,9 +649,7 @@ export default function AddHomeWorkForm({ onSuccess, classList }: AddHomeWorkFor
                                                 <Controller
                                                     control={control}
                                                     name={`ihW_Attachment_Array.${index}.ihW_FilePath`}
-                                                    render={({ field }) => (
-                                                        <Input {...field} placeholder='Enter URL' className='h-9' />
-                                                    )}
+                                                    render={({ field }) => <Input {...field} placeholder='Enter URL' className='h-9' />}
                                                 />
                                             </td>
                                             <td className='border p-2 text-center'>
