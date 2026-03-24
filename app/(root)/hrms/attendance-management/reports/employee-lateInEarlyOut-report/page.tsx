@@ -84,13 +84,15 @@ function EmployeeLateInEarlyOutReportPageContent({
 
             if (!groupedByEmployee.has(empId)) {
                 groupedByEmployee.set(empId, {
+                    id: row.id || empId,
+                    createdAt: row.createdAt ? new Date(row.createdAt) : new Date(),
                     hrmE_Id: empId,
                     ecode: row.ecode,
                     ename: row.ename,
                     depname: row.depname,
                     desgname: row.desgname,
                     gtype: row.gtype
-                });
+                } as LIEORow);
             }
 
             const empData = groupedByEmployee.get(empId)!;

@@ -12,13 +12,25 @@ const formatDate = (date: unknown): string => {
 
 import type { BaseEntity } from '@/lib/localdb';
 
-export interface LIEORow {
+export interface LIEORow extends BaseEntity {
     hrmE_Id: number;
     ecode: string;
     ename: string;
     depname?: string;
     desgname?: string;
     gtype?: string;
+    employeeCode?: string;
+    employee_code?: string;
+    employeeName?: string;
+    user_name?: string;
+    lateBy?: string;
+    late_by?: string;
+    earlyOut?: string;
+    early_out?: string;
+    type?: string;
+    department?: string;
+    designation?: string;
+    date?: string;
     [key: string]: any; // For dynamic date columns
 }
 

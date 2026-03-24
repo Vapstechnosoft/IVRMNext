@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
-import { getEmployeeMonthReport } from '@/server/hrms/hrmsConfig/reports/employee-month-report';
+import { getEmployeeMonthEndReport } from '@/server/hrms/hrmsConfig/reports/employee-month-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { Label } from 'react-aria-components';
@@ -62,7 +62,7 @@ export default function AddEmployeeMonthReportForm({ onSuccess, onReset, classNa
     const onSubmit: SubmitHandler<FormFields> = async (data: FormFields) => {
         try {
             console.log("form data", data);
-            const response = await getEmployeeMonthReport({
+            const response = await getEmployeeMonthEndReport({
                 year: data.year,
                 month: Number(data.month)
             });
