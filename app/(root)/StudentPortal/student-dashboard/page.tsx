@@ -85,28 +85,6 @@ export default function StudentDashboardPage() {
 
     console.log('studentInfoDetails', studentInfoDetails);
 
-    // Use real API data or fallback to mock data
-    const student =
-        studentInfoDetails?.data && Array.isArray(studentInfoDetails.data) && studentInfoDetails.data.length > 0
-            ? {
-                name: `${studentInfoDetails.data[0].amsT_FirstName} ${studentInfoDetails.data[0].amsT_LastName}`,
-                class: studentInfoDetails.data[0].classname || 'N/A',
-                section: studentInfoDetails.data[0].sectionname || 'N/A',
-                admNo: studentInfoDetails.data[0].amsT_AdmNo || 'N/A',
-                dob: studentInfoDetails.data[0].amsT_DOB || 'N/A',
-                email: studentInfoDetails.data[0].amst_email_id || 'N/A',
-                mobile: studentInfoDetails.data[0].amst_mobile?.toString() || 'N/A'
-            }
-            : {
-                name: 'Abhiram H B',
-                class: 'X',
-                section: 'A',
-                admNo: '2024001',
-                dob: '2008-05-15',
-                email: 'abhiram@example.com',
-                mobile: '9876543210'
-            };
-
     const fees = {
         total: 50000,
         paid: 35000,
@@ -124,7 +102,7 @@ export default function StudentDashboardPage() {
             <div className='flex items-center justify-between'>
                 <div>
                     <h2 className='font-bold text-3xl tracking-tight'>Student Dashboard</h2>
-                    <p className='text-muted-foreground'>Welcome back, {student.name}</p>
+                    <p className='text-muted-foreground'>Welcome back, {studentInfoDetails?.amsT_FirstName}</p>
                 </div>
             </div>
 
@@ -145,11 +123,14 @@ export default function StudentDashboardPage() {
                             </div>
                         ) : (
                             <>
-                                <h4 className='truncate font-semibold text-lg'>{student.name}</h4>
+                                <h4 className='truncate font-semibold text-lg'>
+                                    {studentInfoDetails?.amsT_FirstName} {studentInfoDetails?.amsT_MiddleName} {studentInfoDetails?.amsT_LastName}
+                                </h4>
                                 <p className='text-sm'>
-                                    {student.class} : {student.section}
+                                    {studentInfoDetails?.classname || 'N/A'} : {studentInfoDetails?.sectionname || 'N/A'}
                                 </p>
-                                <p className='text-gray-500 text-xs'>Adm No: {student.admNo}</p>
+                                <p className='text-gray-500 text-xs'>Adm No: {studentInfoDetails?.amsT_AdmNo || 'N/A'}</p>
+                                <p className='text-gray-500 text-xs'>Reg No: {studentInfoDetails?.amsT_RegistrationNo || 'N/A'}</p>
                             </>
                         )}
                     </div>
