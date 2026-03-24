@@ -1,64 +1,62 @@
 'use client';
 
+import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import type { IMasterSportsCCNameUOM } from '@/types/sports/masters/sports-cc-name-uom';
-import type { ColumnDef } from '@tanstack/react-table';
-import { Pencil, Power, PowerOff } from 'lucide-react';
+import type { ColumnDef, Row } from '@tanstack/react-table';
 
+/* ============================================
+   Actions Cell Component
+   ============================================ */
+function ActionsCell({ row }: { row: Row<IMasterSportsCCNameUOM> }) {
+    const data = row.original;
+    const { openEditForm, openToggleForm } = useFormContext<IMasterSportsCCNameUOM>();
+
+    return (
+        <ActionButtons
+            rowData={data}
+            buttons={{
+                edit: true,
+                toggle: true,
+                delete: false
+            }}
+            onEdit={() => openEditForm(data)}
+            onToggle={() => openToggleForm(data)}
+            toggleConditionKey='spccmsccuoM_ActiveFlag'
+        />
+    );
+}
+
+/* ============================================
+   Master Sports CC Name UOM Columns Definition
+   ============================================ */
 export const MasterSportsCCNameUOMColumns: ColumnDef<IMasterSportsCCNameUOM>[] = [
     {
-        header: 'SL.NO.',
-        cell: ({ row }) => row.index + 1
+        accessorKey: 'spccmsccuoM_Id',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            const continuousIndex = pageIndex * pageSize + row.index + 1;
+            return <div className='pl-6'>{continuousIndex}</div>;
+        },
+        enableSorting: true,
+        enableHiding: false
     },
     {
         accessorKey: 'sportsCCName',
-        header: 'Sports Name',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sports Name' />,
         enableSorting: true
     },
     {
         accessorKey: 'uomName',
-        header: 'UOM',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='UOM' />,
         enableSorting: true
     },
     {
-        accessorKey: 'spccmsccuoM_ActiveFlag',
-        header: 'Status',
-        cell: ({ row }) => (
-            <Badge variant={row.original.spccmsccuoM_ActiveFlag ? 'success' : 'destructive'}>
-                {row.original.spccmsccuoM_ActiveFlag ? 'Active' : 'Deactive'}
-            </Badge>
-        )
-    },
-    {
         id: 'actions',
-        header: 'Action',
-        cell: ({ row }) => {
-            const { openEditForm, openToggleForm } = useFormContext<IMasterSportsCCNameUOM>();
-            return (
-                <div className="flex items-center justify-center gap-2">
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-primary"
-                        onClick={() => openEditForm(row.original)}
-                        title="Edit"
-                    >
-                        <Pencil className="h-4 w-4" />
-                    </Button>
-                    <span className="text-muted-foreground">|</span>
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className={row.original.spccmsccuoM_ActiveFlag ? "h-8 w-8 text-destructive" : "h-8 w-8 text-green-600"}
-                        onClick={() => openToggleForm(row.original)}
-                        title={row.original.spccmsccuoM_ActiveFlag ? "Deactivate" : "Activate"}
-                    >
-                        {row.original.spccmsccuoM_ActiveFlag ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
-                    </Button>
-                </div>
-            );
-        }
+        cell: ActionsCell
     }
 ];

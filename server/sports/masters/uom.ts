@@ -5,36 +5,42 @@ import type { ApiSearchparams } from '@/types';
 import type { IMasterUOM } from '@/types/sports/masters/uom';
 
 export async function getMasterUOMs(searchParams?: ApiSearchparams) {
-    // Controller: [HttpPost("Getdetails")] public async Task<ActionResult> Getdetails()
-    // Takes no parameters, returns all data.
-    const url = `/SportMasterUOM/Getdetails`;
+    // Following the Events page reference: URL parameters with api.post and an empty body.
+    // We explicitly map the frontend column names to backend DMO field names (PascalCase) 
+    // and provide the required search_column to trigger the search helper on the backend.
+    
+    const params = {
+        ...searchParams,
+        // Map frontend sorting keys to backend database field names
+        sort_column: searchParams?.sort_column === 'spccmuoM_Id' ? 'SPCCMUOM_Id' : 
+                    searchParams?.sort_column === 'spccmuoM_UOMName' ? 'SPCCMUOM_UOMName' : 
+                    searchParams?.sort_column === 'spccmuoM_ActiveFlag' ? 'SPCCMUOM_ActiveFlag' :
+                    searchParams?.sort_column || '',
+        // The apiService getSearchParamsUrl helper expects 'search_columns' to map to 'search_column' in the URL
+        search_columns: searchParams?.search_query ? 'SPCCMUOM_UOMName' : ''
+    };
+    
+    const urlParams = getSearchParamsUrl(params);
+    const url = `/SportMasterUOM/Getdetails?${urlParams}`;
     return await api.post<IMasterUOM[]>('sports', url, {});
 }
 
 export async function getMasterUOMDetails(id: number) {
-    // Controller: [HttpPost("GetSelectedRowDetails/{id:int}")]
     const url = `/SportMasterUOM/GetSelectedRowDetails/${id}`;
     return await api.post<IMasterUOM>('sports', url, {});
 }
 
 export async function saveMasterUOM(data: any) {
-    console.log('saveMasterUOM received:', JSON.stringify(data, null, 2));
-
-    // User Request: Use specific payload format with ONLY two fields
-    // { "spccmuoM_Id": ..., "spccmuoM_UOMName": ... }
     const payload = {
         spccmuoM_Id: data.spccmuoM_Id,
         spccmuoM_UOMName: data.spccmuoM_UOMName
     };
-
-    console.log('saveMasterUOM payload:', JSON.stringify(payload, null, 2));
 
     const url = `/SportMasterUOM`;
     return await api.post<any>('sports', url, payload);
 }
 
 export async function deactivateMasterUOM(data: any) {
-    // Controller expects DTO with PascalCase properties
     const payload = {
         ...data,
         SPCCMUOM_Id: data.spccmuoM_Id ?? data.SPCCMUOM_Id,

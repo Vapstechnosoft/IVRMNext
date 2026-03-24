@@ -1,11 +1,12 @@
 'use server';
 
-import { api } from '@/lib/apiService';
+import { api, getSearchParamsUrl } from '@/lib/apiService';
+import type { ApiSearchparams } from '@/types';
 import type { IMasterHouse } from '@/types/sports/masters/house';
 
-export async function getMasterHouses() {
-    // User specified /api/SportsMasterHouse/getdetails
-    const url = `/SportsMasterHouse/getdetails`;
+export async function getMasterHouses(searchParams?: ApiSearchparams) {
+    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const url = `/SportsMasterHouse/getdetails?${urlParams}`;
     return await api.post<IMasterHouse[]>('sports', url, {});
 }
 

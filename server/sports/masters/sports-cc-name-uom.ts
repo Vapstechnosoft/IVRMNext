@@ -1,13 +1,15 @@
 'use server';
 
-import { api } from '@/lib/apiService';
+import { api, getSearchParamsUrl } from '@/lib/apiService';
 import { revalidatePath } from 'next/cache';
+import type { ApiSearchparams } from '@/types';
 import type { IMasterSportsCCNameUOMResponse } from '@/types/sports/masters/sports-cc-name-uom';
 
 const BASE_URL = 'sports';
 
-export async function getMasterSportsCCNameUOMs() {
-    const url = `/MasterSportsCCNameUOM_/getDetails`;
+export async function getMasterSportsCCNameUOMs(searchParams?: ApiSearchparams) {
+    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const url = `/MasterSportsCCNameUOM_/getDetails?${urlParams}`;
     return await api.post<IMasterSportsCCNameUOMResponse>(BASE_URL, url, {});
 }
 
