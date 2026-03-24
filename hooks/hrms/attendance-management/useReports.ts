@@ -4,7 +4,7 @@ import { getEmployeeInOutReport } from '@/server/hrms/hrmsConfig/reports/employe
 import { getEmployeeLateInEarlyOutReport } from '@/server/hrms/hrmsConfig/reports/employee-latein-earlyout-report';
 import { getEmployeeLogReport } from '@/server/hrms/hrmsConfig/reports/employee-log-report';
 import { getEmployeeMonthlyReport } from '@/server/hrms/hrmsConfig/reports/employee-monthly-report';
-import { getEmployeeMonthReport } from '@/server/hrms/hrmsConfig/reports/employee-month-report';
+import { getEmployeeMonthEndReport } from '@/server/hrms/hrmsConfig/reports/employee-month-report';
 import { getEmployeeYearlyReport } from '@/server/hrms/hrmsConfig/reports/employee-yearly-report';
 import { getFOMonthEndReport } from '@/server/hrms/hrmsConfig/reports/fo-monthend-report';
 import { getGPSLocationReport } from '@/server/hrms/hrmsConfig/reports/gps-location-report';
@@ -152,15 +152,15 @@ export function useEmployeeYearlyReport(searchParams?: ApiSearchparams) {
 }
 
 // ============================================================================
-// EMPLOYEE MONTH REPORT
+// EMPLOYEE MONTH-END REPORT
 // ============================================================================
-export function useEmployeeMonthReport(searchParams?: ApiSearchparams) {
+export function useEmployeeMonthEndReport(searchParams?: ApiSearchparams) {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_MONTH_REPORT, searchParams ?? {}],
-            queryFn: async () => getEmployeeMonthReport({}, searchParams),
+            queryFn: async () => getEmployeeMonthEndReport({}),
             staleTime: 0
         }),
         refetchAll: () => {
