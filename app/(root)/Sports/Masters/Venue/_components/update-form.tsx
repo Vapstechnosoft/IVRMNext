@@ -27,6 +27,7 @@ export default function UpdateMasterVenueForm({ selectedRow, onSuccess }: Update
                 }
             }}
             mode='edit'
+            formMode='onChange'
             successMessage='Master Venue updated successfully'
             errorMessage='Failed to update Master Venue'
             onSuccess={onSuccess}

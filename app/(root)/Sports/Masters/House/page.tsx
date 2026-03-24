@@ -111,7 +111,12 @@ function MasterHousePageContent({
                                         className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                         <X className='h-4 w-4 text-destructive' /> Close
                                     </Button>
-                                    <AddMasterHouseForm onSuccess={closeAddForm} />
+                                    <AddMasterHouseForm
+                                        onSuccess={() => {
+                                            refetchAll();
+                                            closeAddForm();
+                                        }}
+                                    />
                                 </div>
                             </CollapsibleSection>
                         </div>
@@ -138,7 +143,10 @@ function MasterHousePageContent({
                                     <UpdateMasterHouseForm
                                         key={selectedRow.spccmH_Id}
                                         selectedRow={selectedRow}
-                                        onSuccess={closeEditForm}
+                                        onSuccess={() => {
+                                            refetchAll();
+                                            closeEditForm();
+                                        }}
                                     />
                                 </div>
                             </CollapsibleSection>

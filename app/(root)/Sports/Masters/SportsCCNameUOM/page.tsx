@@ -34,6 +34,7 @@ export default function MasterSportsCCNameUOMPage(props: { searchParams: SearchP
                 isLoading={isLoading}
                 error={error}
                 refetchAll={refetchAll}
+                response={response}
             />
         </FormProvider>
     );
@@ -45,7 +46,8 @@ function MasterSportsCCNameUOMPageContent({
     uomList,
     isLoading,
     error,
-    refetchAll
+    refetchAll,
+    response // Passing response to get count if needed
 }: {
     sportsCCNameUOMList: IMasterSportsCCNameUOM[];
     sportsCCNameList: any[];
@@ -53,6 +55,7 @@ function MasterSportsCCNameUOMPageContent({
     isLoading: boolean;
     error: any;
     refetchAll: any;
+    response: any;
 }) {
     const {
         isAddFormOpen,
@@ -67,7 +70,13 @@ function MasterSportsCCNameUOMPageContent({
         editFormRef
     } = useFormContext<IMasterSportsCCNameUOM>();
 
-    // const tableProps = useDataTableProps(sportsCCNameUOMList); // Incorrect usage as sportsCCNameUOMList is an array
+    // Handle nested response structure robustly
+    const tableProps = {
+        data: sportsCCNameUOMList || [],
+        totalItems: response?.data?.count || response?.data?.Count || response?.total || sportsCCNameUOMList.length || 0,
+        success: response?.success,
+        errorMessage: response?.message
+    };
 
     return (
         <div className='min-h-screen'>
@@ -84,13 +93,13 @@ function MasterSportsCCNameUOMPageContent({
 
                 <CollapsibleSection
                     title="Sports CC Name UOM List"
+                    description="List of sports and their associated units of measurement"
                     defaultOpen={true}
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <GenericDataTable<IMasterSportsCCNameUOM>
-                        data={sportsCCNameUOMList}
-                        totalItems={sportsCCNameUOMList.length}
+                        {...tableProps}
                         columns={MasterSportsCCNameUOMColumns}
                         isLoading={isLoading}
                         error={error}
@@ -127,7 +136,10 @@ function MasterSportsCCNameUOMPageContent({
                                         <X className='h-4 w-4 text-destructive' /> Close
                                     </Button>
                                     <AddMasterSportsCCNameUOMForm
-                                        onSuccess={closeAddForm}
+                                        onSuccess={async () => {
+                                            await refetchAll();
+                                            closeAddForm();
+                                        }}
                                         sportsCCNameList={sportsCCNameList}
                                         uomList={uomList}
                                     />
@@ -156,7 +168,10 @@ function MasterSportsCCNameUOMPageContent({
                                     </Button>
                                     <UpdateMasterSportsCCNameUOMForm
                                         selectedRow={selectedRow}
-                                        onSuccess={closeEditForm}
+                                        onSuccess={async () => {
+                                            await refetchAll();
+                                            closeEditForm();
+                                        }}
                                         sportsCCNameList={sportsCCNameList}
                                         uomList={uomList}
                                     />

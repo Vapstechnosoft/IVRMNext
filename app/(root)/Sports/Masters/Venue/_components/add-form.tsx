@@ -58,6 +58,7 @@ export default function AddMasterVenueForm({ onSuccess }: AddMasterVenueFormProp
                 }
             }}
             mode='create'
+            formMode='onChange'
             successMessage={''}
             errorMessage={''}
             onSuccess={() => {

@@ -15,6 +15,7 @@ import { useSportsYearEndReport } from '@/hooks/sports/useSportsYearEndReport';
 import { useEffect, useState } from 'react';
 import { IClass, ISection, ISportsYearEndReportData } from '../types';
 import { Input } from '@/components/ui/input';
+import { toast } from 'sonner';
 
 interface ReportFormProps {
     onReportGenerated: (data: ISportsYearEndReportData[] | null) => void;
@@ -99,6 +100,15 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
         }, {
             onSuccess: (responseData) => {
                 onReportGenerated(responseData);
+                if (responseData && responseData.length > 0) {
+                    toast.success('Report generated successfully');
+                } else {
+                    toast.info('No records found');
+                }
+            },
+            onError: (error) => {
+                console.error(error);
+                toast.error('Failed to generate report');
             }
         });
     }

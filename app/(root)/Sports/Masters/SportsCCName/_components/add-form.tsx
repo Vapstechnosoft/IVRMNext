@@ -40,6 +40,7 @@ export const AddForm = ({ onSuccess, onCancel, groupNameList }: AddFormProps) =>
 
     const form = useForm<z.infer<typeof sportsCCNameSchema.addOrUpdate>>({
         resolver: zodResolver(sportsCCNameSchema.addOrUpdate),
+        mode: 'onChange',
         defaultValues: {
             spccmscC_Id: 0,
             spccmsccG_Id: 0,
@@ -108,6 +109,9 @@ export const AddForm = ({ onSuccess, onCancel, groupNameList }: AddFormProps) =>
         }
     };
 
+    // Filter unique group list for the dropdown
+    const uniqueGroupList = Array.from(new Map(groupNameList.map(item => [item.spccmsccG_Id, item])).values());
+
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -130,9 +134,9 @@ export const AddForm = ({ onSuccess, onCancel, groupNameList }: AddFormProps) =>
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            {groupNameList.map((item) => (
+                                            {uniqueGroupList.map((item) => (
                                                 <SelectItem key={item.spccmsccG_Id} value={item.spccmsccG_Id.toString()}>
-                                                    {item.spccmsccG_SportsCCGroupName}
+                                                    {(item as any).spccmsccG_SportsCCGroupName || (item as any).groupName}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>

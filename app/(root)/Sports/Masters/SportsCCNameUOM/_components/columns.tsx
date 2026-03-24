@@ -35,6 +35,7 @@ function ActionsCell({ row }: { row: Row<IMasterSportsCCNameUOM> }) {
 export const MasterSportsCCNameUOMColumns: ColumnDef<IMasterSportsCCNameUOM>[] = [
     {
         accessorKey: 'spccmsccuoM_Id',
+        id: 'SPCCMSCCUOM_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
@@ -47,11 +48,13 @@ export const MasterSportsCCNameUOMColumns: ColumnDef<IMasterSportsCCNameUOM>[] =
     },
     {
         accessorKey: 'sportsCCName',
+        id: 'sportsCCName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sports Name' />,
         enableSorting: true
     },
     {
         accessorKey: 'uomName',
+        id: 'uomName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='UOM' />,
         enableSorting: true
     },
