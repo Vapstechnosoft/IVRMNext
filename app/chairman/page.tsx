@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     TrendingUp,
     Users,
@@ -27,17 +27,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
-import {
-    ResponsiveContainer,
-    BarChart,
-    Bar,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    Legend,
-    Cell
-} from 'recharts';
+import dynamic from 'next/dynamic';
+
+const StudentStrengthChart = dynamic(() => import('./_components/dashboard-charts').then(mod => mod.StudentStrengthChart), { ssr: false });
+const EmployeeStrengthChart = dynamic(() => import('./_components/dashboard-charts').then(mod => mod.EmployeeStrengthChart), { ssr: false });
+const FeeDetailsChart = dynamic(() => import('./_components/dashboard-charts').then(mod => mod.FeeDetailsChart), { ssr: false });
 import { cn } from '@/lib/utils';
 import { getDashboardCounts } from '@/server/dashboards/chairman-dashboard';
 // --- Data from Reference Images ---
@@ -133,9 +127,9 @@ const ChartCard = ({ title, children, className }: { title: string, children: Re
 );
 
 export default function ChairmanDashboard() {
-    const [dashboardData, setDashboardData] = React.useState<any>(null);
+    const [dashboardData, setDashboardData] = useState<any>(null);
 
-    React.useEffect(() => {
+    useEffect(() => {
         const fetchData = async () => {
             const { data } = await getDashboardCounts();
             console.log('preadmission data', data?.data)
@@ -200,62 +194,14 @@ export default function ChairmanDashboard() {
                 {/* Student Strength */}
                 <ChartCard title="Student Strength Academic Year 2025-2026">
                     <div className="h-[380px] mt-6">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={studentStrengthData} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                <XAxis
-                                    dataKey="name"
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 800 }}
-                                    angle={-45}
-                                    textAnchor="end"
-                                    interval={0}
-                                    height={60}
-                                />
-                                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 800 }} />
-                                <Tooltip
-                                    cursor={{ fill: '#f8fafc' }}
-                                    contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', fontWeight: 800 }}
-                                />
-                                <Bar dataKey="value" radius={[8, 8, 0, 0]} barSize={28}>
-                                    {studentStrengthData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.color} />
-                                    ))}
-                                </Bar>
-                            </BarChart>
-                        </ResponsiveContainer>
+                        <StudentStrengthChart data={studentStrengthData} />
                     </div>
                 </ChartCard>
 
                 {/* Employee Strength */}
                 <ChartCard title="Employee Role-wise Strength">
                     <div className="h-[380px] mt-6">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={employeeStrengthData} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                <XAxis
-                                    dataKey="name"
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 800 }}
-                                    angle={-45}
-                                    textAnchor="end"
-                                    interval={0}
-                                    height={60}
-                                />
-                                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 800 }} />
-                                <Tooltip
-                                    cursor={{ fill: '#f8fafc' }}
-                                    contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', fontWeight: 800 }}
-                                />
-                                <Bar dataKey="value" fill="#3b82f6" radius={[8, 8, 0, 0]} barSize={28}>
-                                    {employeeStrengthData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.color} />
-                                    ))}
-                                </Bar>
-                            </BarChart>
-                        </ResponsiveContainer>
+                        <EmployeeStrengthChart data={employeeStrengthData} />
                     </div>
                 </ChartCard>
             </div>
@@ -265,37 +211,7 @@ export default function ChairmanDashboard() {
                 {/* Fee Details Grouped Bar Chart */}
                 <ChartCard title="Classwise Fee Details 2025-2026" className="lg:col-span-8">
                     <div className="h-[400px] mt-8">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={feeDetailsData} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                <XAxis
-                                    dataKey="name"
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 800 }}
-                                    height={40}
-                                />
-                                <YAxis
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tick={{ fill: '#94a3b8', fontSize: 9, fontWeight: 800 }}
-                                    tickFormatter={(val) => `₹${(val / 1000000).toFixed(0)}M`}
-                                />
-                                <Tooltip
-                                    cursor={{ fill: '#f8fafc' }}
-                                    contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 25px 30px -5px rgb(0 0 0 / 0.14)', fontWeight: 800 }}
-                                />
-                                <Legend
-                                    verticalAlign="top"
-                                    align="right"
-                                    iconType="circle"
-                                    wrapperStyle={{ paddingBottom: '30px', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}
-                                />
-                                <Bar dataKey="Collected" fill="#10b981" radius={[4, 4, 0, 0]} barSize={14} />
-                                <Bar dataKey="Receivable" fill="#f59e0b" radius={[4, 4, 0, 0]} barSize={14} />
-                                <Bar dataKey="Balance" fill="#ef4444" radius={[4, 4, 0, 0]} barSize={14} />
-                            </BarChart>
-                        </ResponsiveContainer>
+                        <FeeDetailsChart data={feeDetailsData} />
                     </div>
                 </ChartCard>
 
