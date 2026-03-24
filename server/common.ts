@@ -2492,11 +2492,11 @@ export async function getUserAccessibleModules() {
                                         // }
                                         {
                                             id: 8,
-                                            name: 'Employee Month Report',
+                                            name: 'Employee Month End Report',
                                             icon: 'CalendarCheck',
-                                            url: '/hrms/attendance-management/reports/employee-month-report',
-                                            title: 'Employee Month Report',
-                                            description: 'Employee Month Report'
+                                            url: '/hrms/attendance-management/reports/employee-month-end-report',
+                                            title: 'Employee Month End Report',
+                                            description: 'Employee End Report'
                                         },
                                     ]
                                 }

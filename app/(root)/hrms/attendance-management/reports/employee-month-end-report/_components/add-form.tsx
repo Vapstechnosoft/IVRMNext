@@ -3,18 +3,15 @@
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { getEmployeeMonthReport } from '@/server/hrms/hrmsConfig/reports/employee-month-report';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useQueryClient } from '@tanstack/react-query';
 import { Save } from 'lucide-react';
 import { Label } from 'react-aria-components';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
-// Define schema locally since it's simple and likely similar to foMonthEndReportFilterSchema
 const employeeMonthReportFilterSchema = z.object({
     year: z.string().min(1, 'Year is required'),
     month: z.string().min(1, 'Month is required'),
@@ -24,13 +21,27 @@ const employeeMonthReportFilterSchema = z.object({
 type FormFields = z.infer<typeof employeeMonthReportFilterSchema>;
 
 interface AddEmployeeMonthReportFormProps {
-    onSuccess?: () => void;
+    onSuccess?: (data: any) => void;
+    onReset?: () => void;
     className?: string;
-    searchParams?: any;
 }
 
-export default function AddEmployeeMonthReportForm({ onSuccess, className = '', searchParams }: AddEmployeeMonthReportFormProps) {
-    const queryClient = useQueryClient();
+const MONTHS = [
+    { value: '1', label: 'January' },
+    { value: '2', label: 'February' },
+    { value: '3', label: 'March' },
+    { value: '4', label: 'April' },
+    { value: '5', label: 'May' },
+    { value: '6', label: 'June' },
+    { value: '7', label: 'July' },
+    { value: '8', label: 'August' },
+    { value: '9', label: 'September' },
+    { value: '10', label: 'October' },
+    { value: '11', label: 'November' },
+    { value: '12', label: 'December' }
+];
+
+export default function AddEmployeeMonthReportForm({ onSuccess, onReset, className = '' }: AddEmployeeMonthReportFormProps) {
     const { data: academicYears, isLoading: isYearsLoading } = useAcademicYearDropdown();
 
     const {
@@ -50,45 +61,23 @@ export default function AddEmployeeMonthReportForm({ onSuccess, className = '', 
 
     const onSubmit: SubmitHandler<FormFields> = async (data: FormFields) => {
         try {
-            console.log("Form data", data);
-            const payload = {
+            console.log("form data", data);
+            const response = await getEmployeeMonthReport({
                 year: data.year,
-                month: data.month,
-                ieName: data.ieName
-            };
-
-            const response = await getEmployeeMonthReport(payload, searchParams);
-
+                month: Number(data.month)
+            });
+            console.log("response", response);
             if (response.success) {
                 toast.success(response.message || 'Report generated successfully');
-
-                // Update cache with the new data
-                if (response?.total != null) {
-                    queryClient.setQueryData([HRMS_QUERY_KEYS.EMPLOYEE_MONTH_REPORT, searchParams ?? {}], response);
-                } else if (Array.isArray(response?.data)) {
-                    const parseParam = (k: string) => {
-                        const v = (searchParams as any)?.[k];
-                        if (Array.isArray(v)) return Number(v[0]);
-                        return v != null ? Number(v) : undefined;
-                    };
-                    const page = parseParam('page') || 1;
-                    const pageSize = parseParam('page_size') || 10;
-                    const total = response.data.length;
-                    const start = (page - 1) * pageSize;
-                    const pageData = response.data.slice(start, start + pageSize);
-
-                    queryClient.setQueryData([HRMS_QUERY_KEYS.EMPLOYEE_MONTH_REPORT, searchParams ?? {}], {
-                        data: pageData,
-                        total,
-                        success: true,
-                        message: response.message
-                    });
-                } else {
-                    queryClient.setQueryData([HRMS_QUERY_KEYS.EMPLOYEE_MONTH_REPORT, searchParams ?? {}], response);
-                }
-
-                reset();
-                onSuccess?.();
+                // Pass everything to the parent
+                onSuccess?.({
+                    ...response.data,
+                    meta: {
+                        ieName: data.ieName,
+                        academicYear: data.year,
+                        monthName: MONTHS.find((m) => m.value === data.month)?.label
+                    }
+                });
             } else {
                 toast.error(response.message || 'Failed to generate report');
             }
@@ -99,6 +88,7 @@ export default function AddEmployeeMonthReportForm({ onSuccess, className = '', 
 
     const handleReset = () => {
         reset();
+        onReset?.();
     };
 
     return (
@@ -107,10 +97,10 @@ export default function AddEmployeeMonthReportForm({ onSuccess, className = '', 
                 <div className='space-y-4'>
                     <div className='rounded-lg bg-white p-6 shadow'>
                         <div className='grid grid-cols-1 items-center gap-10 lg:grid-cols-3'>
-                            {/* Year - Using useAcademicYearDropdown */}
+                            {/* Academic Year */}
                             <div className='col-span-1'>
                                 <Label className='mb-2 block font-medium text-gray-700 text-sm'>
-                                    Year <span className='ml-1 text-red-500'>*</span>
+                                    Academic Year <span className='ml-1 text-red-500'>*</span>
                                 </Label>
                                 <Controller
                                     name='year'
@@ -118,11 +108,11 @@ export default function AddEmployeeMonthReportForm({ onSuccess, className = '', 
                                     render={({ field }) => (
                                         <Select value={field.value || ''} onValueChange={field.onChange} disabled={isYearsLoading}>
                                             <SelectTrigger className={errors.year ? 'border-red-500' : ''}>
-                                                <SelectValue placeholder={isYearsLoading ? 'Loading Years...' : 'Select Year'} />
+                                                <SelectValue placeholder={isYearsLoading ? 'Loading Years...' : 'Select Academic Year'} />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {academicYears?.data?.map((year: any) => (
-                                                    <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>
+                                                    <SelectItem key={year.asmaY_Id} value={year.asmaY_Year}>
                                                         {year.asmaY_Year}
                                                     </SelectItem>
                                                 ))}
@@ -147,20 +137,7 @@ export default function AddEmployeeMonthReportForm({ onSuccess, className = '', 
                                                 <SelectValue placeholder='Select Month' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {[
-                                                    { value: '01', label: 'January' },
-                                                    { value: '02', label: 'February' },
-                                                    { value: '03', label: 'March' },
-                                                    { value: '04', label: 'April' },
-                                                    { value: '05', label: 'May' },
-                                                    { value: '06', label: 'June' },
-                                                    { value: '07', label: 'July' },
-                                                    { value: '08', label: 'August' },
-                                                    { value: '09', label: 'September' },
-                                                    { value: '10', label: 'October' },
-                                                    { value: '11', label: 'November' },
-                                                    { value: '12', label: 'December' }
-                                                ].map((m) => (
+                                                {MONTHS.map((m) => (
                                                     <SelectItem key={m.value} value={m.value}>
                                                         {m.label}
                                                     </SelectItem>
@@ -185,7 +162,7 @@ export default function AddEmployeeMonthReportForm({ onSuccess, className = '', 
                                             type='text'
                                             {...field}
                                             placeholder='Enter IE Name'
-                                            className={`w-full rounded-md border px-3 py-2 ${errors.ieName ? 'border-red-500' : ''}`}
+                                            className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.ieName ? 'border-red-500' : ''}`}
                                         />
                                     )}
                                 />
@@ -194,7 +171,6 @@ export default function AddEmployeeMonthReportForm({ onSuccess, className = '', 
                         </div>
                     </div>
 
-                    {/* Root Error */}
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
@@ -216,7 +192,7 @@ export default function AddEmployeeMonthReportForm({ onSuccess, className = '', 
                         loadingText='Searching...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Search
+                            Generate Report
                         </div>
                     </Button>
                 </div>
