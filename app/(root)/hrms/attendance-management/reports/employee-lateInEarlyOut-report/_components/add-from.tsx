@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
 import { cn } from '@/lib/utils';
 import { employeeLateInEarlyOutReportFilterSchema } from '@/schemas/hrms/attendance-management-schemas';
-import { getEmployeeLateInEarlyOutReport } from '@/server/hrms/hrmsConfig/reports/employee-latein-earlyout-report';
+import { getEmployeeLogReport } from '@/server/hrms/hrmsConfig/reports/employee-log-report';
 import {
     useReportDepartments,
     useReportDesignations,
@@ -48,6 +48,7 @@ export default function AddEmployeeLateInEarlyOutReportForm({
         control,
         reset,
         watch,
+        clearErrors,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(employeeLateInEarlyOutReportFilterSchema),
@@ -143,51 +144,75 @@ export default function AddEmployeeLateInEarlyOutReportForm({
 
     const onSubmit: SubmitHandler<FormFields> = async (data: FormFields) => {
         try {
-            const payload = {
-                type: data.type.map(Number),
-                department: data.department.map(Number),
-                designation: data.designation.map(Number),
-                allOrIndividual: data.allOrIndividual,
-                employeeCode: data.allOrIndividual === 'Individual' ? (data.query || []).join(',') : undefined,
-                employeeName: data.allOrIndividual === 'Individual' ? (data.query || []).join(',') : undefined,
-                codeOrName: data.codeOrName,
-                fromDate: data.fromDate,
-                toDate: data.toDate,
-                mode: data.mode
+            // Determine comma-separated employee IDs
+            let hrmeIds = '0';
+            if (data.allOrIndividual === 'Individual') {
+                hrmeIds = (data.query || []).join(',');
+            } else if (data.allOrIndividual === 'All') {
+                const allIds = employeesDataTransformed.map((emp: any) => emp.id).join(',');
+                hrmeIds = allIds || '0';
+            }
+
+            const fromDateObj = data.fromDate ? new Date(data.fromDate) : null;
+            
+            const punchTypeMap: Record<string, string> = {
+                'Late By': 'late',
+                'Early Out': 'early',
+                'Late In Early Out': 'LIEO'
             };
 
-            const response = await getEmployeeLateInEarlyOutReport(payload, searchParams);
+            const payload = {
+                hrme_ids: hrmeIds,
+                select_date: fromDateObj ? format(fromDateObj, 'yyyy-MM-dd') : '',
+                select_month: fromDateObj ? format(fromDateObj, 'MMMM') : '',
+                select_year: fromDateObj ? format(fromDateObj, 'yyyy') : '',
+                from_date: data.fromDate ? format(new Date(data.fromDate), 'yyyy-MM-dd') : '',
+                to_date: data.toDate ? format(new Date(data.toDate), 'yyyy-MM-dd') : '',
+                punch_type: punchTypeMap[data.mode] || 'LIEO'
+            };
+
+            const response = await getEmployeeLogReport(payload);
+
+            console.log("response", response)
 
             if (response.success) {
-                toast.success(response.message || 'Report generated successfully');
-                try {
-                    if (response?.total != null) {
-                        queryClient.setQueryData([HRMS_QUERY_KEYS.EMPLOYEE_LATEIN_EARLYOUT_REPORT, searchParams ?? {}], response);
-                    } else if (Array.isArray(response?.data)) {
-                        const parseParam = (k: string) => {
-                            const v = (searchParams as any)?.[k];
-                            if (Array.isArray(v)) return Number(v[0]);
-                            return v != null ? Number(v) : undefined;
-                        };
-                        const page = parseParam('page') || 1;
-                        const pageSize = parseParam('page_size') || 10;
-                        const total = response.data.length;
-                        const start = (page - 1) * pageSize;
-                        const pageData = response.data.slice(start, start + pageSize);
+                const isDataEmpty = !response.data || (Array.isArray(response.data) && response.data.length === 0);
 
-                        queryClient.setQueryData([HRMS_QUERY_KEYS.EMPLOYEE_LATEIN_EARLYOUT_REPORT, searchParams ?? {}], {
-                            data: pageData,
-                            total,
+                if (isDataEmpty) {
+                    toast.error('No data found');
+                } else {
+                    toast.success(response.message || 'Report generated successfully');
+                }
+
+                try {
+                    // Attach dates for the report header in page.tsx
+                    response.fromDate = data.fromDate;
+                    response.toDate = data.toDate;
+
+                    // Update the query cache for Late In Early Out Report
+                    // We use {} as a fixed key to match exactly between page and form
+                    if (response?.total != null) {
+                        queryClient.setQueryData([HRMS_QUERY_KEYS.EMPLOYEE_LATEIN_EARLYOUT_REPORT, {}], response);
+                    } else if (Array.isArray(response?.data)) {
+                        // Pass the full array to allow GenericDataTable to handle pagination client-side
+                        queryClient.setQueryData([HRMS_QUERY_KEYS.EMPLOYEE_LATEIN_EARLYOUT_REPORT, {}], {
+                            data: response.data,
+                            total: response.data.length,
                             success: true,
-                            message: response.message
+                            message: response.message,
+                            fromDate: data.fromDate,
+                            toDate: data.toDate,
+                            mode: data.mode
                         });
                     } else {
-                        queryClient.setQueryData([HRMS_QUERY_KEYS.EMPLOYEE_LATEIN_EARLYOUT_REPORT, searchParams ?? {}], response);
+                        response.mode = data.mode;
+                        queryClient.setQueryData([HRMS_QUERY_KEYS.EMPLOYEE_LATEIN_EARLYOUT_REPORT, {}], response);
                     }
                 } catch (e) {
                     // noop
                 }
-                reset();
+                // Do NOT reset form fields to preserve selection
+                // reset();
                 onSuccess?.();
             } else {
                 toast.error(response.message || 'Failed to generate report');
@@ -198,7 +223,34 @@ export default function AddEmployeeLateInEarlyOutReportForm({
     };
 
     const handleReset = () => {
-        reset();
+        reset({
+            type: [],
+            department: [],
+            designation: [],
+            allOrIndividual: 'All',
+            codeOrName: 'Code',
+            query: [],
+            fromDate: '',
+            toDate: '',
+            mode: 'Late By'
+        }, {
+            keepDefaultValues: false,
+            keepErrors: false,
+            keepDirty: false,
+            keepTouched: false,
+            keepIsValid: false
+        });
+        
+        // Explicitly clear all errors to ensure a clean state
+        // Using setTimeout to ensure it runs after any immediate re-validation triggered by reset()
+        setTimeout(() => {
+            clearErrors();
+        }, 0);
+        
+        // Also clear the query cache so the grid results are removed from view
+        // Using setQueryData(..., null) is more explicit and ensures the UI observer 
+        // immediately sees the change and hides the report section.
+        queryClient.setQueryData([HRMS_QUERY_KEYS.EMPLOYEE_LATEIN_EARLYOUT_REPORT, {}], null);
     };
 
     return (

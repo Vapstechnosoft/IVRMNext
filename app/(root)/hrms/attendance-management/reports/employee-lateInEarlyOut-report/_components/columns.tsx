@@ -13,101 +13,112 @@ const formatDate = (date: unknown): string => {
 import type { BaseEntity } from '@/lib/localdb';
 
 export interface LIEORow extends BaseEntity {
-    user_id?: number;
-    employee_name?: string;
+    hrmE_Id: number;
+    ecode: string;
+    ename: string;
+    depname?: string;
+    desgname?: string;
+    gtype?: string;
+    employeeCode?: string;
     employee_code?: string;
+    employeeName?: string;
+    user_name?: string;
+    lateBy?: string;
+    late_by?: string;
+    earlyOut?: string;
+    early_out?: string;
+    type?: string;
     department?: string;
     designation?: string;
     date?: string;
-    late_by?: string;
-    early_out?: string;
-    type?: string;
-    employeeCode?: string;
-    employeeName?: string;
-    lateBy?: string;
-    earlyOut?: string;
-    [key: string]: any;
+    [key: string]: any; // For dynamic date columns
 }
 
-export const employeeLateInEarlyOutReportColumns: ColumnDef<LIEORow>[] = [
-    {
-        id: 'select',
-        header: ({ table }) => (
-            <Checkbox
-                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label='Select all'
-            />
-        ),
-        cell: ({ row }) => (
-            <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-        size: 24
-    },
-    {
-        accessorKey: 'user_id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
-        cell: ({ row, table }) => {
-            const pageIndex = table.getState().pagination.pageIndex;
-            const pageSize = table.getState().pagination.pageSize;
-            const continuousIndex = pageIndex * pageSize + row.index + 1;
-            return <div className='w-full pl-6'>{continuousIndex}</div>;
+export const getEmployeeLateInEarlyOutReportColumns = (dateColumns: string[], mode?: string): ColumnDef<LIEORow>[] => {
+    const staticColumns: ColumnDef<LIEORow>[] = [
+        {
+            accessorKey: 'hrmE_Id',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
+            cell: ({ row, table }) => {
+                const pageIndex = table.getState().pagination.pageIndex;
+                const pageSize = table.getState().pagination.pageSize;
+                return <div className='pl-2 text-center text-xs'>{pageIndex * pageSize + row.index + 1}</div>;
+            },
+            enableSorting: false,
+            enableHiding: false,
+            size: 50
         },
-        enableSorting: true,
-        enableHiding: false
-    },
-    {
-        accessorKey: 'employee_name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
-        cell: ({ row }) => <div>{row.getValue('employee_name')}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'employee_code',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Code' />,
-        cell: ({ row }) => <div>{row.getValue('employee_code')}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'department',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Department' />,
-        cell: ({ row }) => <div>{row.getValue('department')}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'designation',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Designation' />,
-        cell: ({ row }) => <div>{row.getValue('designation')}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'date',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Date' />,
-        cell: ({ row }) => {
-            const date = row.getValue('date');
-            return <div>{formatDate(date)}</div>;
+        {
+            accessorKey: 'ecode',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Code'  />,
+            cell: ({ row }) => <div className='text-center text-xs'>{row.getValue('ecode')}</div>,
+            enableSorting: true,
+            enableHiding: true
         },
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'late_by',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Late By' />,
-        cell: ({ row }) => <div>{row.getValue('late_by')}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'early_out',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Early Out' />,
-        cell: ({ row }) => <div>{row.getValue('early_out')}</div>,
-        enableSorting: true,
-        enableHiding: true
-    }
-];
+        {
+            accessorKey: 'ename',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name'  />,
+            cell: ({ row }) => <div className='truncate text-left text-xs font-medium uppercase'>{row.getValue('ename')}</div>,
+            enableSorting: true,
+            enableHiding: true
+        },
+        {
+            accessorKey: 'desgname',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Designation' />,
+            cell: ({ row }) => <div className='text-left text-xs'>{row.getValue('desgname')}</div>,
+            enableSorting: true,
+            enableHiding: true
+        }
+    ];
+
+    const dynamicDateColumns: ColumnDef<LIEORow>[] = dateColumns.map((dateStr) => {
+        const dateObj = new Date(dateStr);
+        let title = dateStr;
+        try {
+            if (!isNaN(dateObj.getTime())) {
+                title = `${format(dateObj, 'dd-MM')} ${format(dateObj, 'EEEE').substring(0, 3)}`;
+            }
+        } catch (e) { }
+
+        return {
+            accessorKey: dateStr,
+            header: ({ column }) => (
+                <DataTableColumnHeader 
+                    column={column} 
+                    title={title} 
+                    className="flex flex-col items-center justify-center text-center text-xs"
+                />
+            ),
+            cell: ({ row }) => {
+                const val = row.getValue(dateStr) as any;
+                
+                // For Late In-Early Out mode, show nested table color-coded
+                if (mode === 'Late In Early Out') {
+                    if (typeof val === 'object' && val !== null) {
+                        return (
+                            <div className='flex flex-col items-center justify-center gap-1 py-1'>
+                                <div className='flex min-h-[24px] min-w-[60px] items-center justify-center border-b border-gray-100 px-2 text-[10px] font-bold text-green-600'>
+                                    {val.in || '--'}
+                                </div>
+                                <div className='flex min-h-[24px] min-w-[60px] items-center justify-center px-2 text-[10px] font-bold text-red-600'>
+                                    {val.out || '--'}
+                                </div>
+                            </div>
+                        );
+                    }
+                }
+                
+                // For other modes, just show the time/value
+                return (
+                    <div className="flex h-8 items-center justify-center text-[10px] font-medium">
+                        {val || '--'}
+                    </div>
+                );
+            },
+            enableSorting: false,
+            enableHiding: false
+        };
+    });
+
+    return [...staticColumns, ...dynamicDateColumns];
+};

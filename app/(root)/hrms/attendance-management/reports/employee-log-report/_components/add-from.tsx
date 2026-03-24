@@ -1,19 +1,26 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { CalendarYear } from '@/components/ui/calendar_year';
+import { DatePicker } from '@/components/ui/date-picker';
 import { FormError } from '@/components/ui/extension/field';
 import { MultiSelect } from '@/components/ui/multi-select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
+import { useLeaveYearDropdown } from '@/hooks/hrms/useMasters';
+import {
+    useReportDepartments,
+    useReportDesignations,
+    useReportEmployeesByDeptAndDesignation,
+    useReportGroupTypes
+} from '@/hooks/hrms/useReports';
 import { cn } from '@/lib/utils';
 import { employeeLogReportFilterSchema } from '@/schemas/hrms/attendance-management-schemas';
 import { getEmployeeLogReport } from '@/server/hrms/hrmsConfig/reports/employee-log-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
+import { useMemo } from 'react';
 import { format } from 'date-fns';
-import { Calendar as CalendarIcon, Save } from 'lucide-react';
+import { Save } from 'lucide-react';
 import { Label } from 'react-aria-components';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -35,12 +42,15 @@ export default function AddEmployeeLogReportForm({
     groupTypes = []
 }: AddEmployeeLogReportFormProps) {
     const queryClient = useQueryClient();
+    const { data: yearsData } = useLeaveYearDropdown();
 
     const {
         handleSubmit,
         control,
         reset,
         watch,
+        setValue,
+        clearErrors,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(employeeLogReportFilterSchema),
@@ -55,6 +65,7 @@ export default function AddEmployeeLogReportForm({
             dateMode: 'Date',
             date: '',
             month: '',
+            year: '',
             fromDate: '',
             toDate: '',
             metric: 'Punch Time'
@@ -63,59 +74,165 @@ export default function AddEmployeeLogReportForm({
 
     const allOrIndividualValue = watch('allOrIndividual');
     const dateModeValue = watch('dateMode');
+    const watchedType = watch('type') || [];
+    const watchedDepartment = watch('department') || [];
+    const watchedDesignation = watch('designation') || [];
+
+    const groupTypeIds = watchedType.map(Number).filter(Boolean);
+    const deptIds = watchedDepartment.map(Number).filter(Boolean);
+    const desigIds = watchedDesignation.map(Number).filter(Boolean);
+
+    // Cascading Hooks
+    const { data: groupTypesData } = useReportGroupTypes();
+    const { data: departmentsData } = useReportDepartments(groupTypeIds.toString());
+    const { data: designationsData } = useReportDesignations(groupTypeIds.toString(), deptIds.toString());
+    const { data: employeesData } = useReportEmployeesByDeptAndDesignation(deptIds.toString(), desigIds.toString());
+
+    const groupTypesDataTransformed = useMemo(() => {
+        return (
+            groupTypesData?.data?.map((gt: any) => ({
+                id: gt.key || gt.hrmgT_Id,
+                name: gt.value || gt.hrmgT_EmployeeGroupType
+            })) || []
+        ).filter((d: any) => d.id != null);
+    }, [groupTypesData]);
+
+    const departmentsDataTransformed = useMemo(() => {
+        return (
+            departmentsData?.data?.map((d: any) => ({
+                id: d.hrmD_Id || d.hrmd_id || d.key || d.id,
+                name: d.hrmD_DepartmentName || d.hrmd_departmentName || d.value || d.name
+            })) || []
+        ).filter((d: any) => d.id != null);
+    }, [departmentsData]);
+
+    const designationsDataTransformed = useMemo(() => {
+        return (
+            designationsData?.data?.map((d: any) => ({
+                id: d.hrmdeS_Id || d.hrmdes_id || d.key || d.id,
+                name: d.hrmdeS_DesignationName || d.hrmdes_designationName || d.value || d.name
+            })) || []
+        ).filter((d: any) => d.id != null);
+    }, [designationsData]);
+
+    const employeesDataTransformed = useMemo(() => {
+        const list = employeesData?.data || employeesData;
+        if (!list || !Array.isArray(list)) return [];
+
+        return list
+            .map((emp: any) => {
+                const id = emp.HRME_Id || emp.hrmE_Id || emp.id || emp.key;
+                if (id == null) return null;
+
+                const firstName = (emp.HRME_EmployeeFirstName || emp.hrmE_EmployeeFirstName || '').trim();
+                const middleName = (emp.HRME_EmployeeMiddleName || emp.hrmE_EmployeeMiddleName || '').trim();
+                const lastName = (emp.HRME_EmployeeLastName || emp.hrmE_EmployeeLastName || '').trim();
+
+                const employeeName =
+                    [firstName, middleName, lastName].filter(Boolean).join(' ') ||
+                    emp.value ||
+                    emp.employeeName ||
+                    'Unknown Employee';
+
+                const employeeCode =
+                    emp.HRME_EmployeeCode ||
+                    emp.hrmE_EmployeeCode ||
+                    emp.employeeCode ||
+                    id.toString();
+
+                return {
+                    id: Number(id),
+                    employeeCode,
+                    employeeName
+                };
+            })
+            .filter(Boolean);
+    }, [employeesData]);
 
     const onSubmit: SubmitHandler<FormFields> = async (data: FormFields) => {
         try {
-            const payload = {
-                type: data.type.map(Number),
-                department: data.department.map(Number),
-                designation: data.designation.map(Number),
-                allOrIndividual: data.allOrIndividual,
-                employeeCode: data.allOrIndividual === 'Individual' && data.codeOrName === 'Code' ? data.query : undefined,
-                employeeName: data.allOrIndividual === 'Individual' && data.codeOrName === 'Name' ? data.query : undefined,
-                codeOrName: data.codeOrName,
-                dateMode: data.dateMode,
-                date: data.dateMode === 'Date' ? data.date : undefined,
-                month: data.dateMode === 'Monthly' ? data.month : undefined,
-                fromDate: data.dateMode === 'From Date' ? data.fromDate : undefined,
-                toDate: data.dateMode === 'From Date' ? data.toDate : undefined,
-                metric: data.metric
+
+            console.log("form data", data)
+            const punchTypeMap: Record<string, string> = {
+                'Punch Time': 'punch',
+                'Late In': 'late',
+                'Early Out': 'early'
             };
 
-            const response = await getEmployeeLogReport(payload, searchParams);
+            let hrmeIds = '0';
+            if (data.allOrIndividual === 'Individual') {
+                hrmeIds = data.query || '0';
+            } else if (data.allOrIndividual === 'All') {
+                const allIds = (employeesDataTransformed as any[]).map((emp: any) => emp.id).join(',');
+                hrmeIds = allIds || '0';
+            }
 
-            if (response.success) {
+            let select_date = '';
+            let select_month = '';
+            let select_year = '';
+            let from_date = '';
+            let to_date = '';
+
+            if (data.dateMode === 'Date' && data.date) {
+                const d = new Date(data.date);
+                select_date = format(d, 'yyyy-MM-dd');
+                select_month = format(d, 'MMMM');
+                select_year = format(d, 'yyyy');
+                from_date = select_date;
+                to_date = select_date;
+                console.log("Selected Month", select_month, "Selected Year", select_year);
+            } else if (data.dateMode === 'Monthly' && data.month && data.year) {
+                select_month = data.month;
+                select_year = data.year;
+                
+                // Take today's day number (e.g. 20) and add it to the selected month/year
+                const todayDay = new Date().getDate();
+                const d = new Date(`${data.month} 1, ${data.year}`);
+                
+                // Prevent date overflow (e.g. if today is 31st, but they select February)
+                const lastDayOfMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+                d.setDate(Math.min(todayDay, lastDayOfMonth));
+
+                select_date = format(d, 'yyyy-MM-dd');
+                from_date = select_date;
+                to_date = select_date;
+            } else if (data.dateMode === 'From Date' && data.fromDate && data.toDate) {
+                const from = new Date(data.fromDate);
+                const to = new Date(data.toDate);
+
+                from_date = format(from, 'yyyy-MM-dd');
+                to_date = format(to, 'yyyy-MM-dd');
+
+                // Optional: derive month/year from fromDate (or you can adjust logic)
+                select_month = format(from, 'MMMM');
+                select_year = format(from, 'yyyy');
+            }
+
+            const payload = {
+                hrme_ids: hrmeIds,
+                select_date,
+                select_month,
+                select_year,
+                from_date,
+                to_date,
+                punch_type: punchTypeMap[data.metric] || 'punch'
+            };
+            console.log("Payload", payload)
+            const response = await getEmployeeLogReport(payload);
+            console.log("Response", response)
+            if (response.success && response.data?.length > 0) {
                 toast.success(response.message || 'Report generated successfully');
+                response.fromdate = from_date;
+                response.todate = to_date;
                 try {
-                    if (response?.total != null) {
-                        queryClient.setQueryData([HRMS_QUERY_KEYS.EMPLOYEE_LOG_REPORT, searchParams ?? {}], response);
-                    } else if (Array.isArray(response?.data)) {
-                        const parseParam = (k: string) => {
-                            const v = (searchParams as any)?.[k];
-                            if (Array.isArray(v)) return Number(v[0]);
-                            return v != null ? Number(v) : undefined;
-                        };
-                        const page = parseParam('page') || 1;
-                        const pageSize = parseParam('page_size') || 10;
-                        const total = response.data.length;
-                        const start = (page - 1) * pageSize;
-                        const pageData = response.data.slice(start, start + pageSize);
-
-                        queryClient.setQueryData([HRMS_QUERY_KEYS.EMPLOYEE_LOG_REPORT, searchParams ?? {}], {
-                            data: pageData,
-                            total,
-                            success: true,
-                            message: response.message
-                        });
-                    } else {
-                        queryClient.setQueryData([HRMS_QUERY_KEYS.EMPLOYEE_LOG_REPORT, searchParams ?? {}], response);
-                    }
+                    queryClient.setQueryData([HRMS_QUERY_KEYS.EMPLOYEE_LOG_REPORT, {}], response);
                 } catch (e) {
-                    // noop
+                    console.error("Error setting query data:", e);
                 }
-                reset();
-                onSuccess?.();
-            } else {
+            } else if (response.success && response.data?.length == 0) {
+                toast.error('No data found');
+            }
+            else {
                 toast.error(response.message || 'Failed to generate report');
             }
         } catch (error: any) {
@@ -124,7 +241,31 @@ export default function AddEmployeeLogReportForm({
     };
 
     const handleReset = () => {
-        reset();
+        reset({
+            type: [],
+            department: [],
+            designation: [],
+            allOrIndividual: 'All',
+            codeOrName: 'Code',
+            query: '',
+            dateMode: 'Date',
+            date: '',
+            month: '',
+            year: '',
+            fromDate: '',
+            toDate: '',
+            metric: 'Punch Time'
+        }, {
+            keepDefaultValues: false,
+            keepErrors: false,
+            keepDirty: false,
+            keepTouched: false,
+            keepIsValid: false
+        });
+        setTimeout(() => {
+            clearErrors();
+        }, 0);
+        queryClient.setQueryData([HRMS_QUERY_KEYS.EMPLOYEE_LOG_REPORT, {}], null);
     };
 
     return (
@@ -143,8 +284,16 @@ export default function AddEmployeeLogReportForm({
                                     control={control}
                                     render={({ field }) => (
                                         <MultiSelect
-                                            options={groupTypes.length > 0 ? groupTypes : []}
-                                            onValueChange={(values) => field.onChange(values)}
+                                            options={groupTypesDataTransformed.map((gt: any) => ({
+                                                label: gt.name,
+                                                value: gt.id?.toString() || ''
+                                            }))}
+                                            onValueChange={(values) => {
+                                                field.onChange(values);
+                                                setValue('department', []);
+                                                setValue('designation', []);
+                                                setValue('query', '');
+                                            }}
                                             defaultValue={field.value || []}
                                             placeholder='Select Types'
                                             className={`w-full ${errors.type ? 'border-red-500' : ''}`}
@@ -165,8 +314,15 @@ export default function AddEmployeeLogReportForm({
                                     control={control}
                                     render={({ field }) => (
                                         <MultiSelect
-                                            options={[]}
-                                            onValueChange={(values) => field.onChange(values)}
+                                            options={departmentsDataTransformed.map((d: any) => ({
+                                                label: d.name,
+                                                value: d.id?.toString() || ''
+                                            }))}
+                                            onValueChange={(values) => {
+                                                field.onChange(values);
+                                                setValue('designation', []);
+                                                setValue('query', '');
+                                            }}
                                             defaultValue={field.value || []}
                                             placeholder='Select Departments'
                                             className={`w-full ${errors.department ? 'border-red-500' : ''}`}
@@ -187,8 +343,14 @@ export default function AddEmployeeLogReportForm({
                                     control={control}
                                     render={({ field }) => (
                                         <MultiSelect
-                                            options={[]}
-                                            onValueChange={(values) => field.onChange(values)}
+                                            options={designationsDataTransformed.map((ds: any) => ({
+                                                label: ds.name,
+                                                value: ds.id?.toString() || ''
+                                            }))}
+                                            onValueChange={(values) => {
+                                                field.onChange(values);
+                                                setValue('query', '');
+                                            }}
                                             defaultValue={field.value || []}
                                             placeholder='Select Designations'
                                             className={`w-full ${errors.designation ? 'border-red-500' : ''}`}
@@ -232,12 +394,20 @@ export default function AddEmployeeLogReportForm({
                                         name='query'
                                         control={control}
                                         render={({ field }) => (
-                                            <input
-                                                type='text'
-                                                {...field}
-                                                placeholder='Enter employee code or name'
-                                                className={`w-full rounded-md border px-3 py-2 ${errors.query ? 'border-red-500' : ''}`}
-                                            />
+                                            <Select value={field.value || ''} onValueChange={field.onChange}>
+                                                <SelectTrigger className={errors.query ? 'border-red-500' : ''}>
+                                                    <SelectValue placeholder='Select Employee' />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {(employeesDataTransformed as any[]).map((emp: any) => {
+                                                        return (
+                                                            <SelectItem key={emp.id} value={emp.id?.toString() || ''}>
+                                                                {emp.employeeName} - [{emp.employeeCode}]
+                                                            </SelectItem>
+                                                        );
+                                                    })}
+                                                </SelectContent>
+                                            </Select>
                                         )}
                                     />
                                     {errors.query && <FormError>{errors.query.message}</FormError>}
@@ -278,31 +448,21 @@ export default function AddEmployeeLogReportForm({
                                         name='date'
                                         control={control}
                                         render={({ field }) => (
-                                            <Popover>
-                                                <PopoverTrigger asChild>
-                                                    <Button
-                                                        type='button'
-                                                        variant='outline'
-                                                        className={cn(
-                                                            'w-full justify-start text-left font-normal',
-                                                            !field.value && 'text-muted-foreground',
-                                                            errors.date && 'border-red-500'
-                                                        )}>
-                                                        <CalendarIcon className='mr-2 h-4 w-4' />
-                                                        {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'Select date'}
-                                                    </Button>
-                                                </PopoverTrigger>
-                                                <PopoverContent className='w-auto p-0' align='start'>
-                                                    <CalendarYear
-                                                        mode='single'
-                                                        selected={field.value ? new Date(field.value) : undefined}
-                                                        onSelect={(date: Date | undefined) => field.onChange(date?.toISOString() ?? '')}
-                                                        captionLayout='dropdown'
-                                                        fromYear={2000}
-                                                        toYear={2050}
-                                                    />
-                                                </PopoverContent>
-                                            </Popover>
+                                            <DatePicker
+                                                date={field.value ? new Date(field.value) : undefined}
+                                                setDate={(date) => {
+                                                    if (date) {
+                                                        const year = date.getFullYear();
+                                                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                                                        const day = String(date.getDate()).padStart(2, '0');
+                                                        field.onChange(`${year}-${month}-${day}`);
+                                                    } else {
+                                                        field.onChange('');
+                                                    }
+                                                }}
+                                                placeholder='Select date'
+                                                className={errors.date ? 'border-red-500' : ''}
+                                            />
                                         )}
                                     />
                                     {errors.date && <FormError>{errors.date.message}</FormError>}
@@ -311,43 +471,69 @@ export default function AddEmployeeLogReportForm({
 
                             {/* Monthly Field - Show when Monthly mode is selected */}
                             {dateModeValue === 'Monthly' && (
-                                <div className='col-span-1'>
-                                    <Label className='mb-2 block font-medium text-gray-700 text-sm'>
-                                        Month <span className='ml-1 text-red-500'>*</span>
-                                    </Label>
-                                    <Controller
-                                        name='month'
-                                        control={control}
-                                        render={({ field }) => (
-                                            <Select value={field.value || ''} onValueChange={field.onChange}>
-                                                <SelectTrigger className={errors.month ? 'border-red-500' : ''}>
-                                                    <SelectValue placeholder='Select Month' />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {[
-                                                        { value: '01', label: 'January' },
-                                                        { value: '02', label: 'February' },
-                                                        { value: '03', label: 'March' },
-                                                        { value: '04', label: 'April' },
-                                                        { value: '05', label: 'May' },
-                                                        { value: '06', label: 'June' },
-                                                        { value: '07', label: 'July' },
-                                                        { value: '08', label: 'August' },
-                                                        { value: '09', label: 'September' },
-                                                        { value: '10', label: 'October' },
-                                                        { value: '11', label: 'November' },
-                                                        { value: '12', label: 'December' }
-                                                    ].map((m) => (
-                                                        <SelectItem key={m.value} value={m.value}>
-                                                            {m.label}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        )}
-                                    />
-                                    {errors.month && <FormError>{errors.month.message}</FormError>}
-                                </div>
+                                <>
+                                    <div className='col-span-1'>
+                                        <Label className='mb-2 block font-medium text-gray-700 text-sm'>
+                                            Month <span className='ml-1 text-red-500'>*</span>
+                                        </Label>
+                                        <Controller
+                                            name='month'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <Select value={field.value || ''} onValueChange={field.onChange}>
+                                                    <SelectTrigger className={errors.month ? 'border-red-500' : ''}>
+                                                        <SelectValue placeholder='Select Month' />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {[
+                                                            { value: '01', label: 'January' },
+                                                            { value: '02', label: 'February' },
+                                                            { value: '03', label: 'March' },
+                                                            { value: '04', label: 'April' },
+                                                            { value: '05', label: 'May' },
+                                                            { value: '06', label: 'June' },
+                                                            { value: '07', label: 'July' },
+                                                            { value: '08', label: 'August' },
+                                                            { value: '09', label: 'September' },
+                                                            { value: '10', label: 'October' },
+                                                            { value: '11', label: 'November' },
+                                                            { value: '12', label: 'December' }
+                                                        ].map((m) => (
+                                                            <SelectItem key={m.value} value={m.label}>
+                                                                {m.label}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            )}
+                                        />
+                                        {errors.month && <FormError>{errors.month.message}</FormError>}
+                                    </div>
+                                    <div className='col-span-1'>
+                                        <Label className='mb-2 block font-medium text-gray-700 text-sm'>
+                                            Year <span className='ml-1 text-red-500'>*</span>
+                                        </Label>
+                                        <Controller
+                                            name='year'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <Select value={field.value || ''} onValueChange={field.onChange}>
+                                                    <SelectTrigger className={errors.year ? 'border-red-500' : ''}>
+                                                        <SelectValue placeholder='Select Year' />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {yearsData?.data?.map((y: any) => (
+                                                            <SelectItem key={y.hrmlY_Id} value={y.hrmlY_LeaveYear?.toString() || ''}>
+                                                                {y.hrmlY_LeaveYear}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            )}
+                                        />
+                                        {errors.year && <FormError>{errors.year.message}</FormError>}
+                                    </div>
+                                </>
                             )}
 
                             {/* From Date and To Date Fields - Show when From Date mode is selected */}
@@ -361,31 +547,21 @@ export default function AddEmployeeLogReportForm({
                                             name='fromDate'
                                             control={control}
                                             render={({ field }) => (
-                                                <Popover>
-                                                    <PopoverTrigger asChild>
-                                                        <Button
-                                                            type='button'
-                                                            variant='outline'
-                                                            className={cn(
-                                                                'w-full justify-start text-left font-normal',
-                                                                !field.value && 'text-muted-foreground',
-                                                                errors.fromDate && 'border-red-500'
-                                                            )}>
-                                                            <CalendarIcon className='mr-2 h-4 w-4' />
-                                                            {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'From date'}
-                                                        </Button>
-                                                    </PopoverTrigger>
-                                                    <PopoverContent className='w-auto p-0' align='start'>
-                                                        <CalendarYear
-                                                            mode='single'
-                                                            selected={field.value ? new Date(field.value) : undefined}
-                                                            onSelect={(date: Date | undefined) => field.onChange(date?.toISOString() ?? '')}
-                                                            captionLayout='dropdown'
-                                                            fromYear={2000}
-                                                            toYear={2050}
-                                                        />
-                                                    </PopoverContent>
-                                                </Popover>
+                                                <DatePicker
+                                                    date={field.value ? new Date(field.value) : undefined}
+                                                    setDate={(date) => {
+                                                        if (date) {
+                                                            const year = date.getFullYear();
+                                                            const month = String(date.getMonth() + 1).padStart(2, '0');
+                                                            const day = String(date.getDate()).padStart(2, '0');
+                                                            field.onChange(`${year}-${month}-${day}`);
+                                                        } else {
+                                                            field.onChange('');
+                                                        }
+                                                    }}
+                                                    placeholder='From date'
+                                                    className={errors.fromDate ? 'border-red-500' : ''}
+                                                />
                                             )}
                                         />
                                         {errors.fromDate && <FormError>{errors.fromDate.message}</FormError>}
@@ -398,31 +574,21 @@ export default function AddEmployeeLogReportForm({
                                             name='toDate'
                                             control={control}
                                             render={({ field }) => (
-                                                <Popover>
-                                                    <PopoverTrigger asChild>
-                                                        <Button
-                                                            type='button'
-                                                            variant='outline'
-                                                            className={cn(
-                                                                'w-full justify-start text-left font-normal',
-                                                                !field.value && 'text-muted-foreground',
-                                                                errors.toDate && 'border-red-500'
-                                                            )}>
-                                                            <CalendarIcon className='mr-2 h-4 w-4' />
-                                                            {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'To date'}
-                                                        </Button>
-                                                    </PopoverTrigger>
-                                                    <PopoverContent className='w-auto p-0' align='start'>
-                                                        <CalendarYear
-                                                            mode='single'
-                                                            selected={field.value ? new Date(field.value) : undefined}
-                                                            onSelect={(date: Date | undefined) => field.onChange(date?.toISOString() ?? '')}
-                                                            captionLayout='dropdown'
-                                                            fromYear={2000}
-                                                            toYear={2050}
-                                                        />
-                                                    </PopoverContent>
-                                                </Popover>
+                                                <DatePicker
+                                                    date={field.value ? new Date(field.value) : undefined}
+                                                    setDate={(date) => {
+                                                        if (date) {
+                                                            const year = date.getFullYear();
+                                                            const month = String(date.getMonth() + 1).padStart(2, '0');
+                                                            const day = String(date.getDate()).padStart(2, '0');
+                                                            field.onChange(`${year}-${month}-${day}`);
+                                                        } else {
+                                                            field.onChange('');
+                                                        }
+                                                    }}
+                                                    placeholder='To date'
+                                                    className={errors.toDate ? 'border-red-500' : ''}
+                                                />
                                             )}
                                         />
                                         {errors.toDate && <FormError>{errors.toDate.message}</FormError>}
