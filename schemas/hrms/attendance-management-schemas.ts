@@ -358,14 +358,14 @@ export const gpsLocationReportFilterSchema = z
 export const employeeInOutReportFilterSchema = z
     .object({
         branch: z.string().optional(),
-        type: z.array(z.string()).optional(), // Optional - used for filtering
+        type: z.array(z.string()).min(1, 'At least one type must be selected'), // Optional - used for filtering
         department: z.array(z.string()).min(1, 'At least one department must be selected'),
         designation: z.array(z.string()).min(1, 'At least one designation must be selected'),
         allOrIndividual: z.enum(['All', 'Individual'], {
             required_error: 'All/Individual selection is required'
         }),
         codeOrName: z.enum(['Code', 'Name']).optional(),
-        query: z.array(z.string()).optional(),
+        query: z.string().optional(),
         fromDate: z.string().min(1, 'From Date is required'),
         toDate: z.string().min(1, 'To Date is required'),
         timeInTimeOut: z.enum(['Time In', 'Time Out', 'In Out']).optional() // Optional - used for filtering
@@ -385,7 +385,7 @@ export const employeeInOutReportFilterSchema = z
     .refine(
         (data) => {
             if (data.allOrIndividual === 'Individual') {
-                return data.query && data.query.length > 0;
+                return !!data.query;
             }
             return true;
         },

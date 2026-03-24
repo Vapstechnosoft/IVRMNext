@@ -1,10 +1,9 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { CalendarYear } from '@/components/ui/calendar_year';
+import { DatePicker } from '@/components/ui/date-picker';
 import { FormError } from '@/components/ui/extension/field';
 import { MultiSelect } from '@/components/ui/multi-select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
 import { cn } from '@/lib/utils';
@@ -31,15 +30,15 @@ type FormFields = z.infer<typeof employeeInOutReportFilterSchema>;
 interface AddEmployeeInOutReportFormProps {
     onSuccess?: () => void;
     className?: string;
-    searchParams?: any;
     groupTypes?: Array<{ label: string; value: string }>;
+    onTimeFilterChange?: (v: string | undefined) => void;
 }
 
 export default function AddEmployeeInOutReportForm({
     onSuccess,
     className = '',
-    searchParams,
-    groupTypes = []
+    groupTypes = [],
+    onTimeFilterChange
 }: AddEmployeeInOutReportFormProps) {
     const queryClient = useQueryClient();
 
@@ -48,6 +47,7 @@ export default function AddEmployeeInOutReportForm({
         control,
         reset,
         watch,
+        clearErrors,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(employeeInOutReportFilterSchema),
@@ -58,10 +58,10 @@ export default function AddEmployeeInOutReportForm({
             designation: [],
             allOrIndividual: 'All',
             codeOrName: 'Code',
-            query: [],
+            query: '',
             fromDate: '',
             toDate: '',
-            timeInTimeOut: undefined
+            timeInTimeOut: 'Time In'
         }
     });
 
@@ -143,31 +143,51 @@ export default function AddEmployeeInOutReportForm({
 
     const onSubmit: SubmitHandler<FormFields> = async (data: FormFields) => {
         try {
+
+
+            console.log('form data', data);
+            // Determine comma-separated employee IDs
+            let hrmeIds = '0';
+            if (data.allOrIndividual === 'Individual') {
+                hrmeIds = data.query || '0';
+            } else if (data.allOrIndividual === 'All') {
+                const allIds = employeesDataTransformed.map((emp: any) => emp.id).join(',');
+                hrmeIds = allIds || '0';
+            }
+
             const payload = {
-                type: (data.type || []).map(Number),
-                department: (data.department || []).map(Number),
-                designation: (data.designation || []).map(Number),
-                allOrIndividual: data.allOrIndividual,
-                employeeCode: data.allOrIndividual === 'Individual' ? (data.query || []).join(',') : undefined,
-                employeeName: data.allOrIndividual === 'Individual' ? (data.query || []).join(',') : undefined, // Ignored since we are passing IDs in employeeCode essentially, pending API match
-                codeOrName: data.codeOrName,
                 fromDate: data.fromDate,
                 toDate: data.toDate,
-                timeInTimeOut: data.timeInTimeOut
+                hrme_ids: hrmeIds
             };
 
-            const response = await getEmployeeInOutReport(payload, searchParams);
+            const response = await getEmployeeInOutReport(payload) as any;
+
+            // Allow filtering logic *after* getting the API response
+            if (response.success && response.data?.report_data) {
+                response.timeInTimeOut = data.timeInTimeOut;
+                response.fromDate = data.fromDate;
+                response.toDate = data.toDate;
+            }
+
+            console.log('response', response);
 
             if (response.success) {
-                toast.success(response.message || 'Report generated successfully');
+                const isDataEmpty = !response.data?.report_data || response.data.report_data.length === 0;
+
+                if (isDataEmpty) {
+                    toast.error('No Employee In/Out Reports Found');
+                } else {
+                    toast.success(response.message || 'Report generated successfully');
+                }
+
                 try {
                     if (response?.total != null) {
-                        queryClient.setQueryData([HRMS_QUERY_KEYS.EMPLOYEE_INOUT_REPORT, searchParams ?? {}], response);
+                        queryClient.setQueryData([HRMS_QUERY_KEYS.EMPLOYEE_INOUT_REPORT, {}], response);
                     } else if (Array.isArray(response?.data)) {
                         const parseParam = (k: string) => {
-                            const v = (searchParams as any)?.[k];
-                            if (Array.isArray(v)) return Number(v[0]);
-                            return v != null ? Number(v) : undefined;
+                            // noop
+                            return undefined;
                         };
                         const page = parseParam('page') || 1;
                         const pageSize = parseParam('page_size') || 10;
@@ -175,19 +195,21 @@ export default function AddEmployeeInOutReportForm({
                         const start = (page - 1) * pageSize;
                         const pageData = response.data.slice(start, start + pageSize);
 
-                        queryClient.setQueryData([HRMS_QUERY_KEYS.EMPLOYEE_INOUT_REPORT, searchParams ?? {}], {
+                        queryClient.setQueryData([HRMS_QUERY_KEYS.EMPLOYEE_INOUT_REPORT, {}], {
                             data: pageData,
                             total,
                             success: true,
                             message: response.message
                         });
                     } else {
-                        queryClient.setQueryData([HRMS_QUERY_KEYS.EMPLOYEE_INOUT_REPORT, searchParams ?? {}], response);
+                        queryClient.setQueryData([HRMS_QUERY_KEYS.EMPLOYEE_INOUT_REPORT, {}], response);
                     }
                 } catch (e) {
                     // noop
                 }
-                reset();
+
+                // Do NOT reset form fields as per user request to preserve selection
+                // reset();
                 onSuccess?.();
             } else {
                 toast.error(response.message || 'Failed to generate report');
@@ -198,7 +220,28 @@ export default function AddEmployeeInOutReportForm({
     };
 
     const handleReset = () => {
-        reset();
+        reset({
+            type: [],
+            department: [],
+            designation: [],
+            allOrIndividual: 'All',
+            codeOrName: 'Code',
+            query: '',
+            fromDate: '',
+            toDate: '',
+        }, {
+            keepDefaultValues: false,
+            keepErrors: false,
+            keepDirty: false,
+            keepTouched: false,
+            keepIsValid: false
+        });
+        // Explicitly clear all errors to ensure a clean state on the first click
+        // Using setTimeout to ensure it runs after any immediate re-validation triggered by reset()
+        setTimeout(() => {
+            clearErrors();
+        }, 0);
+        onTimeFilterChange?.('Time In');
     };
 
     return (
@@ -315,17 +358,18 @@ export default function AddEmployeeInOutReportForm({
                                         name='query'
                                         control={control}
                                         render={({ field }) => (
-                                            <MultiSelect
-                                                options={employeesDataTransformed.map((emp: any) => ({
-                                                    label: `${emp.employeeName} - [${emp.employeeCode}]`,
-                                                    value: String(emp.id)
-                                                }))}
-                                                onValueChange={(values) => field.onChange(values)}
-                                                defaultValue={field.value || []}
-                                                placeholder='Select Employees'
-                                                className={`w-full ${errors.query ? 'border-red-500' : ''}`}
-                                                maxHeight={240}
-                                            />
+                                            <Select value={field.value} onValueChange={field.onChange}>
+                                                <SelectTrigger className={errors.query ? 'border-red-500' : ''}>
+                                                    <SelectValue placeholder='Select Employee' />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {employeesDataTransformed.map((emp: any) => (
+                                                        <SelectItem key={emp.id} value={String(emp.id)}>
+                                                            {emp.employeeName} - [{emp.employeeCode}]
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
                                         )}
                                     />
                                     {errors.query && <FormError>{errors.query.message}</FormError>}
@@ -341,31 +385,21 @@ export default function AddEmployeeInOutReportForm({
                                     name='fromDate'
                                     control={control}
                                     render={({ field }) => (
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button
-                                                    type='button'
-                                                    variant='outline'
-                                                    className={cn(
-                                                        'w-full justify-start text-left font-normal',
-                                                        !field.value && 'text-muted-foreground',
-                                                        errors.fromDate && 'border-red-500'
-                                                    )}>
-                                                    <CalendarIcon className='mr-2 h-4 w-4' />
-                                                    {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'From date'}
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className='w-auto p-0' align='start'>
-                                                <CalendarYear
-                                                    mode='single'
-                                                    selected={field.value ? new Date(field.value) : undefined}
-                                                    onSelect={(date: Date | undefined) => field.onChange(date?.toISOString() ?? '')}
-                                                    captionLayout='dropdown'
-                                                    fromYear={2000}
-                                                    toYear={2050}
-                                                />
-                                            </PopoverContent>
-                                        </Popover>
+                                        <DatePicker
+                                            date={field.value ? new Date(field.value) : undefined}
+                                            setDate={(date) => {
+                                                if (date) {
+                                                    const year = date.getFullYear();
+                                                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                                                    const day = String(date.getDate()).padStart(2, '0');
+                                                    field.onChange(`${year}-${month}-${day}`);
+                                                } else {
+                                                    field.onChange('');
+                                                }
+                                            }}
+                                            placeholder='From date'
+                                            className={errors.fromDate ? 'border-red-500' : ''}
+                                        />
                                     )}
                                 />
                                 {errors.fromDate && <FormError>{errors.fromDate.message}</FormError>}
@@ -380,31 +414,21 @@ export default function AddEmployeeInOutReportForm({
                                     name='toDate'
                                     control={control}
                                     render={({ field }) => (
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button
-                                                    type='button'
-                                                    variant='outline'
-                                                    className={cn(
-                                                        'w-full justify-start text-left font-normal',
-                                                        !field.value && 'text-muted-foreground',
-                                                        errors.toDate && 'border-red-500'
-                                                    )}>
-                                                    <CalendarIcon className='mr-2 h-4 w-4' />
-                                                    {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'To date'}
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className='w-auto p-0' align='start'>
-                                                <CalendarYear
-                                                    mode='single'
-                                                    selected={field.value ? new Date(field.value) : undefined}
-                                                    onSelect={(date: Date | undefined) => field.onChange(date?.toISOString() ?? '')}
-                                                    captionLayout='dropdown'
-                                                    fromYear={2000}
-                                                    toYear={2050}
-                                                />
-                                            </PopoverContent>
-                                        </Popover>
+                                        <DatePicker
+                                            date={field.value ? new Date(field.value) : undefined}
+                                            setDate={(date) => {
+                                                if (date) {
+                                                    const year = date.getFullYear();
+                                                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                                                    const day = String(date.getDate()).padStart(2, '0');
+                                                    field.onChange(`${year}-${month}-${day}`);
+                                                } else {
+                                                    field.onChange('');
+                                                }
+                                            }}
+                                            placeholder='To date'
+                                            className={errors.toDate ? 'border-red-500' : ''}
+                                        />
                                     )}
                                 />
                                 {errors.toDate && <FormError>{errors.toDate.message}</FormError>}
@@ -418,13 +442,15 @@ export default function AddEmployeeInOutReportForm({
                                     control={control}
                                     render={({ field }) => (
                                         <Select
-                                            value={field.value || 'all'}
-                                            onValueChange={(value) => field.onChange(value === 'all' ? undefined : value)}>
+                                            value={field.value}
+                                            onValueChange={(value) => {
+                                                field.onChange(value);
+                                                onTimeFilterChange?.(value);
+                                            }}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Time In/Out' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value='all'>All</SelectItem>
                                                 <SelectItem value='Time In'>Time In</SelectItem>
                                                 <SelectItem value='Time Out'>Time Out</SelectItem>
                                                 <SelectItem value='In Out'>In Out</SelectItem>
@@ -432,6 +458,7 @@ export default function AddEmployeeInOutReportForm({
                                         </Select>
                                     )}
                                 />
+                                {errors.timeInTimeOut && <FormError>{errors.timeInTimeOut.message}</FormError>}
                             </div>
                         </div>
                     </div>
