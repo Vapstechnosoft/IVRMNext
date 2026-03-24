@@ -1,14 +1,12 @@
 'use server';
 
-import { api, getSearchParamsUrl } from '@/lib/apiService';
-import type { ApiSearchparams } from '@/types';
+import { api } from '@/lib/apiService';
 
 /**
  * Get Employee Month Report data
- * POST /api/EmployeeMonthReportFacade/search
+ * GET /api/FrontOfficeMonthEndReport/get_month_end_report/{academicYear}/{month}
  */
-export async function getEmployeeMonthReport(data: any, searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'searchableColumns');
-    const url = `/api/EmployeeMonthReportFacade/search?${urlParams}`;
-    return await api.post<any>('hrmsfrontoffice', url, data);
+export async function getEmployeeMonthReport(data: any) {
+    const url = `/api/FrontOfficeMonthEndReport/get_month_end_report/${data.year}/${data.month}`;
+    return await api.get<any>('hrmsfrontoffice', url);
 }

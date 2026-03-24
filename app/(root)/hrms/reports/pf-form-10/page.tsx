@@ -14,7 +14,7 @@ import { usePFForm10 } from '@/hooks/hrms/useReports';
 import { Loader2, Search, Printer } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
+import { getMasterInstitution } from '@/server/hrms/master-dropdown';
 import { printPFForm10 } from './_components/pf-form10-print';
 
 const MONTH_LIST = [
