@@ -83,14 +83,27 @@ function DataTableInner<TData, TValue>(
     );
 
     // Sorting and filtering
-    const [sortBy] = useQueryState(tableSearchVariables.sort_column, parseAsString.withOptions({ shallow: false }).withDefault(''));
-    const [order] = useQueryState(
+    const [sortBy, setSortBy] = useQueryState(tableSearchVariables.sort_column, parseAsString.withOptions({ shallow: false }).withDefault(''));
+    const [order, setOrder] = useQueryState(
         tableSearchVariables.sort_direction,
         parseAsStringLiteral(['asc', 'desc'] as const)
             .withOptions({ shallow: false })
             .withDefault('asc')
     );
     const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
+
+    const onSortingChange = (updaterOrValue: any) => {
+        const newSortingState = typeof updaterOrValue === 'function' ? updaterOrValue([{ id: sortBy, desc: order === 'desc' }]) : updaterOrValue;
+
+        if (newSortingState && newSortingState.length > 0) {
+            setSortBy(newSortingState[0].id);
+            setOrder(newSortingState[0].desc ? 'desc' : 'asc');
+        } else {
+            setSortBy(null);
+            setOrder(null);
+        }
+        setCurrentPage(1); // Reset to first page on sort
+    };
 
     // Generate a unique key for this table instance based on current page/filters
     const tableStateKey = `table_selection_${currentPage}_${pageSize}_${sortBy}_${order}_${searchQuery}`;
@@ -133,6 +146,7 @@ function DataTableInner<TData, TValue>(
             rowSelection
         },
         onPaginationChange: handlePaginationChange,
+        onSortingChange: onSortingChange,
 
         // ✅ UPDATE THIS HANDLER
         onRowSelectionChange: (newSelection) => {

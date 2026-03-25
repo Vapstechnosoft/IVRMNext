@@ -1,8 +1,9 @@
 import {
     deleteAttPrivileges,
     getDataByTypeSelected,
+    getEditData,
     getEmployeeData,
-    getLoginPrivileges,
+    getStaffWiseGrid,
     saveLoginPrivilege
 } from '@/server/admission/preadmission/attendance-entry/login_privilege';
 import type { ILoginPrivilegeDTO } from '@/types/admission/preadmission/login_privilege';
@@ -11,12 +12,12 @@ import { toast } from 'sonner';
 
 const QUERY_KEY = 'admission_login_privileges';
 
-export const useLoginPrivileges = () => {
+export const useLoginPrivileges = (params: { entryType: number; hrmeId: number } = { entryType: 2, hrmeId: 0 }) => {
     const queryClient = useQueryClient();
 
     const query = useQuery({
-        queryKey: [QUERY_KEY],
-        queryFn: () => getLoginPrivileges(),
+        queryKey: [QUERY_KEY, params.entryType, params.hrmeId],
+        queryFn: () => getStaffWiseGrid(params.entryType, params.hrmeId),
         staleTime: 0
     });
 
@@ -51,14 +52,26 @@ export const useLoginPrivileges = () => {
         onError: () => toast.error('Failed to fetch details')
     });
 
+    const editMutation = useMutation({
+        mutationFn: (data: { asalU_Id: number; asaluC_Id: number; asalucS_Id: number }) =>
+            getEditData({
+                ASALU_Id: data.asalU_Id,
+                ASALUC_Id: data.asaluC_Id,
+                ASALUCS_Id: data.asalucS_Id
+            }),
+        onError: () => toast.error('Failed to fetch edit data')
+    });
+
     return {
         ...query,
         createPrivilege: createMutation.mutateAsync,
         deletePrivilege: deleteMutation.mutateAsync,
-        fetchDataByType: searchMutation.mutateAsync, // Expose Search
+        fetchDataByType: searchMutation.mutateAsync,
+        fetchEditData: editMutation.mutateAsync,
         isCreating: createMutation.isPending,
         isDeleting: deleteMutation.isPending,
-        isSearching: searchMutation.isPending
+        isSearching: searchMutation.isPending,
+        isEditing: editMutation.isPending
     };
 };
 
@@ -67,7 +80,12 @@ export const useGetLoginPrivilegeEmployees = () => {
         queryKey: [QUERY_KEY, 'employees'],
         queryFn: async () => {
             const res = await getEmployeeData({});
-            return (res as any)?.data || res || [];
+            // The API returns { success: true, data: { employeeList: [...] } } or legacy with $values
+            const rawList = (res as any)?.data?.employeeList || (res as any)?.employeeList || [];
+            if (rawList && typeof rawList === 'object' && '$values' in rawList) {
+                return (rawList as any).$values;
+            }
+            return Array.isArray(rawList) ? rawList : [];
         },
         staleTime: 0
     });

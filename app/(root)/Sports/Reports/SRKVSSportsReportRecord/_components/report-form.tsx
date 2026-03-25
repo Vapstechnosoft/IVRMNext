@@ -206,7 +206,11 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                 const rawData = responseData?.getReport || responseData?.getReportfinish || responseData || [];
                 const groupedData = groupData(rawData, data.Type);
                 onReportGenerated(groupedData);
-                toast.success('Report generated successfully');
+                if (rawData && rawData.length > 0) {
+                    toast.success('Report generated successfully');
+                } else {
+                    toast.info('No records found');
+                }
             },
             onError: (error) => {
                 console.error(error);

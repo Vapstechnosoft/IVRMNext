@@ -32,20 +32,37 @@ export default function AddMasterDivisionForm({
                 try {
                     const response = await saveMasterDivision(values);
 
-                    if (response?.success || response?.returnval == true) {
-                        toast.success(response.message || 'Division saved successfully');
-                        refetchAll();
-                        onSuccess?.();
+                    // Robust success check for IVRM backend responses
+                    const msg = (response?.message || response?.Message || '') as string;
+                    const isSuccess = response?.success || 
+                                     response?.returnval == true || 
+                                     response?.returnVal == true ||
+                                     response?.returnVal === 'saved' || 
+                                     response?.returnVal === 'updated' || 
+                                     msg.toLowerCase() === 'saved' ||
+                                     msg.toLowerCase() === 'updated' ||
+                                     msg.toLowerCase().includes('success');
+
+                    if (isSuccess) {
+                        toast.success('Record saved successfully');
+                    } else if (response?.returnVal === 'duplicate' || msg.toLowerCase() === 'duplicate') {
+                        toast.error('Record already exists');
+                        throw new Error('duplicate');
                     } else {
-                        toast.error(response?.message || 'Failed to save division');
+                        const errorMsg = (response?.message || response?.Message || 'Failed to save record') as string;
+                        toast.error(errorMsg);
+                        throw new Error(errorMsg);
                     }
                 } catch (error: any) {
-                    toast.error(error.message || 'Something went wrong');
+                    if (error.message !== 'duplicate' && !error.message?.includes('Failed to save division')) {
+                        toast.error(error.message || 'Something went wrong');
+                    }
+                    throw error;
                 }
             }}
             mode={selectedRow ? 'edit' : 'create'}
-            successMessage={`Division ${selectedRow ? 'updated' : 'added'} successfully`}
-            errorMessage={`Failed to ${selectedRow ? 'update' : 'add'} division`}
+            successMessage={''}
+            errorMessage={''}
             onSuccess={() => {
                 refetchAll();
                 onSuccess?.();

@@ -167,10 +167,11 @@ export default function ReportForm({ onReport, onReset, onPrint, onExcel, hasDat
 
         const res = await generateReport.mutateAsync(payload);
 
-        if (res.success) {
+        if (res.success && res.data && res.data.length > 0) {
             onReport(res.data);
+            toast.success('Report generated successfully');
         } else {
-            toast.error(res.message || 'No records found');
+            toast.info(res.message || 'No records found');
             onReport([]);
         }
     };

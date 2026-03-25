@@ -18,7 +18,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
+import { getMasterInstitution } from '@/server/hrms/master-dropdown';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { exportToExcel } from '@/lib/export-to-file';
 import { printHeadWiseReport } from './_components/print-head-wise-report';

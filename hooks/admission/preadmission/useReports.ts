@@ -520,7 +520,8 @@ export const useStudentAttendanceReport = (
     dailyDate: Date | null | undefined,
     selectionMode: number,
     studentStatus: number,
-    searchParams?: ApiSearchparams
+    searchParams?: ApiSearchparams,
+    enabled: boolean = true
 ) => {
     const queryClient = useQueryClient();
 
@@ -557,7 +558,7 @@ export const useStudentAttendanceReport = (
                     searchParams
                 ),
             staleTime: 0,
-            enabled: !!asmaY_Id
+            enabled: enabled && !!asmaY_Id
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
