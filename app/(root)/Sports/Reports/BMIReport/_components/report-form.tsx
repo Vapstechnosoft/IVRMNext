@@ -78,7 +78,11 @@ export default function ReportForm({ setReportData }: ReportFormProps) {
         generateReport.mutate(payload as any, {
             onSuccess: (result) => {
                 setReportData(result);
-                // toast.success('Report generated successfully!');
+                if (result && result.length > 0) {
+                    toast.success('Report generated successfully!');
+                } else {
+                    toast.info('No records found');
+                }
             },
             onError: (error) => {
                 toast.error('Failed to generate report.');
@@ -239,12 +243,6 @@ export default function ReportForm({ setReportData }: ReportFormProps) {
                     </Button>
                     <Button type="button" variant="destructive" onClick={handleClear}>
                         Cancel
-                    </Button>
-                    <Button type="button" variant="outline" onClick={() => toast.info('Print functionality mock')}>
-                        Print
-                    </Button>
-                    <Button type="button" variant="outline" onClick={() => toast.info('Excel Export functionality mock')}>
-                        Excel
                     </Button>
                 </div>
             </form>

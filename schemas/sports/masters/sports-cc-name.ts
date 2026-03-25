@@ -3,11 +3,11 @@ import { z } from 'zod';
 export const sportsCCNameSchema = {
     addOrUpdate: z.object({
         spccmscC_Id: z.number().optional().default(0),
-        spccmsccG_Id: z.number().min(1, 'Group Name is required'),
-        spccmscC_SportsCCName: z.string().min(1, 'Sports Name is required').max(100),
-        spccmscC_SportsCCDesc: z.string().min(1, 'Description is required').max(250),
+        spccmsccG_Id: z.number().min(1, 'Select Group Name'),
+        spccmscC_SportsCCName: z.string().min(1, 'Enter Sports Name').max(100),
+        spccmscC_SportsCCDesc: z.string().min(1, 'Enter Description').max(250),
         spccmscC_SGFlag: z.enum(['Single', 'Group']),
-        spccmscC_NoOfMembers: z.number().min(1, 'Number of members must be at least 1'),
+        spccmscC_NoOfMembers: z.number().min(1, 'Enter No. Of Members'),
         spccmscC_RecHighLowFlag: z.enum(['High', 'Low']),
         spccmscC_RecInfo: z.string().optional(),
         spccmscC_MultiAttemptFlg: z.boolean().default(false),

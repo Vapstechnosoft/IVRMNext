@@ -7,6 +7,8 @@ import { ISportHouseReportData } from '../types';
 import { DataTable } from '@/components/ui/data-table/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Input } from '@/components/ui/input';
+import { useRef } from 'react';
+import { useReactToPrint } from 'react-to-print';
 
 interface ReportGridProps {
     data: ISportHouseReportData[];
@@ -59,6 +61,28 @@ const columns: ColumnDef<ISportHouseReportData>[] = [
 ];
 
 export default function ReportGrid({ data, searchQuery, onSearchChange, manualPagination = true }: ReportGridProps) {
+    const componentRef = useRef<HTMLDivElement>(null);
+
+    const handlePrint = useReactToPrint({
+        contentRef: componentRef,
+        documentTitle: 'Sport_House_Report',
+        pageStyle: `
+          @page { size: portrait; margin: 20mm; }
+          @media print {
+            body { -webkit-print-color-adjust: exact; }
+            table { border-collapse: collapse !important; width: 100% !important; }
+            th, td { border: 1px solid #000 !important; padding: 8px !important; text-align: center !important; }
+          }
+        `
+    });
+
+    const exportToExcel = () => {
+        const worksheet = XLSX.utils.json_to_sheet(data);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
+        XLSX.writeFile(workbook, "SportHouseReport.xlsx");
+    };
+
     const filteredData = data.filter(item => {
         const query = searchQuery.toLowerCase();
         return (
@@ -78,16 +102,11 @@ export default function ReportGrid({ data, searchQuery, onSearchChange, manualPa
                         Total Records: <span className="bg-primary/10 text-primary px-3 py-1 rounded-full font-bold">{data.length}</span>
                     </div>
                     <div className="flex gap-2">
-                        <Button variant="outline" size="sm" onClick={() => window.print()} className="hover:bg-primary/5 border-2">
+                        <Button variant="outline" size="sm" onClick={() => handlePrint()} className="hover:bg-primary/5 border-2">
                             <Printer className="h-4 w-4 mr-2 text-primary" />
                             Print
                         </Button>
-                        <Button variant="outline" size="sm" onClick={() => {
-                            const worksheet = XLSX.utils.json_to_sheet(data);
-                            const workbook = XLSX.utils.book_new();
-                            XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
-                            XLSX.writeFile(workbook, "SportHouseReport.xlsx");
-                        }} className="hover:bg-primary/5 border-2">
+                        <Button variant="outline" size="sm" onClick={exportToExcel} className="hover:bg-primary/5 border-2">
                             <FileSpreadsheet className="h-4 w-4 mr-2 text-success" />
                             Excel
                         </Button>
@@ -104,7 +123,7 @@ export default function ReportGrid({ data, searchQuery, onSearchChange, manualPa
                 </div>
             </div>
 
-            <div className="bg-white p-6 rounded-lg shadow-sm border min-h-[400px]">
+            <div ref={componentRef} className="bg-white p-6 rounded-lg shadow-sm border min-h-[400px]">
                 <div className="mb-6 text-center">
                     <h1 className="text-2xl font-bold uppercase underline text-primary">Sport House Report</h1>
                 </div>

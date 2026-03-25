@@ -5,17 +5,17 @@ import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { toggleBifurcationConstraintsStatus } from '@/server/timetable/constraints/bifurcationconstraints';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Eye } from 'lucide-react';
 import { useCallback } from 'react';
 
 export interface IBifurcationConstraintList {
-    acdYear: number;
+    acdYear: string;
     categoryName: string;
-    UpdatedDate: string;
+    updatedDate?: string;
+    UpdatedDate?: string;
     bifricationName: string;
-    periodname: number;
+    periodname: string;
     ttB_ActiveFlag: boolean;
     ttB_Id: number;
 }

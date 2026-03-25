@@ -46,8 +46,9 @@ export function PayrollTab({
     const employeeData = response?.data;
 
     // Prioritize the specific API response as requested by user
-    // Prioritize the specific API response as requested by user
-    const salaryDetails = salaryDetailsData || DEFAULT_EMPTY_ARRAY;
+    const salaryDetails = Array.isArray(salaryDetailsData)
+        ? salaryDetailsData
+        : (salaryDetailsData as any)?.data || DEFAULT_EMPTY_ARRAY;
     console.log('🔍 [PayrollTab] Loaded salaryDetails from API:', salaryDetails);
 
     const queryClient = useQueryClient();

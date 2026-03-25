@@ -11,25 +11,21 @@ import type { IMasterShiftSettingList } from '@/types/hrms/attendance-management
 export async function getShiftSettingMaster(searchParams?: ApiSearchparams) {
     const searchableColumns = 'foms_ShiftName';
     const urlParams = getSearchParamsUrl(searchParams ?? {}, searchableColumns);
-    const url = `/api/ShiftSettingMasterFacade/getdata?${urlParams}`;
+    const url = `/api/ShiftSettingMaster/master_shift_settings_grid?${urlParams}`;
     return await api.get<IMasterShiftSettingList[]>('hrmsfrontoffice', url);
 }
 
-/**
- * Save or Update Shift Setting Master record
- * POST /api/ShiftSettingMasterFacade/savedetail
- */
 export async function addOrUpdateShiftSettingMaster(data: any) {
-    const url = '/api/ShiftSettingMasterFacade/savedetail';
+    const url = '/api/ShiftSettingMaster/add_or_update_master_shift_timings';
     return await api.post<any>('hrmsfrontoffice', url, data);
 }
 
 /**
  * Toggle Shift Setting Master record (activate/deactivate)
- * PUT /api/ShiftSettingMasterFacade/toggle/{id}
+ * PUT /api/ShiftSettingMaster/toggle_master_shift/{fomst_id}
  */
-export async function toggleShiftSettingMaster(id: number) {
-    const url = `/api/ShiftSettingMasterFacade/toggle/${id}`;
+export async function toggleShiftSettingMaster(fomst_id: number) {
+    const url = `/api/ShiftSettingMaster/toggle_master_shift/${fomst_id}`;
     return await api.put<IMasterShiftSettingList>('hrmsfrontoffice', url);
 }
 

@@ -11,96 +11,121 @@ const formatDate = (date: unknown): string => {
 };
 
 export interface YearRow {
-    user_id?: number;
-    employee_code?: string;
-    employee_name?: string;
+    ecode?: string;
+    ename?: string;
     designation?: string;
-    date_of_joining?: string;
-    january?: number;
-    total_present?: number;
-    total_worked_on_holidays?: number;
+    doj?: string;
+    tpdays?: number;
+    hwkdays?: number;
     [key: string]: any;
 }
 
-export const employeeYearlyReportColumns: ColumnDef<YearRow>[] = [
-    {
-        id: 'select',
-        header: ({ table }) => (
-            <Checkbox
-                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label='Select all'
-            />
-        ),
-        cell: ({ row }) => (
-            <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-        size: 24
-    },
-    {
-        accessorKey: 'user_id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
-        cell: ({ row, table }) => {
-            const pageIndex = table.getState().pagination.pageIndex;
-            const pageSize = table.getState().pagination.pageSize;
-            const continuousIndex = pageIndex * pageSize + row.index + 1;
-            return <div className='w-full pl-6'>{continuousIndex}</div>;
+export const getEmployeeYearlyReportColumns = (
+    dynamicMonths: string[] = [],
+    modes: string[] = []
+): ColumnDef<YearRow>[] => {
+    const columns: ColumnDef<YearRow>[] = [
+        {
+            id: 'select',
+            header: ({ table }) => (
+                <Checkbox
+                    checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
+                    onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+                    aria-label='Select all'
+                />
+            ),
+            cell: ({ row }) => (
+                <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
+            ),
+            enableSorting: false,
+            enableHiding: false,
+            size: 24
         },
-        enableSorting: true,
-        enableHiding: false
-    },
-    {
-        accessorKey: 'employee_code',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Code' />,
-        cell: ({ row }) => <div>{row.getValue('employee_code')}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'employee_name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
-        cell: ({ row }) => <div>{row.getValue('employee_name')}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'designation',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Designation' />,
-        cell: ({ row }) => <div>{row.getValue('designation')}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'date_of_joining',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Date of Joining' />,
-        cell: ({ row }) => {
-            const date = row.getValue('date_of_joining');
-            return <div>{formatDate(date)}</div>;
+        {
+            accessorKey: 'slno',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
+            cell: ({ row, table }) => {
+                const pageIndex = table.getState().pagination.pageIndex;
+                const pageSize = table.getState().pagination.pageSize;
+                const continuousIndex = pageIndex * pageSize + row.index + 1;
+                return <div className='w-full pl-6'>{continuousIndex}</div>;
+            },
+            enableSorting: false,
+            enableHiding: false
         },
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'january',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='January' />,
-        cell: ({ row }) => <div>{row.getValue('january')}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'total_present',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Total Present' />,
-        cell: ({ row }) => <div>{row.getValue('total_present')}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'total_worked_on_holidays',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Total Worked on Holidays' />,
-        cell: ({ row }) => <div>{row.getValue('total_worked_on_holidays')}</div>,
-        enableSorting: true,
-        enableHiding: true
+        {
+            accessorKey: 'ecode',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Code' />,
+            cell: ({ row }) => <div>{row.getValue('ecode')}</div>,
+            enableSorting: true,
+            enableHiding: true
+        },
+        {
+            accessorKey: 'ename',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
+            cell: ({ row }) => <div>{row.getValue('ename')}</div>,
+            enableSorting: true,
+            enableHiding: true
+        },
+        {
+            accessorKey: 'designation',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Designation' />,
+            cell: ({ row }) => <div>{row.getValue('designation')}</div>,
+            enableSorting: true,
+            enableHiding: true
+        }
+    ];
+
+    // Add dynamic month columns
+    dynamicMonths.forEach((month) => {
+        columns.push({
+            accessorKey: month,
+            header: ({ column }) => <DataTableColumnHeader column={column} title={month.replace('_', ' ')} />,
+            cell: ({ row }) => <div>{row.original[month]}</div>,
+            enableSorting: true,
+            enableHiding: true
+        });
+    });
+
+
+
+    if (modes.includes('Total working Day')) {
+        columns.push({
+            accessorKey: 'tpdays',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Total Working Day' />,
+            cell: ({ row }) => <div>{row.getValue('tpdays')}</div>,
+            enableSorting: true,
+            enableHiding: true
+        });
     }
-];
+
+    // Add Total Worked on Holidays if mode selected
+    if (modes.includes('Show Holiday Punch')) {
+        columns.push({
+            accessorKey: 'hwkdays',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Total Worked on Holidays' />,
+            cell: ({ row }) => <div>{row.getValue('hwkdays')}</div>,
+            enableSorting: true,
+            enableHiding: true
+        });
+    }
+
+    // Add Date of Joining if mode selected
+    if (modes.includes('Date Of Joining')) {
+        columns.push({
+            accessorKey: 'doj',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Date of Joining' />,
+            cell: ({ row }) => {
+                const date = row.getValue('doj') as string;
+                return <div>{formatDate(date)}</div>;
+            },
+            enableSorting: true,
+            enableHiding: true
+        });
+    }
+
+    return columns;
+};
+
+// Default columns for initialization
+export const employeeYearlyReportColumns = getEmployeeYearlyReportColumns();

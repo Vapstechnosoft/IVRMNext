@@ -154,7 +154,6 @@ export function useReportDesignations(groupTypeIds: string, deptIds: string) {
 }
 
 export function useReportEmployeesByDeptAndDesignation(deptIds: string, desigIds: string) {
-    console.log('📡 [HOOK] Fetching employees with:', { deptIds, desigIds });
     return useQuery({
         queryKey: ['report-employees', deptIds, desigIds],
         queryFn: () => getEmployeesByDeptAndDesignation(deptIds, desigIds),
@@ -168,11 +167,12 @@ export function useReportEmployeesByDeptAndDesignation(deptIds: string, desigIds
 export function useReportEmployeesByGroupTypeDeptAndDesignation( groupTypeIds: number[],
     deptIds: number[],
     desigIds: number[]) {
-    console.log('📡 [HOOK] Fetching employees with:', { groupTypeIds, deptIds, desigIds });
     return useQuery({
         queryKey: ['report-employees', groupTypeIds, deptIds, desigIds],
         queryFn: () => getEmployeesByGroupTypeDeptAndDesignation(groupTypeIds, deptIds, desigIds),
-        enabled: !!groupTypeIds && !!deptIds && !!desigIds,
+        enabled: Array.isArray(groupTypeIds) && groupTypeIds.length > 0 && 
+                 Array.isArray(deptIds) && deptIds.length > 0 && 
+                 Array.isArray(desigIds) && desigIds.length > 0,
         staleTime: 1000 * 60 * 5
     });
 }

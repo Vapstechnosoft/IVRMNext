@@ -42,6 +42,7 @@ export const UpdateForm = ({ id, onSuccess, onCancel, groupNameList }: UpdateFor
 
     const form = useForm<z.infer<typeof sportsCCNameSchema.addOrUpdate>>({
         resolver: zodResolver(sportsCCNameSchema.addOrUpdate),
+        mode: 'onChange',
         defaultValues: {
             spccmscC_Id: id,
             spccmsccG_Id: 0,
@@ -81,7 +82,7 @@ export const UpdateForm = ({ id, onSuccess, onCancel, groupNameList }: UpdateFor
                         spccmscC_NoOfAttempts: detail.spccmscC_NoOfAttempts,
                         tempDatas: data.data.subEvents && data.data.subEvents.length > 0
                             ? data.data.subEvents.map((s: any) => ({
-                                spccmsccG_UnderEvent: s.spccmsccG_UnderEvent,
+                                spccmsccG_UnderEvent: s.spccmsccG_SportsCCGroupName || s.spccmsccG_UnderEvent || '',
                                 spccmsccG_Id: s.spccmsccG_Id
                             }))
                             : [{ spccmsccG_UnderEvent: '' }],
@@ -136,6 +137,9 @@ export const UpdateForm = ({ id, onSuccess, onCancel, groupNameList }: UpdateFor
         }
     };
 
+    // Filter unique group list for dropdown
+    const uniqueGroupList = Array.from(new Map(groupNameList?.map(item => [item.spccmsccG_Id, item]) || []).values());
+
     if (isLoading) {
         return <div className="flex justify-center p-10"><Loader2 className="h-8 w-8 animate-spin" /></div>;
     }
@@ -162,9 +166,9 @@ export const UpdateForm = ({ id, onSuccess, onCancel, groupNameList }: UpdateFor
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            {groupNameList.map((item) => (
+                                            {uniqueGroupList.map((item) => (
                                                 <SelectItem key={item.spccmsccG_Id} value={item.spccmsccG_Id.toString()}>
-                                                    {item.spccmsccG_SportsCCGroupName}
+                                                    {(item as any).spccmsccG_SportsCCGroupName || (item as any).groupName}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>

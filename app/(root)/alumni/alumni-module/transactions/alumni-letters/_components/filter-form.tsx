@@ -122,8 +122,8 @@ export default function FilterForm({ years, classes, onShowReport, onClear, onPr
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {years.map((y) => (
-                                        <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
+                                    {years.map((y, index) => (
+                                        <SelectItem key={`${y.asmaY_Id}-${index}`} value={String(y.asmaY_Id)}>
                                             {y.asmaY_Year}
                                         </SelectItem>
                                     ))}
@@ -147,8 +147,8 @@ export default function FilterForm({ years, classes, onShowReport, onClear, onPr
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {classes.map((c) => (
-                                        <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
+                                    {classes.map((c, index) => (
+                                        <SelectItem key={`${c.asmcL_Id}-${index}`} value={String(c.asmcL_Id)}>
                                             {c.asmcL_ClassName}
                                         </SelectItem>
                                     ))}
@@ -187,10 +187,10 @@ export default function FilterForm({ years, classes, onShowReport, onClear, onPr
                 <div className='flex flex-col gap-2'>
                     <Label>Date and Time</Label>
                     <InputText
-                        placeholder='Enter Date and Time'
+                        placeholder='yyyy/MM/dd'
                         {...register('display_DateandTime')}
                         onKeyDown={(e) => {
-                            const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', '-', ':', ' '];
+                            const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', '/', ':', ' '];
                             if (!allowedKeys.includes(e.key) && !/^\d$/.test(e.key)) {
                                 e.preventDefault();
                             }

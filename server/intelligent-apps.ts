@@ -4,8 +4,9 @@ import fs from 'fs';
 import path from 'path';
 import { PDFDocument } from 'pdf-lib';
 import { randomUUID } from 'crypto';
+import * as XLSX from 'xlsx';
 
-interface ChatgptDTO {
+export interface ChatgptDTO {
     message?: string;
     ChatCompletion?: string;
     MobileNumber?: string;
@@ -168,6 +169,60 @@ export async function whatsAppCall(data: ChatgptDTO): Promise<string> {
         }
     } catch (error) {
         console.error("Error in whatsAppCall:", error);
+        return "error";
+    }
+}
+
+export async function whatsAppBulkCall(formData: FormData): Promise<string> {
+    const file = formData.get('file') as File;
+    const type = formData.get('type') as string;
+
+    if (!file) return "no_file";
+
+    try {
+        const buffer = await file.arrayBuffer();
+        const workbook = XLSX.read(buffer, { type: 'array' });
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        const data = XLSX.utils.sheet_to_json(worksheet) as any[];
+
+        let successCount = 0;
+        let failCount = 0;
+
+        for (const row of data) {
+            if (row.MobileNumber) {
+                const chatData: ChatgptDTO = {
+                    MobileNumber: String(row.MobileNumber),
+                    Typedropdown: type,
+                    BirthdayName: String(row.BirthdayName || row.Name || ''),
+                    InstituteNameB: String(row.InstituteNameB || row.Institute || ''),
+                    Attendance1: String(row.Attendance1 || row.Att1 || ''),
+                    Attendance2: String(row.Attendance2 || row.Att2 || ''),
+                    Attendance3: String(row.Attendance3 || row.Att3 || ''),
+                    Attendance4: String(row.Attendance4 || row.Att4 || ''),
+                    Attendance5: String(row.Attendance5 || row.Att5 || ''),
+                    FeeDue: String(row.FeeDue || row.DueAmount || ''),
+                    FeeTransaction1: String(row.FeeTransaction1 || row.Trans1 || ''),
+                    FeeTransaction2: String(row.FeeTransaction2 || row.Trans2 || ''),
+                    FeeTransaction3: String(row.FeeTransaction3 || row.Trans3 || ''),
+                    FeeTransaction4: String(row.FeeTransaction4 || row.Trans4 || ''),
+                    FeeTransaction5: String(row.FeeTransaction5 || row.Trans5 || ''),
+                    LoginCredentials1: String(row.LoginCredentials1 || row.Cred1 || ''),
+                    LoginCredentials2: String(row.LoginCredentials2 || row.Cred2 || ''),
+                    LoginCredentials3: String(row.LoginCredentials3 || row.Cred3 || ''),
+                    LoginCredentials4: String(row.LoginCredentials4 || row.Cred4 || ''),
+                    LoginCredentials5: String(row.LoginCredentials5 || row.Cred5 || ''),
+                };
+
+                const res = await whatsAppCall(chatData);
+                if (res === 'success') successCount++;
+                else failCount++;
+            }
+        }
+
+        return `Bulk process completed. Success: ${successCount}, Failed: ${failCount}`;
+    } catch (error) {
+        console.error("Error in whatsAppBulkCall:", error);
         return "error";
     }
 }

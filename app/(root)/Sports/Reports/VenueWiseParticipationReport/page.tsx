@@ -3,32 +3,12 @@
 import { useState } from "react";
 import { ReportForm } from "./_components/report-form";
 import { ReportGrid } from "./_components/report-grid";
-import { useVenueWiseParticipationReport } from "@/hooks/sports/useVenueWiseParticipationReport";
-import type { IVenueWiseReportData } from "@/types/sports/reports/venue-wise-participation-report";
-import { Loader2 } from "lucide-react";
 
 export default function VenueWiseParticipationReportPage() {
-    const { dropdowns } = useVenueWiseParticipationReport();
-    const [reportData, setReportData] = useState<IVenueWiseReportData[]>([]);
+    const [reportData, setReportData] = useState<any[]>([]);
     const [showNoRecords, setShowNoRecords] = useState(false);
 
-    if (dropdowns.isLoading || dropdowns.isFetching) {
-        return (
-            <div className="flex h-full items-center justify-center">
-                <Loader2 className="h-6 w-6 animate-spin" />
-            </div>
-        );
-    }
-
-    if (dropdowns.isError) {
-        return (
-            <div className="flex h-full items-center justify-center text-red-500">
-                Failed to load initial data. Please try again.
-            </div>
-        );
-    }
-
-    const handleReportGenerated = (data: IVenueWiseReportData[]) => {
+    const handleReportGenerated = (data: any[]) => {
         setReportData(data);
         setShowNoRecords(data.length === 0);
     };
@@ -48,7 +28,6 @@ export default function VenueWiseParticipationReportPage() {
                 </div>
 
                 <ReportForm
-                    dropdowns={dropdowns.data!}
                     onReportGenerated={handleReportGenerated}
                     onReset={() => {
                         setReportData([]);

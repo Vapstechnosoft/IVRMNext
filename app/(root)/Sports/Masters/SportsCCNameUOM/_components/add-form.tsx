@@ -48,15 +48,26 @@ export default function AddMasterSportsCCNameUOMForm({ onSuccess, sportsCCNameLi
     const onSubmit = async (values: z.infer<typeof MasterSportsCCNameUOMSchema>) => {
         try {
             const result = await saveMasterSportsCCNameUOM(values);
-            if (result?.returnVal === 'saved' || result?.message === 'saved' || result?.success) {
+            const msg = (result?.message || result?.Message || '') as string;
+            const isSuccess = result.success || 
+                             result?.returnval == true || 
+                             result?.returnVal == true ||
+                             result?.returnVal === 'saved' || 
+                             result?.returnVal === 'updated' || 
+                             msg.toLowerCase() === 'saved' ||
+                             msg.toLowerCase() === 'updated' ||
+                             msg.toLowerCase().includes('success');
+
+            if (isSuccess) {
                 toast.success('Record saved successfully');
                 queryClient.invalidateQueries({ queryKey: ['master-sports-cc-name-uom'] });
                 form.reset();
                 onSuccess();
-            } else if (result?.returnVal === 'duplicate' || result?.message === 'duplicate') {
-                toast.warning('Record already exists');
+            } else if (result?.returnVal === 'duplicate' || msg.toLowerCase() === 'duplicate') {
+                toast.error('Record already exists');
             } else {
-                toast.error('Failed to save record');
+                const errorMsg = (result?.message || result?.Message || 'Failed to save record') as string;
+                toast.error(errorMsg);
             }
         } catch (error) {
             toast.error('An unexpected error occurred');

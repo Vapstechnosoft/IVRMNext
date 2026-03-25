@@ -21,6 +21,7 @@ import {
     useStaffReplacementExistingToNewMasters
 } from '@/hooks/timetable/transaction/useStaff-replacement-existing-to-new';
 
+
 const extractList = (data: any, preferredKey?: string) => {
     if (!data) return [];
     if (Array.isArray(data)) return data;
@@ -73,6 +74,7 @@ export default function StaffReplacementExistingToNewForm({ onFetch }: StaffRepl
     } = useForm<StaffReplacementExistingToNewValues>({
         resolver: zodResolver(StaffRepacementExistingToNewSchema),
         defaultValues: {
+            asmaY_Id: '',
             ttmC_Id: '',
             asmcL_Id: '',
             asms_Id: '',
@@ -90,21 +92,25 @@ export default function StaffReplacementExistingToNewForm({ onFetch }: StaffRepl
     const sections = extractList(sectionsData);
 
     const onSubmit = async (data: StaffReplacementExistingToNewValues) => {
-        if (data.hrmE_Id_From === data.hrmE_Id_To) {
-            toast.warning('Same staff Name.. Please choose a different staff Name !');
-            return;
-        }
-
-        saveReplacement(data, {
-            onSuccess: (res) => {
-                if (res.returnval) {
-                    reset();
-                    onFetch(data);
+        try {
+            saveReplacement(data, {
+                onSuccess: (response: any) => {
+                    if (response?.success === true || response?.returnval === true) {
+                        toast.success(response?.message);
+                        reset();
+                        onFetch?.(data);
+                    } else {
+                        toast.error(response?.message);
+                    }
+                },
+                onError: (error: any) => {
+                    toast.error(error.message);
                 }
-            }
-        });
+            });
+        } catch (error: any) {
+            toast.error(error.message);
+        }
     };
-
     const handleReset = () => {
         reset();
     };
@@ -219,7 +225,7 @@ export default function StaffReplacementExistingToNewForm({ onFetch }: StaffRepl
                     <div className='flex items-center justify-center gap-4 border-t pt-4'>
                         <Button type='submit' className='flex min-w-[120px] items-center gap-2 font-semibold'>
                             <Search className='h-4 w-4' />
-                            Update
+                            Replace
                         </Button>
 
                         <Button type='button' variant='outline' onClick={handleReset} className='min-w-[120px]'>

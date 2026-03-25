@@ -52,7 +52,7 @@ export default function StudentList({ students, selectedIds, onToggleAll, onTogg
                             </TableRow>
                         ) : (
                             students.map((student, index) => (
-                                <TableRow key={student.amsT_Id} className={selectedIds.includes(student.amsT_Id) ? 'bg-primary/5' : ''}>
+                                <TableRow key={`${student.amsT_Id}-${index}`} className={selectedIds.includes(student.amsT_Id) ? 'bg-primary/5' : ''}>
                                     <TableCell className='text-center font-bold text-black' >
                                         <Checkbox
                                             checked={selectedIds.includes(student.amsT_Id)}
