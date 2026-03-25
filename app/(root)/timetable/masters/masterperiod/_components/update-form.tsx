@@ -30,8 +30,14 @@ const extractList = (data: any, preferredKey?: string) => {
     const target = data?.data !== undefined ? data.data : data;
     if (Array.isArray(target)) return target;
     if (!target) return [];
+
+    // If preferredKey is provided and exists as an array
     if (preferredKey && Array.isArray(target[preferredKey])) return target[preferredKey];
+
+    // Common keys for list/data
     const keys = [
+        'categoryDropDown',
+        'gridDetails',
         'geteditmaster',
         'academiclist',
         'catelist',
@@ -46,6 +52,10 @@ const extractList = (data: any, preferredKey?: string) => {
     for (const key of keys) {
         if (Array.isArray(target[key])) return target[key];
     }
+
+    // Handle nested data property in legacy API structures
+    if (target.data && Array.isArray(target.data)) return target.data;
+
     return [];
 };
 
@@ -61,7 +71,9 @@ export default function MasterPeriodForm({ onSuccess, selectedRow }: MasterPerio
             periodorder: 0,
             half: '',
             categoryids: [] as any,
-            noOfPeriods: 1
+            noOfPeriods: 1,
+            imP_Id: 0,
+            impcM_Id: 0
         }
     });
 
@@ -79,7 +91,7 @@ export default function MasterPeriodForm({ onSuccess, selectedRow }: MasterPerio
     const categories = extractList(MasterPerioddata);
 
     const filteredPeriodIds = categories.filter((d: any) =>
-        (d.amC_Name || d.amC_Name || '').toLowerCase().includes(PeriodSearch.toLowerCase())
+        (d.amC_Name || '').toLowerCase().includes(PeriodSearch.toLowerCase())
     );
 
     const getCategoryId = (obj: any) => {
@@ -117,32 +129,43 @@ export default function MasterPeriodForm({ onSuccess, selectedRow }: MasterPerio
 
             setIsLoadingDetails(true);
             try {
-                const response = await getMasterPeriodEditDetails(selectedRow.imP_Id);
+                const response = await getMasterPeriodEditDetails(Number(selectedRow.imP_Id));
                 const editDataList = extractList(response, 'gridDetails');
 
                 if (editDataList && editDataList.length > 0) {
-                    const filteredEditData = editDataList.filter(
-                        (item: any) => item.imP_Id === selectedRow.imP_Id || item.IMP_Id === selectedRow.imP_Id
-                    );
+                    const targetImpId = Number(selectedRow.imP_Id);
+                    const filteredEditData = editDataList.filter((item: any) => {
+                        const itemId = Number(item.imP_Id ?? item.IMP_Id ?? item.imp_Id ?? 0);
+                        return itemId === targetImpId;
+                    });
+
                     const editData = filteredEditData.length > 0 ? filteredEditData[0] : editDataList[0];
+
                     // Extract all unique category IDs from the edit list
-                    const allCategoryIds = Array.from(new Set(filteredEditData.map((item: any) => getCategoryId(item)).filter(Boolean)));
+                    const sourceForCategories = filteredEditData.length > 0 ? filteredEditData : editDataList;
+                    const allCategoryIds = Array.from(
+                        new Set(sourceForCategories.map((item: any) => getCategoryId(item)).filter(Boolean))
+                    );
 
                     reset({
-                        periodname: Number(editData.imP_PeriodName || selectedRow.imP_PeriodName),
-                        periodorder: Number(editData.imP_PeriodOrder || selectedRow.imP_PeriodOrder),
-                        half: editData.half || selectedRow.half,
-                        categoryids: allCategoryIds as [string, ...string[]],
+                        imP_Id: targetImpId,
+                        impcM_Id: Number(editData.impcM_Id ?? editData.IMPCM_Id ?? selectedRow.impcM_Id ?? 0),
+                        periodname: Number(editData.imP_PeriodName ?? editData.IMP_PeriodName ?? selectedRow.imP_PeriodName ?? 0),
+                        periodorder: Number(editData.imP_PeriodOrder ?? editData.IMP_PeriodOrder ?? selectedRow.imP_PeriodOrder ?? 0),
+                        half: editData.half ?? editData.Half ?? selectedRow.half ?? '',
+                        categoryids: allCategoryIds.length > 0 ? (allCategoryIds as [string, ...string[]]) : ([] as any),
                         noOfPeriods: 1
                     });
                 } else {
                     // Fallback to selectedRow's amC_Id if edit API doesn't provide the list
                     const catId = getCategoryId(selectedRow);
                     reset({
-                        periodname: Number(selectedRow.imP_PeriodName),
-                        periodorder: Number(selectedRow.imP_PeriodOrder),
-                        half: selectedRow.half,
-                        categoryids: catId ? [catId] : ([] as any),
+                        imP_Id: Number(selectedRow.imP_Id || 0),
+                        impcM_Id: Number(selectedRow.impcM_Id || 0),
+                        periodname: Number(selectedRow.imP_PeriodName || 0),
+                        periodorder: Number(selectedRow.imP_PeriodOrder || 0),
+                        half: selectedRow.half || '',
+                        categoryids: catId ? ([catId.toString()] as [string, ...string[]]) : ([] as any),
                         noOfPeriods: 1
                     });
                 }
@@ -150,10 +173,12 @@ export default function MasterPeriodForm({ onSuccess, selectedRow }: MasterPerio
                 console.error('Failed to fetch edit details:', error);
                 const catId = getCategoryId(selectedRow);
                 reset({
-                    periodname: Number(selectedRow.imP_PeriodName),
-                    periodorder: Number(selectedRow.imP_PeriodOrder),
-                    half: selectedRow.half,
-                    categoryids: catId ? [catId] : ([] as any),
+                    imP_Id: Number(selectedRow.imP_Id || 0),
+                    impcM_Id: Number(selectedRow.impcM_Id || 0),
+                    periodname: Number(selectedRow.imP_PeriodName || 0),
+                    periodorder: Number(selectedRow.imP_PeriodOrder || 0),
+                    half: selectedRow.half || '',
+                    categoryids: catId ? ([catId.toString()] as [string, ...string[]]) : ([] as any),
                     noOfPeriods: 1
                 });
             } finally {
@@ -167,8 +192,8 @@ export default function MasterPeriodForm({ onSuccess, selectedRow }: MasterPerio
     const onSubmit = async (data: FormFields) => {
         try {
             const payload = {
-                IMP_Id: selectedRow?.imP_Id || 0,
-                IMPCM_Id: selectedRow?.impcM_Id || 0,
+                IMP_Id: data.imP_Id || selectedRow?.imP_Id || 0,
+                IMPCM_Id: data.impcM_Id || selectedRow?.impcM_Id || 0,
                 IMP_PeriodName: data.periodname,
                 IMP_PeriodOrder: data.periodorder,
                 Half: data.half,

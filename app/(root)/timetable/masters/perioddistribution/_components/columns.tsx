@@ -94,7 +94,8 @@ function ActionButtonsCell({ rowData }: { rowData: PeriodDistributionColumn }) {
             </TooltipProvider>
             <ActionButtons
                 rowData={rowData}
-                buttons={{ toggle: true, delete: false }}
+                buttons={{ edit: true, toggle: true, delete: false }}
+                onEdit={handleEdit}
                 onToggle={handleToggle}
                 toggleConditionKey='ttfpD_ActiveFlag'
             />

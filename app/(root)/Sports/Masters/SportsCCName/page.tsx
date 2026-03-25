@@ -1,43 +1,45 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { use } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, Loader2 } from 'lucide-react';
-import { DataTable } from '@/components/ui/data-table';
+import { Plus, X } from 'lucide-react';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { createColumns } from './_components/columns';
 import { AddForm } from './_components/add-form';
 import { UpdateForm } from './_components/update-form';
 import { ToggleForm } from './_components/toggle-form';
-import { getSportsCCNameDetails } from '@/server/sports/masters/sports-cc-name';
-import { SportsCCNameDTO, SportsCCNameGroupDTO } from '@/types/sports/masters/sports-cc-name';
+import { useSportsCCNames } from '@/hooks/sports/useSportsCCNames';
+import type { SportsCCNameDTO } from '@/types/sports/masters/sports-cc-name';
 
-export default function SportsCCNamePage() {
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+export default function SportsCCNamePage(props: { searchParams: SearchParams }) {
+    const searchParams = use(props.searchParams);
+    const { data: response, isLoading, error, refetchAll } = useSportsCCNames(searchParams);
+
+    return (
+        <SportsCCNamePageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
+    );
+}
+
+import { useState } from 'react';
+
+function SportsCCNamePageContent({
+    response,
+    isLoading,
+    error,
+    refetchAll
+}: {
+    response: any;
+    isLoading: boolean;
+    error: any;
+    refetchAll: any;
+}) {
     const [isAdding, setIsAdding] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
     const [deletingId, setDeletingId] = useState<number | null>(null);
     const [deletingActiveFlag, setDeletingActiveFlag] = useState<boolean>(false);
-    const [data, setData] = useState<SportsCCNameDTO[]>([]);
-    const [groupNameList, setGroupNameList] = useState<SportsCCNameGroupDTO[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-
-    const loadData = async () => {
-        setIsLoading(true);
-        try {
-            const result = await getSportsCCNameDetails();
-            if (result && result.data) {
-                setData(result.data.sportsccName || []);
-                setGroupNameList(result.data.groupNameList || []);
-            }
-        } catch (error) {
-            console.error("Failed to load data", error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        loadData();
-    }, []);
 
     const handleEdit = (item: SportsCCNameDTO) => {
         setEditingId(item.spccmscC_Id);
@@ -53,7 +55,7 @@ export default function SportsCCNamePage() {
         setIsAdding(false);
         setEditingId(null);
         setDeletingId(null);
-        loadData();
+        refetchAll();
     };
 
     const handleCancel = () => {
@@ -63,43 +65,77 @@ export default function SportsCCNamePage() {
     };
 
     const columns = createColumns({ onEdit: handleEdit, onDelete: handleDelete });
-
-    if (isLoading && !data.length && !isAdding) {
-        return <div className="flex justify-center p-10"><Loader2 className="h-8 w-8 animate-spin" /></div>;
-    }
+    const groupNameList = response?.data?.groupNameList || [];
+    // Data can be in sportsccName or groupNameList based on backend implementation
+    const tableData = response?.data?.sportsccName || response?.data?.groupNameList || response?.data || [];
+    const tableProps = {
+        data: tableData,
+        totalItems: response?.total || response?.data?.total || response?.data?.count || response?.data?.Count || response?.count || tableData.length || 0,
+        success: response?.success,
+        errorMessage: response?.message
+    };
 
     return (
-        <div className="space-y-6">
+        <div className="container space-y-4 p-1">
             <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold">Master SportsCC Name</h1>
-                {!isAdding && (
-                    <Button onClick={() => setIsAdding(true)}>
-                        <Plus className="mr-2 h-4 w-4" /> Add New
-                    </Button>
-                )}
+                <Button onClick={() => setIsAdding(true)} className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
+                    <Plus className="mr-2 h-4 w-4" /> Add Master SportsCC Name
+                </Button>
             </div>
 
-            {isAdding ? (
-                <div className="border rounded-lg p-6 bg-card">
-                    {editingId ? (
-                        <UpdateForm
-                            id={editingId}
-                            onSuccess={handleSuccess}
-                            onCancel={handleCancel}
-                            groupNameList={groupNameList}
-                        />
-                    ) : (
-                        <AddForm
-                            onSuccess={handleSuccess}
-                            onCancel={handleCancel}
-                            groupNameList={groupNameList}
-                        />
-                    )}
-                </div>
-            ) : (
-                <div className="border rounded-lg bg-card">
-                    <DataTable columns={columns} data={data} totalItems={data.length} />
-                </div>
+            <CollapsibleSection
+                defaultOpen={true}
+                variant='default'
+                size='lg'
+                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                <GenericDataTable<SportsCCNameDTO>
+                    {...tableProps}
+                    columns={columns}
+                    isLoading={isLoading}
+                    error={error}
+                    manualPagination={true}
+                    manualSorting={true}
+                    manualFiltering={true}
+                    showSearchColumns={true}
+                    columnPinning={{ right: ['actions'] }}
+                    loadingMessage='Loading master sports cc names...'
+                    noDataTitle='No Records Found'
+                    errorTitle='Error Loading Names'
+                />
+            </CollapsibleSection>
+
+            {isAdding && (
+                <CollapsibleSection
+                    title={editingId ? 'Edit Master SportsCC Name' : 'Add New Master SportsCC Name'}
+                    defaultOpen={true}
+                    variant='outline'
+                    size='md'
+                    className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                    <div className='relative'>
+                        <Button
+                            type='button'
+                            onClick={handleCancel}
+                            variant='ghost'
+                            size='sm'
+                            className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                            <X className='h-4 w-4 text-destructive' /> Close
+                        </Button>
+                        {editingId ? (
+                            <UpdateForm
+                                id={editingId}
+                                onSuccess={handleSuccess}
+                                onCancel={handleCancel}
+                                groupNameList={groupNameList}
+                            />
+                        ) : (
+                            <AddForm
+                                onSuccess={handleSuccess}
+                                onCancel={handleCancel}
+                                groupNameList={groupNameList}
+                            />
+                        )}
+                    </div>
+                </CollapsibleSection>
             )}
 
             {deletingId && (

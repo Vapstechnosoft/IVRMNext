@@ -11,28 +11,33 @@ import type { IGroupType, IHolidayType, IMasterEmployeeShiftMappingList, IShiftN
  * Using /api/EmployeeShiftMappingFacade/getdata based on context.
  */
 export async function getEmployeeShiftMapping(searchParams?: ApiSearchparams) {
-    const searchableColumns = 'EmployeeName,ShiftName,DayType';
+    const searchableColumns = 'hrmE_EmployeeFirstName,fomS_ShiftName,fohtwD_HolidayWDType';
     const urlParams = getSearchParamsUrl(searchParams ?? {}, searchableColumns);
-    const url = `/api/EmployeeShiftMappingFacade/getdata?${urlParams}`;
+    const url = `/api/EmployeeShiftMapping/get_employee_shift_mapping_grid?${urlParams}`;
     return await api.get<IMasterEmployeeShiftMappingList[]>('hrmsfrontoffice', url);
 }
 
 /**
  * Save or Update Employee Shift Mapping record
- * POST /api/EmployeeShiftMappingFacade/SaveDetail
+ * POST /api/EmployeeShiftMapping/add_or_update_employee_shift
  */
 export async function addOrUpdateEmployeeShiftMapping(data: any) {
-    const url = '/api/EmployeeShiftMappingFacade/SaveDetail';
+    const url = '/api/EmployeeShiftMapping/add_or_update_employee_shift';
     return await api.post<any>('hrmsfrontoffice', url, data);
 }
 
 /**
  * Delete Employee Shift Mapping record
- * DELETE /api/EmployeeShiftMappingFacade/delete/{FOEST_Id}
- */
-export async function deleteEmployeeShiftMapping(id: number) {
-    const url = `/api/EmployeeShiftMappingFacade/delete/${id}`;
-    return await api.delete<IMasterEmployeeShiftMappingList>('hrmsfrontoffice', url);
+ * DELETE /api/EmployeeShiftMapping/delete_employee_shift_by_id/{id}
+ */// DELETE using POST as per VAPS pattern for some endpoints that require bodies
+export async function deleteEmployeeShiftMapping(id: number, data?: any) {
+    try {
+        const url = `/api/EmployeeShiftMapping/delete_employee_shift_by_id/${id}`;
+        return await api.delete<any>('hrmsfrontoffice', url, data || {});
+    } catch (error: any) {
+        console.error('Error deleting employee shift mapping:', error);
+        return { success: false, data: null, message: error?.message || 'Failed to delete' };
+    }
 }
 
 // Helper function: Get dropdown data
@@ -76,7 +81,7 @@ export async function getEmployeeShiftMappingHolidayTypes() {
  * GET /api/EmployeeShiftMappingFacade/getshift_names
  */
 export async function getEmployeeShiftMappingShiftNamesList() {
-    const url = '/api/EmployeeShiftMappingFacade/getshift_names';
+    const url = '/api/MasterDropDown/get_master_shift_names';
     return await api.get<IShiftName[]>('hrmsfrontoffice', url);
 }
 
@@ -142,5 +147,14 @@ export async function getEmployeeShiftMappingEmployeesFiltered(groupTypeIds: num
     }
 
     const url = `/api/EmployeeShiftMappingFacade/get_employee?${queryParams.join('&')}`;
+    return await api.get<any>('hrmsfrontoffice', url);
+}
+
+/**
+ * Get Employee Shift Mapping Details by ID
+ * GET /api/EmployeeShiftMapping/employee_shift_details_by_id/{id}
+ */
+export async function getEmployeeShiftMappingDetailsById(id: number) {
+    const url = `/api/EmployeeShiftMapping/employee_shift_details_by_id/${id}`;
     return await api.get<any>('hrmsfrontoffice', url);
 }

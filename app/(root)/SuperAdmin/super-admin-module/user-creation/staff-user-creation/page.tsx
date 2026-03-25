@@ -1,5 +1,6 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     changeInstitution,
@@ -46,6 +47,7 @@ import UserDetails from './_components/user-details';
 import PageMappingGrids from './_components/page-mapping-grids';
 import ViewUsernamesModal from './_components/view-usernames-modal';
 import ChangeUsernameModal from './_components/change-username-modal';
+import { RotateCcw, Save, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 const formSchema = z.object({
@@ -614,19 +616,22 @@ export default function StaffUserCreationPage() {
         <div className='container mx-auto p-6'>
             <Card className='w-full'>
                 <CardHeader>
-                    <div className='flex items-center justify-between'>
-                        <div className='flex-1' />
-                        <CardTitle className='text-center font-bold text-2xl text-primary'>Institution Staff User Creation</CardTitle>
-                        <div className='flex-1 flex justify-end'>
-                            <button
+                    <div className='relative flex items-center justify-center min-h-[40px]'>
+                        <CardTitle className='text-center font-bold text-2xl text-primary'>
+                            Institution Staff User Creation
+                        </CardTitle>
+                        <div className='absolute right-0'>
+                            <Button
                                 type="button"
+                                variant="outline"
+                                size="sm"
                                 onClick={handleReload}
-                                className="flex items-center gap-2 rounded-full bg-[#2669bc] px-4 py-1.5 text-sm font-semibold text-white shadow-md transition-all hover:bg-blue-700"
+                                className="rounded-full border-[#2669bc] text-[#2669bc] hover:bg-blue-50"
                                 title="Reload Settings"
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" /><path d="M21 3v5h-5" /><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" /><path d="M3 21v-5h5" /></svg>
+                                <RotateCcw className="mr-2 h-3.5 w-3.5" />
                                 Reload
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </CardHeader>
@@ -696,17 +701,24 @@ export default function StaffUserCreationPage() {
 
 
                             <div className='flex justify-center gap-4'>
-                                <button
+                                <Button
                                     type='submit'
-                                    className='btn btn-primary rounded-md px-8 py-2 shadow-md transition-all hover:bg-primary-dark'>
+                                    className='px-8 shadow-md'
+                                    size="lg"
+                                >
+                                    <Save className="mr-2 h-4 w-4" />
                                     Save
-                                </button>
-                                <button
+                                </Button>
+                                <Button
                                     type='button'
+                                    variant="outline"
                                     onClick={() => methods.reset()}
-                                    className='btn btn-outline rounded-md border border-gray-300 px-8 py-2 transition-all hover:bg-gray-100'>
+                                    className='px-8'
+                                    size="lg"
+                                >
+                                    <X className="mr-2 h-4 w-4" />
                                     Cancel
-                                </button>
+                                </Button>
                             </div>
                         </form>
                     </FormProvider>

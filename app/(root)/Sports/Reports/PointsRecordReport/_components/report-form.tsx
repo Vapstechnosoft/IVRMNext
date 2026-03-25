@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { RefreshCcw, FileText, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { PointsRecordReportFormSchema, pointsRecordReportSchema } from '../schema';
 import { usePointsRecordReport } from '@/hooks/sports/usePointsRecordReport';
 import { MultiSelect } from '@/components/ui/multi-select';
@@ -130,6 +131,15 @@ export default function ReportForm({ setReportData, setFormData }: ReportFormPro
         generateReport.mutate(payload, {
             onSuccess: (responseData) => {
                 setReportData(responseData);
+                if (responseData && responseData.length > 0) {
+                    toast.success('Report generated successfully');
+                } else {
+                    toast.info('No records found');
+                }
+            },
+            onError: (error) => {
+                console.error(error);
+                toast.error('Failed to generate report');
             }
         });
     }

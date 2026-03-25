@@ -1,3 +1,5 @@
+'use server';
+
 import { type ApiResponse, api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type {
@@ -162,11 +164,10 @@ export async function getEmployeeLogReportList(
 }
 
 /**
- * Get employee log report data (Legacy/Alternative)
- * POST /api/EmployeeLogReportFacade/search
+ * Get employee log report data
+ * POST /api/EmployeeLogReport/get_employee_punch_log_report
  */
-export async function getEmployeeLogReport(data: any, searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'searchableColumns');
-    const url = `/api/EmployeeLogReportFacade/search?${urlParams}`;
+export async function getEmployeeLogReport(data: any) {
+    const url = `/api/EmployeeLogReport/get_employee_punch_log_report`;
     return await api.post<any>('hrmsfrontoffice', url, data);
 }
