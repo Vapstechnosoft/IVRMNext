@@ -2433,22 +2433,22 @@ export async function getUserAccessibleModules() {
                                             title: 'Employee Yearly Report',
                                             description: 'Annual Attendance Summary'
                                         },
-                                        {
-                                            id: 5,
-                                            name: 'Employee Monthly Report',
-                                            icon: 'CalendarDays',
-                                            url: '/hrms/attendance-management/reports/employee-monthly-report',
-                                            title: 'Employee Monthly Report',
-                                            description: 'Monthly Attendance Report'
-                                        },
-                                        {
-                                            id: 6,
-                                            name: 'Month End Report',
-                                            icon: 'CalendarCheck',
-                                            url: '/hrms/attendance-management/reports/fo-monthend-report',
-                                            title: 'Month End Report',
-                                            description: 'Monthly Attendance Summary'
-                                        },
+                                        // {
+                                        //     id: 5,
+                                        //     name: 'Employee Monthly Report',
+                                        //     icon: 'CalendarDays',
+                                        //     url: '/hrms/attendance-management/reports/employee-monthly-report',
+                                        //     title: 'Employee Monthly Report',
+                                        //     description: 'Monthly Attendance Report'
+                                        // },
+                                        // {
+                                        //     id: 6,
+                                        //     name: 'Month End Report',
+                                        //     icon: 'CalendarCheck',
+                                        //     url: '/hrms/attendance-management/reports/fo-monthend-report',
+                                        //     title: 'Month End Report',
+                                        //     description: 'Monthly Attendance Summary'
+                                        // },
                                         // {
                                         //     id: 6,
                                         //     name: 'GPS Location Report',
@@ -2465,14 +2465,22 @@ export async function getUserAccessibleModules() {
                                             title: 'Holiday Report',
                                             description: 'Holiday Report'
                                         },
+                                        // {
+                                        //     id: 8,
+                                        //     name: 'Employee Absent Report',
+                                        //     icon: 'UserX',
+                                        //     url: '/hrms/attendance-management/reports/employee-absent-report',
+                                        //     title: 'Employee Absent Report',
+                                        //     description: 'Employee Absent Detail Report'
+                                        // }
                                         {
                                             id: 8,
-                                            name: 'Employee Absent Report',
-                                            icon: 'UserX',
-                                            url: '/hrms/attendance-management/reports/employee-absent-report',
-                                            title: 'Employee Absent Report',
-                                            description: 'Employee Absent Detail Report'
-                                        }
+                                            name: 'Employee Month End Report',
+                                            icon: 'CalendarCheck',
+                                            url: '/hrms/attendance-management/reports/employee-month-end-report',
+                                            title: 'Employee Month End Report',
+                                            description: 'Employee End Report'
+                                        },
                                     ]
                                 }
                             ]
