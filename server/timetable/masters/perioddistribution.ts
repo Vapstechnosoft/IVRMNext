@@ -93,3 +93,11 @@ export async function getPeriodDropdown() {
     console.info('PeriodDistributionFacade', url);
     return await api.get<PeriodDropdownData[]>('timetable', url);
 }
+
+
+//edit
+export async function EditPeriodDistribution(id: number) {
+    const url = `/ClassMasterFacade/getalldetailsviewrecords/${id}`;
+    console.info('EditPeriodDistribution', url);
+    return await api.get<any>('timetable', url);
+}

@@ -86,8 +86,8 @@ export const breakTimeSettingsSchema = {
     addOrUpdate: z.object({
         asmay_id: number().min(1, 'Please select Academic Year'),
         ttmC_Id: number().min(1, 'Please select Category'),
-        calssids: z.array(z.string()).nonempty('Please select at least one Class'),
-        dayids: z.array(z.string()).nonempty('Please select at least one Day'),
+        calssids: z.array(z.any()).nonempty('Please select at least one Class'),
+        dayids: z.array(z.any()).nonempty('Please select at least one Day'),
         ttmB_BreakName: z.string().min(3, 'Break Name must be at least 3 characters'),
         ttmB_BreakStartTime: z.date({ required_error: 'Start Time is required' }),
         ttmB_BreakEndTime: z.date({ required_error: 'End Time is required' }),

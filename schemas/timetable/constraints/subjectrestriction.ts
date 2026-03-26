@@ -78,19 +78,21 @@ export const daySubjectSchema = z.object({
 
 export type PeriodStaffSchema = z.infer<typeof periodStaffSchema>;
 export const periodStaffSchema = z.object({
-    TTRPS_Id: z.number().optional(),
-    ASMAY_Id: z.number().min(1, 'Academic Year is required'),
-    TTMP_Id: z.number().min(1, 'Period is required'),
-    ismS_Id: z.number().min(1, 'Subject is required'),
-    HRME_Id: z.number().min(1, 'Staff is required'),
-    TTRPS_SUbSelcFlag: z.boolean().optional(),
-    combinationlist: z
+    ttrpS_Id: z.number().optional(),
+    asmaY_Id: z.number().min(1, 'Academic Year is required'),
+    ttmP_Id: z.number().min(1, 'Period is required'),
+    hrmE_Id: z.number().min(1, 'Staff is required'),
+    ttrpS_SUbSelcFlag: z.boolean().optional(),
+    tempararyArrayList: z
         .array(
             z.object({
-                ASMCL_Id: z.number(),
-                ASMS_Id: z.number(),
-                ISMS_Id: z.number(),
-                TTRPSCC_Days: z.number().min(1, 'Day count is required') // Mapped from NOP/NOD
+                asmcL_Id: z.number(),
+                asmS_Id: z.number(),
+                ismS_Id: z.number(),
+                nop: z.number().min(1, 'Day count is required'),
+                clsDisplay: z.string().optional(),
+                sectDisplay: z.string().optional(),
+                subDisplay: z.string().optional()
             })
         )
         .optional()

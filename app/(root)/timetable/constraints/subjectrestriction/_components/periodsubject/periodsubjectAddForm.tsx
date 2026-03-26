@@ -6,8 +6,9 @@ import { DataTable } from '@/components/ui/data-table/data-table';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { type PeriodStaffSchema, periodStaffSchema, PeriodSubjectSchema, periodSubjectSchema } from '@/schemas/timetable/constraints/subjectrestriction';
-import { getFixingClassSectionStaffsBySubject } from '@/server/timetable/constraints/fixing';
+import { type FixingPeriodSubjectSchema, fixingPeriodSubjectSchema } from '@/schemas/timetable/constraints/fixing';
+import { periodSubjectSchema, PeriodSubjectSchema } from '@/schemas/timetable/constraints/subjectrestriction';
+import { getFixingClassSectionStaffsBySubject, saveFixingPeriodSubject } from '@/server/timetable/constraints/fixing';
 import { savePeriodSubjectDetail } from '@/server/timetable/constraints/subjectrestriction';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { ColumnDef } from '@tanstack/react-table';
@@ -76,6 +77,7 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
     const [selectedClass, setSelectedClass] = useState<number | undefined>();
     const [selectedSection, setSelectedSection] = useState<number | undefined>();
     const [selectedStaff, setSelectedStaff] = useState<number | undefined>();
+    const [selectedSubject, setSelectedSubject] = useState<number | undefined>();
     const [nod, setNod] = useState<string>('');
 
     const form = useForm<PeriodSubjectSchema>({
@@ -101,18 +103,11 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
 
     const handleAcademicYearChange = (yearId: number) => {
         setValue('asmaY_Id', yearId);
-        setValue('ismS_Id', 0);
         setSelectedClass(undefined);
         setSelectedSection(undefined);
-        setSelectedStaff(undefined);
-        setClassList([]);
-        setSectionList([]);
-        setSubStaffList([]);
-        setMasterClasses([]);
-        setMasterSections([]);
-        setMasterStaff([]);
+        setSelectedSubject(undefined);
     };
-
+    
     const handleClassChange = (classId: number) => {
         setSelectedClass(classId);
     };
@@ -135,9 +130,38 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
         try {
             const res = await getFixingClassSectionStaffsBySubject(asmaY_Id, subjectId);
 
-            const classes = extractList(res, 'clssbysub');
-            const sections = extractList(res, 'secsbysub');
-            const staff = extractList(res, 'staffbysub');
+            // 🔍 DEBUG: log raw response to identify actual key names
+            console.log('[PeriodSubjectAddForm] get_cls_sec_staffsData raw response:', JSON.stringify(res));
+
+            const payload = res?.data ?? res;
+
+            const findArrayByField = (fieldName: string): any[] => {
+                for (const key of Object.keys(payload ?? {})) {
+                    const val = (payload as any)[key];
+                    if (Array.isArray(val) && val.length > 0 && fieldName in val[0]) return val;
+                }
+                return [];
+            };
+
+            const classes =
+                extractList(res, 'clssbysub').length > 0 ? extractList(res, 'clssbysub') :
+                extractList(res, 'clsbysubject').length > 0 ? extractList(res, 'clsbysubject') :
+                extractList(res, 'classlist').length > 0 ? extractList(res, 'classlist') :
+                findArrayByField('asmcL_Id');
+
+            const sections =
+                extractList(res, 'secsbysub').length > 0 ? extractList(res, 'secsbysub') :
+                extractList(res, 'secsbysubject').length > 0 ? extractList(res, 'secsbysubject') :
+                extractList(res, 'sectionlist').length > 0 ? extractList(res, 'sectionlist') :
+                findArrayByField('asmS_Id');
+
+            const staff =
+                extractList(res, 'staffbysub').length > 0 ? extractList(res, 'staffbysub') :
+                extractList(res, 'staffbysubject').length > 0 ? extractList(res, 'staffbysubject') :
+                extractList(res, 'stafflist').length > 0 ? extractList(res, 'stafflist') :
+                findArrayByField('hrmE_Id');
+
+            console.log('[PeriodSubjectAddForm] Resolved → classes:', classes.length, 'sections:', sections.length, 'staff:', staff.length);
 
             setMasterClasses(classes);
             setMasterSections(sections);
@@ -210,13 +234,13 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
             }
             const res = await savePeriodSubjectDetail(data);
             if (res?.returnval === true || res?.success === true) {
-                toast.success(res?.message);
+                toast.success(res.message);
                 reset();
                 onSuccess();
             } else {
-                toast.error(res?.message);
+                toast.error(res.message);
             }
-        } catch (error: any) {
+        } catch (error : any) {
             toast.error(error.message);
         }
     };
@@ -231,7 +255,7 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
                 />
                 <FormField
                     control={form.control}
-                    name='ttmP_Id'
+                    name='ttrpsU_Id'
                     render={({ field }) => <Input type='hidden' {...field} value={field.value || 0} />}
                 />
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
@@ -316,7 +340,7 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
                 <div className='flex items-center space-x-2'>
                     <FormField
                         control={form.control}
-                        name={'ttfpsU_SUbSelcFlag' as any}
+                        name='ttrpsU_SUbSelcFlag'
                         render={({ field }) => (
                             <FormItem className='flex flex-row items-start space-x-3 space-y-0 p-4'>
                                 <FormControl>

@@ -34,8 +34,8 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
     const { data: academicYearData } = useAcademicYearDropDownMasterDayClasswise();
     const { data: subjectsData } = useSubjectDropDownMasterDayClasswise();
 
-    const academicList = (academicYearData as any)?.data || [];
-    const subjectList = (subjectsData as any)?.data || [];
+    const academicList = (academicYearData as any)?.data || (Array.isArray(academicYearData) ? academicYearData : []);
+    const subjectList = (subjectsData as any)?.data || (Array.isArray(subjectsData) ? subjectsData : []);
     const [periodList, setPeriodList] = useState<any[]>([]);
 
     const { data: gridResponse, isLoading: isGridLoading, refetchAll } = useSubjectRestrictionPeriodSubjectGridData({

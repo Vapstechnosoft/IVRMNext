@@ -6,7 +6,7 @@ import { DataTable } from '@/components/ui/data-table/data-table';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { type DayStaffSchema, dayStaffSchema } from '@/schemas/timetable/constraints/subjectrestriction';
+import { type PeriodStaffSchema, periodStaffSchema } from '@/schemas/timetable/constraints/subjectrestriction';
 import { getFixingClassSectionSubjectByStaff } from '@/server/timetable/constraints/fixing';
 import { savePeriodStaffDetail } from '@/server/timetable/constraints/subjectrestriction';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -87,8 +87,8 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
     const [selectedSubject, setSelectedSubject] = useState<number | undefined>();
     const [nop, setNop] = useState<string>('');
 
-    const form = useForm<DayStaffSchema>({
-        resolver: zodResolver(dayStaffSchema),
+    const form = useForm<PeriodStaffSchema>({
+        resolver: zodResolver(periodStaffSchema),
         defaultValues: {
             ttrpS_Id: 0,
             asmaY_Id: undefined,
@@ -101,7 +101,7 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
 
     const { setValue, watch, handleSubmit, formState: { isSubmitting }, control, reset } = form;
     const asmaY_Id = watch('asmaY_Id');
-    const ttfpS_SUbSelcFlag = watch('ttrpS_SUbSelcFlag');
+    const ttrpS_SUbSelcFlag = watch('ttrpS_SUbSelcFlag');
 
     const { fields, append, remove } = useFieldArray({
         control,
@@ -170,7 +170,7 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
 
         const clsObj = classList.find((c) => c.asmcL_Id === selectedClass);
         const secObj = sectionList.find((s) => s.asmS_Id === selectedSection);
-        const subObj = subSubjectList.find((s) => s.ismS_Id === selectedSubject);
+        const subObj = subSubjectList.find((s) => (s.ismS_Id ?? s.ISMS_Id) === selectedSubject);
 
         const exists = fields.some(
             (f: any) => f.asmcL_Id === selectedClass && f.asmS_Id === selectedSection && f.ismS_Id === selectedSubject
@@ -210,7 +210,7 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
         [remove]
     );
 
-    const onSubmit = async (data: DayStaffSchema) => {
+    const onSubmit = async (data: PeriodStaffSchema) => {
         try {
             if (!data.ttrpS_SUbSelcFlag) {
                 data.tempararyArrayList = [];
@@ -330,7 +330,7 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
                     />
                 </div>
 
-                {ttfpS_SUbSelcFlag && (
+                {ttrpS_SUbSelcFlag && (
                     <div className='space-y-4 rounded-md border bg-gray-50 p-4'>
                         <h4 className='font-semibold'>Add Class Details</h4>
                         <div className='grid grid-cols-1 items-end gap-4 md:grid-cols-5'>

@@ -20,17 +20,20 @@ export async function saveBreakTimeSettings(data: IBreakTimeSettingsDTO) {
 }
 
 export async function deleteBreakTimeSettings(ttmb_id: number) {
-    const url = `/BreakTimeSettings/deletepages/${ttmb_id}`;
+    const url = `/BreaktimesettingsFacade/deletepages/${ttmb_id}`;
     return await api.delete<any>('timetable', url);
 }
 
 export async function deactivateBreakTimeSettings(data: any) {
-    const url = '/BreakTimeSettings/deactivate';
+    const url = '/BreaktimesettingsFacade/deactivate';
     return await api.post<any>('timetable', url, data);
 }
 
-export async function getBreakTimeSettingsById(ttmb_id: number) {
-    const url = `/BreakTimeSettings/getdetails/${ttmb_id}`;
+//edit button
+export async function getBreakTimeSettingsEdit(id: number) {
+    // /api/BreaktimesettingsFacade/getEditdetails/{id}
+    const url = `/BreaktimesettingsFacade/getEditdetails/${id}`;
+    console.log("getBreakTimeSettingsEdit", url);
     return await api.get<any>('timetable', url);
 }
 
@@ -38,7 +41,6 @@ export async function getMaximumPeriodsCount(classid: number, classcount: number
     //  const url = `/BreaktimesettingsFacade/getmaximumperiodscount/${classid}/${classcount}/`;
     const url = `/BreaktimesettingsFacade/getmaximumperiodscount/$${classid}/$${classcount}/`;
     console.info('getMaximumPeriodsCount URL:', url);
-
     return await api.get<any>('timetable', url);
 }
 
@@ -54,6 +56,6 @@ export async function getCategoryByAcademicYear(data: any) {
 
 //toggle button
 export async function getBreakTimeSettingsToggle(ttmb_id: number) {
-    const url = `/BreakTimeSettings/getdetails/${ttmb_id}`;
-    return await api.get<any>('timetable', url);
+    const url = `/BreaktimesettingsFacade/deactivateToggleButton/${ttmb_id}`;
+    return await api.put<any>('timetable', url);
 }
