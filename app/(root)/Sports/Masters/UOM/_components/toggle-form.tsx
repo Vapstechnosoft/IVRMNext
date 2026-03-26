@@ -30,7 +30,7 @@ export default function ToggleMasterUOMForm({ rowData, onClose, onSuccess }: Tog
     } = useForm<FormFields>({
         resolver: zodResolver(masterUOMSchema.delete),
         defaultValues: {
-            spccmuoM_Id: (rowData?.spccmuoM_Id ?? (rowData as any)?.SPCCMUOM_Id ?? (rowData as any)?.spccmuom_Id)?.toString() ?? ''
+            spccmuoM_Id: (rowData?.spccmuoM_Id || (rowData as any)?.SPCCMUOM_Id || (rowData as any)?.spccmuom_Id || (rowData as any)?.spccmUOM_Id || '').toString()
         },
         mode: 'onChange'
     });

@@ -31,8 +31,8 @@ export default function AddMasterUOMForm({
         <GenericForm<IMasterUOM, (typeof masterUOMSchema)['addOrUpdate']>
             schema={masterUOMSchema.addOrUpdate}
             initialValues={{
-                spccmuoM_Id: selectedRow?.spccmuoM_Id ?? (selectedRow as any)?.SPCCMUOM_Id ?? (selectedRow as any)?.spccmuom_Id ?? 0,
-                spccmuoM_UOMName: selectedRow?.spccmuoM_UOMName ?? (selectedRow as any)?.SPCCMUOM_UOMName ?? (selectedRow as any)?.spccmuom_UOMName ?? '',
+                spccmuoM_Id: selectedRow?.spccmuoM_Id || (selectedRow as any)?.SPCCMUOM_Id || (selectedRow as any)?.spccmuom_Id || 0,
+                spccmuoM_UOMName: selectedRow?.spccmuoM_UOMName || (selectedRow as any)?.SPCCMUOM_UOMName || (selectedRow as any)?.spccmuom_UOMName || '',
                 spccmuoM_ActiveFlag: selectedRow?.spccmuoM_ActiveFlag ?? (selectedRow as any)?.SPCCMUOM_ActiveFlag ?? (selectedRow as any)?.spccmuom_ActiveFlag ?? true
             }}
             onSubmit={async (values) => {
