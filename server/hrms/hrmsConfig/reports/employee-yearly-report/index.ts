@@ -141,7 +141,6 @@ export async function getEmployeeYearlyReportList(
  * POST /api/EmployeeYearlyReportFacade/search
  */
 export async function getEmployeeYearlyReport(data: any, searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'searchableColumns');
-    const url = `/api/EmployeeYearlyReportFacade/search?${urlParams}`;
+    const url = '/api/EmployeeYearlyReport/get_employee_yearly_report';
     return await api.post<any>('hrmsfrontoffice', url, data);
 }

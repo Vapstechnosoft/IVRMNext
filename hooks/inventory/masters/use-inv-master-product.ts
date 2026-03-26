@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
     getInvMasterProductLoadData,
     saveInvMasterProduct,
@@ -15,17 +15,26 @@ import {
 import { toast } from 'sonner';
 
 export const useInvMasterProduct = (searchParams?: any, itemSearchParams?: any) => {
-    const { data: loadData, refetch: refetchLoadData, isLoading: isLoadDataLoading } = useQuery({
+    const queryClient = useQueryClient();
+
+    const { data: loadData, isLoading: isLoadDataLoading } = useQuery({
         queryKey: ['invMasterProductLoadData', searchParams],
         queryFn: () => getInvMasterProductLoadData(searchParams),
         enabled: !!searchParams
     });
 
-    const { data: productItemData, refetch: refetchProductItemData, isLoading: isProductItemLoading } = useQuery({
+    const { data: productItemData, isLoading: isProductItemLoading } = useQuery({
         queryKey: ['invMasterProductItemData', itemSearchParams],
         queryFn: () => getInvMasterProductItemList(itemSearchParams),
         enabled: !!itemSearchParams
     });
+
+    const refreshAll = async () => {
+        await Promise.all([
+            queryClient.invalidateQueries({ queryKey: ['invMasterProductLoadData'] }),
+            queryClient.invalidateQueries({ queryKey: ['invMasterProductItemData'] })
+        ]);
+    };
 
     const { data: productList, refetch: refetchProductList } = useQuery({
         queryKey: ['invMasterProductDropdownList'],
@@ -44,7 +53,7 @@ export const useInvMasterProduct = (searchParams?: any, itemSearchParams?: any) 
         onSuccess: (res: any) => {
             if (res.success) {
                 toast.success(res.message);
-                refetchLoadData();
+                refreshAll();
             } else {
                 if (res.message?.toLowerCase().includes('duplicate')) {
                     toast.error('Record already exist');
@@ -64,7 +73,7 @@ export const useInvMasterProduct = (searchParams?: any, itemSearchParams?: any) 
         onSuccess: (res: any) => {
             if (res.success) {
                 toast.success(res.message);
-                refetchLoadData();
+                refreshAll();
             } else {
                 if (res.message?.toLowerCase().includes('duplicate')) {
                     toast.error('Record already exist');
@@ -82,11 +91,11 @@ export const useInvMasterProduct = (searchParams?: any, itemSearchParams?: any) 
     const deactiveProductMutation = useMutation({
         mutationFn: deactiveInvMasterProduct,
         onSuccess: (res: any) => {
-            if (res.returnval === true) {
+            if (res.returnval || res.success) {
                 toast.success('Record Status Updated Successfully');
-                refetchLoadData();
+                refreshAll();
             } else {
-                toast.error('Failed to update record status');
+                toast.error(res.message || 'Failed to update record status');
             }
         }
     });
@@ -94,11 +103,11 @@ export const useInvMasterProduct = (searchParams?: any, itemSearchParams?: any) 
     const deactiveProductQtyMutation = useMutation({
         mutationFn: deactiveInvMasterProductQty,
         onSuccess: (res: any) => {
-            if (res.returnval === true) {
+            if (res.returnval || res.success) {
                 toast.success('Record Status Updated Successfully');
-                refetchLoadData();
+                refreshAll();
             } else {
-                toast.error('Failed to update record status');
+                toast.error(res.message || 'Failed to update record status');
             }
         }
     });
@@ -137,10 +146,9 @@ export const useInvMasterProduct = (searchParams?: any, itemSearchParams?: any) 
 
     return {
         loadData,
-        refetchLoadData,
+        refreshAll,
         isLoadDataLoading,
         productItemData,
-        refetchProductItemData,
         isProductItemLoading,
         productList,
         refetchProductList,

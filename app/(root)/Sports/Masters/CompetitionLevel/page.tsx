@@ -77,6 +77,10 @@ function MasterCompetitionLevelPageContent({
                         columns={MasterCompetitionLevelColumns}
                         isLoading={isLoading}
                         error={error}
+                        manualPagination={true}
+                        manualSorting={true}
+                        manualFiltering={true}
+                        showSearchColumns={true}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading competition levels...'
                         noDataTitle='No Competition Levels Found'
@@ -106,7 +110,12 @@ function MasterCompetitionLevelPageContent({
                                         className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                         <X className='h-4 w-4 text-destructive' /> Close
                                     </Button>
-                                    <AddMasterCompetitionLevelForm onSuccess={closeAddForm} />
+                                    <AddMasterCompetitionLevelForm
+                                        onSuccess={() => {
+                                            refetchAll();
+                                            closeAddForm();
+                                        }}
+                                    />
                                 </div>
                             </CollapsibleSection>
                         </div>
@@ -130,7 +139,13 @@ function MasterCompetitionLevelPageContent({
                                         className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                         <X className='h-4 w-4 text-destructive' /> Close
                                     </Button>
-                                    <UpdateMasterCompetitionLevelForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                                    <UpdateMasterCompetitionLevelForm
+                                        selectedRow={selectedRow}
+                                        onSuccess={() => {
+                                            refetchAll();
+                                            closeEditForm();
+                                        }}
+                                    />
                                 </div>
                             </CollapsibleSection>
                         </div>

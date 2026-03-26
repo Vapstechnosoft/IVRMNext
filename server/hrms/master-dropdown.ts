@@ -6,6 +6,7 @@ import type {
     DesignationItem,
     EmployeeItem
 } from '@/types/hrms/master-dropdown';
+import type { Institution } from '@/types/exam/exam-module/report';
 
 /**
  * Get all group types
@@ -271,5 +272,31 @@ export async function getLeaveNameCodeDropdown(): Promise<ApiResponse<any[]>> {
     } catch (error: any) {
         console.error('❌ [SERVER] Leave Name Dropdown API Error:', error);
         throw new Error(error?.message || 'Failed to fetch leave names');
+    }
+}
+
+/**
+ * Get institution details
+ * GET /api/MasterDropDown/master_institution
+ * 
+ * @returns Institution details
+ */
+export async function getMasterInstitution(): Promise<ApiResponse<Institution>> {
+    const url = '/api/MasterDropDown/master_institution';
+    console.log('📡 [SERVER] Fetching Institution Details:', url);
+
+    try {
+        const response = await api.get<Institution>('hrms', url);
+        console.log('📊 [SERVER] Institution Details Response:', JSON.stringify(response, null, 2));
+
+        const res = response as any;
+        return {
+            success: res?.success ?? true,
+            message: res?.message || 'Data fetched successfully',
+            data: res?.data || res
+        };
+    } catch (error: any) {
+        console.error('❌ [SERVER] Institution Details API Error:', error);
+        throw new Error(error?.message || 'Failed to fetch institution details');
     }
 }

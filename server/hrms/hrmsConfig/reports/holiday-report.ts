@@ -7,8 +7,7 @@ import type { ApiSearchparams } from '@/types';
  * Get holiday report data
  * POST /api/HolidayReportFacade/search
  */
-export async function getHolidayReport(data: any, searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'searchableColumns');
-    const url = `/api/HolidayReportFacade/search?${urlParams}`;
-    return await api.post<any>('hrmsfrontoffice', url, data);
+export async function getHolidayReport(hrmlY_Id: number, fohwdT_Id: number) {
+    const url = `/api/HolidayReport/get_holiday_report/${hrmlY_Id}/${fohwdT_Id}`;
+    return await api.get<any>('hrmsfrontoffice', url);
 }

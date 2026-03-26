@@ -1,11 +1,21 @@
 'use server';
 
-import { api } from '@/lib/apiService';
+import { api, getSearchParamsUrl } from '@/lib/apiService';
 import { revalidatePath } from 'next/cache';
+import type { ApiSearchparams } from '@/types';
 
-export async function getMasterCompetitionCategories() {
-    const url = '/MasterCompetitionCategory/getDetails';
-    return await api.post<any>('sports', url, {});
+export async function getMasterCompetitionCategories(searchParams?: ApiSearchparams) {
+    const params = { ...searchParams };
+    if (params.search_query) {
+        params.search_query = String(params.search_query).trim();
+        // If no columns selected, use default searchable columns
+        if (!params.search_columns || params.search_columns === '') {
+            params.search_columns = 'SPCCMCC_CompitionCategory,SPCCMCC_CCDesc';
+        }
+    }
+    const urlParams = getSearchParamsUrl(params);
+    const url = `/MasterCompetitionCategory/getDetails?${urlParams}`;
+    return await api.post<any>('sports', url, params || {});
 }
 
 export async function getMasterCompetitionCategoryDetails(id: number) {

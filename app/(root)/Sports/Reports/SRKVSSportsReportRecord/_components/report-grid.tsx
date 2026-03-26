@@ -3,6 +3,9 @@
 import { ISRKVSReportData } from '@/types/sports/reports/srkvs-sports-report-record';
 import { Button } from '@/components/ui/button';
 import { useRef } from 'react';
+import { useReactToPrint } from 'react-to-print';
+import { Printer, FileSpreadsheet } from 'lucide-react';
+import * as XLSX from 'xlsx';
 
 interface ReportGridProps {
     data: ISRKVSReportData[];
@@ -12,15 +15,24 @@ interface ReportGridProps {
 export const ReportGrid = ({ data, type }: ReportGridProps) => {
     const componentRef = useRef<HTMLDivElement>(null);
 
-    const handlePrint = () => {
-        if (componentRef.current) {
-            const printContent = componentRef.current.innerHTML;
-            const originalContents = document.body.innerHTML;
-            document.body.innerHTML = printContent;
-            window.print();
-            document.body.innerHTML = originalContents;
-            window.location.reload(); // Reload to restore event listeners
-        }
+    const handlePrint = useReactToPrint({
+        contentRef: componentRef,
+        documentTitle: `Sports_Report_${type}`,
+        pageStyle: `
+          @page { size: portrait; margin: 20mm; }
+          @media print {
+            body { -webkit-print-color-adjust: exact; }
+            table { border-collapse: collapse !important; width: 100% !important; }
+            th, td { border: 1px solid #000 !important; padding: 8px !important; text-align: center !important; }
+          }
+        `
+    });
+
+    const exportToExcel = () => {
+        const worksheet = XLSX.utils.json_to_sheet(data);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
+        XLSX.writeFile(workbook, `Sports_Report_${type}.xlsx`);
     };
 
     if (!data || data.length === 0) {
@@ -30,11 +42,11 @@ export const ReportGrid = ({ data, type }: ReportGridProps) => {
     return (
         <div className="space-y-4">
             <div className="flex justify-end gap-2">
-                <Button onClick={handlePrint} variant="outline">
-                    <i className="fa fa-print mr-2"></i> Print
+                <Button onClick={() => handlePrint()} variant="outline" size="sm" className="border-2">
+                    <Printer className="h-4 w-4 mr-2" /> Print
                 </Button>
-                <Button variant="outline">
-                    <i className="fa fa-file-excel-o mr-2"></i> Excel
+                <Button onClick={exportToExcel} variant="outline" size="sm" className="border-2">
+                    <FileSpreadsheet className="h-4 w-4 mr-2 text-green-600" /> Excel
                 </Button>
             </div>
 

@@ -1,14 +1,16 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import type { IDeputationAcademicYear } from '@/types/timetable/TTreports';
+import type { IDeputationAcademicYear, IDeputationLoadData } from '@/types/timetable/TTreports';
 
 export const getDeputationReportLoadData = async () => {
-    return await api.get<any>('timetable', 'Deputation/getdetails');
+    const url = '/ClassWiseTTFacade/GetDeputaionStaffPeriodDetails';
+    return await api.get<IDeputationLoadData>('timetable', url);
 };
 
 export const getDeputationReportDetails = async (data: any) => {
-    return await api.post<any>('timetable', 'Deputation/getreport', data);
+    const url = '/ClassWiseTTFacade/GetDeputaionReport';
+    return await api.post<any>('timetable', url, data);
 };
 
 export async function getAcademicYear() {

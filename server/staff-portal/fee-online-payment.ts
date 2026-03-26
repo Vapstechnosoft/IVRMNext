@@ -137,8 +137,15 @@ export async function getStudentInformation(academicYearId: number): Promise<{
 }
 
 export async function getStudentPortalInformation() {
-    const url = '/OnlinePayment/getStudentportalInformation';
-    return await api.post<any>('portal', url, {});
+    try {
+        //const url = '/OnlinePayment/getStudentportalInformation';
+        const url = '/OnlinePayment/student-information';
+        const response = await api.get<any>('portal', url, {});
+        return response ?? { success: false, message: 'No data', data: null };
+    } catch (error) {
+        console.error('Error fetching student portal information:', error);
+        return { success: false, message: 'Error fetching data', data: null };
+    }
 }
 
 export async function getFeeDetails(

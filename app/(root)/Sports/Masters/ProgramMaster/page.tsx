@@ -87,6 +87,10 @@ function ProgramMasterPageContent({
                         columns={MasterProgramColumns}
                         isLoading={isLoading}
                         error={error}
+                        manualPagination={true}
+                        manualSorting={true}
+                        manualFiltering={true}
+                        showSearchColumns={true}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading master programs...'
                         noDataTitle='No Master Programs Found'

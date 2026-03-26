@@ -82,14 +82,14 @@ export const staffWiseReportSchema = {
 export const deputationReportSchema = {
     search: z.object({
         asmaY_Id: z.number().min(1, 'Academic Year is required'),
-        fromdate: z.date({
-            required_error: 'From Date is required'
-        }),
-        todate: z.date({
-            required_error: 'To Date is required'
+        date: z.date({
+            required_error: 'Date is required'
         }),
         flag: z.enum(['D', 'C'], {
             required_error: 'Report Type is required'
-        })
+        }),
+        Classids: z.array(z.number()).optional(),
+        sectionids: z.array(z.number()).optional(),
+        staffids: z.array(z.number()).optional()
     })
 };

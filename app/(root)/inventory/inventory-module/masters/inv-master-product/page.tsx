@@ -8,8 +8,18 @@ import ProductTab from "./_components/product-tab";
 import ProductQtyTab from "./_components/product-qty-tab";
 import { parseAsInteger, useQueryState } from "nuqs";
 import { tableSearchVariables } from "@/lib/data-table.config";
+import { FormProvider, useFormContext } from "@/components/ui/form/form-provider";
+import ToggleProductForm from "./_components/toggle-form";
 
 export default function InvMasterProductPage() {
+    return (
+        <FormProvider<any>>
+            <InvMasterProductContent />
+        </FormProvider>
+    );
+}
+
+function InvMasterProductContent() {
     const [, setPage] = useQueryState(
         tableSearchVariables.page,
         parseAsInteger.withOptions({ shallow: false }).withDefault(1)
@@ -20,15 +30,13 @@ export default function InvMasterProductPage() {
     );
 
     const [activeTab, setActiveTab] = useState("product");
+    const { isToggleFormOpen, selectedRow, closeToggleForm } = useFormContext<any>();
 
     const onTabChange = (value: string) => {
-        console.log("Tab switched to:", value);
         setActiveTab(value);
         setPage(1);
         setPageSize(10);
     };
-
-    console.log("InvMasterProductPage Rendered. Active Tab:", activeTab);
 
     return (
         <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
@@ -48,6 +56,11 @@ export default function InvMasterProductPage() {
                     {activeTab === 'productQty' && <ProductQtyTab />}
                 </TabsContent>
             </Tabs>
+
+            {isToggleFormOpen && selectedRow && (
+                <ToggleProductForm rowData={selectedRow} onClose={closeToggleForm} />
+            )}
         </div>
     );
 }
+

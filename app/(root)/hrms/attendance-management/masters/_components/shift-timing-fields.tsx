@@ -37,6 +37,7 @@ interface ShiftTimingFieldsProps<T extends Record<string, any>> {
         delayPerShift: keyof T;
         halfDayWorkingHours: keyof T;
     };
+    disabled?: boolean;
 }
 
 export function ShiftTimingFields<T extends Record<string, any>>({
@@ -44,7 +45,8 @@ export function ShiftTimingFields<T extends Record<string, any>>({
     errors,
     watch,
     setValue,
-    fieldNames
+    fieldNames,
+    disabled = false
 }: ShiftTimingFieldsProps<T>) {
     const shiftStartTimeId = useId();
     const shiftEndTimeId = useId();
@@ -95,6 +97,7 @@ export function ShiftTimingFields<T extends Record<string, any>>({
                                 onChange={field.onChange}
                                 name={String(fieldNames.shiftStartTime)}
                                 showPeriod={false}
+                                disabled={disabled}
                             />
                         )}
                     />
@@ -111,6 +114,7 @@ export function ShiftTimingFields<T extends Record<string, any>>({
                                 onChange={field.onChange}
                                 name={String(fieldNames.shiftEndTime)}
                                 showPeriod={false}
+                                disabled={disabled}
                             />
                         )}
                     />
@@ -126,7 +130,7 @@ export function ShiftTimingFields<T extends Record<string, any>>({
                                 value={field.value}
                                 onChange={field.onChange}
                                 name={String(fieldNames.totalWorkingHours)}
-                                disabled
+                                disabled={true}
                                 showPeriod={false}
                             />
                         )}
@@ -149,6 +153,7 @@ export function ShiftTimingFields<T extends Record<string, any>>({
                                 onChange={field.onChange}
                                 name={String(fieldNames.lunchStartTime)}
                                 showPeriod={false}
+                                disabled={disabled}
                             />
                         )}
                     />
@@ -165,6 +170,7 @@ export function ShiftTimingFields<T extends Record<string, any>>({
                                 onChange={field.onChange}
                                 name={String(fieldNames.lunchEndTime)}
                                 showPeriod={false}
+                                disabled={disabled}
                             />
                         )}
                     />
@@ -180,7 +186,7 @@ export function ShiftTimingFields<T extends Record<string, any>>({
                                 value={field.value}
                                 onChange={field.onChange}
                                 name={String(fieldNames.lunchHours)}
-                                disabled
+                                disabled={true}
                                 showPeriod={false}
                             />
                         )}
@@ -201,6 +207,7 @@ export function ShiftTimingFields<T extends Record<string, any>>({
                                 onChange={field.onChange}
                                 name={String(fieldNames.earlyPerShift)}
                                 showPeriod={false}
+                                disabled={disabled}
                             />
                         )}
                     />
@@ -217,6 +224,7 @@ export function ShiftTimingFields<T extends Record<string, any>>({
                                 onChange={field.onChange}
                                 name={String(fieldNames.delayPerShift)}
                                 showPeriod={false}
+                                disabled={disabled}
                             />
                         )}
                     />
@@ -233,6 +241,7 @@ export function ShiftTimingFields<T extends Record<string, any>>({
                                 onChange={field.onChange}
                                 name={String(fieldNames.halfDayWorkingHours)}
                                 showPeriod={false}
+                                disabled={disabled}
                             />
                         )}
                     />

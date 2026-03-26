@@ -5,81 +5,41 @@ import type { ILoginPrivilegeDTO } from '@/types/admission/preadmission/login_pr
 
 const CONTROLLER = 'LoginPrivelege';
 
-export async function getLoginPrivileges() {
-    try {
-        const res = await api.post<any>('admission', `/${CONTROLLER}/GetStaffWiseGrid`, {});
+export const saveLoginPrivilege = async (data: ILoginPrivilegeDTO): Promise<any> => {
+    const url = `/${CONTROLLER}/SaveLoginPrivilege`;
+    return api.post('admission', url, data);
+};
 
-        return res?.data || res || [];
-    } catch (error) {
-        console.error('Error fetching login privileges:', error);
-        return [];
-    }
-}
+export const deleteLoginPrivilege = async (id: number): Promise<any> => {
+    const url = `/${CONTROLLER}/DeleteAttPrivileges?id=${id}`;
+    return api.delete('admission', url);
+};
 
-export async function saveLoginPrivilege(data: ILoginPrivilegeDTO) {
-    try {
-        return await api.post('admission', `/${CONTROLLER}/SaveLoginPrivilege`, data);
-    } catch (error) {
-        console.error('Error saving login privilege:', error);
-        throw error;
-    }
-}
+export const getEmployeeData = async (data: any): Promise<any> => {
+    const url = `/${CONTROLLER}/GetEmployeeData`;
+    return api.post('admission', url, data);
+};
 
-export async function deleteLoginPrivilege(id: number) {
-    try {
-        // Assuming delete uses query param.
-        return await api.delete('admission', `/${CONTROLLER}/DeleteAttPrivileges?id=${id}`);
-    } catch (error) {
-        console.error('Error deleting login privilege:', error);
-        throw error;
-    }
-}
+export const getEditData = async (data: { ASALU_Id: number; ASALUC_Id: number; ASALUCS_Id: number }): Promise<any> => {
+    const queryParams = new URLSearchParams(data as any).toString();
+    const url = `/${CONTROLLER}/GetEditData?${queryParams}`;
+    return api.post('admission', url, {});
+};
 
-export async function getEmployeeData(data: any) {
-    try {
-        return await api.post('admission', `/${CONTROLLER}/GetEmployeeData`, data);
-    } catch (error) {
-        console.error('Error fetching employee data:', error);
-        return [];
-    }
-}
+export const getDataByTypeSelected = async (data: any): Promise<any> => {
+    const queryParams = new URLSearchParams(data).toString();
+    const url = `/${CONTROLLER}/GetDataByTypeSelected?${queryParams}`;
+    return api.post('admission', url, {});
+};
 
-export async function getEditData(id: number) {
-    try {
-        return await api.post('admission', `/${CONTROLLER}/GetEditData`, { id });
-    } catch (error) {
-        console.error('Error fetching edit data:', error);
-        return null;
-    }
-}
+export const getStaffWiseGrid = async (entryType: number, hrmeId: number): Promise<any> => {
+    const queryParams = `ASALU_EntryTypeFlag=${entryType}&HRME_Id=${hrmeId}`;
+    const url = `/${CONTROLLER}/GetStaffWiseGrid?${queryParams}`;
+    return api.post<any>('admission', url, {});
+};
 
-export async function getDataByTypeSelected(data: any) {
-    try {
-        const queryParams = new URLSearchParams(data).toString();
-        return await api.post('admission', `/${CONTROLLER}/GetDataByTypeSelected?${queryParams}`, {});
-    } catch (error) {
-        console.error('Error fetching data by type:', error);
-        return [];
-    }
-}
-
-export async function getStaffWiseGrid(asmayId: number, entryType: number, hrmeId: number) {
-    try {
-        const queryParams = `ASMAY_Id=${asmayId}&ASALU_EntryTypeFlag=${entryType}&HRME_Id=${hrmeId}`;
-        const res = await api.post<any>('admission', `/${CONTROLLER}/GetStaffWiseGrid?${queryParams}`, {});
-        return res?.data || res || {};
-    } catch (error) {
-        console.error('Error fetching staff wise grid:', error);
-        return {};
-    }
-}
-
-export async function deleteAttPrivileges(asalucId: number, asalucsId: number) {
-    try {
-        const queryParams = `ASALUC_Id=${asalucId}&ASALUCS_Id=${asalucsId}`;
-        return await api.delete('admission', `/${CONTROLLER}/DeleteAttPrivileges?${queryParams}`);
-    } catch (error) {
-        console.error('Error deleting privilege:', error);
-        throw error;
-    }
-}
+export const deleteAttPrivileges = async (asalucId: number, asalucsId: number): Promise<any> => {
+    const queryParams = `ASALUC_Id=${asalucId}&ASALUCS_Id=${asalucsId}`;
+    const url = `/${CONTROLLER}/DeleteAttPrivileges?${queryParams}`;
+    return api.delete('admission', url);
+};

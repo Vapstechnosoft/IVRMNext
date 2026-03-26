@@ -7,7 +7,6 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useStudentCountReport } from '@/hooks/admission/preadmission/useReports';
 import type { IMasterStudentCountReportList } from '@/types/admission/preadmission/reports';
-import { X } from 'lucide-react';
 import React, { useState } from 'react';
 import PreadmissionStatusCountReport from '../../transactions/application-form/_components/preadmission-status-count-report';
 import AddStudentCountReportForm from './_components/add-from';
@@ -66,14 +65,7 @@ function FormSections({ searchParams, onFilterChange }: { searchParams?: any; on
                     size='md'
                     className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
                     <div className='relative'>
-                        <Button
-                            type='button'
-                            onClick={closeAddForm}
-                            variant='ghost'
-                            size='sm'
-                            className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                            <X className='h-4 w-4 text-destructive' /> Close
-                        </Button>
+                        <Button type='button' onClick={closeAddForm} variant='ghost' size='sm'></Button>
                         <AddStudentCountReportForm onSuccess={closeAddForm} searchParams={searchParams} onFilterChange={onFilterChange} />
                     </div>
                 </CollapsibleSection>
