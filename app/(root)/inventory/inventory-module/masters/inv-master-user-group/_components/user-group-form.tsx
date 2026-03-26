@@ -5,22 +5,16 @@ import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/ex
 import { FormError } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { INVENTORY_QUERY_KEYS } from '@/constants/query-keys';
 
-import { invMasterUserGroupSchema, type InvMasterUserGroupType } from '@/schemas/inventory/masters/inv-master-group';
+import { type InvMasterUserGroupType, invMasterUserGroupSchema } from '@/schemas/inventory/masters/inv-master-group';
 import { deactivateInvMasterGroup, saveInvMasterUserGroup } from '@/server/inventory/masters/inv-master-group';
 import type { IInvMasterUserGroup } from '@/types/inventory/masters/inv-master-group';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { Save } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -102,7 +96,7 @@ function UserGroupForm({ onSuccess, initialData, mode, mainGroupOptions }: UserG
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+            <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                 <div className='flex flex-col gap-2'>
                     <Label htmlFor='invmG_ParentId'>
                         Main Group <span className='text-red-500'>*</span>
@@ -134,6 +128,7 @@ function UserGroupForm({ onSuccess, initialData, mode, mainGroupOptions }: UserG
                     </Label>
                     <Input
                         id='invmG_GroupName'
+                        placeholder='Enter User Group Name'
                         {...register('invmG_GroupName')}
                         className={errors.invmG_GroupName ? 'border-destructive' : ''}
                     />
@@ -144,6 +139,7 @@ function UserGroupForm({ onSuccess, initialData, mode, mainGroupOptions }: UserG
                     <Label htmlFor='invmG_AliasName'>Alias Name</Label>
                     <Input
                         id='invmG_AliasName'
+                        placeholder='Enter Alias Name'
                         {...register('invmG_AliasName')}
                         className={errors.invmG_AliasName ? 'border-destructive' : ''}
                     />
@@ -176,7 +172,10 @@ function UserGroupForm({ onSuccess, initialData, mode, mainGroupOptions }: UserG
     );
 }
 
-export function AddUserGroupForm({ onSuccess, mainGroupOptions }: { onSuccess: () => void; mainGroupOptions: { label: string; value: string }[] }) {
+export function AddUserGroupForm({
+    onSuccess,
+    mainGroupOptions
+}: { onSuccess: () => void; mainGroupOptions: { label: string; value: string }[] }) {
     return <UserGroupForm onSuccess={onSuccess} mode='add' mainGroupOptions={mainGroupOptions} />;
 }
 

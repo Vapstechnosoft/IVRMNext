@@ -7,7 +7,7 @@ export const useMasterCompetitionCategories = (searchParams?: any) => {
     return {
         ...useQuery({
             queryKey: ['master-competition-categories', searchParams ?? {}],
-            queryFn: async () => getMasterCompetitionCategories(),
+            queryFn: async () => getMasterCompetitionCategories(searchParams),
             staleTime: 0
         }),
         refetchAll: () => {
