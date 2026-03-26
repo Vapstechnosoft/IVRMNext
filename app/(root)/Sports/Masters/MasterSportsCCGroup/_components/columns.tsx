@@ -32,6 +32,7 @@ function ActionsCell({ row }: { row: Row<IMasterSportsCCGroup> }) {
 export const MasterSportsCCGroupColumns: ColumnDef<IMasterSportsCCGroup>[] = [
     {
         accessorKey: 'spccmsccG_Id',
+        id: 'SPCCMSCCG_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
@@ -44,20 +45,23 @@ export const MasterSportsCCGroupColumns: ColumnDef<IMasterSportsCCGroup>[] = [
     },
     {
         accessorKey: 'spccmsccG_SportsCCGroupName',
+        id: 'SPCCMSCCG_SportsCCGroupName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Group Name' />,
-        cell: ({ row }) => <div className='font-medium'>{row.getValue('spccmsccG_SportsCCGroupName')}</div>
+        cell: ({ row }) => <div className='font-medium'>{row.original.spccmsccG_SportsCCGroupName}</div>
     },
     {
         accessorKey: 'spccmsccG_SportsCCGroupDesc',
+        id: 'SPCCMSCCG_SportsCCGroupDesc',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Description' />,
         cell: ({ row }) => (
-            <div className='max-w-[400px] truncate' title={row.getValue('spccmsccG_SportsCCGroupDesc')}>
-                {row.getValue('spccmsccG_SportsCCGroupDesc')}
+            <div className='max-w-[400px] truncate' title={row.original.spccmsccG_SportsCCGroupDesc}>
+                {row.original.spccmsccG_SportsCCGroupDesc}
             </div>
         )
     },
     {
         accessorKey: 'spccmsccG_SCCFlag',
+        id: 'SPCCMSCCG_SCCFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='SCC Flag' />
     },
     {
