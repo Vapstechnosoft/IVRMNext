@@ -31,9 +31,20 @@ export async function getMasterUOMDetails(id: number) {
 }
 
 export async function saveMasterUOM(data: any) {
+    const id = data.spccmuoM_Id || data.SPCCMUOM_Id || data.spccmuom_Id || 0;
+    const name = data.spccmuoM_UOMName || data.SPCCMUOM_UOMName || data.spccmuom_UOMName || '';
+    const active = data.spccmuoM_ActiveFlag ?? data.SPCCMUOM_ActiveFlag ?? data.spccmuom_ActiveFlag ?? true;
+    const mi = data.mI_Id || 0;
+
     const payload = {
-        spccmuoM_Id: data.spccmuoM_Id,
-        spccmuoM_UOMName: data.spccmuoM_UOMName
+        SPCCMUOM_Id: id,
+        spccmuoM_Id: id,
+        SPCCMUOM_UOMName: name,
+        spccmuoM_UOMName: name,
+        SPCCMUOM_ActiveFlag: active,
+        spccmuoM_ActiveFlag: active,
+        MI_Id: mi,
+        mI_Id: mi
     };
 
     const url = `/SportMasterUOM`;
@@ -41,13 +52,21 @@ export async function saveMasterUOM(data: any) {
 }
 
 export async function deactivateMasterUOM(data: any) {
+    const id = data.spccmuoM_Id || data.SPCCMUOM_Id || data.spccmuom_Id || data.spccmUOM_Id || 0;
+    const active = data.spccmuoM_ActiveFlag ?? data.SPCCMUOM_ActiveFlag ?? data.spccmuom_ActiveFlag ?? false;
+    const mi = data.mI_Id || 0;
+
     const payload = {
-        ...data,
-        SPCCMUOM_Id: data.spccmuoM_Id ?? data.SPCCMUOM_Id,
-        SPCCMUOM_ActiveFlag: data.spccmuoM_ActiveFlag ?? data.SPCCMUOM_ActiveFlag,
-        MI_Id: data.mI_Id || 0
+        SPCCMUOM_Id: id,
+        spccmuoM_Id: id,
+        SPCCMUOM_ActiveFlag: active,
+        spccmuoM_ActiveFlag: active,
+        MI_Id: mi,
+        mI_Id: mi
     };
 
-    const url = `/SportMasterUOM/deactivate`;
+    // IVRM controllers can be inconsistent; some expect query parameters, some a body.
+    // Providing both ensures the ID and ActiveFlag are correctly received on the server.
+    const url = `/SportMasterUOM/deactivate?SPCCMUOM_Id=${id}&SPCCMUOM_ActiveFlag=${active}&MI_Id=${mi}`;
     return await api.post<any>('sports', url, payload);
 }
