@@ -16,6 +16,7 @@ interface ColumnsProps {
 export const createColumns = ({ onEdit, onDelete }: ColumnsProps): ColumnDef<SportsCCNameDTO>[] => [
     {
         accessorKey: 'spccmscC_Id',
+        id: 'SPCCMSCC_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
@@ -28,69 +29,39 @@ export const createColumns = ({ onEdit, onDelete }: ColumnsProps): ColumnDef<Spo
     },
     {
         accessorKey: 'groupName',
-        header: ({ column }) => {
-            return (
-                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-                    Group Name
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
-            );
-        },
+        id: 'groupName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Group Name' />,
+        enableSorting: true
     },
     {
         accessorKey: 'spccmscC_SportsCCName',
-        header: ({ column }) => {
-            return (
-                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-                    Sports Name
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
-            );
-        },
+        id: 'SPCCMSCC_SportsCCName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sports Name' />,
+        enableSorting: true
     },
     {
         accessorKey: 'spccmscC_SportsCCDesc',
-        header: ({ column }) => {
-            return (
-                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-                    Description
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
-            );
-        },
+        id: 'SPCCMSCC_SportsCCDesc',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Description' />,
+        enableSorting: true
     },
     {
         accessorKey: 'spccmscC_SGFlag',
-        header: ({ column }) => {
-            return (
-                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-                    SG Flag
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
-            );
-        },
+        id: 'SPCCMSCC_SGFlag',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='SG Flag' />,
+        enableSorting: true
     },
     {
         accessorKey: 'spccmscC_NoOfMembers',
-        header: ({ column }) => {
-            return (
-                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-                    No.Of Members
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
-            );
-        },
+        id: 'SPCCMSCC_NoOfMembers',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='No.Of Members' />,
+        enableSorting: true
     },
     {
         accessorKey: 'spccmscC_RecHighLowFlag',
-        header: ({ column }) => {
-            return (
-                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-                    High/Low Flag
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
-            );
-        },
+        id: 'SPCCMSCC_RecHighLowFlag',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='High/Low Flag' />,
+        enableSorting: true
     },
     {
         id: 'actions',

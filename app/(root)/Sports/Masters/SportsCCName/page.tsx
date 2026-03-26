@@ -66,10 +66,11 @@ function SportsCCNamePageContent({
 
     const columns = createColumns({ onEdit: handleEdit, onDelete: handleDelete });
     const groupNameList = response?.data?.groupNameList || [];
-    const tableData = response?.data?.sportsccName || [];
+    // Data can be in sportsccName or groupNameList based on backend implementation
+    const tableData = response?.data?.sportsccName || response?.data?.groupNameList || response?.data || [];
     const tableProps = {
         data: tableData,
-        totalItems: tableData.length,
+        totalItems: response?.total || response?.data?.total || response?.data?.count || response?.data?.Count || response?.count || tableData.length || 0,
         success: response?.success,
         errorMessage: response?.message
     };

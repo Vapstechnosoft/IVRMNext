@@ -139,7 +139,11 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
         generateReport.mutate(payload as any, {
             onSuccess: (responseData) => {
                 onReportGenerated(responseData || []);
-                toast.success('Report generated successfully');
+                if (responseData && responseData.length > 0) {
+                    toast.success('Report generated successfully');
+                } else {
+                    toast.info('No records found');
+                }
             },
             onError: (error) => {
                 console.error("Report Generation Error:", error);

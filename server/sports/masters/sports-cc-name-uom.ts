@@ -8,9 +8,17 @@ import type { IMasterSportsCCNameUOMResponse } from '@/types/sports/masters/spor
 const BASE_URL = 'sports';
 
 export async function getMasterSportsCCNameUOMs(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const params = { ...searchParams };
+    if (params.search_query) {
+        params.search_query = String(params.search_query).trim();
+        // If no columns selected, use default searchable columns from DTO
+        if (!params.search_columns || params.search_columns === '') {
+            params.search_columns = 'sportsCCName,uomName';
+        }
+    }
+    const urlParams = getSearchParamsUrl(params);
     const url = `/MasterSportsCCNameUOM_/getDetails?${urlParams}`;
-    return await api.post<IMasterSportsCCNameUOMResponse>(BASE_URL, url, {});
+    return await api.post<IMasterSportsCCNameUOMResponse>(BASE_URL, url, params || {});
 }
 
 export async function saveMasterSportsCCNameUOM(data: any) {

@@ -94,8 +94,10 @@ export default function ReportForm({ onReport, onReset, onPrint, onExcel, hasDat
             onSuccess: (data: any) => {
                 if (data && data.length > 0) {
                     onReport({ data });
+                    toast.success('Report generated successfully');
                 } else {
-                    toast.error('No records found');
+                    onReport({ data: [] });
+                    toast.info('No records found');
                 }
             },
             onError: (error) => {

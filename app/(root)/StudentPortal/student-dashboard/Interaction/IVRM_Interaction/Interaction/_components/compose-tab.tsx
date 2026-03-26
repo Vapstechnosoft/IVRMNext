@@ -54,13 +54,34 @@ export function ComposeTab({ roleFlg, configFlag, userHrmIds, onSuccess, isGroup
     // Initial Data Loading
     useEffect(() => {
         if (initialData) {
-            if (initialData.academicList) setAcademicYears(initialData.academicList);
+            // Log initialData keys to debug year resolution
+            console.log('ComposeTab initialData keys:', Object.keys(initialData));
+            console.log(
+                'ComposeTab initialData (year fields):',
+                JSON.stringify({
+                    asmaY_Id: initialData.asmaY_Id,
+                    academicList: initialData.academicList,
+                    AcademicList: initialData.AcademicList,
+                    academic_list: initialData.academic_list,
+                    yearList: initialData.yearList
+                })
+            );
+
+            // Support different casing variants the API might return
+            const acadList =
+                initialData.academicList || initialData.AcademicList || initialData.academic_list || initialData.yearList || [];
+
+            if (acadList.length > 0) setAcademicYears(acadList);
             if (initialData.courselist) setClassList(initialData.courselist);
-            // Set default year if available
-            if (initialData.academicList && initialData.academicList.length > 0) {
-                const currentYear = initialData.academicList.find((y: any) => y.asmaY_Id === initialData.asmaY_Id);
+
+            // Auto-set year for student (no year dropdown visible)
+            if (acadList.length > 0) {
+                // Try to match the current year from initialData, else use first/current-flagged item
+                const currentYear =
+                    acadList.find((y: any) => y.asmaY_Id === initialData.asmaY_Id) ||
+                    acadList.find((y: any) => y.selected === true || y.Selected === true || y.isCurrent === true) ||
+                    acadList[0];
                 if (currentYear) setSelectedYear(currentYear.asmaY_Id.toString());
-                else setSelectedYear(initialData.academicList[0].asmaY_Id.toString());
             }
         }
     }, [initialData]);
@@ -170,7 +191,9 @@ export function ComposeTab({ roleFlg, configFlag, userHrmIds, onSuccess, isGroup
 
         setIsSending(true);
         try {
-            let recipientPayload: any[] = [];
+            let arrayStudent: any[] = [];
+            const arrayTeachers: any[] = [];
+            let istintToId = 0;
 
             // Recipient Logic
             if (isStudent || (!isStudent && userFlag !== 'Student')) {
@@ -182,60 +205,72 @@ export function ComposeTab({ roleFlg, configFlag, userHrmIds, onSuccess, isGroup
                 }
 
                 // Determine if we are sending to a student or a staff based on the selected object
-                const selectedBaseId = selectedRecipient.split('_')[0];
+                const selectedBaseId = Number.parseInt(selectedRecipient.split('_')[0]);
                 const selectedRec = recipients.find(
-                    (r) => (r.HRME_Id || r.hrMe_Id || r.amsT_Id || r.AMST_Id || r.out_hrme_id)?.toString() === selectedBaseId
+                    (r) => (r.HRME_Id || r.hrMe_Id || r.amsT_Id || r.AMST_Id || r.out_hrme_id)?.toString() === selectedBaseId.toString()
                 );
+
                 if (selectedRec && (selectedRec.amsT_Id || selectedRec.AMST_Id)) {
-                    recipientPayload.push({ amst_Id: Number.parseInt(selectedBaseId) });
+                    arrayStudent.push({ amst_Id: selectedBaseId });
+                    istintToId = selectedBaseId;
                 } else {
-                    recipientPayload.push({ hrme_Id: Number.parseInt(selectedBaseId) });
+                    arrayTeachers.push({ hrme_Id: selectedBaseId });
+                    istintToId = selectedBaseId;
                 }
             } else {
                 // Staff -> Student Logic
                 if (isGroup) {
-                    recipientPayload = selectedRecipients.map((id) => ({ amst_Id: Number.parseInt(id) }));
+                    arrayStudent = selectedRecipients.map((id) => ({ amst_Id: Number.parseInt(id) }));
                 } else {
                     if (selectedRecipient) {
-                        recipientPayload.push({ amst_Id: Number.parseInt(selectedRecipient) });
+                        arrayStudent.push({ amst_Id: Number.parseInt(selectedRecipient) });
+                        istintToId = Number.parseInt(selectedRecipient);
                     }
                 }
 
-                if (recipientPayload.length === 0) {
+                if (arrayStudent.length === 0) {
                     toast.error('Validation Error', { description: 'Please select at least one recipient.' });
                     setIsSending(false);
                     return;
                 }
             }
 
+            // Resolve academic year: prefer selectedYear (set from academicList),
+            // then initialData.asmaY_Id, then first item in academicList
+            const resolvedYear =
+                (selectedYear ? Number.parseInt(selectedYear) : 0) ||
+                (initialData?.asmaY_Id ? Number(initialData.asmaY_Id) : 0) ||
+                (initialData?.academicList?.[0]?.asmaY_Id ?? 0);
+
             const payload: any = {
-                ISMINT_InteractionId: 0,
+                ASMAY_Id: resolvedYear,
+                roleflg: roleFlg.toLowerCase(),
+                userflag: userFlag,
+                ISMINT_GroupOrIndFlg: isGroup ? 'Group' : 'Individual',
                 ISMINT_Subject: subject,
                 ISMINT_Interaction: message,
-                ISMINT_GroupOrIndFlg: isGroup ? 'Group' : 'Individual',
-                ISMINT_ComposedByFlg: roleFlg,
-                ISMINT_ComposedById: userHrmIds,
-                arraystudent: recipientPayload, // This will contain either amst_Id or hrme_Id based on context
-                roleflg: roleFlg,
-                userflag: userFlag
+                UserId: initialData?.userId || 0,
+                AMST_Id: isStudent ? userHrmIds : 0,
+                ISTINT_ToId: isGroup ? 0 : istintToId,
+                employee_Id: !isStudent ? userHrmIds : 0,
+                ISMINT_MACAddress: '',
+                ISMINT_ISPIPAddress: '',
+                images_paths: [],
+                arrayStudent: arrayStudent,
+                arrayTeachers: arrayTeachers
             };
-
-            // Adjust payload for Student -> Staff (legacy specific field)
-            if (isStudent) {
-                payload.ISTINT_ToId = Number.parseInt(selectedRecipient.split('_')[0]);
-            }
 
             const response = await saveInteraction(payload);
 
-            if (response && response.returnval === true) {
-                toast.success('Success', { description: 'Message sent successfully!' });
+            if (response && (response.returnval === true || response.success === true)) {
+                toast.success('Success', { description: 'Interaction saved successfully!' });
                 setSubject('');
                 setMessage('');
                 setSelectedRecipients([]);
                 setSelectedRecipient('');
                 onSuccess();
             } else {
-                toast.error('Error', { description: 'Failed to send message.' });
+                toast.error('Error', { description: response?.message || response?.returnMessage || 'Failed to send message.' });
             }
         } catch (error) {
             console.error('Error sending message:', error);
@@ -373,10 +408,10 @@ export function ComposeTab({ roleFlg, configFlag, userHrmIds, onSuccess, isGroup
                         {isStudent
                             ? 'Select Recipient'
                             : userFlag === 'Student'
-                                ? isGroup
-                                    ? 'Select Students (Group)'
-                                    : 'Select Student'
-                                : `Select ${userFlag}`}{' '}
+                              ? isGroup
+                                  ? 'Select Students (Group)'
+                                  : 'Select Student'
+                              : `Select ${userFlag}`}{' '}
                         <span className='text-red-500'>*</span>
                     </Label>
 
@@ -431,25 +466,25 @@ export function ComposeTab({ roleFlg, configFlag, userHrmIds, onSuccess, isGroup
                             <SelectContent>
                                 {!isStudent && userFlag === 'Student'
                                     ? // Staff -> Student Individual List
-                                    studentList.map((student: any) => (
-                                        <SelectItem key={student.amsT_Id} value={student.amsT_Id.toString()}>
-                                            {student.studentName}
-                                        </SelectItem>
-                                    ))
+                                      studentList.map((student: any) => (
+                                          <SelectItem key={student.amsT_Id} value={student.amsT_Id.toString()}>
+                                              {student.studentName}
+                                          </SelectItem>
+                                      ))
                                     : // Generic Recipients List
-                                    recipients.map((rec: any, index: number) => {
-                                        const baseId = rec.HRME_Id || rec.hrMe_Id || rec.amsT_Id || rec.AMST_Id || rec.out_hrme_id;
-                                        const uniqueId = `${baseId}_${index}`;
-                                        const name =
-                                            rec.EmpName || rec.empName || rec.studentName || rec.AMST_FirstName || rec.out_empname;
-                                        const subjectName = rec.ISMS_SubjectName || rec.out_isms_subjectname;
-                                        return (
-                                            <SelectItem key={uniqueId} value={uniqueId}>
-                                                {name}
-                                                {subjectName ? ` - ${subjectName}` : ''}
-                                            </SelectItem>
-                                        );
-                                    })}
+                                      recipients.map((rec: any, index: number) => {
+                                          const baseId = rec.HRME_Id || rec.hrMe_Id || rec.amsT_Id || rec.AMST_Id || rec.out_hrme_id;
+                                          const uniqueId = `${baseId}_${index}`;
+                                          const name =
+                                              rec.EmpName || rec.empName || rec.studentName || rec.AMST_FirstName || rec.out_empname;
+                                          const subjectName = rec.ISMS_SubjectName || rec.out_isms_subjectname;
+                                          return (
+                                              <SelectItem key={uniqueId} value={uniqueId}>
+                                                  {name}
+                                                  {subjectName ? ` - ${subjectName}` : ''}
+                                              </SelectItem>
+                                          );
+                                      })}
                             </SelectContent>
                         </Select>
                     ) : null}
