@@ -502,7 +502,15 @@ export const HOSTEL_QUERY_KEYS = {
     MASTER_COUNTRY_DROPDOWN_LIST: 'hostel_master_country_dropdown_list',
     MASTER_STATE_DROPDOWN_LIST: 'hostel_master_state_dropdown_list',
     MASTER_FACILITY_DROPDOWN_LIST: 'hostel_master_facility_dropdown_list',
-    MASTER_PHOTO_LIST: 'hostel_master_photo_list'
+    MASTER_PHOTO_LIST: 'hostel_master_photo_list',
+    MASTER_ROOM_CATEGORY_DROPDOWN_LIST: 'hostel_master_room_category_dropdown_list',
+    MASTER_ROOM_CATEGORY_LIST: 'hostel_master_room_category_list',
+    MASTER_MESS_CATEGORY_GRID: 'hostel_master_mess_category_grid',
+    MASTER_MESS_CATEGORY_DROPDOWN: 'hostel_master_mess_category_dropdown',
+    MESS_MENU_GRID_LIST: 'MESS_MENU_DATA',
+    MATER_ROOM_GRID_LIST: 'master-room-list',
+    MASTER_ROOM_DROPDOWN_LIST: 'master-room-dropdown-list',
+    HOSTEL_GUEST_ALLOTMENT_LIST: 'hostel_guest_allotment_list_',
 };
 export const LIBRARY_QUERY_KEYS = {
     MASTER_LIBRARY_LIST_DATA: 'master_library_list_data',

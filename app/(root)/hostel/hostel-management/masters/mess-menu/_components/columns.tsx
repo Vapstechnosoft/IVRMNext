@@ -6,7 +6,7 @@ import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { DataTableColumnHeader as ColumnHeader } from '@/components/ui/data-table-column-header';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import { useCallback } from 'react';
-import { IMessMenu } from '@/server/hostel/hostel-management/masters/menu';
+import { IMessMenu } from '@/types/hostel/hostel-management/masters';
 
 export const messMenuColumns: ColumnDef<IMessMenu, any>[] = [
     {

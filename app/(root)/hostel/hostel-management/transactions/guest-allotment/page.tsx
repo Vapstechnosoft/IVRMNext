@@ -1,67 +1,153 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { getGuestAllotmentLoadData } from '@/server/hostel/hostel-management/transactions/guest-allotment';
+import { Button } from '@/components/ui/button';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { useGuestAllotments } from '@/hooks/hostel/hostel-management/useGuestAllotment';
+import { Plus, X } from 'lucide-react';
+import React, { use, useEffect } from 'react';
+
 import GuestAllotmentForm from './_components/add-form';
-import GuestAllotmentList from './_components/list';
-import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
+import ToggleGuestAllotmentForm from './_components/toggle-form';
+import { guestAllotmentColumns } from './_components/columns';
+import type { GuestAllotmentColumn } from './_components/columns';
 
 export default function GuestAllotmentPage() {
-    const [isLoading, setIsLoading] = useState(true);
-    const [dropdowns, setDropdowns] = useState<any>({
-        hstllist: [],
-        categorylist: [],
-        roomlist: [],
-        alldata1: []
-    });
-
-    const loadData = async () => {
-        setIsLoading(true);
-        try {
-            const res = await getGuestAllotmentLoadData();
-            if (res) {
-                setDropdowns(res);
-            }
-        } catch (error) {
-            console.error(error);
-            toast.error('Failed to load data');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        loadData();
-    }, []);
-
-    const handleSuccess = () => {
-        loadData();
-    };
-
-    const handleEdit = (row: any) => {
-        toast.info('Edit functionality to be implemented');
-    };
-
-    if (isLoading) {
-        return (
-            <div className="flex h-[50vh] w-full items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-        );
-    }
+    const { data: response, isLoading, error, refetchAll } = useGuestAllotments();
 
     return (
-        <div className="container mx-auto p-4 space-y-8">
-            <GuestAllotmentForm
-                dropdowns={dropdowns}
-                onSuccess={handleSuccess}
-            />
+        <FormProvider<GuestAllotmentColumn>>
+            <PageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
+        </FormProvider>
+    );
+}
 
-            <GuestAllotmentList
-                data={dropdowns.alldata1 || []}
-                onEdit={handleEdit}
-            />
+function PageContent({
+    response,
+    isLoading,
+    error,
+    refetchAll
+}: {
+    response: any;
+    isLoading: boolean;
+    error: any;
+    refetchAll: any;
+}) {
+    const { openAddForm } = useFormContext<GuestAllotmentColumn>();
+    useEffect(() => {
+        console.log(response);
+    }, [response]);
+    const tableProps = useDataTableProps(response);
+
+    return (
+        <div className='min-h-screen'>
+            <div className='container space-y-4 p-1'>
+                {/* Header */}
+                <div className='flex gap-4 sm:flex-row sm:items-center sm:justify-self-end'>
+                    <Button
+                        type='button'
+                        onClick={openAddForm}
+                        className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
+                        <Plus className='h-4 w-4' />
+                        Add Guest Allotment
+                    </Button>
+                </div>
+
+                {/* Data Table Section */}
+                <CollapsibleSection
+                    defaultOpen={true}
+                    variant='default'
+                    size='lg'
+                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                    <GenericDataTable<GuestAllotmentColumn>
+                        {...tableProps}
+                        total={response?.total}
+                        columns={guestAllotmentColumns}
+                        isLoading={isLoading}
+                        error={error}
+                        columnPinning={{ right: ['actions'] }}
+                        loadingMessage='Loading guest allotments...'
+                        noDataTitle='No Guest Allotments Found'
+                        noDataDescription='Get started by creating your first guest allotment'
+                        errorTitle='Error Loading Data'
+                    />
+                </CollapsibleSection>
+
+                {/* Forms */}
+                <FormSections onSuccess={refetchAll} />
+            </div>
         </div>
+    );
+}
+
+function FormSections({ onSuccess }: { onSuccess: () => void }) {
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        isToggleFormOpen,
+        selectedRow,
+        closeAddForm,
+        closeEditForm,
+        closeToggleForm,
+        addFormRef,
+        editFormRef
+    } = useFormContext<GuestAllotmentColumn>();
+
+    return (
+        <>
+            {/* Add Form */}
+            {isAddFormOpen && (
+                <div ref={addFormRef}>
+                    <CollapsibleSection
+                        title='Add Guest Allotment'
+                        description='Fill in the details below to create a new guest allotment'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeAddForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
+                            <GuestAllotmentForm onSuccess={() => { closeAddForm(); onSuccess(); }} />
+                        </div>
+                    </CollapsibleSection>
+                </div>
+            )}
+
+            {/* Edit Form */}
+            {isEditFormOpen && selectedRow && (
+                <div ref={editFormRef}>
+                    <CollapsibleSection
+                        title='Edit Guest Allotment'
+                        description='Modify the details of the guest allotment'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeEditForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
+                            <GuestAllotmentForm initialData={selectedRow} onSuccess={() => { closeEditForm(); onSuccess(); }} />
+                        </div>
+                    </CollapsibleSection>
+                </div>
+            )}
+
+            {/* Toggle Form */}
+            {isToggleFormOpen && selectedRow && <ToggleGuestAllotmentForm rowData={selectedRow} onClose={closeToggleForm} />}
+        </>
     );
 }
