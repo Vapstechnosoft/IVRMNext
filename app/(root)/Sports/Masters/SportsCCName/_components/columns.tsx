@@ -1,19 +1,37 @@
 'use client';
 
-import { ColumnDef } from '@tanstack/react-table';
-import { Button } from '@/components/ui/button';
-import { ArrowUpDown } from 'lucide-react';
-import { SportsCCNameDTO } from '@/types/sports/masters/sports-cc-name';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
-import { Badge } from '@/components/ui/badge';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { useFormContext } from '@/components/ui/form/form-provider';
+import type { SportsCCNameDTO } from '@/types/sports/masters/sports-cc-name';
+import type { ColumnDef, Row } from '@tanstack/react-table';
 
-interface ColumnsProps {
-    onEdit: (data: SportsCCNameDTO) => void;
-    onDelete: (row: SportsCCNameDTO) => void;
+/* ============================================
+   Actions Cell Component
+   ============================================ */
+function ActionsCell({ row }: { row: Row<SportsCCNameDTO> }) {
+    const data = row.original;
+    const { openEditForm, openToggleForm } = useFormContext<SportsCCNameDTO>();
+
+    return (
+        <ActionButtons
+            rowData={data}
+            buttons={{
+                edit: true,
+                toggle: true,
+                delete: false
+            }}
+            onEdit={() => openEditForm(data)}
+            onToggle={() => openToggleForm(data)}
+            toggleConditionKey='spccmscC_ActiveFlag'
+        />
+    );
 }
 
-export const createColumns = ({ onEdit, onDelete }: ColumnsProps): ColumnDef<SportsCCNameDTO>[] => [
+/* ============================================
+   Master Sports CC Name Columns Definition
+   ============================================ */
+export const MasterSportsCCNameColumns: ColumnDef<SportsCCNameDTO>[] = [
     {
         accessorKey: 'spccmscC_Id',
         id: 'SPCCMSCC_Id',
@@ -65,18 +83,7 @@ export const createColumns = ({ onEdit, onDelete }: ColumnsProps): ColumnDef<Spo
     },
     {
         id: 'actions',
-        cell: ({ row }) => (
-            <ActionButtons
-                rowData={row.original}
-                buttons={{
-                    edit: true,
-                    toggle: true,
-                    delete: false
-                }}
-                onEdit={() => onEdit(row.original)}
-                onToggle={() => onDelete(row.original)}
-                toggleConditionKey='spccmscC_ActiveFlag'
-            />
-        )
-    },
+        header: 'Actions',
+        cell: ActionsCell
+    }
 ];
