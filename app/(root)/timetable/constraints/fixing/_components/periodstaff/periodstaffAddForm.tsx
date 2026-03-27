@@ -84,7 +84,7 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
     const [selectedClass, setSelectedClass] = useState<number | undefined>();
     const [selectedSection, setSelectedSection] = useState<number | undefined>();
     const [selectedSubject, setSelectedSubject] = useState<number | undefined>();
-    const [nod, setNod] = useState<string>('');
+    const [nop, setNop] = useState<string>('');
 
     const form = useForm<FixingPeriodStaffSchema>({
         resolver: zodResolver(fixingPeriodStaffSchema),
@@ -163,7 +163,7 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
     };
 
     const addToGrid = () => {
-        if (!selectedClass || !selectedSection || !selectedSubject || !nod) {
+        if (!selectedClass || !selectedSection || !selectedSubject || !nop) {
             toast.warning('Please select all fields');
             return;
         }
@@ -184,7 +184,7 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
             asmcL_Id: selectedClass,
             asmS_Id: selectedSection,
             ismS_Id: selectedSubject,
-            nod: Number(nod),
+            nop: Number(nop) || 0,
             clsDisplay: clsObj?.asmcL_ClassName,
             sectDisplay: secObj?.asmC_SectionName,
             subDisplay: subObj?.ismS_SubjectName
@@ -196,7 +196,7 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
             { accessorKey: 'clsDisplay', header: 'Class' },
             { accessorKey: 'sectDisplay', header: 'Section' },
             { accessorKey: 'subDisplay', header: 'Subject' },
-            { accessorKey: 'nod', header: 'No Of Days' },
+            { accessorKey: 'nop', header: 'No Of Days' },
             {
                 id: 'actions',
                 header: 'Actions',
@@ -220,15 +220,14 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
             }
             const res = await saveFixingPeriodStaff(data);
             if (res?.returnval === true || res?.success === true) {
-                toast.success(res?.message || 'Record Saved Successfully');
+                toast.success(res.message);
                 reset();
                 onSuccess();
             } else {
-                toast.error(res?.message || 'Failed to save');
+                toast.error(res?.message);
             }
-        } catch (e) {
-            console.error(e);
-            toast.error('An error occurred');
+        } catch (error : any) {
+            toast.error(error.message);
         }
     };
 
@@ -398,7 +397,7 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
                             </div>
                             <div className='space-y-2'>
                                 <FormLabel>No Of Days</FormLabel>
-                                <Input type='number' value={nod} onChange={(e) => setNod(e.target.value)} />
+                                <Input type='number' value={nop} onChange={(e) => setNop(e.target.value)} />
                             </div>
                         </div>
                         <Button type='button' onClick={addToGrid}>

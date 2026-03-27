@@ -234,7 +234,9 @@ export default function MasterPeriodForm({ onSuccess, selectedRow }: MasterPerio
                                     key={field.value || 'empty'}
                                     value={field.value?.toString() || undefined}
                                     onValueChange={(val) => field.onChange(Number(val))}>
-                                    <SelectTrigger>
+                                    <SelectTrigger className={cn(
+                                        !field.value ? "text-gray-400" : "text-black"
+                                    )}>
                                         <SelectValue placeholder='Select Period Name' />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -262,7 +264,9 @@ export default function MasterPeriodForm({ onSuccess, selectedRow }: MasterPerio
                                     key={field.value || 'empty'}
                                     value={field.value?.toString() || undefined}
                                     onValueChange={(val) => field.onChange(Number(val))}>
-                                    <SelectTrigger>
+                                    <SelectTrigger className={cn(
+                                        !field.value ? "text-gray-400" : "text-black"
+                                    )}>
                                         <SelectValue placeholder='Select Period Order' />
                                     </SelectTrigger>
                                     <SelectContent>

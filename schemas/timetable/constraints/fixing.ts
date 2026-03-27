@@ -31,7 +31,7 @@ const fixingPeriodStaffListSchema = z.object({
     asmcL_Id: z.number().min(1, 'Class is required'),
     asmS_Id: z.number().min(1, 'Section is required'),
     ismS_Id: z.number().min(1, 'Subject is required'),
-    nod: z.number().min(1, 'No of Days is required'),
+    nop: z.number().min(1, 'No of Days is required'),
     // UI Display
     clsDisplay: z.string().optional(),
     sectDisplay: z.string().optional(),
@@ -43,7 +43,7 @@ const fixingPeriodSubjectListSchema = z.object({
     asmcL_Id: z.number().min(1, 'Class is required'),
     asmS_Id: z.number().min(1, 'Section is required'),
     hrmE_Id: z.number().min(1, 'Staff is required'),
-    nod: z.number().min(1, 'No of Days is required'),
+    nop: z.number().min(1, 'No of Days is required'),
     // UI Display
     clsDisplay: z.string().optional(),
     sectDisplay: z.string().optional(),
@@ -88,6 +88,7 @@ export const fixingDaySubjectSchema = z.object({
 export type FixingDaySubjectSchema = z.infer<typeof fixingDaySubjectSchema>;
 
 // 4. Period Staff Schema
+export type FixingPeriodStaffSchema = z.infer<typeof fixingPeriodStaffSchema>;
 export const fixingPeriodStaffSchema = z.object({
     ttfpS_Id: z.number().optional(),
     asmaY_Id: z.number().min(1, 'Academic Year is required'),
@@ -97,7 +98,6 @@ export const fixingPeriodStaffSchema = z.object({
     ttfpscC_Id: z.number().optional(),
     tempararyArrayList: z.array(fixingPeriodStaffListSchema).optional()
 });
-export type FixingPeriodStaffSchema = z.infer<typeof fixingPeriodStaffSchema>;
 
 // 5. Period Subject Schema
 export const fixingPeriodSubjectSchema = z.object({

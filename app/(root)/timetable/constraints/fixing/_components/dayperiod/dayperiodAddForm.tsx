@@ -160,23 +160,30 @@ export default function DayPeriodAddForm({ academicList, categoryList, dayList, 
         }
     };
 
+    //   const response = await addOrUpdateMasterDay(payload);
+    //             if (response.success) {
+    //                 toast.success(response.message);
+    //                 reset();
+    //                 refetchAll();
+    //                 onSuccess?.();
+    //             } else {
+    //                 toast.error(response.message);
+    //             }
+    //         } catch (error: any) {
+    //             toast.error(error.message);
+
     const onSubmit: SubmitHandler<FixingDayPeriodSchema> = async (data) => {
         try {
             const res = await saveFixingDayPeriod(data);
             if (res?.returnval === true || res?.success === true) {
-                toast.success('Record Saved Successfully');
+                toast.success(res.message);
                 reset();
                 onSuccess();
-            } else if (res?.returnfixstatus === 'Fixed') {
-                toast.warning('Selected Staff and Subject is already Fixed!');
-            } else if (res?.returnduplicatestatus === 'Duplicate') {
-                toast.warning('Record Already Exists!');
             } else {
-                toast.error(res?.message || 'Failed to save');
+                toast.error(res.message);
             }
-        } catch (e) {
-            console.error(e);
-            toast.error('An error occurred');
+        } catch (error: any) {
+            toast.error(error.message);
         }
     };
 
