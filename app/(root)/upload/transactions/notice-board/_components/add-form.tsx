@@ -636,7 +636,7 @@ export default function AddNoticeBoardForm({
 
                 <div className='flex justify-center gap-2 pt-6 pb-2'>
                     <Button type='submit'>
-                        <Save className='mr-2 h-4 w-4' /> SAVE
+                        <Save className='mr-2 h-4 w-4' /> SEND
                     </Button>
                     <Button type='button' variant='destructive' onClick={() => methods.reset()}>
                         <X className='mr-2 h-4 w-4' /> CANCEL

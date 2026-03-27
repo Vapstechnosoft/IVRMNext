@@ -82,14 +82,6 @@ export default function SchoolStaffPeriodTransactionDeviationReportPage() {
                 setEmployeeData((responseData.getdevationreportemployee as IDeviationReportEmployee[]) || []);
 
                 const yearObj = masterYear.find((y) => y.asmaY_Id === payload.ASMAY_Id);
-                // For legacy structure, we might still need the passed names if not in response,
-                // but prioritizing API consistency. If legacy API doesn't return names, we might need names arg again.
-                // However, user specifically asked for backend data usage.
-                // Let's rely on the backend data for the new flow and keep names as fallback or empty for now to match user request.
-                // Actually, I should remove 'names' argument from signature if I am not using it, or verify if legacy path needs it.
-                // Given the instructions, I will just use empty string or existing logic if any.
-                // But to be safe and clean, I will remove the `names` parameter usage if I am confident.
-                // User said "in backend i am getting this data", implying the NEW flow.
 
                 setFilterDetails({
                     year: yearObj?.asmaY_Year || '',
