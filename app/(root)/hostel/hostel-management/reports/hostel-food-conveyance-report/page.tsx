@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useForm, Controller, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { hostelFoodConveyanceReportSchema, HostelFoodConveyanceReportValues } from '@/schemas/hostel/reports/hostel-food-conveyance-report.schema';
-import { getHFCReportLoadData, getHFCReport } from '@/server/hostel/hostel-management/reports/hostel-food-conveyance-report';
+import { getHFCReportLoadData, getHFCReport, type HFCReportLoadDataResponse, type HFCReportResponse, type HFCReportStudent } from '@/server/hostel/hostel-management/reports/hostel-food-conveyance-report';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Button } from '@/components/ui/button';
@@ -17,7 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { exportToExcel } from '@/lib/export-to-file';
 
 export default function HostelFoodConveyanceReportPage() {
-    const [reportData, setReportData] = useState<any[]>([]);
+    const [reportData, setReportData] = useState<HFCReportStudent[]>([]);
     const [loading, setLoading] = useState(false);
 
     const [academicYears, setAcademicYears] = useState<any[]>([]);
@@ -33,7 +33,7 @@ export default function HostelFoodConveyanceReportPage() {
 
     useEffect(() => {
         async function load() {
-            const data = await getHFCReportLoadData();
+            const data: HFCReportLoadDataResponse | null = await getHFCReportLoadData();
             if (data) {
                 setAcademicYears(data.allAcademicYear || []);
                 setClasses(data.allClass || []);
@@ -67,9 +67,9 @@ export default function HostelFoodConveyanceReportPage() {
     async function onSubmit(values: HostelFoodConveyanceReportValues) {
         setLoading(true);
         try {
-            const data = await getHFCReport(values);
+            const data: HFCReportResponse | null = await getHFCReport(values);
             if (data && data.studentlist && data.studentlist.length > 0) {
-                const formattedList = data.studentlist.map((item: any) => {
+                const formattedList = data.studentlist.map((item: HFCReportStudent) => {
                     let name = item.stuFN || '';
                     if (item.stuMN) name += ' ' + item.stuMN;
                     if (item.stuLN) name += ' ' + item.stuLN;
