@@ -137,8 +137,16 @@ export async function getStaffPeriodDetails(payload: any) {
  */
 export async function getSectionsByClass(asmcL_Id: number): Promise<Section[]> {
     try {
-        const response = await api.get<Section[]>('timetable', `/TimeTableCommon/GetSectionData/${asmcL_Id}`);
-        return response.data || (response as unknown as Section[]);
+        const response: any = await api.get<any>('timetable', `/TimeTableCommon/section-details`);
+        
+        // Helper to safely extract array from various API response formats
+        const data = response?.data || response;
+        if (Array.isArray(data)) return data;
+        if (data?.$values && Array.isArray(data.$values)) return data.$values;
+        if (data?.data && Array.isArray(data.data)) return data.data;
+        if (response?.$values && Array.isArray(response.$values)) return response.$values;
+        
+        return Array.isArray(response) ? response : [];
     } catch (error) {
         console.error('Error fetching sections:', error);
         return [];
