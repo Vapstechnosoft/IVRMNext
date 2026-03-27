@@ -630,6 +630,72 @@ export async function getUserAccessibleModules() {
                     ]
                 },
 
+                // {
+                //     id: 9000,
+                //     name: 'Admission Client',
+                //     icon: 'UserRoundPlus',
+                //     menu: [
+
+                //         {
+                //             id: 5,
+                //             name: 'Form and Reports',
+                //             icon: 'Settings',
+                //             sub_menu: [
+
+                //                 {
+                //                     id: 9,
+                //                     name: 'stjames',
+                //                     icon: 'Settings',
+                //                     pages: [
+
+                //                         {
+                //                             id: 12,
+                //                             name: 'Overall Daily Attendance Report',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/overall-daily-attendance-report',
+                //                             title: 'Overall Daily Attendance Report',
+                //                             description: 'Overall Daily Attendance Report'
+                //                         },
+
+                //                         {
+                //                             id: 53,
+                //                             name: 'Student Birthday Report',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/student-birthday-report',
+                //                             title: 'Student Birthday Report',
+                //                             description: 'Student Birthday Report'
+                //                         },
+                //                         {
+                //                             id: 54,
+                //                             name: '100% Attendance Report',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/100attendance-report',
+                //                             title: '100% Attendance Report',
+                //                             description: '100% Attendance Report'
+                //                         },
+                //                         {
+                //                             id: 55,
+                //                             name: 'St.James TC Custom Report',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/stjames-tc-customreport',
+                //                             title: 'St.James TC Custom Report',
+                //                             description: 'St.James TC Custom Report'
+                //                         },
+                //                         {
+                //                             id: 56,
+                //                             name: 'Study Certificate GMVPS Report',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/study-certificate-gmvps-report',
+                //                             title: 'Study Certificate GMVPS Report',
+                //                             description: 'Study Certificate GMVPS Report'
+                //                         }
+                //                     ]
+                //                 }
+                //             ]
+                //         }
+                //     ]
+                // },
+
                 {
                     id: 2,
                     name: 'Fees Management',
