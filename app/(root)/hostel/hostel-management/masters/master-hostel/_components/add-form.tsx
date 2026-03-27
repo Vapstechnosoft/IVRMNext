@@ -23,7 +23,6 @@ interface AddMasterHostelFormProps {
     messes: IMess[];
     employees: IEmployee[];
     initialData?: any;
-    states?: IState[];
 }
 
 export default function AddMasterHostelForm({
@@ -74,38 +73,70 @@ export default function AddMasterHostelForm({
 
     const selectedCountryId = watch('ivrmmC_Id');
     const hostelPhotos = watch('hostelPhotos') || [];
-    useEffect(() => {
-        console.log(initialData);
-        setValue('selectedFacilityIds', initialData?.selectedFacilityIds || []);
-        setValue('selectedWardenIds', initialData?.selectedWardenIds || []);
-        setValue('selectedMessIds', initialData?.selectedMessIds || []);
-    }, [initialData]);
 
-    // Fetch states when country changes
+    useEffect(() => {
+        if (initialData) {
+            setValue('selectedFacilityIds', initialData?.selectedFacilityIds || []);
+            setValue('selectedWardenIds', initialData?.selectedWardenIds || []);
+            setValue('selectedMessIds', initialData?.selectedMessIds || []);
+        }
+    }, [initialData, setValue]);
+
+    // Fetch states when country changes - FIXED VERSION
     useEffect(() => {
         const fetchStates = async () => {
             if (selectedCountryId) {
-                const result = await getStates(Number(selectedCountryId));
-                if (result.success && result.data) {
-                    setStates(result.data);
-                } else {
+                try {
+                    console.log('Selected Country ID:', selectedCountryId, 'Type:', typeof selectedCountryId);
+                    const countryIdNumber = Number(selectedCountryId);
+                    console.log('Calling getStates with:', countryIdNumber);
+
+                    const result = await getStates(countryIdNumber);
+                    console.log('getStates result:', result);
+
+                    if (result.success && result.data) {
+                        console.log('States loaded:', result.data);
+                        setStates(result.data);
+                        // Reset state field when country changes
+                        setValue('ivrmmS_Id', undefined);
+                    } else {
+                        console.log('No states data or unsuccessful response');
+                        setStates([]);
+                        setValue('ivrmmS_Id', undefined);
+                    }
+                } catch (err) {
+                    console.error('Failed to fetch states:', err);
                     setStates([]);
+                    setValue('ivrmmS_Id', undefined);
+                    toast.error('Failed to load states');
                 }
             } else {
+                console.log('No country selected, clearing states');
                 setStates([]);
+                setValue('ivrmmS_Id', undefined);
             }
         };
+
         fetchStates();
-    }, [selectedCountryId]);
+    }, [selectedCountryId, setValue]);
 
     // Pre-load states if editing
     useEffect(() => {
         if (initialData?.ivrmmC_Id) {
             getStates(Number(initialData.ivrmmC_Id)).then(res => {
-                if (res.success && res.data) setStates(res.data);
+                if (res.success && res.data) {
+                    setStates(res.data);
+                    // If editing and state is set, keep it
+                    if (initialData.ivrmmS_Id) {
+                        setValue('ivrmmS_Id', initialData.ivrmmS_Id);
+                    }
+                }
+            }).catch(err => {
+                console.error('Failed to pre-load states:', err);
+                toast.error('Failed to load states');
             });
         }
-    }, [initialData]);
+    }, [initialData, setValue]);
 
     const onSubmit = async (data: IMasterHostelForm) => {
         try {
@@ -138,11 +169,11 @@ export default function AddMasterHostelForm({
             const file = e.target.files[0];
             const newDoc = {
                 hlmhP_FileName: file.name,
-                hlmhP_FilePath: URL.createObjectURL(file), // Mock path - in real app would interact with upload API
+                hlmhP_FilePath: URL.createObjectURL(file),
                 filetype: file.name.split('.').pop()
             };
             setValue('hostelPhotos', [...hostelPhotos, newDoc]);
-            e.target.value = ''; // Reset input
+            e.target.value = '';
         }
     };
 
@@ -248,18 +279,23 @@ export default function AddMasterHostelForm({
                             </div>
 
                             <div>
-                                <Label>Country <span className='text-red-500'>*</span></Label>
                                 <Controller
                                     control={control}
                                     name='ivrmmC_Id'
                                     render={({ field, fieldState }) => (
-                                        <>
-                                            <Select value={field.value?.toString()} onValueChange={(val) => {
-                                                field.onChange(val);
-                                                setValue('ivrmmS_Id', '' as any);
-                                            }}>
+                                        <div>
+                                            <Label>
+                                                Country <span className='text-red-500'>*</span>
+                                            </Label>
+                                            <Select
+                                                value={field.value ? String(field.value) : undefined}
+                                                onValueChange={(val) => {
+                                                    field.onChange(Number(val));
+                                                    // Reset state when country changes
+                                                    setValue('ivrmmS_Id', undefined);
+                                                }}>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Select Country" />
+                                                    <SelectValue placeholder='Select Country' />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {countries.map(c => (
@@ -268,7 +304,7 @@ export default function AddMasterHostelForm({
                                                 </SelectContent>
                                             </Select>
                                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                        </>
+                                        </div>
                                     )}
                                 />
                             </div>
@@ -280,9 +316,13 @@ export default function AddMasterHostelForm({
                                     name='ivrmmS_Id'
                                     render={({ field, fieldState }) => (
                                         <>
-                                            <Select value={field.value?.toString()} onValueChange={field.onChange} disabled={!selectedCountryId}>
+                                            <Select
+                                                value={field.value ? String(field.value) : undefined}
+                                                onValueChange={(val) => field.onChange(Number(val))}
+                                                disabled={!selectedCountryId || states.length === 0}
+                                            >
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Select State" />
+                                                    <SelectValue placeholder={states.length === 0 ? "No states available" : "Select State"} />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {states.map(s => (
