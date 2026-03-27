@@ -358,14 +358,14 @@ export const gpsLocationReportFilterSchema = z
 export const employeeInOutReportFilterSchema = z
     .object({
         branch: z.string().optional(),
-        type: z.array(z.string()).optional(), // Optional - used for filtering
+        type: z.array(z.string()).min(1, 'At least one type must be selected'), // Optional - used for filtering
         department: z.array(z.string()).min(1, 'At least one department must be selected'),
         designation: z.array(z.string()).min(1, 'At least one designation must be selected'),
         allOrIndividual: z.enum(['All', 'Individual'], {
             required_error: 'All/Individual selection is required'
         }),
         codeOrName: z.enum(['Code', 'Name']).optional(),
-        query: z.array(z.string()).optional(),
+        query: z.string().optional(),
         fromDate: z.string().min(1, 'From Date is required'),
         toDate: z.string().min(1, 'To Date is required'),
         timeInTimeOut: z.enum(['Time In', 'Time Out', 'In Out']).optional() // Optional - used for filtering
@@ -385,7 +385,7 @@ export const employeeInOutReportFilterSchema = z
     .refine(
         (data) => {
             if (data.allOrIndividual === 'Individual') {
-                return data.query && data.query.length > 0;
+                return !!data.query;
             }
             return true;
         },
@@ -463,6 +463,7 @@ export const employeeLogReportFilterSchema = z
         }),
         date: z.string().optional(),
         month: z.string().optional(),
+        year: z.string().optional(),
         fromDate: z.string().optional(),
         toDate: z.string().optional(),
         metric: z.enum(['Punch Time', 'Late In', 'Early Out'], {
@@ -487,7 +488,7 @@ export const employeeLogReportFilterSchema = z
                 return !!data.date;
             }
             if (data.dateMode === 'Monthly') {
-                return !!data.month;
+                return !!data.month && !!data.year;
             }
             if (data.dateMode === 'From Date') {
                 return !!data.fromDate && !!data.toDate;
@@ -495,7 +496,7 @@ export const employeeLogReportFilterSchema = z
             return true;
         },
         {
-            message: 'Date, Monthly, or Date Range is required based on selected mode',
+            message: 'Date, Monthly (Month & Year), or Date Range is required based on selected mode',
             path: ['date']
         }
     )
@@ -601,8 +602,8 @@ export const foMonthEndReportFilterSchema = z.object({
  * Holiday Report Filter Schema
  */
 export const holidayReportFilterSchema = z.object({
-    calendarYear: z.string().min(1, 'Calendar Year is required'),
-    holidayType: z.string().min(1, 'Holiday Type is required')
+    hrmlY_Id: z.string().min(1, 'Calendar Year is required'),
+    fohwdT_Id: z.string().min(1, 'Holiday Type is required')
 });
 
 /**
@@ -642,3 +643,23 @@ export const employeeAbsentReportFilterSchema = z
         }
     );
 
+
+/**
+ * 8. Master Time Setting Schema
+ */
+export const masterTimeSettingSchema = {
+    addOrUpdate: z.object({
+        fomtS_IHalfLoginTime: z.string().min(1, 'Morning Login Time is required'),
+        fomtS_IhalfLogoutTime: z.string().min(1, 'Morning Logout Time is required'),
+        fomtS_FDWHrMin: z.string().min(1, 'Total working hours per shift is required'),
+        fomtS_IIHalfLoginTime: z.string().min(1, 'Afternoon Login Time is required'),
+        fomtS_IIHalfLogoutTime: z.string().min(1, 'Afternoon Logout Time is required'),
+        fomtS_HDWHrMin: z.string().min(1, 'Half day working hours per shift is required'),
+        fomtS_FixTimings: z.string().min(1, 'Min Time Between Two Punching is required'),
+        fomtS_DelayPerShiftHrMin: z.string().min(1, 'Daily per shift is required'),
+        fomtS_EarlyPerShiftHrMin: z.string().min(1, 'Early per shift is required'),
+        fomtS_LunchHoursDuration: z.string().min(1, 'Lunch Hours is required'),
+        fomtS_BlockAttendance: z.string().optional(),
+        fomhwD_ActiveFlg: z.boolean().optional()
+    })
+};

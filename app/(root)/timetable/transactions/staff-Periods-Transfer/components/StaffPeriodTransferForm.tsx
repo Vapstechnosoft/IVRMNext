@@ -105,7 +105,7 @@ export default function StaffPeriodTransferForm({ onFetch }: StaffPeriodTransfer
 
                         {/* Staff */}
                         <div className='space-y-2'>
-                            <Label className='font-bold text-purple-900'>Staff *</Label>
+                            <Label className='font-bold text-purple-900'>From Staff *</Label>
                             <Controller
                                 name='hrmE_Id'
                                 control={control}

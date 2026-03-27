@@ -9,7 +9,7 @@ import { useCallback } from 'react';
 export const masterBuildingsClassSectionColumns: ColumnDef<IMasterBuildClassSectionGrid>[] = [
     {
         accessorKey: 'ttmbcS_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='font-bold text-black' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -21,28 +21,28 @@ export const masterBuildingsClassSectionColumns: ColumnDef<IMasterBuildClassSect
     },
     {
         accessorKey: 'ttmB_BuildingName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Building Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Building Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('ttmB_BuildingName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'asmcL_ClassName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Class Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Class Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('asmcL_ClassName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'asmC_SectionName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Section  Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Section  Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('asmC_SectionName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='font-bold text-black' />,
         accessorFn: (row: any) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />

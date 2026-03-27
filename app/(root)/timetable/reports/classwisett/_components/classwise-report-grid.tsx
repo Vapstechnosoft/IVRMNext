@@ -86,6 +86,7 @@ export default function ClassWiseReportGrid({ reportData, onPrint, initialSize =
 
             {/* Header Bar */}
             <div className='no-print flex items-center justify-between bg-white-100 px-4 py-2 text-sm'>
+                {/* biome-ignore lint/style/useSelfClosingElements: <explanation> */}
                 <span style={{ fontSize: '15px', fontWeight: '300' }}></span>
                 <div className='flex items-center gap-3'>
                     <Button onClick={onPrint} size='sm' className='bg-purple-600 hover:bg-blue-700'>

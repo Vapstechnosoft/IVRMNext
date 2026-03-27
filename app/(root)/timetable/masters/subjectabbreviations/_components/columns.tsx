@@ -9,7 +9,7 @@ import { useCallback } from 'react';
 export const subjectAbbreviationsColumns: ColumnDef<ISubjectAbbreviationList>[] = [
     {
         accessorKey: 'ttmsuaB_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='font-bold text-black' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -21,7 +21,7 @@ export const subjectAbbreviationsColumns: ColumnDef<ISubjectAbbreviationList>[] 
     },
     {
         accessorKey: 'subjectName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Subject Master' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Subject Master' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('subjectName')}</div>,
         enableSorting: true,
         enableHiding: true
@@ -29,14 +29,14 @@ export const subjectAbbreviationsColumns: ColumnDef<ISubjectAbbreviationList>[] 
 
     {
         accessorKey: 'ttmsuaB_Abbreviation',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Subject Abbreviation' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Subject Abbreviation' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('ttmsuaB_Abbreviation')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='font-bold text-black' />,
         accessorFn: (row: any) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />

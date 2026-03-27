@@ -12,15 +12,15 @@ import type {
  * Fetch initial dashboard details
  */
 export async function getDashboardDetails() {
-    const url = '/api/EmployeePortal/get-portal_dashboard-asset-list-data';
-    return await api.get<IEmployeeDashboardResponse>('portal', url);
+    const url = '/EmployeePortal/get-portal_dashboard-asset-list-data';
+    return await api.post<IEmployeeDashboardResponse>('portal', url);
 }
 
 /**
  * Fetch notice board data with filters
  */
 export async function getNoticeBoard(data: INoticeFilterRequest) {
-    const url = '/api/EmployeePortal/onclick-dashboard-notice-board-notice';
+    const url = '/EmployeePortal/onclick-dashboard-notice-board-notice';
     return await api.post<IEmployeeDashboardResponse>('portal', url, data);
 }
 
@@ -28,7 +28,7 @@ export async function getNoticeBoard(data: INoticeFilterRequest) {
  * Fetch calendar of events
  */
 export async function getEvents(data: { flag: string; OnClickOrOnChange: string }) {
-    const url = '/api/EmployeePortal/staff-onclick-events';
+    const url = '/EmployeePortal/staff-onclick-events';
     return await api.post<IEmployeeDashboardResponse>('portal', url, data);
 }
 
@@ -36,7 +36,7 @@ export async function getEvents(data: { flag: string; OnClickOrOnChange: string 
  * Fetch asset, purchase, or book list
  */
 export async function getAssetList(data: IAssetFilterRequest) {
-    const url = '/api/EmployeePortal/onclick-asset-list-asset';
+    const url = '/EmployeePortal/onclick-asset-list-asset';
     return await api.post<IEmployeeDashboardResponse>('portal', url, data);
 }
 
@@ -44,7 +44,7 @@ export async function getAssetList(data: IAssetFilterRequest) {
  * Fetch employee medical records
  */
 export async function getMedicalRecords(data: IMedicalRecordRequest) {
-    const url = '/api/EmployeePortal/staff-onclick-employee';
+    const url = '/EmployeePortal/staff-onclick-employee';
     return await api.post<IEmployeeDashboardResponse>('portal', url, data);
 }
 
@@ -52,7 +52,7 @@ export async function getMedicalRecords(data: IMedicalRecordRequest) {
  * Fetch notice attachments
  */
 export async function getNoticeAttachments(INTB_Id: number) {
-    const url = '/api/EmployeePortal/staff-view-notice';
+    const url = '/EmployeePortal/staff-view-notice';
     return await api.post<IEmployeeDashboardResponse>('portal', url, { INTB_Id });
 }
 
@@ -60,6 +60,6 @@ export async function getNoticeAttachments(INTB_Id: number) {
  * Change employee profile picture
  */
 export async function changeProfile(data: { HRME_PhotoNo: string }) {
-    const url = '/api/EmployeePortal/staff-change-profile';
+    const url = '/EmployeePortal/staff-change-profile';
     return await api.post<{ messag: string; success: boolean }>('portal', url, data);
 }

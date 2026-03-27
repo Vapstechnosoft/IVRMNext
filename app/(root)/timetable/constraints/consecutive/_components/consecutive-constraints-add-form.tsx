@@ -135,6 +135,35 @@ export default function ConsecutiveConstraintsFormnew({ onSuccess, onCancel }: C
     //     loadInitialLists();
     // }, [initialData]);
 
+    const handleReset = () => {
+        reset({
+            TTC_Id: 0,
+            ASMAY_Id: undefined,
+            TTMC_Id: undefined,
+            ASMCL_Id: undefined,
+            ASMS_Id: undefined,
+            HRME_Id: undefined,
+            ISMS_Id: undefined,
+            TTC_NoOfConDays: 1,
+            TTC_NoOfConPeriods: 1,
+            TTC_NoOfPeriods: 1,
+            TTC_BefAftApplFlag: false,
+            TTC_BefAftFalg: '',
+            TTC_BefAftPeriod: 0
+        });
+
+        setCategoryList([]);
+        setClassList([]);
+        setSectionList([]);
+        setStaffList([]);
+        setSubjectList([]);
+    };
+
+    const handleCancel = () => {
+        handleReset();
+        onCancel?.();
+    };
+
     const handleAcademicYearChange = (yearId: number) => {
         setValue('ASMAY_Id', yearId);
         setValue('TTMC_Id', 0);
@@ -181,7 +210,6 @@ export default function ConsecutiveConstraintsFormnew({ onSuccess, onCancel }: C
         setValue('TTC_NoOfPeriods', days * periods);
     }, [watchedConDays, watchedConPeriods, setValue]);
 
-    
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             const payload = {
@@ -197,7 +225,6 @@ export default function ConsecutiveConstraintsFormnew({ onSuccess, onCancel }: C
             if (response.success) {
                 toast.success(response.message);
                 reset();
-                refetchAll();
                 onSuccess?.();
             } else {
                 toast.error(response.message);
@@ -458,15 +485,23 @@ export default function ConsecutiveConstraintsFormnew({ onSuccess, onCancel }: C
                 <Button
                     type='button'
                     variant='outline'
-                    onClick={onCancel}
+                    onClick={handleReset}
                     disabled={isSubmitting}
                     className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
                     Reset
                 </Button>
                 <Button
+                    type='button'
+                    variant='outline'
+                    onClick={handleCancel}
+                    disabled={isSubmitting}
+                    className='order-3 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
+                    Cancel
+                </Button>
+                <Button
                     type='submit'
                     disabled={isSubmitting}
-                    className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
+                    className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-3'
                     isLoading={isSubmitting}
                     loadingText='Saving...'>
                     <div className='flex items-center'>
@@ -477,7 +512,4 @@ export default function ConsecutiveConstraintsFormnew({ onSuccess, onCancel }: C
             </div>
         </form>
     );
-}
-function refetchAll() {
-    throw new Error('Function not implemented.');
 }

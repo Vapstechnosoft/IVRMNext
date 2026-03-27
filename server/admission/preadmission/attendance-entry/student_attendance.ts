@@ -128,12 +128,7 @@ export interface DeleteAttendanceResponse {
 }
 
 export const deleteAttendanceRecord = async (asaId: number): Promise<DeleteAttendanceResponse> => {
-    // URL pattern assumed based on common practices, or we might need to adjust.
-    // The user showed response: "Attendance record not found with ASA_Id: 0"
-    // Usually implies an endpoint that takes ID.
-    // I'll assume a standard delete endpoint or similar structure to view.
-    // NOTE: If this 404s, we'll need the exact endpoint URL.
-    const url = `/StudentAttEntry/delete-attendance-record?ASA_Id=${asaId}`;
+    const url = `//StudentAttEntry/delete-attendance-record?ASA_Id=${asaId}`;
     return api.post<any>('admission', url, {});
 };
 // -------------------- SAVE ATTENDANCE --------------------

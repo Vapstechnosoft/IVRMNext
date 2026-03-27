@@ -46,7 +46,10 @@ export const columns: ColumnDef<DetailsReportData>[] = [
             );
         },
         cell: ({ row }) => {
-            const date = new Date(row.getValue('ttsd_date'));
+            const rawDate = row.getValue('ttsd_date');
+            if (!rawDate) return '-';
+            const date = new Date(rawDate as string);
+            if (Number.isNaN(date.getTime())) return String(rawDate);
             return format(date, 'dd/MM/yyyy');
         }
     },

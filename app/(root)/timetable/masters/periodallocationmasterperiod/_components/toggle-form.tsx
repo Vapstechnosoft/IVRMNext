@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
-import { useMasterDay } from '@/hooks/timetable/useMasters';
+import { getPeriodAllocationmasterPeriodGridData } from '@/hooks/timetable/useMasters';
 import { periodAllocationmasterPeriod } from '@/schemas/timetable/masters';
 import { deactivatePeriod } from '@/server/timetable/masters/periodallocation';
 import type { IPeriodAllocationMasterDay } from '@/types/timetable/masters/masters';
@@ -20,7 +20,7 @@ interface ToggleMasterPeriodFormProps {
 }
 
 export default function ToggleMasterPeriodForm({ rowData, onClose }: ToggleMasterPeriodFormProps) {
-    const { refetchAll } = useMasterDay();
+    const { refetchAll } = getPeriodAllocationmasterPeriodGridData();
     const isActive = rowData.ttmP_ActiveFlag;
 
     const {

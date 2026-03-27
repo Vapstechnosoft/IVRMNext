@@ -40,6 +40,7 @@ interface DataTableProps<TData, TValue> {
     showSearchColumns?: boolean;
     manualPagination?: boolean;
     manualFiltering?: boolean;
+    manualSorting?: boolean;
     scrollable?: boolean;
     maxHeight?: string;
 }
@@ -65,6 +66,7 @@ function DataTableInner<TData, TValue>(
         showSearchColumns = false,
         manualPagination = true,
         manualFiltering = true,
+        manualSorting = true,
         scrollable = false,
         maxHeight = '600px'
     }: DataTableProps<TData, TValue>,
@@ -81,14 +83,27 @@ function DataTableInner<TData, TValue>(
     );
 
     // Sorting and filtering
-    const [sortBy] = useQueryState(tableSearchVariables.sort_column, parseAsString.withOptions({ shallow: false }).withDefault(''));
-    const [order] = useQueryState(
+    const [sortBy, setSortBy] = useQueryState(tableSearchVariables.sort_column, parseAsString.withOptions({ shallow: false }).withDefault(''));
+    const [order, setOrder] = useQueryState(
         tableSearchVariables.sort_direction,
         parseAsStringLiteral(['asc', 'desc'] as const)
             .withOptions({ shallow: false })
             .withDefault('asc')
     );
     const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
+
+    const onSortingChange = (updaterOrValue: any) => {
+        const newSortingState = typeof updaterOrValue === 'function' ? updaterOrValue([{ id: sortBy, desc: order === 'desc' }]) : updaterOrValue;
+
+        if (newSortingState && newSortingState.length > 0) {
+            setSortBy(newSortingState[0].id);
+            setOrder(newSortingState[0].desc ? 'desc' : 'asc');
+        } else {
+            setSortBy(null);
+            setOrder(null);
+        }
+        setCurrentPage(1); // Reset to first page on sort
+    };
 
     // Generate a unique key for this table instance based on current page/filters
     const tableStateKey = `table_selection_${currentPage}_${pageSize}_${sortBy}_${order}_${searchQuery}`;
@@ -103,7 +118,10 @@ function DataTableInner<TData, TValue>(
     }, [rowSelection]);
 
     const paginationState = { pageIndex: currentPage - 1, pageSize };
-    const pageCount = Math.ceil(totalItems / pageSize);
+    // In client-side mode (manualPagination=false), TanStack Table handles slicing, 
+    // but we still want to show the correct page count based on the data length.
+    const effectiveTotal = manualPagination ? totalItems : data.length;
+    const pageCount = Math.ceil(effectiveTotal / pageSize);
 
     const handlePaginationChange = (updaterOrValue: PaginationState | ((old: PaginationState) => PaginationState)) => {
         const pagination = typeof updaterOrValue === 'function' ? updaterOrValue(paginationState) : updaterOrValue;
@@ -128,6 +146,7 @@ function DataTableInner<TData, TValue>(
             rowSelection
         },
         onPaginationChange: handlePaginationChange,
+        onSortingChange: onSortingChange,
 
         // ✅ UPDATE THIS HANDLER
         onRowSelectionChange: (newSelection) => {
@@ -157,7 +176,7 @@ function DataTableInner<TData, TValue>(
         getPaginationRowModel: getPaginationRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
         manualPagination: manualPagination,
-        manualSorting: true,
+        manualSorting: manualSorting,
         manualFiltering: manualFiltering,
         initialState: {
             columnPinning: columnPinning || { right: ['actions'] }
@@ -268,11 +287,11 @@ function DataTableInner<TData, TValue>(
                                     </div>
                                 ) : (
                                     <div className='pagination-info'>
-                                        {totalItems > 0 ? (
+                                        {effectiveTotal > 0 ? (
                                             <>
                                                 Showing <span className="pagination-number">{paginationState.pageIndex * paginationState.pageSize + 1}</span>
-                                                to <span className="pagination-number">{Math.min((paginationState.pageIndex + 1) * paginationState.pageSize, totalItems)}</span>
-                                                of <span className="pagination-number">{totalItems}</span> entries
+                                                to <span className="pagination-number">{Math.min((paginationState.pageIndex + 1) * paginationState.pageSize, effectiveTotal)}</span>
+                                                of <span className="pagination-number">{effectiveTotal}</span> entries
                                             </>
                                         ) : (
                                             'No entries found'

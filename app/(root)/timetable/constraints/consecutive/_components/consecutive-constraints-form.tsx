@@ -14,10 +14,10 @@ import {
 import { consecutiveConstraintsSchema } from '@/schemas/timetable/constraints/consecutive';
 import {
     getConsecutiveConstraintsEditDetails,
+    getStaffDropDownMasterDayClasswise,
     getSubjectDropDownMasterDayClasswise,
     getTransactionClassDropdown,
-    saveConsecutiveConstraintsDetail,
-    getStaffDropDownMasterDayClasswise
+    saveConsecutiveConstraintsDetail
 } from '@/server/timetable/constraints/consecutive';
 import { getSectionDropdownByClassCategory as getSectionByClassFixing } from '@/server/timetable/constraints/fixing';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -107,8 +107,6 @@ export default function ConsecutiveConstraintsForm({ editData, onSuccess, onCanc
 
     const handleReset = () => {
         reset();
-        setClassList([]);
-        setSubjectList([]);
     };
 
     const watchedConDays = watch('TTC_NoOfConDays');
@@ -309,7 +307,9 @@ export default function ConsecutiveConstraintsForm({ editData, onSuccess, onCanc
                             ISMS_Id: d.ismS_Id || d.ISMS_Id || 0,
                             TTC_NoOfConDays: d.ttC_NoOfConDays ?? d.TTC_NoOfConDays ?? 1,
                             TTC_NoOfConPeriods: d.ttC_NoOfConPeriods ?? d.TTC_NoOfConPeriods ?? 1,
-                            TTC_BefAftApplFlag: (d.ttC_BefAftApplFlag ?? d.TTC_BefAftApplFlag) === 1 || (d.ttC_BefAftApplFlag ?? d.TTC_BefAftApplFlag) === true,
+                            TTC_BefAftApplFlag:
+                                (d.ttC_BefAftApplFlag ?? d.TTC_BefAftApplFlag) === 1 ||
+                                (d.ttC_BefAftApplFlag ?? d.TTC_BefAftApplFlag) === true,
                             TTC_BefAftFalg: d.ttC_BefAftFalg || d.TTC_BefAftFalg ? String(d.ttC_BefAftFalg || d.TTC_BefAftFalg) : '',
                             TTC_BefAftPeriod: d.ttC_BefAftPeriod ?? d.TTC_BefAftPeriod ?? 0
                         };
@@ -424,25 +424,22 @@ export default function ConsecutiveConstraintsForm({ editData, onSuccess, onCanc
                         </Label>
                         <Controller
                             control={control}
-                            name="ASMAY_Id"
+                            name='ASMAY_Id'
                             render={({ field }) => (
                                 <Select
+                                    key={field.value || 'empty'}
                                     value={field.value ? String(field.value) : undefined}
                                     onValueChange={(val) => {
-                                        field.onChange(Number(val))
-                                        handleAcademicYearChange(Number(val))
-                                    }}
-                                >
+                                        field.onChange(Number(val));
+                                        handleAcademicYearChange(Number(val));
+                                    }}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="--Select--" />
+                                        <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
 
                                     <SelectContent>
                                         {academicList.map((item: any) => (
-                                            <SelectItem
-                                                key={item.asmaY_Id}
-                                                value={String(item.asmaY_Id)}
-                                            >
+                                            <SelectItem key={item.asmaY_Id} value={String(item.asmaY_Id)}>
                                                 {item.asmaY_Year}
                                             </SelectItem>
                                         ))}
@@ -462,13 +459,13 @@ export default function ConsecutiveConstraintsForm({ editData, onSuccess, onCanc
                             name='ASMCL_Id'
                             render={({ field }) => (
                                 <Select
+                                    key={field.value || 'empty'}
                                     value={field.value ? String(field.value) : undefined}
                                     onValueChange={(val) => {
-                                        const value = Number(val)
-                                        field.onChange(value)
-                                        handleClassChange(value)
-                                    }}
-                                >
+                                        const value = Number(val);
+                                        field.onChange(value);
+                                        handleClassChange(value);
+                                    }}>
                                     <SelectTrigger>
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
@@ -498,13 +495,13 @@ export default function ConsecutiveConstraintsForm({ editData, onSuccess, onCanc
                             name='HRME_Id'
                             render={({ field }) => (
                                 <Select
+                                    key={field.value || 'empty'}
                                     value={field.value ? String(field.value) : undefined}
                                     onValueChange={(val) => {
-                                        const value = Number(val)
-                                        field.onChange(value)
-                                        handleStaffChange(value)
-                                    }}
-                                >
+                                        const value = Number(val);
+                                        field.onChange(value);
+                                        handleStaffChange(value);
+                                    }}>
                                     <SelectTrigger>
                                         <SelectValue placeholder={isStaffLoading ? 'Loading...' : '--Select--'} />
                                     </SelectTrigger>
@@ -540,10 +537,11 @@ export default function ConsecutiveConstraintsForm({ editData, onSuccess, onCanc
                             name='TTMC_Id'
                             render={({ field }) => (
                                 <Select
+                                    key={field.value || 'empty'}
                                     onValueChange={(val) => {
-                                        const value = Number(val)
-                                        field.onChange(value)
-                                        handleCategoryChange(value)
+                                        const value = Number(val);
+                                        field.onChange(value);
+                                        handleCategoryChange(value);
                                     }}>
                                     <SelectTrigger>
                                         <SelectValue placeholder='--Select--' />
@@ -570,6 +568,7 @@ export default function ConsecutiveConstraintsForm({ editData, onSuccess, onCanc
                             name='ASMS_Id'
                             render={({ field }) => (
                                 <Select
+                                    key={field.value || 'empty'}
                                     onValueChange={(val) => handleSectionChange(Number(val))}
                                     value={field.value?.toString() || undefined}>
                                     <SelectTrigger>
@@ -577,7 +576,9 @@ export default function ConsecutiveConstraintsForm({ editData, onSuccess, onCanc
                                     </SelectTrigger>
                                     <SelectContent>
                                         {sectionList.map((item: any) => (
-                                            <SelectItem key={item.asmS_Id || item.asmC_Id} value={(item.asmS_Id || item.asmC_Id).toString()}>
+                                            <SelectItem
+                                                key={item.asmS_Id || item.asmC_Id}
+                                                value={(item.asmS_Id || item.asmC_Id).toString()}>
                                                 {item.asmS_SectionName || item.asmC_SectionName}
                                             </SelectItem>
                                         ))}
@@ -597,7 +598,7 @@ export default function ConsecutiveConstraintsForm({ editData, onSuccess, onCanc
                             name='ISMS_Id'
                             render={({ field }) => (
                                 <Select
-                                    // key={field.value || 'empty'}
+                                    key={field.value || 'empty'}
                                     onValueChange={(val) => setValue('ISMS_Id', Number(val))}
                                     value={field.value?.toString() || undefined}>
                                     <SelectTrigger>
@@ -659,7 +660,7 @@ export default function ConsecutiveConstraintsForm({ editData, onSuccess, onCanc
                                 name='TTC_BefAftFalg'
                                 render={({ field }) => (
                                     <Select
-                                        // key={field.value || 'empty'}
+                                        key={field.value || 'empty'}
                                         onValueChange={field.onChange}
                                         value={field.value?.toString() || undefined}>
                                         <SelectTrigger>
@@ -691,8 +692,8 @@ export default function ConsecutiveConstraintsForm({ editData, onSuccess, onCanc
                     variant='outline'
                     onClick={handleReset}
                     disabled={isSubmitting}
-                    className='order-2 w-fit sm:order-1'>
-                    Cancel
+                    className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                    Reset
                 </Button>
                 <Button
                     type='submit'
@@ -701,10 +702,10 @@ export default function ConsecutiveConstraintsForm({ editData, onSuccess, onCanc
                     isLoading={isSubmitting}
                     loadingText='Saving...'>
                     <div className='flex items-center'>
-                        <Save className='mr-2 h-4 w-4' /> {editData ? 'Update' : 'Save'}
+                        <Save className='mr-2 h-4 w-4' /> {editData ? 'Update' : 'Save Consecutive Constraint'}
                     </div>
                 </Button>
             </div>
-        </form >
+        </form>
     );
 }

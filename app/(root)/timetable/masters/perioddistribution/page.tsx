@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Plus, X } from 'lucide-react';
 
 import PeriodDistributionForm from './_components/period-distribution-form';
+import UpdatePeriodDistributionForm from './_components/updateForms';
 import TogglePeriodDistributionForm from './_components/toggle-form';
 import PeriodDistributionViewModal from './_components/view-modal';
 
@@ -140,7 +141,7 @@ function FormSections({ onSuccess }: { onSuccess: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <PeriodDistributionForm initialData={selectedRow} onSuccess={closeEditForm} />
+                            <UpdatePeriodDistributionForm selectedRow={selectedRow} onSuccess={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>

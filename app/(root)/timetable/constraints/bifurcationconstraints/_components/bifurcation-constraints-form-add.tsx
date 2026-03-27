@@ -33,7 +33,7 @@ interface BifurcationConstraintsFormProps {
 
 type FormFields = z.infer<typeof bifurcationConstraintsSchema.save>;
 
-export default function BifurcationConstraintsForm({ onSuccess, onCancel }: BifurcationConstraintsFormProps) {
+export default function BifurcationConstraintsForm({ onSuccess }: BifurcationConstraintsFormProps) {
     const { data: response, isLoading, error, refetchAll } = useBifurcationConstraints();
     // Local state for dropdowns
     const [classList, setClassList] = useState<ClassDropdownDataTTBifurcation[]>([]);
@@ -101,7 +101,6 @@ export default function BifurcationConstraintsForm({ onSuccess, onCancel }: Bifu
         error: subjectdataError,
         refetchAll: subjectdataRefetch
     } = useSubjectDropdownBifurcationConstraints();
-
 
     const {
         register,
@@ -229,17 +228,15 @@ export default function BifurcationConstraintsForm({ onSuccess, onCancel }: Bifu
         // Get Names for Display
         const className = classList.find((c) => c.asmcL_Id === tempValues.ASMCL_Id)?.asmcL_ClassName;
         const sectionName = sectionListFromHook?.data?.find((c: any) => c.asmS_Id === tempValues.ASMS_Id)?.asmC_SectionName;
-        //     const staffName = staffList.find((c: any) => c.hrmE_Id === tempValues.HRME_Id)?.staffName;
-        // const subjectName =
-        //     subjectList.find((c: any) => c.ismS_Id === tempValues.ISMS_Id)?.ismS_SubjectName ||
-        //     subjectList.find((c: any) => c.ismS_Id === tempValues.ISMS_Id)?.subjectName;
+        const staffName = staffListNew?.data?.find((c: any) => c.hrmE_Id === tempValues.HRME_Id)?.staffName;
+        const subjectName = subjectListNew?.data?.find((c: any) => c.ismS_Id === tempValues.ISMS_Id)?.ismS_SubjectName;
 
         append({
             ...tempValues,
             className,
-            sectioname: sectionName
-            //staffname: staffName,
-            // subjectname: subjectName
+            sectioname: sectionName,
+            staffname: staffName,
+            subjectname: subjectName
         });
 
         // Reset Temp (Partial?)
@@ -272,7 +269,7 @@ export default function BifurcationConstraintsForm({ onSuccess, onCancel }: Bifu
                     ttbD_ActiveFlag: true
                 }))
             };
-
+            //save
             console.info('Bifurcation Payload:', payload);
             const response = await saveBifurcationConstraintsDetail(payload);
             if (response.success) {
@@ -283,9 +280,8 @@ export default function BifurcationConstraintsForm({ onSuccess, onCancel }: Bifu
             } else {
                 toast.error(response.message);
             }
-        } catch (error) {
-            console.error(error);
-            toast.error('An error occurred');
+        } catch (error : any) {
+            toast.error(error.message);
         }
     };
 
@@ -712,15 +708,6 @@ export default function BifurcationConstraintsForm({ onSuccess, onCancel }: Bifu
                     </div>
                 </Button>
             </div>
-
-            {/* <div className='flex justify-center gap-4 pt-4'>
-                <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting}>
-                    <Save className='mr-1.5 h-4 w-4' /> {editData ? 'Update' : 'Save'}
-                </Button>
-                <Button type='button' variant='outline' onClick={onCancel}>
-                    Cancel
-                </Button>
-            </div> */}
         </form>
     );
 }
