@@ -56,73 +56,94 @@ export default function DayStaffUpdate({ academicList, dayList, staffList, selec
     const asmaY_Id = watch('asmaY_Id');
     const ttfdS_SUbSelcFlag = watch('ttfdS_SUbSelcFlag');
 
-    const { fields, append, remove } = useFieldArray({
+    const { fields, append, remove, replace } = useFieldArray({
         control,
         name: 'tempararyArrayList'
     });
 
     useEffect(() => {
         const loadEditData = async () => {
+            if (!selectedRow) return;
+
             try {
-                let d = selectedRow;
-                const id = d?.ttfdS_Id || d?.ttfdsU_Id || d?.ttfpS_Id || d?.ttfpH_Id || d?.ttfD_Id || d?.TTFDS_Id;
-                let fullRes = null;
-                if (id) {
-                    fullRes = await getFixingDayStaffDetails(id);
-                    const editData = fullRes?.data?.fix_day_staff_edit || fullRes?.fix_day_staff_edit || (Array.isArray(fullRes?.data) ? fullRes.data : undefined) || fullRes?.data;
-                    if (editData && Array.isArray(editData) && editData.length > 0) {
-                        d = editData[0];
-                    } else if (editData && !Array.isArray(editData)) {
-                        d = editData;
-                    }
+                const id = selectedRow?.ttfdS_Id;
+                if (!id) return;
+
+                const res = await getFixingDayStaffDetails(id);
+                // Be more resilient with response structure
+                const responseData = res?.data || res;
+
+                const editData = responseData?.fixing_day_staff ||
+                    responseData?.fix_day_staff_edit ||
+                    responseData?.data?.fix_day_staff_edit ||
+                    (Array.isArray(responseData) ? responseData : undefined);
+
+                const subDetails = responseData?.fixing_day_staff_class_edit ||
+                    responseData?.fix_day_staff__classecedit ||
+                    responseData?.data?.fix_day_staff__classecedit || [];
+
+                if (!editData || !Array.isArray(editData) || editData.length === 0) return;
+
+                const main = editData[0];
+
+                reset({
+                    ttfdS_Id: main.ttfdS_Id || main.TTFDS_Id || main.ttfdsU_Id,
+                    asmaY_Id: main.asmaY_Id || main.ASMAY_Id,
+                    ttmD_Id: main.ttmD_Id || main.TTMD_Id,
+                    hrmE_Id: main.hrmE_Id || main.HRME_Id,
+                    ttfdS_SUbSelcFlag: !!main.ttfdS_SUbSelcFlag || !!main.ttfdS_SubSelcFlag,
+                    ttfdscC_Id: subDetails?.[0]?.ttfdscC_Id || subDetails?.[0]?.TTFDSCC_Id || subDetails?.[0]?.ttfdsc_Id,
+                    tempararyArrayList: []
+                });
+
+                let masterData = { classes: [] as any[], sections: [] as any[], subjects: [] as any[] };
+                if (main.hrmE_Id || main.HRME_Id) {
+                    masterData = await handleStaffChange(main.hrmE_Id || main.HRME_Id, main.asmaY_Id || main.ASMAY_Id);
                 }
 
-                if (d) {
-                    const normalizedData = {
-                        ttfdS_Id: d.ttfdS_Id ?? d.TTFDS_Id ?? 0,
-                        asmaY_Id: d.asmaY_Id ?? d.ASMAY_Id,
-                        ttmD_Id: d.ttmD_Id ?? d.TTMD_Id,
-                        hrmE_Id: d.hrmE_Id ?? d.HRME_Id,
-                        ttfdS_SUbSelcFlag: d.ttfdS_SUbSelcFlag ?? d.TTFDS_SUbSelcFlag ?? false
-                    };
+                if (subDetails && Array.isArray(subDetails)) {
+                    replace(
+                        subDetails.map((sub: any) => {
+                            const cid = sub.asmcL_Id || sub.ASMCL_Id || sub.asmcl_id;
+                            const sid = sub.asmS_Id || sub.ASMS_Id || sub.asms_id;
+                            const isid = sub.ismS_Id || sub.ISMS_Id || sub.isms_id || sub.ismS_id;
 
-                    if (normalizedData.hrmE_Id && normalizedData.asmaY_Id) {
-                        await handleStaffChange(normalizedData.hrmE_Id, normalizedData.asmaY_Id);
-                    }
+                            // Lookup names if missing from sub object
+                            const clsName = sub.asmcL_ClassName || sub.ASMCL_ClassName ||
+                                masterData.classes.find(c => Number(c.asmcL_Id || c.ASMCL_Id) === Number(cid))?.asmcL_ClassName ||
+                                masterData.classes.find(c => Number(c.asmcL_Id || c.ASMCL_Id) === Number(cid))?.className || '';
 
-                    reset({
-                        ttfdS_Id: normalizedData.ttfdS_Id,
-                        asmaY_Id: normalizedData.asmaY_Id,
-                        ttmD_Id: normalizedData.ttmD_Id,
-                        hrmE_Id: normalizedData.hrmE_Id,
-                        ttfdS_SUbSelcFlag: normalizedData.ttfdS_SUbSelcFlag,
-                        tempararyArrayList: []
-                    });
+                            const sectName = sub.asmC_SectionName || sub.ASMC_SectionName || sub.asmS_SectionName ||
+                                masterData.sections.find(s => Number(s.asmS_Id || s.ASMS_Id) === Number(sid))?.asmC_SectionName ||
+                                masterData.sections.find(s => Number(s.asmS_Id || s.ASMS_Id) === Number(sid))?.asmS_SectionName ||
+                                masterData.sections.find(s => Number(s.asmS_Id || s.ASMS_Id) === Number(sid))?.sectionName || '';
 
-                    const subDetails = fullRes?.data?.fix_day_staff__classecedit || fullRes?.fix_day_staff__classecedit || selectedRow?.data?.fix_day_staff__classecedit || selectedRow?.fix_day_staff__classecedit;
+                            const subName = sub.ismS_SubjectName || sub.ISMS_SubjectName ||
+                                masterData.subjects.find(s => Number(s.ismS_Id || s.ISMS_Id) === Number(isid))?.ismS_SubjectName ||
+                                masterData.subjects.find(s => Number(s.ismS_Id || s.ISMS_Id) === Number(isid))?.subjectName ||
+                                masterData.subjects.find(s => Number(s.ismS_Id || s.ISMS_Id) === Number(isid))?.ismS_SubjectCode || '';
 
-                    if (normalizedData.ttfdS_SUbSelcFlag && subDetails && Array.isArray(subDetails)) {
-                        subDetails.forEach((sub: any) => {
-                            append({
-                                asmcL_Id: sub.asmcL_Id ?? sub.ASMCL_Id,
-                                asmS_Id: sub.asmS_Id ?? sub.ASMS_Id ?? sub.asmC_Id ?? sub.ASMC_Id,
-                                ismS_Id: sub.ismS_Id ?? sub.ISMS_Id,
-                                nop: sub.ttfdscC_Periods ?? sub.ttscC_Periods ?? sub.nop ?? sub.TTFDSC_Periods,
-                                clsDisplay: sub.asmcL_ClassName ?? sub.ASMCL_ClassName,
-                                sectDisplay: sub.asmC_SectionName ?? sub.ASMC_SectionName ?? sub.asmS_SectionName ?? sub.ASMS_SectionName,
-                                subDisplay: sub.ismS_SubjectName ?? sub.ISMS_SubjectName
-                            });
-                        });
-                    }
+                            return {
+                                ttfdscC_Id: sub.ttfdscC_Id || sub.TTFDSCC_Id,
+                                asmcL_Id: cid,
+                                asmS_Id: sid,
+                                ismS_Id: isid,
+                                nop: Number(sub.ttfdscC_Periods ?? sub.ttfdsc_Periods ?? sub.ttfdsc_NoOfPeriods ?? sub.ttfdscC_NoOfPeriods ?? sub.TTFDSC_NoOfPeriods ?? sub.NOP ?? sub.nop ?? 0),
+                                clsDisplay: clsName,
+                                sectDisplay: sectName,
+                                subDisplay: subName
+                            };
+                        })
+                    );
                 }
-            } catch (error) {
-                console.error('Error processing edit data:', error);
-                toast.error('Failed to load edit details');
+
+            } catch (e) {
+                console.error(e);
+                toast.error("Failed to load edit data");
             }
         };
 
-        if (selectedRow) loadEditData();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        loadEditData();
     }, [selectedRow]);
 
     const handleAcademicYearChange = (yearId: number) => {
@@ -147,9 +168,7 @@ export default function DayStaffUpdate({ academicList, dayList, staffList, selec
 
         const filtered = masterSections.filter(
             (s) =>
-                (s.asmcL_Id !== undefined && Number(s.asmcL_Id) === classId) ||
-                (s.asmcl_id !== undefined && Number(s.asmcl_id) === classId) ||
-                (s.ASMCL_Id !== undefined && Number(s.ASMCL_Id) === classId)
+                (s.asmcL_Id !== undefined && Number(s.asmcL_Id) === classId)
         );
 
         setSectionList(filterData(filtered.length > 0 ? filtered : masterSections, 'asmC_SectionName'));
@@ -162,9 +181,7 @@ export default function DayStaffUpdate({ academicList, dayList, staffList, selec
 
         const filtered = masterSubjects.filter(
             (sub) =>
-                (sub.asmS_Id !== undefined && Number(sub.asmS_Id) === sectionId) ||
-                (sub.asms_id !== undefined && Number(sub.asms_id) === sectionId) ||
-                (sub.ASMS_Id !== undefined && Number(sub.ASMS_Id) === sectionId)
+                (sub.asmS_Id !== undefined && Number(sub.asmS_Id) === sectionId)
         );
 
         if (filtered.length > 0) {
@@ -223,12 +240,14 @@ export default function DayStaffUpdate({ academicList, dayList, staffList, selec
                     if (subjects && subjects.length > 0) {
                         setSubSubjectList(filterData(subjects, 'ismS_SubjectName'));
                     }
+                    return { classes, sections, subjects };
                 }
             } catch (e) {
                 console.error(e);
                 toast.error('Failed to load details for selected staff');
             }
         }
+        return { classes: [], sections: [], subjects: [] };
     };
 
     const addToGrid = () => {
@@ -292,15 +311,13 @@ export default function DayStaffUpdate({ academicList, dayList, staffList, selec
 
             const res = await saveFixingDayStaff(data);
             if (res?.returnval === true || res?.success === true) {
-                toast.success(res?.message || 'Updated Successfully');
                 reset();
                 onSuccess();
             } else {
-                toast.error(res?.message || 'Failed to update');
+                toast.error(res.message);
             }
-        } catch (e) {
-            console.error(e);
-            toast.error('An error occurred');
+        } catch (error: any) {
+            toast.error(error.message);
         }
     };
 
@@ -320,9 +337,12 @@ export default function DayStaffUpdate({ academicList, dayList, staffList, selec
                             <FormItem>
                                 <FormLabel>Academic Year</FormLabel>
                                 <Select
-                                    key={field.value?.toString() || 'empty'}
-                                    onValueChange={(v) => handleAcademicYearChange(Number(v))}
-                                    value={field.value?.toString()}>
+                                    value={field.value?.toString()}
+                                    onValueChange={(v) => {
+                                        field.onChange(Number(v));   // ✅ REQUIRED
+                                        handleAcademicYearChange(Number(v));
+                                    }}
+                                >
                                     <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
                                     <SelectContent>
                                         {academicList.map((item: any, idx: number) => (
@@ -343,7 +363,7 @@ export default function DayStaffUpdate({ academicList, dayList, staffList, selec
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Day</FormLabel>
-                                <Select key={field.value?.toString() || 'empty'} onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
+                                <Select key={field.value?.toString()} onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
                                     <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
                                     <SelectContent>
                                         {dayList.map((item: any, idx: number) => (
@@ -364,7 +384,13 @@ export default function DayStaffUpdate({ academicList, dayList, staffList, selec
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Staff</FormLabel>
-                                <Select key={field.value?.toString() || 'empty'} onValueChange={(v) => handleStaffChange(Number(v))} value={field.value?.toString()}>
+                                <Select
+                                    value={field.value?.toString()}
+                                    onValueChange={(v) => {
+                                        field.onChange(Number(v));   // ✅ REQUIRED
+                                        handleStaffChange(Number(v));
+                                    }}
+                                >
                                     <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
                                     <SelectContent>
                                         {staffList.filter((item: any) => item.hrmE_Id).map((item: any, idx: number) => (
@@ -387,7 +413,10 @@ export default function DayStaffUpdate({ academicList, dayList, staffList, selec
                         render={({ field }) => (
                             <FormItem className='flex flex-row items-start space-x-3 space-y-0 p-4'>
                                 <FormControl>
-                                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                    <Checkbox
+                                        checked={field.value}
+                                        onCheckedChange={(val) => field.onChange(!!val)}
+                                    />
                                 </FormControl>
                                 <div className='space-y-1 leading-none'>
                                     <FormLabel>Fixing Class-Section Wise</FormLabel>
@@ -403,7 +432,7 @@ export default function DayStaffUpdate({ academicList, dayList, staffList, selec
                         <div className='grid grid-cols-1 items-end gap-4 md:grid-cols-5'>
                             <div className='space-y-2'>
                                 <FormLabel>Class</FormLabel>
-                                <Select key={selectedClass?.toString() || 'empty'} onValueChange={(v) => handleClassChange(Number(v))} value={selectedClass?.toString()}>
+                                <Select key={selectedClass?.toString()} onValueChange={(v) => handleClassChange(Number(v))} value={selectedClass?.toString()}>
                                     <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
                                     <SelectContent>
                                         {isClassLoading ? (
@@ -422,7 +451,7 @@ export default function DayStaffUpdate({ academicList, dayList, staffList, selec
                             </div>
                             <div className='space-y-2'>
                                 <FormLabel>Section</FormLabel>
-                                <Select key={selectedSection?.toString() || 'empty'} onValueChange={(v) => handleSectionChange(Number(v))} value={selectedSection?.toString()}>
+                                <Select key={selectedSection?.toString()} onValueChange={(v) => handleSectionChange(Number(v))} value={selectedSection?.toString()}>
                                     <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
                                     <SelectContent>
                                         {sectionList.map((item: any, idx: number) => {
@@ -437,7 +466,7 @@ export default function DayStaffUpdate({ academicList, dayList, staffList, selec
                             </div>
                             <div className='space-y-2'>
                                 <FormLabel>Subject</FormLabel>
-                                <Select key={selectedSubject?.toString() || 'empty'} onValueChange={(v) => setSelectedSubject(Number(v))} value={selectedSubject?.toString()}>
+                                <Select key={selectedSubject?.toString()} onValueChange={(v) => setSelectedSubject(Number(v))} value={selectedSubject?.toString()}>
                                     <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
                                     <SelectContent>
                                         {subSubjectList.map((item: any, idx: number) => {

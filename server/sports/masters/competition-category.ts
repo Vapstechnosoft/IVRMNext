@@ -10,7 +10,7 @@ export async function getMasterCompetitionCategories(searchParams?: ApiSearchpar
         params.search_query = String(params.search_query).trim();
         // If no columns selected, use default searchable columns
         if (!params.search_columns || params.search_columns === '') {
-            params.search_columns = 'SPCCMCC_CompitionCategory,SPCCMCC_CCDesc';
+            params.search_columns = 'SPCCMCC_CompitionCategory,SPCCMCC_CCDesc,SPCCMCC_CCAgeFlag,SPCCMCC_FromCCAgeYear,SPCCMCC_ToCCAgeYear,SPCCMCC_FromCCAgeMonth,SPCCMCC_ToCCAgeMonth,SPCCMCC_FromCCAgeDays,SPCCMCC_ToCCAgeDays,SPCCMCC_CCWeightFlag,SPCCMCC_CCWeight';
         }
     }
     const urlParams = getSearchParamsUrl(params);

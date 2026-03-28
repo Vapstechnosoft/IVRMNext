@@ -27,14 +27,14 @@ const formSchema = z.object({
     TRMV_VehicleName: z.string().min(1, 'Vehicle Name is required').regex(/^[a-zA-Z0-9\s]+$/, 'Only Alphabets, Numbers and Spaces Allowed'),
     TRMFT_Id: z.coerce.number().min(1, 'Fuel Type is required'),
     TRMVT_Id: z.coerce.number().min(1, 'Vehicle Type is required'),
-    TRMV_PurchaseDate: z.date().optional(),
+    TRMV_PurchaseDate: z.date({ required_error: 'Date of Purchase is required' }),
     TRMV_VehicleNo: z.string().min(1, 'Vehicle No is required').regex(/^[a-zA-Z0-9\-\s]+$/, 'Invalid Vehicle No Format'),
     TRMV_ChassisNo: z.string().min(1, 'Chassis No is required').regex(/^[a-zA-Z0-9]+$/, 'Only Alphanumeric Allowed'),
     TRMV_EngineNo: z.string().min(1, 'Engine No is required').regex(/^[a-zA-Z0-9]+$/, 'Only Alphanumeric Allowed'),
     TRMV_PurchasedFrom: z.string().min(1, 'Purchased From is required'),
-    TRMV_Cost: z.coerce.number().min(0, 'Cost must be valid'),
+    TRMV_Cost: z.coerce.number().min(1, 'Approximate Cost is required'),
     TRMV_Capacity: z.coerce.number().min(1, 'Capacity must be valid'),
-    TRMV_Desc: z.string().optional(),
+    TRMV_Desc: z.string().min(1, 'Description is required'),
     TRMV_CompanyName: z.string().min(1, 'Company Name is required'),
     TRMV_RegistrationDate: z.date().optional(),
     TRMV_ManufacturedDate: z.date().optional(),
@@ -78,6 +78,7 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
+        mode: 'onChange',
         defaultValues: {
             TRMV_VehicleName: '',
             TRMFT_Id: 0,
@@ -132,6 +133,41 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
         const newDocs = [...tempDocs];
         newDocs.splice(index, 1);
         setTempDocs(newDocs);
+    };
+
+    // Fields that live on the START tab — must all be valid before proceeding
+    const startTabFields: (keyof z.infer<typeof formSchema>)[] = [
+        'TRMV_VehicleName',
+        'TRMFT_Id',
+        'TRMVT_Id',
+        'TRMV_PurchaseDate',
+        'TRMV_VehicleNo',
+        'TRMV_ChassisNo',
+        'TRMV_EngineNo',
+        'TRMV_PurchasedFrom',
+        'TRMV_Capacity',
+        'TRMV_Cost',
+        'TRMV_CompanyName',
+        'TRMV_SWDOff',
+        'TRMV_OwnersName',
+        'TRMV_Desc',
+        'TRMV_Address',
+    ];
+
+    const handleNext = async () => {
+        const isValid = await form.trigger(startTabFields);
+        if (isValid) {
+            setCurrentTab('end');
+        }
+    };
+
+    // Also gate direct tab-click navigation to END
+    const handleTabChange = async (value: string) => {
+        if (value === 'end') {
+            const isValid = await form.trigger(startTabFields);
+            if (!isValid) return;   // block the switch; errors are already shown
+        }
+        setCurrentTab(value);
     };
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -208,10 +244,24 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className='flex flex-col gap-4'>
-                <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
-                    <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="start">START</TabsTrigger>
-                        <TabsTrigger value="end">END</TabsTrigger>
+                <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full">
+                    <TabsList className="flex w-full rounded-lg border border-border bg-muted p-1 gap-1">
+                        <TabsTrigger
+                            value="start"
+                            className="flex-1 rounded-md px-6 py-2 text-sm font-semibold transition-all
+                                data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md
+                                data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:bg-accent data-[state=inactive]:hover:text-accent-foreground"
+                        >
+                            START
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="end"
+                            className="flex-1 rounded-md px-6 py-2 text-sm font-semibold transition-all
+                                data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md
+                                data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:bg-accent data-[state=inactive]:hover:text-accent-foreground"
+                        >
+                            END
+                        </TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="start" className="space-y-4 pt-4">
@@ -283,11 +333,13 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Date Of Purchase <span className='text-red-500'>*</span></FormLabel>
-                                        <DatePicker
-                                            date={field.value}
-                                            setDate={field.onChange}
-                                            placeholder='Select Date'
-                                        />
+                                        <FormControl>
+                                            <DatePicker
+                                                date={field.value}
+                                                setDate={field.onChange}
+                                                placeholder='Select Date'
+                                            />
+                                        </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}
@@ -464,7 +516,7 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                             </div>
                         </div>
                         <div className="flex justify-end mt-4">
-                            <Button type="button" onClick={() => setCurrentTab('end')} className="bg-primary text-white">Next</Button>
+                            <Button type="button" onClick={handleNext} className="bg-primary text-white">Next</Button>
                         </div>
                     </TabsContent>
 

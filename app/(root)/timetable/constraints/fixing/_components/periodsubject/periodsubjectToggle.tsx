@@ -59,11 +59,11 @@ export default function PeriodSubjectToggle({ rowData, onClose }: TogglePeriodSu
             });
 
             if (response.success || response.returnval) {
-                toast.success(`Record ${isActive ? 'Deactivated' : 'Activated'} Successfully`);
+                toast.success(response.message);
                 refetchAll();
                 closeDialog();
             } else {
-                toast.error(response.message || 'Failed to update record status');
+                toast.error(response.message);
             }
         } catch (error: any) {
             toast.error(error.message);

@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Plus, X } from 'lucide-react';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { createColumns } from './_components/columns';
+import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { MasterSportsCCNameColumns } from './_components/columns';
 import { AddForm } from './_components/add-form';
 import { UpdateForm } from './_components/update-form';
 import { ToggleForm } from './_components/toggle-form';
@@ -19,11 +20,11 @@ export default function SportsCCNamePage(props: { searchParams: SearchParams }) 
     const { data: response, isLoading, error, refetchAll } = useSportsCCNames(searchParams);
 
     return (
-        <SportsCCNamePageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
+        <FormProvider<SportsCCNameDTO>>
+            <SportsCCNamePageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
+        </FormProvider>
     );
 }
-
-import { useState } from 'react';
 
 function SportsCCNamePageContent({
     response,
@@ -36,49 +37,42 @@ function SportsCCNamePageContent({
     error: any;
     refetchAll: any;
 }) {
-    const [isAdding, setIsAdding] = useState(false);
-    const [editingId, setEditingId] = useState<number | null>(null);
-    const [deletingId, setDeletingId] = useState<number | null>(null);
-    const [deletingActiveFlag, setDeletingActiveFlag] = useState<boolean>(false);
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        isToggleFormOpen,
+        selectedRow,
+        openAddForm,
+        closeAddForm,
+        closeEditForm,
+        closeToggleForm,
+        addFormRef,
+        editFormRef
+    } = useFormContext<SportsCCNameDTO>();
 
-    const handleEdit = (item: SportsCCNameDTO) => {
-        setEditingId(item.spccmscC_Id);
-        setIsAdding(true);
-    };
-
-    const handleDelete = (row: SportsCCNameDTO) => {
-        setDeletingId(row.spccmscC_Id);
-        setDeletingActiveFlag(!!row.spccmscC_ActiveFlag);
-    };
-
-    const handleSuccess = () => {
-        setIsAdding(false);
-        setEditingId(null);
-        setDeletingId(null);
-        refetchAll();
-    };
-
-    const handleCancel = () => {
-        setIsAdding(false);
-        setEditingId(null);
-        setDeletingId(null);
-    };
-
-    const columns = createColumns({ onEdit: handleEdit, onDelete: handleDelete });
-    const groupNameList = response?.data?.groupNameList || [];
-    // Data can be in sportsccName or groupNameList based on backend implementation
     const tableData = response?.data?.sportsccName || response?.data?.groupNameList || response?.data || [];
+    const totalItems = response?.total || response?.data?.total || response?.data?.count || response?.data?.Count || response?.count || tableData.length || 0;
+    
     const tableProps = {
         data: tableData,
-        totalItems: response?.total || response?.data?.total || response?.data?.count || response?.data?.Count || response?.count || tableData.length || 0,
+        totalItems,
         success: response?.success,
         errorMessage: response?.message
     };
 
+    const handleSuccess = () => {
+        refetchAll();
+        if (isAddFormOpen) closeAddForm();
+        if (isEditFormOpen) closeEditForm();
+        if (isToggleFormOpen) closeToggleForm();
+    };
+
+    const groupNameList = response?.data?.groupNameList || [];
+
     return (
         <div className="container space-y-4 p-1">
             <div className="flex items-center justify-between">
-                <Button onClick={() => setIsAdding(true)} className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
+                <Button onClick={openAddForm} className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                     <Plus className="mr-2 h-4 w-4" /> Add Master SportsCC Name
                 </Button>
             </div>
@@ -90,7 +84,7 @@ function SportsCCNamePageContent({
                 className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                 <GenericDataTable<SportsCCNameDTO>
                     {...tableProps}
-                    columns={columns}
+                    columns={MasterSportsCCNameColumns}
                     isLoading={isLoading}
                     error={error}
                     manualPagination={true}
@@ -104,46 +98,67 @@ function SportsCCNamePageContent({
                 />
             </CollapsibleSection>
 
-            {isAdding && (
-                <CollapsibleSection
-                    title={editingId ? 'Edit Master SportsCC Name' : 'Add New Master SportsCC Name'}
-                    defaultOpen={true}
-                    variant='outline'
-                    size='md'
-                    className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                    <div className='relative'>
-                        <Button
-                            type='button'
-                            onClick={handleCancel}
-                            variant='ghost'
-                            size='sm'
-                            className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                            <X className='h-4 w-4 text-destructive' /> Close
-                        </Button>
-                        {editingId ? (
-                            <UpdateForm
-                                id={editingId}
-                                onSuccess={handleSuccess}
-                                onCancel={handleCancel}
-                                groupNameList={groupNameList}
-                            />
-                        ) : (
+            {isAddFormOpen && (
+                <div ref={addFormRef}>
+                    <CollapsibleSection
+                        title='Add New Master SportsCC Name'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeAddForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
                             <AddForm
                                 onSuccess={handleSuccess}
-                                onCancel={handleCancel}
+                                onCancel={closeAddForm}
                                 groupNameList={groupNameList}
                             />
-                        )}
-                    </div>
-                </CollapsibleSection>
+                        </div>
+                    </CollapsibleSection>
+                </div>
             )}
 
-            {deletingId && (
+            {isEditFormOpen && selectedRow && (
+                <div ref={editFormRef}>
+                    <CollapsibleSection
+                        title='Edit Master SportsCC Name'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeEditForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
+                            <UpdateForm
+                                id={selectedRow.spccmscC_Id}
+                                onSuccess={handleSuccess}
+                                onCancel={closeEditForm}
+                                groupNameList={groupNameList}
+                            />
+                        </div>
+                    </CollapsibleSection>
+                </div>
+            )}
+
+            {isToggleFormOpen && selectedRow && (
                 <ToggleForm
-                    id={deletingId}
-                    activeFlag={deletingActiveFlag}
+                    id={selectedRow.spccmscC_Id}
+                    activeFlag={!!selectedRow.spccmscC_ActiveFlag}
                     onSuccess={handleSuccess}
-                    onCancel={handleCancel}
+                    onCancel={closeToggleForm}
                 />
             )}
         </div>

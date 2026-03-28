@@ -590,6 +590,115 @@ export async function getUserAccessibleModules() {
                                             title: 'Student Attendance Report',
                                             description: 'Student Attendance Report'
                                         }
+                                        //,
+                                        // {
+                                        //     id: 53,
+                                        //     name: 'Student Birthday Report',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/reports/student-birthday-report',
+                                        //     title: 'Student Birthday Report',
+                                        //     description: 'Student Birthday Report'
+                                        // },
+                                        // {
+                                        //     id: 54,
+                                        //     name: '100% Attendance Report',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/reports/100attendance-report',
+                                        //     title: '100% Attendance Report',
+                                        //     description: '100% Attendance Report'
+                                        // },
+                                        // {
+                                        //     id: 55,
+                                        //     name: 'St.James TC Custom Report',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/reports/stjames-tc-customreport',
+                                        //     title: 'St.James TC Custom Report',
+                                        //     description: 'St.James TC Custom Report'
+                                        // },
+                                        // {
+                                        //     id: 56,
+                                        //     name: 'Study Certificate GMVPS Report',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/reports/study-certificate-gmvps-report',
+                                        //     title: 'Study Certificate GMVPS Report',
+                                        //     description: 'Study Certificate GMVPS Report'
+                                        // }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+
+                {
+                    id: 9000,
+                    name: 'Admission Client',
+                    icon: 'UserRoundPlus',
+                    menu: [
+
+                        {
+                            id: 5,
+                            name: 'Form and Reports',
+                            icon: 'Settings',
+                            sub_menu: [
+
+                                {
+                                    id: 9,
+                                    name: 'stjames',
+                                    icon: 'Settings',
+                                    pages: [
+
+
+                                        {
+                                            id: 12,
+                                            name: 'Overall Daily Attendance Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/overall-daily-attendance-report',
+                                            title: 'Overall Daily Attendance Report',
+                                            description: 'Overall Daily Attendance Report'
+                                        },
+
+
+                                        {
+                                            id: 53,
+                                            name: 'Student Birthday Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/student-birthday-report',
+                                            title: 'Student Birthday Report',
+                                            description: 'Student Birthday Report'
+                                        },
+                                        {
+                                            id: 54,
+                                            name: '100% Attendance Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/100attendance-report',
+                                            title: '100% Attendance Report',
+                                            description: '100% Attendance Report'
+                                        },
+                                        {
+                                            id: 55,
+                                            name: 'St.James TC Custom Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/stjames-tc-customreport',
+                                            title: 'St.James TC Custom Report',
+                                            description: 'St.James TC Custom Report'
+                                        },
+                                        {
+                                            id: 56,
+                                            name: 'Study Certificate GMVPS Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/study-certificate-gmvps-report',
+                                            title: 'Study Certificate GMVPS Report',
+                                            description: 'Study Certificate GMVPS Report'
+                                        },
+                                        {
+                                            id: 57,
+                                            name: 'St.James Bonafied Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/stjamesbonafiedreport',
+                                            title: 'St.James Bonafied Report',
+                                            description: 'St.James Bonafied Report'
+                                        }
                                     ]
                                 }
                             ]
@@ -3380,6 +3489,307 @@ export async function getUserAccessibleModules() {
                     ]
                 },
                 {
+                    id: 8,
+                    name: 'Hostel Management',
+                    icon: 'Home',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Master',
+                            icon: 'Settings',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Masters',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Master Facility',
+                                            icon: 'Wifi',
+                                            url: '/hostel/hostel-management/masters/master-facility',
+                                            title: 'Master Facility',
+                                            description: 'Manage Hostel Facilities'
+                                        },
+                                        {
+                                            id: 7,
+                                            name: 'Master Mess',
+                                            icon: 'Home',
+                                            url: '/hostel/hostel-management/masters/master-mess',
+                                            title: 'Master Mess',
+                                            description: 'Manage Mess Details'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Master Mess Category',
+                                            icon: 'Home',
+                                            url: '/hostel/hostel-management/masters/master-mess-category',
+                                            title: 'Master Mess Category',
+                                            description: 'Manage Mess Category Mapping'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Master Hostel',
+                                            icon: 'Building',
+                                            url: '/hostel/hostel-management/masters/master-hostel',
+                                            title: 'Master Hostel',
+                                            description: 'Manage Hostel Details'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Master Floor',
+                                            icon: 'Layers',
+                                            url: '/hostel/hostel-management/masters/master-floor',
+                                            title: 'Master Floor',
+                                            description: 'Manage Floor Details'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Master Room',
+                                            icon: 'Home',
+                                            url: '/hostel/hostel-management/masters/master-room',
+                                            title: 'Master Room',
+                                            description: 'Manage Room Details'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Master Bed',
+                                            icon: 'Home',
+                                            url: '/hostel/hostel-management/masters/master-bed',
+                                            title: 'Master Bed',
+                                            description: 'Manage Bed Details'
+                                        },
+
+                                        {
+                                            id: 8,
+                                            name: 'Mess Menu',
+                                            icon: 'Home',
+                                            url: '/hostel/hostel-management/masters/mess-menu',
+                                            title: 'Mess Menu',
+                                            description: 'Manage Mess Menu Details'
+                                        },
+                                        {
+                                            id: 9,
+                                            name: 'Room Category',
+                                            icon: 'Home',
+                                            url: '/hostel/hostel-management/masters/room-category',
+                                            title: 'Room Category',
+                                            description: 'Manage Room Categories'
+                                        },
+                                        {
+                                            id: 10,
+                                            name: 'Room Tariff',
+                                            icon: 'Home',
+                                            url: '/hostel/hostel-management/masters/room-tariff',
+                                            title: 'Room Tariff',
+                                            description: 'Manage Room Tariffs'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Transactions',
+                                    icon: 'Repeat',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Student Request',
+                                            icon: 'FileText',
+                                            url: '/hostel/hostel-management/transactions/student-request',
+                                            title: 'Student Request',
+                                            description: 'Student Hostel Request'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Student Request Confirm',
+                                            icon: 'Home',
+                                            url: '/hostel/hostel-management/transactions/student-request-confirm',
+                                            title: 'Student Request Confirm',
+                                            description: 'Confirm Student Requests'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Hostel Allotment For Student',
+                                            icon: 'Home',
+                                            url: '/hostel/hostel-management/transactions/student-allotment',
+                                            title: 'Hostel Allotment For Student',
+                                            description: 'Allot Hostel for Student'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Hostel Vacate',
+                                            icon: 'LogOut',
+                                            url: '/hostel/hostel-management/transactions/vacate-room',
+                                            title: 'Hostel Vacate',
+                                            description: 'Vacate Hostel Room'
+                                        },
+                                        // {
+                                        //     id: 5,
+                                        //     name: 'College Hostel Allotment',
+                                        //     icon: 'Building',
+                                        //     url: '/hostel/hostel-management/transactions/college-student-allotment',
+                                        //     title: 'College Hostel Allotment',
+                                        //     description: 'Allot Hostel for College Student'
+                                        // },
+                                        // {
+                                        //     id: 6,
+                                        //     name: 'College Hostel Vacate',
+                                        //     icon: 'LogOut',
+                                        //     url: '/hostel/hostel-management/transactions/college-vacate-room',
+                                        //     title: 'College Hostel Vacate',
+                                        //     description: 'Vacate College Hostel Room'
+                                        // },
+                                        // {
+                                        //     id: 7,
+                                        //     name: 'College Gate Pass',
+                                        //     icon: 'CreditCard',
+                                        //     url: '/hostel/hostel-management/transactions/college-gatepass',
+                                        //     title: 'College Gate Pass',
+                                        //     description: 'Manage College Gate Pass'
+                                        // },
+                                        {
+                                            id: 8,
+                                            name: 'Staff Request',
+                                            icon: 'FileText',
+                                            url: '/hostel/hostel-management/transactions/staff-request',
+                                            title: 'Staff Request',
+                                            description: 'Staff Hostel Request'
+                                        },
+                                        // {
+                                        //     id: 9,
+                                        //     name: 'Staff Request Confirm',
+                                        //     icon: 'CheckSquare',
+                                        //     url: '/hostel/hostel-management/transactions/staff-request-confirm',
+                                        //     title: 'Staff Request Confirm',
+                                        //     description: 'Confirm Staff Requests'
+                                        // },
+                                        {
+                                            id: 10,
+                                            name: 'Hostel Allotment For Staff',
+                                            icon: 'User',
+                                            url: '/hostel/hostel-management/transactions/staff-allotment',
+                                            title: 'Hostel Allotment For Staff',
+                                            description: 'Allot Hostel for Staff'
+                                        },
+                                        {
+                                            id: 11,
+                                            name: 'Hostel Allotment For Guest',
+                                            icon: 'UserPlus',
+                                            url: '/hostel/hostel-management/transactions/guest-allotment',
+                                            title: 'Hostel Allotment For Guest',
+                                            description: 'Allot Hostel for Guest'
+                                        },
+                                        {
+                                            id: 12,
+                                            name: 'Room Transfer',
+                                            icon: 'Home',
+                                            url: '/hostel/hostel-management/transactions/room-transfer',
+                                            title: 'Room Transfer',
+                                            description: 'Transfer Room'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 3,
+                                    name: 'Reports',
+                                    icon: 'BarChart',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Hostel Allotment Report',
+                                            icon: 'FileText',
+                                            url: '/hostel/hostel-management/reports/allotment-report',
+                                            title: 'Hostel Allotment Report',
+                                            description: 'View Alotment Report'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Hostel Confirm Report',
+                                            icon: 'FileText',
+                                            url: '/hostel/hostel-management/reports/confirm-report',
+                                            title: 'Hostel Confirm Report',
+                                            description: 'View Confirm Report'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Hostel Request Report',
+                                            icon: 'FileText',
+                                            url: '/hostel/hostel-management/reports/request-report',
+                                            title: 'Hostel Request Report',
+                                            description: 'View Request Report'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Hostel Vacate Report',
+                                            icon: 'FileText',
+                                            url: '/hostel/hostel-management/reports/vacate-report',
+                                            title: 'Hostel Vacate Report',
+                                            description: 'View Vacate Report'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Student Gatepass Report',
+                                            icon: 'FileText',
+                                            url: '/hostel/hostel-management/reports/student-gatepass-report',
+                                            title: 'Student Gatepass Report',
+                                            description: 'View Student Gatepass Report'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Student Attendance Report',
+                                            icon: 'FileText',
+                                            url: '/hostel/hostel-management/reports/student-attendance-report',
+                                            title: 'Student Attendance Report',
+                                            description: 'View Student Attendance Report'
+                                        },
+                                        {
+                                            id: 7,
+                                            name: 'Food Conveyance Report',
+                                            icon: 'FileText',
+                                            url: '/hostel/hostel-management/reports/food-conveyance-report',
+                                            title: 'Food Conveyance Report',
+                                            description: 'View Food Conveyance Report'
+                                        },
+                                        {
+                                            id: 8,
+                                            name: 'College Allotment Report',
+                                            icon: 'FileText',
+                                            url: '/hostel/hostel-management/reports/college-allotment-report',
+                                            title: 'College Allotment Report',
+                                            description: 'View College Allotment Report'
+                                        },
+                                        {
+                                            id: 9,
+                                            name: 'College Confirm Report',
+                                            icon: 'FileText',
+                                            url: '/hostel/hostel-management/reports/college-confirm-report',
+                                            title: 'College Confirm Report',
+                                            description: 'View College Confirm Report'
+                                        },
+                                        {
+                                            id: 10,
+                                            name: 'College Request Report',
+                                            icon: 'FileText',
+                                            url: '/hostel/hostel-management/reports/college-request-report',
+                                            title: 'College Request Report',
+                                            description: 'View College Request Report'
+                                        },
+                                        {
+                                            id: 11,
+                                            name: 'College Vacate Report',
+                                            icon: 'FileText',
+                                            url: '/hostel/hostel-management/reports/college-vacate-report',
+                                            title: 'College Vacate Report',
+                                            description: 'View College Vacate Report'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+
+                {
                     id: 15,
                     name: 'Visitor Management',
                     icon: 'Users',
@@ -3597,7 +4007,7 @@ export async function getUserAccessibleModules() {
                                             id: 225,
                                             name: 'Upload Notice Board',
                                             icon: 'BookOpen',
-                                            url: '/upload/transactions/notice-board',
+                                            url: '/upload/transactions/notice-board-new',
                                             title: 'Upload Notice Board',
                                             description: 'Upload Notice Board'
                                         },
@@ -4309,66 +4719,66 @@ export async function getUserAccessibleModules() {
                     ]
                 },
 
-                // {
-                //     id: 25,
-                //     name: 'COE',
-                //     icon: 'Settings',
-                //     menu: [
-                //         {
-                //             id: 1,
-                //             name: 'Calendar of Events',
-                //             icon: 'Settings',
-                //             sub_menu: [
-                //                 {
-                //                     id: 1,
-                //                     name: 'Master',
-                //                     icon: 'Settings',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Master Event',
-                //                             icon: 'Settings',
-                //                             url: '/coe/master/masterevent',
-                //                             title: 'Master Event',
-                //                             description: 'Manage Master Event Details'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Mapping',
-                //                             icon: 'Settings',
-                //                             url: '/coe/master/master-coe',
-                //                             title: 'Mapping',
-                //                             description: 'Manage Mapping Details'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 2,
-                //                     name: 'Report',
-                //                     icon: 'Settings',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'COE Report',
-                //                             icon: 'Settings',
-                //                             url: '/coe/report/coereport',
-                //                             title: 'COE Report',
-                //                             description: 'Manage COE Report'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'COE Month End Report',
-                //                             icon: 'Settings',
-                //                             url: '/coe/report/coemonthendreport',
-                //                             title: 'COE Month End Report',
-                //                             description: 'Manage COE Month End Report'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         }
-                //     ]
-                // }
+                {
+                    id: 25,
+                    name: 'COE',
+                    icon: 'Settings',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Calendar of Events',
+                            icon: 'Settings',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Master',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Master Event',
+                                            icon: 'Settings',
+                                            url: '/coe/master/masterevent',
+                                            title: 'Master Event',
+                                            description: 'Manage Master Event Details'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Mapping',
+                                            icon: 'Settings',
+                                            url: '/coe/master/master-coe',
+                                            title: 'Mapping',
+                                            description: 'Manage Mapping Details'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Report',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'COE Report',
+                                            icon: 'Settings',
+                                            url: '/coe/report/coereport',
+                                            title: 'COE Report',
+                                            description: 'Manage COE Report'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'COE Month End Report',
+                                            icon: 'Settings',
+                                            url: '/coe/report/coemonthendreport',
+                                            title: 'COE Month End Report',
+                                            description: 'Manage COE Month End Report'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
                 {
                     id: 10,
                     name: 'Inventory Management',
@@ -5868,7 +6278,7 @@ export async function getUserAccessibleModules() {
                                             id: 80013,
                                             name: 'Notice Board',
                                             icon: 'MessageSquare',
-                                            url: '/StaffPortal/Upload/notice-board',
+                                            url: '/StaffPortal/Upload/notice-board-new',
                                             title: 'Notice Board',
                                             description: 'Notice Board'
                                         },

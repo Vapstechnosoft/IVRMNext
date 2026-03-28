@@ -7,6 +7,8 @@ import StaffAllotmentList from './_components/list';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 
+import { FormProvider } from '@/components/ui/form/form-provider';
+
 export default function StaffAllotmentPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [dropdowns, setDropdowns] = useState<any>({
@@ -51,18 +53,20 @@ export default function StaffAllotmentPage() {
     }
 
     return (
-        <div className="container mx-auto p-4 space-y-8">
-            <h2 className="text-2xl font-bold text-gray-800">Staff Allotment</h2>
+        <FormProvider>
+            <div className="container mx-auto p-4 space-y-8">
+                <h2 className="text-2xl font-bold text-gray-800">Staff Allotment</h2>
 
-            <StaffAllotmentForm
-                dropdowns={dropdowns}
-                onSuccess={handleSuccess}
-            />
+                <StaffAllotmentForm
+                    dropdowns={dropdowns}
+                    onSuccess={handleSuccess}
+                />
 
-            <StaffAllotmentList
-                data={dropdowns.student_allotlist || []}
-                onEdit={() => { }}
-            />
-        </div>
+                <StaffAllotmentList
+                    data={dropdowns.student_allotlist || []}
+                    onEdit={() => { }}
+                />
+            </div>
+        </FormProvider>
     );
 }

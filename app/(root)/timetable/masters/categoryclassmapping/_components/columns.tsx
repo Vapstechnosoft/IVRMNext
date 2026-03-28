@@ -9,7 +9,7 @@ import { useCallback } from 'react';
 export const categoryClassMappingColumns: ColumnDef<ICategoryClassMapping>[] = [
     {
         accessorKey: 'ttcC_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='font-bold text-black' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -21,21 +21,21 @@ export const categoryClassMappingColumns: ColumnDef<ICategoryClassMapping>[] = [
     },
     {
         accessorKey: 'academicName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Academic Year' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Academic Year' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('academicName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'categoryName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Category Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Category Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('categoryName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'className',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Class Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Class Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('className')}</div>,
         enableSorting: true,
         enableHiding: true

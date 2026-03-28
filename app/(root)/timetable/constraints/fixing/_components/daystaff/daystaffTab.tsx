@@ -39,7 +39,9 @@ function DayStaffTabContent({ initialData, searchParams }: DayStaffTabProps) {
         closeAllForms,
         isToggleFormOpen,
         closeToggleForm,
-        selectedRow
+        selectedRow,
+        addFormRef,
+        editFormRef
     } = useFormContext();
 
     const { data: academicData } = usebifurcationAcademicYear();
@@ -95,7 +97,6 @@ function DayStaffTabContent({ initialData, searchParams }: DayStaffTabProps) {
             </div>
 
             <CollapsibleSection
-                title='Day Staff Constraints List'
                 defaultOpen={true}
                 variant='default'
                 size='lg'
@@ -106,8 +107,9 @@ function DayStaffTabContent({ initialData, searchParams }: DayStaffTabProps) {
             {isToggleFormOpen && selectedRow && <DayStaffToggle rowData={selectedRow} onClose={closeToggleForm} />}
 
             {(isAddFormOpen || isEditFormOpen) && (
-                <CollapsibleSection
-                    title={isEditFormOpen ? 'Edit Day Staff Constraint' : 'Add New Day Staff Constraint'}
+                <div ref={isAddFormOpen ? addFormRef : editFormRef}>
+                    <CollapsibleSection
+                        title={isEditFormOpen ? 'Edit Day Staff Constraint' : 'Add New Day Staff Constraint'}
                     defaultOpen={true}
                     variant='outline'
                     size='md'
@@ -144,6 +146,7 @@ function DayStaffTabContent({ initialData, searchParams }: DayStaffTabProps) {
                         )}
                     </div>
                 </CollapsibleSection>
+                </div>
             )}
         </div>
     );

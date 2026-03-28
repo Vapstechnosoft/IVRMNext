@@ -76,7 +76,7 @@ export default function PeriodSubjectUpdate({ academicList, periodList, subjectL
     const [selectedClass, setSelectedClass] = useState<number | undefined>();
     const [selectedSection, setSelectedSection] = useState<number | undefined>();
     const [selectedStaff, setSelectedStaff] = useState<number | undefined>();
-    const [nod, setNod] = useState<string>('');
+    const [nop, setNop] = useState<string>('');
 
     const form = useForm<FixingPeriodSubjectSchema>({
         resolver: zodResolver(fixingPeriodSubjectSchema),
@@ -94,80 +94,138 @@ export default function PeriodSubjectUpdate({ academicList, periodList, subjectL
     const asmaY_Id = watch('asmaY_Id');
     const ttfpsU_SUbSelcFlag = watch('ttfpsU_SUbSelcFlag');
 
-    const { fields, append, remove } = useFieldArray({
+    const { fields, append, remove, replace } = useFieldArray({
         control,
         name: 'tempararyArrayList'
     });
 
+    // --- Helper for Case-Insensitive Field Lookup ---
+    const getVal = (obj: any, fieldName: string) => {
+        if (!obj) return undefined;
+        const key = Object.keys(obj).find(k => k.toLowerCase() === fieldName.toLowerCase());
+        return key ? obj[key] : undefined;
+    };
+
+    // --- Helper to find an array in payload that contains items with a specific field ---
+    const findArrayWithField = (payload: any, fieldName: string, excludeArray?: any[]) => {
+        if (!payload) return [];
+        for (const key of Object.keys(payload)) {
+            const val = payload[key];
+            if (Array.isArray(val) && val.length > 0 && val !== excludeArray) {
+                const hasField = Object.keys(val[0]).some(k => k.toLowerCase() === fieldName.toLowerCase());
+                if (hasField) return val;
+            }
+        }
+        return [];
+    };
+
     useEffect(() => {
         const loadEditData = async () => {
+            if (!selectedRow) return;
+
             try {
-                let d = selectedRow;
-                const id = d?.ttfpsU_Id || d?.ttrpsU_Id || d?.TTFPSU_Id;
-                let fullRes = null;
-                if (id) {
-                    fullRes = await getFixingPeriodSubjectDetails(id);
-                    const editData = fullRes?.data?.fix_period_subject_edit || fullRes?.fix_period_subject_edit || (Array.isArray(fullRes?.data) ? fullRes.data : undefined) || fullRes?.data;
-                    if (editData && Array.isArray(editData) && editData.length > 0) {
-                        d = editData[0];
-                    } else if (editData && !Array.isArray(editData)) {
-                        d = editData;
-                    }
+                const id = selectedRow?.ttfpsU_Id || selectedRow?.ttrpsU_Id || selectedRow?.TTFPSU_Id;
+                if (!id) return;
+
+                const res = await getFixingPeriodSubjectDetails(id);
+                const responseData = res?.data || res;
+
+                // 1. Greedily find main record
+                const editData = findArrayWithField(responseData, 'asmaY_Id') ||
+                    responseData?.fixing_period_subject_edit ||
+                    responseData?.fixing_period_subject ||
+                    (Array.isArray(responseData) ? responseData : undefined);
+
+                const main = (editData && Array.isArray(editData)) ? editData[0] : null;
+                if (!main) return;
+
+                // 2. Greedily find sub-details (contains asmcL_Id or asms_Id and is NOT the main array)
+                const subDetails: any[] = findArrayWithField(responseData, 'asmcL_Id', editData) ||
+                    findArrayWithField(responseData, 'asmcl_id', editData) ||
+                    responseData?.fixing_period_subject_class_edit ||
+                    responseData?.fixing_period_subject__classecedit || [];
+
+                // Resolve IDs for form reset
+                const subjectId = getVal(main, 'ismS_Id') || selectedRow?.ismS_Id;
+                const yearId = getVal(main, 'asmaY_Id') || selectedRow?.asmaY_Id;
+                const periodId = getVal(main, 'ttmP_Id') || selectedRow?.ttmP_Id;
+
+                // Optional: pre-fill inputs with the first sub-detail if present
+                const firstSub = (subDetails && subDetails.length > 0) ? subDetails[0] : null;
+                const pCid = firstSub ? (firstSub.asmcL_Id || firstSub.ASMCL_Id || firstSub.asmcl_id) : undefined;
+                const pSid = firstSub ? (firstSub.asmS_Id || firstSub.ASMS_Id || firstSub.asms_id) : undefined;
+                const pHrmid = firstSub ? (firstSub.hrmE_Id || firstSub.HRME_Id || firstSub.hrme_id) : undefined;
+                const pNop = firstSub ? (firstSub.ttfpsucC_Days ?? firstSub.nop ?? firstSub.TTFPSUCC_Days ?? firstSub.ttfpsucC_Periods ?? firstSub.TTFPSUCC_Periods ?? firstSub.TTRPSUCC_Periods ?? firstSub.ttrpsucC_Periods ?? 0) : '';
+
+                reset({
+                    ttrpsU_Id: getVal(main, 'ttrpsU_Id') ?? getVal(main, 'ttfpsU_Id') ?? selectedRow?.ttrpsU_Id ?? 0,
+                    ttfpsU_Id: getVal(main, 'ttfpsU_Id') ?? getVal(main, 'ttrpsU_Id') ?? selectedRow?.ttfpsU_Id ?? 0,
+                    asmaY_Id: yearId,
+                    ttmP_Id: periodId,
+                    ismS_Id: subjectId,
+                    ttfpsU_SUbSelcFlag: !!(getVal(main, 'ttfpsU_SUbSelcFlag') ?? getVal(main, 'ttrpsU_SUbSelcFlag') ?? selectedRow?.ttfpsU_SUbSelcFlag),
+                    tempararyArrayList: []
+                });
+
+                // Load master lists using resolved IDs
+                let masterData = { classes: [] as any[], sections: [] as any[], staff: [] as any[] };
+                if (subjectId && yearId) {
+                    masterData = await handleSubjectChange(subjectId, yearId);
                 }
 
-                if (d) {
-                    const normalizedData = {
-                        ttfpsU_Id: d.ttfpsU_Id ?? d.ttrpsU_Id ?? d.TTFPSU_Id ?? 0,
-                        ttrpsU_Id: d.ttrpsU_Id ?? d.ttfpsU_Id ?? d.TTRPSU_Id ?? 0,
-                        asmaY_Id: d.asmaY_Id ?? d.ASMAY_Id,
-                        ttmP_Id: d.ttmP_Id ?? d.TTMP_Id,
-                        ismS_Id: d.ismS_Id ?? d.ISMS_Id,
-                        ttfpsU_SUbSelcFlag: d.ttfpsU_SUbSelcFlag ?? d.TTFPSU_SUbSelcFlag ?? d.ttrpsU_SUbSelcFlag ?? d.TTRPSU_SUbSelcFlag ?? false
-                    };
+                if (pCid) setSelectedClass(Number(pCid));
+                if (pSid) setSelectedSection(Number(pSid));
+                if (pHrmid) setSelectedStaff(Number(pHrmid));
+                if (pNop) setNop(pNop.toString());
 
-                    if (normalizedData.ismS_Id) {
-                        await handleSubjectChange(normalizedData.ismS_Id, normalizedData.asmaY_Id);
-                    }
+                if (subDetails && Array.isArray(subDetails)) {
+                    replace(
+                        subDetails.map((sub: any) => {
+                            const cid = sub.asmcL_Id || sub.ASMCL_Id || sub.asmcl_id;
+                            const sid = sub.asmS_Id || sub.ASMS_Id || sub.asms_id;
+                            const hrmid = sub.hrmE_Id || sub.HRME_Id || sub.hrme_id;
 
-                    reset({
-                        ttrpsU_Id: normalizedData.ttrpsU_Id,
-                        ttfpsU_Id: normalizedData.ttfpsU_Id,
-                        asmaY_Id: normalizedData.asmaY_Id,
-                        ttmP_Id: normalizedData.ttmP_Id,
-                        ismS_Id: normalizedData.ismS_Id,
-                        ttfpsU_SUbSelcFlag: normalizedData.ttfpsU_SUbSelcFlag,
-                        tempararyArrayList: []
-                    });
+                            const clsName =
+                                sub.asmcL_ClassName || sub.ASMCL_ClassName ||
+                                masterData.classes.find(c => Number(c.asmcL_Id || c.ASMCL_Id) === Number(cid))?.asmcL_ClassName ||
+                                masterData.classes.find(c => Number(c.asmcL_Id || c.ASMCL_Id) === Number(cid))?.className || '';
 
-                    const subDetails = fullRes?.data?.fix_period_subject__classecedit || fullRes?.fix_period_subject__classecedit || selectedRow?.data?.fix_period_subject__classecedit || selectedRow?.fix_period_subject__classecedit;
+                            const sectName =
+                                sub.asmC_SectionName || sub.ASMC_SectionName || sub.asmS_SectionName ||
+                                masterData.sections.find(s => Number(s.asmS_Id || s.ASMS_Id) === Number(sid))?.asmC_SectionName ||
+                                masterData.sections.find(s => Number(s.asmS_Id || s.ASMS_Id) === Number(sid))?.asmS_SectionName ||
+                                masterData.sections.find(s => Number(s.asmS_Id || s.ASMS_Id) === Number(sid))?.sectionName || '';
 
-                    if (normalizedData.ttfpsU_SUbSelcFlag && subDetails && Array.isArray(subDetails)) {
-                        subDetails.forEach((sub: any) => {
-                            append({
-                                asmcL_Id: sub.asmcL_Id ?? sub.ASMCL_Id,
-                                asmS_Id: sub.asmS_Id ?? sub.ASMS_Id ?? sub.asmC_Id ?? sub.ASMC_Id,
-                                hrmE_Id: sub.hrmE_Id ?? sub.HRME_Id,
-                                nod: sub.ttfpsucC_Days ?? sub.nod ?? sub.TTFPSUCC_Days,
-                                clsDisplay: sub.asmcL_ClassName ?? sub.ASMCL_ClassName,
-                                sectDisplay: sub.asmC_SectionName ?? sub.ASMC_SectionName ?? sub.asmS_SectionName ?? sub.ASMS_SectionName,
-                                staffDisplay: sub.staffName ?? sub.staffname ?? sub.hrmE_EmployeeFirstName ?? sub.HRME_EmployeeFirstName
-                            });
-                        });
-                    }
+                            const staffName =
+                                sub.staffName || sub.staffname || sub.hrmE_EmployeeFirstName || sub.HRME_EmployeeFirstName ||
+                                masterData.staff.find(s => Number(s.hrmE_Id || s.HRME_Id) === Number(hrmid))?.staffName ||
+                                masterData.staff.find(s => Number(s.hrmE_Id || s.HRME_Id) === Number(hrmid))?.hrmE_EmployeeFirstName || '';
+
+                            return {
+                                ttfpsucC_Id: sub.ttfpsucC_Id || sub.TTFPSUCC_Id || sub.ttrpsucC_Id || sub.TTRPSUCC_Id,
+                                asmcL_Id: cid,
+                                asmS_Id: sid,
+                                hrmE_Id: hrmid,
+                                nop: Number(sub.ttfpsucC_Days ?? sub.nop ?? sub.TTFPSUCC_Days ?? sub.ttfpsucC_Periods ?? sub.TTFPSUCC_Periods ?? sub.TTRPSUCC_Periods ?? sub.ttrpsucC_Periods ?? 0),
+                                clsDisplay: clsName,
+                                sectDisplay: sectName,
+                                staffDisplay: staffName
+                            };
+                        })
+                    );
                 }
-            } catch (error) {
-                console.error('Error processing edit data:', error);
-                toast.error('Failed to load edit details');
+            } catch (e) {
+                console.error(e);
+                toast.error("Failed to load edit data");
             }
         };
 
-        if (selectedRow) loadEditData();
+        loadEditData();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedRow]);
 
     const handleAcademicYearChange = (yearId: number) => {
         setValue('asmaY_Id', yearId);
-        setValue('ismS_Id', 0);
         setSelectedClass(undefined);
         setSelectedSection(undefined);
         setSelectedStaff(undefined);
@@ -177,6 +235,11 @@ export default function PeriodSubjectUpdate({ academicList, periodList, subjectL
         setMasterClasses([]);
         setMasterSections([]);
         setMasterStaff([]);
+
+        const currentSubjectId = form.getValues('ismS_Id');
+        if (yearId && currentSubjectId) {
+            handleSubjectChange(currentSubjectId, yearId);
+        }
     };
 
     const handleClassChange = (classId: number) => {
@@ -196,32 +259,56 @@ export default function PeriodSubjectUpdate({ academicList, periodList, subjectL
         setSectionList([]);
         setSubStaffList([]);
 
-        const activeYearId = asmayIdOverride || asmaY_Id;
+        const effectiveYearId = asmayIdOverride ?? form.getValues('asmaY_Id');
 
-        if (!activeYearId || !subjectId) return;
+        if (effectiveYearId && subjectId) {
+            try {
+                const res = await getFixingClassSectionStaffsBySubject(effectiveYearId, subjectId);
+                const payload = res?.data ?? res;
 
-        try {
-            const res = await getFixingClassSectionStaffsBySubject(activeYearId, subjectId);
+                if (res) {
+                    const classes =
+                        extractList(res, 'clssbysub').length > 0 ? extractList(res, 'clssbysub') :
+                            extractList(res, 'clsbysubject').length > 0 ? extractList(res, 'clsbysubject') :
+                                extractList(res, 'classlist').length > 0 ? extractList(res, 'classlist') :
+                                    findArrayWithField(payload, 'asmcL_Id');
 
-            const classes = extractList(res, 'clssbysub');
-            const sections = extractList(res, 'secsbysub');
-            const staff = extractList(res, 'staffbysub');
+                    const sections =
+                        extractList(res, 'secsbysub').length > 0 ? extractList(res, 'secsbysub') :
+                            extractList(res, 'secsbysubject').length > 0 ? extractList(res, 'secsbysubject') :
+                                extractList(res, 'sectionlist').length > 0 ? extractList(res, 'sectionlist') :
+                                    findArrayWithField(payload, 'asmS_Id');
 
-            setMasterClasses(classes);
-            setMasterSections(sections);
-            setMasterStaff(staff);
+                    const staff =
+                        extractList(res, 'staffbysub').length > 0 ? extractList(res, 'staffbysub') :
+                            extractList(res, 'staffbysubject').length > 0 ? extractList(res, 'staffbysubject') :
+                                extractList(res, 'stafflist').length > 0 ? extractList(res, 'stafflist') :
+                                    findArrayWithField(payload, 'hrmE_Id');
 
-            setClassList(uniqueById(classes, 'asmcL_Id'));
-            setSectionList(uniqueById(sections, 'asmS_Id'));
-            setSubStaffList(uniqueById(staff, 'hrmE_Id'));
-        } catch (error) {
-            console.error(error);
-            toast.error('Failed to load subject details');
+                    setMasterClasses(classes || []);
+                    setMasterSections(sections || []);
+                    setMasterStaff(staff || []);
+
+                    setClassList(uniqueById(classes || [], 'asmcL_Id'));
+                    setSectionList(uniqueById(sections || [], 'asmS_Id'));
+                    setSubStaffList(uniqueById(staff || [], 'hrmE_Id'));
+
+                    return {
+                        classes: classes || [],
+                        sections: sections || [],
+                        staff: staff || []
+                    };
+                }
+            } catch (error) {
+                console.error(error);
+                toast.error('Failed to load subject details');
+            }
         }
+        return { classes: [], sections: [], staff: [] };
     };
 
     const addToGrid = () => {
-        if (!selectedClass || !selectedSection || !selectedStaff || !nod) {
+        if (!selectedClass || !selectedSection || !selectedStaff || !nop) {
             toast.warning('Please select all fields');
             return;
         }
@@ -242,7 +329,7 @@ export default function PeriodSubjectUpdate({ academicList, periodList, subjectL
             asmcL_Id: selectedClass,
             asmS_Id: selectedSection,
             hrmE_Id: selectedStaff,
-            nod: Number(nod),
+            nop: Number(nop),
             clsDisplay: clsObj?.asmcL_ClassName,
             sectDisplay: secObj?.asmC_SectionName,
             staffDisplay: staffObj?.hrmE_EmployeeFirstName || staffObj?.staffName
@@ -254,7 +341,7 @@ export default function PeriodSubjectUpdate({ academicList, periodList, subjectL
             { accessorKey: 'clsDisplay', header: 'Class' },
             { accessorKey: 'sectDisplay', header: 'Section' },
             { accessorKey: 'staffDisplay', header: 'Staff' },
-            { accessorKey: 'nod', header: 'No Of Days' },
+            { accessorKey: 'nop', header: 'No Of Days' },
             {
                 id: 'actions',
                 header: 'Actions',
@@ -278,15 +365,14 @@ export default function PeriodSubjectUpdate({ academicList, periodList, subjectL
             }
             const res = await saveFixingPeriodSubject(data);
             if (res?.returnval === true || res?.success === true) {
-                toast.success(res?.message || 'Record Updated Successfully');
+                toast.success(res?.message);
                 reset();
                 onSuccess();
             } else {
-                toast.error(res?.message || 'Failed to update');
+                toast.error(res?.message);
             }
-        } catch (e) {
-            console.error(e);
-            toast.error('An error occurred');
+        } catch (error: any) {
+            toast.error(error.message);
         }
     };
 
@@ -296,12 +382,12 @@ export default function PeriodSubjectUpdate({ academicList, periodList, subjectL
                 <FormField
                     control={form.control}
                     name='ttrpsU_Id'
-                    render={({ field }) => <Input type='hidden' {...field} value={field.value || 0} />}
+                    render={({ field }) => <Input type='hidden' {...field} value={field.value} />}
                 />
                 <FormField
                     control={form.control}
                     name='ttfpsU_Id'
-                    render={({ field }) => <Input type='hidden' {...field} value={field.value || 0} />}
+                    render={({ field }) => <Input type='hidden' {...field} value={field.value} />}
                 />
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                     <FormField
@@ -466,7 +552,7 @@ export default function PeriodSubjectUpdate({ academicList, periodList, subjectL
                             </div>
                             <div className='space-y-2'>
                                 <FormLabel>No Of Days</FormLabel>
-                                <Input type='number' value={nod} onChange={(e) => setNod(e.target.value)} />
+                                <Input type='number' value={nop} onChange={(e) => setNop(e.target.value)} />
                             </div>
                         </div>
                         <Button type='button' onClick={addToGrid}>

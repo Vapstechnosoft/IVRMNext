@@ -50,16 +50,19 @@ export const MasterCompetitionCategoryColumns: ColumnDef<IMasterCompetitionCateg
         accessorKey: 'spccmcC_CompitionCategory',
         id: 'SPCCMCC_CompitionCategory',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Competition Category' />,
+        enableSorting: true
     },
     {
         accessorKey: 'spccmcC_CCDesc',
         id: 'SPCCMCC_CCDesc',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Description' />,
+        enableSorting: true
     },
     {
         accessorKey: 'spccmcC_CCAgeFlag',
         id: 'SPCCMCC_CCAgeFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Age Flag' />,
+        enableSorting: true,
         cell: ({ row }) => (
             row.original.spccmcC_CCAgeFlag ? <Badge variant="default" className='bg-blue-600 hover:bg-blue-700'>Yes</Badge> : <Badge variant="outline">No</Badge>
         )
@@ -68,36 +71,43 @@ export const MasterCompetitionCategoryColumns: ColumnDef<IMasterCompetitionCateg
         accessorKey: 'spccmcC_FromCCAgeYear',
         id: 'SPCCMCC_FromCCAgeYear',
         header: ({ column }) => <DataTableColumnHeader column={column} title='From Year(Age)' />,
+        enableSorting: true
     },
     {
         accessorKey: 'spccmcC_ToCCAgeYear',
         id: 'SPCCMCC_ToCCAgeYear',
         header: ({ column }) => <DataTableColumnHeader column={column} title='To Year(Age)' />,
+        enableSorting: true
     },
     {
         accessorKey: 'spccmcC_FromCCAgeMonth',
         id: 'SPCCMCC_FromCCAgeMonth',
         header: ({ column }) => <DataTableColumnHeader column={column} title='From Month(Age)' />,
+        enableSorting: true
     },
     {
         accessorKey: 'spccmcC_ToCCAgeMonth',
         id: 'SPCCMCC_ToCCAgeMonth',
         header: ({ column }) => <DataTableColumnHeader column={column} title='To Month(Age)' />,
+        enableSorting: true
     },
     {
         accessorKey: 'spccmcC_FromCCAgeDays',
         id: 'SPCCMCC_FromCCAgeDays',
         header: ({ column }) => <DataTableColumnHeader column={column} title='From Days(Age)' />,
+        enableSorting: true
     },
     {
         accessorKey: 'spccmcC_ToCCAgeDays',
         id: 'SPCCMCC_ToCCAgeDays',
         header: ({ column }) => <DataTableColumnHeader column={column} title='To Days(Age)' />,
+        enableSorting: true
     },
     {
         accessorKey: 'spccmcC_CCWeightFlag',
         id: 'SPCCMCC_CCWeightFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Weight Flag' />,
+        enableSorting: true,
         cell: ({ row }) => (
             row.original.spccmcC_CCWeightFlag ? <Badge variant="default" className='bg-blue-600 hover:bg-blue-700'>Yes</Badge> : <Badge variant="outline">No</Badge>
         )
@@ -106,9 +116,11 @@ export const MasterCompetitionCategoryColumns: ColumnDef<IMasterCompetitionCateg
         accessorKey: 'spccmcC_CCWeight',
         id: 'SPCCMCC_CCWeight',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Weight' />,
+        enableSorting: true
     },
     {
         id: 'actions',
+        header: 'Actions',
         cell: ActionsCell
     }
 ];

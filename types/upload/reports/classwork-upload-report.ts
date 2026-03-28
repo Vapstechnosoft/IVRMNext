@@ -81,6 +81,10 @@ export interface IClassWorkDetails {
     ihW_Id: number | null;
     ivrmuL_Id: number | null;
     ihW_FilePath: string | null;
+    createdDate?: string;
+    createdTime?: string;
+    icW_FilePath_Array?: { icW_FilePath: string; fileName: string }[];
+    icW_Attachment_Array?: { icW_FilePath: string; fileName: string }[];
 }
 
 export interface IClassWorkUploadReport {

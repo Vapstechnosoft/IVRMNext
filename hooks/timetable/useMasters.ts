@@ -32,6 +32,7 @@ import {
 import { CategorydropDownData, getMasterPeriodDetails } from '@/server/timetable/masters/masterperiod';
 import { getAllPeriodDetails, getPeriodAllocationmasterPeriodGrid } from '@/server/timetable/masters/periodallocation';
 import {
+    EditPeriodDistribution,
     getAcademicYearPeriodDistrubution,
     getCategoryPeriodDistrubution,
     getClassPeriodDistrubution,
@@ -480,6 +481,18 @@ export const usePeriodDistributionEditDetails = ({ id, enabled }: { id?: number;
         queryFn: async () => {
             if (!id) return null;
             return getPeriodDistributionEditDetails(id);
+        },
+        enabled: enabled && !!id,
+        staleTime: 0
+    });
+};
+
+export const useEditPeriodDistribution = ({ id, enabled }: { id?: number; enabled: boolean }) => {
+    return useQuery({
+        queryKey: [TIMETABLE_QUERY_KEYS.TT_PERIOD_DISTRIBUTION_EDIT, 'facade', id],
+        queryFn: async () => {
+            if (!id) return null;
+            return EditPeriodDistribution(id);
         },
         enabled: enabled && !!id,
         staleTime: 0
