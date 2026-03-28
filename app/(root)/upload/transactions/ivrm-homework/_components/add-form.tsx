@@ -24,6 +24,7 @@ import { CalendarIcon, Eye, Loader2, Minus, Plus, Save, Upload, X } from 'lucide
 import { useEffect, useRef, useState } from 'react';
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
+import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 
 interface AddHomeWorkFormProps {
     onSuccess: () => void;
@@ -87,14 +88,6 @@ export default function AddHomeWorkForm({ onSuccess, classList }: AddHomeWorkFor
         name: 'ihW_Attachment_Array'
     });
 
-    const {
-        fields: sectionFields,
-        append: appendSection,
-        remove: removeSection
-    } = useFieldArray({
-        control,
-        name: 'hm_section_list'
-    });
 
     // Populate classes when Academic Year changes
     useEffect(() => {
@@ -325,38 +318,22 @@ export default function AddHomeWorkForm({ onSuccess, classList }: AddHomeWorkFor
                         name='hm_section_list'
                         control={control}
                         render={({ field, fieldState }) => (
-                            <div className='flex flex-col gap-3 sm:flex-row'>
-                                <Label className='w-32 font-medium'>
-                                    Section <span className='text-red-500'>*</span>
-                                </Label>
-
-                                <div className='flex-1'>
-                                    <div className='grid grid-cols-1 gap-2 sm:grid-cols-2'>
-                                        {sections.map((s) => {
-                                            const checked = field.value?.some((x: any) => x.asmS_Id === s.asmS_Id) ?? false;
-
-                                            return (
-                                                <label key={s.asmS_Id} className='flex cursor-pointer items-center gap-2'>
-                                                    <input
-                                                        type='checkbox'
-                                                        disabled={!selectedClass || selectedClass === 0}
-                                                        checked={checked}
-                                                        onChange={(e) => {
-                                                            const current = field.value || [];
-                                                            if (e.target.checked) {
-                                                                field.onChange([...current, { asmS_Id: s.asmS_Id }]);
-                                                            } else {
-                                                                field.onChange(current.filter((x: any) => x.asmS_Id !== s.asmS_Id));
-                                                            }
-                                                        }}
-                                                    />
-                                                    <span>{s.asmC_SectionName}</span>
-                                                </label>
-                                            );
-                                        })}
-                                    </div>
-                                    {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                </div>
+                            <div className='grow space-y-2'>
+                                <CustomMultiSelectBox
+                                    label='Section'
+                                    isRequired
+                                    isSearchRequired
+                                    options={sections.map((s) => ({
+                                        label: s.asmC_SectionName,
+                                        value: s.asmS_Id.toString()
+                                    }))}
+                                    value={field.value?.map((v: any) => v.asmS_Id.toString()) || []}
+                                    onChange={(vals: string[]) => {
+                                        field.onChange(vals.map((v) => ({ asmS_Id: Number(v) })));
+                                    }}
+                                    disabled={!selectedClass || selectedClass === 0}
+                                    error={fieldState.error?.message}
+                                />
                             </div>
                         )}
                     />

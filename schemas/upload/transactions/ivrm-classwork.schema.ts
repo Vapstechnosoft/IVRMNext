@@ -182,9 +182,9 @@ export const verifyClassWorkSearchSchema = z.object({
     asmaY_Id: z.number().min(1, 'Academic Year is required'),
     asmcL_Id: z.number().min(1, 'Class is required'),
     asmS_Id: z.number().min(1, 'Section is required'),
-    ismS_Id: z.number().min(1, 'Subject is required'),
-    from_date: z.date({ required_error: 'Start Date is required' }),
-    to_date: z.date({ required_error: 'End Date is required' })
+    ismS_Id: z.number().optional(),
+    from_date: z.date().optional(),
+    to_date: z.date().optional()
 });
 
 export type IVerifyClassWorkSearch = z.infer<typeof verifyClassWorkSearchSchema>;

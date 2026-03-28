@@ -38,7 +38,7 @@ function VerifyClassWorkContent() {
     // const { data, isLoading, error, refetchAll } = useClassWork(params);
     const { openDetailsView, closeDetailsView } = useFormContext<IClassWork>();
 
-    const hasSearchFilters = params.year && params.class && params.section && params.subject;
+    const hasSearchFilters = params.year && params.class && params.section;
 
     useEffect(() => {
         // if (hasSearchFilters && data?.classwork && data.classwork.length > 0) {
