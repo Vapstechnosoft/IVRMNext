@@ -635,20 +635,16 @@ export async function getUserAccessibleModules() {
                     name: 'Admission Client',
                     icon: 'UserRoundPlus',
                     menu: [
-
                         {
                             id: 5,
                             name: 'Form and Reports',
                             icon: 'Settings',
                             sub_menu: [
-
                                 {
                                     id: 9,
                                     name: 'stjames',
                                     icon: 'Settings',
                                     pages: [
-
-
                                         {
                                             id: 12,
                                             name: 'Overall Daily Attendance Report',
@@ -657,7 +653,6 @@ export async function getUserAccessibleModules() {
                                             title: 'Overall Daily Attendance Report',
                                             description: 'Overall Daily Attendance Report'
                                         },
-
 
                                         {
                                             id: 53,
@@ -2589,7 +2584,7 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/attendance-management/reports/employee-month-end-report',
                                             title: 'Employee Month End Report',
                                             description: 'Employee End Report'
-                                        },
+                                        }
                                     ]
                                 }
                             ]
@@ -6072,6 +6067,155 @@ export async function getUserAccessibleModules() {
                 //         //     },
                 //     ]
                 // }
+
+                {
+                    id: 201,
+                    name: 'Petty Cash',
+                    icon: 'BadgeIndianRupee',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Petty Cash',
+                            icon: 'BadgeIndianRupee',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Masters',
+                                    icon: 'BadgeIndianRupee',
+                                    pages: [
+                                        {
+                                            id: 600,
+                                            name: 'Master particulars',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/pettycash/masterparticulars',
+                                            title: 'Master Particulars',
+                                            description: 'Manage Master Particulars Details'
+                                        }
+                                    ]
+                                }
+
+                                // {
+                                //     id: 4,
+                                //     name: 'Transactions',
+                                //     icon: 'Clock',
+                                //     pages: [
+                                //         {
+                                //             id: 1,
+                                //             name: 'Class Section Time Table Report',
+                                //             icon: 'Clock',
+                                //             url: '/timetable/transactions/class-section-report/class-section-report',
+                                //             title: 'Class Section Time Table Report',
+                                //             description: 'View and generate class-wise timetable grids'
+                                //         },
+                                //         {
+                                //             id: 2,
+                                //             name: 'Deputation',
+                                //             icon: 'Clock',
+                                //             url: '/timetable/transactions/deputation',
+                                //             title: 'Deputation',
+                                //             description: 'ABSENT STAFF ALLOTMENT DETAILS'
+                                //         },
+                                //         {
+                                //             id: 3,
+                                //             name: 'Manual Period Insertion',
+                                //             icon: 'Clock',
+                                //             url: '/timetable/transactions/manual-Period-insersion',
+                                //             title: 'Manual Period Insertion',
+                                //             description: 'ABSENT STAFF ALLOTMENT DETAILS'
+                                //         },
+                                //         {
+                                //             id: 4,
+                                //             name: 'Staff Period Transfer',
+                                //             icon: 'Clock',
+                                //             url: '/timetable/transactions/staff-Periods-Transfer',
+                                //             title: 'Staff Period Transfer',
+                                //             description: 'Transfer Staff Periods Between Classes and Sections'
+                                //         },
+                                //         {
+                                //             id: 5,
+                                //             name: 'Staff Replacement Existing To New',
+                                //             icon: 'Clock',
+                                //             url: '/timetable/transactions/staff-replacement-existing-to-new',
+                                //             title: 'Staff Replacement Existing To New',
+                                //             description: 'Replacing staff Existing To New'
+                                //         },
+                                //         {
+                                //             id: 6,
+                                //             name: 'Staff Replacement In Their TimeTable',
+                                //             icon: 'Clock',
+                                //             url: '/timetable/transactions/staff-replacement-In-their-timeTable',
+                                //             title: 'Staff Replacement In Their TimeTable',
+                                //             description: 'Staff Replacement In Their TimeTable'
+                                //         },
+                                //         {
+                                //             id: 7,
+                                //             name: 'Staff Replacement In Unallocated Period',
+                                //             icon: 'Clock',
+                                //             url: '/timetable/transactions/staff-replacement-in-unallocated-period',
+                                //             title: 'Staff Replacement In Unallocated Period',
+                                //             description: 'Staff Replacement In Unallocated Period'
+                                //         },
+                                //         {
+                                //             id: 8,
+                                //             name: 'Time Table Generation',
+                                //             icon: 'Clock',
+                                //             url: '/timetable/transactions/time-table-generation',
+                                //             title: 'Time Table Generation',
+                                //             description: 'Time Table Generation'
+                                //         }
+                                //     ]
+                                // },
+                                // {
+                                //     id: 2,
+                                //     name: 'Reports',
+                                //     icon: 'Clock',
+                                //     pages: [
+                                //         {
+                                //             id: 1,
+                                //             name: 'Consolidated Report',
+                                //             icon: 'Clock',
+                                //             url: '/timetable/reports/consolidated',
+                                //             title: 'Consolidated Report',
+                                //             description: 'TimeTable Consolidated Report'
+                                //         },
+                                //         {
+                                //             id: 2,
+                                //             name: 'Class Wise TimeTable',
+                                //             icon: 'Clock',
+                                //             url: '/timetable/reports/classwisett',
+                                //             title: 'Class Wise TimeTable',
+                                //             description: 'Class Wise TimeTable Report'
+                                //         },
+                                //         {
+                                //             id: 3,
+                                //             name: 'Subject Wise TimeTable',
+                                //             icon: 'Clock',
+                                //             url: '/timetable/reports/subjectwisett',
+                                //             title: 'Subject Wise TimeTable',
+                                //             description: 'Subject Wise TimeTable Report'
+                                //         },
+                                //         {
+                                //             id: 4,
+                                //             name: 'Staff Wise TimeTable',
+                                //             icon: 'Clock',
+                                //             url: '/timetable/reports/staffwisett',
+                                //             title: 'Staff Wise TimeTable',
+                                //             description: 'Staff Wise TimeTable Report'
+                                //         },
+                                //         {
+                                //             id: 5,
+                                //             name: 'Deputation Report',
+                                //             icon: 'Clock',
+                                //             url: '/timetable/reports/deputationreport',
+                                //             title: 'Deputation Report',
+                                //             description: 'Deputation Report'
+                                //         }
+                                //     ]
+                                // }
+                            ]
+                        }
+                    ]
+                }
             ]
         };
     } else if (session?.role.toUpperCase() === 'STAFF') {
