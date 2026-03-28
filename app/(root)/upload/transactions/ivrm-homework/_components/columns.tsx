@@ -25,16 +25,6 @@ export const homeWorkColumns: ColumnDef<IHomeWorkDetails>[] = [
         header: ({ column }) => <DataTableColumnHeader column={column} title='Subject Name' />,
         cell: ({ row }) => <div>{row.getValue('ismS_SubjectName')}</div>
     },
-    {
-        accessorKey: 'ihW_Topic',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Topic' />,
-        cell: ({ row }) => <div>{row.getValue('ihW_Topic')}</div>
-    },
-    {
-        accessorKey: 'ihW_Assignment',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Assignment' />,
-        cell: ({ row }) => <div>{row.getValue('ihW_Assignment')}</div>
-    },
 
     {
         accessorKey: 'asmcL_ClassName',
@@ -46,6 +36,42 @@ export const homeWorkColumns: ColumnDef<IHomeWorkDetails>[] = [
         header: ({ column }) => <DataTableColumnHeader column={column} title='Section' />,
         cell: ({ row }) => <div style={{ textAlign: 'center' }}>{row.getValue('asmC_SectionName')}</div>
     },
+
+    {
+        accessorKey: 'ihW_Topic',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Topic' />,
+        cell: ({ row }) => <div>{row.getValue('ihW_Topic')}</div>
+    },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    {
+        accessorKey: 'ihW_Assignment',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Assignment' />,
+        cell: ({ row }) => (
+            <div
+                className='w-[200px] md:w-[300px] lg:w-[400px] whitespace-normal break-all line-clamp-2'
+                title={row.getValue('ihW_Assignment')}
+            >
+                {row.getValue('ihW_Assignment')}
+            </div>
+        )
+    },
+
+
+
     {
         accessorKey: 'ihW_Date',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Home Work Date' />,
