@@ -59,7 +59,7 @@ function PageContent({
     hostelList: any;
     countries: ICountry[] | undefined;
     facilities: IFacility[] | undefined;
-    messes: IMess[] | undefined;
+    messes: IMess[] | null | undefined;
     employees: IEmployee[] | undefined;
     isLoading: boolean;
     refetch: () => void;

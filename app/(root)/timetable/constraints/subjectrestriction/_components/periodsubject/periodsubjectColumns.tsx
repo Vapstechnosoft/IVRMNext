@@ -12,10 +12,10 @@ export interface IPeriodSubjectList {
     ttmP_PeriodName: string;
     ismS_SubjectName: string;
     ttrpsU_ActiveFlag: boolean;
-    ttrpsU_SUbSelcFlag: boolean;  //action
+    ttrpsU_SUbSelcFlag: boolean;
 }
 
-export const columns: ColumnDef<IPeriodSubjectList>[] = [
+export const periodSubjectColumns: ColumnDef<IPeriodSubjectList>[] = [
     {
         accessorKey: 'ttrpsU_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
@@ -62,7 +62,7 @@ export const columns: ColumnDef<IPeriodSubjectList>[] = [
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IPeriodSubjectList }) {
-    const { openEditForm, openToggleForm, openDeleteForm } = useFormContext<IPeriodSubjectList>();
+    const { openEditForm, openToggleForm } = useFormContext<IPeriodSubjectList>();
 
     const handleEdit = useCallback(
         (data: IPeriodSubjectList) => {
@@ -88,4 +88,3 @@ function ActionButtonsCell({ rowData }: { rowData: IPeriodSubjectList }) {
         />
     );
 }
-

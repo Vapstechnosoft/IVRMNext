@@ -12,10 +12,9 @@ export interface IDayStaffList {
     ttmD_DayName: string;
     staffName: string;
     ttrdS_ActiveFlag: boolean;
-    // Add other fields if returned by API
 }
 
-export const columns: ColumnDef<IDayStaffList>[] = [
+export const dayStaffColumns: ColumnDef<IDayStaffList>[] = [
     {
         accessorKey: 'ttrdS_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
@@ -40,7 +39,7 @@ export const columns: ColumnDef<IDayStaffList>[] = [
     },
     {
         accessorKey: 'staffName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Staff' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Staff Name' />,
         cell: ({ row }) => <div>{row.getValue('staffName')}</div>
     },
     {

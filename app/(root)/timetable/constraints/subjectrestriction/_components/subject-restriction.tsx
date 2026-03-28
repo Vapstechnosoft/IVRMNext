@@ -2,11 +2,11 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useState } from 'react';
-import DayPeriodTab from './tabs/day-period-tab';
-import DayStaffTab from './tabs/day-staff-tab';
-import DaySubjectTab from './tabs/day-subject-tab';
-import PeriodStaffTab from './tabs/period-staff-tab';
-import PeriodSubjectTab from './tabs/period-subject-tab';
+import DayPeriodTab from './dayperiod/dayperiodTab';
+import DayStaffTab from './daystaff/daystaffTab';
+import DaySubjectTab from './daysubject/daysubjectTab';
+import PeriodStaffTab from './periodstaff/periodstaffTab';
+import PeriodSubjectTab from './periodsubject/periodsubjectTab';
 
 interface SubjectRestrictionProps {
     initialData: any;

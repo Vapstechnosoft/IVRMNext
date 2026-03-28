@@ -55,6 +55,7 @@ export const MasterProgramColumns: ColumnDef<IMasterProgram>[] = [
     },
     {
         id: 'actions',
+        header: 'Actions',
         cell: ActionsCell
     }
 ];

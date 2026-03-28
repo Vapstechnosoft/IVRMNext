@@ -134,9 +134,38 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
         try {
             const res = await getFixingClassSectionStaffsBySubject(asmaY_Id, subjectId);
 
-            const classes = extractList(res, 'clssbysub');
-            const sections = extractList(res, 'secsbysub');
-            const staff = extractList(res, 'staffbysub');
+            // 🔍 DEBUG: log raw response to identify actual key names
+            console.log('[PeriodSubjectAddForm] get_cls_sec_staffsData raw response:', JSON.stringify(res));
+
+            const payload = res?.data ?? res;
+
+            const findArrayByField = (fieldName: string): any[] => {
+                for (const key of Object.keys(payload ?? {})) {
+                    const val = (payload as any)[key];
+                    if (Array.isArray(val) && val.length > 0 && fieldName in val[0]) return val;
+                }
+                return [];
+            };
+
+            const classes =
+                extractList(res, 'clssbysub').length > 0 ? extractList(res, 'clssbysub') :
+                extractList(res, 'clsbysubject').length > 0 ? extractList(res, 'clsbysubject') :
+                extractList(res, 'classlist').length > 0 ? extractList(res, 'classlist') :
+                findArrayByField('asmcL_Id');
+
+            const sections =
+                extractList(res, 'secsbysub').length > 0 ? extractList(res, 'secsbysub') :
+                extractList(res, 'secsbysubject').length > 0 ? extractList(res, 'secsbysubject') :
+                extractList(res, 'sectionlist').length > 0 ? extractList(res, 'sectionlist') :
+                findArrayByField('asmS_Id');
+
+            const staff =
+                extractList(res, 'staffbysub').length > 0 ? extractList(res, 'staffbysub') :
+                extractList(res, 'staffbysubject').length > 0 ? extractList(res, 'staffbysubject') :
+                extractList(res, 'stafflist').length > 0 ? extractList(res, 'stafflist') :
+                findArrayByField('hrmE_Id');
+
+            console.log('[PeriodSubjectAddForm] Resolved → classes:', classes.length, 'sections:', sections.length, 'staff:', staff.length);
 
             setMasterClasses(classes);
             setMasterSections(sections);
@@ -173,7 +202,7 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
             asmcL_Id: selectedClass,
             asmS_Id: selectedSection,
             hrmE_Id: selectedStaff,
-            nod: Number(nod),
+            nop: Number(nod),
             clsDisplay: clsObj?.asmcL_ClassName,
             sectDisplay: secObj?.asmC_SectionName,
             staffDisplay: staffObj?.hrmE_EmployeeFirstName || staffObj?.staffName
@@ -209,15 +238,14 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
             }
             const res = await saveFixingPeriodSubject(data);
             if (res?.returnval === true || res?.success === true) {
-                toast.success(res?.message || 'Record Saved Successfully');
+                toast.success(res.message);
                 reset();
                 onSuccess();
             } else {
-                toast.error(res?.message || 'Failed to save');
+                toast.error(res.message);
             }
-        } catch (e) {
-            console.error(e);
-            toast.error('An error occurred');
+        } catch (error : any) {
+            toast.error(error.message);
         }
     };
 

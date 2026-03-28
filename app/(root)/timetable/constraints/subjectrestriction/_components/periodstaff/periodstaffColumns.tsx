@@ -6,14 +6,18 @@ import { useFormContext } from '@/components/ui/form/form-provider';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 
-// Define Interface based on schema/data structure
-import type { SubjectRestrictionDayPeriodGridData } from '@/types/timetable/constraints/subjectRestrictions';
+export interface IPeriodStaffList {
+    ttrpS_Id: number;
+    asmaY_Year: string;
+    ttmP_PeriodName: string;
+    staffName: string;
+    ttrpS_ActiveFlag: boolean;
+    ttrpS_SUbSelcFlag: boolean;
+}
 
-export type IDayPeriodList = SubjectRestrictionDayPeriodGridData;
-
-export const columns: ColumnDef<IDayPeriodList>[] = [
+export const periodStaffColumns: ColumnDef<IPeriodStaffList>[] = [
     {
-        accessorKey: 'ttrdP_Id',
+        accessorKey: 'ttrpS_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
@@ -30,19 +34,9 @@ export const columns: ColumnDef<IDayPeriodList>[] = [
         cell: ({ row }) => <div>{row.getValue('asmaY_Year')}</div>
     },
     {
-        accessorKey: 'ttmC_CategoryName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Category' />,
-        cell: ({ row }) => <div>{row.getValue('ttmC_CategoryName')}</div>
-    },
-    {
-        accessorKey: 'asmcL_ClassName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Class' />,
-        cell: ({ row }) => <div>{row.getValue('asmcL_ClassName')}</div>
-    },
-    {
-        accessorKey: 'asmC_SectionName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Section' />,
-        cell: ({ row }) => <div>{row.getValue('asmC_SectionName')}</div>
+        accessorKey: 'ttmP_PeriodName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Period' />,
+        cell: ({ row }) => <div>{row.getValue('ttmP_PeriodName')}</div>
     },
     {
         accessorKey: 'staffName',
@@ -50,21 +44,14 @@ export const columns: ColumnDef<IDayPeriodList>[] = [
         cell: ({ row }) => <div>{row.getValue('staffName')}</div>
     },
     {
-        accessorKey: 'ismS_SubjectName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Subject' />,
-        cell: ({ row }) => <div>{row.getValue('ismS_SubjectName')}</div>
+        accessorKey: 'ttrpS_SUbSelcFlag',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Restriction Level' />,
+        cell: ({ row }) => (
+            <div className={`font-medium ${row.original.ttrpS_SUbSelcFlag ? 'text-blue-600' : 'text-green-600'}`}>
+                {row.original.ttrpS_SUbSelcFlag ? 'Class-Section Wise' : 'General'}
+            </div>
+        )
     },
-    {
-        accessorKey: 'ttmD_DayName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Day' />,
-        cell: ({ row }) => <div>{row.getValue('ttmD_DayName')}</div>
-    },
-    {
-        accessorKey: 'ttmP_PeriodName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Period' />,
-        cell: ({ row }) => <div>{row.getValue('ttmP_PeriodName')}</div>
-    },
-
     {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' />,
@@ -74,18 +61,18 @@ export const columns: ColumnDef<IDayPeriodList>[] = [
     }
 ];
 
-function ActionButtonsCell({ rowData }: { rowData: IDayPeriodList }) {
-    const { openEditForm, openToggleForm } = useFormContext<IDayPeriodList>();
+function ActionButtonsCell({ rowData }: { rowData: IPeriodStaffList }) {
+    const { openEditForm, openToggleForm } = useFormContext<IPeriodStaffList>();
 
     const handleEdit = useCallback(
-        (data: IDayPeriodList) => {
+        (data: IPeriodStaffList) => {
             openEditForm(data);
         },
         [openEditForm]
     );
 
     const handleToggle = useCallback(
-        (data: IDayPeriodList) => {
+        (data: IPeriodStaffList) => {
             if (openToggleForm) openToggleForm(data);
         },
         [openToggleForm]
@@ -97,7 +84,7 @@ function ActionButtonsCell({ rowData }: { rowData: IDayPeriodList }) {
             buttons={{ edit: true, toggle: true, delete: false }}
             onEdit={handleEdit}
             onToggle={handleToggle}
-            toggleConditionKey='ttrdP_ActiveFlag'
+            toggleConditionKey='ttrpS_ActiveFlag'
         />
     );
 }

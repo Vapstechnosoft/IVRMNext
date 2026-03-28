@@ -55,6 +55,7 @@ export const MasterHouseDesignationColumns: ColumnDef<IMasterHouseDesignation>[]
     },
     {
         id: 'actions',
+        header: 'Actions',
         cell: ActionsCell
     }
 ];
