@@ -40,6 +40,7 @@ export const AddForm = ({ onSuccess, onCancel, groupNameList }: AddFormProps) =>
 
     const form = useForm<z.infer<typeof sportsCCNameSchema.addOrUpdate>>({
         resolver: zodResolver(sportsCCNameSchema.addOrUpdate),
+        mode: 'onChange',
         defaultValues: {
             spccmscC_Id: 0,
             spccmsccG_Id: 0,
@@ -83,18 +84,33 @@ export const AddForm = ({ onSuccess, onCancel, groupNameList }: AddFormProps) =>
                 })),
             };
             const result = await saveSportsCCName(payload);
-            if (result.success) {
-                toast.success(result.message);
+            const msg = (result?.message || result?.Message || '') as string;
+            const isSuccess = result.success || 
+                             result?.returnval == true || 
+                             result?.returnVal == true ||
+                             result?.returnVal === 'updated' || 
+                             msg.toLowerCase() === 'saved' ||
+                             msg.toLowerCase() === 'updated' ||
+                             msg.toLowerCase().includes('success');
+
+            if (isSuccess) {
+                toast.success('Record saved successfully');
                 form.reset();
                 onSuccess();
+            } else if (result?.returnVal === 'duplicate' || msg.toLowerCase() === 'duplicate') {
+                toast.error('Record already exists');
             } else {
-                toast.error(result.message);
+                const errorMsg = (result?.message || result?.Message || 'Failed to save record') as string;
+                toast.error(errorMsg);
             }
         } catch (error) {
             console.error(error);
             toast.error('Something went wrong');
         }
     };
+
+    // Filter unique group list for the dropdown
+    const uniqueGroupList = Array.from(new Map(groupNameList.map(item => [item.spccmsccG_Id, item])).values());
 
     return (
         <Form {...form}>
@@ -118,9 +134,9 @@ export const AddForm = ({ onSuccess, onCancel, groupNameList }: AddFormProps) =>
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            {groupNameList.map((item) => (
+                                            {uniqueGroupList.map((item) => (
                                                 <SelectItem key={item.spccmsccG_Id} value={item.spccmsccG_Id.toString()}>
-                                                    {item.spccmsccG_SportsCCGroupName}
+                                                    {(item as any).spccmsccG_SportsCCGroupName || (item as any).groupName}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>

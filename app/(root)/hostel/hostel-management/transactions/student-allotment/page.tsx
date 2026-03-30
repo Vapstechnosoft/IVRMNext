@@ -7,6 +7,8 @@ import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getStudentAllotmentLoadData, StudentAllotmentLoadData } from '@/server/hostel/hostel-management/transactions/student-allotment';
 
+import { FormProvider } from '@/components/ui/form/form-provider';
+
 export default function StudentAllotmentPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [data, setData] = useState<any>({
@@ -50,20 +52,22 @@ export default function StudentAllotmentPage() {
     }
 
     return (
-        <div className="container mx-auto p-4 space-y-8">
-            <StudentAllotmentForm
-                dropdowns={{
-                    yearlist: data.yearlist,
-                    hostel_list: data.hostel_list,
-                    roomcatgry_list: data.roomcatgry_list,
-                    room_list: data.room_list,
-                    // Spread other lists if needed
-                    //classlist: data.classlist,
-                    //sectionlist: data.sectionlist
-                }}
-                onSuccess={handleSuccess}
-            />
-            <StudentAllotmentList data={data.student_allotlist || []} />
-        </div>
+        <FormProvider>
+            <div className="container mx-auto p-4 space-y-8">
+                <StudentAllotmentForm
+                    dropdowns={{
+                        yearlist: data.yearlist,
+                        hostel_list: data.hostel_list,
+                        roomcatgry_list: data.roomcatgry_list,
+                        room_list: data.room_list,
+                        // Spread other lists if needed
+                        //classlist: data.classlist,
+                        //sectionlist: data.sectionlist
+                    }}
+                    onSuccess={handleSuccess}
+                />
+                <StudentAllotmentList data={data.student_allotlist || []} />
+            </div>
+        </FormProvider>
     );
 }

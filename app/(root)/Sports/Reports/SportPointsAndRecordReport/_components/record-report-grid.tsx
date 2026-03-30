@@ -3,37 +3,54 @@
 import { IPointsRecordReportData } from '@/types/sports/reports/points-record-report';
 import { Button } from '@/components/ui/button';
 import { FileSpreadsheet, Printer } from 'lucide-react';
+import { useRef } from 'react';
+import { useReactToPrint } from 'react-to-print';
+import * as XLSX from 'xlsx';
 
 interface ReportGridProps {
     data: IPointsRecordReportData[];
 }
 
 export const ReportGrid = ({ data }: ReportGridProps) => {
-    if (!data || data.length === 0) return null;
+    const componentRef = useRef<HTMLDivElement>(null);
 
-    const handlePrint = () => {
-        window.print();
-    };
+    const handlePrint = useReactToPrint({
+        contentRef: componentRef,
+        documentTitle: 'Sport_Points_And_Record_Report',
+        pageStyle: `
+          @page { size: portrait; margin: 20mm; }
+          @media print {
+            body { -webkit-print-color-adjust: exact; }
+            table { border-collapse: collapse !important; width: 100% !important; }
+            th, td { border: 1px solid #000 !important; padding: 8px !important; text-align: center !important; }
+          }
+        `
+    });
 
     const handleExport = () => {
-        console.log('Export to Excel');
+        const worksheet = XLSX.utils.json_to_sheet(data);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
+        XLSX.writeFile(workbook, "SportPointsAndRecordReport.xlsx");
     };
+
+    if (!data || data.length === 0) return null;
 
     return (
         <div className="bg-white rounded-lg shadow-sm border p-4 space-y-4">
             <div className="flex justify-between items-center border-b pb-4">
-                <h3 className="text-xl font-semibold">Sport Point And Record Report</h3>
+                <h3 className="text-xl font-semibold">Sport Points And Record Report</h3>
                 <div className="flex space-x-2">
-                    <Button variant="outline" onClick={handlePrint} className="flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700">
-                        <Printer size={16} /> Print
+                    <Button variant="outline" size="sm" onClick={() => handlePrint()} className="flex items-center gap-2 border-2">
+                        <Printer size={16} className="text-primary" /> Print
                     </Button>
-                    <Button variant="outline" onClick={handleExport} className="flex items-center gap-2 bg-green-600 text-white hover:bg-green-700">
-                        <FileSpreadsheet size={16} /> Excel
+                    <Button variant="outline" size="sm" onClick={handleExport} className="flex items-center gap-2 border-2">
+                        <FileSpreadsheet size={16} className="text-green-600" /> Excel
                     </Button>
                 </div>
             </div>
 
-            <div className="overflow-x-auto">
+            <div ref={componentRef} className="overflow-x-auto print:p-0">
                 <table className="w-full text-sm border-collapse border border-gray-300">
                     <thead className="bg-[#3a5dae] text-white">
                         <tr>

@@ -6,7 +6,7 @@ export const useMasterSportsCCNameUOM = (searchParams?: any) => {
 
     const query = useQuery({
         queryKey: ['master-sports-cc-name-uom', searchParams ?? {}],
-        queryFn: async () => getMasterSportsCCNameUOMs(),
+        queryFn: async () => getMasterSportsCCNameUOMs(searchParams),
         staleTime: 0
     });
 

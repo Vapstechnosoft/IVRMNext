@@ -432,6 +432,7 @@ export const HRMS_QUERY_KEYS = {
     MASTER_DRIVER_SHIFT: 'attendance_master_driver_shift',
     EMPLOYEE_MISSING_LOGS: 'attendance_employee_missing_logs',
     GPS_LOCATION_ATTENDANCE: 'attendance_gps_location_attendance',
+    MASTER_TIME_SETTING: 'attendance_master_time_setting',
     // Attendance Management Reports
     EMPLOYEE_INOUT_REPORT: 'attendance_employee_inout_report',
     EMPLOYEE_INOUT_REPORT_ONLOAD: 'attendance_employee_inout_report_onload',
@@ -455,6 +456,7 @@ export const HRMS_QUERY_KEYS = {
     GPS_LOCATION_REPORT: 'attendance_gps_location_report',
     HOLIDAY_REPORT: 'attendance_holiday_report',
     FO_MONTHEND_REPORT: 'attendance_fo_monthend_report',
+    EMPLOYEE_MONTH_REPORT: 'attendance_employee_month_report',
     // Leave Management Masters
     MASTER_LEAVE: 'leave_master_leave',
     LEAVE_AUTHORIZATION: 'leave_leave_authorization',
@@ -502,7 +504,15 @@ export const HOSTEL_QUERY_KEYS = {
     MASTER_COUNTRY_DROPDOWN_LIST: 'hostel_master_country_dropdown_list',
     MASTER_STATE_DROPDOWN_LIST: 'hostel_master_state_dropdown_list',
     MASTER_FACILITY_DROPDOWN_LIST: 'hostel_master_facility_dropdown_list',
-    MASTER_PHOTO_LIST: 'hostel_master_photo_list'
+    MASTER_PHOTO_LIST: 'hostel_master_photo_list',
+    MASTER_ROOM_CATEGORY_DROPDOWN_LIST: 'hostel_master_room_category_dropdown_list',
+    MASTER_ROOM_CATEGORY_LIST: 'hostel_master_room_category_list',
+    MASTER_MESS_CATEGORY_GRID: 'hostel_master_mess_category_grid',
+    MASTER_MESS_CATEGORY_DROPDOWN: 'hostel_master_mess_category_dropdown',
+    MESS_MENU_GRID_LIST: 'MESS_MENU_DATA',
+    MATER_ROOM_GRID_LIST: 'master-room-list',
+    MASTER_ROOM_DROPDOWN_LIST: 'master-room-dropdown-list',
+    HOSTEL_GUEST_ALLOTMENT_LIST: 'hostel_guest_allotment_list_',
 };
 export const LIBRARY_QUERY_KEYS = {
     MASTER_LIBRARY_LIST_DATA: 'master_library_list_data',

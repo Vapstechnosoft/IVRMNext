@@ -7,7 +7,7 @@ export default async function InteractionsPage() {
     let error = null;
 
     try {
-        initialData = await getInteractionLoadData({});
+        initialData = await getInteractionLoadData();
     } catch (e) {
         console.error('Failed to load interaction data', e);
         error = 'Failed to load data. Please try again later.';

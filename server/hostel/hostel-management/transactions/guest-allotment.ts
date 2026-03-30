@@ -1,61 +1,35 @@
 'use server';
 
-import { api } from '@/lib/apiService';
-import { guestAllotmentSchema } from '@/schemas/hostel/transactions/guest-allotment.schema';
-import { revalidatePath } from 'next/cache';
+import { api, getSearchParamsUrl } from '@/lib/apiService';
+import { ApiSearchparams } from '@/types';
 
-const SERVICE_NAME = 'default';
-const API_BASE_URL = 'HostelAllotForGuest';
+const API_BASE_URL = '/HostelAllotForGuest';
 
-export interface GuestAllotmentLoadData {
-    hstllist: any[];
-    categorylist: any[];
-    roomlist: any[];
-    alldata1: any[];
+// LOAD DATA
+export async function getGuestAllotmentLoadData(searchParams?: ApiSearchparams) {
+    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    return await api.get<any>('hostel', `${API_BASE_URL}/load_grid_data?${urlParams}`);
 }
 
-export const getGuestAllotmentLoadData = async (): Promise<GuestAllotmentLoadData> => {
-    try {
-        const response = await api.get<{ hstllist: any[], categorylist: any[], roomlist: any[], alldata1: any[] }>(SERVICE_NAME, `${API_BASE_URL}/loaddata/2`);
-        return {
-            hstllist: response.data?.hstllist || [],
-            categorylist: response.data?.categorylist || [],
-            roomlist: response.data?.roomlist || [],
-            alldata1: response.data?.alldata1 || []
-        };
-    } catch (error) {
-        console.error('Error fetching guest allotment load data:', error);
-        return {
-            hstllist: [],
-            categorylist: [],
-            roomlist: [],
-            alldata1: []
-        };
-    }
-};
+// GET ROOM DETAILS
+export async function getRoomDetails(data: { HRMRM_Id: number }) {
+    return await api.get<any>('hostel', `${API_BASE_URL}/get_roomdetails/${data.HRMRM_Id}`);
+}
 
-export const getRoomDetails = async (payload: { HRMRM_Id: number }): Promise<any> => {
-    try {
-        const response = await api.post(SERVICE_NAME, `${API_BASE_URL}/get_roomdetails`, payload);
-        return response.data;
-    } catch (error) {
-        console.error('Error fetching room details:', error);
-        return null;
-    }
-};
+// SAVE (ADD / UPDATE)
+export async function saveGuestAllotment(data: any) {
+    const payload = {
+        ...data,
+        HLHGSTALT_AllotmentDate: data.HLHGSTALT_AllotmentDate
+    };
 
-export const saveGuestAllotment = async (data: any) => {
-    try {
-        const payload = {
-            ...data,
-            HLHGSTALT_AllotmentDate: data.HLHGSTALT_AllotmentDate,
-        };
+    return await api.post<any>('hostel', `${API_BASE_URL}/save_or_update`, payload);
+}
 
-        const response = await api.post(SERVICE_NAME, `${API_BASE_URL}/save`, payload);
-        return response;
+export async function getEditData(hlhgstalT_Id: number) {
+    return await api.get<any>('hostel', `${API_BASE_URL}/edit_data/${hlhgstalT_Id}`);
+}
 
-    } catch (error) {
-        console.error('Error saving guest allotment:', error);
-        return { success: false, message: 'Failed to save guest allotment', data: null };
-    }
-};
+export async function toggleGuestAllotment(HLHGSTALT_Id: number) {
+    return await api.put<any>('hostel', `${API_BASE_URL}/activate_deactivate/${HLHGSTALT_Id}`);
+}

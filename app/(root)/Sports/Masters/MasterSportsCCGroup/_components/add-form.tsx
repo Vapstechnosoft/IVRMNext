@@ -32,22 +32,37 @@ export default function AddMasterSportsCCGroupForm({
             onSubmit={async (values) => {
                 try {
                     const response = await saveMasterSportsCCGroup(values);
+                    // Robust success check for IVRM backend responses
+                    const msg = (response?.message || response?.Message || '') as string;
+                    const isSuccess = response?.success || 
+                                     response?.returnval == true || 
+                                     response?.returnVal == true ||
+                                     response?.returnVal === 'saved' || 
+                                     response?.returnVal === 'updated' || 
+                                     msg.toLowerCase() === 'saved' ||
+                                     msg.toLowerCase() === 'updated' ||
+                                     msg.toLowerCase().includes('success');
 
-                    if (response?.success || response?.returnVal === 'saved' || response?.returnVal === 'updated') {
-                        toast.success(response.message || 'Record saved successfully');
-                        onSuccess?.();
-                    } else if (response?.returnVal === 'duplicate') {
+                    if (isSuccess) {
+                        toast.success('Record saved successfully');
+                    } else if (response?.returnVal === 'duplicate' || msg.toLowerCase() === 'duplicate') {
                         toast.error('Record already exists');
+                        throw new Error('duplicate');
                     } else {
-                        toast.error(response?.message || 'Failed to save record');
+                        const errorMsg = (response?.message || response?.Message || 'Failed to save record') as string;
+                        toast.error(errorMsg);
+                        throw new Error(errorMsg);
                     }
                 } catch (error: any) {
-                    toast.error(error.message || 'Check internet connection');
+                    if (error.message !== 'duplicate' && !error.message?.includes('Failed to save record')) {
+                        toast.error(error.message || 'Check internet connection');
+                    }
+                    throw error;
                 }
             }}
             mode={selectedRow ? 'edit' : 'create'}
-            successMessage={`Record ${selectedRow ? 'updated' : 'added'} successfully`}
-            errorMessage={`Failed to ${selectedRow ? 'update' : 'add'} record`}
+            successMessage={''}
+            errorMessage={''}
             onSuccess={onSuccess}
             className='space-y-4'
         >

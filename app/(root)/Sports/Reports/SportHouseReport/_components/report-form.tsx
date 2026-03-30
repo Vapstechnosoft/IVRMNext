@@ -13,6 +13,7 @@ import { useSportHouseReport } from '@/hooks/sports/useSportHouseReport';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { useEffect, useState } from 'react';
 import { IClass, IHouse, ISection, ISportHouseReportData } from '../types';
+import { toast } from 'sonner';
 
 interface ReportFormProps {
     onReportGenerated: (data: ISportHouseReportData[] | null) => void;
@@ -101,6 +102,15 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
         reportMutation.mutate(payload, {
             onSuccess: (responseData) => {
                 onReportGenerated(responseData);
+                if (responseData && responseData.length > 0) {
+                    toast.success('Report generated successfully');
+                } else {
+                    toast.info('No records found');
+                }
+            },
+            onError: (error) => {
+                console.error(error);
+                toast.error('Failed to generate report');
             }
         });
     }

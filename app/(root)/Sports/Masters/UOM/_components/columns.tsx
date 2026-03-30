@@ -2,7 +2,6 @@
 
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { IMasterUOM } from '@/types/sports/masters/uom';
 import type { ColumnDef, Row } from '@tanstack/react-table';
@@ -10,7 +9,13 @@ import { useFormContext } from '@/components/ui/form/form-provider';
 
 function ActionsCell({ row }: { row: Row<IMasterUOM> }) {
     const data = row.original;
+    const realId = row.getValue('spccmuoM_Id') as number | string;
     const { openEditForm, openToggleForm } = useFormContext<IMasterUOM>();
+
+    // Ensure the ID is correctly populated in the original data before passing to forms
+    if (realId && (!data.spccmuoM_Id || data.spccmuoM_Id === 0)) {
+        (data as any).spccmuoM_Id = Number(realId);
+    }
 
     return (
         <ActionButtons
@@ -29,22 +34,16 @@ function ActionsCell({ row }: { row: Row<IMasterUOM> }) {
 
 export const MasterUOMColumns: ColumnDef<IMasterUOM>[] = [
     {
-        id: 'select',
-        header: ({ table }) => (
-            <Checkbox
-                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label='Select all'
-            />
-        ),
-        cell: ({ row }) => (
-            <Checkbox
-                checked={row.getIsSelected()}
-                onCheckedChange={(value) => row.toggleSelected(!!value)}
-                aria-label='Select row'
-            />
-        ),
-        enableSorting: false,
+        accessorFn: (row: any) => row.spccmuoM_Id || row.SPCCMUOM_Id || row.spccmuom_Id || row.spccmUOM_Id || row.masterUOMid || row.MasterUOMid || row.uom_Id || row.UOM_Id,
+        id: 'spccmuoM_Id',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            const continuousIndex = pageIndex * pageSize + row.index + 1;
+            return <div className='pl-6'>{continuousIndex}</div>;
+        },
+        enableSorting: true,
         enableHiding: false
     },
     {
@@ -52,19 +51,6 @@ export const MasterUOMColumns: ColumnDef<IMasterUOM>[] = [
         id: 'spccmuoM_UOMName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='UOM Name' />,
         cell: ({ row }) => <div className='font-medium'>{row.getValue('spccmuoM_UOMName')}</div>
-    },
-    {
-        accessorFn: (row: any) => row.spccmuoM_ActiveFlag ?? row.SPCCMUOM_ActiveFlag ?? row.spccmuom_ActiveFlag ?? row.activeFlag,
-        id: 'spccmuoM_ActiveFlag',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
-        cell: ({ row }) => {
-            const isActive = row.getValue('spccmuoM_ActiveFlag');
-            return (
-                <Badge variant={isActive ? 'success' : 'destructive'} className='font-semibold'>
-                    {isActive ? 'Active' : 'Deactivated'}
-                </Badge>
-            );
-        }
     },
     {
         id: 'actions',

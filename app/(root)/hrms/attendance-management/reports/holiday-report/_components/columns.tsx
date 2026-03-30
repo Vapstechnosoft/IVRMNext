@@ -5,15 +5,17 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 
 const formatDate = (date: unknown): string => {
-    if (typeof date !== 'string') return 'N/A';
-    if (!date) return 'N/A';
-    return format(new Date(date), 'dd-MM-yyyy');
+    if (typeof date !== 'string' || !date) return 'N/A';
+    try {
+        return format(new Date(date), 'dd-MM-yyyy');
+    } catch {
+        return 'N/A';
+    }
 };
 
 export interface HolidayReportRow {
-    user_id?: number;
-    name?: string;
-    start_date?: string;
+    fomhwD_HolidayWDName?: string;
+    fomhwdD_Date?: string;
     [key: string]: any;
 }
 
@@ -35,7 +37,7 @@ export const holidayReportColumns: ColumnDef<HolidayReportRow>[] = [
         size: 24
     },
     {
-        accessorKey: 'user_id',
+        id: 'slNo',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
@@ -43,24 +45,25 @@ export const holidayReportColumns: ColumnDef<HolidayReportRow>[] = [
             const continuousIndex = pageIndex * pageSize + row.index + 1;
             return <div className='w-full pl-6'>{continuousIndex}</div>;
         },
-        enableSorting: true,
+        enableSorting: false,
         enableHiding: false
     },
     {
-        accessorKey: 'name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Name' />,
-        cell: ({ row }) => <div>{row.getValue('name')}</div>,
+        accessorKey: 'fomhwD_HolidayWDName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Holiday Name' />,
+        cell: ({ row }) => <div>{row.getValue('fomhwD_HolidayWDName') || 'N/A'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'start_date',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Start Date' />,
+        accessorKey: 'fomhwdD_Date',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Date' />,
         cell: ({ row }) => {
-            const date = row.getValue('start_date');
+            const date = row.getValue('fomhwdD_Date');
             return <div>{formatDate(date)}</div>;
         },
         enableSorting: true,
         enableHiding: true
     }
 ];
+

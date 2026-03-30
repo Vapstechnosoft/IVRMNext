@@ -1,18 +1,35 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getRoomList, getFloorsByHostel, getRoomCategoryByHostel, getRoomDetails } from '@/server/hostel/hostel-management/masters/room';
+import { getRoomList, getFloorsByHostel, getRoomCategoryByHostel, getRoomDetails, getRoomDropdownList } from '@/server/hostel/hostel-management/masters/room';
 import { ApiSearchparams } from '@/types';
+import { HOSTEL_QUERY_KEYS } from '@/constants/query-keys';
 
 export const useMasterRoom = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
     return {
         ...useQuery({
-            queryKey: ['master-room-list', searchParams],
+            queryKey: [HOSTEL_QUERY_KEYS.MATER_ROOM_GRID_LIST, searchParams],
             queryFn: () => getRoomList(searchParams),
             refetchOnWindowFocus: false,
         }),
         refetchAll: () => {
              return queryClient.invalidateQueries({
-                 queryKey: ['master-room-list']
+                 queryKey: [HOSTEL_QUERY_KEYS.MATER_ROOM_GRID_LIST]
+             });
+         }
+    };
+};
+
+export const useMasterRoomDropdown = () => {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HOSTEL_QUERY_KEYS.MASTER_ROOM_DROPDOWN_LIST],
+            queryFn: () => getRoomDropdownList(),
+            refetchOnWindowFocus: false,
+        }),
+        refetchAll: () => {
+             return queryClient.invalidateQueries({
+                 queryKey: [HOSTEL_QUERY_KEYS.MASTER_ROOM_DROPDOWN_LIST]
              });
          }
     };
@@ -38,4 +55,3 @@ export const useRoomCategoryByHostel = (hostelId: string) => {
     });
 };
 
-// Note: If distinct fetching by floor is required for room category, add useRoomCategoryByFloor

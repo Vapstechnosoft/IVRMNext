@@ -73,15 +73,25 @@ export default function AddMasterCompetitionCategoryForm({ onSuccess }: AddMaste
             };
 
             const result = await saveMasterCompetitionCategory(payload);
-            if (result.success || result?.returnval === true || result?.returnVal === 'saved') {
-                toast.success('Competition Category saved successfully');
+            const msg = (result?.message || result?.Message || '') as string;
+            const isSuccess = result.success || 
+                             result?.returnval == true || 
+                             result?.returnVal == true ||
+                             result?.returnVal === 'updated' || 
+                             msg.toLowerCase() === 'saved' ||
+                             msg.toLowerCase() === 'updated' ||
+                             msg.toLowerCase().includes('success');
+
+            if (isSuccess) {
+                toast.success('Record saved successfully');
                 await queryClient.invalidateQueries({ queryKey: ['master-competition-categories'] });
                 form.reset();
                 onSuccess();
-            } else if (result?.returnVal === 'duplicate') {
-                toast.warning('Record already exists');
+            } else if (result?.returnVal === 'duplicate' || msg.toLowerCase() === 'duplicate') {
+                toast.error('Record already exists');
             } else {
-                toast.error(result.message || 'Failed to save record');
+                const errorMsg = (result?.message || result?.Message || 'Failed to save record') as string;
+                toast.error(errorMsg);
             }
         } catch (error) {
             toast.error('An unexpected error occurred');

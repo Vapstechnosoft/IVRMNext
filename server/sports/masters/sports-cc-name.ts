@@ -1,14 +1,24 @@
 'use server';
 
-import { api } from '@/lib/apiService';
+import { api, getSearchParamsUrl } from '@/lib/apiService';
 import { revalidatePath } from 'next/cache';
+import type { ApiSearchparams } from '@/types';
 import { SportsCCNameMasterDataDTO, SportsCCNameEditDetailsDTO } from '@/types/sports/masters/sports-cc-name';
 
 const BASE_URL = 'sports';
 
-export async function getSportsCCNameDetails() {
-    const url = '/MasterSportsCCName/getDetails';
-    return await api.post<SportsCCNameMasterDataDTO>(BASE_URL, url, {});
+export async function getSportsCCNameDetails(searchParams?: ApiSearchparams) {
+    const params = { ...searchParams };
+    if (params.search_query) {
+        params.search_query = String(params.search_query).trim();
+        // If no columns selected, use default searchable columns
+        if (!params.search_columns || params.search_columns === '') {
+            params.search_columns = 'groupName,SPCCMSCC_SportsCCName,SPCCMSCC_SportsCCDesc,SPCCMSCC_SGFlag,SPCCMSCC_NoOfMembers,SPCCMSCC_RecHighLowFlag';
+        }
+    }
+    const urlParams = getSearchParamsUrl(params);
+    const url = `/MasterSportsCCName/getDetails?${urlParams}`;
+    return await api.post<SportsCCNameMasterDataDTO>(BASE_URL, url, params || {});
 }
 
 export async function saveSportsCCName(data: any) {

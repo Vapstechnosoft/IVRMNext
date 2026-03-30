@@ -1,20 +1,22 @@
 'use server';
 
-import { api, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 import type {
     IClassWorkMarksInitialData,
-    ITopic,
-    IStudentMarks,
     IClassWorkMarksSave,
-    IStudentUploadDetail
+    IStudentMarks,
+    IStudentUploadDetail,
+    ITopic
 } from '@/types/staff-portal/classwork-marks';
+
+import type { IAcademicYearandClassandsection } from '@/types/exam/exam-module/report';
 
 // Re-export common dropdown actions from classwork for convenience
 // Removed re-exports to avoid 'use server' async export error. Import directly from classwork.ts
 
 const BASE_URL = '/IVRM_ClassWork';
 
-export async function getInitialData(id: number = 1): Promise<ApiResponse<IClassWorkMarksInitialData>> {
+export async function getInitialData(id = 1): Promise<ApiResponse<IClassWorkMarksInitialData>> {
     return await api.get<IClassWorkMarksInitialData>('portal', `${BASE_URL}/Getdetails/${id}`);
 }
 
@@ -45,6 +47,15 @@ export async function saveMarks(data: IClassWorkMarksSave): Promise<ApiResponse<
     return await api.post('portal', `${BASE_URL}/classwork_marks_update`, data);
 }
 
-export async function viewStudentUpload(data: { AMST_Id: number; ICW_Id: number; ICWUPL_Id: number }): Promise<ApiResponse<{ viewstudentupload: IStudentUploadDetail[] }>> {
+export async function viewStudentUpload(data: { AMST_Id: number; ICW_Id: number; ICWUPL_Id: number }): Promise<
+    ApiResponse<{ viewstudentupload: IStudentUploadDetail[] }>
+> {
     return await api.post('portal', `${BASE_URL}/viewstudentupload`, data);
+}
+
+export async function getSectionsDropDownByAcademicYearandClasslist(asmaY_Id: number, asmcL_Id: number) {
+    if (!asmaY_Id) throw new Error('Academic Year ID is required');
+    if (!asmcL_Id) throw new Error('Class ID is required');
+    const url = `/ivrm_class_work/section_classwork/${asmcL_Id}/${asmaY_Id}`;
+    return await api.get<IAcademicYearandClassandsection[]>('portal', url);
 }
