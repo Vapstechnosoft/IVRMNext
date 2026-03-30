@@ -691,6 +691,8 @@ export async function getUserAccessibleModules() {
                                             title: 'Study Certificate GMVPS Report',
                                             description: 'Study Certificate GMVPS Report'
                                         },
+
+
                                         {
                                             id: 57,
                                             name: 'St.James Bonafied Report',
@@ -698,6 +700,22 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/reports/stjamesbonafiedreport',
                                             title: 'St.James Bonafied Report',
                                             description: 'St.James Bonafied Report'
+                                        },
+                                        {
+                                            id: 58,
+                                            name: 'St.James Migration Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/StjamesMigrationCertificate',
+                                            title: 'St.James Migration Report',
+                                            description: 'St.James Migration Report'
+                                        },
+                                        {
+                                            id: 59,
+                                            name: 'St.James Character Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/STJCharacterCertificate',
+                                            title: 'St.James Character Report',
+                                            description: 'St.James Character Report'
                                         }
                                     ]
                                 }
