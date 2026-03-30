@@ -130,9 +130,19 @@ export default function SearchForm({ yearList, classList }: SearchFormProps) {
         params.set('year', data.asmaY_Id.toString());
         params.set('class', data.asmcL_Id.toString());
         params.set('section', data.asmS_Id.toString());
-        params.set('subject', data.ismS_Id.toString());
-        params.set('from', data.from_date.toISOString());
-        params.set('to', data.to_date.toISOString());
+
+        if (data.ismS_Id) {
+            params.set('subject', data.ismS_Id.toString());
+        }
+
+        if (data.from_date) {
+            params.set('from', data.from_date.toISOString());
+        }
+
+        if (data.to_date) {
+            params.set('to', data.to_date.toISOString());
+        }
+
         router.push(`?${params.toString()}`);
     };
 
@@ -243,7 +253,7 @@ export default function SearchForm({ yearList, classList }: SearchFormProps) {
                 {/* Subject */}
                 <div className='space-y-1'>
                     <Label className='font-semibold text-sm'>
-                        Subject :<span className='text-red-500'>*</span>
+                        Subject :
                     </Label>
                     <Controller
                         control={control}
@@ -269,7 +279,7 @@ export default function SearchForm({ yearList, classList }: SearchFormProps) {
                 {/* From Date */}
                 <div className='flex flex-col space-y-1'>
                     <Label className='font-semibold text-sm'>
-                        From Date <span className='text-red-500'>*</span>
+                        From Date
                     </Label>
                     <Controller
                         control={control}
@@ -302,7 +312,7 @@ export default function SearchForm({ yearList, classList }: SearchFormProps) {
                 {/* To Date */}
                 <div className='flex flex-col space-y-1'>
                     <Label className='font-semibold text-sm'>
-                        To Date <span className='text-red-500'>*</span>
+                        To Date
                     </Label>
                     <Controller
                         control={control}

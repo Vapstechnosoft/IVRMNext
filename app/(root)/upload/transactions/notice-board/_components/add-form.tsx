@@ -357,13 +357,13 @@ export default function AddNoticeBoardForm({
                                 <tr className="border-b">
                                     <td className="border p-2 text-center">1</td>
                                     <td className="border p-2">
-                                        {/* <div className="flex flex-col gap-1">
+                                        <div className="flex flex-col gap-1">
                                             <label className="flex items-center justify-center px-4 py-2 bg-primary text-primary-foreground text-xs font-semibold cursor-pointer rounded hover:bg-primary/90 w-full">
                                                 Browse
                                                 <Input type="file" className="hidden" onChange={(e) => handleFileChange(e)} />
                                             </label>
                                             <span className="text-[10px] text-red-500">Accept File: jpg, jpeg, png, doc, ppt, excel, mp3, mp4, wmv, pdf</span>
-                                        </div> */}
+                                        </div>
                                     </td>
                                     <td className="border p-2">
                                         <Input value={intB_FilePath || ''} readOnly className="h-9 text-xs bg-muted" />
@@ -415,7 +415,24 @@ export default function AddNoticeBoardForm({
                                                 />
                                             </td>
                                             <td className="border p-2 text-center">
-                                                {/* Preview logic if needed */}
+                                                <Controller
+                                                    control={control}
+                                                    name={`intB_FilePath_Array.${index}.intbfL_FilePath`}
+                                                    render={({ field }) => (
+                                                        <>
+                                                            {field.value && field.value.startsWith('http') && (
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    onClick={() => window.open(field.value, '_blank')}
+                                                                >
+                                                                    <Eye className="h-4 w-4 text-blue-600" />
+                                                                </Button>
+                                                            )}
+                                                        </>
+                                                    )}
+                                                />
                                             </td>
                                             <td className="border p-2 text-center">
                                                 <div className="flex justify-center gap-1">

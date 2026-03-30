@@ -148,7 +148,8 @@ export default function HomeWorkUploadReportPage() {
 
     const handleCancel = () => {
         reset();
-        window.location.reload();
+        setShowReport(false);
+        setHomeWorkReport([]);
     };
     // const handlePrint = () => {
 

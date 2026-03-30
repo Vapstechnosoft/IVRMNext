@@ -21,6 +21,7 @@ import AddClassWorkForm from './_components/add-form';
 import { classWorkColumns } from './_components/columns';
 import ToggleClassWorkForm from './_components/toggle-form';
 import UpdateClassWorkForm from './_components/update-form';
+import DetailsView from './_components/details-view';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -151,7 +152,7 @@ function ClassWorkContent({
                 </CollapsibleSection>
 
                 {/* Forms */}
-                <FormSections yearList={data?.yearlist || []} classList={data?.classlist || []} onSuccess={refetchAll} />
+                <FormSections yearList={data?.yearlist || []} classList={data?.classlist || []} onSuccess={refetchAll} selectedYear={selectedYear} />
             </div>
         </div>
     );
@@ -160,20 +161,24 @@ function ClassWorkContent({
 function FormSections({
     onSuccess,
     yearList,
-    classList
+    classList,
+    selectedYear
 }: {
     onSuccess: () => void;
     yearList: any[];
     classList: any[];
+    selectedYear: number;
 }) {
     const {
         isAddFormOpen,
         isEditFormOpen,
         isToggleFormOpen,
+        isDetailsViewOpen,
         selectedRow,
         closeAddForm,
         closeEditForm,
         closeToggleForm,
+        closeDetailsView,
         addFormRef,
         editFormRef
     } = useFormContext<any>();
@@ -205,6 +210,7 @@ function FormSections({
                                     onSuccess();
                                 }}
                                 classList={classList}
+                                selectedYear={selectedYear}
                             />
                         </div>
                     </CollapsibleSection>
@@ -250,6 +256,14 @@ function FormSections({
                         closeToggleForm();
                         onSuccess();
                     }}
+                />
+            )}
+
+            {/* Details View (Attachments) */}
+            {isDetailsViewOpen && selectedRow && (
+                <DetailsView
+                    rowData={selectedRow}
+                    onClose={closeDetailsView}
                 />
             )}
         </>
