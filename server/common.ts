@@ -3905,10 +3905,10 @@ export async function getUserAccessibleModules() {
                                     pages: [
                                         {
                                             id: 1,
-                                            name: 'Class Section Time Table Report',
+                                            name: 'Class Section Timetable Replacement',
                                             icon: 'Clock',
                                             url: '/timetable/transactions/class-section-report/class-section-report',
-                                            title: 'Class Section Time Table Report',
+                                            title: 'Staff Replacement For Class And Section',
                                             description: 'View and generate class-wise timetable grids'
                                         },
                                         {

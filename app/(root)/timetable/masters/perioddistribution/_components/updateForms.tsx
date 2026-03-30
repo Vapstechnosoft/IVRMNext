@@ -18,9 +18,9 @@ import { periodDistributionSchema } from '@/schemas/timetable/masters';
 import { saveperioddistribution } from '@/server/timetable/masters/perioddistribution';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowRight, Loader2, Save, Trash2 } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
@@ -43,17 +43,18 @@ export default function UpdatePeriodDistributionForm({ onSuccess, selectedRow }:
     const academicList = (academicData as any) || [];
     const categoryList = (categoryData as any) || [];
     const staffList = (staffData as any) || [];
-    const sectionList = (sectionData as any) || [];
+    // Handle nested classarray if present
+    const classDataAny = classData as any;
+    const classList = Array.isArray(classDataAny) ? classDataAny : classDataAny?.classarray || [];
+
+    // Handle nested sectionarray if present
+    const sectionDataAny = sectionData as any;
+    const sectionList = Array.isArray(sectionDataAny) ? sectionDataAny : sectionDataAny?.sectionarray || [];
+
     const subjectList = (subjectData as any) || [];
-    const classList = (classData as any) || [];
 
     const { data: session } = useSession();
-    const mi_id =
-        (session as any)?.mi_id ||
-        (session as any)?.mi_Id ||
-        (session as any)?.user?.mi_Id ||
-        (session as any)?.user?.mi_id ||
-        0;
+    const mi_id = (session as any)?.mi_id || (session as any)?.mi_Id || (session as any)?.user?.mi_Id || (session as any)?.user?.mi_id || 0;
 
     const [tempList, setTempList] = useState<any[]>([]);
     const [availablePeriods, setAvailablePeriods] = useState<number>(0);
@@ -83,6 +84,7 @@ export default function UpdatePeriodDistributionForm({ onSuccess, selectedRow }:
         id: selectedRow?.ttfpD_Id,
         enabled: !!selectedRow?.ttfpD_Id
     });
+    console.log('Edit data fetched from server', editData);
 
     // Populate form when edit data + dropdowns are ready
     useEffect(() => {
@@ -92,11 +94,11 @@ export default function UpdatePeriodDistributionForm({ onSuccess, selectedRow }:
         if (
             academicList.length === 0 ||
             staffList.length === 0 ||
-            categoryList.length === 0 ||
-            classList.length === 0 ||
-            sectionList.length === 0 ||
-            subjectList.length === 0
-        ) return;
+            categoryList.length === 0
+            // Note: classList and sectionList might depend on category selection in some forms,
+            // but for initial edit mapping, we need the underlying records to show up.
+        )
+            return;
 
         const rows: any[] = (editData as any)?.data || [];
 
@@ -107,22 +109,25 @@ export default function UpdatePeriodDistributionForm({ onSuccess, selectedRow }:
 
         const firstRow = rows[0];
 
-        // Resolve top-level IDs — prefer initialData IDs, fall back to name-matching
+        // ── Robust ID Resolution ──
+        // Academic Year
         const asmaY_Id =
             selectedRow.asmaY_Id ||
-            academicList.find(
-                (a: any) =>
-                    a.asmaY_Year?.trim().toLowerCase() === firstRow.asmaY_Year?.trim().toLowerCase()
-            )?.asmaY_Id;
+            selectedRow.ASMAY_Id ||
+            academicList.find((a: any) => (a.asmaY_Year || '').trim().toLowerCase() === (firstRow.asmaY_Year || '').trim().toLowerCase())
+                ?.asmaY_Id;
 
+        // Staff ID
+        // Note: firstRow.staffName comes from getalldetailsviewrecords JSON
         const hrmE_Id =
             selectedRow.hrmE_Id ||
-            staffList.find(
-                (s: any) =>
-                    s.staffName?.trim().toLowerCase() === firstRow.staffName?.trim().toLowerCase()
-            )?.hrmE_Id;
+            selectedRow.HRME_Id ||
+            staffList.find((s: any) => (s.staffName || '').trim().toLowerCase() === (firstRow.staffName || '').trim().toLowerCase())
+                ?.hrmE_Id ||
+            staffList.find((s: any) => (s.staffName || '').trim().toLowerCase() === (selectedRow.staffName || '').trim().toLowerCase())
+                ?.hrmE_Id;
 
-        const nop1 = selectedRow.ttfpD_TotWeekPeriods || 1;
+        const nop1 = selectedRow.ttfpD_TotWeekPeriods || firstRow.ttfpD_TotalPeriods || 1;
         const ttfpD_StaffConsecutive = selectedRow.ttfpD_StaffConsecutive || 1;
 
         if (asmaY_Id) setValue('asmaY_Id', Number(asmaY_Id));
@@ -133,32 +138,20 @@ export default function UpdatePeriodDistributionForm({ onSuccess, selectedRow }:
         // Map detail rows — resolve IDs by matching display names against dropdowns
         const mappedDetails = rows.map((row: any) => {
             const ttmC_Id =
-                categoryList.find(
-                    (c: any) =>
-                        c.ttmC_CategoryName?.trim().toLowerCase() ===
-                        row.ttmC_CategoryName?.trim().toLowerCase()
-                )?.ttmC_Id || undefined;
+                categoryList.find((c: any) => c.ttmC_CategoryName?.trim().toLowerCase() === row.ttmC_CategoryName?.trim().toLowerCase())
+                    ?.ttmC_Id || undefined;
 
             const asmcL_Id =
-                classList.find(
-                    (c: any) =>
-                        c.asmcL_ClassName?.trim().toLowerCase() ===
-                        row.asmcL_ClassName?.trim().toLowerCase()
-                )?.asmcL_Id || undefined;
+                classList.find((c: any) => c.asmcL_ClassName?.trim().toLowerCase() === row.asmcL_ClassName?.trim().toLowerCase())
+                    ?.asmcL_Id || undefined;
 
             const asmS_Id =
-                sectionList.find(
-                    (s: any) =>
-                        s.asmC_SectionName?.trim().toLowerCase() ===
-                        row.asmC_SectionName?.trim().toLowerCase()
-                )?.asmS_Id || undefined;
+                sectionList.find((s: any) => s.asmC_SectionName?.trim().toLowerCase() === row.asmC_SectionName?.trim().toLowerCase())
+                    ?.asmS_Id || undefined;
 
             const ismS_Id =
-                subjectList.find(
-                    (s: any) =>
-                        s.ismS_SubjectName?.trim().toLowerCase() ===
-                        row.ismS_SubjectName?.trim().toLowerCase()
-                )?.ismS_Id || undefined;
+                subjectList.find((s: any) => s.ismS_SubjectName?.trim().toLowerCase() === row.ismS_SubjectName?.trim().toLowerCase())
+                    ?.ismS_Id || undefined;
 
             return {
                 id: row.ttfpdD_Id || Date.now() + Math.random(),
@@ -379,18 +372,26 @@ export default function UpdatePeriodDistributionForm({ onSuccess, selectedRow }:
                                 name='hrmE_Id'
                                 render={({ field }) => (
                                     <Select
-                                        key={field.value?.toString() || 'empty'}
+                                        // Force a re-render when the value changes to ensure the UI updates
+                                        key={field.value ? field.value.toString() : 'staff-empty'}
                                         onValueChange={(val) => field.onChange(Number(val))}
-                                        value={field.value?.toString()}>
+                                        // Ensure the value passed to Select is a string or empty string
+                                        value={field.value?.toString() || ''}
+                                    >
                                         <SelectTrigger>
                                             <SelectValue placeholder='--Select Staff--' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {staffList.map((item: any) => (
-                                                <SelectItem key={item.hrmE_Id} value={item.hrmE_Id.toString()}>
-                                                    {item.staffName}
-                                                </SelectItem>
-                                            ))}
+                                            {staffList.map((item: any) => {
+                                                // Check all possible ID naming conventions from your backend
+                                                const id = item.hrmE_Id || item.HRME_Id || item.hrmE_ID;
+                                                const name = item.staffName || item.hrmE_EmployeeFirstName || 'Unknown';
+                                                return (
+                                                    <SelectItem key={id} value={id?.toString()}>
+                                                        {name}
+                                                    </SelectItem>
+                                                );
+                                            })}
                                         </SelectContent>
                                     </Select>
                                 )}
