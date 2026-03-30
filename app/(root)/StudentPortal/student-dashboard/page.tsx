@@ -32,12 +32,14 @@ import {
     achievementColumns,
     homeworkColumns,
     noticeColumns,
-    sportsColumns
+    sportsColumns,
+    classworkColumns
 } from './_components/columns';
 import { DashboardCharts } from './_components/dashboard-charts';
 import { DashboardWidget } from './_components/dashboard-widget';
 
 import { useStudentPortalInformation } from '@/hooks/staff-portal/useFeeOnlinePayment';
+import { useClasswork, useNoticeBoard } from '@/hooks/student-portal/useStudentDashboard';
 
 // Sample Data for Tables
 const mockNotices: NoticeBoardData[] = [
@@ -71,6 +73,27 @@ const mockAchievements: AchievementData[] = [
     { StudentName: 'John Doe', Class: 'X', Section: 'A', Date: '2023-12-15', Achievement: 'Best Coder' }
 ];
 
+const mockClasswork: AssignmentData[] = [
+    {
+        ismS_SubjectName: 'Mathematics',
+        icW_Topic: 'Algebra',
+        icW_SubTopic: 'Linear Equations',
+        icW_Content: 'Introduction to variables',
+        icW_FromDate: '2024-01-10',
+        icW_ToDate: '2024-01-15',
+        FilesCount: 1
+    },
+    {
+        ismS_SubjectName: 'Science',
+        icW_Topic: 'Biology',
+        icW_SubTopic: 'Cell Structure',
+        icW_Content: 'Plant vs Animal cells',
+        icW_FromDate: '2024-01-12',
+        icW_ToDate: '2024-01-18',
+        FilesCount: 2
+    }
+];
+
 import { useRouter } from 'next/navigation';
 
 export default function StudentDashboardPage() {
@@ -82,6 +105,13 @@ export default function StudentDashboardPage() {
     const closeModal = () => setActiveModal(null);
 
     const { data: studentInfoDetails, isLoading, error } = useStudentPortalInformation();
+
+    // The student object contains asmY_Id and amsT_Id but let's check what's available
+    const amstId = studentInfoDetails?.amsT_Id;
+    const asmayId = studentInfoDetails?.asmaY_Id;
+
+    const { data: noticeBoardData, isLoading: isNoticeBoardLoading } = useNoticeBoard(amstId, asmayId);
+    const { data: classworkData, isLoading: isClassworkLoading } = useClasswork(amstId, asmayId);
 
     console.log('studentInfoDetails', studentInfoDetails);
 
@@ -129,8 +159,8 @@ export default function StudentDashboardPage() {
                                 <p className='text-sm'>
                                     {studentInfoDetails?.classname || 'N/A'} : {studentInfoDetails?.sectionname || 'N/A'}
                                 </p>
-                                <p className='text-gray-500 text-xs'>Adm No: {studentInfoDetails?.amsT_AdmNo || 'N/A'}</p>
-                                <p className='text-gray-500 text-xs'>Reg No: {studentInfoDetails?.amsT_RegistrationNo || 'N/A'}</p>
+                                {/* <p className='text-gray-500 text-xs'>Adm No: {studentInfoDetails?.amsT_AdmNo || 'N/A'}</p>
+                                <p className='text-gray-500 text-xs'>Reg No: {studentInfoDetails?.amsT_RegistrationNo || 'N/A'}</p> */}
                             </>
                         )}
                     </div>
@@ -228,7 +258,7 @@ export default function StudentDashboardPage() {
                     icon={<BookOpen className='h-6 w-6' />}
                     colorClass='bg-emerald-500'
                     footerText='VIEW CLASSWORK'
-                    onViewClick={() => { }}>
+                    onViewClick={() => openModal('CLASSWORK')}>
                     <div className='mt-2 space-y-2'>
                         <div className='text-center text-sm'>
                             <span className='text-muted-foreground'>Class Resources</span>
@@ -402,7 +432,7 @@ export default function StudentDashboardPage() {
                             <DialogTitle>Notice Board</DialogTitle>
                             <DialogDescription>Recent announcements and circulars</DialogDescription>
                         </DialogHeader>
-                        <GenericDataTable columns={noticeColumns} data={mockNotices} isLoading={false} />
+                        <GenericDataTable columns={noticeColumns} data={noticeBoardData || []} isLoading={isNoticeBoardLoading} />
                     </DialogContent>
                 </Dialog>
 
@@ -430,6 +460,15 @@ export default function StudentDashboardPage() {
                             <DialogTitle>Achievements</DialogTitle>
                         </DialogHeader>
                         <GenericDataTable columns={achievementColumns} data={mockAchievements} isLoading={false} />
+                    </DialogContent>
+                </Dialog>
+
+                <Dialog open={activeModal === 'CLASSWORK'} onOpenChange={(open) => !open && closeModal()}>
+                    <DialogContent className='max-h-[80vh] max-w-4xl overflow-y-auto'>
+                        <DialogHeader>
+                            <DialogTitle>Classwork</DialogTitle>
+                        </DialogHeader>
+                        <GenericDataTable columns={classworkColumns} data={classworkData || []} isLoading={isClassworkLoading} />
                     </DialogContent>
                 </Dialog>
             </div>
