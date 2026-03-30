@@ -635,20 +635,16 @@ export async function getUserAccessibleModules() {
                     name: 'Admission Client',
                     icon: 'UserRoundPlus',
                     menu: [
-
                         {
                             id: 5,
                             name: 'Form and Reports',
                             icon: 'Settings',
                             sub_menu: [
-
                                 {
                                     id: 9,
                                     name: 'stjames',
                                     icon: 'Settings',
                                     pages: [
-
-
                                         {
                                             id: 12,
                                             name: 'Overall Daily Attendance Report',
@@ -657,7 +653,6 @@ export async function getUserAccessibleModules() {
                                             title: 'Overall Daily Attendance Report',
                                             description: 'Overall Daily Attendance Report'
                                         },
-
 
                                         {
                                             id: 53,
@@ -691,7 +686,6 @@ export async function getUserAccessibleModules() {
                                             title: 'Study Certificate GMVPS Report',
                                             description: 'Study Certificate GMVPS Report'
                                         },
-
 
                                         {
                                             id: 57,
@@ -2607,7 +2601,7 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/attendance-management/reports/employee-month-end-report',
                                             title: 'Employee Month End Report',
                                             description: 'Employee End Report'
-                                        },
+                                        }
                                     ]
                                 }
                             ]
@@ -4341,10 +4335,10 @@ export async function getUserAccessibleModules() {
                                     pages: [
                                         {
                                             id: 1,
-                                            name: 'Class Section Time Table Report',
+                                            name: 'Class Section Timetable Replacement',
                                             icon: 'Clock',
                                             url: '/timetable/transactions/class-section-report/class-section-report',
-                                            title: 'Class Section Time Table Report',
+                                            title: 'Staff Replacement For Class And Section',
                                             description: 'View and generate class-wise timetable grids'
                                         },
                                         {
@@ -5762,7 +5756,7 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                },
+                }
                 // {
                 //     id: 8,
                 //     name: 'Hostel Management',
