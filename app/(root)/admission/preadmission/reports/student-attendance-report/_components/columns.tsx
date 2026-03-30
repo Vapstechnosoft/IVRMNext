@@ -24,7 +24,13 @@ export const attendanceColumns: ColumnDef<IStudentAttendanceReportList>[] = [
     {
         accessorKey: 'RowNo',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6 font-bold text-black' />,
-        cell: ({ row }) => <div className='w-full pl-6'>{row.getValue('RowNo')}</div>,
+        // cell: ({ row }) => <div className='w-full pl-6'>{row.getValue('RowNo')}</div>,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            const continuousIndex = pageIndex * pageSize + row.index + 1;
+            return <div>{continuousIndex}</div>;
+        },
         enableSorting: true,
         enableHiding: false
     },

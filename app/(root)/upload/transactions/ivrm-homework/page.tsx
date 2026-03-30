@@ -148,6 +148,7 @@ function HomeWorkContent({
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['actions'] }}
+                        scrollable={true}
                         loadingMessage='Loading homework...'
                         noDataTitle='No HomeWork Found'
                         noDataDescription='Get started by creating your first homework entry'

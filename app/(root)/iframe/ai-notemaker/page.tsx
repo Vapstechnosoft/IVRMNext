@@ -60,6 +60,11 @@ export default function AINotemaker() {
             return;
         }
 
+        if (!chapter.trim()) {
+            toast.error("Please specify a chapter");
+            return;
+        }
+
         setIsLoading(true);
         setResult(null);
         setErrorLog(null);
@@ -217,7 +222,7 @@ export default function AINotemaker() {
                                         </div>
 
                                         <div className="grid w-full items-center gap-1.5 pt-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                            <Label htmlFor="chapter">Specific Chapter (Optional)</Label>
+                                            <Label htmlFor="chapter">Specific Chapter <span className="text-destructive">*</span></Label>
                                             <Input
                                                 id="chapter"
                                                 placeholder="e.g. Chapter 5, Newton's Laws"
@@ -300,7 +305,7 @@ export default function AINotemaker() {
                                         <Button
                                             size="lg"
                                             onClick={handleGenerate}
-                                            disabled={isLoading || !file || (!generateSummary && !generateNotes)}
+                                            disabled={isLoading || !file || !chapter.trim() || (!generateSummary && !generateNotes)}
                                             className="min-w-[150px]"
                                         >
                                             {isLoading ? (

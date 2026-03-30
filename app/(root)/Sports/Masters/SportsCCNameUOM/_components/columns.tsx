@@ -60,6 +60,7 @@ export const MasterSportsCCNameUOMColumns: ColumnDef<IMasterSportsCCNameUOM>[] =
     },
     {
         id: 'actions',
+        header: 'Actions',
         cell: ActionsCell
     }
 ];
