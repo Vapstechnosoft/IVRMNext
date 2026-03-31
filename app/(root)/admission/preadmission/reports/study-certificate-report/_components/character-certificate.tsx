@@ -42,7 +42,7 @@ const CharacterCertificate = React.forwardRef<HTMLDivElement, CertificateProps>(
         const masterCompany = data.masterCompany?.[0];
 
         return (
-            <div ref={ref} className='bg-white text-black w-full'>
+            <div ref={ref} className='bg-white text-black w-full printable-content'>
                 <style
                     dangerouslySetInnerHTML={{
                         __html: `
