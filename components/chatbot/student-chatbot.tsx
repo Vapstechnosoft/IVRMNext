@@ -266,7 +266,7 @@ export const StudentChatbot = () => {
                                 </div>
                                 <div>
                                     <h3 className='flex items-center gap-1.5 font-bold text-sm leading-none'>
-                                        Student Assistant
+                                        School Assistant
                                         <Sparkles className='h-3 w-3 text-yellow-300' />
                                     </h3>
                                     <p className='mt-1 flex items-center gap-1 text-[11px] opacity-80'>

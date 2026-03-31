@@ -18,13 +18,13 @@ export function FloatingSchoolBot() {
                 >
                     <img
                         src="/chatbot/standing-robot-black.png"
-                        alt="Student Assistant"
+                        alt="School Assistant"
                         className="w-full h-full object-contain"
                     />
                 </motion.button>
                 <div className="bg-white/50 backdrop-blur-sm px-1.5 h-[12px] flex items-center justify-center rounded-full shadow-sm border border-black/5">
                     <span className="text-[7.5px] font-bold text-black/80 whitespace-nowrap uppercase tracking-wider leading-none translate-y-[0px]">
-                        Student Assistant
+                        School Assistant
                     </span>
                 </div>
             </div>
