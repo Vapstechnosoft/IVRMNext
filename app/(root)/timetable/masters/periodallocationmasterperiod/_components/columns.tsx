@@ -10,7 +10,7 @@ import { useCallback } from 'react';
 export const masterPeriodColumns: ColumnDef<IPeriodAllocationMasterDay>[] = [
     {
         accessorKey: 'ttmP_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='font-bold text-black' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -22,14 +22,14 @@ export const masterPeriodColumns: ColumnDef<IPeriodAllocationMasterDay>[] = [
     },
     {
         accessorKey: 'ttmP_PeriodName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Period Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Period Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('ttmP_PeriodName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='font-bold text-black' />,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
     }
 ];

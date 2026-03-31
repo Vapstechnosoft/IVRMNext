@@ -10,7 +10,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { type IHomeWork, homeWorkSchema } from '@/schemas/upload/transactions/ivrm-homework.schema';
-import { fetchSections, fetchSubjects, saveHomeWork } from '@/server/upload/transactions/ivrm-homework/server-action';
+import {
+    getClassDropDownByAcademicYearlist,
+    getSectionsDropDownByAcademicYearandClasslist
+} from '@/server/exam/exam-module/reports/cumulative-report';
+import { getSubjectsDropDownByAcademicYearandClassandSectionlist } from '@/server/upload/transactions/ivrm-classwork/server-action';
+import { saveHomeWork } from '@/server/upload/transactions/ivrm-homework/server-action';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format, parseISO } from 'date-fns';
 import { CalendarIcon, Minus, Plus } from 'lucide-react';
@@ -22,33 +27,59 @@ interface UpdateHomeWorkFormProps {
     onSuccess: () => void;
     yearList: any[];
     classList: any[];
-    selectedRow: IHomeWork;
+    selectedRow: any;
 }
 
 export default function UpdateHomeWorkForm({ onSuccess, yearList, classList, selectedRow }: UpdateHomeWorkFormProps) {
     const [sections, setSections] = useState<any[]>([]);
     const [subjects, setSubjects] = useState<any[]>([]);
+    const [classes, setClasses] = useState<any[]>(classList || []);
+    const [isclassesLoading, setIsClassesLoading] = useState(false);
     const [isUrlMode, setIsUrlMode] = useState(false);
 
-    const methods = useForm<IHomeWork>({
-        resolver: zodResolver(homeWorkSchema.addOrUpdate),
-        defaultValues: {
-            ...selectedRow,
-            ihW_Date: selectedRow.ihW_Date
-                ? typeof selectedRow.ihW_Date === 'string'
-                    ? parseISO(selectedRow.ihW_Date)
-                    : selectedRow.ihW_Date
-                : new Date(),
-            ihW_FilePath_Array: selectedRow.ihW_FilePath_Array || [{ ihW_FilePath: '', fileName: '' }]
+    useEffect(() => {
+        if (classList?.length > 0) {
+            setClasses(classList);
         }
+    }, [classList]);
+
+    const methods = useForm<IHomeWork>({
+        resolver: zodResolver(homeWorkSchema.addOrUpdate)
     });
 
     const {
         control,
         handleSubmit,
         formState: { isSubmitting },
-        setValue
+        setValue,
+        reset
     } = methods;
+
+    useEffect(() => {
+        if (selectedRow) {
+            const row = selectedRow;
+            const asmaY_Id = Number(row.asmaY_Id || row.ASMAY_Id || 0);
+            const asmcL_Id = Number(row.asmcL_Id || row.ASMCL_Id || 0);
+            const asmS_Id = Number(row.asmS_Id || row.ASMS_Id || 0);
+            const ismS_Id = Number(row.ismS_Id || row.ISMS_Id || 0);
+
+            reset({
+                ...row,
+                asmaY_Id,
+                asmcL_Id,
+                ismS_Id: ismS_Id > 0 ? ismS_Id : undefined,
+                hm_section_list:
+                    row.hm_section_list ||
+                    (asmS_Id > 0 ? [{ asmS_Id }] : []),
+                ihW_Date: row.ihW_Date || row.IHW_Date
+                    ? typeof (row.ihW_Date || row.IHW_Date) === 'string'
+                        ? parseISO(row.ihW_Date || row.IHW_Date)
+                        : row.ihW_Date || row.IHW_Date
+                    : new Date(),
+                ihW_FilePath_Array: row.ihW_FilePath_Array || row.IHW_FilePath_Array || [{ ihW_FilePath: '', fileName: '' }]
+            });
+        }
+    }, [selectedRow, reset]);
     const selectedYear = useWatch({ control, name: 'asmaY_Id' });
     const selectedClass = useWatch({ control, name: 'asmcL_Id' });
     const selectedSections = useWatch({ control, name: 'hm_section_list' });
@@ -58,17 +89,29 @@ export default function UpdateHomeWorkForm({ onSuccess, yearList, classList, sel
         name: 'ihW_FilePath_Array'
     });
 
-    const { append: appendSection, remove: removeSection } = useFieldArray({
-        control,
-        name: 'hm_section_list'
-    });
+    useEffect(() => {
+        if (selectedYear && selectedYear > 0 && classes.length === 0) {
+            setIsClassesLoading(true);
+            (async () => {
+                try {
+                    const { data } = await getClassDropDownByAcademicYearlist(selectedYear);
+                    setClasses(Array.isArray(data) ? data : []);
+                } catch {
+                    toast.error('Failed to load classes');
+                    setClasses([]);
+                } finally {
+                    setIsClassesLoading(false);
+                }
+            })();
+        }
+    }, [selectedYear, classes.length]);
 
     useEffect(() => {
         const loadSections = async () => {
             if (selectedClass && selectedYear) {
                 try {
-                    const result = await fetchSections(selectedClass, selectedYear);
-                    setSections(result.sectionlist || []);
+                    const { data } = await getSectionsDropDownByAcademicYearandClasslist(selectedYear, selectedClass);
+                    setSections(Array.isArray(data) ? data : []);
                 } catch (error) {
                     toast.error('Failed to load sections');
                 }
@@ -83,8 +126,13 @@ export default function UpdateHomeWorkForm({ onSuccess, yearList, classList, sel
         const loadSubjects = async () => {
             if (selectedClass && selectedYear && selectedSections?.length > 0) {
                 try {
-                    const result = await fetchSubjects(selectedClass, selectedYear, selectedSections);
-                    setSubjects(result.subjectlist || []);
+                    const payload = {
+                        asmaY_Id: selectedYear,
+                        asmcL_Id: selectedClass,
+                        hm_section_list: selectedSections
+                    };
+                    const { data } = await getSubjectsDropDownByAcademicYearandClassandSectionlist(payload);
+                    setSubjects(Array.isArray(data) ? data : []);
                 } catch (error) {
                     toast.error('Failed to load subjects');
                 }
@@ -103,12 +151,12 @@ export default function UpdateHomeWorkForm({ onSuccess, yearList, classList, sel
         }
     };
 
-    const handleSectionChange = (sectionId: number, isChecked: boolean) => {
+    const handleSectionChange = (sectionId: number, isChecked: boolean, onChange: (val: any) => void, value: any) => {
+        const current = value || [];
         if (isChecked) {
-            appendSection({ asmS_Id: sectionId });
+            onChange([...current, { asmS_Id: sectionId }]);
         } else {
-            const index = selectedSections?.findIndex((x: any) => x.asmS_Id === sectionId);
-            if (index !== undefined && index > -1) removeSection(index);
+            onChange(current.filter((x: any) => x.asmS_Id !== sectionId));
         }
     };
 
@@ -168,11 +216,17 @@ export default function UpdateHomeWorkForm({ onSuccess, yearList, classList, sel
                                         <SelectValue placeholder='Select Class' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {classList.map((cls: any) => (
-                                            <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()}>
-                                                {cls.asmcL_ClassName}
+                                        {isclassesLoading ? (
+                                            <SelectItem value='loading' disabled>
+                                                Loading...
                                             </SelectItem>
-                                        ))}
+                                        ) : (
+                                            classes?.map((cls: any) => (
+                                                <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()}>
+                                                    {cls.asmcL_ClassName}
+                                                </SelectItem>
+                                            ))
+                                        )}
                                     </SelectContent>
                                 </Select>
                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -180,28 +234,32 @@ export default function UpdateHomeWorkForm({ onSuccess, yearList, classList, sel
                         )}
                     />
 
-                    <div className='space-y-2'>
-                        <Label>
-                            Section <span className='text-destructive'>*</span>
-                        </Label>
-                        <div className='grid grid-cols-2 gap-2 rounded-md border p-3'>
-                            {sections.map((sec) => (
-                                <div key={sec.asmS_Id} className='flex items-center space-x-2'>
-                                    <Checkbox
-                                        id={`update-sec-${sec.asmS_Id}`}
-                                        checked={selectedSections?.some((x: any) => x.asmS_Id === sec.asmS_Id)}
-                                        onCheckedChange={(checked) => handleSectionChange(sec.asmS_Id, checked as boolean)}
-                                    />
-                                    <label htmlFor={`update-sec-${sec.asmS_Id}`} className='cursor-pointer text-sm'>
-                                        {sec.asmC_SectionName}
-                                    </label>
+                    <Controller
+                        name='hm_section_list'
+                        control={control}
+                        render={({ field, fieldState }) => (
+                            <div className='space-y-2'>
+                                <Label>
+                                    Section <span className='text-destructive'>*</span>
+                                </Label>
+                                <div className='grid grid-cols-2 gap-2 rounded-md border p-3'>
+                                    {sections.map((sec) => (
+                                        <div key={sec.asmS_Id} className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                id={`update-sec-${sec.asmS_Id}`}
+                                                checked={field.value?.some((x: any) => x.asmS_Id === sec.asmS_Id)}
+                                                onCheckedChange={(checked) => handleSectionChange(sec.asmS_Id, checked as boolean, field.onChange, field.value)}
+                                            />
+                                            <label htmlFor={`update-sec-${sec.asmS_Id}`} className='cursor-pointer text-sm'>
+                                                {sec.asmC_SectionName}
+                                            </label>
+                                        </div>
+                                    ))}
                                 </div>
-                            ))}
-                        </div>
-                        {methods.formState.errors.hm_section_list && (
-                            <FormError>{methods.formState.errors.hm_section_list.message}</FormError>
+                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                            </div>
                         )}
-                    </div>
+                    />
 
                     <Controller
                         control={control}

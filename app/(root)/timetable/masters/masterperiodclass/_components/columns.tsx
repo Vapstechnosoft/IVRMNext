@@ -10,7 +10,7 @@ import { useCallback } from 'react';
 export const masterPeriodClassColumns: ColumnDef<IMasterPeriodClassList>[] = [
     {
         accessorKey: 'ttmpC_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='font-bold text-black' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -22,28 +22,28 @@ export const masterPeriodClassColumns: ColumnDef<IMasterPeriodClassList>[] = [
     },
     {
         accessorKey: 'asmaY_Year',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Academic Year' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Academic Year' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('asmaY_Year')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'asmcL_ClassName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Class' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Class' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('asmcL_ClassName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'ttmP_PeriodName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Period Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Period Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('ttmP_PeriodName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='font-bold text-black' />,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
     }
 ];

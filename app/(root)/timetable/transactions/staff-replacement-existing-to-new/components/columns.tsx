@@ -1,24 +1,8 @@
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { StaffReplacementGridData } from '@/types/timetable/Transaction/staff-replacement-existing-to-new';
-import { ColumnDef } from '@tanstack/react-table';
+import type { StaffReplacementGridData } from '@/types/timetable/Transaction/staff-replacement-existing-to-new';
+import type { ColumnDef } from '@tanstack/react-table';
 
 export const columns: ColumnDef<StaffReplacementGridData>[] = [
-    // {
-    //     id: 'select',
-    //     header: ({ table }) => (
-    //         <Checkbox
-    //             checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-    //             onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-    //             aria-label='Select all'
-    //         />
-    //     ),
-    //     cell: ({ row }) => (
-    //         <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
-    //     ),
-    //     enableSorting: false,
-    //     enableHiding: false,
-    //     size: 24
-    // },
     {
         id: 'sno',
         header: ({ column }) => <DataTableColumnHeader column={column} title='S.No' />,

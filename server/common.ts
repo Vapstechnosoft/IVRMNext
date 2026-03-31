@@ -630,6 +630,94 @@ export async function getUserAccessibleModules() {
                     ]
                 },
 
+                // {
+                //     id: 9000,
+                //     name: 'Admission Client',
+                //     icon: 'UserRoundPlus',
+                //     menu: [
+                //         {
+                //             id: 5,
+                //             name: 'Form and Reports',
+                //             icon: 'Settings',
+                //             sub_menu: [
+                //                 {
+                //                     id: 9,
+                //                     name: 'stjames',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 12,
+                //                             name: 'Overall Daily Attendance Report',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/overall-daily-attendance-report',
+                //                             title: 'Overall Daily Attendance Report',
+                //                             description: 'Overall Daily Attendance Report'
+                //                         },
+
+                //                         {
+                //                             id: 53,
+                //                             name: 'Student Birthday Report',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/student-birthday-report',
+                //                             title: 'Student Birthday Report',
+                //                             description: 'Student Birthday Report'
+                //                         },
+                //                         {
+                //                             id: 54,
+                //                             name: '100% Attendance Report',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/100attendance-report',
+                //                             title: '100% Attendance Report',
+                //                             description: '100% Attendance Report'
+                //                         },
+                //                         {
+                //                             id: 55,
+                //                             name: 'St.James TC Custom Report',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/stjames-tc-customreport',
+                //                             title: 'St.James TC Custom Report',
+                //                             description: 'St.James TC Custom Report'
+                //                         },
+                //                         {
+                //                             id: 56,
+                //                             name: 'Study Certificate GMVPS Report',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/study-certificate-gmvps-report',
+                //                             title: 'Study Certificate GMVPS Report',
+                //                             description: 'Study Certificate GMVPS Report'
+                //                         },
+
+                //                         {
+                //                             id: 57,
+                //                             name: 'St.James Bonafied Report',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/stjamesbonafiedreport',
+                //                             title: 'St.James Bonafied Report',
+                //                             description: 'St.James Bonafied Report'
+                //                         },
+                //                         {
+                //                             id: 58,
+                //                             name: 'St.James Migration Report',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/StjamesMigrationCertificate',
+                //                             title: 'St.James Migration Report',
+                //                             description: 'St.James Migration Report'
+                //                         },
+                //                         {
+                //                             id: 59,
+                //                             name: 'St.James Character Report',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/STJCharacterCertificate',
+                //                             title: 'St.James Character Report',
+                //                             description: 'St.James Character Report'
+                //                         }
+                //                     ]
+                //                 }
+                //             ]
+                //         }
+                //     ]
+                // },
+
                 {
                     id: 2,
                     name: 'Fees Management',
@@ -3931,7 +4019,7 @@ export async function getUserAccessibleModules() {
                                             id: 225,
                                             name: 'Upload Notice Board',
                                             icon: 'BookOpen',
-                                            url: '/upload/transactions/notice-board',
+                                            url: '/upload/transactions/notice-board-new',
                                             title: 'Upload Notice Board',
                                             description: 'Upload Notice Board'
                                         },
@@ -4247,10 +4335,10 @@ export async function getUserAccessibleModules() {
                                     pages: [
                                         {
                                             id: 1,
-                                            name: 'Class Section Time Table Report',
+                                            name: 'Class Section Timetable Replacement',
                                             icon: 'Clock',
                                             url: '/timetable/transactions/class-section-report/class-section-report',
-                                            title: 'Class Section Time Table Report',
+                                            title: 'Staff Replacement For Class And Section',
                                             description: 'View and generate class-wise timetable grids'
                                         },
                                         {
@@ -4643,66 +4731,66 @@ export async function getUserAccessibleModules() {
                     ]
                 },
 
-                // {
-                //     id: 25,
-                //     name: 'COE',
-                //     icon: 'Settings',
-                //     menu: [
-                //         {
-                //             id: 1,
-                //             name: 'Calendar of Events',
-                //             icon: 'Settings',
-                //             sub_menu: [
-                //                 {
-                //                     id: 1,
-                //                     name: 'Master',
-                //                     icon: 'Settings',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Master Event',
-                //                             icon: 'Settings',
-                //                             url: '/coe/master/masterevent',
-                //                             title: 'Master Event',
-                //                             description: 'Manage Master Event Details'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Mapping',
-                //                             icon: 'Settings',
-                //                             url: '/coe/master/master-coe',
-                //                             title: 'Mapping',
-                //                             description: 'Manage Mapping Details'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 2,
-                //                     name: 'Report',
-                //                     icon: 'Settings',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'COE Report',
-                //                             icon: 'Settings',
-                //                             url: '/coe/report/coereport',
-                //                             title: 'COE Report',
-                //                             description: 'Manage COE Report'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'COE Month End Report',
-                //                             icon: 'Settings',
-                //                             url: '/coe/report/coemonthendreport',
-                //                             title: 'COE Month End Report',
-                //                             description: 'Manage COE Month End Report'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         }
-                //     ]
-                // }
+                {
+                    id: 25,
+                    name: 'COE',
+                    icon: 'Settings',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Calendar of Events',
+                            icon: 'Settings',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Master',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Master Event',
+                                            icon: 'Settings',
+                                            url: '/coe/master/masterevent',
+                                            title: 'Master Event',
+                                            description: 'Manage Master Event Details'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Mapping',
+                                            icon: 'Settings',
+                                            url: '/coe/master/master-coe',
+                                            title: 'Mapping',
+                                            description: 'Manage Mapping Details'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Report',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'COE Report',
+                                            icon: 'Settings',
+                                            url: '/coe/report/coereport',
+                                            title: 'COE Report',
+                                            description: 'Manage COE Report'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'COE Month End Report',
+                                            icon: 'Settings',
+                                            url: '/coe/report/coemonthendreport',
+                                            title: 'COE Month End Report',
+                                            description: 'Manage COE Month End Report'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
                 {
                     id: 10,
                     name: 'Inventory Management',
@@ -6202,7 +6290,7 @@ export async function getUserAccessibleModules() {
                                             id: 80013,
                                             name: 'Notice Board',
                                             icon: 'MessageSquare',
-                                            url: '/StaffPortal/Upload/notice-board',
+                                            url: '/StaffPortal/Upload/notice-board-new',
                                             title: 'Notice Board',
                                             description: 'Notice Board'
                                         },

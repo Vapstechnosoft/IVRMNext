@@ -43,7 +43,7 @@ export default function ToggleMasterDriverForm({
             <div className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.trmD_DriverName}</strong>?
+                        Are you sure you want to {isActive ? 'inactive' : 'active'} <strong>{rowData.trmD_DriverName}</strong>?
                     </p>
                 </AdaptiveBody>
                 <AdaptiveFooter>
@@ -51,7 +51,7 @@ export default function ToggleMasterDriverForm({
                         Cancel
                     </Button>
                     <Button type='button' onClick={handleConfirm} isLoading={isLoading} variant={isActive ? 'destructive' : 'default'}>
-                        {isActive ? 'Deactivate' : 'Activate'}
+                        {isActive ? 'Inactive' : 'Active'}
                     </Button>
                 </AdaptiveFooter>
             </div>

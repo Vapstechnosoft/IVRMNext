@@ -17,6 +17,7 @@ import { CalendarIcon, Minus, Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
+import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 
 interface UpdateHomeWorkFormProps {
     onSuccess: () => void;
@@ -49,10 +50,6 @@ export default function UpdateHomeWorkForm({ onSuccess, yearList, classList, sel
         name: 'ihW_FilePath_Array'
     });
 
-    const { append: appendSection, remove: removeSection } = useFieldArray({
-        control,
-        name: 'hm_section_list'
-    });
 
     useEffect(() => {
         const loadSections = async () => {
@@ -94,14 +91,6 @@ export default function UpdateHomeWorkForm({ onSuccess, yearList, classList, sel
         }
     };
 
-    const handleSectionChange = (sectionId: number, isChecked: boolean) => {
-        if (isChecked) {
-            appendSection({ asmS_Id: sectionId });
-        } else {
-            const index = selectedSections?.findIndex((x: any) => x.asmS_Id === sectionId);
-            if (index !== undefined && index > -1) removeSection(index);
-        }
-    };
 
     const onSubmit = async (data: IHomeWork) => {
         try {
@@ -167,22 +156,29 @@ export default function UpdateHomeWorkForm({ onSuccess, yearList, classList, sel
                         )}
                     />
 
-                    <div className='space-y-2'>
-                        <Label >Section <span className='text-destructive'>*</span></Label>
-                        <div className='grid grid-cols-2 gap-2 rounded-md border p-3'>
-                            {sections.map((sec) => (
-                                <div key={sec.asmS_Id} className='flex items-center space-x-2'>
-                                    <Checkbox
-                                        id={`update-sec-${sec.asmS_Id}`}
-                                        checked={selectedSections?.some((x: any) => x.asmS_Id === sec.asmS_Id)}
-                                        onCheckedChange={(checked) => handleSectionChange(sec.asmS_Id, checked as boolean)}
-                                    />
-                                    <label htmlFor={`update-sec-${sec.asmS_Id}`} className='text-sm cursor-pointer'>{sec.asmC_SectionName}</label>
-                                </div>
-                            ))}
-                        </div>
-                        {methods.formState.errors.hm_section_list && <FormError>{methods.formState.errors.hm_section_list.message}</FormError>}
-                    </div>
+                    <Controller
+                        name='hm_section_list'
+                        control={control}
+                        render={({ field, fieldState }) => (
+                            <div className='grow space-y-2'>
+                                <CustomMultiSelectBox
+                                    label='Section'
+                                    isRequired
+                                    isSearchRequired
+                                    options={sections.map((s) => ({
+                                        label: s.asmC_SectionName,
+                                        value: s.asmS_Id.toString()
+                                    }))}
+                                    value={field.value?.map((v: any) => v.asmS_Id.toString()) || []}
+                                    onChange={(vals: string[]) => {
+                                        field.onChange(vals.map((v) => ({ asmS_Id: Number(v) })));
+                                    }}
+                                    disabled={!selectedClass || selectedClass === 0}
+                                    error={fieldState.error?.message}
+                                />
+                            </div>
+                        )}
+                    />
 
                     <Controller
                         control={control}

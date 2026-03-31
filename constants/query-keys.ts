@@ -544,6 +544,8 @@ export const LIBRARY_QUERY_KEYS = {
     LIBRARY_LOST_BOOK_LIST: 'library_lost_book_list'
 };
 export const PORTAL_QUERY_KEYS = {
+    NOTICE_BOARD_LIST: 'notice_board_list',
+    CLASSWORK_LIST: 'classwork_list',
     CLASS_WORK_UPLOADED: 'class_work_uploaded',
     HOME_WORK_UPLOADED: 'home_work_uploaded',
     STUDENT_PORTAL_FEEDBACK: 'student_portal_feedback',
