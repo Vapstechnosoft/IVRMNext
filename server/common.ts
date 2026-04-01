@@ -4007,7 +4007,7 @@ export async function getUserAccessibleModules() {
                                             id: 225,
                                             name: 'Upload Notice Board',
                                             icon: 'BookOpen',
-                                            url: '/upload/transactions/notice-board-new',
+                                            url: '/upload/transactions/notice-board',
                                             title: 'Upload Notice Board',
                                             description: 'Upload Notice Board'
                                         },
