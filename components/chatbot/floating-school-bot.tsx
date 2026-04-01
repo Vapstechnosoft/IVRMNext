@@ -1,11 +1,22 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { SchoolAssistantBot } from './school-assistant-bot';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export function FloatingSchoolBot() {
     const [isOpen, setIsOpen] = useState(false);
+    const [mounted, setMounted] = useState(false);
+    const pathname = usePathname();
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    const isAuthPage = pathname?.toLowerCase().includes('login') || pathname?.toLowerCase().includes('sign-in');
+
+    if (!mounted || isAuthPage) return null;
 
     return (
         <>

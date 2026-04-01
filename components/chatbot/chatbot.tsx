@@ -89,10 +89,11 @@ export const Chatbot = () => {
 
     // Early guard AFTER all hooks are declared
     // Strictly Admin Portal only (Exclude Student and Staff portals)
+    const isAuthPage = pathname?.toLowerCase().includes('login') || pathname?.toLowerCase().includes('sign-in');
     const isStudentPortal = pathname?.toLowerCase().includes('studentportal');
     const isStaffPortal = pathname?.toLowerCase().includes('staffportal');
 
-    if (!mounted || isStudentPortal || isStaffPortal) return null;
+    if (!mounted || isStudentPortal || isStaffPortal || isAuthPage) return null;
 
     // Helper to resolve links from common.ts data (environment-aware)
     const resolveLink = (targetName: string, fallbackLink?: string) => {
