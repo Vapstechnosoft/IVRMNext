@@ -37,8 +37,30 @@ export const BonafiedCertificatePrint = forwardRef<HTMLDivElement, BonafiedCerti
         const stuDoa = data.stuDoa ? new Date(data.stuDoa) : null;
         const leftDate = data.leftdate ? new Date(data.leftdate) : null;
 
+        console.log(data);
         return (
-            <div ref={ref} style={{ width: '210mm', minHeight: '297mm', padding: '20mm', fontFamily: 'Calibri, sans-serif' }}>
+            <div ref={ref} className="bg-white text-black printable-content" style={{ width: '210mm', minHeight: '297mm', padding: '20mm', fontFamily: 'Calibri, sans-serif', margin: '0 auto' }}>
+                <style
+                    dangerouslySetInnerHTML={{
+                        __html: `
+                        @media print {
+                            @page {
+                                size: A4 portrait;
+                                margin: 0;
+                            }
+                            * {
+                                -webkit-print-color-adjust: exact !important;
+                                print-color-adjust: exact !important;
+                            }
+                            body {
+                                margin: 0;
+                                padding: 0;
+                                background: white !important;
+                            }
+                        }
+                    `
+                    }}
+                />
                 {/* Format 1: Studying / Left / Deactive */}
                 {reportFormat === 1 && (
                     <div>

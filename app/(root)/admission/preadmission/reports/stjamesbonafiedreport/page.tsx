@@ -92,7 +92,7 @@ export default function StjamesBonafiedReportPage() {
                 // Capitalize helper
                 const capitalize = (str: string) => {
                     if (!str) return '';
-                    const cleanStr = str.split(':')[0]; 
+                    const cleanStr = str.split(':')[0];
                     return cleanStr.split(' ')
                         .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
                         .join(' ');
@@ -104,13 +104,13 @@ export default function StjamesBonafiedReportPage() {
                     milogo: masterCompany.milogo,
                     mi_id: masterCompany.mI_Id,
                     studentname: capitalize(student.studentnam),
-                    fathername: capitalize(student.fatherName),
+                    fathername: capitalize(student.fathername),
                     mothername: capitalize(student.mothername),
                     admno: student.admno,
                     className: student.class,
                     section: student.section,
                     dob: student.dob,
-                    stuDoa: student.admdate,
+                    stuDoa: student.joindate,
                     admittedclass: studentList1.joinedclass,
                     leftdate: leftStudentDetails ? leftStudentDetails.astC_TCIssueDate : null,
                     selectedDate: formData.ASA_FromDate,
@@ -168,7 +168,7 @@ export default function StjamesBonafiedReportPage() {
             {showReport && reportData && (
                 <div className="space-y-4 animate-in fade-in duration-500">
                     <div className="flex justify-end gap-4 p-4 bg-slate-50 border rounded-lg">
-                        <Button onClick={() => handlePrint()} className="bg-indigo-600 hover:bg-indigo-700">
+                        <Button onClick={() => handlePrint()} className="w-full transition-all duration-200 hover:scale-105 sm:w-fit">
                             <Printer className="mr-2 h-4 w-4" /> Print
                         </Button>
                     </div>

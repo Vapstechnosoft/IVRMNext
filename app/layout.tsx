@@ -1,5 +1,6 @@
 import { Chatbot } from '@/components/chatbot/chatbot';
 import { StudentChatbot } from '@/components/chatbot/student-chatbot';
+import { FloatingSchoolBot } from '@/components/chatbot/floating-school-bot';
 import Providers from '@/components/layout/providers';
 import { auth } from '@/lib/auth';
 import { cn } from '@/lib/utils';
@@ -45,6 +46,7 @@ export default async function RootLayout({ children }: Readonly<RootLayoutProps>
                     {children}
                     <Chatbot />
                     <StudentChatbot />
+                    <FloatingSchoolBot />
                     <Toaster position='bottom-right' closeButton={true} duration={3000} richColors className={`${geistSans.className}`} />
                 </Providers>
             </body>

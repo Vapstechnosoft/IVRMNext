@@ -129,12 +129,12 @@ export function SchoolAssistantBot({ open, onOpenChange }: { open: boolean; onOp
                         <div className="title flex items-center gap-3 font-bold text-base tracking-tight">
                             <div className="p-1 bg-white rounded-full">
                                 <img
-                                    src="https://vapstech.com/wp-content/uploads/2023/08/1.png"
+                                    src="/chatbot/standing-robot.png"
                                     alt="bot"
                                     className="bot-logo w-[32px] h-[32px] rounded-full object-cover"
                                 />
                             </div>
-                            <span>VAPS AI Vrm Support</span>
+                            <span>School Assistant Bot</span>
                         </div>
                         <button
                             id="chatbot-close"
