@@ -1272,6 +1272,21 @@ export async function getUserAccessibleModules() {
                             icon: 'BookOpen',
                             sub_menu: [
                                 {
+                                    id: 999,
+                                    name: 'OMR EVALUATION',
+                                    icon: 'BookOpen',
+                                    pages: [
+                                        {
+                                            id: 300,
+                                            name: 'OMR Mark Sheet Evaluation',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/omr-evaluation/omr-mark-sheet-evaluation',
+                                            title: 'OMR mark sheet evaluation',
+                                            description: 'Evaluate OMR mark sheets'
+                                        }
+                                    ]
+                                },
+                                {
                                     id: 9,
                                     name: 'Configuration',
                                     icon: 'Settings',
@@ -1547,21 +1562,7 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 },
-                                {
-                                    id: 15,
-                                    name: 'OMR Evaluation',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 300,
-                                            name: 'OMR Mark Sheet Evaluation',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/omr-evaluation/omr-mark-sheet-evaluation',
-                                            title: 'OMR mark sheet evaluation',
-                                            description: 'Evaluate OMR mark sheets'
-                                        }
-                                    ]
-                                },
+
                                 {
                                     id: 11,
                                     name: 'Marks Calculation',
