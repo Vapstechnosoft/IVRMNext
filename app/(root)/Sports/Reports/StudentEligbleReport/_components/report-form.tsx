@@ -13,15 +13,16 @@ import { toast } from 'sonner';
 import { FileText, X, Printer, FileSpreadsheet, Loader2 } from 'lucide-react';
 
 interface ReportFormProps {
-    onReport: (data: any) => void;
+    onReport: (data: any, payload: any) => void;
     onReset: () => void;
     onPrint: () => void;
     onExcel: () => void;
     hasData: boolean;
+    isLoading?: boolean;
 }
 
-export default function ReportForm({ onReport, onReset, onPrint, onExcel, hasData }: ReportFormProps) {
-    const { data: loadGridData, getClasses, getSections, getStudents, showDetails } = useStudentEligibleReport();
+export default function ReportForm({ onReport, onReset, onPrint, onExcel, hasData, isLoading }: ReportFormProps) {
+    const { data: loadGridData, getClasses, getSections, getStudents } = useStudentEligibleReport();
     const [showStudentList, setShowStudentList] = useState(false);
 
     const { control, handleSubmit, watch, reset, formState: { errors } } = useForm<IStudentEligibleReport>({
@@ -90,20 +91,8 @@ export default function ReportForm({ onReport, onReset, onPrint, onExcel, hasDat
             studentList: selectedStudents.map(s => ({ amsT_Id: s.amsT_Id }))
         };
 
-        showDetails.mutate(payload, {
-            onSuccess: (data: any) => {
-                if (data && data.length > 0) {
-                    onReport({ data });
-                    toast.success('Report generated successfully');
-                } else {
-                    onReport({ data: [] });
-                    toast.info('No records found');
-                }
-            },
-            onError: (error) => {
-                toast.error('Failed to generate report');
-            }
-        });
+        // Notify parent; the reportQuery in Page will handle the fetch
+        onReport(null, payload);
     };
 
     const handleCancel = () => {
@@ -217,8 +206,8 @@ export default function ReportForm({ onReport, onReset, onPrint, onExcel, hasDat
             </div>
 
             <div className='flex justify-center gap-4'>
-                <Button type='submit' className='bg-primary' disabled={showDetails.isPending}>
-                    {showDetails.isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <FileText className='mr-2 h-4 w-4' />}
+                <Button type='submit' className='bg-primary' disabled={isLoading}>
+                    {isLoading ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <FileText className='mr-2 h-4 w-4' />}
                     Report
                 </Button>
                 <Button type='button' variant='destructive' onClick={handleCancel}>

@@ -1,4 +1,5 @@
 'use client';
+import { useEffect } from 'react';
 
 import { eventSponsorSchema } from '@/schemas/sports/transactions/events-sponsor';
 import { useEventsSponsor } from '@/hooks/sports/useEventsSponsor';
@@ -17,7 +18,8 @@ interface UpdateEventSponsorMappingFormProps {
 }
 
 export default function UpdateEventSponsorMappingForm({ selectedRow, onSuccess }: UpdateEventSponsorMappingFormProps) {
-    const { details, saveMutation } = useEventsSponsor();
+    const { details, saveMutation, useEditDetails } = useEventsSponsor();
+    const { data: editData, isLoading: isEditLoading } = useEditDetails(selectedRow.spccesP_Id);
 
     const {
         control,
@@ -31,7 +33,18 @@ export default function UpdateEventSponsorMappingForm({ selectedRow, onSuccess }
         defaultValues: selectedRow
     });
 
-    if (details.isLoading) {
+    // Reset form when edit data is fetched
+    useEffect(() => {
+        if (editData?.data && Array.isArray(editData.data) && editData.data.length > 0) {
+            const fetched = editData.data[0];
+            reset({
+                ...selectedRow,
+                ...fetched
+            });
+        }
+    }, [editData, reset, selectedRow]);
+
+    if (details.isLoading || isEditLoading) {
         return (
             <div className='flex justify-center p-8'>
                 <Loader2 className='h-8 w-8 animate-spin text-primary' />

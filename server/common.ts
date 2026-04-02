@@ -5615,13 +5615,21 @@ export async function getUserAccessibleModules() {
                                             title: 'Events Mapping',
                                             description: 'Manage Events Mapping'
                                         },
+                                        // {
+                                        //     id: 6,
+                                        //     name: 'Events Student Mapping',
+                                        //     icon: 'Activity',
+                                        //     url: '/Sports/Transactions/EventsStudentMapping',
+                                        //     title: 'Events Student Mapping',
+                                        //     description: 'Manage Events Student Mapping'
+                                        // },
                                         {
-                                            id: 6,
-                                            name: 'Events Student Mapping',
+                                            id: 7,
+                                            name: 'Events Student SRKVS Mapping',
                                             icon: 'Activity',
-                                            url: '/Sports/Transactions/EventsStudentMapping',
-                                            title: 'Events Student Mapping',
-                                            description: 'Manage Events Student Mapping'
+                                            url: '/Sports/Transactions/EventsStudentSRKVS',
+                                            title: 'Events Student SRKVS Mapping',
+                                            description: 'Events Student SRKVS Mapping'
                                         }
                                     ]
                                 },

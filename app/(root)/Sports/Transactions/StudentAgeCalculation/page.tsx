@@ -297,7 +297,7 @@ export default function StudentAgeCalculationPage() {
                         <div className='flex justify-center space-x-2'>
                             <Button type='submit' disabled={saveData.isPending}>
                                 {saveData.isPending && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
-                                Report
+                                Save
                             </Button>
                             <Button
                                 type='button'
