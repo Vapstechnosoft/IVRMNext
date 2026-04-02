@@ -630,81 +630,93 @@ export async function getUserAccessibleModules() {
                     ]
                 },
 
-                {
-                    id: 9000,
-                    name: 'Admission Client',
-                    icon: 'UserRoundPlus',
-                    menu: [
+                // {
+                //     id: 9000,
+                //     name: 'Admission Client',
+                //     icon: 'UserRoundPlus',
+                //     menu: [
+                //         {
+                //             id: 5,
+                //             name: 'Form and Reports',
+                //             icon: 'Settings',
+                //             sub_menu: [
+                //                 {
+                //                     id: 9,
+                //                     name: 'stjames',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 12,
+                //                             name: 'Overall Daily Attendance Report',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/overall-daily-attendance-report',
+                //                             title: 'Overall Daily Attendance Report',
+                //                             description: 'Overall Daily Attendance Report'
+                //                         },
 
-                        {
-                            id: 5,
-                            name: 'Form and Reports',
-                            icon: 'Settings',
-                            sub_menu: [
+                //                         {
+                //                             id: 53,
+                //                             name: 'Student Birthday Report',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/student-birthday-report',
+                //                             title: 'Student Birthday Report',
+                //                             description: 'Student Birthday Report'
+                //                         },
+                //                         {
+                //                             id: 54,
+                //                             name: '100% Attendance Report',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/100attendance-report',
+                //                             title: '100% Attendance Report',
+                //                             description: '100% Attendance Report'
+                //                         },
+                //                         {
+                //                             id: 55,
+                //                             name: 'St.James TC Custom Report',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/stjames-tc-customreport',
+                //                             title: 'St.James TC Custom Report',
+                //                             description: 'St.James TC Custom Report'
+                //                         },
+                //                         {
+                //                             id: 56,
+                //                             name: 'Study Certificate GMVPS Report',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/study-certificate-gmvps-report',
+                //                             title: 'Study Certificate GMVPS Report',
+                //                             description: 'Study Certificate GMVPS Report'
+                //                         },
 
-                                {
-                                    id: 9,
-                                    name: 'stjames',
-                                    icon: 'Settings',
-                                    pages: [
-
-
-                                        {
-                                            id: 12,
-                                            name: 'Overall Daily Attendance Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/overall-daily-attendance-report',
-                                            title: 'Overall Daily Attendance Report',
-                                            description: 'Overall Daily Attendance Report'
-                                        },
-
-
-                                        {
-                                            id: 53,
-                                            name: 'Student Birthday Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/student-birthday-report',
-                                            title: 'Student Birthday Report',
-                                            description: 'Student Birthday Report'
-                                        },
-                                        {
-                                            id: 54,
-                                            name: '100% Attendance Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/100attendance-report',
-                                            title: '100% Attendance Report',
-                                            description: '100% Attendance Report'
-                                        },
-                                        {
-                                            id: 55,
-                                            name: 'St.James TC Custom Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/stjames-tc-customreport',
-                                            title: 'St.James TC Custom Report',
-                                            description: 'St.James TC Custom Report'
-                                        },
-                                        {
-                                            id: 56,
-                                            name: 'Study Certificate GMVPS Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/study-certificate-gmvps-report',
-                                            title: 'Study Certificate GMVPS Report',
-                                            description: 'Study Certificate GMVPS Report'
-                                        },
-                                        {
-                                            id: 57,
-                                            name: 'St.James Bonafied Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/stjamesbonafiedreport',
-                                            title: 'St.James Bonafied Report',
-                                            description: 'St.James Bonafied Report'
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                },
+                //                         {
+                //                             id: 57,
+                //                             name: 'St.James Bonafied Report',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/stjamesbonafiedreport',
+                //                             title: 'St.James Bonafied Report',
+                //                             description: 'St.James Bonafied Report'
+                //                         },
+                //                         {
+                //                             id: 58,
+                //                             name: 'St.James Migration Report',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/stjamesmigrationcertificate',
+                //                             title: 'St.James Migration Report',
+                //                             description: 'St.James Migration Report'
+                //                         },
+                //                         {
+                //                             id: 59,
+                //                             name: 'St.James Character Report',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/stjcharactercertificate',
+                //                             title: 'St.James Character Report',
+                //                             description: 'St.James Character Report'
+                //                         }
+                //                     ]
+                //                 }
+                //             ]
+                //         }
+                //     ]
+                // },
 
                 {
                     id: 2,
@@ -1260,6 +1272,21 @@ export async function getUserAccessibleModules() {
                             icon: 'BookOpen',
                             sub_menu: [
                                 {
+                                    id: 999,
+                                    name: 'OMR EVALUATION',
+                                    icon: 'BookOpen',
+                                    pages: [
+                                        {
+                                            id: 300,
+                                            name: 'OMR Mark Sheet Evaluation',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/omr-evaluation/omr-mark-sheet-evaluation',
+                                            title: 'OMR mark sheet evaluation',
+                                            description: 'Evaluate OMR mark sheets'
+                                        }
+                                    ]
+                                },
+                                {
                                     id: 9,
                                     name: 'Configuration',
                                     icon: 'Settings',
@@ -1535,6 +1562,7 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 },
+
                                 {
                                     id: 11,
                                     name: 'Marks Calculation',
@@ -2589,7 +2617,7 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/attendance-management/reports/employee-month-end-report',
                                             title: 'Employee Month End Report',
                                             description: 'Employee End Report'
-                                        },
+                                        }
                                     ]
                                 }
                             ]
@@ -5744,7 +5772,7 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                },
+                }
                 // {
                 //     id: 8,
                 //     name: 'Hostel Management',
