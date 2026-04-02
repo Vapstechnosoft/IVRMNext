@@ -699,7 +699,7 @@ export async function getUserAccessibleModules() {
                 //                             id: 58,
                 //                             name: 'St.James Migration Report',
                 //                             icon: 'Settings',
-                //                             url: '/admission/preadmission/reports/StjamesMigrationCertificate',
+                //                             url: '/admission/preadmission/reports/stjamesmigrationcertificate',
                 //                             title: 'St.James Migration Report',
                 //                             description: 'St.James Migration Report'
                 //                         },
@@ -707,7 +707,7 @@ export async function getUserAccessibleModules() {
                 //                             id: 59,
                 //                             name: 'St.James Character Report',
                 //                             icon: 'Settings',
-                //                             url: '/admission/preadmission/reports/STJCharacterCertificate',
+                //                             url: '/admission/preadmission/reports/stjcharactercertificate',
                 //                             title: 'St.James Character Report',
                 //                             description: 'St.James Character Report'
                 //                         }
@@ -1272,6 +1272,21 @@ export async function getUserAccessibleModules() {
                             icon: 'BookOpen',
                             sub_menu: [
                                 {
+                                    id: 999,
+                                    name: 'OMR EVALUATION',
+                                    icon: 'BookOpen',
+                                    pages: [
+                                        {
+                                            id: 300,
+                                            name: 'OMR Mark Sheet Evaluation',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/omr-evaluation/omr-mark-sheet-evaluation',
+                                            title: 'OMR mark sheet evaluation',
+                                            description: 'Evaluate OMR mark sheets'
+                                        }
+                                    ]
+                                },
+                                {
                                     id: 9,
                                     name: 'Configuration',
                                     icon: 'Settings',
@@ -1547,6 +1562,7 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 },
+
                                 {
                                     id: 11,
                                     name: 'Marks Calculation',

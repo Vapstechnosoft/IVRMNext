@@ -134,7 +134,7 @@ export function SchoolAssistantBot({ open, onOpenChange }: { open: boolean; onOp
                                     className="bot-logo w-[32px] h-[32px] rounded-full object-cover"
                                 />
                             </div>
-                            <span>Student Assistant Bot</span>
+                            <span>School Assistant Bot</span>
                         </div>
                         <button
                             id="chatbot-close"
