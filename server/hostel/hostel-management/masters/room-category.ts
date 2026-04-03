@@ -17,3 +17,7 @@ export async function deactivateRoomCategory(id: number) {
     const url = `/RoomCategory/deactivate_room_category/${id}`;
     return await api.put<any>('hostel', url, id);
 }
+
+export async function getRoomCategoryDropdownList() {
+    return await api.get<any>('hostel', `/RoomCategory/get_room_category_dropdown_list`);
+}

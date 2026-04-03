@@ -59,10 +59,10 @@ export function SalaryIncrementFilters({
     onExport,
 }: SalaryIncrementFiltersProps) {
     return (
-        <CollapsibleSection 
-        title="Salary Increment Report" 
-        description='Detailed report of employee salary increments and head-wise changes.'
-        defaultOpen={true}
+        <CollapsibleSection
+            title="Salary Increment Report"
+            description='Detailed report of employee salary increments and head-wise changes.'
+            defaultOpen={true}
         >
             <Card className="shadow-md">
                 <CardContent className="p-6 space-y-6">
@@ -162,8 +162,8 @@ export function SalaryIncrementFilters({
                                                     <SelectValue placeholder="Select Year" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {years.map((y) => (
-                                                        <SelectItem key={y.hrmlY_Id} value={y.hrmlY_LeaveYear.toString()}>
+                                                    {years?.map((y) => (
+                                                        <SelectItem key={y.hrmlY_Id} value={y.hrmlY_LeaveYear}>
                                                             {y.hrmlY_LeaveYear}
                                                         </SelectItem>
                                                     ))}

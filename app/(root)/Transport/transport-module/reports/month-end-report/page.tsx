@@ -2,8 +2,8 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+import { FormError, Label } from '@/components/ui/extension/field';
+import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
@@ -13,15 +13,27 @@ import type { IMonthEndReportData } from '@/types/transport/transport-module/rep
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, Printer } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
 const formSchema = z.object({
-    ASMAY_Id: z.coerce.number().min(1, 'Academic Year is required'),
-    IVRM_Month_Id: z.coerce.number().min(1, 'Month is required'),
-    ieName: z.string().optional()
+    ASMAY_Id: z.coerce
+        .number({ required_error: 'Please select the academic year' })
+        .min(1, 'Please select the academic year'),
+    IVRM_Month_Id: z.coerce
+        .number({ required_error: 'Please select the month' })
+        .min(1, 'Please select the month'),
+    ieName: z
+        .string()
+        .trim()
+        .regex(/^[a-zA-Z\s]*$/, 'Only alphabets and spaces are allowed')
+        .refine((val) => val === '' || val.length >= 2, {
+            message: 'Name must be at least 2 characters'
+        })
+        .optional()
+        .or(z.literal(''))
 });
 
 export default function MonthEndReportPage() {
@@ -57,12 +69,15 @@ export default function MonthEndReportPage() {
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
+        mode: 'onChange',
         defaultValues: {
             ASMAY_Id: 0,
             IVRM_Month_Id: 0,
             ieName: ''
         }
     });
+
+    const { control, register, handleSubmit, formState: { errors } } = form;
 
     // Attempt to get logo from localStorage as per legacy code
     useEffect(() => {
@@ -86,7 +101,8 @@ export default function MonthEndReportPage() {
 
         try {
             const payload = {
-                ASMAY_Id: values.ASMAY_Id
+                ASMAY_Id: values.ASMAY_Id,
+                IVRM_Month_Id: values.IVRM_Month_Id
             };
             console.log('payload', payload);
             const response = await saveMonthEndReportData(payload);
@@ -260,106 +276,108 @@ export default function MonthEndReportPage() {
                     </div>
                 </CardHeader>
                 <CardContent className='pt-6'>
-                    <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
-                            <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
-                                {/* Academic Year */}
-                                <FormField
-                                    control={form.control}
+                    <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+                        <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
+                            {/* Academic Year */}
+                            <div className='group flex flex-col gap-1.5'>
+                                <Label htmlFor='ASMAY_Id'>
+                                    Academic Year <span className='ml-1 text-red-500'>*</span>
+                                </Label>
+                                <Controller
                                     name='ASMAY_Id'
+                                    control={control}
                                     render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>
-                                                Academic Year <span className='text-destructive'>*</span>
-                                            </FormLabel>
-                                            <Select
-                                                onValueChange={(v) => field.onChange(Number(v))}
-                                                value={field.value !== 0 ? field.value.toString() : undefined}>
-                                                <FormControl>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder='Select Academic Year' />
-                                                    </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    {academicYears.map((year) => (
-                                                        <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>
-                                                            {year.asmaY_Year}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                        </FormItem>
+                                        <Select
+                                            key={field.value}
+                                            onValueChange={(v) => field.onChange(Number(v))}
+                                            value={field.value !== 0 ? field.value.toString() : undefined}>
+                                            <SelectTrigger id='ASMAY_Id'>
+                                                <SelectValue placeholder='Select Academic Year' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {academicYears.map((year) => (
+                                                    <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>
+                                                        {year.asmaY_Year}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
                                     )}
                                 />
+                                {errors.ASMAY_Id && (
+                                    <FormError>{errors.ASMAY_Id.message}</FormError>
+                                )}
+                            </div>
 
-                                {/* Month */}
-                                <FormField
-                                    control={form.control}
+                            {/* Month */}
+                            <div className='group flex flex-col gap-1.5'>
+                                <Label htmlFor='IVRM_Month_Id'>
+                                    Month <span className='ml-1 text-red-500'>*</span>
+                                </Label>
+                                <Controller
                                     name='IVRM_Month_Id'
+                                    control={control}
                                     render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>
-                                                Month <span className='text-destructive'>*</span>
-                                            </FormLabel>
-                                            <Select
-                                                onValueChange={(v) => field.onChange(Number(v))}
-                                                value={field.value !== 0 ? field.value.toString() : undefined}>
-                                                <FormControl>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder='Select Month' />
-                                                    </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    {months.map((month) => (
-                                                        <SelectItem key={month.ivrM_Month_Id} value={month.ivrM_Month_Id.toString()}>
-                                                            {month.ivrM_Month_Name}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                        </FormItem>
+                                        <Select
+                                            key={field.value}
+                                            onValueChange={(v) => field.onChange(Number(v))}
+                                            value={field.value !== 0 ? field.value.toString() : undefined}>
+                                            <SelectTrigger id='IVRM_Month_Id'>
+                                                <SelectValue placeholder='Select Month' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {months.map((month) => (
+                                                    <SelectItem key={month.ivrM_Month_Id} value={month.ivrM_Month_Id.toString()}>
+                                                        {month.ivrM_Month_Name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
                                     )}
                                 />
-
-                                {/* Implementation Name */}
-                                <FormField
-                                    control={form.control}
-                                    name='ieName'
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Implementation Name</FormLabel>
-                                            <FormControl>
-                                                <Input {...field} placeholder='Enter Implementation Name' />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
+                                {errors.IVRM_Month_Id && (
+                                    <FormError>{errors.IVRM_Month_Id.message}</FormError>
+                                )}
                             </div>
 
-                            <div className='flex justify-center gap-4 border-t pt-4'>
-                                <Button type='submit' disabled={isGenerating} className='min-w-32'>
-                                    {isGenerating ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : null}
-                                    {isGenerating ? 'Generating...' : 'Report'}
-                                </Button>
+                            {/* Implementation Name */}
+                            <InputText
+                                label='Implementation Name'
+                                id='ieName'
+                                placeholder='Enter Implementation Name'
+                                {...register('ieName')}
+                                error={errors.ieName?.message}
+                            />
+                        </div>
 
-                                <Button type='button' variant='outline' onClick={handleCancel} className='min-w-32'>
-                                    Cancel
-                                </Button>
-                                <Button
-                                    type='button'
-                                    variant='outline'
-                                    onClick={handlePrint}
-                                    disabled={reportData.length === 0}
-                                    className='w-32 border-primary text-primary hover:bg-primary/10'>
-                                    <Printer className='mr-2 h-4 w-4' />
-                                    Print
-                                </Button>
-                            </div>
-                        </form>
-                    </Form>
+                        <div className='flex justify-center gap-4 border-t pt-4'>
+                            <Button
+                                type='submit'
+                                disabled={isGenerating}
+                                isLoading={isGenerating}
+                                loadingText='Generating...'
+                                className='min-w-32 transition-all duration-200 hover:scale-105'>
+                                Report
+                            </Button>
+
+                            <Button
+                                type='button'
+                                variant='outline'
+                                onClick={handleCancel}
+                                className='min-w-32 transition-all duration-200 hover:scale-105'>
+                                Cancel
+                            </Button>
+                            <Button
+                                type='button'
+                                variant='outline'
+                                onClick={handlePrint}
+                                disabled={reportData.length === 0}
+                                className='w-32 border-primary text-primary transition-all duration-200 hover:scale-105 hover:bg-primary/10'>
+                                <Printer className='mr-2 h-4 w-4' />
+                                Print
+                            </Button>
+                        </div>
+                    </form>
                 </CardContent>
             </Card>
 

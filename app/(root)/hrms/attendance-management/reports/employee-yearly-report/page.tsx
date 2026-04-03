@@ -39,7 +39,7 @@ function FormSections({ searchParams }: { searchParams?: any }) {
                 variant='outline'
                 size='md'
                 className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                <AddEmployeeYearlyReportForm onSuccess={closeAddForm} searchParams={searchParams} />               
+                <AddEmployeeYearlyReportForm onSuccess={closeAddForm} searchParams={searchParams} />
             </CollapsibleSection>
         </div>
     );

@@ -53,7 +53,7 @@ export interface IHomeWorkDetails {
     icW_FilePath: string | null;
     mI_Id: number;
     asmaY_Id: number;
-    ihW_AssignmentNo: number | null;
+    ihW_AssignmentNo: string | number | null;
     ihW_Attachment: string | null;
     ihW_Assignment: string | null;
     ihW_Date: string | null; // ISO date string or null
@@ -62,6 +62,9 @@ export interface IHomeWorkDetails {
     ihW_Id: number | null;
     ivrmuL_Id: number | null;
     ihW_FilePath: string | null;
+    createdDate?: string;
+    createdTime?: string;
+    FilesCount?: number;
 }
 
 export interface IHomeWorkUploadReport {

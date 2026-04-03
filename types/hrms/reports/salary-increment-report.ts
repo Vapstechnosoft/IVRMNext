@@ -2,9 +2,9 @@ import { type ApiResponse } from '@/lib/apiService';
 
 // Report Request
 export interface SalaryIncrementReportRequest {
-    HRME_Id: string;
-    FROMDATE: string;
-    TODATE: string;
+    hrmE_Id: string;
+    fromdate: string;
+    todate: string;
     monthid: string;
     yearid: string;
     type: string;

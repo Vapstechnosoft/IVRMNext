@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Eye, Edit, ToggleLeft, ToggleRight, Search } from 'lucide-react';
+import { format } from 'date-fns';
 
 interface Homework {
   ihW_Id: number;
@@ -97,37 +98,37 @@ export function HomeworkTable({ homeworkList }: HomeworkTableProps) {
 
         <div className="rounded-md border">
           <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[80px]">SLNO</TableHead>
-                <TableHead>Subject</TableHead>
-                <TableHead>Class</TableHead>
-                <TableHead>Section</TableHead>
-                <TableHead>Topic</TableHead>
-                <TableHead>Update Date / Time</TableHead>
-                <TableHead>Assignment</TableHead>
-                <TableHead>Homework Date</TableHead>
-                <TableHead>Attachment</TableHead>
-                <TableHead>Status</TableHead>
+            <TableHeader className="bg-[#1e59a8]">
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="w-[80px] text-center border text-white font-bold">SLNO</TableHead>
+                <TableHead className="border text-white font-bold">Subject</TableHead>
+                <TableHead className="text-center border text-white font-bold">Class</TableHead>
+                <TableHead className="text-center border text-white font-bold">Section</TableHead>
+                <TableHead className="border text-white font-bold">Topic</TableHead>
+                <TableHead className="text-center border text-white font-bold whitespace-nowrap">Update Date / Time</TableHead>
+                <TableHead className="border text-white font-bold">Assignment</TableHead>
+                <TableHead className="text-center border text-white font-bold whitespace-nowrap">Homework Date</TableHead>
+                <TableHead className="text-center border text-white font-bold">Attachment</TableHead>
+                <TableHead className="text-center border text-white font-bold">Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {currentHomework.map((homework, index) => (
                 <TableRow key={homework.ihW_Id}>
-                  <TableCell>{startIndex + index + 1}</TableCell>
-                  <TableCell>{homework.ismS_SubjectName}</TableCell>
-                  <TableCell>{homework.asmcL_ClassName}</TableCell>
-                  <TableCell>{homework.asmC_SectionName}</TableCell>
-                  <TableCell className="text-left max-w-xs truncate">{homework.ihW_Topic}</TableCell>
-                  <TableCell>
-                    <div>
-                      <div>{homework.createdDate}</div>
-                      <div className="text-sm text-gray-500">{homework.createdTime}</div>
+                  <TableCell className="text-center border">{startIndex + index + 1}</TableCell>
+                  <TableCell className="border">{homework.ismS_SubjectName}</TableCell>
+                  <TableCell className="text-center border">{homework.asmcL_ClassName}</TableCell>
+                  <TableCell className="text-center border">{homework.asmC_SectionName}</TableCell>
+                  <TableCell className="text-left border max-w-xs">{homework.ihW_Topic}</TableCell>
+                  <TableCell className="border text-center">
+                    <div className="flex flex-col">
+                      <span className="text-sm">{homework.createdDate || '--'}</span>
+                      <span className="text-xs text-gray-500">{homework.createdTime || ''}</span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-left max-w-xs truncate">{homework.ihW_Assignment}</TableCell>
-                  <TableCell>{homework.ihW_Date}</TableCell>
-                  <TableCell>
+                  <TableCell className="text-left border max-w-xs">{homework.ihW_Assignment}</TableCell>
+                  <TableCell className="text-center border">{homework.ihW_Date ? format(new Date(homework.ihW_Date), 'dd-MM-yyyy') : '--'}</TableCell>
+                  <TableCell className="text-center border">
                     {homework.FilesCount === 0 ? (
                       <span className="text-gray-400">---</span>
                     ) : (
@@ -141,8 +142,8 @@ export function HomeworkTable({ homeworkList }: HomeworkTableProps) {
                       </Button>
                     )}
                   </TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-2">
+                  <TableCell className="border">
+                    <div className="flex items-center justify-center space-x-2">
                       <Button
                         variant="ghost"
                         size="sm"

@@ -9,7 +9,7 @@ import { useCallback } from 'react';
 export const staffAbbreviationsColumns: ColumnDef<IStaffAbbreviationList>[] = [
     {
         accessorKey: 'ttmsaB_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='font-bold text-black' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -21,21 +21,21 @@ export const staffAbbreviationsColumns: ColumnDef<IStaffAbbreviationList>[] = [
     },
     {
         accessorKey: 'firstName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Staff Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Staff Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('firstName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'ttmsaB_Abbreviation',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Staff Abbreviation' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Staff Abbreviation' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('ttmsaB_Abbreviation')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='font-bold text-black' />,
         accessorFn: (row: any) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />

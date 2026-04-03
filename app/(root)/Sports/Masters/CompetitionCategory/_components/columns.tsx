@@ -1,99 +1,126 @@
 'use client';
 
+import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import type { IMasterCompetitionCategory } from '@/types/sports/masters/competition-category';
-import type { ColumnDef } from '@tanstack/react-table';
-import { Pencil, Power, PowerOff } from 'lucide-react';
+import type { ColumnDef, Row } from '@tanstack/react-table';
 
+/* ============================================
+   Actions Cell Component
+   ============================================ */
+function ActionsCell({ row }: { row: Row<IMasterCompetitionCategory> }) {
+    const data = row.original;
+    const { openEditForm, openToggleForm } = useFormContext<IMasterCompetitionCategory>();
+
+    return (
+        <ActionButtons
+            rowData={data}
+            buttons={{
+                edit: true,
+                toggle: true,
+                delete: false
+            }}
+            onEdit={() => openEditForm(data)}
+            onToggle={() => openToggleForm(data)}
+            toggleConditionKey='spccmcC_ActiveFlag'
+        />
+    );
+}
+
+/* ============================================
+   Master Competition Category Columns Definition
+   ============================================ */
 export const MasterCompetitionCategoryColumns: ColumnDef<IMasterCompetitionCategory>[] = [
     {
-        id: 'serialNumber',
-        header: 'SL.NO',
+        accessorKey: 'spccmcC_Id',
+        id: 'SPCCMCC_Id',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
         cell: ({ row, table }) => {
-            const { pageIndex, pageSize } = table.getState().pagination;
-            return pageIndex * pageSize + row.index + 1;
-        }
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            const continuousIndex = pageIndex * pageSize + row.index + 1;
+            return <div className='pl-6'>{continuousIndex}</div>;
+        },
+        enableSorting: true,
+        enableHiding: false
     },
     {
         accessorKey: 'spccmcC_CompitionCategory',
-        header: 'Competition Category',
+        id: 'SPCCMCC_CompitionCategory',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Competition Category' />,
+        enableSorting: true
     },
     {
         accessorKey: 'spccmcC_CCDesc',
-        header: 'Description',
+        id: 'SPCCMCC_CCDesc',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Description' />,
+        enableSorting: true
     },
     {
         accessorKey: 'spccmcC_CCAgeFlag',
-        header: 'Age Flag',
+        id: 'SPCCMCC_CCAgeFlag',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Age Flag' />,
+        enableSorting: true,
         cell: ({ row }) => (
             row.original.spccmcC_CCAgeFlag ? <Badge variant="default" className='bg-blue-600 hover:bg-blue-700'>Yes</Badge> : <Badge variant="outline">No</Badge>
         )
     },
     {
         accessorKey: 'spccmcC_FromCCAgeYear',
-        header: 'From Year(Age)',
+        id: 'SPCCMCC_FromCCAgeYear',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='From Year(Age)' />,
+        enableSorting: true
     },
     {
         accessorKey: 'spccmcC_ToCCAgeYear',
-        header: 'To Year(Age)',
+        id: 'SPCCMCC_ToCCAgeYear',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='To Year(Age)' />,
+        enableSorting: true
     },
     {
         accessorKey: 'spccmcC_FromCCAgeMonth',
-        header: 'From Month(Age)',
+        id: 'SPCCMCC_FromCCAgeMonth',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='From Month(Age)' />,
+        enableSorting: true
     },
     {
         accessorKey: 'spccmcC_ToCCAgeMonth',
-        header: 'To Month(Age)',
+        id: 'SPCCMCC_ToCCAgeMonth',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='To Month(Age)' />,
+        enableSorting: true
     },
     {
         accessorKey: 'spccmcC_FromCCAgeDays',
-        header: 'From Days(Age)',
+        id: 'SPCCMCC_FromCCAgeDays',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='From Days(Age)' />,
+        enableSorting: true
     },
     {
         accessorKey: 'spccmcC_ToCCAgeDays',
-        header: 'To Days(Age)',
+        id: 'SPCCMCC_ToCCAgeDays',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='To Days(Age)' />,
+        enableSorting: true
     },
     {
         accessorKey: 'spccmcC_CCWeightFlag',
-        header: 'Weight Flag',
+        id: 'SPCCMCC_CCWeightFlag',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Weight Flag' />,
+        enableSorting: true,
         cell: ({ row }) => (
             row.original.spccmcC_CCWeightFlag ? <Badge variant="default" className='bg-blue-600 hover:bg-blue-700'>Yes</Badge> : <Badge variant="outline">No</Badge>
         )
     },
     {
         accessorKey: 'spccmcC_CCWeight',
-        header: 'Weight',
+        id: 'SPCCMCC_CCWeight',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Weight' />,
+        enableSorting: true
     },
     {
         id: 'actions',
-        header: 'Action',
-        cell: ({ row }) => {
-            const { openEditForm, openToggleForm } = useFormContext<IMasterCompetitionCategory>();
-            return (
-                <div className="flex items-center justify-center gap-2">
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-primary"
-                        onClick={() => openEditForm(row.original)}
-                        title="Edit"
-                    >
-                        <Pencil className="h-4 w-4" />
-                    </Button>
-                    <span className="text-muted-foreground">|</span>
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className={row.original.spccmcC_ActiveFlag ? "h-8 w-8 text-destructive" : "h-8 w-8 text-green-600"}
-                        onClick={() => openToggleForm(row.original)}
-                        title={row.original.spccmcC_ActiveFlag ? "Deactivate" : "Activate"}
-                    >
-                        {row.original.spccmcC_ActiveFlag ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
-                    </Button>
-                </div>
-            );
-        }
+        header: 'Actions',
+        cell: ActionsCell
     }
 ];

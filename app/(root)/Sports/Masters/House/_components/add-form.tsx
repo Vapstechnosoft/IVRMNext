@@ -95,29 +95,38 @@ export default function AddMasterHouseForm({
                 try {
                     const response = await saveMasterHouse(values);
 
-                    // Relaxed validation to handle variable API response flags
-                    if (
-                        response?.returnVal === true ||
-                        response?.returnVal_update === true ||
-                        response?.success === true ||
-                        response?.message === 'Record Saved Successfully' ||
-                        response?.message === 'Record Updated Successfully'
-                    ) {
-                        toast.success((response.msg as string) || (response.message as string) || `House ${selectedRow ? 'updated' : 'saved'} successfully`);
-                        refetchAll();
-                        onSuccess?.();
-                    } else if (response?.duplicate_caste_name_bool || response?.message === 'duplicate') {
-                        toast.error('House Name Already Exists');
+                    // Robust success check for IVRM backend responses
+                    const msg = (response?.message || response?.Message || response?.msg || '') as string;
+                    const isSuccess = response?.success || 
+                                     response?.returnval == true || 
+                                     response?.returnVal === true ||
+                                     response?.returnVal_update === true ||
+                                     response?.returnVal === 'saved' || 
+                                     response?.returnVal === 'updated' ||
+                                     msg.toLowerCase() === 'saved' ||
+                                     msg.toLowerCase() === 'updated' ||
+                                     msg.toLowerCase().includes('success');
+
+                    if (isSuccess) {
+                        toast.success('Record saved successfully');
+                    } else if (response?.duplicate_caste_name_bool || response?.returnVal === 'duplicate' || msg.toLowerCase() === 'duplicate') {
+                        toast.error('Record already exists');
+                        throw new Error('duplicate');
                     } else {
-                        toast.error((response?.msg as string) || (response?.message as string) || 'Failed to save House');
+                        const errorMsg = (response?.msg as string) || (response?.message as string) || (response?.Message as string) || 'Failed to save record';
+                        toast.error(errorMsg);
+                        throw new Error(errorMsg);
                     }
                 } catch (error: any) {
-                    toast.error(error.message || 'Something went wrong');
+                    if (error.message !== 'duplicate' && !error.message?.includes('Failed to save House')) {
+                        toast.error(error.message || 'Something went wrong');
+                    }
+                    throw error;
                 }
             }}
             mode={selectedRow ? 'edit' : 'create'}
-            successMessage={`House ${selectedRow ? 'updated' : 'added'} successfully`}
-            errorMessage={`Failed to ${selectedRow ? 'update' : 'add'} House`}
+            successMessage={''}
+            errorMessage={''}
             onSuccess={() => {
                 refetchAll();
                 onSuccess?.();

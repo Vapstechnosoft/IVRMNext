@@ -89,7 +89,7 @@ export default function AddMasterBedForm({ onSuccess, hostels }: AddMasterBedFor
                     <div className="space-y-4">
                         {/* Hostel */}
                         <div className="space-y-2">
-                            <Label >Hostel Name <span className="text-destructive">*</span></Label>
+                            <Label >Hostel Name</Label>
                             <Controller
                                 control={control}
                                 name="HLMH_Id"
@@ -151,7 +151,7 @@ export default function AddMasterBedForm({ onSuccess, hostels }: AddMasterBedFor
 
                         {/* Room */}
                         <div className="space-y-2">
-                            <Label>Room Details <span className="text-destructive">*</span></Label>
+                            <Label>Room Details</Label>
                             <Controller
                                 control={control}
                                 name="HRMRM_Id"

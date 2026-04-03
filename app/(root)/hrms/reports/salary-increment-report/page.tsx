@@ -48,6 +48,9 @@ export default function SalaryIncrementReportPage() {
     const { data: employeesData, isLoading: isLoadingEmployees } = useEmployeesForNoticeBoard();
     const { data: yearsData } = useLeaveYearDropdown();
 
+    console.log("employeesData", employeesData)
+    console.log("yearsData", yearsData)
+
     const { mutate: getReport, isPending: isGenerating } = useMutation({
         mutationFn: getSalaryIncrementReport,
         onSuccess: (res) => {
@@ -115,9 +118,9 @@ export default function SalaryIncrementReportPage() {
 
 
         const payload = {
-            HRME_Id: filters.type === 'All' ? '' : filters.hrmE_Id,
-            FROMDATE: filters.option === 'DATEWISE' ? format(filters.fromdate!, 'yyyy-MM-dd') : '',
-            TODATE: filters.option === 'DATEWISE' ? format(filters.todate!, 'yyyy-MM-dd') : '',
+           hrmE_Id: filters.type === 'All' ? '' : filters.hrmE_Id,
+            fromdate: filters.option === 'DATEWISE' ? format(filters.fromdate!, 'yyyy-MM-dd') : '',
+            todate: filters.option === 'DATEWISE' ? format(filters.todate!, 'yyyy-MM-dd') : '',
             monthid: filters.option === 'MONTHWISE' ? filters.monthid : '',
             yearid: filters.option === 'MONTHWISE' ? filters.yearid : '',
             type: filters.type,
