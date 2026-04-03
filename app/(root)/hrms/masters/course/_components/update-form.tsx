@@ -46,7 +46,8 @@ export default function UpdateCourseForm({ onSuccess, className = '', selectedRo
                 hrmC_QualificationDesc: row.hrmC_QualificationDesc,
                 hrmC_Order: row.hrmC_Order,
                 hrmC_DefaultQualFag: row.hrmC_DefaultQualFag,
-                hrmC_SpecialisationFlag: row.hrmC_SpecialisationFlag
+                hrmC_SpecialisationFlag: row.hrmC_SpecialisationFlag,
+                hrmC_ActiveFlag: row.hrmC_ActiveFlag
             });
         }
     }, [row, reset]);
@@ -60,7 +61,7 @@ export default function UpdateCourseForm({ onSuccess, className = '', selectedRo
                 hrmC_Order: Number(data.hrmC_Order) || 0,
                 hrmC_DefaultQualFag: data.hrmC_DefaultQualFag,
                 hrmC_SpecialisationFlag: data.hrmC_SpecialisationFlag,
-                hrmC_ActiveFlag: true
+                hrmC_ActiveFlag: data.hrmC_ActiveFlag ?? true
             };
             const response = await addOrUpdateMasterCourse(payload);
 

@@ -15,7 +15,7 @@ import { SalarySlipFilters, type SalarySlipFilters as SalarySlipFiltersType } fr
 import { SalarySlipTemplate } from './_components/salary-slip-template';
 import { printSalarySlips } from './_components/print-utils';
 import type { EmployeeSalarySlipDisplay } from './_components/columns';
-import { Loader2, Printer, Mail, MessageSquare, X, ArrowLeft } from 'lucide-react';
+import { Loader2, Printer, Mail, MessageSquare, X, ArrowLeft, MessageCircle, RotateCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const MONTH_LIST = [
@@ -208,13 +208,18 @@ export default function SalarySlipPage() {
                             employeeName: `${empDetails?.hrmE_EmployeeFirstName || ''} ${empDetails?.hrmE_EmployeeMiddleName || ''} ${empDetails?.hrmE_EmployeeLastName || ''}`.trim(),
                             employeeCode: empDetails?.hrmE_EmployeeCode || '-',
                             designation: rawData.designationName || empDetails?.hrmdeS_DesignationName,
+                            department: rawData.departmentName || empDetails?.hrmD_DepartmentName,
+                            dateOfJoining: empDetails?.hrmE_DOJ,
                             payLevel: empDetails?.hrmP_SalaryType || '-',
-                            bankName: empDetails?.hrmE_PaymentType || '-',
-                            bankAccountNo: empDetails?.hrmE_BankAccountNo || '-',
+                            bankName: rawData.empSalaryDetail?.hreS_BankCode || empDetails?.hrmE_PaymentType || '-',
+                            bankAccountNo: empDetails?.hrmE_BankAccountNo || rawData.empSalaryDetail?.hreS_AccountNo || '-',
                             pfNo: empDetails?.hrmE_PFAccNo || '-',
                             esiNo: empDetails?.hrmE_ESIAccNo || '-',
+                            uanNumber: empDetails?.hrmE_UINumber || '-',
                             panNo: empDetails?.hrmE_PANCardNo || '-',
                             lopDays: rawData.lopdays || 0,
+                            totalDays: rawData?.hreS_WorkingDays || 0,
+                            paySlipSeq: rawData?.hrmE_EmployeeOrder || 0,
                             earnings: earningsList.map((e: any) => ({
                                 name: e.hrmeD_Name || e.hreeD_EarnDedName,
                                 amount: e.amount || e.hreeD_Amount
@@ -227,6 +232,7 @@ export default function SalarySlipPage() {
                             totalDeduction: totalDeductions,
                             netPayable: (totalEarnings || rawData.empGrossSal || 0) - totalDeductions,
                             amountInWords: rawData.NetAmountInwords || '',
+                            pensionFund: rawData.PensionFund || 0,
                             leaveDetails: (rawData.employeeLeaveDetails || []).map((l: any, idx: number) => ({
                                 serialNo: idx + 1,
                                 leaveName: l.hrmL_LeaveName,
@@ -251,13 +257,13 @@ export default function SalarySlipPage() {
         if (!reportData) return;
         const slips = Array.isArray(reportData) ? reportData : [reportData];
         const monthName = MONTH_LIST.find(m => m.id.toString() === filters.month.toString())?.name || filters.month;
-        printSalarySlips(slips, institutionDetails, monthName, filters.year);
+        printSalarySlips(slips, institutionDetails, monthName, filters.year, filters.options.lopDays, filters.options.leaveDetails, filters.options.panCardNo, filters.options.bankDetails);
     };
 
     if (isOnloadLoading) {
         return (
             <div className="flex h-screen items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <RotateCw className="h-8 w-8 animate-spin text-secondary" />
                 <span className="ml-2">Loading Page...</span>
             </div>
         );
@@ -289,41 +295,37 @@ export default function SalarySlipPage() {
                 <h1 className="text-2xl font-bold">Salary Slip</h1>
             </div>
 
-            {!showReport ? (
-                <SalarySlipFilters
-                    filters={filters}
-                    groupTypes={groupTypesData?.data || []}
-                    departments={departmentsData?.data || []}
-                    designations={designationsData?.data || []}
-                    months={MONTH_LIST}
-                    years={yearsData?.data || []}
-                    employees={employees}
-                    filteredEmployees={filteredEmployeesList}
-                    searchTerm={searchTerm}
-                    selectedCount={selectedCount}
-                    isLoading={isFiltering || isGenerating}
-                    onFilterChange={handleFilterChange}
-                    onSearchChange={setSearchTerm}
-                    onOptionChange={handleOptionChange}
-                    onSelectAll={handleSelectAll}
-                    onSelectEmployee={handleSelectEmployee}
-                    onGenerateSlip={handleGenerateSlip}
-                    onCancel={() => { }}
-                    onReset={handleReset}
-                />
-            ) : (
+            <SalarySlipFilters
+                filters={filters}
+                groupTypes={groupTypesData?.data || []}
+                departments={departmentsData?.data || []}
+                designations={designationsData?.data || []}
+                months={MONTH_LIST}
+                years={yearsData?.data || []}
+                employees={employees}
+                filteredEmployees={filteredEmployeesList}
+                searchTerm={searchTerm}
+                selectedCount={selectedCount}
+                isFiltering={isFiltering}
+                isGenerating={isGenerating}
+                onFilterChange={handleFilterChange}
+                onSearchChange={setSearchTerm}
+                onOptionChange={handleOptionChange}
+                onSelectAll={handleSelectAll}
+                onSelectEmployee={handleSelectEmployee}
+                onGenerateSlip={handleGenerateSlip}
+                onCancel={() => { }}
+                onReset={handleReset}
+            />
+
+            {showReport && (
                 <div className="space-y-6">
                     {/* Global Action Bar */}
                     <div className="flex flex-wrap items-center justify-between gap-4 bg-card p-4 rounded-xl border shadow-sm print:hidden">
                         <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="sm" onClick={() => setShowReport(false)}>
-                                <ArrowLeft className="h-4 w-4 mr-2" />
-                                Back to Filters
-                            </Button>
-                            <div className="h-6 w-px bg-border mx-2" />
                             <h3 className="font-semibold">Salary Slips ({Array.isArray(reportData) ? reportData.length : 0})</h3>
                         </div>
-                        <div className="flex flex-wrap gap-3">
+                        <div className="flex gap-3">
                             <Button variant="outline" onClick={() => setShowReport(false)}>
                                 <X className="h-4 w-4 mr-2" />
                                 CANCEL
@@ -384,3 +386,4 @@ export default function SalarySlipPage() {
         </div>
     );
 }
+
