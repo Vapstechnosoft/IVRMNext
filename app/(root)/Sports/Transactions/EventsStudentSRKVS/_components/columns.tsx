@@ -2,23 +2,37 @@ import { useState } from 'react';
 import { ColumnDef, Row } from '@tanstack/react-table';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { IEventsStudentSRKVSData, IEventsStudentSRKVSViewDetails } from '@/types/sports/events-student-srkvs';
-import { Badge } from '@/components/ui/badge';
 import { useEventsStudentSRKVS } from '@/hooks/sports/useEventsStudentSRKVS';
 import { Button } from '@/components/ui/button';
 import { Eye } from 'lucide-react';
 import { ViewDetailsModal } from './view-details-modal';
 import { toast } from 'sonner';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 
 export const eventsStudentSRKVSColumns: ColumnDef<IEventsStudentSRKVSData>[] = [
     {
-        id: "serialNumber",
-        header: "SL No",
-        cell: ({ row }) => row.index + 1,
+        accessorKey: 'spccesT_Id',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl No' className='pl-6' />,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            const continuousIndex = pageIndex * pageSize + row.index + 1;
+            return <div className='pl-6'>{continuousIndex}</div>;
+        },
+        enableSorting: true,
+        enableHiding: false
     },
-
     {
         accessorKey: "eventName",
         header: "Event",
+    },
+    {
+        accessorKey: "sportsName",
+        header: "Sports Name",
+    },
+    {
+        accessorKey: "spccmsccG_SportsCCGroupName",
+        header: "Group Name",
     },
     {
         accessorKey: "categoryName",
@@ -31,14 +45,6 @@ export const eventsStudentSRKVSColumns: ColumnDef<IEventsStudentSRKVSData>[] = [
     {
         accessorKey: "spccmeV_EventVenue",
         header: "Venue",
-    },
-    {
-        accessorKey: "sportsName",
-        header: "Sub Event",
-    },
-    {
-        accessorKey: "spccmsccG_SportsCCGroupName",
-        header: "Main Event",
     },
     {
         accessorKey: "uomName",
@@ -63,18 +69,6 @@ export const eventsStudentSRKVSColumns: ColumnDef<IEventsStudentSRKVSData>[] = [
             const date = row.getValue("endDate") as string;
             return date ? new Date(date).toLocaleDateString() : '';
         }
-    },
-    {
-        accessorKey: "spccesT_ActiveFlag",
-        header: "Status",
-        cell: ({ row }) => {
-            const isActive = row.getValue("spccesT_ActiveFlag");
-            return (
-                <Badge variant={isActive ? "success" : "destructive"} className="font-semibold">
-                    {isActive ? "Active" : "Deactivated"}
-                </Badge>
-            );
-        },
     },
     {
         id: "actions",
