@@ -75,8 +75,10 @@ export const StudentChatbot = () => {
         }
     }, [isOpen]);
 
+    const isAuthPage = pathname?.toLowerCase().includes('login') || pathname?.toLowerCase().includes('sign-in');
+
     // Only show in Student Portal - Guard AFTER hooks
-    if (!mounted || !pathname?.toLowerCase().includes('studentportal')) return null;
+    if (!mounted || !pathname?.toLowerCase().includes('studentportal') || isAuthPage) return null;
 
     // Helper to resolve links from common.ts data (environment-aware)
     const resolveLink = (targetName: string, fallbackLink?: string) => {

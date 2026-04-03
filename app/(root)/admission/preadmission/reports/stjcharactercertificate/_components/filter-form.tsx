@@ -503,10 +503,10 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                                         {searchFilterMutation.isPending ? 'Searching...' : 'No student found. Type 3+ characters to search.'}
                                                     </CommandEmpty>
                                                     <CommandGroup>
-                                                        {studentList.map((s: any) => (
+                                                        {studentList.map((s: any, index: number) => (
                                                             <CommandItem
-                                                                value={s.amsT_FirstName}
-                                                                key={s.amsT_Id}
+                                                                value={`${s.amsT_FirstName}-${s.amsT_Id}-${index}`}
+                                                                key={`${s.amsT_Id}-${index}`}
                                                                 onSelect={() => {
                                                                     field.onChange(s.amsT_Id);
                                                                     setStudentOpen(false);

@@ -44,9 +44,13 @@ export default async function RootLayout({ children }: Readonly<RootLayoutProps>
                 <NextTopLoader color='#4F39F6' showSpinner={false} height={3} speed={300} />
                 <Providers session={session}>
                     {children}
-                    <Chatbot />
-                    <StudentChatbot />
-                    <FloatingSchoolBot />
+                    {session && (
+                        <>
+                            <Chatbot />
+                            <StudentChatbot />
+                            <FloatingSchoolBot />
+                        </>
+                    )}
                     <Toaster position='bottom-right' closeButton={true} duration={3000} richColors className={`${geistSans.className}`} />
                 </Providers>
             </body>
