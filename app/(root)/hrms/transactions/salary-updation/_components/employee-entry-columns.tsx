@@ -122,9 +122,15 @@ export function buildSalaryEntryColumns(
             id: 'slNo',
             header: ({ column }) => <DataTableColumnHeader column={column} title='SL NO' />,
             cell: ({ row, table }) => {
+                const isManual = table.options.manualPagination;
                 const page = table.getState().pagination.pageIndex;
                 const size = table.getState().pagination.pageSize;
-                return <span className='pl-2'>{page * size + row.index + 1}</span>;
+
+                // If manualPagination is true (Server-side), we offset by page * size.
+                // If false (Client-side), row.index already includes the global offset in TanStack.
+                const continuousIndex = isManual ? (page * size + row.index + 1) : (row.index + 1);
+
+                return <span className='pl-2'>{continuousIndex}</span>;
             },
             enableSorting: false,
             size: 60

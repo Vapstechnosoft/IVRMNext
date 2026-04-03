@@ -5,6 +5,7 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import {
     useReportDepartments,
     useReportDesignations,
@@ -12,14 +13,16 @@ import {
     useMonthEndReport
 } from '@/hooks/hrms/useReports';
 import { useLeaveYearDropdown } from '@/hooks/hrms/useMasters';
-import { Loader2, Search, Users, UserPlus, UserMinus, ImageOff, Mail, Phone, FileCheck, FileText, Printer } from 'lucide-react';
-import { useState } from 'react';
+import { Loader2, Search, Printer, X } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis, Pie, PieChart, Cell } from 'recharts';
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis, Cell } from 'recharts';
+import { format } from 'date-fns';
+import { getMasterInstitution } from '@/server/hrms/master-dropdown';
+import type { Institution } from '@/types/exam/exam-module/report';
 
 const MONTH_LIST = [
     { id: 1, name: 'January' }, { id: 2, name: 'February' }, { id: 3, name: 'March' },
@@ -33,15 +36,19 @@ const MonthEndReportSchema = z.object({
     department: z.array(z.string()).min(1, 'Department is required'),
     designation: z.array(z.string()).min(1, 'Designation is required'),
     month: z.string().min(1, 'Month is required'),
-    year: z.string().min(1, 'Year is required')
+    year: z.string().min(1, 'Year is required'),
+    ieName: z.string().min(1, 'IE Name is required')
 });
 
 type FormFields = z.infer<typeof MonthEndReportSchema>;
 
-const COLORS = ['#22c55e', '#ef4444', '#3b82f6', '#f59e0b', '#8b5cf6'];
-
 export default function HRMSMonthEndReportPage() {
     const [reportData, setReportData] = useState<any>(null);
+    const [selectedFilters, setSelectedFilters] = useState<any>({});
+    const [institution, setInstitution] = useState<Institution | null>(null);
+    const [resetKey, setResetKey] = useState(0);
+    const printRef = useRef<HTMLDivElement>(null);
+    const chartRef = useRef<HTMLDivElement>(null);
 
     const {
         control,
@@ -56,9 +63,24 @@ export default function HRMSMonthEndReportPage() {
             department: [],
             designation: [],
             month: '',
-            year: ''
+            year: '',
+            ieName: ''
         }
     });
+
+    useEffect(() => {
+        const fetchInstitution = async () => {
+            try {
+                const res = await getMasterInstitution();
+                if (res.success && res.data) {
+                    setInstitution(res.data);
+                }
+            } catch (error) {
+                console.error('Failed to fetch institution details', error);
+            }
+        };
+        fetchInstitution();
+    }, []);
 
     const watchedGroupTypes = watch('groupType');
     const watchedDepartments = watch('department');
@@ -73,6 +95,13 @@ export default function HRMSMonthEndReportPage() {
     const onSearch = (data: FormFields) => {
         const selectedYearObj = (yearsData?.data || []).find((y: any) => y && String(y.hrmlY_Id ?? '') === String(data.year ?? ''));
         const yearStr = selectedYearObj?.hrmlY_LeaveYear || String(data.year ?? '0');
+
+        setSelectedFilters({
+            month: data.month,
+            year: yearStr,
+            ieName: data.ieName
+        });
+
         generateReport({
             hreS_Year: Number(yearStr),
             hreS_Month: data.month,
@@ -95,32 +124,200 @@ export default function HRMSMonthEndReportPage() {
     const handleReset = () => {
         reset();
         setReportData(null);
+        setResetKey((prev) => prev + 1);
     };
 
-    const employeeStatusData = reportData ? [
-        { name: 'Working', value: reportData.workingEmployeeCount },
-        { name: 'Left', value: reportData.leftEmployeeCount },
-        { name: 'New', value: reportData.newEmployeeCount }
-    ].filter(item => item.value > 0) : [];
+    const handlePrint = () => {
+        if (!reportData) return;
 
-    const missingInfoData = reportData ? [
-        { name: 'Photos', Working: reportData.missingPhotoWorking, Left: reportData.missingPhotoLeft, New: reportData.missingPhotoNew },
-        { name: 'Emails', Working: reportData.missingEmailWorking, Left: reportData.missingEmailLeft, New: reportData.missingEmailNew },
-        { name: 'Mobiles', Working: reportData.missingMobileWorking, Left: reportData.missingMobileLeft, New: reportData.missingMobileNew }
+        const popupWin = window.open('', '_blank', 'width=1000,height=1000');
+        if (popupWin) {
+            popupWin.document.open();
+            popupWin.document.write(`
+                <html>
+                    <head>
+                        <title>HRMS Month End Report</title>
+                        <style>
+                            body { font-family: 'Times New Roman', serif; padding: 20px; color: black; }
+                            .header { text-align: center; margin-bottom: 20px; }
+                            .institution-name { font-size: 24px; font-weight: bold; text-transform: uppercase; margin: 0; }
+                            .report-title { font-size: 18px; font-weight: bold; text-decoration: underline; text-transform: uppercase; margin: 10px 0; }
+                            table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+                            th, td { border: 1px solid #444; padding: 8px; text-align: left; font-size: 14px; }
+                            .text-center { text-align: center; }
+                            .bg-gray { background-color: #f3f4f6; }
+                            .font-bold { font-weight: bold; }
+                            .uppercase { text-transform: uppercase; }
+                            .footer { margin-top: 50px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+                            .footer-item { border-bottom: 1px solid black; min-height: 20px; flex: 1; }
+                            .chart-container { margin-top: 30px; text-align: center; }
+                            @page { size: auto; margin: 0; }
+                            @media print {
+                                body { padding: 40px; }
+                                .no-print { display: none; }
+                            }
+                        </style>
+                    </head>
+                    <body onload="setTimeout(function(){ window.print(); window.close(); }, 500);">
+                        <div class="header">
+                            ${institution?.mI_Logo ? `<img src="${institution.mI_Logo}" style="max-height: 80px; margin-bottom: 10px;" />` : ''}
+                            <h1 class="institution-name">${institution?.mI_Name || ''}</h1>
+                            <div class="report-title">HRMS Month End Report of ${selectedFilters.month} - ${selectedFilters.year}</div>
+                        </div>
+
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th class="bg-gray text-center uppercase" colspan="2">${selectedFilters.month} Month Report</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="bg-gray font-bold" style="width: 30%;">Name</td>
+                                    <td>${selectedFilters.ieName}</td>
+                                </tr>
+                                <tr>
+                                    <td class="bg-gray font-bold">Date</td>
+                                    <td>${format(new Date(), 'dd-MM-yyyy')}</td>
+                                </tr>
+                                <tr>
+                                    <td class="bg-gray font-bold">Designation</td>
+                                    <td>Implementation Engineer</td>
+                                </tr>
+                                <tr>
+                                    <td class="bg-gray font-bold">Module Name</td>
+                                    <td>HRMS</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <table style="margin-top: 30px;">
+                            <thead>
+                                <tr class="bg-gray text-center font-bold">
+                                    <th rowspan="2">Sno</th>
+                                    <th rowspan="2">Description</th>
+                                    <th rowspan="2">Count</th>
+                                    <th rowspan="2">SMS</th>
+                                    <th rowspan="2">Email</th>
+                                    <th colspan="3">Missing Details</th>
+                                </tr>
+                                <tr class="bg-gray text-center font-bold text-xs">
+                                    <th>Photo</th>
+                                    <th>Email-ID</th>
+                                    <th>Contact Number</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="text-center">
+                                    <td>1</td>
+                                    <td style="text-align: left;">Working Employee</td>
+                                    <td>${reportData.workingEmployeeCount}</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td>${reportData.missingPhotoWorking}</td>
+                                    <td>${reportData.missingEmailWorking}</td>
+                                    <td>${reportData.missingMobileWorking}</td>
+                                </tr>
+                                <tr class="text-center">
+                                    <td>2</td>
+                                    <td style="text-align: left;">Left Employee</td>
+                                    <td>${reportData.leftEmployeeCount}</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td>${reportData.missingPhotoLeft}</td>
+                                    <td>${reportData.missingEmailLeft}</td>
+                                    <td>${reportData.missingMobileLeft}</td>
+                                </tr>
+                                <tr class="text-center">
+                                    <td>3</td>
+                                    <td style="text-align: left;">Salary Generated</td>
+                                    <td>${reportData.salaryGenerated}</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                                <tr class="text-center">
+                                    <td>4</td>
+                                    <td style="text-align: left;">Salary Slip</td>
+                                    <td>${reportData.salarySlipGenerated}</td>
+                                    <td>${reportData.smsCount}</td>
+                                    <td>${reportData.emailCount}</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                                <tr class="text-center">
+                                    <td>5</td>
+                                    <td style="text-align: left;">New Employee</td>
+                                    <td>${reportData.newEmployeeCount}</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td>${reportData.missingPhotoNew}</td>
+                                    <td>${reportData.missingEmailNew}</td>
+                                    <td>${reportData.missingMobileNew}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="footer">
+                            <div style="display: flex; flex-direction: column; gap: 40px;">
+                                <div style="display: flex; gap: 10px; align-items: flex-end;">
+                                    <span>Implementation Engineer:</span>
+                                    <div class="footer-item"></div>
+                                </div>
+                                <div style="display: flex; gap: 10px; align-items: flex-end;">
+                                    <span>Nodal Officer:</span>
+                                    <div class="footer-item"></div>
+                                </div>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 40px;">
+                                <div style="display: flex; gap: 10px; align-items: flex-end;">
+                                    <span>End User Signature:</span>
+                                    <div class="footer-item"></div>
+                                </div>
+                                <div style="display: flex; gap: 10px; align-items: flex-end;">
+                                    <span>With Seal:</span>
+                                    <div class="footer-item"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="chart-container" style="padding-top: 20px;">
+                            <h3 class="uppercase" style="font-size: 16px; margin-bottom: 20px;">HRMS Month End Report Chart</h3>
+                            <div style="width: 100%; border: 1px solid #ddd; padding: 20px;">
+                                ${chartRef.current ? chartRef.current.innerHTML : ''}
+                            </div>
+                        </div>
+                    </body>
+                </html>
+            `);
+            popupWin.document.close();
+        }
+    };
+
+    const chartData = reportData ? [
+        { name: 'workingEmployee', count: reportData.workingEmployeeCount || 0, color: '#36a2b5' },
+        { name: 'leftEmployee', count: reportData.leftEmployeeCount || 0, color: '#be4a41' },
+        { name: 'newEmployee', count: reportData.newEmployeeCount || 0, color: '#cccccc' },
+        { name: 'salaryGenerated', count: reportData.salaryGenerated || 0, color: '#94bc02' },
+        { name: 'salaryslipGenerated', count: reportData.salarySlipGenerated || 0, color: '#a8d4d4' }
     ] : [];
 
     return (
-        <div className='container min-h-screen space-y-6 p-4'>
-            <div className='flex items-center justify-between'>
+        <div className='container min-h-screen space-y-6 p-4 max-w-7xl mx-auto'>
+            <div className='flex items-center justify-between print:hidden'>
                 <h2 className='text-3xl font-bold tracking-tight'>HRMS Month End Report</h2>
             </div>
 
-            <CollapsibleSection title='Report Criteria' defaultOpen={true} variant='outline' className='shadow-md border-primary/20 bg-card/50 backdrop-blur-sm'>
+            <CollapsibleSection title='Report Criteria' defaultOpen={true} variant='outline' className='shadow-md border-primary/20 bg-card/50 backdrop-blur-sm print:hidden'>
                 <form onSubmit={handleSubmit(onSearch)} className='space-y-6'>
                     <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
                         <div className='space-y-2'>
                             <Label>Group Type <span className='text-destructive'>*</span></Label>
                             <Controller
+                                key={resetKey}
                                 name='groupType'
                                 control={control}
                                 render={({ field }) => (
@@ -132,7 +329,7 @@ export default function HRMSMonthEndReportPage() {
                                         defaultValue={field.value}
                                         onValueChange={field.onChange}
                                         placeholder='Select Group Types'
-                                        disabled={groupTypesLoading}
+                                        // disabled={groupTypesLoading}
                                     />
                                 )}
                             />
@@ -142,6 +339,7 @@ export default function HRMSMonthEndReportPage() {
                         <div className='space-y-2'>
                             <Label>Department <span className='text-destructive'>*</span></Label>
                             <Controller
+                                key={resetKey}
                                 name='department'
                                 control={control}
                                 render={({ field }) => (
@@ -163,6 +361,7 @@ export default function HRMSMonthEndReportPage() {
                         <div className='space-y-2'>
                             <Label>Designation <span className='text-destructive'>*</span></Label>
                             <Controller
+                                key={resetKey}
                                 name='designation'
                                 control={control}
                                 render={({ field }) => (
@@ -184,6 +383,7 @@ export default function HRMSMonthEndReportPage() {
                         <div className='space-y-2'>
                             <Label>Year <span className='text-destructive'>*</span></Label>
                             <Controller
+                                key={resetKey}
                                 name='year'
                                 control={control}
                                 render={({ field }) => (
@@ -207,6 +407,7 @@ export default function HRMSMonthEndReportPage() {
                         <div className='space-y-2'>
                             <Label>Month <span className='text-destructive'>*</span></Label>
                             <Controller
+                                key={resetKey}
                                 name='month'
                                 control={control}
                                 render={({ field }) => (
@@ -226,225 +427,244 @@ export default function HRMSMonthEndReportPage() {
                             />
                             {errors.month && <FormError>{errors.month.message}</FormError>}
                         </div>
+
+                        <div className='space-y-2'>
+                            <Label>IE Name <span className='text-destructive'>*</span></Label>
+                            <Controller
+                                key={resetKey}
+                                name='ieName'
+                                control={control}
+                                render={({ field }) => (
+                                    <Input {...field} placeholder='Enter IE Name' maxLength={30} />
+                                )}
+                            />
+                            {errors.ieName && <FormError>{errors.ieName.message}</FormError>}
+                        </div>
                     </div>
 
-                    <div className='flex justify-end gap-3'>
-                        <Button type='button' variant='outline' onClick={handleReset} className='hover:bg-accent hover:text-accent-foreground transition-all duration-200'>
-                            Reset
-                        </Button>
+                    <div className='flex justify-center gap-3'>
                         <Button type='submit' disabled={isSearching} className='bg-primary hover:bg-primary/90 transition-all duration-200 shadow-md'>
                             {isSearching ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Search className='mr-2 h-4 w-4' />}
-                            Generate Report
+                            Search
+                        </Button>
+                        <Button type='button' variant='outline' onClick={handleReset}>
+                            <X className='mr-2 h-4 w-4' />
+                            Cancel
                         </Button>
                     </div>
                 </form>
             </CollapsibleSection>
 
             {reportData && (
-                <div className='space-y-8 animate-in fade-in zoom-in duration-500'>
-                    {/* Summary Cards */}
-                    <div className='grid gap-4 md:grid-cols-3'>
-                        <Card className='bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20 shadow-sm'>
-                            <CardHeader className='flex flex-row items-center justify-between pb-2'>
-                                <CardTitle className='text-sm font-medium'>Working Employees</CardTitle>
-                                <Users className='h-4 w-4 text-green-500' />
-                            </CardHeader>
-                            <CardContent>
-                                <div className='text-2xl font-bold'>{reportData.workingEmployeeCount}</div>
-                                <p className='text-xs text-muted-foreground'>Total active staff members</p>
-                            </CardContent>
-                        </Card>
-                        <Card className='bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20 shadow-sm'>
-                            <CardHeader className='flex flex-row items-center justify-between pb-2'>
-                                <CardTitle className='text-sm font-medium'>New Joinings</CardTitle>
-                                <UserPlus className='h-4 w-4 text-blue-500' />
-                            </CardHeader>
-                            <CardContent>
-                                <div className='text-2xl font-bold'>{reportData.newEmployeeCount}</div>
-                                <p className='text-xs text-muted-foreground'>Newly recruited this month</p>
-                            </CardContent>
-                        </Card>
-                        <Card className='bg-gradient-to-br from-red-500/10 to-red-500/5 border-red-500/20 shadow-sm'>
-                            <CardHeader className='flex flex-row items-center justify-between pb-2'>
-                                <CardTitle className='text-sm font-medium'>Employees Left</CardTitle>
-                                <UserMinus className='h-4 w-4 text-red-500' />
-                            </CardHeader>
-                            <CardContent>
-                                <div className='text-2xl font-bold'>{reportData.leftEmployeeCount}</div>
-                                <p className='text-xs text-muted-foreground'>Staff who resigned</p>
-                            </CardContent>
-                        </Card>
-                    </div>
+                <CollapsibleSection title='HRMS MonthEnd Report' defaultOpen={true}>
+                        <div className='flex justify-end gap-3 print:hidden mb-4'>
+                            <Button
+                                variant='default'
+                                onClick={handlePrint}
+                                className='gap-2 w-40 transition-transform hover:scale-105'
+                            >
+                                <Printer className='h-4 w-4' />
+                                Print
+                            </Button>
+                            <Button
+                                variant='outline'
+                                onClick={() => setReportData(null)}
+                                className='gap-2 w-fit'
+                            >
+                                <X className='h-4 w-4' />
+                                Close Report
+                            </Button>
+                        </div>
+                    <div className='space-y-6 animate-in fade-in duration-500'>
+                        {/* Print Preview Header (Only visible on screen, matching legacy feel) */}
 
-                    {/* Salary & Communication Progress */}
-                    <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
-                        <div className='flex items-center gap-4 p-4 rounded-xl border bg-card shadow-sm'>
-                            <div className='p-3 rounded-lg bg-orange-500/10'>
-                                <FileCheck className='h-6 w-6 text-orange-500' />
-                            </div>
-                            <div>
-                                <p className='text-sm font-medium text-muted-foreground'>Generated</p>
-                                <p className='text-xl font-bold'>{reportData.salaryGenerated}</p>
-                            </div>
-                        </div>
-                        <div className='flex items-center gap-4 p-4 rounded-xl border bg-card shadow-sm'>
-                            <div className='p-3 rounded-lg bg-emerald-500/10'>
-                                <FileText className='h-6 w-6 text-emerald-500' />
-                            </div>
-                            <div>
-                                <p className='text-sm font-medium text-muted-foreground'>Slips</p>
-                                <p className='text-xl font-bold'>{reportData.salarySlipGenerated}</p>
-                            </div>
-                        </div>
-                        <div className='flex items-center gap-4 p-4 rounded-xl border bg-card shadow-sm'>
-                            <div className='p-3 rounded-lg bg-indigo-500/10'>
-                                <Mail className='h-6 w-6 text-indigo-500' />
-                            </div>
-                            <div>
-                                <p className='text-sm font-medium text-muted-foreground'>Emails Sent</p>
-                                <p className='text-xl font-bold'>{reportData.emailCount}</p>
-                            </div>
-                        </div>
-                        <div className='flex items-center gap-4 p-4 rounded-xl border bg-card shadow-sm'>
-                            <div className='p-3 rounded-lg bg-cyan-500/10'>
-                                <Phone className='h-6 w-6 text-cyan-500' />
-                            </div>
-                            <div>
-                                <p className='text-sm font-medium text-muted-foreground'>SMS Sent</p>
-                                <p className='text-xl font-bold'>{reportData.smsCount}</p>
-                            </div>
-                        </div>
-                    </div>
+                        {/* Printable Report Content */}
+                        <div ref={printRef} className='bg-white p-6 rounded-lg shadow-sm border overflow-x-auto text-black '>
+                            <div className='space-y-4'>
+                                {/* Institution Logo & Name */}
+                                <div className='flex justify-center'>
+                                    {institution?.mI_Logo && (
+                                        <img
+                                            src={institution.mI_Logo}
+                                            alt='Institution Logo'
+                                            className='max-h-[200px] object-contain mb-2'
+                                        />
+                                    )}
 
-                    {/* Data Completeness Alerts (Missing Info) */}
-                    <Card className='border-amber-500/20 bg-amber-500/5'>
-                        <CardHeader>
-                            <CardTitle className='text-lg font-semibold flex items-center gap-2'>
-                                <Loader2 className='h-5 w-5 text-amber-500 animate-spin' />
-                                Data Completeness Issues
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className='grid gap-6 md:grid-cols-3'>
-                                <div className='space-y-4'>
-                                    <h4 className='font-semibold flex items-center gap-2'><Users className='h-4 w-4' /> Working Staff</h4>
-                                    <div className='space-y-2'>
-                                        <div className='flex justify-between text-sm'>
-                                            <span className='flex items-center gap-2 text-muted-foreground'><ImageOff className='h-3 w-3' /> Missing Photos</span>
-                                            <span className='font-bold text-red-500'>{reportData.missingPhotoWorking}</span>
+                                </div>
+
+                                <h2 className='text-xl font-bold text-center underline uppercase mb-4'>
+                                    HRMS Month End Report of {selectedFilters.month} - {selectedFilters.year}
+                                </h2>
+
+                                <table className='w-full border-collapse border border-gray-400 mb-6'>
+                                    <thead>
+                                        <tr>
+                                            <th className='border border-gray-400 bg-gray-50 p-2 text-center uppercase' colSpan={2}>
+                                                {selectedFilters.month} Month Report
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td className='border border-gray-400 bg-gray-50 p-2 font-bold w-1/3 text-left'>Name</td>
+                                            <td className='border border-gray-400 p-2 text-left'>{selectedFilters.ieName}</td>
+                                        </tr>
+                                        <tr>
+                                            <td className='border border-gray-400 bg-gray-50 p-2 font-bold text-left'>Date</td>
+                                            <td className='border border-gray-400 p-2 text-left'>{format(new Date(), 'dd-MM-yyyy')}</td>
+                                        </tr>
+                                        <tr>
+                                            <td className='border border-gray-400 bg-gray-50 p-2 font-bold text-left'>Designation</td>
+                                            <td className='border border-gray-400 p-2 text-left'>Implementation Engineer</td>
+                                        </tr>
+                                        <tr>
+                                            <td className='border border-gray-400 bg-gray-50 p-2 font-bold text-left'>Module Name</td>
+                                            <td className='border border-gray-400 p-2 text-left'>HRMS</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+                                <table className='w-full border-collapse border border-gray-400 mt-6'>
+                                    <thead>
+                                        <tr className='bg-gray-100'>
+                                            <th className='border border-gray-400 p-2' rowSpan={2}>Sno</th>
+                                            <th className='border border-gray-400 p-2' rowSpan={2}>Description</th>
+                                            <th className='border border-gray-400 p-2' rowSpan={2}>Count</th>
+                                            <th className='border border-gray-400 p-2' rowSpan={2}>SMS</th>
+                                            <th className='border border-gray-400 p-2' rowSpan={2}>Email</th>
+                                            <th className='border border-gray-400 p-2 text-center font-bold' colSpan={3}>Missing Details</th>
+                                        </tr>
+                                        <tr className='bg-gray-100'>
+                                            <th className='border border-gray-400 p-1 text-sm'>Photo</th>
+                                            <th className='border border-gray-400 p-1 text-sm'>Email-ID</th>
+                                            <th className='border border-gray-400 p-1 text-sm'>Contact Number</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr className='text-center'>
+                                            <td className='border border-gray-400 p-2'>1</td>
+                                            <td className='border border-gray-400 p-2 text-left'>Working Employee</td>
+                                            <td className='border border-gray-400 p-2'>{reportData.workingEmployeeCount}</td>
+                                            <td className='border border-gray-400 p-2'>&nbsp;</td>
+                                            <td className='border border-gray-400 p-2'>&nbsp;</td>
+                                            <td className='border border-gray-400 p-2'>{reportData.missingPhotoWorking}</td>
+                                            <td className='border border-gray-400 p-2'>{reportData.missingEmailWorking}</td>
+                                            <td className='border border-gray-400 p-2'>{reportData.missingMobileWorking}</td>
+                                        </tr>
+                                        <tr className='text-center'>
+                                            <td className='border border-gray-400 p-2'>2</td>
+                                            <td className='border border-gray-400 p-2 text-left'>Left Employee</td>
+                                            <td className='border border-gray-400 p-2'>{reportData.leftEmployeeCount}</td>
+                                            <td className='border border-gray-400 p-2'>&nbsp;</td>
+                                            <td className='border border-gray-400 p-2'>&nbsp;</td>
+                                            <td className='border border-gray-400 p-2'>{reportData.missingPhotoLeft}</td>
+                                            <td className='border border-gray-400 p-2'>{reportData.missingEmailLeft}</td>
+                                            <td className='border border-gray-400 p-2'>{reportData.missingMobileLeft}</td>
+                                        </tr>
+                                        <tr className='text-center'>
+                                            <td className='border border-gray-400 p-2'>3</td>
+                                            <td className='border border-gray-400 p-2 text-left'>Salary Generated</td>
+                                            <td className='border border-gray-400 p-2'>{reportData.salaryGenerated}</td>
+                                            <td className='border border-gray-400 p-2'>&nbsp;</td>
+                                            <td className='border border-gray-400 p-2'>&nbsp;</td>
+                                            <td className='border border-gray-400 p-2'>&nbsp;</td>
+                                            <td className='border border-gray-400 p-2'>&nbsp;</td>
+                                            <td className='border border-gray-400 p-2'>&nbsp;</td>
+                                        </tr>
+                                        <tr className='text-center'>
+                                            <td className='border border-gray-400 p-2'>4</td>
+                                            <td className='border border-gray-400 p-2 text-left'>Salary Slip</td>
+                                            <td className='border border-gray-400 p-2'>{reportData.salarySlipGenerated}</td>
+                                            <td className='border border-gray-400 p-2'>{reportData.smsCount}</td>
+                                            <td className='border border-gray-400 p-2'>{reportData.emailCount}</td>
+                                            <td className='border border-gray-400 p-2'>&nbsp;</td>
+                                            <td className='border border-gray-400 p-2'>&nbsp;</td>
+                                            <td className='border border-gray-400 p-2'>&nbsp;</td>
+                                        </tr>
+                                        <tr className='text-center'>
+                                            <td className='border border-gray-400 p-2'>5</td>
+                                            <td className='border border-gray-400 p-2 text-left'>New Employee</td>
+                                            <td className='border border-gray-400 p-2'>{reportData.newEmployeeCount}</td>
+                                            <td className='border border-gray-400 p-2'>&nbsp;</td>
+                                            <td className='border border-gray-400 p-2'>&nbsp;</td>
+                                            <td className='border border-gray-400 p-2'>{reportData.missingPhotoNew}</td>
+                                            <td className='border border-gray-400 p-2'>{reportData.missingEmailNew}</td>
+                                            <td className='border border-gray-400 p-2'>{reportData.missingMobileNew}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+                                <div className='flex justify-between pt-20'>
+                                    <div className='space-y-8'>
+                                        <div className='flex items-end gap-2'>
+                                            <span className='whitespace-nowrap'>Implementation Engineer:</span>
+                                            <div className=' min-h-[20px]'>________________________</div>
                                         </div>
-                                        <div className='flex justify-between text-sm'>
-                                            <span className='flex items-center gap-2 text-muted-foreground'><Mail className='h-3 w-3' /> Missing Emails</span>
-                                            <span className='font-bold text-red-500'>{reportData.missingEmailWorking}</span>
+                                        <div className='flex items-end gap-2'>
+                                            <span className='whitespace-nowrap'>Nodal Officer:</span>
+                                            <div className=' min-h-[20px]'>________________________</div>
                                         </div>
-                                        <div className='flex justify-between text-sm'>
-                                            <span className='flex items-center gap-2 text-muted-foreground'><Phone className='h-3 w-3' /> Missing Mobiles</span>
-                                            <span className='font-bold text-red-500'>{reportData.missingMobileWorking}</span>
+                                    </div>
+                                    <div className='space-y-8'>
+                                        <div className='flex items-end gap-2'>
+                                            <span className='whitespace-nowrap'>End User Signature:</span>
+                                            <div className=' min-h-[20px]'>________________________</div>
+                                        </div>
+                                        <div className='flex items-end gap-2'>
+                                            <span className='whitespace-nowrap'>With Seal:</span>
+                                            <div className=' min-h-[20px]'>________________________</div>
                                         </div>
                                     </div>
                                 </div>
-                                <div className='space-y-4'>
-                                    <h4 className='font-semibold flex items-center gap-2'><UserPlus className='h-4 w-4' /> New Joinings</h4>
-                                    <div className='space-y-2'>
-                                        <div className='flex justify-between text-sm'>
-                                            <span className='text-muted-foreground'>Missing Photos</span>
-                                            <span className='font-bold text-red-500'>{reportData.missingPhotoNew}</span>
-                                        </div>
-                                        <div className='flex justify-between text-sm'>
-                                            <span className='text-muted-foreground'>Missing Emails</span>
-                                            <span className='font-bold text-red-500'>{reportData.missingEmailNew}</span>
-                                        </div>
-                                        <div className='flex justify-between text-sm'>
-                                            <span className='text-muted-foreground'>Missing Mobiles</span>
-                                            <span className='font-bold text-red-500'>{reportData.missingMobileNew}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className='space-y-4'>
-                                    <h4 className='font-semibold flex items-center gap-2'><UserMinus className='h-4 w-4' /> Left Staff</h4>
-                                    <div className='space-y-2'>
-                                        <div className='flex justify-between text-sm'>
-                                            <span className='text-muted-foreground'>Missing Photos</span>
-                                            <span className='font-bold text-red-500'>{reportData.missingPhotoLeft}</span>
-                                        </div>
-                                        <div className='flex justify-between text-sm'>
-                                            <span className='text-muted-foreground'>Missing Emails</span>
-                                            <span className='font-bold text-red-500'>{reportData.missingEmailLeft}</span>
-                                        </div>
-                                        <div className='flex justify-between text-sm'>
-                                            <span className='text-muted-foreground'>Missing Mobiles</span>
-                                            <span className='font-bold text-red-500'>{reportData.missingMobileLeft}</span>
-                                        </div>
+
+                                {/* Bar Chart Section */}
+                                <div className='mt-12 pt-8 border-t'>
+                                    <h3 className='text-center font-bold mb-6 uppercase text-sm tracking-widest'>HRMS Month End Report Chart</h3>
+                                    <div ref={chartRef} className='h-[400px] w-full border border-gray-200 p-6 rounded-sm bg-white'>
+                                        <ResponsiveContainer width='100%' height='100%'>
+                                            <BarChart
+                                                data={chartData}
+                                                margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                                            >
+                                                <CartesianGrid strokeDasharray='3 3' vertical={false} stroke='#e5e7eb' />
+                                                <XAxis
+                                                    dataKey='name'
+                                                    axisLine={{ stroke: '#9ca3af' }}
+                                                    tickLine={false}
+                                                    tick={{ fontSize: 11, fill: '#4b5563' }}
+                                                />
+                                                <YAxis
+                                                    domain={[0, 80]}
+                                                    axisLine={{ stroke: '#9ca3af' }}
+                                                    tickLine={false}
+                                                    tick={{ fontSize: 11, fill: '#4b5563' }}
+                                                />
+                                                <Tooltip cursor={{ fill: '#f3f4f6', opacity: 0.4 }} />
+                                                <Legend
+                                                    verticalAlign='bottom'
+                                                    align='center'
+                                                    iconType='square'
+                                                    iconSize={14}
+                                                    formatter={(value) => <span className='text-xs font-semibold text-gray-700 ml-1'>{value}</span>}
+                                                />
+                                                <Bar
+                                                    name='Count'
+                                                    dataKey='count'
+                                                    barSize={45}
+                                                >
+                                                    {chartData.map((entry, index) => (
+                                                        <Cell key={`cell-${index}`} fill={entry.color} />
+                                                    ))}
+                                                </Bar>
+                                            </BarChart>
+                                        </ResponsiveContainer>
                                     </div>
                                 </div>
                             </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Visual Analytics */}
-                    <div className='grid gap-6 md:grid-cols-2'>
-                        <Card className='shadow-sm overflow-hidden border-primary/10'>
-                            <CardHeader className='bg-muted/30'>
-                                <CardTitle className='text-lg font-semibold'>Employee Status Distribution</CardTitle>
-                            </CardHeader>
-                            <CardContent className='p-6'>
-                                <ResponsiveContainer width='100%' height={300}>
-                                    <PieChart>
-                                        <Pie
-                                            data={employeeStatusData}
-                                            cx='50%'
-                                            cy='50%'
-                                            labelLine={false}
-                                            outerRadius={80}
-                                            fill='#8884d8'
-                                            dataKey='value'
-                                            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                                        >
-                                            {employeeStatusData.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                            ))}
-                                        </Pie>
-                                        <Tooltip />
-                                        <Legend />
-                                    </PieChart>
-                                </ResponsiveContainer>
-                            </CardContent>
-                        </Card>
-
-                        <Card className='shadow-sm overflow-hidden border-primary/10'>
-                            <CardHeader className='bg-muted/30'>
-                                <CardTitle className='text-lg font-semibold'>Missing Data Analysis</CardTitle>
-                            </CardHeader>
-                            <CardContent className='p-6'>
-                                <ResponsiveContainer width='100%' height={300}>
-                                    <BarChart data={missingInfoData}>
-                                        <CartesianGrid strokeDasharray='3 3' vertical={false} />
-                                        <XAxis dataKey='name' />
-                                        <YAxis />
-                                        <Tooltip />
-                                        <Legend />
-                                        <Bar dataKey='Working' fill='#22c55e' radius={[4, 4, 0, 0]} />
-                                        <Bar dataKey='New' fill='#3b82f6' radius={[4, 4, 0, 0]} />
-                                        <Bar dataKey='Left' fill='#ef4444' radius={[4, 4, 0, 0]} />
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </CardContent>
-                        </Card>
+                        </div>
                     </div>
-
-                    {/* Action Footer */}
-                    <div className='flex justify-center pt-6 border-t'>
-                        <Button
-                            variant='outline'
-                            size='lg'
-                            onClick={() => window.print()}
-                            className='gap-2 shadow-sm transition-transform hover:scale-105 active:scale-95'
-                        >
-                            <Printer className='h-5 w-5' />
-                            Print Summary Report
-                        </Button>
-                    </div>
-                </div>
+                </CollapsibleSection>
             )}
         </div>
     );

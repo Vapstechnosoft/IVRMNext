@@ -11,7 +11,7 @@ import { GenericDataTable } from '@/components/ui/data-table/generic-data-table'
 import { useLeaveYearDropdown } from '@/hooks/hrms/useMasters';
 import { exportToExcel } from '@/lib/export-to-file';
 import { usePFChallan, usePFChallanOnload } from '@/hooks/hrms/useReports';
-import { Loader2, Search, Download } from 'lucide-react';
+import { Loader2, Search, Download, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 const MONTH_LIST = [
@@ -36,12 +36,17 @@ export default function PFChallanPage() {
 
 function PFChallanContent() {
     const [reportData, setReportData] = useState<any[] | null>(null);
-    const { control, handleSubmit } = useForm<FilterFormValues>({
+    const { control, handleSubmit, reset } = useForm<FilterFormValues>({
         defaultValues: {
             year: '',
             month: ''
         }
     });
+
+    const handleCancel = () => {
+        reset();
+        setReportData(null);
+    };
 
     // Queries - Using facade onload for ID sync
     const { data: onloadData } = usePFChallanOnload(30);
@@ -206,8 +211,17 @@ function PFChallanContent() {
                         </div>
                     </div>
 
-                    <div className='flex justify-end'>
-                        <Button type='submit' disabled={isPending} className='w-32'>
+                    <div className='flex justify-end gap-2'>
+                        <Button
+                            type='button'
+                            variant='outline'
+                            onClick={handleCancel}
+                            disabled={isPending}
+                            className='w-32 border-orange-500 text-orange-600 hover:bg-orange-50 transition-all rounded-xl'>
+                            <X className='mr-2 h-4 w-4' />
+                            CANCEL
+                        </Button>
+                        <Button type='submit' disabled={isPending} className='w-32 transition-all rounded-xl'>
                             {isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Search className='mr-2 h-4 w-4' />}
                             Generate
                         </Button>

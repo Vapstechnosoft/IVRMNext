@@ -630,76 +630,93 @@ export async function getUserAccessibleModules() {
                     ]
                 },
 
-                {
-                    id: 9000,
-                    name: 'Admission Client',
-                    icon: 'UserRoundPlus',
-                    menu: [
-                        {
-                            id: 5,
-                            name: 'Form and Reports',
-                            icon: 'Settings',
-                            sub_menu: [
-                                {
-                                    id: 9,
-                                    name: 'stjames',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 12,
-                                            name: 'Overall Daily Attendance Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/overall-daily-attendance-report',
-                                            title: 'Overall Daily Attendance Report',
-                                            description: 'Overall Daily Attendance Report'
-                                        },
+                // {
+                //     id: 9000,
+                //     name: 'Admission Client',
+                //     icon: 'UserRoundPlus',
+                //     menu: [
+                //         {
+                //             id: 5,
+                //             name: 'Form and Reports',
+                //             icon: 'Settings',
+                //             sub_menu: [
+                //                 {
+                //                     id: 9,
+                //                     name: 'stjames',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 12,
+                //                             name: 'Overall Daily Attendance Report',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/overall-daily-attendance-report',
+                //                             title: 'Overall Daily Attendance Report',
+                //                             description: 'Overall Daily Attendance Report'
+                //                         },
 
-                                        {
-                                            id: 53,
-                                            name: 'Student Birthday Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/student-birthday-report',
-                                            title: 'Student Birthday Report',
-                                            description: 'Student Birthday Report'
-                                        },
-                                        {
-                                            id: 54,
-                                            name: '100% Attendance Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/100attendance-report',
-                                            title: '100% Attendance Report',
-                                            description: '100% Attendance Report'
-                                        },
-                                        {
-                                            id: 55,
-                                            name: 'St.James TC Custom Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/stjames-tc-customreport',
-                                            title: 'St.James TC Custom Report',
-                                            description: 'St.James TC Custom Report'
-                                        },
-                                        {
-                                            id: 56,
-                                            name: 'Study Certificate GMVPS Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/study-certificate-gmvps-report',
-                                            title: 'Study Certificate GMVPS Report',
-                                            description: 'Study Certificate GMVPS Report'
-                                        },
-                                        {
-                                            id: 57,
-                                            name: 'St.James Bonafied Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/stjamesbonafiedreport',
-                                            title: 'St.James Bonafied Report',
-                                            description: 'St.James Bonafied Report'
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                },
+                //                         {
+                //                             id: 53,
+                //                             name: 'Student Birthday Report',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/student-birthday-report',
+                //                             title: 'Student Birthday Report',
+                //                             description: 'Student Birthday Report'
+                //                         },
+                //                         {
+                //                             id: 54,
+                //                             name: '100% Attendance Report',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/100attendance-report',
+                //                             title: '100% Attendance Report',
+                //                             description: '100% Attendance Report'
+                //                         },
+                //                         {
+                //                             id: 55,
+                //                             name: 'St.James TC Custom Report',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/stjames-tc-customreport',
+                //                             title: 'St.James TC Custom Report',
+                //                             description: 'St.James TC Custom Report'
+                //                         },
+                //                         {
+                //                             id: 56,
+                //                             name: 'Study Certificate GMVPS Report',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/study-certificate-gmvps-report',
+                //                             title: 'Study Certificate GMVPS Report',
+                //                             description: 'Study Certificate GMVPS Report'
+                //                         },
+
+                //                         {
+                //                             id: 57,
+                //                             name: 'St.James Bonafied Report',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/stjamesbonafiedreport',
+                //                             title: 'St.James Bonafied Report',
+                //                             description: 'St.James Bonafied Report'
+                //                         },
+                //                         {
+                //                             id: 58,
+                //                             name: 'St.James Migration Report',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/stjamesmigrationcertificate',
+                //                             title: 'St.James Migration Report',
+                //                             description: 'St.James Migration Report'
+                //                         },
+                //                         {
+                //                             id: 59,
+                //                             name: 'St.James Character Report',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/stjcharactercertificate',
+                //                             title: 'St.James Character Report',
+                //                             description: 'St.James Character Report'
+                //                         }
+                //                     ]
+                //                 }
+                //             ]
+                //         }
+                //     ]
+                // },
 
                 {
                     id: 2,
@@ -1255,6 +1272,21 @@ export async function getUserAccessibleModules() {
                             icon: 'BookOpen',
                             sub_menu: [
                                 {
+                                    id: 999,
+                                    name: 'OMR EVALUATION',
+                                    icon: 'BookOpen',
+                                    pages: [
+                                        {
+                                            id: 300,
+                                            name: 'OMR Mark Sheet Evaluation',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/omr-evaluation/omr-mark-sheet-evaluation',
+                                            title: 'OMR mark sheet evaluation',
+                                            description: 'Evaluate OMR mark sheets'
+                                        }
+                                    ]
+                                },
+                                {
                                     id: 9,
                                     name: 'Configuration',
                                     icon: 'Settings',
@@ -1530,6 +1562,7 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 },
+
                                 {
                                     id: 11,
                                     name: 'Marks Calculation',
@@ -1991,14 +2024,14 @@ export async function getUserAccessibleModules() {
                                     name: 'Transactions',
                                     icon: 'FileText',
                                     pages: [
-                                        // {
-                                        //     id: 1,
-                                        //     name: 'Salary Approval',
-                                        //     icon: 'CheckSquare',
-                                        //     url: '/hrms/transactions/salary-approval',
-                                        //     title: 'Salary Approval',
-                                        //     description: 'Approve Calculated Salaries'
-                                        // },
+                                        {
+                                            id: 1,
+                                            name: 'Salary Approval',
+                                            icon: 'CheckSquare',
+                                            url: '/hrms/transactions/salary-approval',
+                                            title: 'Salary Approval',
+                                            description: 'Approve Calculated Salaries'
+                                        },
                                         {
                                             id: 2,
                                             name: 'Salary Calculation',
@@ -2046,6 +2079,14 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/transactions/employee-loan',
                                             title: 'Employee Loan',
                                             description: 'Manage Employee Loans'
+                                        },
+                                        {
+                                            id: 8,
+                                            name:"Employee Salary Increment Details",
+                                            icon:"CreditCard",
+                                            url:"/hrms/transactions/employee-increment-salary",
+                                            title:"Employee Salary Increment Details",
+                                            description:'Manage Employee Salary Increment Deatails'
                                         }
                                     ]
                                 },
@@ -2264,6 +2305,31 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/reports/employee-profile-report',
                                             title: 'Employee Profile Report',
                                             description: 'Employee Profile Report'
+                                        },
+                                        {
+                                            id:25,
+                                            name: 'Salary Increment Report',
+                                            icon: 'FileSearch',
+                                            url: '/hrms/reports/salary-increment-report',
+                                            title: 'Salary Increment Report',
+                                            description: 'Salary Increment Report'
+
+                                        },
+                                        {
+                                            id: 26,
+                                            name: 'Form 5 stop Pension ST James Report',
+                                            icon: 'FileType',
+                                            url: '/hrms/reports/PFForm5stopPensionSTJamesReport',
+                                            title: 'Form 5 stop Pension ST James Report',
+                                            description: 'Provident Fund Form 5'
+                                        },
+                                        {
+                                            id: 27,
+                                            name: 'Employee Salary Slip ST James Report',
+                                            icon: 'FileType',
+                                            url: '/hrms/reports/employeeSalarySlipStJames',
+                                            title: 'Employee Salary Slip ST James Report',
+                                            description: 'Employee Salary Slips'
                                         }
                                     ]
                                 }
@@ -2489,7 +2555,7 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/attendance-management/masters/shift-setting-master',
                                             title: 'Shift Setting Master',
                                             description: 'Configure Shift Settings'
-                                        }
+                                        },
                                         // {
                                         //     id: 7,
                                         //     name: 'GPS Location Attendance',
@@ -2497,7 +2563,24 @@ export async function getUserAccessibleModules() {
                                         //     url: '/hrms/attendance-management/masters/gps-location-attendance',
                                         //     title: 'GPS Location Attendance',
                                         //     description: 'GPS-based Attendance'
-                                        // }
+                                        // },
+                                        {
+                                            id: 8,
+                                            name: 'Master Time Setting',
+                                            icon: 'Clock',
+                                            url: '/hrms/attendance-management/masters/master-time-setting',
+                                            title: 'Master Time Setting',
+                                            description: 'Configure Time Settings'
+                                        },
+                                         {
+                                            id: 9,
+                                            name: 'Front Office Addlogs',
+                                            icon: 'ClipboardList',
+                                            url: '/hrms/attendance-management/masters/front-office-addlogs',
+                                            title: 'Front Office Addlogs',
+                                            description: 'Front Office Addlogs'
+                                        },
+                                        
                                     ]
                                 },
                                 {
@@ -2537,14 +2620,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Employee Yearly Report',
                                             description: 'Annual Attendance Summary'
                                         },
-                                        // {
-                                        //     id: 5,
-                                        //     name: 'Employee Monthly Report',
-                                        //     icon: 'CalendarDays',
-                                        //     url: '/hrms/attendance-management/reports/employee-monthly-report',
-                                        //     title: 'Employee Monthly Report',
-                                        //     description: 'Monthly Attendance Report'
-                                        // },
+                                        {
+                                            id: 5,
+                                            name: 'Employee Monthly Report',
+                                            icon: 'CalendarDays',
+                                            url: '/hrms/attendance-management/reports/employee-monthly-report',
+                                            title: 'Employee Monthly Report',
+                                            description: 'Monthly Attendance Report'
+                                        },
                                         // {
                                         //     id: 6,
                                         //     name: 'Month End Report',
@@ -2569,14 +2652,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Holiday Report',
                                             description: 'Holiday Report'
                                         },
-                                        // {
-                                        //     id: 8,
-                                        //     name: 'Employee Absent Report',
-                                        //     icon: 'UserX',
-                                        //     url: '/hrms/attendance-management/reports/employee-absent-report',
-                                        //     title: 'Employee Absent Report',
-                                        //     description: 'Employee Absent Detail Report'
-                                        // }
+                                        {
+                                            id: 8,
+                                            name: 'Employee Absent Report',
+                                            icon: 'UserX',
+                                            url: '/hrms/attendance-management/reports/employee-absent-report',
+                                            title: 'Employee Absent Report',
+                                            description: 'Employee Absent Detail Report'
+                                        },
                                         {
                                             id: 8,
                                             name: 'Employee Month End Report',
@@ -5606,13 +5689,21 @@ export async function getUserAccessibleModules() {
                                             title: 'Events Mapping',
                                             description: 'Manage Events Mapping'
                                         },
+                                        // {
+                                        //     id: 6,
+                                        //     name: 'Events Student Mapping',
+                                        //     icon: 'Activity',
+                                        //     url: '/Sports/Transactions/EventsStudentMapping',
+                                        //     title: 'Events Student Mapping',
+                                        //     description: 'Manage Events Student Mapping'
+                                        // },
                                         {
-                                            id: 6,
-                                            name: 'Events Student Mapping',
+                                            id: 7,
+                                            name: 'Events Student SRKVS Mapping',
                                             icon: 'Activity',
-                                            url: '/Sports/Transactions/EventsStudentMapping',
-                                            title: 'Events Student Mapping',
-                                            description: 'Manage Events Student Mapping'
+                                            url: '/Sports/Transactions/EventsStudentSRKVS',
+                                            title: 'Events Student SRKVS Mapping',
+                                            description: 'Events Student SRKVS Mapping'
                                         }
                                     ]
                                 },

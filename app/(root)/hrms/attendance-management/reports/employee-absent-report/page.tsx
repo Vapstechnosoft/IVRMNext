@@ -6,8 +6,8 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useEmployeeAbsentReport } from '@/hooks/hrms/attendance-management/useReports';
 import { exportToExcel } from '@/lib/utils';
-import { FileSpreadsheet, Printer, X } from 'lucide-react';
-import { useState } from 'react';
+import { FileSpreadsheet, Printer, X, Download } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { use } from 'react';
 import AddEmployeeAbsentReportForm from './_components/add-from';
 import type { EmployeeAbsentReportRow } from './_components/columns';
@@ -18,43 +18,59 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function EmployeeAbsentReportPage(props: {
     searchParams: SearchParams;
 }) {
-    const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useEmployeeAbsentReport(searchParams);
+    const resolvedSearchParams = use(props.searchParams);
+    const { data: response, isLoading, error } = useEmployeeAbsentReport(resolvedSearchParams);
+
+    // Process data to parse attendance_data JSON string
+    const processedResponse = useMemo(() => {
+        if (!response?.data) return response;
+        const data = response.data.map((item: any) => {
+            let attendance = {};
+            try {
+                if (typeof item.attendance_data === 'string') {
+                    attendance = JSON.parse(item.attendance_data);
+                } else {
+                    attendance = item.attendance_data || {};
+                }
+            } catch (e) {
+                console.error('Failed to parse attendance_data', e);
+            }
+            return {
+                ...item,
+                ...attendance
+            };
+        });
+        return { ...response, data };
+    }, [response]);
 
     return (
         <FormProvider<EmployeeAbsentReportRow>>
-            <EmployeeAbsentReportPageContent response={response} isLoading={isLoading} error={error} searchParams={searchParams} />
+            <EmployeeAbsentReportPageContent
+                response={processedResponse}
+                isLoading={isLoading}
+                error={error}
+                resolvedSearchParams={resolvedSearchParams}
+            />
         </FormProvider>
     );
 }
 
-function FormSections({ searchParams }: { searchParams?: any }) {
+function FormSections({ resolvedSearchParams }: { resolvedSearchParams?: any }) {
     const { closeAddForm, addFormRef } = useFormContext<EmployeeAbsentReportRow>();
 
     return (
-        <>
-            <div ref={addFormRef}>
-                <CollapsibleSection
-                    title='Generate Employee Absent Report'
-                    description='Fill in the details below to generate the report'
-                    defaultOpen={true}
-                    variant='outline'
-                    size='md'
-                    className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                    <div className='relative'>
-                        <Button
-                            type='button'
-                            onClick={closeAddForm}
-                            variant='ghost'
-                            size='sm'
-                            className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                            <X className='h-4 w-4 text-destructive' /> Close
-                        </Button>
-                        <AddEmployeeAbsentReportForm onSuccess={closeAddForm} searchParams={searchParams} />
-                    </div>
-                </CollapsibleSection>
-            </div>
-        </>
+        <div ref={addFormRef}>
+            <CollapsibleSection
+                title='Employee Absent Report Filters'
+                description='Configure filters to generate the absent report'
+                defaultOpen={true}
+                variant='outline'
+                size='md'
+                className='slide-in-from-top-4 animate-in shadow-lg duration-300'
+            >
+                <AddEmployeeAbsentReportForm onSuccess={closeAddForm} resolvedSearchParams={resolvedSearchParams} />
+            </CollapsibleSection>
+        </div>
     );
 }
 
@@ -62,38 +78,37 @@ function EmployeeAbsentReportPageContent({
     response,
     isLoading,
     error,
-    searchParams
+    resolvedSearchParams
 }: {
     response: any;
     isLoading: boolean;
     error: any;
-    searchParams?: any;
+    resolvedSearchParams?: any;
 }) {
-    const [selectedRows, setSelectedRows] = useState<EmployeeAbsentReportRow[]>([]);
     const tableProps = useDataTableProps(response);
 
-    const handleRowSelectionChange = (rows: EmployeeAbsentReportRow[]) => {
-        setSelectedRows(rows);
-    };
-
     const handleExportToExcel = () => {
-        if (selectedRows.length === 0) return;
+        const dataToExport = (response?.data || []);
+        if (dataToExport.length === 0) return;
 
-        // Prepare data for export
-        const exportData = selectedRows.map((row, index) => ({
-            'Sl.No': index + 1,
-            'Employee code': row.employee_code || '',
-            Designation: row.designation || '',
-            'Total Absent': row.total_absent || 0
+        const exportData = dataToExport.map((row: any, index: number) => ({
+            'SLNO': index + 1,
+            'Employee Code': row.ecode || '',
+            'Employee Name': row.ename || '',
+            'Designation': row.designation || '',
+            'Total Absent': row.absentdays || 0
         }));
 
-        exportToExcel(exportData, 'Employee_Absent_Report');
+        exportToExcel(exportData, `Employee_Absent_Report_${new Date().toLocaleDateString()}`);
     };
 
     const handlePrint = () => {
-        if (selectedRows.length === 0) return;
+        const dataToPrint = (response?.data || []);
+        if (dataToPrint.length === 0) return;
 
-        // Create a print-friendly table
+        const fromDateFormatted = resolvedSearchParams?.fromDate ? new Date(resolvedSearchParams.fromDate).toLocaleDateString('en-GB').replace(/\//g, '-') : '';
+        const toDateFormatted = resolvedSearchParams?.toDate ? new Date(resolvedSearchParams.toDate).toLocaleDateString('en-GB').replace(/\//g, '-') : '';
+
         const printWindow = window.open('', '_blank');
         if (!printWindow) return;
 
@@ -103,44 +118,54 @@ function EmployeeAbsentReportPageContent({
             <head>
                 <title>Employee Absent Report</title>
                 <style>
-                    body { font-family: Arial, sans-serif; margin: 20px; }
-                    h1 { text-align: center; margin-bottom: 20px; }
-                    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-                    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                    th { background-color: #4f46e5; color: white; }
-                    tr:nth-child(even) { background-color: #f2f2f2; }
-                    @media print {
-                        body { margin: 0; }
-                        @page { margin: 1cm; }
+                    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 40px; color: #333; }
+                    .report-header { 
+                        background-color: #1e60ad; 
+                        color: white; 
+                        text-align: center; 
+                        padding: 10px; 
+                        font-weight: bold;
+                        border: 1px solid #1e60ad;
                     }
+                    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+                    th, td { border: 1px solid #ccc; padding: 10px 8px; text-align: center; }
+                    th { background-color: #f0f0f0; color: #333; font-weight: bold; }
+                    .ename-cell { text-align: left; }
+                    .absent-cell { font-weight: bold; }
+                    .footer { margin-top: 20px; text-align: right; font-size: 10px; color: #666; }
                 </style>
             </head>
             <body>
-                <h1>Employee Absent Report</h1>
+                <div class="report-header">
+                    Monthly Report from ${fromDateFormatted} to ${toDateFormatted}
+                </div>
                 <table>
                     <thead>
                         <tr>
-                            <th>Sl.No</th>
-                            <th>Employee code</th>
+                            <th style="width: 60px">SLNO</th>
+                            <th style="width: 120px">Employee Code</th>
+                            <th>Employee Name</th>
                             <th>Designation</th>
-                            <th>Total Absent</th>
+                            <th style="width: 100px">Total Absent</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${selectedRows
-                            .map(
-                                (row, index) => `
+                        ${dataToPrint
+                .map(
+                    (row: any, index: number) => `
                             <tr>
                                 <td>${index + 1}</td>
-                                <td>${row.employee_code || ''}</td>
+                                <td>${row.ecode || ''}</td>
+                                <td class="ename-cell">${row.ename || ''}</td>
                                 <td>${row.designation || ''}</td>
-                                <td>${row.total_absent || 0}</td>
+                                <td class="absent-cell">${row.absentdays || 0}</td>
                             </tr>
                         `
-                            )
-                            .join('')}
+                )
+                .join('')}
                     </tbody>
                 </table>
+                <div class="footer">Generated on ${new Date().toLocaleString()}</div>
             </body>
             </html>
         `;
@@ -151,65 +176,64 @@ function EmployeeAbsentReportPageContent({
         setTimeout(() => {
             printWindow.print();
             printWindow.close();
-        }, 250);
+        }, 500);
     };
 
+    const fromDateFormatted = resolvedSearchParams?.fromDate ? new Date(resolvedSearchParams.fromDate).toLocaleDateString('en-GB').replace(/\//g, '-') : '';
+    const toDateFormatted = resolvedSearchParams?.toDate ? new Date(resolvedSearchParams.toDate).toLocaleDateString('en-GB').replace(/\//g, '-') : '';
+
     return (
-        <div className='min-h-screen'>
-            <div className='container space-y-4 p-1'>
-                {/* Add Form Section (shown first) */}
-                <FormSections searchParams={searchParams} />
+        <div className='min-h-screen bg-background/50'>
+            <div className='container max-w-7xl space-y-6 py-2'>
+                {/* Add Form Section */}
+                <FormSections resolvedSearchParams={resolvedSearchParams} />
 
-                {/* Action Buttons - Show when rows are selected */}
-                {selectedRows.length > 0 && (
-                    <div className='flex items-center gap-2 rounded-lg border bg-blue-50 p-4 shadow-sm'>
-                        <span className='font-medium text-gray-700 text-sm'>
-                            {selectedRows.length} row{selectedRows.length > 1 ? 's' : ''} selected
-                        </span>
-                        <div className='ml-auto flex items-center gap-2'>
-                            <Button
-                                type='button'
-                                variant='outline'
-                                size='sm'
-                                onClick={handleExportToExcel}
-                                className='border-green-500 text-green-700 hover:bg-green-50'>
-                                <FileSpreadsheet className='mr-2 h-4 w-4' />
-                                Excel
-                            </Button>
-                            <Button
-                                type='button'
-                                variant='outline'
-                                size='sm'
-                                onClick={handlePrint}
-                                className='border-blue-500 text-blue-700 hover:bg-blue-50'>
-                                <Printer className='mr-2 h-4 w-4' />
-                                Print
-                            </Button>
-                        </div>
-                    </div>
-                )}
+                {
+                    response?.data?.length > 0 && (
+                        <CollapsibleSection
+                            title="Employee Absent Report"
+                            description='Managing the Employee Absent Report'
+                            defaultOpen={true}
+                        >
+                            <div className="flex items-center justify-end px-4 py-2">
 
+                                <div className='flex items-center gap-2'>
+                                    <Button variant='outline' size='sm' onClick={handleExportToExcel} className='border-green-500 text-green-700 hover:bg-green-50'>
+                                        <FileSpreadsheet className='h-4 w-4' /> Excel
+                                    </Button>
+                                    <Button variant='outline' size='sm' onClick={handlePrint} className='border-blue-500 text-blue-700 hover:bg-blue-50'>
+                                        <Printer className='h-4 w-4' /> Print
+                                    </Button>
+                                </div>
+
+                            </div>
+                            <div className=' rounded-xl border'>
+                                {/* Header Row */}
+                                <div className='flex items-center justify-center py-2.5 text-center font-bold  shadow-sm'>
+                                    Monthly Report from {fromDateFormatted || '...'} to {toDateFormatted || '...'}
+                                </div>
+
+                                <div className='px-2'>
+                                    <GenericDataTable<EmployeeAbsentReportRow>
+                                        {...tableProps}
+                                        columns={employeeAbsentReportColumns}
+                                        isLoading={isLoading}
+                                        error={error}
+                                        showViewOptions={false}
+                                        columnPinning={{ left: ['hrme_id'], right: ['actions'] }}
+                                        isPaginationRequired={true}
+                                        loadingMessage='Analyzing attendance records...'
+                                        noDataTitle='No records matches your criteria'
+                                        noDataDescription='Try adjusting your category, department or date range filters.'
+                                        errorTitle='Unable to load report'
+                                    />
+                                </div>
+                            </div>
+                        </CollapsibleSection>
+                    )
+                }
                 {/* Data Table Section */}
-                <CollapsibleSection
-                    defaultOpen={true}
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<EmployeeAbsentReportRow>
-                        {...tableProps}
-                        columns={employeeAbsentReportColumns}
-                        isLoading={isLoading}
-                        error={error}
-                        showViewOptions={false}
-                        columnPinning={{ right: ['actions'] }}
-                        isPaginationRequired={true}
-                        onRowSelectionChange={handleRowSelectionChange}
-                        loadingMessage='Loading Employee Absent Reports...'
-                        noDataTitle='No Employee Absent Reports Found'
-                        noDataDescription='Get started by generating your first Employee Absent Report'
-                        errorTitle='Error Loading Employee Absent Reports'
-                    />
-                </CollapsibleSection>
+
             </div>
         </div>
     );

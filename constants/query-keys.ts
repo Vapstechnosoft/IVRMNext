@@ -376,6 +376,7 @@ export const HRMS_QUERY_KEYS = {
     SALARY_APPROVAL_ONLOAD: 'hrms_salary_approval_onload',
     SALARY_APPROVAL_EMPLOYEES: 'hrms_salary_approval_employees',
     SALARY_INCREMENT_ONLOAD: 'hrms_salary_increment_onload',
+    EMPLOYEE_INCREMENT_GRID: 'hrms_employee_increment_grid',
     SALARY_UPDATION_ONLOAD: 'hrms_salary_updation_onload',
     MASS_UPDATION_ONLOAD: 'hrms_mass_updation_onload',
     SALARY_ADVANCE_ONLOAD: 'hrms_salary_advance_onload',
@@ -544,6 +545,8 @@ export const LIBRARY_QUERY_KEYS = {
     LIBRARY_LOST_BOOK_LIST: 'library_lost_book_list'
 };
 export const PORTAL_QUERY_KEYS = {
+    NOTICE_BOARD_LIST: 'notice_board_list',
+    CLASSWORK_LIST: 'classwork_list',
     CLASS_WORK_UPLOADED: 'class_work_uploaded',
     HOME_WORK_UPLOADED: 'home_work_uploaded',
     STUDENT_PORTAL_FEEDBACK: 'student_portal_feedback',

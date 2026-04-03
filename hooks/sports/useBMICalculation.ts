@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { getBMILoadGrid, getBMIClasses, getBMISections, getBMIStudents, saveBMIRecord, deactivateBMIRecord, editBMIRecord } from '@/server/sports/transactions/bmi-calculation';
 import { IBMIClassResponse, IBMISectionResponse, IBMIStudentResponse } from '@/types/sports/transactions/bmi-calculation';
 
@@ -35,7 +36,12 @@ export const useBMICalculation = (searchParams?: any) => {
 
     const deactivate = useMutation({
         mutationFn: (data: any) => deactivateBMIRecord(data),
-        onSuccess: () => {
+        onSuccess: (response: any) => {
+            if (response.success ?? true) {
+                toast.success(response.message || 'Status updated successfully');
+            } else {
+                toast.error(response.message || 'Failed to update status');
+            }
             queryClient.invalidateQueries({ queryKey: ['bmi-calculation-list'] });
         },
     });
