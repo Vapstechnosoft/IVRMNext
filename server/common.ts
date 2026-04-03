@@ -635,20 +635,16 @@ export async function getUserAccessibleModules() {
                     name: 'Admission Client',
                     icon: 'UserRoundPlus',
                     menu: [
-
                         {
                             id: 5,
                             name: 'Form and Reports',
                             icon: 'Settings',
                             sub_menu: [
-
                                 {
                                     id: 9,
                                     name: 'stjames',
                                     icon: 'Settings',
                                     pages: [
-
-
                                         {
                                             id: 12,
                                             name: 'Overall Daily Attendance Report',
@@ -657,7 +653,6 @@ export async function getUserAccessibleModules() {
                                             title: 'Overall Daily Attendance Report',
                                             description: 'Overall Daily Attendance Report'
                                         },
-
 
                                         {
                                             id: 53,
@@ -2589,7 +2584,7 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/attendance-management/reports/employee-month-end-report',
                                             title: 'Employee Month End Report',
                                             description: 'Employee End Report'
-                                        },
+                                        }
                                     ]
                                 }
                             ]
@@ -4431,6 +4426,14 @@ export async function getUserAccessibleModules() {
                                             url: '/timetable/reports/deputationreport',
                                             title: 'Deputation Report',
                                             description: 'Deputation Report'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Staff Wise Working Hours',
+                                            icon: 'Clock',
+                                            url: '/timetable/reports/stafWiseWorkingHours',
+                                            title: 'Staff Wise Working Hours',
+                                            description: 'Staff Wise Working Hours Report'
                                         }
                                     ]
                                 }
@@ -5744,7 +5747,7 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                },
+                }
                 // {
                 //     id: 8,
                 //     name: 'Hostel Management',
