@@ -520,3 +520,22 @@ export interface IFeeCategoryDropdown {
     imcC_CategoryDesc: string;
     imcC_CategoryCode: string;
 }
+
+export interface IFeeStudentHeadWiseReport {
+    id: number;
+    fmH_Id: number;
+    asmcL_Id: number;
+    asmcL_ClassName: string;
+    asmcL_Order: number;
+    asmC_Order: number;
+    asmS_Id: number;
+    asmC_SectionName: string;
+    amsT_Id: number;
+    studentName: string;
+    amsT_AdmNo: string;
+    fmH_FeeName: string;
+    totalCharges: number;
+    concession: number;
+    totalTobePaid: number;
+    paid: number;
+}
