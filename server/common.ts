@@ -669,13 +669,38 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/reports/DownloadStudentPhotos',
                                             title: 'Download Student Photos',
                                             description: 'Download Student Photos'
+                                        },
+                                        {
+                                            id: 64,
+                                            name: 'CBS No Objection Certificate',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/CBS_NoObjection_Cert',
+                                            title: 'CBS No Objection Certificate',
+                                            description: 'CBS No Objection Certificate'
+                                        },
+                                        {
+                                            id: 65,
+                                            name: 'CBS Student TC',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/cbs-Student-Tc',
+                                            title: 'CBS Student TC',
+                                            description: 'CBS Student TC'
+                                        },
+                                        {
+                                            id: 66,
+                                            name: 'CBS Study Certificate',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/cbs-Study-Certificate',
+                                            title: 'CBS Study Certificate',
+                                            description: 'CBS Study Certificate'
                                         }
+
 
                                     ]
                                 },
                                 {
                                     id: 9,
-                                    name: 'Client Specific Reports',
+                                    name: 'New Shared Host',
                                     icon: 'Settings',
                                     pages: [
                                         {
@@ -711,6 +736,15 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/reports/study-certificate-gmvps-report',
                                             title: 'Study Certificate GMVPS Report',
                                             description: 'Study Certificate GMVPS Report'
+                                        },
+
+                                        {
+                                            id: 67,
+                                            name: 'GM Custom Tc',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/custom-tc',
+                                            title: 'GM Custom Tc',
+                                            description: 'GM Custom Tc'
                                         }
 
 
@@ -758,6 +792,76 @@ export async function getUserAccessibleModules() {
                                         }
 
 
+                                    ]
+                                },
+                                {
+                                    id: 10,
+                                    name: 'NDA',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 61,
+                                            name: 'NDA Transfer Certificate',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/nda-transfer-certificate',
+                                            title: 'NDA Transfer Certificate',
+                                            description: 'NDA Transfer Certificate'
+                                        },
+                                        {
+                                            id: 62,
+                                            name: 'NDA Student TC',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/nda-student-tc',
+                                            title: 'NDA Student TC',
+                                            description: 'NDA Student TC'
+                                        },
+                                        {
+                                            id: 63,
+                                            name: 'NDA Student Profile Update',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/nda-student-profile-update',
+                                            title: 'NDA Student Profile Update',
+                                            description: 'NDA Student Profile Update'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 11,
+                                    name: 'Baldwin',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 61,
+                                            name: 'BBHS Study Certificate',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/bbhs-study-certificate',
+                                            title: 'BBHS Study Certificate',
+                                            description: 'BBHS Study Certificate'
+                                        },
+                                        {
+                                            id: 62,
+                                            name: 'BBHS Student Custom TC',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/bbhs-student-tc-report-custom',
+                                            title: 'BBHS Student Custom TC',
+                                            description: 'BBHS Student Custom TC'
+                                        },
+                                        {
+                                            id: 63,
+                                            name: 'BCEH Study Certificate',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/BCEH-Study-Certificate',
+                                            title: 'BCEH Study Certificate',
+                                            description: 'BCEH Study Certificate'
+                                        },
+                                        {
+                                            id: 64,
+                                            name: 'BBHS Student Application Form',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/bbhs-student-application',
+                                            title: 'BBHS Student Application Form',
+                                            description: 'BBHS Student Application Form'
+                                        }
                                     ]
                                 }
 

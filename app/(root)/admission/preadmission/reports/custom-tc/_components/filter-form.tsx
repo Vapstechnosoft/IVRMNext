@@ -16,7 +16,7 @@ import {
     useCustomTcStudentNameChange,
     useCustomTcTempPerChange
 } from '@/hooks/admission/preadmission/useCustomTcReport';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Search, X, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -55,30 +55,32 @@ export function FilterForm({ onSubmit, onReset, onStudentListUpdate }: FilterFor
     const amstId = watch('AMST_Id');
 
     const accyear = (initialData as any)?.data?.accyear || [];
-    const accclass = (initialData as any)?.data?.accclass || [];
-    const accsection = (initialData as any)?.data?.accsection || [];
 
     // Trigger student list fetch when dependent fields change
     useEffect(() => {
         if (asmayId > 0) {
-            studentListMutation.mutate({
+            const onSuccessCallback = (response: any) => {
+                const responseData = response.data || {};
+                const list = response.studentlist || responseData.studentlist || (Array.isArray(response.data) ? response.data : []);
+                setStudentList(list);
+                onStudentListUpdate(list);
+                
+                // Reset student selection if it's no longer in the list
+                if (amstId > 0 && !list.some((s: any) => s.amsT_Id === amstId)) {
+                    setValue('AMST_Id', 0);
+                    setStudentDetails(null);
+                }
+            };
+
+            const payload = {
                 ASMAY_Id: asmayId,
-                ASMCL_Id: 0, // Search all classes by default now
-                ASMS_Id: 0,   // Search all sections by default now
+                ASMCL_Id: 0,
+                ASMS_Id: 0,
                 admnoorname: admnoorname,
                 tctemporper: tctemporper
-            }, {
-                onSuccess: (response: any) => {
-                    const list = response.studentlist || (Array.isArray(response.data) ? response.data : []);
-                    setStudentList(list);
-                    onStudentListUpdate(list);
-                    // Reset student selection if it's no longer in the list
-                    if (amstId > 0 && !list.some((s: any) => s.amsT_Id === amstId)) {
-                        setValue('AMST_Id', 0);
-                        setStudentDetails(null);
-                    }
-                }
-            });
+            };
+
+            studentListMutation.mutate(payload, { onSuccess: onSuccessCallback });
         }
     }, [asmayId, admnoorname, tctemporper]);
 
@@ -99,7 +101,7 @@ export function FilterForm({ onSubmit, onReset, onStudentListUpdate }: FilterFor
         } else {
             setStudentDetails(null);
         }
-    }, [amstId]);
+    }, [amstId, asmayId]);
 
     const handleReset = () => {
         reset();
@@ -143,8 +145,6 @@ export function FilterForm({ onSubmit, onReset, onStudentListUpdate }: FilterFor
                                 </FormItem>
                             )}
                         />
-
-
 
                         <FormField
                             control={form.control}
@@ -307,3 +307,4 @@ export function FilterForm({ onSubmit, onReset, onStudentListUpdate }: FilterFor
         </Form>
     );
 }
+

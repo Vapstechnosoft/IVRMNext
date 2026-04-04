@@ -3,7 +3,7 @@
 import { api } from '@/lib/apiService';
 
 export async function getCbsTcInitialData() {
-    const url = '/StudenttcCustomReport/getdetails/2';
+    const url = '/StudenttcCustomReport/getinitialdata';
     return await api.get<any>('admission', url);
 }
 
@@ -11,9 +11,10 @@ export async function changeCbsTcYear(data: {
     ASMAY_Id: number;
     tctemporper: string;
     report_type: string;
+    search?: string;
 }) {
-    const url = '/StudenttcCustomReport/changeyear';
-    return await api.post<any>('admission', url, data);
+    const url = `/StudenttcCustomReport/changeyear?tctemporper=${data.tctemporper}&ASMAY_Id=${data.ASMAY_Id}&report_type=${data.report_type}&admnoorname=${data.search || ""}`;
+    return await api.get<any>('admission', url);
 }
 
 export async function changeCbsTcClass(data: {
@@ -21,9 +22,10 @@ export async function changeCbsTcClass(data: {
     tctemporper: string;
     report_type: string;
     ASMCL_Id: number;
+    search?: string;
 }) {
-    const url = '/StudenttcCustomReport/changeclass';
-    return await api.post<any>('admission', url, data);
+    const url = `/StudenttcCustomReport/changeclass?ASMAY_Id=${data.ASMAY_Id}&ASMCL_Id=${data.ASMCL_Id}&admnoorname=${data.search || ""}`;
+    return await api.get<any>('admission', url);
 }
 
 export async function changeCbsTcSection(data: {
@@ -32,9 +34,10 @@ export async function changeCbsTcSection(data: {
     report_type: string;
     ASMCL_Id: number;
     ASMS_Id: number;
+    search?: string;
 }) {
-    const url = '/StudenttcCustomReport/changesection';
-    return await api.post<any>('admission', url, data);
+    const url = `/StudenttcCustomReport/changesection?tctemporper=${data.tctemporper}&ASMAY_Id=${data.ASMAY_Id}&ASMCL_Id=${data.ASMCL_Id}&ASMS_Id=${data.ASMS_Id}&admnoorname=${data.search || ""}`;
+    return await api.get<any>('admission', url);
 }
 
 export async function getCbsTcDetails(data: {
@@ -43,10 +46,14 @@ export async function getCbsTcDetails(data: {
     tctemporper: string;
     ASMCL_Id?: number;
     ASMS_Id?: number;
+    search?: string;
+    report_type: string;
+    Boardtype?: string;
+    BSPID?: string;
+    Previous_School_Name?: string;
 }) {
-    // Legacy use getTcdetails for the certificate data
-    const url = '/StudenttcCustomReport/getTcdetails';
-    return await api.post<any>('admission', url, data);
+    const url = `/StudenttcCustomReport/getTCdata?tctemporper=${data.tctemporper}&ASMAY_Id=${data.ASMAY_Id}&ASMCL_Id=${data.ASMCL_Id || 0}&ASMS_Id=${data.ASMS_Id || 0}&AMST_Id=${data.AMST_Id}&report_type=${data.report_type}&admnoorname=${data.search || ""}`;
+    return await api.get<any>('admission', url);
 }
 
 export async function saveCbsTcCertificates(data: {
@@ -58,8 +65,12 @@ export async function saveCbsTcCertificates(data: {
     ASCISS_CertificateFlg: string;
     ASCISS_QRCode: string;
 }) {
-    // Matches the legacy controller's QR Code saving endpoint
-    const url = '/QRcodeStudentCertificate/QRCODECertificates';
+    // Standard shared endpoint for QR code saving across pre-admission certificates
+    const url = '/StudyCertificate/QRCODECertificates';
     return await api.post<any>('admission', url, data);
 }
 
+export async function getCbsTcStudentDetails(data: { AMST_Id: number; ASMAY_Id: number }) {
+    const url = `/BBKVCustomReport/stdnamechange?ASMAY_Id=${data.ASMAY_Id}&AMST_Id=${data.AMST_Id}`;
+    return await api.post<any>('admission', url, data);
+}

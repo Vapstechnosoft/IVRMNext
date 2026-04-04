@@ -14,26 +14,26 @@ import { Card, CardContent } from '@/components/ui/card';
 export default function CbsStudyCertificatePage() {
     const [reportData, setReportData] = useState<any>(null);
     const [showReport, setShowReport] = useState(false);
-    const [certMode, setCertMode] = useState<'0' | '1'>('0');
+    const [certMode, setCertMode] = useState<'0' | '1' | '2'>('0');
     const printRef = useRef<HTMLDivElement>(null);
 
     // Initial data loading
-    const { data: initialData, isLoading: isLoadLoading } = useCbsStudyCertLoadData(1);
+    const { data: initialData, isLoading: isLoadLoading } = useCbsStudyCertLoadData();
     const studyDetailsMutation = useCbsStudyCertDetails();
     const characterDetailsMutation = useCbsCharacterCertDetails();
     const saveQRMutation = useSaveCbsStudyCertQRCode();
 
     const handleReport = async (formData: any) => {
         try {
-            setCertMode(formData.character as '0' | '1');
+            setCertMode(formData.character as '0' | '1' | '2');
             toast.loading('Generating certificate data...', { id: 'cbs-study-cert' });
 
             const payload = {
                 ASMAY_Id: formData.asmaY_Id,
-                ASMCL_Id: formData.allorindi === 'A' ? 0 : (formData.asmcL_Id || 0),
-                ASMC_Id: formData.allorindi === 'A' ? 0 : (formData.asmS_Id || 0),
-                AMST_Id: formData.amsT_Id,
-                ASCISS_CertificateFlg: formData.character === '1' ? 'CC' : 'SC' // CC for Character, SC for Study (or as per backend)
+                ASMCL_Id: formData.asmcL_Id || 0,
+                ASMC_Id: formData.asmS_Id || 0,
+                AMST_Id: formData.amsT_Id || 0,
+                save_flag: true
             };
 
             let response;
@@ -43,66 +43,89 @@ export default function CbsStudyCertificatePage() {
                 response = await studyDetailsMutation.mutateAsync(payload);
             }
 
-            const data = response.data;
+            const data = response.data || response; // Handle variations in apiService response
 
             if (data && data.studentlist && data.studentlist.length > 0) {
-                const student = data.studentlist[0];
-                const masterCompany = data.masterCompany?.[0] || {};
+                const masterCompany = data.amC_logo?.[0] || data.masterCompany?.[0] || {};
+                const milogo = masterCompany.mI_Logo || masterCompany.amC_FilePath || "https://calcuttaboy.blob.core.windows.net/files/Logo_Main_Campus.jpg";
                 
-                // Gender label logic from legacy
-                let genderLabel = "Kumar";
-                if (student.AMST_Sex === "FEMALE" || student.AMST_Sex === "Female") {
-                    genderLabel = "Kumari";
-                }
+                const mappedStudentList = data.studentlist.map((student: any) => {
+                    // Parent name logic based on legacy AngularJS requirement
+                    const fName = student.fathername || student.fatherName || '';
+                    const mName = student.mothername || student.motherName || '';
+                    let parentNameText = '';
+                    
+                    if (formData.paretsnamefather === '0') {
+                        parentNameText = `Mr. ${fName}`;
+                    } else if (formData.paretsnamefather === '1') {
+                        parentNameText = `Mrs. ${mName}`;
+                    } else if (formData.paretsnamefather === '2') {
+                        parentNameText = `Mr. ${fName} And Mrs. ${mName}`;
+                    } else {
+                        parentNameText = fName && mName ? `${fName} & ${mName}` : (fName || mName);
+                    }
 
-                // Parent name logic based on radio selection
-                let parentNameText = student.fatherName;
-                if (formData.paretsnamefather === "1") {
-                    parentNameText = student.mothername;
-                } else if (formData.paretsnamefather === "2") {
-                    parentNameText = `${student.fatherName} and ${student.mothername}`;
-                }
-
-                // Address mapping based on radio selection
-                let addressData = {
-                    street: student.street,
-                    area: student.area,
-                    city: student.city
-                };
-                if (formData.address_opt === 'address_con') {
-                    addressData = {
-                        street: student.constreet || student.street,
-                        area: student.conarea || student.area,
-                        city: student.concity || student.city
+                    // Address mapping based on radio selection
+                    let addressData = {
+                        street: student.street,
+                        area: student.area,
+                        city: student.city
                     };
-                }
+                    if (formData.address_opt === 'address_con') {
+                        addressData = {
+                            street: student.constreet || student.street,
+                            area: student.conarea || student.area,
+                            city: student.concity || student.city
+                        };
+                    }
 
-                const mappedData = {
-                    studentname: student.studentnam || student.amsT_FirstName,
-                    fathername: student.fatherName || student.amsT_FatherName,
-                    mothername: student.mothername || student.amsT_MotherName,
-                    genderLabel: student.AMST_Sex === "FEMALE" || student.AMST_Sex === "Female" ? "Miss" : "Master",
-                    className: student.class,
-                    section: student.section,
-                    admno: student.admno || student.amsT_AdmNo,
-                    rollNo: student.rollNo,
-                    date: formData.date,
-                    boardType: formData.boardType,
-                    charType: formData.charType,
-                    milogo: masterCompany.milogo || "https://calcuttaboy.blob.core.windows.net/files/Logo_Main_Campus.jpg",
-                    acadamicyear: student.acadamicyear,
-                    dob: student.dob,
-                    dobinwords: student.dobwords,
-                    admitedyear: student.admitedyear,
-                    admitedclass: student.admitedclass,
-                    ...addressData
-                };
+                    // Robust Year extraction
+                    const getYear = (dateStr: any) => {
+                        if (!dateStr) return '';
+                        const d = new Date(dateStr);
+                        return isNaN(d.getTime()) ? dateStr : d.getFullYear().toString();
+                    };
 
-                setReportData(mappedData);
+                    const admittedYear = getYear(student.joinedyear || student.admitedyear);
+                    const leftYear = getYear(student.leftyear || student.acadamicyear);
+                    
+                    // Academic year range or single year
+                    const academicYearRange = (admittedYear && leftYear && admittedYear !== leftYear)
+                        ? `${admittedYear} - ${leftYear}` 
+                        : (leftYear || admittedYear);
+
+                    return {
+                        amsT_Id: student.amsT_Id,
+                        studentname: student.studentnam || student.amsT_FirstName,
+                        fathername: fName,
+                        mothername: mName,
+                        genderLabel: student.AMST_Sex === "FEMALE" || student.AMST_Sex === "Female" ? "Miss" : "Master",
+                        className: student.leftclass || student.class,
+                        section: student.section || "",
+                        admno: student.admno || student.amsT_AdmNo,
+                        rollNo: student.rollNo,
+                        date: formData.date,
+                        boardType: formData.boardType,
+                        charType: formData.charType,
+                        milogo: milogo,
+                        acadamicyear: academicYearRange,
+                        dob: student.dob,
+                        dobinwords: student.dobwords || "",
+                        admitedyear: admittedYear,
+                        admitedclass: student.joinedclass || student.admitedclass,
+                        parentNameText,
+                        ...addressData
+                    };
+                });
+
+                setReportData({
+                    studentList: mappedStudentList,
+                    masterCompany
+                });
                 setShowReport(true);
-                toast.success('Certificate data loaded', { id: 'cbs-study-cert' });
+                toast.success(`Generated ${mappedStudentList.length} certificate(s)`, { id: 'cbs-study-cert' });
             } else {
-                toast.error('No student record found', { id: 'cbs-study-cert' });
+                toast.error('No student records found', { id: 'cbs-study-cert' });
                 setShowReport(false);
             }
         } catch (error) {
@@ -113,7 +136,7 @@ export default function CbsStudyCertificatePage() {
 
     const handlePrint = useReactToPrint({
         contentRef: printRef,
-        documentTitle: `CBS_${certMode === '1' ? 'Character' : 'Study'}_${reportData?.studentname || 'Cert'}`,
+        documentTitle: `CBS_${certMode === '1' ? 'Character' : certMode === '2' ? 'NoObjection' : 'Study'}_${reportData?.studentname || 'Cert'}`,
     });
 
     if (isLoadLoading) {
@@ -156,7 +179,7 @@ export default function CbsStudyCertificatePage() {
                         <div className="flex items-center gap-2">
                             <FileText className="h-5 w-5 text-primary" />
                             <h3 className="font-semibold text-lg text-slate-700">
-                                {certMode === '1' ? 'Character' : 'Study'} Certificate Preview
+                                {certMode === '1' ? 'Character' : certMode === '2' ? 'No Objection' : 'Study'} Certificate Preview
                             </h3>
                         </div>
                         <Button 

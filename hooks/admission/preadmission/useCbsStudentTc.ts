@@ -5,7 +5,8 @@ import {
     changeCbsTcClass,
     changeCbsTcSection,
     getCbsTcDetails,
-    saveCbsTcCertificates
+    saveCbsTcCertificates,
+    getCbsTcStudentDetails
 } from '@/server/admission/preadmission/reports/cbs-student-tc';
 
 export const cbsTcKeys = {
@@ -49,5 +50,11 @@ export const useCbsTcReport = () => {
 export const useCbsTcSave = () => {
     return useMutation({
         mutationFn: saveCbsTcCertificates,
+    });
+};
+
+export const useCbsTcStudentDetails = () => {
+    return useMutation({
+        mutationFn: getCbsTcStudentDetails,
     });
 };

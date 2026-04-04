@@ -50,13 +50,16 @@ export default function CustomTcPage() {
                 toast.loading('Generating TC Certificate...', { id: 'tc-report' });
                 const payload = {
                     ASMAY_Id: formData.ASMAY_Id,
+                    ASMCL_Id: formData.ASMCL_Id || 0,
+                    ASMS_Id: formData.ASMS_Id || 0,
                     AMST_Id: formData.AMST_Id,
                     tctemporper: formData.tctemporper
                 };
 
                 const response = await tcReportMutation.mutateAsync(payload) as any;
                 const data = response.data || response;
-                const studentTCList = data.studentTCList;
+                // Fallback to data.result from new API format if studentTCList is empty/undefined
+                const studentTCList = data.studentTCList || data.result;
 
                 if (studentTCList && studentTCList.length > 0) {
                     const tcData = studentTCList[0];
@@ -76,6 +79,7 @@ export default function CustomTcPage() {
                         studenttcdetails: data.studenttcdetails,
                         academicList1: data.academicList1,
                         masterCompany: data.masterCompany,
+                        ascisS_QRCode: data.ascisS_QRCode || tcData.ascisS_QRCode,
                         lblstdname: tcData.studentname || tcData.lblstdname,
                         tcno: tcData.astc_tcno || tcData.astC_TCNO,
                         admno: tcData.amst_admno || tcData.amsT_AdmNo,

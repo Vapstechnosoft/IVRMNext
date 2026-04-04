@@ -7,7 +7,7 @@ import { api } from '@/lib/apiService';
  * @param id Institution/Module ID (Legacy uses 2)
  */
 export async function getCustomTcInitialData() {
-    const url = `/BBKVCustomReport/getdetails/2`;
+    const url = `/StudenttcCustomReport/getinitialdata`;
     return await api.get<any>('admission', url);
 }
 
@@ -21,7 +21,35 @@ export async function getCustomTcStudentList(data: {
     ASMS_Id?: number;
     tctemporper: string;
 }) {
-    const url = `/BBKVCustomReport/getnameregno?tctemporper=${data.tctemporper}&admnoorname=${data.admnoorname}&ASMAY_Id=${data.ASMAY_Id}&ASMCL_Id=${data.ASMCL_Id || 0}&ASMS_Id=${data.ASMS_Id || 0}`;
+    const url = `/StudenttcCustomReport/changeyear?tctemporper=${data.tctemporper}&admnoorname=${data.admnoorname}&ASMAY_Id=${data.ASMAY_Id}&ASMCL_Id=${data.ASMCL_Id || 0}&ASMS_Id=${data.ASMS_Id || 0}&report_type=All`;
+    return await api.get<any>('admission', url);
+}
+
+/**
+ * Fetches data on class change
+ */
+export async function getCustomTcChangeClass(data: {
+    admnoorname: string;
+    ASMAY_Id: number;
+    ASMCL_Id: number;
+    ASMS_Id?: number;
+    tctemporper: string;
+}) {
+    const url = `/StudenttcCustomReport/changeclass?tctemporper=${data.tctemporper}&admnoorname=${data.admnoorname}&ASMAY_Id=${data.ASMAY_Id}&ASMCL_Id=${data.ASMCL_Id}&ASMS_Id=${data.ASMS_Id || 0}&report_type=All`;
+    return await api.get<any>('admission', url);
+}
+
+/**
+ * Fetches data on section change
+ */
+export async function getCustomTcChangeSection(data: {
+    admnoorname: string;
+    ASMAY_Id: number;
+    ASMCL_Id: number;
+    ASMS_Id: number;
+    tctemporper: string;
+}) {
+    const url = `/StudenttcCustomReport/changesection?tctemporper=${data.tctemporper}&admnoorname=${data.admnoorname}&ASMAY_Id=${data.ASMAY_Id}&ASMCL_Id=${data.ASMCL_Id}&ASMS_Id=${data.ASMS_Id}&report_type=All`;
     return await api.get<any>('admission', url);
 }
 
@@ -55,9 +83,11 @@ export async function onCustomTcTempPerChange(data: {
  */
 export async function getCustomTcDetails(data: {
     ASMAY_Id: number;
+    ASMCL_Id: number;
+    ASMS_Id: number;
     AMST_Id: number;
     tctemporper: string;
 }) {
-    const url = `/BBKVCustomReport/getTcdetails?tctemporper=${data.tctemporper}&ASMAY_Id=${data.ASMAY_Id}&AMST_Id=${data.AMST_Id}`;
+    const url = `/StudenttcCustomReport/getTCdata?tctemporper=${data.tctemporper}&ASMAY_Id=${data.ASMAY_Id}&ASMCL_Id=${data.ASMCL_Id}&ASMS_Id=${data.ASMS_Id}&AMST_Id=${data.AMST_Id}`;
     return await api.get<any>('admission', url);
 }

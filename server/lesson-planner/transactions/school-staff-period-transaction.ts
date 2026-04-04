@@ -9,8 +9,7 @@ const baseUrl = 'lessonplanner';
 export async function getStaffPeriodTransactionInitialData() {
     const session = await auth();
     const username = session?.user?.name || '';
-    const roleId = session?.user?.roleId || 0;
-    const url = `/SchoolStaffperiodmapping/Getdetailstransaction?username=${username}&roleId=${roleId}`;
+    const url = `/SchoolStaffperiodmapping/Getdetailstransaction?username=${username}`;
     return await api.get<any>(baseUrl, url);
 }
 
