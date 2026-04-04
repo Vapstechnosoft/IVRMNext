@@ -9,6 +9,43 @@ import { Upload, FileCheck, ClipboardCheck, PlayCircle, Eye, Download, FileText,
 import { toast } from 'sonner';
 import { evaluateOmr } from '@/server/omr-evaluation';
 
+// Helper to convert images to PNG and get dimensions for validation
+const convertToPng = async (file: File): Promise<{ file: File; width: number; height: number }> => {
+    if (!file.type.startsWith('image/')) {
+        // Return original file if it's not an image (like PDF), width/height 0
+        return { file, width: 0, height: 0 };
+    }
+
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) return reject('Canvas context failed');
+                ctx.drawImage(img, 0, 0);
+                canvas.toBlob((blob) => {
+                    if (blob) {
+                        const newName = file.name.replace(/\.[^/.]+$/, "") + ".png";
+                        resolve({
+                            file: new File([blob], newName, { type: 'image/png' }),
+                            width: img.width,
+                            height: img.height
+                        });
+                    } else reject('Blob conversion failed');
+                }, 'image/png');
+            };
+            img.onerror = () => reject('Image load failed');
+            img.src = e.target?.result as string;
+        };
+        reader.onerror = () => reject('File read failed');
+        reader.readAsDataURL(file);
+    });
+};
+
 export default function OmrMarkSheetEvaluationPage() {
     const [studentFile, setStudentFile] = useState<File | null>(null);
     const [answerKeyFile, setAnswerKeyFile] = useState<File | null>(null);
@@ -22,13 +59,38 @@ export default function OmrMarkSheetEvaluationPage() {
             return;
         }
 
+        // Quality Check: Prevent highly compressed/low-quality images (<100KB)
+        if (studentFile.size < 100 * 1024 || answerKeyFile.size < 100 * 1024) {
+            toast.error('The image quality is too low (less than 100KB). Please upload a higher-quality scan for accurate OMR evaluation.');
+            return;
+        }
+
         setIsEvaluating(true);
-        toast.info('Processing OMR evaluation... this may take a moment.');
 
         try {
+            // Ensure both files are PNG for the backend API and get metadata for validation
+            const studentInfo = await convertToPng(studentFile);
+            const answerKeyInfo = await convertToPng(answerKeyFile);
+
+            // Robust validation: Check if they are the same image content 
+            // (Same dimensions and same base filename even if format differs)
+            const base1 = studentFile.name.replace(/\.[^/.]+$/, "");
+            const base2 = answerKeyFile.name.replace(/\.[^/.]+$/, "");
+
+            if (
+                (studentInfo.width === answerKeyInfo.width && studentInfo.height === answerKeyInfo.height && base1 === base2) ||
+                (studentFile.name === answerKeyFile.name && studentFile.size === answerKeyFile.size)
+            ) {
+                toast.error('The Student Sheet and Answer Key appear to be the same image. Please provide different sheets.');
+                setIsEvaluating(false);
+                return;
+            }
+
+            toast.info('Processing OMR evaluation... this may take a moment.');
+
             const formData = new FormData();
-            formData.append('student_file', studentFile);
-            formData.append('answer_key_file', answerKeyFile);
+            formData.append('student_file', studentInfo.file);
+            formData.append('answer_key_file', answerKeyInfo.file);
             formData.append('question_count', questionCount);
             formData.append('options', '["A","B","C","D"]');
 

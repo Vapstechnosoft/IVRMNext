@@ -45,9 +45,9 @@ import { useRouter } from 'next/navigation';
 
 const statsData = [
     { title: 'Applications', value: '1,528', icon: FileText, gradient: 'from-blue-600 to-indigo-600', badgeIcon: Briefcase, url: '/admission/preadmission/reports/admission-register' },
-    { title: 'Students', value: '6,302', icon: Users, gradient: 'from-orange-500 to-amber-600', badgeIcon: UserCircle, url: '/admission/preadmission/reports/total-strength' },
+    { title: 'Students', value: '6,302', icon: Users, gradient: 'from-orange-500 to-amber-600', badgeIcon: UserCircle, url: '/admission/preadmission/reports/class-wise-student-details' },
     { title: 'Teachers', value: '208', icon: GraduationCap, gradient: 'from-teal-500 to-emerald-600', badgeIcon: Building2, url: '/hrms/employee' },
-    { title: 'Fee Collection', value: '₹4,35,500', icon: Wallet, gradient: 'from-purple-600 to-violet-600', badgeIcon: CreditCard, url: '/fees/feereports/yearlyfeecollectionreport' },
+    { title: 'Fee Collection', value: '₹4,35,500', icon: Wallet, gradient: 'from-purple-600 to-violet-600', badgeIcon: CreditCard, url: '/fees/feereports/feeconsolidatedreport' },
 ];
 
 const performanceData = [
