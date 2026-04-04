@@ -106,7 +106,7 @@ export default function StudentEligibleReportPage(props: { searchParams: SearchP
                             <GenericDataTable<IStudentEligibleReportDetail>
                                 {...tableProps}
                                 columns={columns}
-                                isLoading={reportQuery.isLoading || reportQuery.isFetching}
+                                isLoading={reportQuery.isLoading}
                                 error={reportQuery.isError ? reportQuery.error : null}
                                 manualPagination={true}
                                 manualSorting={true}
@@ -141,9 +141,20 @@ export default function StudentEligibleReportPage(props: { searchParams: SearchP
                                             <tr key={rowIndex}>
                                                 {columns.map((col: any, colIndex) => (
                                                     <td key={colIndex} className="border border-gray-300 p-2">
-                                                        {(col.id === 'serialNo' || col.accessorKey === 'serialNo') ? rowIndex + 1 : 
+                                                        {(col.id === 'serialNo' || col.accessorKey === 'serialNo') ? 
+                                                 ((Number(searchParams?.page) || 1) - 1) * (Number(searchParams?.page_size) || 10) + rowIndex + 1 : 
                                                          col.accessorKey ? row[col.accessorKey] : 
-                                                         col.cell ? (col.cell as any)({ row: { original: row, index: rowIndex }, table: { getState: () => ({ pagination: { pageIndex: 0, pageSize: 1000 } }) } }) : ''}
+                                                         col.cell ? (col.cell as any)({ 
+                                                             row: { original: row, index: rowIndex }, 
+                                                             table: { 
+                                                                 getState: () => ({ 
+                                                                     pagination: { 
+                                                                         pageIndex: (Number(searchParams?.page) || 1) - 1, 
+                                                                         pageSize: Number(searchParams?.page_size) || 10 
+                                                                     } 
+                                                                 }) 
+                                                             } 
+                                                         }) : ''}
                                                     </td>
                                                 ))}
                                             </tr>

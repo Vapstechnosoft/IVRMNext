@@ -2176,14 +2176,14 @@ export async function getUserAccessibleModules() {
                                     name: 'Transactions',
                                     icon: 'FileText',
                                     pages: [
-                                        // {
-                                        //     id: 1,
-                                        //     name: 'Salary Approval',
-                                        //     icon: 'CheckSquare',
-                                        //     url: '/hrms/transactions/salary-approval',
-                                        //     title: 'Salary Approval',
-                                        //     description: 'Approve Calculated Salaries'
-                                        // },
+                                        {
+                                            id: 1,
+                                            name: 'Salary Approval',
+                                            icon: 'CheckSquare',
+                                            url: '/hrms/transactions/salary-approval',
+                                            title: 'Salary Approval',
+                                            description: 'Approve Calculated Salaries'
+                                        },
                                         {
                                             id: 2,
                                             name: 'Salary Calculation',
@@ -2231,6 +2231,14 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/transactions/employee-loan',
                                             title: 'Employee Loan',
                                             description: 'Manage Employee Loans'
+                                        },
+                                        {
+                                            id: 8,
+                                            name:"Employee Salary Increment Details",
+                                            icon:"CreditCard",
+                                            url:"/hrms/transactions/employee-increment-salary",
+                                            title:"Employee Salary Increment Details",
+                                            description:'Manage Employee Salary Increment Deatails'
                                         }
                                     ]
                                 },
@@ -2449,6 +2457,31 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/reports/employee-profile-report',
                                             title: 'Employee Profile Report',
                                             description: 'Employee Profile Report'
+                                        },
+                                        {
+                                            id:25,
+                                            name: 'Salary Increment Report',
+                                            icon: 'FileSearch',
+                                            url: '/hrms/reports/salary-increment-report',
+                                            title: 'Salary Increment Report',
+                                            description: 'Salary Increment Report'
+
+                                        },
+                                        {
+                                            id: 26,
+                                            name: 'Form 5 stop Pension ST James Report',
+                                            icon: 'FileType',
+                                            url: '/hrms/reports/PFForm5stopPensionSTJamesReport',
+                                            title: 'Form 5 stop Pension ST James Report',
+                                            description: 'Provident Fund Form 5'
+                                        },
+                                        {
+                                            id: 27,
+                                            name: 'Employee Salary Slip ST James Report',
+                                            icon: 'FileType',
+                                            url: '/hrms/reports/employeeSalarySlipStJames',
+                                            title: 'Employee Salary Slip ST James Report',
+                                            description: 'Employee Salary Slips'
                                         }
                                     ]
                                 }
@@ -2674,7 +2707,7 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/attendance-management/masters/shift-setting-master',
                                             title: 'Shift Setting Master',
                                             description: 'Configure Shift Settings'
-                                        }
+                                        },
                                         // {
                                         //     id: 7,
                                         //     name: 'GPS Location Attendance',
@@ -2682,7 +2715,24 @@ export async function getUserAccessibleModules() {
                                         //     url: '/hrms/attendance-management/masters/gps-location-attendance',
                                         //     title: 'GPS Location Attendance',
                                         //     description: 'GPS-based Attendance'
-                                        // }
+                                        // },
+                                        {
+                                            id: 8,
+                                            name: 'Master Time Setting',
+                                            icon: 'Clock',
+                                            url: '/hrms/attendance-management/masters/master-time-setting',
+                                            title: 'Master Time Setting',
+                                            description: 'Configure Time Settings'
+                                        },
+                                         {
+                                            id: 9,
+                                            name: 'Front Office Addlogs',
+                                            icon: 'ClipboardList',
+                                            url: '/hrms/attendance-management/masters/front-office-addlogs',
+                                            title: 'Front Office Addlogs',
+                                            description: 'Front Office Addlogs'
+                                        },
+                                        
                                     ]
                                 },
                                 {
@@ -2722,14 +2772,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Employee Yearly Report',
                                             description: 'Annual Attendance Summary'
                                         },
-                                        // {
-                                        //     id: 5,
-                                        //     name: 'Employee Monthly Report',
-                                        //     icon: 'CalendarDays',
-                                        //     url: '/hrms/attendance-management/reports/employee-monthly-report',
-                                        //     title: 'Employee Monthly Report',
-                                        //     description: 'Monthly Attendance Report'
-                                        // },
+                                        {
+                                            id: 5,
+                                            name: 'Employee Monthly Report',
+                                            icon: 'CalendarDays',
+                                            url: '/hrms/attendance-management/reports/employee-monthly-report',
+                                            title: 'Employee Monthly Report',
+                                            description: 'Monthly Attendance Report'
+                                        },
                                         // {
                                         //     id: 6,
                                         //     name: 'Month End Report',
@@ -2754,14 +2804,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Holiday Report',
                                             description: 'Holiday Report'
                                         },
-                                        // {
-                                        //     id: 8,
-                                        //     name: 'Employee Absent Report',
-                                        //     icon: 'UserX',
-                                        //     url: '/hrms/attendance-management/reports/employee-absent-report',
-                                        //     title: 'Employee Absent Report',
-                                        //     description: 'Employee Absent Detail Report'
-                                        // }
+                                        {
+                                            id: 8,
+                                            name: 'Employee Absent Report',
+                                            icon: 'UserX',
+                                            url: '/hrms/attendance-management/reports/employee-absent-report',
+                                            title: 'Employee Absent Report',
+                                            description: 'Employee Absent Detail Report'
+                                        },
                                         {
                                             id: 8,
                                             name: 'Employee Month End Report',
@@ -4611,6 +4661,14 @@ export async function getUserAccessibleModules() {
                                             url: '/timetable/reports/deputationreport',
                                             title: 'Deputation Report',
                                             description: 'Deputation Report'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Staff Wise Working Hours',
+                                            icon: 'Clock',
+                                            url: '/timetable/reports/stafWiseWorkingHours',
+                                            title: 'Staff Wise Working Hours',
+                                            description: 'Staff Wise Working Hours Report'
                                         }
                                     ]
                                 }

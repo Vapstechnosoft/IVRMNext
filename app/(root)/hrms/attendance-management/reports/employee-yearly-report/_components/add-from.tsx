@@ -412,6 +412,7 @@ export default function AddEmployeeYearlyReportForm({
                                         />
                                     )}
                                 />
+                                {errors.fromDate && <FormError>{errors.fromDate.message}</FormError>}
                             </div>
 
                             {/* To Date */}

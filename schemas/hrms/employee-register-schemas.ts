@@ -308,16 +308,13 @@ const baseEmployeeRegisterSchema = z.object({
             z.object({
                 emailId: z
                     .string()
+                    .min(1, 'Email ID is required')
                     .max(100, 'Email must not exceed 100 characters')
-                    .refine((val) => {
-                        if (!val) return true;
-                        return validateEmail(val);
-                    }, 'Email must be in valid format')
-                    .optional(),
-                type: z.string().optional()
+                    .refine((val) => validateEmail(val), 'Email must be in valid format'),
+                type: z.string().min(1, 'Type is required')
             })
         )
-        .optional(),
+        .min(1, 'At least one email address is required'),
     bankDetails: z
         .array(
             z.object({
