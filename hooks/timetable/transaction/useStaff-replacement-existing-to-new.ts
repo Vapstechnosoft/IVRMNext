@@ -45,7 +45,7 @@ export const useSaveStaffReplacementExistingToNew = () => {
     return useMutation({
         mutationFn: saveStaffReplacementExistingToNew,
         onSuccess: (data: any) => {
-            if (data.returnval === true) {
+            if (data.returnval === true || data.success === true) {
                 queryClient.invalidateQueries({ queryKey: [TIMETABLE_QUERY_KEYS.STAFF_REPLACEMENT_GRID_DATA] });
             } else if (data.returnval === false && data.returnduplicatestatus === 'Duplicate') {
             } else {

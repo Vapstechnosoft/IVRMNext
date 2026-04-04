@@ -31,7 +31,9 @@ import {
     getTotalStrengthReport,
     getadmissionStudentsDropdown
 } from '@/server/admission/preadmission/reports/student_yearly_attendance';
+import { getStudentBirthdayReportDetails } from '@/server/admission/preadmission/reports/student_birthday_report';
 import { getStudyCertificateAcademicYearChange, getStudyCertificateConductDetails, getStudyCertificateDetails, getStudyCertificateLoadData, getStudyCertificateSearchFilter, getStudyCertificateSearchFilterSRKVS, getStudyCertificateStudentList, getStudyCertificateQR } from '@/server/admission/preadmission/reports/study_certificate';
+import { getAttendance100InitialDetails, getAttendance100Class, getAttendance100Section, getAttendance100Report, sendShortageAlert } from '@/server/admission/preadmission/reports/attendance_report_100';
 import type { ApiSearchparams } from '@/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -520,7 +522,8 @@ export const useStudentAttendanceReport = (
     dailyDate: Date | null | undefined,
     selectionMode: number,
     studentStatus: number,
-    searchParams?: ApiSearchparams
+    searchParams?: ApiSearchparams,
+    enabled: boolean = true
 ) => {
     const queryClient = useQueryClient();
 
@@ -557,7 +560,7 @@ export const useStudentAttendanceReport = (
                     searchParams
                 ),
             staleTime: 0,
-            enabled: !!asmaY_Id
+            enabled: enabled && !!asmaY_Id
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
@@ -746,5 +749,76 @@ export const useStudyCertificateQR = (data: any, enabled: boolean = true) => {
 }; export const useStudyCertificateQRMutation = () => {
     return useMutation({
         mutationFn: getStudyCertificateQR
+    });
+};
+
+
+
+export const useStudentBirthdayReportDetails = (data: any, searchParams?: ApiSearchparams, enabled: boolean = true) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.DATE_OF_BIRTH_REPORT, 'details', data, searchParams ?? {}],
+            queryFn: async () => getStudentBirthdayReportDetails(data, searchParams),
+            staleTime: 0,
+            enabled: enabled && !!data
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.DATE_OF_BIRTH_REPORT, 'details']
+            });
+        }
+    };
+};
+
+export const useAttendance100InitialDetails = (data: any, enabled: boolean = true) => {
+    return useQuery({
+        queryKey: [ADMISSION_QUERY_KEYS.ATTENDANCE_REPORT, 'initial-details-100', data],
+        queryFn: async () => getAttendance100InitialDetails(data),
+        staleTime: 0,
+        enabled: enabled && !!data
+    });
+};
+
+export const useAttendance100Class = (data: any, enabled: boolean = true) => {
+    return useQuery({
+        queryKey: [ADMISSION_QUERY_KEYS.ATTENDANCE_REPORT, 'class-100', data],
+        queryFn: async () => getAttendance100Class(data),
+        staleTime: 0,
+        enabled: enabled && !!data?.ASMAY_Id
+    });
+};
+
+export const useAttendance100Section = (data: any, enabled: boolean = true) => {
+    return useQuery({
+        queryKey: [ADMISSION_QUERY_KEYS.ATTENDANCE_REPORT, 'section-100', data],
+        queryFn: async () => getAttendance100Section(data),
+        staleTime: 0,
+        enabled: enabled && !!data?.ASMAY_Id && !!data?.ASMCL_Id
+    });
+};
+
+export const useAttendance100Report = (data: any, enabled: boolean = true) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.ATTENDANCE_REPORT, 'details-100', data],
+            queryFn: async () => getAttendance100Report(data),
+            staleTime: 0,
+            enabled: enabled && !!data
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.ATTENDANCE_REPORT, 'details-100']
+            });
+        }
+    };
+};
+
+export const useAttendance100ShortageAlert = () => {
+    return useMutation({
+        mutationFn: async (asmaY_Id: number) => sendShortageAlert(asmaY_Id)
     });
 };

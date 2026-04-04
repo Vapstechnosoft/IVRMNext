@@ -11,7 +11,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useGetLoginPrivilegeEmployees, useLoginPrivileges } from '@/hooks/admission/preadmission/useLoginPrivilege';
 import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
-import { getStaffWiseGrid } from '@/server/admission/preadmission/attendance-entry/login_privilege';
 import type { ILoginPrivilege, ILoginPrivilegeDTO } from '@/types/admission/preadmission/login_privilege';
 import { Loader2, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -28,38 +27,87 @@ export default function LoginPrivilegePage() {
 }
 
 function LoginPrivilegePageContent() {
-    const { data: initialData, isLoading, refetch, createPrivilege, isSearching } = useLoginPrivileges();
+    const [role, setRole] = useState<string>('2');
+    const [selectedStaffId, setSelectedStaffId] = useState<string>('0');
+
+    const {
+        data: initialData,
+        isLoading,
+        refetch,
+        createPrivilege,
+        isSearching
+    } = useLoginPrivileges({
+        entryType: Number(role),
+        hrmeId: Number(selectedStaffId)
+    });
     const [showList, setShowList] = useState(false);
-
-    // State for Table Data
     const [tableData, setTableData] = useState<any[]>([]);
+    const [totalItems, setTotalItems] = useState(0);
+    const [showMapping, setShowMapping] = useState(false);
+    const [classSectionList, setMappingClassSections] = useState<any[]>([]);
+    const [subjects, setMappingSubjects] = useState<any[]>([]);
 
-    // Sync initial data
     useEffect(() => {
         try {
             if (initialData) {
-                // Robust extraction
+                const rawData = (initialData as any)?.data || initialData;
+                
+                // Extract grid data
                 let data: any[] = [];
-                if (Array.isArray(initialData)) {
-                    data = initialData;
-                } else {
-                    const candidate = (initialData as any)?.loginPData || (initialData as any)?.data;
-                    if (Array.isArray(candidate)) {
-                        data = candidate;
-                    }
+                let total = 0;
+                
+                const candidate = rawData.loginPData;
+                if (Array.isArray(candidate)) {
+                    data = candidate;
+                } else if (Array.isArray(rawData)) {
+                    data = rawData;
                 }
+                
+                total = rawData.total || rawData.count || data.length;
+                
                 setTableData(data);
+                setTotalItems(total);
                 setShowList(true);
+
+                // Extract mapping data (Available classes and subjects)
+                const rawClassList = rawData.classsectionList || [];
+                if (Array.isArray(rawClassList)) {
+                    const seenIds = new Set();
+                    const csList = rawClassList.reduce((acc: any[], item: any) => {
+                        const uniqueId = `${item.asmcL_Id}-${item.asmC_Id}`;
+                        if (!seenIds.has(uniqueId)) {
+                            seenIds.add(uniqueId);
+                            acc.push({
+                                id: uniqueId,
+                                label: item.name || `${item.asmcL_ClassName || ''} : ${item.asmC_SectionName || ''}`.replace(/^ : /, ''),
+                                asmcL_Id: item.asmcL_Id,
+                                asmC_Id: item.asmC_Id
+                            });
+                        }
+                        return acc;
+                    }, []);
+                    setMappingClassSections(csList);
+                }
+
+                const rawSubjectList = rawData.subjectList || [];
+                if (Array.isArray(rawSubjectList)) {
+                    setMappingSubjects(rawSubjectList);
+                }
+
+                // Show mapping section if we have data to map
+                if ((rawClassList.length > 0 || rawSubjectList.length > 0) && selectedStaffId !== '0') {
+                    setShowMapping(true);
+                }
             }
         } catch (error) {
             console.error('Error setting initial data:', error);
             setTableData([]);
         }
-    }, [initialData]);
+    }, [initialData, selectedStaffId]);
 
     const tableProps = {
         data: tableData || [],
-        totalItems: tableData?.length || 0,
+        totalItems: totalItems || 0,
         isLoading,
         error: null,
         success: true
@@ -72,10 +120,21 @@ function LoginPrivilegePageContent() {
                     createPrivilege={createPrivilege}
                     refetch={refetch}
                     isSearching={isSearching}
-                    onSearchSuccess={(data) => {
+                    onSearchSuccess={(data, total) => {
                         setTableData(data);
+                        setTotalItems(total);
                         setShowList(true);
                     }}
+                    role={role}
+                    setRole={setRole}
+                    selectedStaffId={selectedStaffId}
+                    setSelectedStaffId={setSelectedStaffId}
+                    showMapping={showMapping}
+                    setShowMapping={setShowMapping}
+                    classSectionList={classSectionList}
+                    setMappingClassSections={setMappingClassSections}
+                    subjects={subjects}
+                    setMappingSubjects={setMappingSubjects}
                 />
 
                 {showList && (
@@ -106,209 +165,229 @@ interface PrivilegeFormProps {
     createPrivilege: (data: ILoginPrivilegeDTO) => Promise<any>;
     refetch: () => void;
     isSearching: boolean;
-    onSearchSuccess: (data: any[]) => void;
+    onSearchSuccess: (data: any[], total: number) => void;
+    role: string;
+    setRole: (val: string) => void;
+    selectedStaffId: string;
+    setSelectedStaffId: (val: string) => void;
+    showMapping: boolean;
+    setShowMapping: (val: boolean) => void;
+    classSectionList: any[];
+    setMappingClassSections: (val: any[]) => void;
+    subjects: any[];
+    setMappingSubjects: (val: any[]) => void;
 }
 
-function PrivilegeForm({ createPrivilege, refetch, isSearching, onSearchSuccess }: PrivilegeFormProps) {
+function PrivilegeForm({
+    createPrivilege,
+    refetch,
+    isSearching,
+    onSearchSuccess,
+    role,
+    setRole,
+    selectedStaffId,
+    setSelectedStaffId,
+    showMapping,
+    setShowMapping,
+    classSectionList,
+    setMappingClassSections,
+    subjects,
+    setMappingSubjects
+}: PrivilegeFormProps) {
     const { selectedRow, isDeleteFormOpen, closeDeleteForm } = useFormContext<ILoginPrivilege>();
-    const { fetchDataByType } = useLoginPrivileges();
+    const { fetchDataByType, fetchEditData } = useLoginPrivileges();
 
-    // ... existing state ...
-    const [role, setRole] = useState<string>('2'); // Default to Class Teacher (value 2)
     const [selectedYearId, setSelectedYearId] = useState<string>('');
-    const [selectedStaffId, setSelectedStaffId] = useState<string>('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Visibility State for Mapping
-    const [showMapping, setShowMapping] = useState(false);
-
-    // Selection State
+    // Selection states
     const [selectedClassSections, setSelectedClassSections] = useState<string[]>([]);
     const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
 
-    // ... hooks ...
-
-    // Data Hooks
     const { data: yearData } = useAcademicYearDropdown();
-    const MI_ID = 30; // Hardcoded MI_ID
     const { data: staffData } = useGetLoginPrivilegeEmployees();
 
-    // Derived Lists
-    // Derived Lists with Safe Array Checks
     const academicYears = Array.isArray((yearData as any)?.data) ? (yearData as any)?.data : Array.isArray(yearData) ? yearData : [];
+    const staffList = Array.isArray(staffData) ? staffData : [];
 
-    const staffList = Array.isArray((staffData as any)?.employeeList)
-        ? (staffData as any)?.employeeList
-        : Array.isArray((staffData as any)?.data?.employeeList)
-            ? (staffData as any)?.data?.employeeList
-            : [];
+    // Temporary list for Type 1 (Subject Teacher)
+    const [selectedcls_sec_subs, setSelectedClsSecSubs] = useState<any[]>([]);
 
-    // Removed unused classes/sections derivations if strictly relying on search results
-
-    // State for Mapping Lists (populated from Search)
-    const [classSectionList, setMappingClassSections] = useState<any[]>([]);
-    const [subjects, setMappingSubjects] = useState<any[]>([]);
-
-    // Handle Edit Mode Population
     useEffect(() => {
-        if (selectedRow) {
-            // Populate form when editing
-            if (selectedRow.asmaY_Id) setSelectedYearId(String(selectedRow.asmaY_Id));
-            if (selectedRow.hrmE_Id) setSelectedStaffId(String(selectedRow.hrmE_Id));
-            if (selectedRow.lp_role) {
-                // Map display role back to value key
-                if (selectedRow.lp_role === 'Class Teacher') setRole('2');
-                else if (selectedRow.lp_role === 'Subject Teacher') setRole('1');
-                else setRole('3');
+        const loadEditData = async () => {
+            if (selectedRow) {
+                if (selectedRow.asmaY_Id) setSelectedYearId(String(selectedRow.asmaY_Id));
+                if (selectedRow.hrmE_Id) setSelectedStaffId(String(selectedRow.hrmE_Id));
+                
+                const entryType = (selectedRow as any).asalU_EntryTypeFlag || 2;
+                setRole(String(entryType));
+                
+                try {
+                    const response: any = await fetchEditData({
+                        asalU_Id: selectedRow.asalU_Id,
+                        asaluC_Id: selectedRow.asaluC_Id,
+                        asalucS_Id: selectedRow.asalucS_Id
+                    });
+
+                    const result = response?.data || response;
+
+                    if (result) {
+                        const eId = result.asalU_EntryTypeFlag || (selectedRow as any).asalU_EntryTypeFlag || 2;
+                        const yId = result.asmaY_Id || selectedRow.asmaY_Id;
+                        const sId = result.hrmE_Id || selectedRow.hrmE_Id || (result as any).ivrmuL_Id;
+                        
+                        setRole(String(eId));
+                        if (yId) setSelectedYearId(String(yId));
+                        if (sId) setSelectedStaffId(String(sId));
+
+                        // Populate available lists first to ensure mapping section has data
+                        // Using explicit values if available, otherwise undefined to trigger fallback in handleSearch
+                        await handleSearch(
+                            yId ? String(yId) : undefined,
+                            String(eId),
+                            sId ? String(sId) : undefined
+                        );
+
+                        if (String(eId) === '1') {
+                            // Populate Type 1 temp list
+                            const staffName = selectedRow.userName || 'Unknown';
+                            const editMappings = result.resultClassSectionData || result.resultclasssectionData || [];
+                            const editSubjects = result.subjectList || [];
+
+                            const newList = editMappings.map((m: any) => ({
+                                username: staffName,
+                                cls_sec_id: `${m.asmcL_Id}-${m.asmC_Id}`,
+                                cls_sec: m.name || `${m.asmcL_ClassName} : ${m.asmC_SectionName}`,
+                                asmcL_Id: m.asmcL_Id,
+                                asmC_Id: m.asmC_Id,
+                                subs: editSubjects.map((s: any) => ({ ISMS_Id: s.ismS_Id, ISMS_SubjectName: s.ismS_SubjectName }))
+                            }));
+                            setSelectedClsSecSubs(newList);
+                        } else {
+                            // Populate Type 2/3 selections
+                            const editMappings = result.resultClassSectionData || result.resultclasssectionData || [];
+                            setSelectedClassSections(editMappings.map((m: any) => `${m.asmcL_Id}-${m.asmC_Id}`));
+                        }
+                        setShowMapping(true);
+                    }
+                } catch (error) {
+                    toast.error('Failed to load edit details');
+                }
             }
-            setShowMapping(true); // Auto-show mapping on edit
-        }
+        };
+        loadEditData();
     }, [selectedRow]);
 
+    const handleSearch = async (yearId?: string, typeId?: string, staffId?: string) => {
+        const yId = yearId || selectedYearId;
+        const tId = typeId || role;
+        const sId = staffId || selectedStaffId;
+
+        // Skip search if we don't have basic requirements
+        if (!yId || !sId || yId === '0' || sId === '0') {
+            return;
+        }
+
+        const yIdNum = Number(yId);
+        const sIdNum = Number(sId);
+
+        if (isNaN(yIdNum) || isNaN(sIdNum)) {
+            toast.error('Invalid selection');
+            return;
+        }
+
+        try {
+            const result: any = await fetchDataByType({
+                ASMAY_Id: yIdNum,
+                ASALU_EntryTypeFlag: Number(tId),
+                HRME_Id: sIdNum
+            });
+
+            if (result) {
+                const csList = (result.classsectionList || result.data?.classsectionList || []).map((item: any) => ({
+                    ...item,
+                    id: `${item.asmcL_Id}-${item.asmC_Id}`,
+                    label: item.name || `${item.asmcL_ClassName} : ${item.asmC_SectionName}`
+                }));
+                setMappingClassSections(csList);
+                
+                const subList = result.subjectList || result.data?.subjectList || [];
+                setMappingSubjects(subList);
+
+                const privileges = result.loginPData || result.data?.loginPData || [];
+                const total = result.total || result.data?.count || privileges.length;
+                onSearchSuccess(privileges, total);
+                setShowMapping(true);
+            }
+        } catch (e) {
+            toast.error('Failed to fetch data');
+        }
+    };
+
     const handleClassSectionToggle = (id: string) => {
-        setSelectedClassSections((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+        if (role === '2' || role === '3') {
+            // Transfer logic logic: check/uncheck moves it between columns in view
+            setSelectedClassSections((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+        } else {
+            // Subject teacher multiselect
+            setSelectedClassSections((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+        }
     };
 
     const handleSubjectToggle = (id: string) => {
         setSelectedSubjects((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
     };
 
-    const [isSearchLoading, setIsSearchLoading] = useState(false);
-
-    const handleSearch = async () => {
-        if (!selectedYearId || !selectedStaffId) {
-            toast.error('Please select Academic Year and Staff');
-            return;
-        }
-
-        setIsSearchLoading(true);
-        try {
-            const entryTypeFlag = Number(role);
-            const result: any = await fetchDataByType({
-                ASMAY_Id: Number(selectedYearId),
-                ASALU_EntryTypeFlag: entryTypeFlag,
-                HRME_Id: Number(selectedStaffId)
-            });
-
-            if (result) {
-                // Populate Available Class-Sections
-                const classSecListRaw = result.classsectionList || [];
-                let csList: any[] = [];
-                if (Array.isArray(classSecListRaw)) {
-                    const seenIds = new Set();
-                    csList = classSecListRaw.reduce((acc: any[], item: any) => {
-                        const uniqueId = `${item.asmcL_Id}-${item.asmC_Id}`;
-                        if (!seenIds.has(uniqueId)) {
-                            seenIds.add(uniqueId);
-                            acc.push({
-                                id: uniqueId,
-                                label: item.name || `${item.asmcL_ClassName || ''} : ${item.asmC_SectionName || ''}`,
-                                classId: item.asmcL_Id,
-                                sectionId: item.asmC_Id
-                            });
-                        }
-                        return acc;
-                    }, []);
-                    setMappingClassSections(csList);
-                }
-
-                // Populate Available Subjects
-                if (Array.isArray(result.subjectList)) {
-                    setMappingSubjects(result.subjectList);
-                } else if (Array.isArray(result.data?.subjectList)) {
-                    setMappingSubjects(result.data.subjectList);
-                }
-
-                // Populate Grid Table
-                const privileges = result.loginPData || [];
-                onSearchSuccess(privileges);
-
-                toast.success('Data fetched successfully');
-                setShowMapping(true);
-            }
-        } catch (e) {
-            console.error('Search Error:', e);
-            toast.error('Failed to fetch data');
-        } finally {
-            setIsSearchLoading(false);
-        }
-    };
-
-    const handleRefresh = async () => {
-        if (selectedYearId && selectedStaffId) {
-            await handleSearch();
-        } else {
-            refetch();
-        }
-    };
-
-    // Temp List for Subject Teacher Batching
-    const [tempList, setTempList] = useState<
-        {
-            id: string; // Unique ID for removal
-            classSectionId: string;
-            classSectionLabel: string;
-            subjectId: string;
-            subjectLabel: string;
-            asmcL_Id: number;
-            asmS_Id: number;
-            ismS_Id: number;
-        }[]
-    >([]);
-
     const handleAdd = () => {
-        if (selectedClassSections.length === 0) {
-            toast.error('Please select at least one Class-Section');
-            return;
-        }
-        if (selectedSubjects.length === 0) {
-            toast.error('Please select at least one Subject');
+        if (selectedClassSections.length === 0 || selectedSubjects.length === 0) {
+            toast.error('Please select Class-Section and Subject');
             return;
         }
 
-        const newItems: typeof tempList = [];
+        const selectedStaff = staffList.find((s: any) => String(s.id) === selectedStaffId);
+        const staffName = selectedStaff?.userName || selectedStaff?.hrmE_EmployeeName || 'Unknown';
+
+        const updatedList = [...selectedcls_sec_subs];
 
         selectedClassSections.forEach((csId) => {
             const csObj = classSectionList.find((x) => x.id === csId);
             if (!csObj) return;
 
-            selectedSubjects.forEach((subId) => {
-                const subObj = subjects.find((x: any) => String(x.ismS_Id) === subId);
-                if (!subObj) return;
+            const existingIndex = updatedList.findIndex((item) => item.cls_sec_id === csId);
+            const selectedSubsForThisItem = subjects
+                .filter((s: any) => selectedSubjects.includes(String(s.ismS_Id)))
+                .map((s: any) => ({ ISMS_Id: s.ismS_Id, ISMS_SubjectName: s.ismS_SubjectName }));
 
-                // Avoid Duplicates in Temp List
-                const exists =
-                    tempList.some((x) => x.classSectionId === csId && x.subjectId === subId) ||
-                    newItems.some((x) => x.classSectionId === csId && x.subjectId === subId);
-
-                if (!exists) {
-                    newItems.push({
-                        id: `${csId}-${subId}-${Date.now()}`,
-                        classSectionId: csId,
-                        classSectionLabel: csObj.label,
-                        subjectId: subId,
-                        subjectLabel: subObj.ismS_SubjectName,
-                        asmcL_Id: csObj.classId,
-                        asmS_Id: csObj.sectionId,
-                        ismS_Id: Number(subId)
-                    });
-                }
-            });
+            if (existingIndex > -1) {
+                // Merge subjects
+                const currentSubs = updatedList[existingIndex].subs;
+                selectedSubsForThisItem.forEach((newSub: any) => {
+                    if (!currentSubs.some((s: any) => s.ISMS_Id === newSub.ISMS_Id)) {
+                        currentSubs.push(newSub);
+                    }
+                });
+            } else {
+                updatedList.push({
+                    username: staffName,
+                    cls_sec_id: csId,
+                    cls_sec: csObj.label,
+                    asmcL_Id: csObj.asmcL_Id,
+                    asmC_Id: csObj.asmC_Id,
+                    subs: selectedSubsForThisItem
+                });
+            }
         });
 
-        if (newItems.length === 0) {
-            toast.warning('Selected items are already added.');
-        } else {
-            setTempList([...tempList, ...newItems]);
-            toast.success(`Added ${newItems.length} items`);
-            // Optional: Clear selection after add? Usually simpler for user.
-            setSelectedClassSections([]);
-            setSelectedSubjects([]);
-        }
+        setSelectedClsSecSubs(updatedList);
+        setSelectedClassSections([]);
+        setSelectedSubjects([]);
+        toast.success('Mapping added to temporary list');
     };
 
-    const handleRemoveTempItem = (id: string) => {
-        setTempList(tempList.filter((x) => x.id !== id));
+    const handleRemoveTempItem = (index: number) => {
+        const newList = [...selectedcls_sec_subs];
+        newList.splice(index, 1);
+        setSelectedClsSecSubs(newList);
     };
 
     const handleSave = async () => {
@@ -322,67 +401,45 @@ function PrivilegeForm({ createPrivilege, refetch, isSearching, onSearchSuccess 
             const classSectionsPayload: { asmcL_Id: number; asmC_Id: number }[] = [];
             const classSectionSubjectsPayload: { asmcL_Id: number; asmC_Id: number; subjectIds: number[] }[] = [];
 
-            // Determine EntryTypeFlag: 1=Subject, 2=Class, 3=Others
-            const entryTypeFlag = Number(role);
-
-            // 1. Populate classSectionSubjects from tempList (Subject Teacher & Others)
-            if ((role === '1' || role === '3') && tempList.length > 0) {
-                const grouped = tempList.reduce(
-                    (acc, curr) => {
-                        const key = `${curr.asmcL_Id}-${curr.asmS_Id}`;
-                        if (!acc[key]) {
-                            acc[key] = {
-                                asmcL_Id: curr.asmcL_Id,
-                                asmC_Id: curr.asmS_Id,
-                                subjectIds: []
-                            };
-                        }
-                        acc[key].subjectIds.push(curr.ismS_Id);
-                        return acc;
-                    },
-                    {} as Record<string, { asmcL_Id: number; asmC_Id: number; subjectIds: number[] }>
-                );
-
-                Object.values(grouped).forEach((item) => {
-                    classSectionSubjectsPayload.push(item);
-                });
-            }
-
-            // 2. Populate classSections from selectedClassSections (For all roles as fallback or addition)
-            if (selectedClassSections.length > 0) {
-                selectedClassSections.forEach((csId) => {
-                    const [cId, sId] = csId.split('-').map(Number);
-                    classSectionsPayload.push({
-                        asmcL_Id: cId,
-                        asmC_Id: sId
+            if (role === '1') {
+                if (selectedcls_sec_subs.length === 0) {
+                    toast.error('Please add at least one mapping');
+                    setIsSubmitting(false);
+                    return;
+                }
+                selectedcls_sec_subs.forEach((item) => {
+                    classSectionSubjectsPayload.push({
+                        asmcL_Id: item.asmcL_Id,
+                        asmC_Id: item.asmC_Id,
+                        subjectIds: item.subs.map((s: any) => s.ISMS_Id)
                     });
                 });
-            }
-
-            // 3. Validation: Allow save if ANY of the two payloads is populated (Either-Or Case)
-            if (classSectionsPayload.length === 0 && classSectionSubjectsPayload.length === 0) {
-                toast.error('Please select at least one Class-Section or Mapping');
-                setIsSubmitting(false);
-                return;
+            } else {
+                if (selectedClassSections.length === 0) {
+                    toast.error('Please select at least one Class-Section');
+                    setIsSubmitting(false);
+                    return;
+                }
+                selectedClassSections.forEach((id) => {
+                    const [cId, sId] = id.split('-').map(Number);
+                    classSectionsPayload.push({ asmcL_Id: cId, asmC_Id: sId });
+                });
             }
 
             const payload: ILoginPrivilegeDTO = {
-                asalU_Id: 0, // 0 for Create
-                asalU_EntryTypeFlag: entryTypeFlag,
+                asalU_Id: selectedRow ? selectedRow.asalU_Id : 0,
+                asalU_EntryTypeFlag: Number(role),
                 asmaY_Id: Number(selectedYearId),
                 hrmE_Id: Number(selectedStaffId),
-                mI_Id: MI_ID, // Use valid MI_ID
                 classSections: classSectionsPayload,
                 classSectionSubjects: classSectionSubjectsPayload
             };
 
             await createPrivilege(payload);
-            handleClear(); // Clear form on success
-            // Note: success toast is handled by hook
-            await handleRefresh();
+            handleClear();
+            await handleSearch();
         } catch (error) {
             console.error(error);
-            // Error toast handled by hook
         } finally {
             setIsSubmitting(false);
         }
@@ -391,16 +448,18 @@ function PrivilegeForm({ createPrivilege, refetch, isSearching, onSearchSuccess 
     const handleClear = () => {
         setSelectedClassSections([]);
         setSelectedSubjects([]);
-        setTempList([]);
-        // Don't clear Year/Staff as user might want to add more for same person
-        // But usually "Clear" clears the form. Let's keep Year/Staff?
-        // Reference usually clears "Selection" not "Configuration".
-        // But the previous implementation cleared everything.
-        // Let's reset Selection only to be helpful.
-        // If user wants full reset, they can refresh or change.
-        // User request "check one by one".
-        // Let's clear Selection + TempList.
+        setSelectedClsSecSubs([]);
+        setShowMapping(false);
     };
+
+    const handleRefresh = async () => {
+        if (selectedYearId && selectedStaffId) {
+            await handleSearch();
+        } else {
+            refetch();
+        }
+    };
+
 
     return (
         <div className='space-y-4'>
@@ -423,14 +482,14 @@ function PrivilegeForm({ createPrivilege, refetch, isSearching, onSearchSuccess 
                                 setRole(val);
                                 // Reset selections and mapping visibility
                                 setShowMapping(false);
-                                setTempList([]);
+                                setSelectedClsSecSubs([]);
                                 setSelectedClassSections([]);
                                 setSelectedSubjects([]);
                                 setMappingClassSections([]);
                                 setMappingSubjects([]);
 
-                                // Only fetch if Year and Staff are selected
-                                if (selectedYearId && selectedStaffId) {
+                                // Only fetch if Year and Staff are selected and valid
+                                if (selectedYearId && selectedStaffId && !isNaN(Number(selectedYearId)) && !isNaN(Number(selectedStaffId))) {
                                     try {
                                         const entryTypeFlag = Number(val);
                                         const result: any = await fetchDataByType({
@@ -526,18 +585,18 @@ function PrivilegeForm({ createPrivilege, refetch, isSearching, onSearchSuccess 
                         </div>
 
                         {/* User/Staff */}
-                        <div className='space-y-2'>
+                        <div className='space-y-2 text-black'>
                             <Label className='font-medium text-sm'>
-                                User / Staff <span className='text-destructive'>*</span>
+                                User / Staff {staffList.length > 0 && <span className='text-muted-foreground text-xs'>({staffList.length})</span>} <span className='text-destructive'>*</span>
                             </Label>
                             <Select value={selectedStaffId} onValueChange={(val) => setSelectedStaffId(val)}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder='Select Staff' />
+                                    <SelectValue placeholder={staffList.length > 0 ? 'Select Staff' : 'No Staff Found'} />
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent className='max-h-[300px]'>
                                     {staffList.map((s: any) => (
-                                        <SelectItem key={s.id || s.hrmE_Id} value={String(s.id)}>
-                                            {s.userName || s.hrmE_EmployeeName}
+                                        <SelectItem key={String(s.id || s.hrmE_Id)} value={String(s.id || s.hrmE_Id)}>
+                                            {s.userName || s.hrmE_EmployeeName || 'Unknown Staff'}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -549,9 +608,9 @@ function PrivilegeForm({ createPrivilege, refetch, isSearching, onSearchSuccess 
                             <Button
                                 type='button'
                                 className='w-full bg-[#f97316] text-white hover:bg-[#ea580c]'
-                                onClick={handleSearch}
-                                disabled={isSearchLoading || isSearching}>
-                                {isSearchLoading || isSearching ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : null}
+                                onClick={() => handleSearch()}
+                                disabled={isSearching}>
+                                {isSearching ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : null}
                                 Search
                             </Button>
                         </div>
@@ -568,8 +627,8 @@ function PrivilegeForm({ createPrivilege, refetch, isSearching, onSearchSuccess 
                     size='md'
                     className='fade-in slide-in-from-top-4 animate-in border-t-4 border-t-primary shadow-lg duration-500'>
                     <div className='p-6'>
-                        {/* Checkbox Mapping View (Subject Teacher & Others) */}
-                        {(role === '1' || role === '3') && (
+                        {/* Checkbox Mapping View (Subject Teacher) */}
+                        {role === '1' && (
                             <div className='flex flex-col gap-6'>
                                 <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
                                     {/* Class-Section Box */}
@@ -626,9 +685,9 @@ function PrivilegeForm({ createPrivilege, refetch, isSearching, onSearchSuccess 
                                         </ScrollArea>
                                     </div>
                                 </div>
-                                <div className='flex justify-end gap-2'>
+                                <div className='flex justify-center gap-2'>
                                     <Button variant='default' size='sm' className='w-24' onClick={handleAdd}>
-                                        + ADD
+                                        <i className='fa fa-plus mr-1' /> ADD
                                     </Button>
                                     <Button
                                         variant='destructive'
@@ -638,32 +697,44 @@ function PrivilegeForm({ createPrivilege, refetch, isSearching, onSearchSuccess 
                                             setSelectedClassSections([]);
                                             setSelectedSubjects([]);
                                         }}>
-                                        X CLEAR
+                                        <i className='fa fa-times mr-1' /> CLEAR
                                     </Button>
                                 </div>
 
                                 {/* Temp List Display */}
-                                {tempList.length > 0 && (
-                                    <div className='mt-4 overflow-hidden rounded-md border border-border'>
+                                {selectedcls_sec_subs.length > 0 && (
+                                    <div className='mt-4 overflow-hidden rounded-md border border-border shadow-md'>
                                         <table className='w-full text-sm'>
-                                            <thead className='bg-muted text-muted-foreground'>
+                                            <thead className='bg-primary text-white'>
                                                 <tr>
+                                                    <th className='p-2 text-center'>SL NO</th>
+                                                    <th className='p-2 text-left'>Employee Name</th>
                                                     <th className='p-2 text-left'>Class-Section</th>
-                                                    <th className='p-2 text-left'>Subject</th>
+                                                    <th className='p-2 text-left'>Subjects</th>
                                                     <th className='p-2 text-center'>Action</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {tempList.map((t) => (
-                                                    <tr key={t.id} className='border-border border-t'>
-                                                        <td className='p-2'>{t.classSectionLabel}</td>
-                                                        <td className='p-2'>{t.subjectLabel}</td>
+                                                {selectedcls_sec_subs.map((t, idx) => (
+                                                    <tr key={idx} className='border-border border-t hover:bg-muted/50'>
+                                                        <td className='p-2 text-center'>{idx + 1}</td>
+                                                        <td className='p-2'>{t.username}</td>
+                                                        <td className='p-2'>{t.cls_sec}</td>
+                                                        <td className='p-2'>
+                                                            <div className='flex flex-wrap gap-1'>
+                                                                {t.subs.map((s: any) => (
+                                                                    <span key={s.ISMS_Id} className='rounded bg-muted px-1.5 py-0.5 text-[10px]'>
+                                                                        {s.ISMS_SubjectName}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                        </td>
                                                         <td className='p-2 text-center'>
                                                             <Button
                                                                 size='icon'
                                                                 variant='ghost'
-                                                                className='h-6 w-6 text-destructive'
-                                                                onClick={() => handleRemoveTempItem(t.id)}>
+                                                                className='h-7 w-7 text-destructive hover:bg-destructive/10'
+                                                                onClick={() => handleRemoveTempItem(idx)}>
                                                                 <X className='h-4 w-4' />
                                                             </Button>
                                                         </td>
@@ -676,52 +747,67 @@ function PrivilegeForm({ createPrivilege, refetch, isSearching, onSearchSuccess 
                             </div>
                         )}
 
-                        {/* Class Teacher View (Transfer List Style) */}
-                        {role === '2' && (
+                        {/* Class Teacher / Others View (Dual Box Mapping) */}
+                        {(role === '2' || role === '3') && (
                             <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
                                 {/* Available Box */}
                                 <div className='overflow-hidden rounded-md border border-border shadow-sm'>
                                     <div className='bg-primary p-2 font-bold text-primary-foreground text-sm'>
                                         Class-Section:<span className='text-red-400'>*</span>
                                     </div>
-                                    <ScrollArea className='h-[250px] bg-background p-2'>
+                                    <ScrollArea className='h-[300px] bg-background p-2'>
                                         {classSectionList
                                             .filter((x) => !selectedClassSections.includes(x.id))
                                             .map((item) => (
                                                 <div
                                                     key={item.id}
-                                                    className='flex cursor-pointer items-center space-x-2 rounded px-2 py-1 transition-colors hover:bg-accent hover:text-accent-foreground'
-                                                    onClick={() => handleClassSectionToggle(item.id)} // Click to move
-                                                >
-                                                    <span className='text-sm'>{item.label}</span>
+                                                    className='flex items-center space-x-2 rounded py-1 pl-1 hover:bg-accent hover:text-accent-foreground'>
+                                                    <Checkbox
+                                                        id={`cs-avail-${item.id}`}
+                                                        checked={false}
+                                                        onCheckedChange={() => handleClassSectionToggle(item.id)}
+                                                    />
+                                                    <Label htmlFor={`cs-avail-${item.id}`} className='cursor-pointer font-normal text-sm'>
+                                                        {item.label}
+                                                    </Label>
                                                 </div>
                                             ))}
                                         {classSectionList.filter((x) => !selectedClassSections.includes(x.id)).length === 0 && (
-                                            <div className='py-8 text-center text-muted-foreground text-sm'>
+                                            <div className='py-12 text-center text-muted-foreground text-sm'>
                                                 No Available Class-Sections
                                             </div>
                                         )}
                                     </ScrollArea>
                                 </div>
 
-                                {/* Selected Box (Destination) */}
+                                {/* Selected Box */}
                                 <div className='overflow-hidden rounded-md border border-border shadow-sm'>
                                     <div className='bg-primary p-2 font-bold text-primary-foreground text-sm'>Selected Class-Section</div>
-                                    <ScrollArea className='h-[250px] bg-background p-2'>
+                                    <ScrollArea className='h-[300px] bg-background p-2'>
                                         {classSectionList
                                             .filter((x) => selectedClassSections.includes(x.id))
                                             .map((item) => (
                                                 <div
                                                     key={item.id}
-                                                    className='flex cursor-pointer items-center justify-between rounded bg-muted px-2 py-1 transition-colors hover:bg-destructive/10'
-                                                    onClick={() => handleClassSectionToggle(item.id)} // Click to remove
-                                                >
-                                                    <span className='font-medium text-sm'>{item.label}</span>
-                                                    <X className='h-3 w-3 text-destructive' />
+                                                    className='flex items-center justify-between rounded bg-muted/30 py-1 pl-1 pr-2 hover:bg-accent'>
+                                                    <div className='flex items-center space-x-2'>
+                                                        <Checkbox
+                                                            id={`cs-sel-${item.id}`}
+                                                            checked={true}
+                                                            onCheckedChange={() => handleClassSectionToggle(item.id)}
+                                                        />
+                                                        <Label htmlFor={`cs-sel-${item.id}`} className='cursor-pointer font-medium text-sm'>
+                                                            {item.label}
+                                                        </Label>
+                                                    </div>
+                                                    <X 
+                                                        className='h-3 w-3 cursor-pointer text-destructive' 
+                                                        onClick={() => handleClassSectionToggle(item.id)} 
+                                                    />
                                                 </div>
                                             ))}
                                         {selectedClassSections.length === 0 && (
-                                            <div className='py-8 text-center text-muted-foreground text-sm'>No Selection</div>
+                                            <div className='py-12 text-center text-muted-foreground text-sm'>No Selection</div>
                                         )}
                                     </ScrollArea>
                                 </div>
@@ -731,18 +817,18 @@ function PrivilegeForm({ createPrivilege, refetch, isSearching, onSearchSuccess 
                         {/* Bottom Actions */}
                         <div className='mt-8 flex justify-center gap-4 border-t pt-6'>
                             <Button
-                                className='w-32 bg-[#f97316] text-white hover:bg-[#ea580c]'
+                                className='w-36 bg-primary text-white hover:bg-primary/90'
                                 onClick={handleSave}
                                 disabled={isSubmitting}>
                                 {isSubmitting ? (
                                     <Loader2 className='mr-2 h-4 w-4 animate-spin' />
                                 ) : (
-                                    <Loader2 className='mr-2 hidden h-4 w-4' />
+                                    <i className='fa fa-floppy-o mr-2' />
                                 )}
                                 SAVE
                             </Button>
-                            <Button variant='destructive' className='w-32' onClick={handleClear} disabled={isSubmitting}>
-                                <X className='mr-1 h-4 w-4' /> CLEAR
+                            <Button variant='destructive' className='w-36' onClick={handleClear} disabled={isSubmitting}>
+                                <i className='fa fa-times mr-2' /> CANCEL
                             </Button>
                         </div>
                     </div>

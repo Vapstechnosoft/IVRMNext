@@ -11,16 +11,18 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { IBMIReport, IBMIReportClass, IBMIReportSection } from '@/types/sports/reports/bmi-report';
+import { IBMIReportClass, IBMIReportRequest, IBMIReportSection } from '@/types/sports/reports/bmi-report';
 import { bmiReportSchema, BMIReportFormSchema } from '@/types/sports/reports/bmi-report';
 import { useBMIReport } from '@/hooks/sports/useBMIReport';
 
 interface ReportFormProps {
-    setReportData: (data: IBMIReport[]) => void;
+    setLastFormData: (data: IBMIReportRequest | null) => void;
+    searchParams?: any;
+    isLoading?: boolean;
 }
 
-export default function ReportForm({ setReportData }: ReportFormProps) {
-    const { loadData, getClasses, getSections, generateReport } = useBMIReport();
+export default function ReportForm({ setLastFormData, searchParams, isLoading }: ReportFormProps) {
+    const { loadData, getClasses, getSections } = useBMIReport();
 
     const [classList, setClassList] = useState<IBMIReportClass[]>([]);
     const [sectionList, setSectionList] = useState<IBMIReportSection[]>([]);
@@ -50,14 +52,13 @@ export default function ReportForm({ setReportData }: ReportFormProps) {
         setValue('selectedSectionlist', []);
         setClassList([]);
         setSectionList([]);
-        setReportData([]);
 
         if (watchYear) {
             getClasses.mutate(watchYear, {
                 onSuccess: (data: any) => setClassList(data),
             });
         }
-    }, [watchYear, setValue, setReportData, getClasses.mutate]);
+    }, [watchYear, setValue, getClasses.mutate]);
 
     // Fetch Sections when Class Changes
     useEffect(() => {
@@ -72,25 +73,15 @@ export default function ReportForm({ setReportData }: ReportFormProps) {
     }, [watchClass, watchYear, getSections.mutate, setValue]);
 
     const onSubmit = (data: BMIReportFormSchema) => {
-        const payload = {
-            ...data,
-        };
-        generateReport.mutate(payload as any, {
-            onSuccess: (result) => {
-                setReportData(result);
-                // toast.success('Report generated successfully!');
-            },
-            onError: (error) => {
-                toast.error('Failed to generate report.');
-            },
-        });
+        setLastFormData(data as any);
+        toast.info('Fetching report data...');
     };
 
     const handleClear = () => {
         setValue('ASMAY_Id', 0);
         setValue('ASMCL_Id', 0);
         setValue('selectedSectionlist', []);
-        setReportData([]);
+        setLastFormData(null);
         setClassList([]);
         setSectionList([]);
     };
@@ -234,17 +225,11 @@ export default function ReportForm({ setReportData }: ReportFormProps) {
                 </div>
 
                 <div className="flex justify-center gap-4">
-                    <Button type="submit" disabled={generateReport.isPending}>
-                        {generateReport.isPending ? 'Generating...' : 'Report'}
+                    <Button type="submit" disabled={isLoading}>
+                        {isLoading ? 'Generating...' : 'Report'}
                     </Button>
                     <Button type="button" variant="destructive" onClick={handleClear}>
                         Cancel
-                    </Button>
-                    <Button type="button" variant="outline" onClick={() => toast.info('Print functionality mock')}>
-                        Print
-                    </Button>
-                    <Button type="button" variant="outline" onClick={() => toast.info('Excel Export functionality mock')}>
-                        Excel
                     </Button>
                 </div>
             </form>

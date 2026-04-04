@@ -84,11 +84,19 @@ export async function getSubjectPeriodDistrubution() {
 
 export async function saveperioddistribution(data: any) {
     const url = '/ClassMasterFacade/save-period-distribution';
+    console.info('saveperioddistribution', url);
     return await api.post<any>('timetable', url, data);
 }
 
 export async function getPeriodDropdown() {
     const url = '/TimeTableCommon/period-details';
-    console.info('PeriodDistributionFacade', url);
+    console.log('PeriodDistributionFacade', url);
     return await api.get<PeriodDropdownData[]>('timetable', url);
+}
+
+//edit
+export async function EditPeriodDistribution(id: number) {
+    const url = `/ClassMasterFacade/getalldetailsviewrecords/${id}`;
+    console.log('EditPeriodDistribution', url);
+    return await api.get<any>('timetable', url);
 }

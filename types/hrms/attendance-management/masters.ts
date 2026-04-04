@@ -38,20 +38,27 @@ export interface IMasterHolidayList {
 
 // Employee Shift Mapping Types
 export interface IMasterEmployeeShiftMappingList {
-    FOEST_Id: number;
-    EmployeeName: string;
-    ShiftName: string;
-    DayType: string;
-    Date: string;
-    FDWHrMin: string;
-    HDWHrMin: string;
-    IHalfLogin: string;
-    IHalfLogout: string;
-    IIHalfLogin: string;
-    IIHalfLogout: string;
-    DelayPerShift: string;
-    EarlyPerShift: string;
-    LunchDuration: string;
+    foesT_Id: number;
+    hrmE_EmployeeFirstName: string;
+    fohtwD_HolidayWDType: string;
+    foesT_Date: string;
+    fomS_ShiftName: string;
+    foesT_FDWHrMin: string;
+    foesT_HDWHrMin: string;
+    foesT_IHalfLoginTime: string;
+    foesT_IHalfLogoutTime: string;
+    foesT_IIHalfLoginTime: string;
+    foesT_IIHalfLogoutTime: string;
+    foesT_DelayPerShiftHrMin: string;
+    foesT_EarlyPerShiftHrMin: string;
+    foesT_LunchHoursDuration: string;
+    hrmD_Id?: number;
+    hrmD_DepartmentName?: string;
+    hrmdeS_Id?: number;
+    hrmdeS_DesignationName?: string;
+    hrmgT_Id?: number;
+    hrmgT_EmployeeGroupType?: string;
+    fohwdT_Id?: number;
 }
 
 // Employee Shift Mapping Dropdown Types
@@ -74,8 +81,8 @@ export interface IHolidayType {
 }
 
 export interface IShiftName {
-    Key: number;
-    Value: string;
+    fomS_Id: number;
+    fomS_ShiftName: string;
 }
 
 export interface IDepartment {
@@ -91,4 +98,41 @@ export interface IDesignation {
 export interface IEmployee {
     Key: number;
     Value: string;
+}
+
+export interface IMasterTimeSetting {
+    fomtS_Id: number;
+    mI_Id: number;
+    fomtS_FDWHrMin: string;
+    fomtS_HDWHrMin: string;
+    fomtS_IHalfLoginTime: string;
+    fomtS_IhalfLogoutTime: string;
+    fomtS_IIHalfLoginTime: string;
+    fomtS_IIHalfLogoutTime: string;
+    fomtS_DelayPerShiftHrMin: string;
+    fomtS_EarlyPerShiftHrMin: string;
+    fomtS_LunchHoursDuration: string;
+    fomtS_BlockAttendance: string;
+    fomtS_FixTimings: string;
+    fomhwD_ActiveFlg: boolean;
+}
+
+export interface IPunchLog {
+    hrmE_Id: number;
+    foeP_PunchDate: string; // ISO string format "YYYY-MM-DDTHH:mm:ss.sssZ"
+    foepD_PunchTime: string; // Time format "HH:mm"
+    inOutFlag: 'I' | 'O';
+}
+
+export interface IPunchDetail {
+    foepD_Id: number;
+    hrmE_Id: number;
+    foeP_Id: number;
+    foepD_PunchTime: string;
+    foepD_InOutFlg: 'I' | 'O';
+    foeP_PunchDate: string;
+}
+
+export interface IEmployeePunchSaveRequest {
+    punchLogs: IPunchLog[];
 }

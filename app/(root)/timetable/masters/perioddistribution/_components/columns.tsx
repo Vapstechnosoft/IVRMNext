@@ -13,7 +13,7 @@ import { useCallback } from 'react';
 export const createPeriodDistributionColumns: ColumnDef<PeriodDistributionColumn>[] = [
     {
         accessorKey: 'ttfpD_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='font-bold text-black' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -25,7 +25,7 @@ export const createPeriodDistributionColumns: ColumnDef<PeriodDistributionColumn
     },
     {
         accessorKey: 'asmaY_Year',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Academic Year' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Academic Year' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('asmaY_Year')}</div>,
         enableSorting: true,
         enableHiding: true
@@ -33,7 +33,7 @@ export const createPeriodDistributionColumns: ColumnDef<PeriodDistributionColumn
 
     {
         accessorKey: 'staffName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Staff Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Staff Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('staffName')}</div>,
         enableSorting: true,
         enableHiding: true
@@ -41,14 +41,14 @@ export const createPeriodDistributionColumns: ColumnDef<PeriodDistributionColumn
 
     {
         accessorKey: 'ttfpD_TotWeekPeriods',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='No Of Periods' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='No Of Periods' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('ttfpD_TotWeekPeriods')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='font-bold text-black' />,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
     }
 ];
@@ -94,7 +94,8 @@ function ActionButtonsCell({ rowData }: { rowData: PeriodDistributionColumn }) {
             </TooltipProvider>
             <ActionButtons
                 rowData={rowData}
-                buttons={{ toggle: true, delete: false }}
+                buttons={{ edit: true, toggle: true, delete: false }}
+                onEdit={handleEdit}
                 onToggle={handleToggle}
                 toggleConditionKey='ttfpD_ActiveFlag'
             />

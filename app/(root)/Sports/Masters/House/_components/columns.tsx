@@ -2,7 +2,6 @@
 
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { IMasterHouse } from '@/types/sports/masters/house';
 import type { ColumnDef, Row } from '@tanstack/react-table';
@@ -29,22 +28,15 @@ function ActionsCell({ row }: { row: Row<IMasterHouse> }) {
 
 export const MasterHouseColumns: ColumnDef<IMasterHouse>[] = [
     {
-        id: 'select',
-        header: ({ table }) => (
-            <Checkbox
-                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label='Select all'
-            />
-        ),
-        cell: ({ row }) => (
-            <Checkbox
-                checked={row.getIsSelected()}
-                onCheckedChange={(value) => row.toggleSelected(!!value)}
-                aria-label='Select row'
-            />
-        ),
-        enableSorting: false,
+        accessorKey: 'spccmH_Id',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            const continuousIndex = pageIndex * pageSize + row.index + 1;
+            return <div className='pl-6'>{continuousIndex}</div>;
+        },
+        enableSorting: true,
         enableHiding: false
     },
     {
@@ -64,19 +56,6 @@ export const MasterHouseColumns: ColumnDef<IMasterHouse>[] = [
         id: 'spccmH_Flag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='House/Committee' />,
         cell: ({ row }) => <div>{row.getValue('spccmH_Flag')}</div>
-    },
-    {
-        accessorKey: 'spccmH_ActiveFlag',
-        id: 'spccmH_ActiveFlag',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
-        cell: ({ row }) => {
-            const isActive = row.getValue('spccmH_ActiveFlag');
-            return (
-                <Badge variant={isActive ? 'success' : 'destructive'} className='font-semibold'>
-                    {isActive ? 'Active' : 'Deactivated'}
-                </Badge>
-            );
-        }
     },
     {
         id: 'actions',

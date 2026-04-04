@@ -9,12 +9,38 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { useRef } from 'react';
+import { useReactToPrint } from 'react-to-print';
+import { Printer, FileSpreadsheet } from 'lucide-react';
+import * as XLSX from 'xlsx';
 
 interface ReportGridProps {
     data: any[];
 }
 
 export const ReportGrid = ({ data }: ReportGridProps) => {
+    const componentRef = useRef<HTMLDivElement>(null);
+
+    const handlePrint = useReactToPrint({
+        contentRef: componentRef,
+        documentTitle: 'VenueWise_Participation_Report',
+        pageStyle: `
+          @page { size: portrait; margin: 20mm; }
+          @media print {
+            body { -webkit-print-color-adjust: exact; }
+            table { border-collapse: collapse !important; width: 100% !important; }
+            th, td { border: 1px solid #000 !important; padding: 8px !important; text-align: center !important; }
+          }
+        `
+    });
+
+    const exportToExcel = () => {
+        const worksheet = XLSX.utils.json_to_sheet(data);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
+        XLSX.writeFile(workbook, "VenueWiseParticipationReport.xlsx");
+    };
+
     if (!data || data.length === 0) {
         return null;
     }
@@ -22,15 +48,18 @@ export const ReportGrid = ({ data }: ReportGridProps) => {
     return (
         <div className="space-y-4">
             <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => window.print()}>
-                    <i className="fa fa-print mr-2" aria-hidden="true"></i> Print
+                <Button variant="outline" size="sm" onClick={() => handlePrint()} className="border-2 hover:bg-primary/5">
+                    <Printer className="h-4 w-4 mr-2 text-primary" /> Print
                 </Button>
-                <Button variant="outline">
-                    <i className="fa fa-file-excel-o mr-2" aria-hidden="true"></i> Excel
+                <Button variant="outline" size="sm" onClick={exportToExcel} className="border-2 hover:bg-primary/5">
+                    <FileSpreadsheet className="h-4 w-4 mr-2 text-green-600" /> Excel
                 </Button>
             </div>
 
-            <div className="rounded-md border">
+            <div ref={componentRef} className="rounded-md border bg-white p-4">
+                <div className="hidden print:block text-center mb-6">
+                    <h2 className="text-2xl font-bold uppercase underline">Venue Wise Participation Report</h2>
+                </div>
                 <Table>
                     <TableHeader>
                         <TableRow>

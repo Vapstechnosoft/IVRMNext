@@ -5,9 +5,9 @@ import type { ApiSearchparams } from '@/types';
 import type { IMasterCompetitionLevel } from '@/types/sports/masters/competition-level';
 
 export async function getMasterCompetitionLevels(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'spccmcL_CompitionLevel,spccmcL_CLDesc');
     const url = `/SportMasterCompitionLevel/getDetails?${urlParams}`;
-    return await api.post<IMasterCompetitionLevel[]>('sports', url);
+    return await api.post<IMasterCompetitionLevel[]>('sports', url, {});
 }
 
 export async function getMasterCompetitionLevelDetails(id: number) {

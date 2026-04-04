@@ -24,7 +24,7 @@ import type { IHomeWorkUploadReport } from '@/types/upload/reports/homework-uplo
 const formSchema = z.object({
     fromdate: z.string().nonempty('From date is required'),
     todate: z.string().nonempty('To date is required'),
-    classarray: z.array(z.string()).min(1, 'Please select at least one class')
+    classarray: z.array(z.string()).optional()
 });
 
 type FormFields = z.infer<typeof formSchema>;
@@ -137,7 +137,7 @@ export default function HomeWorkUploadReportPage() {
         const payload = {
             fromdate: new Date(values.fromdate).toISOString().slice(0, 10), // "YYYY-MM-DD"
             todate: new Date(values.todate).toISOString().slice(0, 10), // "YYYY-MM-DD"
-            classarray: values.classarray.map((id) => ({
+            classarray: (values.classarray ?? []).map((id) => ({
                 ASMCL_Id: Number(id)
             }))
         };
@@ -148,7 +148,8 @@ export default function HomeWorkUploadReportPage() {
 
     const handleCancel = () => {
         reset();
-        window.location.reload();
+        setShowReport(false);
+        setHomeWorkReport([]);
     };
     // const handlePrint = () => {
 
@@ -170,7 +171,7 @@ export default function HomeWorkUploadReportPage() {
                             control={control}
                             name='fromdate'
                             render={({ field, fieldState }) => (
-                                <DateField field={field} fieldState={fieldState} label='From Date' placeholder='Select From Date' />
+                                <DateField field={field} fieldState={fieldState} label='From Date' placeholder='Select From Date' required />
                             )}
                         />
 
@@ -179,7 +180,7 @@ export default function HomeWorkUploadReportPage() {
                             control={control}
                             name='todate'
                             render={({ field, fieldState }) => (
-                                <DateField field={field} fieldState={fieldState} label='To Date' placeholder='Select To Date' />
+                                <DateField field={field} fieldState={fieldState} label='To Date' placeholder='Select To Date' required />
                             )}
                         />
 
@@ -190,12 +191,12 @@ export default function HomeWorkUploadReportPage() {
                             render={({ field, fieldState }) => (
                                 <div className='mt-5 flex flex-col gap-2'>
                                     <Label>
-                                        Class Name <span className='text-red-500'>*</span>
+                                        Class Name
                                     </Label>
 
                                     <CustomMultiSelectBox
                                         options={classList}
-                                        value={field.value}
+                                        value={field.value ?? []}
                                         onChange={field.onChange}
                                         placeholder={loadingClasses ? 'Loading classes...' : 'Select Classes'}
                                         height='200px'
@@ -209,7 +210,7 @@ export default function HomeWorkUploadReportPage() {
                     </div>
 
                     {/* Buttons */}
-                    <div className='flex justify-center space-x-2'>
+                    <div className='mt-10 flex justify-center space-x-2'>
                         <Button type='submit' disabled={isSubmitting}>
                             {isSubmitting ? 'Generating...' : 'Report'}
                         </Button>

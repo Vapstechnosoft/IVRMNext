@@ -15,6 +15,10 @@ export async function getRoomList(searchParams?: ApiSearchparams) {
     return await api.get<any>('hostel', `/MasterRoom/get_room_list?${urlParams}`);
 }
 
+export async function getRoomDropdownList() {
+    return await api.get<any>('hostel', '/MasterRoom/get_room_dropdown_list');
+}
+
 export async function getRoomDetails(id: number) {
     const url = `/MasterRoom/get_room_details/${id}`;
     return await api.get<any>('hostel', url);

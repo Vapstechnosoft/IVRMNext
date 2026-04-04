@@ -1,344 +1,338 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { CalendarYear } from '@/components/ui/calendar_year';
-import { FormError } from '@/components/ui/extension/field';
-import { MultiSelect } from '@/components/ui/multi-select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
-import { cn } from '@/lib/utils';
-import { employeeAbsentReportFilterSchema } from '@/schemas/hrms/attendance-management-schemas';
-import { getEmployeeAbsentReport } from '@/server/hrms/hrmsConfig/reports/employee-absent-report';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useQueryClient } from '@tanstack/react-query';
-import { format } from 'date-fns';
-import { Calendar as CalendarIcon, Save } from 'lucide-react';
-import { Label } from 'react-aria-components';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
-import { toast } from 'sonner';
-import type { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import type * as z from 'zod';
 
-type FormFields = z.infer<typeof employeeAbsentReportFilterSchema>;
+import { Button } from '@/components/ui/button';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { MultiSelect } from '@/components/ui/multi-select';
+import { DatePicker } from '@/components/ui/date-picker';
+import { 
+    useReportGroupTypes, 
+    useReportDepartments, 
+    useReportDesignations, 
+    useReportEmployeesByGroupTypeDeptAndDesignation 
+} from '@/hooks/hrms/useReports';
+import { employeeAbsentReportFilterSchema } from '@/schemas/hrms/attendance-management-schemas';
+import { Loader2, RotateCcw, Search } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
 
 interface AddEmployeeAbsentReportFormProps {
     onSuccess?: () => void;
-    className?: string;
-    searchParams?: any;
-    groupTypes?: Array<{ label: string; value: string }>;
+    resolvedSearchParams?: any;
 }
 
 export default function AddEmployeeAbsentReportForm({
     onSuccess,
-    className = '',
-    searchParams,
-    groupTypes = []
+    resolvedSearchParams: searchParams
 }: AddEmployeeAbsentReportFormProps) {
-    const queryClient = useQueryClient();
+    const router = useRouter();
+    const pathname = usePathname();
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const {
-        handleSubmit,
-        control,
-        reset,
-        watch,
-        formState: { errors, isSubmitting }
-    } = useForm<FormFields>({
+    const form = useForm<z.infer<typeof employeeAbsentReportFilterSchema>>({
         resolver: zodResolver(employeeAbsentReportFilterSchema),
-        mode: 'onChange',
         defaultValues: {
+            type: searchParams?.type ? String(searchParams.type).split(',') : [],
+            department: searchParams?.department ? String(searchParams.department).split(',') : [],
+            designation: searchParams?.designation ? String(searchParams.designation).split(',') : [],
+            allOrIndividual: (searchParams?.allOrIndividual as 'All' | 'Individual') || 'All',
+            employeeIds: searchParams?.employee ? String(searchParams.employee).split(',') : [],
+            fromDate: searchParams?.fromDate || '',
+            toDate: searchParams?.toDate || ''
+        }
+    });
+
+    const { watch, setValue, reset } = form;
+    const selectedTypes = watch('type');
+    const selectedDepts = watch('department');
+    const selectedDesigs = watch('designation');
+    const allOrIndividual = watch('allOrIndividual');
+
+    // Cascading data fetching using report-specific hooks
+    const { data: groupTypesData, isLoading: isTypesLoading } = useReportGroupTypes();
+    const { data: departmentsData, isLoading: isDeptLoading } = useReportDepartments(
+        selectedTypes.join(',')
+    );
+    const { data: designationsData, isLoading: isDesigLoading } = useReportDesignations(
+        selectedTypes.join(','),
+        selectedDepts.join(',')
+    );
+    const { data: employeesData, isLoading: isEmpLoading } = useReportEmployeesByGroupTypeDeptAndDesignation(
+        selectedTypes.map(Number),
+    selectedDepts.map(Number),
+    selectedDesigs.map(Number)
+    );
+    console.log("employeesData",employeesData)
+    // Derived options - accessing .data property from the ApiResponse with robust key fallbacks
+    const typeOptions = useMemo(() => 
+        groupTypesData?.data?.map((t: any) => ({ 
+            label: t.value || t.hrmgT_EmployeeGroupType || 'Unknown Type', 
+            value: String(t.key || t.hrmgT_Id) 
+        })) || [], 
+    [groupTypesData]);
+
+    const deptOptions = useMemo(() => 
+        departmentsData?.data?.map((d: any) => ({ 
+            label: d.value || d.hrmD_DepartmentName || d.hrmd_departmentName || 'Unknown Dept', 
+            value: String(d.key || d.hrmD_Id || d.hrmd_id) 
+        })) || [], 
+    [departmentsData]);
+
+    const desigOptions = useMemo(() => 
+        designationsData?.data?.map((d: any) => ({ 
+            label: d.value || d.hrmdeS_DesignationName || d.hrmdes_designationName || 'Unknown Desig', 
+            value: String(d.key || d.hrmdeS_Id || d.hrmdes_id) 
+        })) || [], 
+    [designationsData]);
+
+    const empOptions = useMemo(() => 
+        employeesData?.data?.employeeNames?.map((e: any) => {
+            const fullName = e.employeeFullName || e.hrme_employee_first_name || e.hrmE_EmployeeFirstName || '';
+            return { 
+                label: e.value || fullName || 'Unknown Employee', 
+                value: String(e.key || e.hrme_id || e.hrmE_Id) 
+            };
+        }) || [], 
+    [employeesData]);
+
+    // Handle cascading resets
+    useEffect(() => { if (selectedTypes.length === 0) setValue('department', []); }, [selectedTypes, setValue]);
+    useEffect(() => { if (selectedDepts.length === 0) setValue('designation', []); }, [selectedDepts, setValue]);
+    useEffect(() => { if (selectedDesigs.length === 0) setValue('employeeIds', []); }, [selectedDesigs, setValue]);
+
+    async function onSubmit(values: z.infer<typeof employeeAbsentReportFilterSchema>) {
+        setIsSubmitting(true);
+        try {
+            const params = new URLSearchParams();
+            params.set('type', values.type.join(','));
+            params.set('department', values.department.join(','));
+            params.set('designation', values.designation.join(','));
+            params.set('allOrIndividual', values.allOrIndividual);
+            
+            // Map employee IDs based on selection
+            let hrme_ids = '0';
+            if (values.allOrIndividual === 'Individual' && values.employeeIds) {
+                hrme_ids = values.employeeIds.join(',');
+            } else if (values.allOrIndividual === 'All' && empOptions.length > 0) {
+                hrme_ids = empOptions.map((o: { value: string }) => o.value).join(',');
+            }
+            params.set('employee', hrme_ids);
+            
+            params.set('fromDate', values.fromDate);
+            params.set('toDate', values.toDate);
+
+            router.push(`${pathname}?${params.toString()}`);
+            toast.success('Generating Absent Report...');
+            onSuccess?.();
+        } catch (error) {
+            toast.error('Failed to generate report');
+        } finally {
+            setIsSubmitting(false);
+        }
+    }
+
+    const handleReset = () => {
+        reset({
             type: [],
             department: [],
             designation: [],
             allOrIndividual: 'All',
-            employee: '',
+            employeeIds: [],
             fromDate: '',
             toDate: ''
-        }
-    });
-
-    const allOrIndividualValue = watch('allOrIndividual');
-
-    const onSubmit: SubmitHandler<FormFields> = async (data: FormFields) => {
-        try {
-            const payload = {
-                type: data.type.map(Number),
-                department: data.department.map(Number),
-                designation: data.designation.map(Number),
-                allOrIndividual: data.allOrIndividual,
-                employeeCode: data.allOrIndividual === 'Individual' ? data.employee : undefined,
-                fromDate: data.fromDate,
-                toDate: data.toDate
-            };
-
-            const response = await getEmployeeAbsentReport(payload, searchParams);
-
-            if (response.success) {
-                toast.success(response.message || 'Report generated successfully');
-                try {
-                    if (response?.total != null) {
-                        queryClient.setQueryData([HRMS_QUERY_KEYS.EMPLOYEE_ABSENT_REPORT, searchParams ?? {}], response);
-                    } else if (Array.isArray(response?.data)) {
-                        const parseParam = (k: string) => {
-                            const v = (searchParams as any)?.[k];
-                            if (Array.isArray(v)) return Number(v[0]);
-                            return v != null ? Number(v) : undefined;
-                        };
-                        const page = parseParam('page') || 1;
-                        const pageSize = parseParam('page_size') || 10;
-                        const total = response.data.length;
-                        const start = (page - 1) * pageSize;
-                        const pageData = response.data.slice(start, start + pageSize);
-
-                        queryClient.setQueryData([HRMS_QUERY_KEYS.EMPLOYEE_ABSENT_REPORT, searchParams ?? {}], {
-                            data: pageData,
-                            total,
-                            success: true,
-                            message: response.message
-                        });
-                    } else {
-                        queryClient.setQueryData([HRMS_QUERY_KEYS.EMPLOYEE_ABSENT_REPORT, searchParams ?? {}], response);
-                    }
-                } catch (e) {
-                    // noop
-                }
-                reset();
-                onSuccess?.();
-            } else {
-                toast.error(response.message || 'Failed to generate report');
-            }
-        } catch (error: any) {
-            toast.error(error.message || 'Failed to generate report');
-        }
-    };
-
-    const handleReset = () => {
-        reset();
+        });
+        router.push(pathname);
     };
 
     return (
-        <div className={`${className}`}>
-            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-                <div className='space-y-4'>
-                    <div className='rounded-lg bg-white p-6 shadow'>
-                        <div className='grid grid-cols-1 items-center gap-10 lg:grid-cols-3'>
-                            {/* Type */}
-                            <div className='col-span-1'>
-                                <Label className='mb-2 block font-medium text-gray-700 text-sm'>
-                                    Type <span className='ml-1 text-red-500'>*</span>
-                                </Label>
-                                <Controller
-                                    name='type'
-                                    control={control}
-                                    render={({ field }) => (
-                                        <MultiSelect
-                                            options={groupTypes.length > 0 ? groupTypes : []}
-                                            onValueChange={(values) => field.onChange(values)}
-                                            defaultValue={field.value || []}
-                                            placeholder='Select Types'
-                                            className={`w-full ${errors.type ? 'border-red-500' : ''}`}
-                                            maxHeight={240}
-                                        />
-                                    )}
-                                />
-                                {errors.type && <FormError>{errors.type.message}</FormError>}
-                            </div>
-
-                            {/* Department */}
-                            <div className='col-span-1'>
-                                <Label className='mb-2 block font-medium text-gray-700 text-sm'>
-                                    Department <span className='ml-1 text-red-500'>*</span>
-                                </Label>
-                                <Controller
-                                    name='department'
-                                    control={control}
-                                    render={({ field }) => (
-                                        <MultiSelect
-                                            options={[]}
-                                            onValueChange={(values) => field.onChange(values)}
-                                            defaultValue={field.value || []}
-                                            placeholder='Select Departments'
-                                            className={`w-full ${errors.department ? 'border-red-500' : ''}`}
-                                            maxHeight={240}
-                                        />
-                                    )}
-                                />
-                                {errors.department && <FormError>{errors.department.message}</FormError>}
-                            </div>
-
-                            {/* Designation */}
-                            <div className='col-span-1'>
-                                <Label className='mb-2 block font-medium text-gray-700 text-sm'>
-                                    Designation <span className='ml-1 text-red-500'>*</span>
-                                </Label>
-                                <Controller
-                                    name='designation'
-                                    control={control}
-                                    render={({ field }) => (
-                                        <MultiSelect
-                                            options={[]}
-                                            onValueChange={(values) => field.onChange(values)}
-                                            defaultValue={field.value || []}
-                                            placeholder='Select Designations'
-                                            className={`w-full ${errors.designation ? 'border-red-500' : ''}`}
-                                            maxHeight={240}
-                                        />
-                                    )}
-                                />
-                                {errors.designation && <FormError>{errors.designation.message}</FormError>}
-                            </div>
-
-                            {/* All/Individual */}
-                            <div className='col-span-1'>
-                                <Label className='mb-2 block font-medium text-gray-700 text-sm'>
-                                    All / Individual <span className='ml-1 text-red-500'>*</span>
-                                </Label>
-                                <Controller
-                                    name='allOrIndividual'
-                                    control={control}
-                                    render={({ field }) => (
-                                        <Select value={field.value} onValueChange={field.onChange}>
-                                            <SelectTrigger className={errors.allOrIndividual ? 'border-red-500' : ''}>
-                                                <SelectValue placeholder='Select' />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value='All'>All</SelectItem>
-                                                <SelectItem value='Individual'>Individual</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    )}
-                                />
-                                {errors.allOrIndividual && <FormError>{errors.allOrIndividual.message}</FormError>}
-                            </div>
-
-                            {/* Employee - Only show when Individual is selected */}
-                            {allOrIndividualValue === 'Individual' && (
-                                <div className='col-span-1'>
-                                    <Label className='mb-2 block font-medium text-gray-700 text-sm'>
-                                        Employee <span className='ml-1 text-red-500'>*</span>
-                                    </Label>
-                                    <Controller
-                                        name='employee'
-                                        control={control}
-                                        render={({ field }) => (
-                                            <input
-                                                type='text'
-                                                {...field}
-                                                placeholder='Enter employee code or name'
-                                                className={`w-full rounded-md border px-3 py-2 ${errors.employee ? 'border-red-500' : ''}`}
-                                            />
-                                        )}
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
+                <div className='grid grid-cols-1 gap-6 md:grid-cols-3'>
+                    {/* Cascading Selects */}
+                    <FormField
+                        control={form.control}
+                        name='type'
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Group Type <span className="text-destructive">*</span></FormLabel>
+                                <FormControl>
+                                    <MultiSelect
+                                        options={typeOptions}
+                                        onValueChange={field.onChange}
+                                        defaultValue={field.value}
+                                        placeholder={isTypesLoading ? 'Loading...' : 'Select Group Types'}
+                                        maxCount={2}
                                     />
-                                    {errors.employee && <FormError>{errors.employee.message}</FormError>}
-                                </div>
-                            )}
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
 
-                            {/* From Date */}
-                            <div className='col-span-1'>
-                                <Label className='mb-2 block font-medium text-gray-700 text-sm'>
-                                    From Date <span className='ml-1 text-red-500'>*</span>
-                                </Label>
-                                <Controller
-                                    name='fromDate'
-                                    control={control}
-                                    render={({ field }) => (
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button
-                                                    type='button'
-                                                    variant='outline'
-                                                    className={cn(
-                                                        'w-full justify-start text-left font-normal',
-                                                        !field.value && 'text-muted-foreground',
-                                                        errors.fromDate && 'border-red-500'
-                                                    )}>
-                                                    <CalendarIcon className='mr-2 h-4 w-4' />
-                                                    {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'From date'}
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className='w-auto p-0' align='start'>
-                                                <CalendarYear
-                                                    mode='single'
-                                                    selected={field.value ? new Date(field.value) : undefined}
-                                                    onSelect={(date: Date | undefined) => field.onChange(date?.toISOString() ?? '')}
-                                                    captionLayout='dropdown'
-                                                    fromYear={2000}
-                                                    toYear={2050}
-                                                />
-                                            </PopoverContent>
-                                        </Popover>
-                                    )}
-                                />
-                                {errors.fromDate && <FormError>{errors.fromDate.message}</FormError>}
-                            </div>
+                    <FormField
+                        control={form.control}
+                        name='department'
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Department <span className="text-destructive">*</span></FormLabel>
+                                <FormControl>
+                                    <MultiSelect
+                                        options={deptOptions}
+                                        onValueChange={field.onChange}
+                                        defaultValue={field.value}
+                                        placeholder={isDeptLoading ? 'Loading...' : 'Select Departments'}
+                                        disabled={selectedTypes.length === 0}
+                                        maxCount={2}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
 
-                            {/* To Date */}
-                            <div className='col-span-1'>
-                                <Label className='mb-2 block font-medium text-gray-700 text-sm'>
-                                    To Date <span className='ml-1 text-red-500'>*</span>
-                                </Label>
-                                <Controller
-                                    name='toDate'
-                                    control={control}
-                                    render={({ field }) => (
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button
-                                                    type='button'
-                                                    variant='outline'
-                                                    className={cn(
-                                                        'w-full justify-start text-left font-normal',
-                                                        !field.value && 'text-muted-foreground',
-                                                        errors.toDate && 'border-red-500'
-                                                    )}>
-                                                    <CalendarIcon className='mr-2 h-4 w-4' />
-                                                    {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'To date'}
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className='w-auto p-0' align='start'>
-                                                <CalendarYear
-                                                    mode='single'
-                                                    selected={field.value ? new Date(field.value) : undefined}
-                                                    onSelect={(date: Date | undefined) => field.onChange(date?.toISOString() ?? '')}
-                                                    captionLayout='dropdown'
-                                                    fromYear={2000}
-                                                    toYear={2050}
-                                                />
-                                            </PopoverContent>
-                                        </Popover>
-                                    )}
-                                />
-                                {errors.toDate && <FormError>{errors.toDate.message}</FormError>}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Root Error */}
-                    {errors.root && <FormError>{errors.root.message}</FormError>}
+                    <FormField
+                        control={form.control}
+                        name='designation'
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Designation <span className="text-destructive">*</span></FormLabel>
+                                <FormControl>
+                                    <MultiSelect
+                                        options={desigOptions}
+                                        onValueChange={field.onChange}
+                                        defaultValue={field.value}
+                                        placeholder={isDesigLoading ? 'Loading...' : 'Select Designations'}
+                                        disabled={selectedDepts.length === 0}
+                                        maxCount={2}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
                 </div>
 
-                {/* Action Buttons */}
-                <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
+                <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
+                    {/* Employee Selection */}
+                    <div className="space-y-4 rounded-lg border p-4 bg-muted/30">
+                        <FormField
+                            control={form.control}
+                            name='allOrIndividual'
+                            render={({ field }) => (
+                                <FormItem className='space-y-3'>
+                                    <FormLabel>Employee Filter</FormLabel>
+                                    <FormControl>
+                                        <RadioGroup
+                                            onValueChange={field.onChange}
+                                            defaultValue={field.value}
+                                            className='flex gap-4'>
+                                            <FormItem className='flex items-center space-x-2 space-y-0'>
+                                                <FormControl><RadioGroupItem value='All' /></FormControl>
+                                                <FormLabel className='font-normal'>All Employees</FormLabel>
+                                            </FormItem>
+                                            <FormItem className='flex items-center space-x-2 space-y-0'>
+                                                <FormControl><RadioGroupItem value='Individual' /></FormControl>
+                                                <FormLabel className='font-normal'>Individual</FormLabel>
+                                            </FormItem>
+                                        </RadioGroup>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        {allOrIndividual === 'Individual' && (
+                            <FormField
+                                control={form.control}
+                                name='employeeIds'
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Select Employees <span className="text-destructive">*</span></FormLabel>
+                                        <FormControl>
+                                            <MultiSelect
+                                                options={empOptions}
+                                                onValueChange={field.onChange}
+                                                defaultValue={field.value}
+                                                placeholder={isEmpLoading ? 'Loading...' : 'Select Employees'}
+                                                disabled={selectedDesigs.length === 0}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        )}
+                    </div>
+
+                    {/* Date Range */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                            control={form.control}
+                            name='fromDate'
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>From Date <span className="text-destructive">*</span></FormLabel>
+                                    <FormControl>
+                                        <DatePicker
+                                            date={field.value ? new Date(field.value) : undefined}
+                                            setDate={(date: Date | undefined) => field.onChange(date?.toISOString())}
+                                            placeholder="Select From Date"
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name='toDate'
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>To Date <span className="text-destructive">*</span></FormLabel>
+                                    <FormControl>
+                                        <DatePicker
+                                            date={field.value ? new Date(field.value) : undefined}
+                                            setDate={(date: Date | undefined) => field.onChange(date?.toISOString())}
+                                            placeholder="Select To Date"
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+                </div>
+
+                <div className='flex flex-col md:justify-end gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
                         type='button'
                         variant='outline'
                         onClick={handleReset}
-                        disabled={isSubmitting}
-                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                        Reset
+                        className='px-8 shadow-sm hover:bg-muted'
+                        disabled={isSubmitting}>
+                        <RotateCcw className='mr-2 h-4 w-4' /> Reset
                     </Button>
-                    <Button
-                        type='submit'
-                        disabled={isSubmitting}
-                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
-                        isLoading={isSubmitting}
-                        loadingText='Searching...'>
-                        <div className='flex items-center'>
-                            <Save className='mr-2 h-4 w-4' />
-                            Search
-                        </div>
+                    <Button 
+                        type='submit' 
+                        className='bg-primary px-8 text-primary-foreground shadow-md transition-all hover:translate-y-[-1px] hover:shadow-lg'
+                        disabled={isSubmitting || isTypesLoading}>
+                        {isSubmitting ? (
+                            <>
+                                <Loader2 className='mr-2 h-4 w-4 animate-spin' /> Generating...
+                            </>
+                        ) : (
+                            <>
+                                <Search className='mr-2 h-4 w-4' /> Get Report
+                            </>
+                        )}
                     </Button>
                 </div>
             </form>
-        </div>
+        </Form>
     );
 }

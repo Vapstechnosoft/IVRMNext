@@ -43,7 +43,7 @@ export default function ToggleMasterFuelTypeForm({
             <div className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.trmfT_FuelType}</strong>?
+                        Are you sure you want to {isActive ? 'Inactive' : 'Active'} <strong>{rowData.trmfT_FuelType}</strong>?
                     </p>
                 </AdaptiveBody>
                 <AdaptiveFooter>
@@ -51,7 +51,7 @@ export default function ToggleMasterFuelTypeForm({
                         Cancel
                     </Button>
                     <Button type='button' onClick={handleConfirm} isLoading={isLoading} variant={isActive ? 'destructive' : 'default'}>
-                        {isActive ? 'Deactivate' : 'Activate'}
+                        {isActive ? 'Inactive' : 'Active'}
                     </Button>
                 </AdaptiveFooter>
             </div>

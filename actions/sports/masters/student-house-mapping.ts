@@ -159,7 +159,7 @@ export async function getMasterData(): Promise<MasterDataDTO> {
     };
 }
 
-export async function saveStudentHouseMapping(data: StudentHouseMappingDTO): Promise<{ success: boolean; message: string }> {
+export async function saveStudentHouseMapping(data: StudentHouseMappingDTO): Promise<{ success: boolean; message: string; returnVal?: string; returnval?: any }> {
     // Simulate Save
     console.log('Saving Data:', data);
 

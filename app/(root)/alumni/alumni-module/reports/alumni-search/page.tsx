@@ -2,6 +2,7 @@
 
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { getAlumniSearchDropdownData, performAlumniSearch } from '@/server/alumni/alumni-search';
+import { getAlumniSearchData } from '@/server/alumni/alumni-friend-request';
 import type { IAlumniAcademicYear, IAlumniClass, IAlumniSearchResultItem } from '@/types/alumni/alumni-search';
 import { Loader2, Search as SearchIcon } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
@@ -23,15 +24,11 @@ export default function AlumniSearchPage() {
     const loadData = useCallback(async () => {
         setIsLoading(true);
         try {
-            // Fetch initial dropdown data (Years, Classes)
             const initialRes = await getAlumniSearchDropdownData({});
 
             if (initialRes.success && initialRes.data) {
                 setYears(initialRes.data.yearList || []);
                 setClasses(initialRes.data.classList || []);
-
-                // Legacy code also shows loading cities/occupations might not be needed initially
-                // or were handled differently. For now, we restore base dropdowns.
             }
         } catch (error) {
             toast.error('Failed to load search preferences');

@@ -61,7 +61,8 @@ export const useStudentPortalInformation = () => {
         ...useQuery({
             queryKey: [STAFF_PORTAL_QUERY_KEYS.FEE_PORTAL_STUDENT_INFORMATION],
             queryFn: async () => {
-                return getStudentPortalInformation();
+                const resp = await getStudentPortalInformation();
+                return resp?.data ?? null;
             }
         }),
 

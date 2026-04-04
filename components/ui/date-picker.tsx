@@ -8,14 +8,16 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { DatePickerWithYear } from '@/components/ui/date-picker-year';
 
-interface DatePickerProps {
+import type { DayPicker } from 'react-day-picker';
+
+interface DatePickerProps extends Omit<React.ComponentProps<typeof DayPicker>, 'selected' | 'onSelect' | 'mode'> {
     date: Date | undefined;
     setDate: (date: Date | undefined) => void;
     placeholder?: string;
     className?: string;
 }
 
-export function DatePicker({ date, setDate, placeholder = 'Pick a date', className }: DatePickerProps) {
+export function DatePicker({ date, setDate, placeholder = 'Pick a date', className, ...props }: DatePickerProps) {
     const [open, setOpen] = React.useState(false);
 
     return (
@@ -36,6 +38,7 @@ export function DatePicker({ date, setDate, placeholder = 'Pick a date', classNa
             <PopoverContent className="w-auto p-0" align="start">
                 <DatePickerWithYear
                     mode="single"
+                    {...props}
                     selected={date}
                     onDayClick={(day) => {
                         setDate(day);

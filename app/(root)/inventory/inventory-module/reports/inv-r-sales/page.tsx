@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useRef, useState } from 'react';
+import { use, useRef, useState, useEffect } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { Heading } from '@/components/layout/heading';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
@@ -84,10 +84,22 @@ export default function InvRSalesPage(props: { searchParams: Promise<any> }) {
             return;
         }
 
+        // Show toast for empty initial report
+        if (totalRecords === 0 && !isFetching && currentPayload) {
+            toast.error("No record found");
+        }
+
         setCurrentPayload(payload);
         setPage(1);
         setSearchQuery(null);
     };
+
+    // Show toast for empty search results or initial empty report
+    useEffect(() => {
+        if (!isFetching && currentPayload && totalRecords === 0) {
+            toast.error("No record found");
+        }
+    }, [isFetching, totalRecords, searchQuery, currentPayload]);
 
     const columns = getColumns(
         currentPayload?.typeflag || 'All',
@@ -223,7 +235,7 @@ export default function InvRSalesPage(props: { searchParams: Promise<any> }) {
 
             <ReportForm onSubmit={handleReportSubmit} isLoading={isFetching} />
 
-            {reportData.length > 0 && (
+            {currentPayload && (
                 <CollapsibleSection title="Report Result" defaultOpen={true}>
                     <div className="p-4 space-y-4">
                         <div className="flex justify-between items-center bg-muted/20 p-2 rounded border">
@@ -250,6 +262,8 @@ export default function InvRSalesPage(props: { searchParams: Promise<any> }) {
                                 totalItems={totalRecords}
                                 isLoading={isFetching}
                                 isSearchRequired={true}
+                                noDataTitle="No Sales Found"
+                                noDataDescription="No records found matching your search criteria."
                             />
 
                             {reportData.length > 0 && (

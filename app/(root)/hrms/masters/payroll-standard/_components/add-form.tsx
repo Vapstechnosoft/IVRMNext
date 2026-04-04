@@ -1426,7 +1426,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                     3: '(Earning - Deduction) Here Basic and every other heads will change.',
                                     4: '(Earning - Deduction) Here Basic and all Percentage heads will change.',
                                     5: '(Only Earning Heads are revised When LOP Applies)',
-                                    6: 'Your description for method 6 goes here'
+                                    6: '(Only Heads with Revised Flag Will Change When LOP Applies)'
                                 };
                                 const tooltipText = methodTooltips[method];
 
@@ -1530,17 +1530,26 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                 );
                             }}
                         />
-                        <div className='flex items-center space-x-3 pt-6'>
-                            <Controller
-                                name='HRC_ApplicableFlag'
-                                control={control}
-                                render={({ field }) => (
-                                    <Checkbox id='HRC_ApplicableFlag' checked={field.value} onCheckedChange={field.onChange} />
-                                )}
-                            />
-                            <Label htmlFor='HRC_ApplicableFlag' className='cursor-pointer font-normal'>
-                                Applicable
+                        <div className='group flex flex-col gap-1.5'>
+                            <Label htmlFor='HRC_ApplicableFlag'>
+                                Fixed Increment<span className='text-destructive'>*</span>
                             </Label>
+                            <div className='flex items-center space-x-2 pt-2'>
+                                <Controller
+                                    name='HRC_ApplicableFlag'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <Checkbox
+                                            id='HRC_ApplicableFlag'
+                                            checked={field.value}
+                                            onCheckedChange={field.onChange}
+                                        />
+                                    )}
+                                />
+                                <Label htmlFor='HRC_ApplicableFlag' className='cursor-pointer font-normal'>
+                                    Applicable
+                                </Label>
+                            </div>
                         </div>
                         <Controller
                             name='HRC_MinimumPeriods'

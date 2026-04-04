@@ -13,10 +13,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 export default function StudentAgeCalculationPage() {
     const { initialData, studentsData, saveData, gridData } = useStudentAgeCalculation();
     const [studentOptions, setStudentOptions] = useState<{ label: string; value: string }[]>([]);
+    const [resetKey, setResetKey] = useState(0);
+    const [showGrid, setShowGrid] = useState(true);
 
     const {
         control,
@@ -65,12 +68,88 @@ export default function StudentAgeCalculationPage() {
     }, [watchAcademicYear, watchClass, watchSection]);
 
     const onSubmit = (data: StudentAgeCalculationFormData) => {
-        saveData.mutate(data);
+        saveData.mutate(data, {
+            onSuccess: (res) => {
+                if (res.success) setShowGrid(true);
+            }
+        });
     };
 
     const onCancel = () => {
         reset();
         setStudentOptions([]);
+        setResetKey((prev) => prev + 1);
+        setShowGrid(false);
+    };
+
+    const handlePrint = () => {
+        const data = gridData.data?.data || initialData.data?.data?.records || [];
+        if (data.length === 0) {
+            toast.error('No data found to print');
+            return;
+        }
+
+        const printWindow = window.open('', '', 'width=1200,height=800');
+        if (!printWindow) {
+            toast.error('Unable to open print window. Please disable pop-up blockers.');
+            return;
+        }
+
+        const columnHeaders = ['SL. No.', 'Academic Year', 'Student Name', 'Class', 'Section', 'Age Year', 'Month', "Day's"];
+        const tableHead = columnHeaders.map((col) => `<th>${col}</th>`).join('');
+
+        const tableRows = data
+            .map((item: any, index: number) => {
+                return `<tr>
+                <td>${index + 1}</td>
+                <td>${item.asmaY_Year ?? ''}</td>
+                <td>${item.studentName ?? ''}</td>
+                <td>${item.asmcL_ClassName ?? ''}</td>
+                <td>${item.asmC_SectionName ?? ''}</td>
+                <td>${item.age_Years ?? ''}</td>
+                <td>${item.age_Months ?? ''}</td>
+                <td>${item.age_Days ?? ''}</td>
+            </tr>`;
+            })
+            .join('');
+
+        printWindow.document.write(`
+            <html>
+            <head>
+                <title>Age Calculation Report</title>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 20px; }
+                    h3 { text-align: center; color: #333; margin-bottom: 20px; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                    th, td { border: 1px solid #333; padding: 8px; font-size: 12px; text-align: left; }
+                    th { background-color: #f2f2f2; font-weight: bold; }
+                    tr:nth-child(even) { background-color: #fafafa; }
+                    @media print {
+                        body { padding: 0; }
+                        table { page-break-inside: auto; }
+                        tr { page-break-inside: avoid; page-break-after: auto; }
+                        thead { display: table-header-group; }
+                    }
+                </style>
+            </head>
+            <body>
+                <h3>Age Calculation Report</h3>
+                <table>
+                    <thead><tr>${tableHead}</tr></thead>
+                    <tbody>
+                        ${tableRows}
+                    </tbody>
+                </table>
+            </body>
+            </html>
+        `);
+
+        printWindow.document.close();
+
+        // Give images/styles some time to load before printing
+        setTimeout(() => {
+            printWindow.print();
+        }, 500);
     };
 
     const columns = [
@@ -102,7 +181,7 @@ export default function StudentAgeCalculationPage() {
                 <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
                     <CardTitle>Age Calculation</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent key={resetKey}>
                     <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
                         <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                             <div className='space-y-2'>
@@ -184,11 +263,12 @@ export default function StudentAgeCalculationPage() {
                                 <Label>
                                     Student Name <span className='text-red-500'>*</span>
                                 </Label>
-                                <Controller
+                                 <Controller
                                     control={control}
                                     name='student'
                                     render={({ field }) => (
                                         <MultiSelect
+                                            key={`multi-${resetKey}`}
                                             options={studentOptions}
                                             onValueChange={(vals) => field.onChange(vals.map(Number))}
                                             defaultValue={field.value?.map(String) || []}
@@ -219,10 +299,14 @@ export default function StudentAgeCalculationPage() {
                                 {saveData.isPending && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
                                 Save
                             </Button>
-                            <Button type='button' variant='destructive' onClick={onCancel}>
+                            <Button
+                                type='button'
+                                variant='outline'
+                                className='transition-all duration-200 hover:scale-105'
+                                onClick={onCancel}>
                                 Cancel
                             </Button>
-                            <Button type='button' variant='secondary' onClick={() => window.print()}>
+                            <Button type='button' variant='secondary' onClick={handlePrint}>
                                 Print
                             </Button>
                         </div>
@@ -237,8 +321,8 @@ export default function StudentAgeCalculationPage() {
                 <CardContent>
                     <DataTable
                         columns={columns}
-                        data={gridData.data?.data || initialData.data?.data?.records || []}
-                        totalItems={gridData.data?.data?.length || initialData.data?.data?.records?.length || 0}
+                        data={showGrid ? (gridData.data?.data || initialData.data?.data?.records || []) : []}
+                        totalItems={showGrid ? (gridData.data?.data?.length || initialData.data?.data?.records?.length || 0) : 0}
                     //manualPagination={false}
                     />
                 </CardContent>

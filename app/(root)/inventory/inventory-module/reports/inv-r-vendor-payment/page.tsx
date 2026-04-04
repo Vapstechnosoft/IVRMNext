@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo, use } from "react";
+import { useState, useCallback, useMemo, use, useEffect } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
@@ -76,6 +76,10 @@ export default function VendorPaymentReportPage(props: { searchParams: Promise<a
 
     const handleReportGenerated = (payload: IInvVendorPaymentReportPayload | null) => {
         if (payload) {
+            // Show toast for empty initial report
+            if (totalRecords === 0 && !isFetching && currentPayload) {
+                toast.error("No record found");
+            }
             setCurrentPayload(payload);
             setReportType(payload.reporttype);
             setCurrentPage(1);
@@ -86,6 +90,13 @@ export default function VendorPaymentReportPage(props: { searchParams: Promise<a
             setSearchQuery(null);
         }
     };
+
+    // Show toast for empty search results or initial empty report
+    useEffect(() => {
+        if (!isFetching && currentPayload && totalRecords === 0) {
+            toast.error("No record found");
+        }
+    }, [isFetching, totalRecords, searchQuery, currentPayload]);
 
     const handleVendorClick = useCallback((vendor: IInvVendorPaymentVendorReport) => {
         if (!currentPayload) return;
@@ -258,7 +269,7 @@ export default function VendorPaymentReportPage(props: { searchParams: Promise<a
                 isLoading={isFetching}
             />
 
-            {reportData.length > 0 && (
+            {currentPayload && (
                 <CollapsibleSection title="Report Result" defaultOpen={true}>
                     <div className="p-4 space-y-4">
                         <div className="flex justify-between items-center bg-muted/20 p-2 rounded border">
@@ -284,6 +295,8 @@ export default function VendorPaymentReportPage(props: { searchParams: Promise<a
                                 isLoading={isFetching}
                                 totalItems={totalRecords}
                                 isSearchRequired={true}
+                                noDataTitle="No Payments Found"
+                                noDataDescription="No records found matching your vendor or date selection."
                             />
                         </div>
 

@@ -52,10 +52,10 @@ export default function AppointmentStatusForm({ onSuccess }: AppointmentStatusFo
             vmmV_Remarks: ''
         }
     });
-
     useEffect(() => {
-        if (formData?.vmmV_Id) {
-            getEditData(formData.vmmV_Id).then((data) => {
+        const fetchEditData = async () => {
+            if (formData?.vmmV_Id) {
+                const data = await getEditData(formData.vmmV_Id);
                 if (data) {
                     form.reset({
                         vmmV_Id: data.vmmV_Id,
@@ -68,8 +68,10 @@ export default function AppointmentStatusForm({ onSuccess }: AppointmentStatusFo
                         vmmV_Remarks: data.vmmV_Remarks || ''
                     });
                 }
-            });
-        }
+            }
+        };
+
+        fetchEditData();
     }, [formData, getEditData, form]);
 
     const onSubmit = async (data: FormValues) => {

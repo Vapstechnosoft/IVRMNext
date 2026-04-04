@@ -27,7 +27,7 @@ import {
     searchEmployeesBySelection,
     searchSalaryCalculationBySelection
 } from '@/server/hrms/hrmsConfig/transaction/salary-calculation';
-import { deleteSalaryIncrement, getSalaryIncrementOnload, saveSalaryIncrement } from '@/server/hrms/hrmsConfig/transaction/salary-increment';
+import { deleteSalaryIncrement, getSalaryIncrementOnload, saveSalaryIncrement, deleteEmployeeIncrementMaster, getEmployeeIncrementGrid, addOrUpdateEmployeeSalaryIncrement } from '@/server/hrms/hrmsConfig/transaction/salary-increment';
 import { deleteSalaryUpdation, filterSalaryUpdationEmployees, getSalaryUpdationDepartments, getSalaryUpdationDesignations, getSalaryUpdationEmployeeDetailsBySelection, getSalaryUpdationList, getSalaryUpdationOnload, saveSalaryUpdation, updateEmployeesEarningsAndDeductions } from '@/server/hrms/hrmsConfig/transaction/salary-updation';
 import { getEmployeeDetailsBySelection, getMassUpdationDepartments, getMassUpdationDesignations, getMassUpdationOnload, saveMassUpdation, searchMassUpdationEmployees } from '@/server/hrms/hrmsConfig/transaction/mass-updation';
 import type {
@@ -72,7 +72,9 @@ import type {
     SalaryIncrementOnloadRequest,
     SalaryIncrementOnloadResponse,
     SalaryIncrementSaveRequest,
-    SalaryIncrementSaveResponse
+    SalaryIncrementSaveResponse,
+    NewSalaryIncrementSaveRequest,
+    NewSalaryIncrementSaveResponse
 } from '@/types/hrms/salary-increment';
 import type {
     SalaryUpdationDeleteRequest,
@@ -240,10 +242,10 @@ export function useSalaryAdvanceEmployeeDropdown() {
         queryKey: [HRMS_QUERY_KEYS.SALARY_ADVANCE_LIST, 'employee-dropdown'],
         queryFn: () =>
             getSalaryAdvanceEmployeeDropdown().then((res: any) => {
-                if (!res.success) {
-                    throw new Error(res.message);
-                }
-                return res.data!;
+                const data = res?.data || res; // Handle both wrapped and unwrapped
+                if (Array.isArray(data)) return data;
+                if (data?.data && Array.isArray(data.data)) return data.data;
+                return [];
             }),
         staleTime: 1000 * 60 * 10
     });
@@ -578,6 +580,60 @@ export function useDeleteSalaryIncrement() {
         },
         onError: (error) => {
             toast.error(error.message || 'Failed to deactivate salary increment.');
+        }
+    });
+}
+export function useEmployeeIncrementGrid() {
+    return useQuery<any[], Error>({
+        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_INCREMENT_GRID],
+        queryFn: async () => {
+            const res = await getEmployeeIncrementGrid();
+            if (!res.success || !res.data) {
+                return [];
+            }
+            return res.data;
+        },
+        staleTime: 1000 * 60 * 5
+    });
+}
+export function useDeleteEmployeeIncrementMaster() {
+    const queryClient = useQueryClient();
+    return useMutation<ApiResponse<any>, Error, number>({
+        mutationFn: (id: number) => deleteEmployeeIncrementMaster(id),
+        onSuccess: (res) => {
+            if (res.success) {
+                toast.success(res.message || 'Increment record deleted successfully');
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_INCREMENT_GRID]
+                });
+            } else {
+                toast.error(res.message || 'Failed to delete increment record');
+            }
+        },
+        onError: (error: any) => {
+            toast.error(error.message || 'An error occurred while deleting');
+        }
+    });
+}
+
+export function useAddOrUpdateEmployeeSalaryIncrement() {
+    const queryClient = useQueryClient();
+    return useMutation<NewSalaryIncrementSaveResponse, Error, NewSalaryIncrementSaveRequest>({
+        mutationFn: (data: NewSalaryIncrementSaveRequest) =>
+            addOrUpdateEmployeeSalaryIncrement(data).then((res) => {
+                if (!res.success) {
+                    throw new Error(res.message);
+                }
+                return res as any;
+            }),
+        onSuccess: (data) => {
+            toast.success(data.message || 'Salary increment processed successfully!');
+            queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_INCREMENT_GRID]
+            });
+        },
+        onError: (error) => {
+            toast.error(error.message || 'Failed to process salary increment.');
         }
     });
 }

@@ -89,7 +89,7 @@ export const guestAllotmentColumns: ColumnDef<GuestAllotmentColumn, any>[] = [
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: GuestAllotmentColumn }) {
-    const { openEditForm } = useFormContext<GuestAllotmentColumn>();
+    const { openEditForm, openToggleForm } = useFormContext<GuestAllotmentColumn>();
 
     const handleEdit = useCallback(
         (data: GuestAllotmentColumn) => {
@@ -98,11 +98,20 @@ function ActionButtonsCell({ rowData }: { rowData: GuestAllotmentColumn }) {
         [openEditForm]
     );
 
+    const handleToggle = useCallback(
+        (data: GuestAllotmentColumn) => {
+            openToggleForm?.(data);
+        },
+        [openToggleForm]
+    );
+
     return (
         <ActionButtons
             rowData={rowData}
-            buttons={{ edit: true, toggle: false, delete: false }}
+            buttons={{ edit: true, toggle: true, delete: false }}
             onEdit={handleEdit}
+            onToggle={handleToggle}
+            toggleConditionKey='hlhgstalT_ActiveFlag'
         />
     );
 }

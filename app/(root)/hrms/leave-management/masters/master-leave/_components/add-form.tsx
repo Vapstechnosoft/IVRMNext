@@ -78,6 +78,7 @@ export default function AddMasterLeaveForm({ onSuccess, onCancel, className = ''
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                         <InputText
                             label='Leave Name'
+                            placeholder='Enter Leave Name'
                             required
                             id='hrmL_LeaveName'
                             {...register('hrmL_LeaveName', MASTER_LEAVE_VALIDATION.hrmL_LeaveName)}
@@ -86,6 +87,7 @@ export default function AddMasterLeaveForm({ onSuccess, onCancel, className = ''
                         />
                         <InputText
                             label='Leave Code'
+                            placeholder='Enter Leave Code'
                             required
                             id='hrmL_LeaveCode'
                             {...register('hrmL_LeaveCode', MASTER_LEAVE_VALIDATION.hrmL_LeaveCode)}

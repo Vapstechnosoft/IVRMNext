@@ -42,36 +42,36 @@ export const AlumniDetailsColumns: ColumnDef<IAlumniStudentDetail>[] = [
         },
         enableSorting: true
     },
-    // {
-    //     id: 'year',
-    //     header: ({ column }) => <DataTableColumnHeader column={column} title='Year' />,
-    //     cell: ({ row }) => {
-    //         const item = row.original;
-    //         const joinYear = item.asmaY_Year_Join || item.asmaY_Year || item.yeardmitted || item.amsT_JOIN_YEAR || '-';
-    //         const leftYear = item.asmaY_Year_Left || item.yearleft || item.amsT_JOIN_LEFT || '-';
-    //         return (
-    //             <div className='flex flex-col text-xs'>
-    //                 <span>Join: {joinYear}</span>
-    //                 <span>Left: {leftYear}</span>
-    //             </div>
-    //         );
-    //     }
-    // },
-    // {
-    //     id: 'class',
-    //     header: ({ column }) => <DataTableColumnHeader column={column} title='Class' />,
-    //     cell: ({ row }) => {
-    //         const item = row.original;
-    //         const joinClass = item.asmcL_ClassName_Join || item.asmcL_ClassName || item.classnameadmitted || item.amsT_CLASS_JOIN || '-';
-    //         const leftClass = item.asmcL_ClassName_Left || item.classnameleft || item.amsT_CLASS_LEFT || '-';
-    //         return (
-    //             <div className='flex flex-col text-xs'>
-    //                 <span>Join: {joinClass}</span>
-    //                 <span>Left: {leftClass}</span>
-    //             </div>
-    //         );
-    //     }
-    // },
+    {
+        id: 'year',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Year' className='justify-center text-center font-bold text-black' />,
+        cell: ({ row }) => {
+            const item = row.original;
+            const joinYear = item.asmaY_Year_Join || item.asmaY_Year || item.yeardmitted || item.amsT_JOIN_YEAR || '-';
+            const leftYear = item.asmaY_Year_Left || item.yearleft || item.amsT_JOIN_LEFT || '-';
+            return (
+                <div className='flex flex-col text-xs'>
+                    <span>Join: {joinYear}</span>
+                    <span>Left: {leftYear}</span>
+                </div>
+            );
+        }
+    },
+    {
+        id: 'class',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Class' className='justify-center text-center font-bold text-black' />,
+        cell: ({ row }) => {
+            const item = row.original;
+            const joinClass = item.asmcL_ClassName_Join || item.asmcL_ClassName || item.classnameadmitted || item.amsT_CLASS_JOIN || '-';
+            const leftClass = item.asmcL_ClassName_Left || item.classnameleft || item.amsT_CLASS_LEFT || '-';
+            return (
+                <div className='flex flex-col text-xs'>
+                    <span>Join: {joinClass}</span>
+                    <span>Left: {leftClass}</span>
+                </div>
+            );
+        }
+    },
     {
         accessorKey: 'almsT_MobileNo',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Mobile No' className='justify-center text-center font-bold text-black' />,

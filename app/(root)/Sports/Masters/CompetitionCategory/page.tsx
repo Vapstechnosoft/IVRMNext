@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useMasterCompetitionCategories } from '@/hooks/sports/useMasterCompetitionCategory';
@@ -50,21 +50,12 @@ function MasterCompetitionCategoryPageContent({
         editFormRef
     } = useFormContext<IMasterCompetitionCategory>();
 
+    // Support both nested and flat response structures, common in these migrations
     const tableProps = {
-        data: response?.data?.CompetitionCategoryList || response?.data?.competitionCategoryList || [],
-        totalItems: response?.data?.Count || response?.data?.count || 0,
+        data: response?.data?.competitionCategoryList || response?.data?.CompetitionCategoryList || response?.data || [],
+        totalItems: response?.data?.count || response?.data?.Count || response?.total || response?.count || 0,
         success: response?.success,
         errorMessage: response?.message
-    };
-
-    const handleAddSuccess = async () => {
-        closeAddForm();
-        await refetchAll();
-    };
-
-    const handleEditSuccess = async () => {
-        closeEditForm();
-        await refetchAll();
     };
 
     return (
@@ -90,6 +81,10 @@ function MasterCompetitionCategoryPageContent({
                         columns={MasterCompetitionCategoryColumns}
                         isLoading={isLoading}
                         error={error}
+                        manualPagination={true}
+                        manualSorting={true}
+                        manualFiltering={true}
+                        showSearchColumns={true}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading competition categories...'
                         noDataTitle='No Competition Categories Found'
@@ -118,7 +113,12 @@ function MasterCompetitionCategoryPageContent({
                                         className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                         <X className='h-4 w-4 text-destructive' /> Close
                                     </Button>
-                                    <AddMasterCompetitionCategoryForm onSuccess={handleAddSuccess} />
+                                    <AddMasterCompetitionCategoryForm
+                                        onSuccess={() => {
+                                            refetchAll();
+                                            closeAddForm();
+                                        }}
+                                    />
                                 </div>
                             </CollapsibleSection>
                         </div>
@@ -142,7 +142,13 @@ function MasterCompetitionCategoryPageContent({
                                         className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                         <X className='h-4 w-4 text-destructive' /> Close
                                     </Button>
-                                    <UpdateMasterCompetitionCategoryForm selectedRow={selectedRow} onSuccess={handleEditSuccess} />
+                                    <UpdateMasterCompetitionCategoryForm
+                                        selectedRow={selectedRow}
+                                        onSuccess={() => {
+                                            refetchAll();
+                                            closeEditForm();
+                                        }}
+                                    />
                                 </div>
                             </CollapsibleSection>
                         </div>
@@ -151,11 +157,7 @@ function MasterCompetitionCategoryPageContent({
 
                 {/* Toggle Form */}
                 {isToggleFormOpen && selectedRow && (
-                    <ToggleMasterCompetitionCategoryForm
-                        rowData={selectedRow}
-                        onClose={closeToggleForm}
-                        onSuccess={refetchAll}
-                    />
+                    <ToggleMasterCompetitionCategoryForm rowData={selectedRow} onClose={closeToggleForm} onSuccess={refetchAll} />
                 )}
             </div>
         </div>
