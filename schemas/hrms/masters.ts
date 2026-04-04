@@ -448,6 +448,7 @@ export const courseMasterSchema = z.object({
         ),
     hrmC_SpecialisationFlag: z.boolean().default(false),
     hrmC_DefaultQualFag: z.boolean().default(false),
+    hrmC_ActiveFlag: z.boolean().optional(),
     hrmC_Order: z.number().optional()
 });
 

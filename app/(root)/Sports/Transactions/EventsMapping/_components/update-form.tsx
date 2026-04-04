@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
 import { eventMappingSchema, IEventMappingDTO, ISponsor } from '@/types/sports/transactions/events-mapping';
 import { useEventMapping } from '@/hooks/sports/useEventMapping';
 import { Button } from '@/components/ui/button';
@@ -31,40 +32,46 @@ export default function UpdateEventsMappingForm({ onSuccess, data: selectedRow }
             setIsLoading(true);
             try {
                 const result = await edit.mutateAsync({
-                    ASMAY_Id: selectedRow.asmaY_Id,
-                    SPCCE_Id: selectedRow.spccE_Id
+                    ASMAY_Id: selectedRow.asmaY_Id || (selectedRow as any).ASMAY_Id,
+                    SPCCE_Id: selectedRow.spccE_Id || (selectedRow as any).SPCCE_Id
                 });
 
-                if (result.success && result.data && result.data.length > 0) {
-                    const editDetails = result.data[0];
-                    // Map sponsors from the list. 
-                    // Note: API response in user request shows spccmsP_Id but not the name.
-                    // The name is not strictly required for the checkbox state if we just match IDs, 
-                    // but we'll try to match it with the loaded sponsorList if possible, or leave it blank.
-                    const sponsors = result.data
-                        .filter((d: any) => d.spccmsP_Id && d.spccmsP_Id > 0)
-                        .map((d: any) => ({
-                            spccmsP_Id: d.spccmsP_Id,
-                            spccmsP_SponsorName: '', // Name not in edit response, will be matched by ID in UI
-                            selected: true
-                        }));
+                if (result.success) {
+                    const editDetailsList = Array.isArray(result.data) ? result.data : (result.data?.editDetails || result.editDetails || []);
+                    
+                    if (editDetailsList.length > 0) {
+                        const editDetails = editDetailsList[0];
+                        
+                        // Map sponsors from all records in the list (EditDetails returns multiple records if multiple sponsors exist)
+                        const sponsors = editDetailsList
+                            .filter((d: any) => (d.spccmsP_Id || d.SPCCMSP_Id) && (d.spccmsP_Id || d.SPCCMSP_Id) > 0)
+                            .map((d: any) => ({
+                                spccmsP_Id: d.spccmsP_Id || d.SPCCMSP_Id,
+                                spccmsP_SponsorName: d.spccmsP_SponsorName || d.SPCCMSP_SponsorName || '',
+                                selected: true
+                            }));
 
-                    setFetchedData({
-                        ASMAY_Id: editDetails.asmaY_Id,
-                        SPCCME_Id: editDetails.spccmE_Id,
-                        SPCCMEV_Id: editDetails.spccmeV_Id,
-                        SPCCE_Id: editDetails.spccE_id, // Note: response has spccE_id (lowercase d)
-                        SPCCE_StartDate: new Date(editDetails.spccE_StartDate),
-                        SPCCE_EndDate: new Date(editDetails.spccE_EndDate),
-                        // Ensure time is in HH:mm format for input type="time"
-                        SPCCE_StartTime: editDetails.spccE_StartTime?.substring(0, 5),
-                        SPCCE_EndTime: editDetails.spccE_EndTime?.substring(0, 5),
-                        SPCCE_Remarks: editDetails.spccE_Remarks,
-                        SPCCE_SponsorFlag: editDetails.spccE_SponsorFlag,
-                        sponsorData: sponsors
-                    });
+                        const startDate = editDetails.spccE_StartDate || editDetails.SPCCE_StartDate || (selectedRow as any).spccE_StartDate || (selectedRow as any).SPCCE_StartDate;
+                        const endDate = editDetails.spccE_EndDate || editDetails.SPCCE_EndDate || (selectedRow as any).spccE_EndDate || (selectedRow as any).SPCCE_EndDate;
+
+                        setFetchedData({
+                            ASMAY_Id: editDetails.asmaY_Id || editDetails.ASMAY_Id || (selectedRow as any).asmaY_Id || (selectedRow as any).ASMAY_Id,
+                            SPCCME_Id: editDetails.spccmE_Id || editDetails.SPCCME_Id || (selectedRow as any).spccmE_Id || (selectedRow as any).SPCCME_Id,
+                            SPCCMEV_Id: editDetails.spccmeV_Id || editDetails.SPCCMEV_Id || (selectedRow as any).spccmeV_Id || (selectedRow as any).SPCCMEV_Id,
+                            SPCCE_Id: editDetails.spccE_id || editDetails.spccE_Id || editDetails.SPCCE_Id || (selectedRow as any).spccE_Id || (selectedRow as any).SPCCE_Id,
+                            SPCCE_StartDate: startDate ? new Date(startDate) : null,
+                            SPCCE_EndDate: endDate ? new Date(endDate) : null,
+                            SPCCE_StartTime: (editDetails.spccE_StartTime || editDetails.SPCCE_StartTime || (selectedRow as any).spccE_StartTime || (selectedRow as any).SPCCE_StartTime)?.substring(0, 5) || '',
+                            SPCCE_EndTime: (editDetails.spccE_EndTime || editDetails.SPCCE_EndTime || (selectedRow as any).spccE_EndTime || (selectedRow as any).SPCCE_EndTime)?.substring(0, 5) || '',
+                            SPCCE_Remarks: editDetails.spccE_Remarks || editDetails.SPCCE_Remarks || (selectedRow as any).spccE_Remarks || (selectedRow as any).SPCCE_Remarks || '',
+                            SPCCE_SponsorFlag: editDetails.spccE_SponsorFlag || editDetails.SPCCE_SponsorFlag || (selectedRow as any).spccE_SponsorFlag || (selectedRow as any).SPCCE_SponsorFlag || false,
+                            sponsorData: sponsors
+                        });
+                    } else {
+                        toast.error('No data found for editing.');
+                    }
                 } else {
-                    toast.error('No data found for editing.');
+                    toast.error(result.message || 'Failed to load edit data');
                 }
             } catch (error) {
                 console.error('Failed to fetch edit data', error);
@@ -118,8 +125,12 @@ function AddEventsMappingFormWithValues({ initialValues, onSuccess }: { initialV
             SPCCME_Id: Number(values.SPCCME_Id),
             SPCCMEV_Id: Number(values.SPCCMEV_Id),
             SPCCE_SponsorFlag: values.SPCCE_SponsorFlag || false,
-            sponsorData: values.sponsorData?.map(s => ({
-                spccmsP_Id: s.spccmsP_Id,
+            // Format dates as yyyy-MM-dd to prevent timezone shifts
+            SPCCE_StartDate: values.SPCCE_StartDate ? format(new Date(values.SPCCE_StartDate), 'yyyy-MM-dd') : null,
+            SPCCE_EndDate: values.SPCCE_EndDate ? format(new Date(values.SPCCE_EndDate), 'yyyy-MM-dd') : null,
+            // Map sponsor properties to match backend DTO expectations
+            sponsordata: values.sponsorData?.map(s => ({
+                SPCCMSP_Id: s.spccmsP_Id,
                 selected: true,
                 spccmsP_ActiveFlag: true
             })) || []

@@ -3,7 +3,7 @@
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useStudentEligibleReport } from '@/hooks/sports/useStudentEligibleReport';
-import type { IStudentEligibleReportDetail } from '@/types/sports/reports/student-eligible-report';
+import type { IStudentEligibleReportDetail, IStudentEligibleReportRequest } from '@/types/sports/reports/student-eligible-report';
 import { useEffect, useState } from 'react';
 import { columns } from './_components/columns';
 import ReportForm from './_components/report-form';
@@ -11,9 +11,22 @@ import { useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import * as XLSX from 'xlsx';
 
-export default function StudentEligibleReportPage() {
-    const { data: loadGridData, isLoading, error } = useStudentEligibleReport();
-    const [reportResponse, setReportResponse] = useState<any>(null);
+import { use } from 'react';
+
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+export default function StudentEligibleReportPage(props: { searchParams: SearchParams }) {
+    const searchParams = use(props.searchParams);
+    const [currentPayload, setCurrentPayload] = useState<IStudentEligibleReportRequest | null>(null);
+    
+    // Using the query version of the report fetcher to manage dependencies and avoid infinite loops
+    // This correctly depends on both the user's form payload AND the table's state (searchParams)
+    const { 
+        reportQuery, 
+        isLoading: isLoadLoading 
+    } = useStudentEligibleReport(currentPayload || undefined, searchParams);
+    
+    const reportResponse = reportQuery.data;
     const componentRef = useRef<HTMLDivElement>(null);
 
     const handlePrint = useReactToPrint({
@@ -38,29 +51,14 @@ export default function StudentEligibleReportPage() {
         }
     };
 
-    useEffect(() => {
-        if (loadGridData) {
-            setReportResponse(loadGridData);
-        }
-    }, [loadGridData]);
-
-    const handleReport = (data: any) => {
-        setReportResponse(data);
+    const handleReport = (data: any, payload: any) => {
+        // Just set the payload; the reportQuery in useStudentEligibleReport will handle the fetching
+        setCurrentPayload(payload);
     };
 
     const handleReset = () => {
-        if (loadGridData) {
-            setReportResponse(loadGridData);
-        }
+        setCurrentPayload(null);
     };
-
-    // const handlePrint = () => {
-    //     // Combined with react-to-print
-    // };
-
-    // const handleExcel = () => {
-    //     // Local implementation above
-    // };
 
     const tableProps = useDataTableProps(reportResponse);
 
@@ -78,12 +76,13 @@ export default function StudentEligibleReportPage() {
                         onPrint={() => handlePrint()}
                         onExcel={handleExcel}
                         hasData={!!reportResponse?.data?.length}
+                        isLoading={reportQuery.isLoading || reportQuery.isFetching} 
                     />
                 </CollapsibleSection>
 
                 <CollapsibleSection
                     title='STUDENT ELIGIBLE REPORT LIST'
-                    defaultOpen={true}
+                    defaultOpen={!!reportResponse?.data?.length}
                     variant='default'
                     size='lg'
                     className='shadow-lg'>
@@ -107,9 +106,12 @@ export default function StudentEligibleReportPage() {
                             <GenericDataTable<IStudentEligibleReportDetail>
                                 {...tableProps}
                                 columns={columns}
-                                isLoading={isLoading}
-                                error={error}
-                                //manualPagination={false}
+                                isLoading={reportQuery.isLoading}
+                                error={reportQuery.isError ? reportQuery.error : null}
+                                manualPagination={true}
+                                manualSorting={true}
+                                manualFiltering={true}
+                                showSearchColumns={true}
                                 showViewOptions={true}
                                 loadingMessage='Loading report data...'
                                 noDataTitle='No Records Found'
@@ -121,21 +123,38 @@ export default function StudentEligibleReportPage() {
                             <table className="w-full border-collapse border border-gray-300 text-center text-[10pt]">
                                 <thead>
                                     <tr className="bg-gray-100">
-                                        {columns.map((col: any, i) => (
-                                            <th key={i} className="border border-gray-300 p-2 font-bold bg-gray-50 whitespace-nowrap">
-                                                {typeof col.header === 'string' ? col.header : (col.header?.toString() || '')}
-                                            </th>
-                                        ))}
+                                        <th className="border border-gray-300 p-2 font-bold bg-gray-50 whitespace-nowrap">SL. No.</th>
+                                        <th className="border border-gray-300 p-2 font-bold bg-gray-50 whitespace-nowrap">Adm. No.</th>
+                                        <th className="border border-gray-300 p-2 font-bold bg-gray-50 whitespace-nowrap">Student Name</th>
+                                        <th className="border border-gray-300 p-2 font-bold bg-gray-50 whitespace-nowrap">Class</th>
+                                        <th className="border border-gray-300 p-2 font-bold bg-gray-50 whitespace-nowrap">Section</th>
+                                        <th className="border border-gray-300 p-2 font-bold bg-gray-50 whitespace-nowrap">DOB</th>
+                                        <th className="border border-gray-300 p-2 font-bold bg-gray-50 whitespace-nowrap">Age</th>
+                                        <th className="border border-gray-300 p-2 font-bold bg-gray-50 whitespace-nowrap">Father Name</th>
+                                        <th className="border border-gray-300 p-2 font-bold bg-gray-50 whitespace-nowrap">Mother Name</th>
+                                        <th className="border border-gray-300 p-2 font-bold bg-gray-50 whitespace-nowrap">Address</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {(reportResponse?.data || []).length > 0 ? (
-                                        (reportResponse.data).map((row: any, rowIndex: number) => (
+                                        reportResponse?.data?.map((row: any, rowIndex: number) => (
                                             <tr key={rowIndex}>
                                                 {columns.map((col: any, colIndex) => (
                                                     <td key={colIndex} className="border border-gray-300 p-2">
-                                                        {col.accessorKey ? row[col.accessorKey] : 
-                                                         col.cell ? (col.cell as any)({ row: { original: row, index: rowIndex } }) : ''}
+                                                        {(col.id === 'serialNo' || col.accessorKey === 'serialNo') ? 
+                                                 ((Number(searchParams?.page) || 1) - 1) * (Number(searchParams?.page_size) || 10) + rowIndex + 1 : 
+                                                         col.accessorKey ? row[col.accessorKey] : 
+                                                         col.cell ? (col.cell as any)({ 
+                                                             row: { original: row, index: rowIndex }, 
+                                                             table: { 
+                                                                 getState: () => ({ 
+                                                                     pagination: { 
+                                                                         pageIndex: (Number(searchParams?.page) || 1) - 1, 
+                                                                         pageSize: Number(searchParams?.page_size) || 10 
+                                                                     } 
+                                                                 }) 
+                                                             } 
+                                                         }) : ''}
                                                     </td>
                                                 ))}
                                             </tr>

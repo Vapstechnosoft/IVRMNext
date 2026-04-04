@@ -89,22 +89,87 @@ export interface SalaryApprovalSearchRequest {
     LogInUserId: number;
 }
 
+export interface EarningResultItem {
+    hresD_Id?: number;
+    hreS_Id?: number;
+    hrmeD_Id?: number;
+    hrmeD_Order?: number;
+    hresD_Amount?: number;
+    hrmeD_Name?: string;
+    hrmeD_EarnDedFlag?: string;
+    earningoutDTO?: any;
+    deductionoutDTO?: any;
+    hreS_Year?: string | null;
+    hrmE_Id?: number;
+    hreS_Month?: string | null;
+    // PascalCase Aligned Fields
+    HREED_Id?: number;
+    MI_Id?: number;
+    HRME_Id?: number;
+    HRMED_Id?: number;
+    HREED_Amount?: number;
+    HREED_Percentage?: string;
+    HREED_ActiveFlag?: boolean;
+    HREED_MaxApplicableFlg?: boolean;
+    HREED_ApplicableMaxValue?: number;
+}
+
+export interface DeductionResultItem {
+    hresD_Id?: number;
+    hreS_Id?: number;
+    hrmeD_Id?: number;
+    hrmeD_Order?: number;
+    hresD_Amount?: number;
+    hrmeD_Name?: string;
+    hrmeD_EarnDedFlag?: string;
+    earningoutDTO?: any;
+    deductionoutDTO?: any;
+    hreS_Year?: string | null;
+    hrmE_Id?: number;
+    hreS_Month?: string | null;
+    // PascalCase Aligned Fields
+    HREED_Id?: number;
+    MI_Id?: number;
+    HRME_Id?: number;
+    HRMED_Id?: number;
+    HREED_Amount?: number;
+    HREED_Percentage?: string;
+    HREED_ActiveFlag?: boolean;
+    HREED_MaxApplicableFlg?: boolean;
+    HREED_ApplicableMaxValue?: number;
+}
+
 // Employee Detail in Search Response
 export interface EmployeeDetail {
     HRME_Id: number;
+    hrmE_Id?: number;
     HRME_EmployeeCode: string;
+    hrmE_EmployeeCode?: string;
     HRME_EmployeeFirstName: string;
+    hrmE_EmployeeFirstName?: string;
     HRME_EmployeeMiddleName: string | null;
+    hrmE_EmployeeMiddleName?: string | null;
     HRME_EmployeeLastName: string | null;
-    HRMGT_EmployeeGroupType: string;
-    HRMD_DepartmentName: string;
-    HRMDES_DesignationName: string;
-    TotalEarning: number;
-    TotalDeduction: number;
-    NetSalary: number;
-    HRES_WorkingDays: number;
-    HRES_Year: string;
-    HRES_Month: string;
+    hrmE_EmployeeLastName?: string | null;
+    HRMGT_EmployeeGroupType?: string;
+    HRMD_DepartmentName?: string;
+    HRMDES_DesignationName?: string;
+    hrmdeS_DesignationName?: string;
+    TotalEarning?: number;
+    TotalDeduction?: number;
+    NetSalary?: number;
+    HRES_WorkingDays?: number;
+    hreS_WorkingDays?: number;
+    HRES_Year?: string;
+    HRES_Month?: string;
+    empGrossSal?: number;
+    grossEarning?: number;
+    grossDeduction?: number;
+    netSalary?: number;
+    earningresult?: EarningResultItem[];
+    deductionresult?: DeductionResultItem[];
+    earningResult?: EarningResultItem[];
+    deductionResult?: DeductionResultItem[];
 }
 
 // Search Response

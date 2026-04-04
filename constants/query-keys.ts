@@ -276,7 +276,8 @@ export const FEES_QUERY_KEYS = {
     FEE_STUDENT_TERM_WISE_PAID_CLASS_YEAR_DROP: 'fee_student_term_wise_paid_class_drop',
     FEE_STUDENT_TERM_WISE_PAID_SECTION_YEAR_DROP: 'fee_student_term_wise_paid_section_drop',
     FEE_STUDENT_TERM_WISE_PAID_TERM_LIST: 'fee_student_term_wise_paid_term_list',
-    FEE_FEE_RECEIPT_REPORT_LOGO: 'fee_fee_receipt_report_logo'
+    FEE_FEE_RECEIPT_REPORT_LOGO: 'fee_fee_receipt_report_logo',
+    FEE_CATEGORY_DROPDOWNS: 'fee_category_dropdown'
 };
 
 export const EXAM_QUERY_KEYS = {
@@ -376,6 +377,7 @@ export const HRMS_QUERY_KEYS = {
     SALARY_APPROVAL_ONLOAD: 'hrms_salary_approval_onload',
     SALARY_APPROVAL_EMPLOYEES: 'hrms_salary_approval_employees',
     SALARY_INCREMENT_ONLOAD: 'hrms_salary_increment_onload',
+    EMPLOYEE_INCREMENT_GRID: 'hrms_employee_increment_grid',
     SALARY_UPDATION_ONLOAD: 'hrms_salary_updation_onload',
     MASS_UPDATION_ONLOAD: 'hrms_mass_updation_onload',
     SALARY_ADVANCE_ONLOAD: 'hrms_salary_advance_onload',

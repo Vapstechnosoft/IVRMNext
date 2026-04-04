@@ -53,6 +53,7 @@ interface GenericDataTableProps<T> {
     manualPagination?: boolean;
     manualSorting?: boolean;
     manualFiltering?: boolean;
+    getRowId?: (row: T) => string;
     // Bento-Glass Props
 }
 
@@ -85,7 +86,8 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         manualSorting = totalItems > data.length,
         manualFiltering = totalItems > data.length,
         scrollable = false,
-        maxHeight = '600px'
+        maxHeight = '600px',
+        getRowId
     }: GenericDataTableProps<T>,
     ref: React.Ref<DataTableRef>
 ) {
@@ -141,6 +143,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                     columns={columns}
                     data={[]} // Empty array
                     totalItems={0}
+                    getRowId={getRowId}
                     showViewOptions={showViewOptions}
                     isSearchRequired={isSearchRequired}
                     isPaginationRequired={isPaginationRequired}
@@ -169,6 +172,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                 columns={columns}
                 data={data}
                 totalItems={totalItems}
+                getRowId={getRowId}
                 showViewOptions={showViewOptions}
                 isSearchRequired={isSearchRequired}
                 isPaginationRequired={isPaginationRequired}
