@@ -74,7 +74,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
             setStudentList([]);
             setValue('AMST_Id', 0);
 
-            studentStatusChange.mutate({ amsT_SOL: optradio }, {
+            studentStatusChange.mutate({ AMST_SOL: optradio }, {
                 onSuccess: (response: any) => {
                     const data = response.data?.data || response.data;
                     if (data) {
@@ -96,8 +96,8 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
     useEffect(() => {
         if (asmayId && asmayId > 0 && optradio) {
             academicYearChange.mutate({
-                asmaY_Id: asmayId,
-                amsT_SOL: optradio
+                ASMAY_Id: asmayId,
+                AMST_SOL: optradio
             }, {
                 onSuccess: (response: any) => {
                     const data = response.data?.data || response.data;
@@ -113,6 +113,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
             });
         }
     }, [asmayId, optradio]);
+
 
     // Handle All/Individual change
     useEffect(() => {
@@ -140,14 +141,12 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
 
     const handleStudentSearch = (value: string) => {
         searchFilterMutation.mutate({
-            filterinitialdata: optradio,
             searchfilter: value,
             ASMAY_Id: asmayId,
             AMST_SOL: optradio === '12' ? 'L' : optradio,
             ASMCL_Id: Number(allorindi === 'A' ? 0 : (asmclId || 0)),
             ASMC_Id: Number(allorindi === 'A' ? 0 : (asmsId || 0)),
             allorindid: allorindi,
-            fillstudlist: [""]
         }, {
             onSuccess: (response: any) => {
                 const data = response.data?.data || response.data;

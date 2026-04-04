@@ -669,6 +669,30 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/reports/DownloadStudentPhotos',
                                             title: 'Download Student Photos',
                                             description: 'Download Student Photos'
+                                        },
+                                        {
+                                            id: 64,
+                                            name: 'CBS No Objection Certificate',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/CBS_NoObjection_Cert',
+                                            title: 'CBS No Objection Certificate',
+                                            description: 'CBS No Objection Certificate'
+                                        },
+                                        {
+                                            id: 65,
+                                            name: 'CBS Student TC',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/cbs-Student-Tc',
+                                            title: 'CBS Student TC',
+                                            description: 'CBS Student TC'
+                                        },
+                                        {
+                                            id: 66,
+                                            name: 'CBS Study Certificate',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/cbs-Study-Certificate',
+                                            title: 'CBS Study Certificate',
+                                            description: 'CBS Study Certificate'
                                         }
 
                                     ]
