@@ -14,7 +14,7 @@ export const useStjCharacterCertificate = () => {
             ASMAY_Id: number;
             AMST_SOL: string;
             ASMCL_Id: number;
-            ASMC_Id: number;
+            ASMS_Id: number;
             allorindid: string;
         }) => getCharacterSearchFilter(data)
     });
