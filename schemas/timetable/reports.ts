@@ -93,3 +93,10 @@ export const deputationReportSchema = {
         staffids: z.array(z.number()).optional()
     })
 };
+
+export const staffWiseWorkingHoursReportSchema = {
+    search: z.object({
+        asmaY_Id: z.number().min(1, 'Academic Year is required'),
+        hrmE_Id: z.array(z.number()).min(1, 'Select at least one Staff')
+    })
+};

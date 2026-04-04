@@ -283,6 +283,7 @@ export default function MassUpdationPage() {
         setHasSearched(false);
         setEmployees([]);
         setSelectedEmployeeIds([]);
+        setLocalSearch('');
         reset({
             groupType: [],
             department: [],
@@ -430,10 +431,18 @@ export default function MassUpdationPage() {
                                 )} />
                             </div>
                         </div>
-                        <div className='flex justify-end'>
+                        <div className='flex justify-end gap-2'>
                             <Button type='submit' className='w-32' disabled={isSearching}>
                                 {isSearching ? <RefreshCw className='h-4 w-4 animate-spin mr-2' /> : <Search className='h-4 w-4 mr-2' />}
                                 Search
+                            </Button>
+                            <Button
+                                type='button'
+                                variant='outline'
+                                onClick={handleCancel}
+                                className='w-32 text-orange-600 hover:bg-orange-50 hover:text-orange-700 shadow-md hover:shadow-orange-200/50 transition-all rounded-xl '>
+                                <X className='h-4 w-4 mr-2' />
+                                CANCEL
                             </Button>
                         </div>
                     </form>

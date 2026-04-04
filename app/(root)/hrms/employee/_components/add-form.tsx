@@ -142,7 +142,7 @@ function QualificationStateDropdown({
             control={control}
             render={({ field, fieldState }) => (
                 <div className='flex flex-col gap-1.5'>
-                    <Label>State*</Label>
+                    <Label>State <span className='text-red-500'>*</span></Label>
                     <Select onValueChange={field.onChange} value={field.value || ''}>
                         <SelectTrigger className='h-9'>
                             <SelectValue placeholder='Select State' />
@@ -2094,6 +2094,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                     <InputText
                                                         label='Last Name'
                                                         placeholder='Enter Last Name'
+                                                        required
                                                         id='lastName'
                                                         maxLength={50}
                                                         onKeyDown={(e) => {
@@ -2575,6 +2576,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 field={field}
                                                                 fieldState={fieldState}
                                                                 label='Date Of Joining'
+                                                                // required
                                                                 placeholder='Pick date of joining'
                                                             />
                                                         )}
@@ -3045,6 +3047,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 field={field}
                                                                 fieldState={fieldState}
                                                                 label='Date Of Birth'
+                                                                // required
                                                                 placeholder='Pick date of birth'
                                                                 toDate={new Date()}
                                                                 restricted_tofieldName="Today's Date"
@@ -3215,6 +3218,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                     />
                                                                     <InputText
                                                                         placeholder='Enter mobile number'
+                                                                        required
                                                                         maxLength={10}
                                                                         {...register(`mobileDetails.${index}.mobileNo`)}
                                                                         className='min-w-[200px] flex-1'
@@ -3245,7 +3249,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                     </div>
                                                     {/* Multiple Email IDs */}
                                                     <div className='flex flex-col gap-1.5'>
-                                                        <Label>Email -Id</Label>
+                                                        <Label>Email -Id <span className='text-red-500'>*</span></Label>
                                                         <div className='space-y-2'>
                                                             {emailFields.map((field, index) => (
                                                                 <div key={field.id} className='flex items-center gap-2'>
@@ -3307,10 +3311,12 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                     />
                                                                     <InputText
                                                                         type='email'
+                                                                        required
                                                                         placeholder='Enter email address'
                                                                         maxLength={100}
                                                                         {...register(`emailDetails.${index}.emailId`)}
                                                                         className='min-w-[200px] flex-1'
+                                                                        error={(errors.emailDetails as any)?.[index]?.emailId?.message}
                                                                     />
                                                                     <Button
                                                                         type='button'
@@ -4264,7 +4270,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 {/* Row 1: Qualification, Course */}
                                                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                                                                     <InputText
-                                                                        label='Qualification *'
+                                                                        label='Qualification'
+                                                                        required
                                                                         id={`qualificationDetails.${index}.qualification`}
                                                                         maxLength={50}
                                                                         {...register(`qualificationDetails.${index}.qualification`)}
@@ -4277,7 +4284,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                             const courses = options?.courses || [];
                                                                             return (
                                                                                 <div className='flex flex-col gap-1.5'>
-                                                                                    <Label>Course *</Label>
+                                                                                    <Label>
+                                                                    Course <span className='text-red-500'>*</span>
+                                                                </Label>
                                                                                     <Select
                                                                                         onValueChange={field.onChange}
                                                                                         value={field.value || ''}>
@@ -4341,14 +4350,16 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 {/* Row 2: College, University */}
                                                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                                                                     <InputText
-                                                                        label='College *'
+                                                                        label='College'
+                                                                        required
                                                                         id={`qualificationDetails.${index}.college`}
                                                                         maxLength={100}
                                                                         {...register(`qualificationDetails.${index}.college`)}
                                                                         error={(errors.qualificationDetails as any)?.[index]?.college?.message}
                                                                     />
                                                                     <InputText
-                                                                        label='University *'
+                                                                        label='University'
+                                                                        required
                                                                         id={`qualificationDetails.${index}.university`}
                                                                         maxLength={100}
                                                                         {...register(`qualificationDetails.${index}.university`)}
@@ -4358,7 +4369,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 {/* Row 3: Year Of Passing, Country, State */}
                                                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                                                                     <InputText
-                                                                        label='Year Of Passing *'
+                                                                        label='Year Of Passing'
+                                                                        required
                                                                         id={`qualificationDetails.${index}.yearOfPassing`}
                                                                         maxLength={4}
                                                                         onKeyDown={(e) => {
@@ -4392,7 +4404,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                         control={control}
                                                                         render={({ field, fieldState }) => (
                                                                             <div className='flex flex-col gap-1.5'>
-                                                                                <Label>Country*</Label>
+                                                                                <Label>
+                                                                    Country <span className='text-red-500'>*</span>
+                                                                </Label>
                                                                                 <Select
                                                                                     onValueChange={(value) => {
                                                                                         field.onChange(value);
@@ -4458,14 +4472,16 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 {/* Row 4: Registration No., Result */}
                                                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                                                                     <InputText
-                                                                        label='Registration No. *'
+                                                                        label='Registration No.'
+                                                                        required
                                                                         id={`qualificationDetails.${index}.registrationNo`}
                                                                         maxLength={50}
                                                                         {...register(`qualificationDetails.${index}.registrationNo`)}
                                                                         error={(errors.qualificationDetails as any)?.[index]?.registrationNo?.message}
                                                                     />
                                                                     <InputText
-                                                                        label='Result *'
+                                                                        label='Result'
+                                                                        required
                                                                         id={`qualificationDetails.${index}.result`}
                                                                         maxLength={20}
                                                                         {...register(`qualificationDetails.${index}.result`)}
@@ -4479,7 +4495,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                         control={control}
                                                                         render={({ field, fieldState }) => (
                                                                             <div className='flex flex-col gap-1.5'>
-                                                                                <Label>CGPA Or Percentage *</Label>
+                                                                                <Label>
+                                                                    CGPA Or Percentage <span className='text-red-500'>*</span>
+                                                                </Label>
                                                                                 <Select
                                                                                     onValueChange={(val) => {
                                                                                         field.onChange(val);
@@ -4582,7 +4600,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                             const specialisations = options?.specialisations || [];
                                                                             return (
                                                                                 <div className='flex flex-col gap-1.5'>
-                                                                                    <Label>Area Of Specialization*</Label>
+                                                                                    <Label>
+                                                                    Area Of Specialization <span className='text-red-500'>*</span>
+                                                                </Label>
                                                                                     <Select
                                                                                         onValueChange={field.onChange}
                                                                                         value={field.value || ''}>
@@ -5004,7 +5024,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                             </div>
                                                             <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
                                                                 <InputText
-                                                                    label='Document Name *'
+                                                                    label='Document Name'
+                                                                    required
                                                                     id={`documentList.${index}.documentName`}
                                                                     maxLength={255}
                                                                     {...register(`documentList.${index}.documentName`)}
@@ -5012,7 +5033,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                     error={(errors.documentList as any)?.[index]?.documentName?.message}
                                                                 />
                                                                 <InputText
-                                                                    label='Description *'
+                                                                    label='Description'
+                                                                    required
                                                                     id={`documentList.${index}.documentDescription`}
                                                                     maxLength={400}
                                                                     {...register(`documentList.${index}.documentDescription`)}
@@ -5020,7 +5042,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                     error={(errors.documentList as any)?.[index]?.documentDescription?.message}
                                                                 />
                                                                 <div className='space-y-2 md:col-span-2'>
-                                                                    <Label>Upload Document</Label>
+                                                                    <Label>
+                                                                        Upload Document <span className='text-red-500'>*</span>
+                                                                    </Label>
                                                                     <div className='flex items-center gap-2'>
                                                                         <input
                                                                             type='file'
@@ -5356,7 +5380,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 const leavingReasons = options?.leavingReasons || [];
                                                                 return (
                                                                     <div className='space-y-2 md:col-span-2 '>
-                                                                        <Label>Reason for Leaving *</Label>
+                                                                        <Label>
+                                                                            Reason for Leaving <span className='text-red-500'>*</span>
+                                                                        </Label>
                                                                         <Select onValueChange={field.onChange} value={field.value || ''}>
                                                                             <SelectTrigger
                                                                                 className={cn(
