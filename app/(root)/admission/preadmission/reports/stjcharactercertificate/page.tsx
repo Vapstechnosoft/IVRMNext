@@ -20,6 +20,7 @@ export default function StjCharacterCertificatePage() {
     const handleReport = async (formData: any) => {
         try {
             toast.loading('Generating Character Certificate...', { id: 'character-report' });
+            console.info('🚀 [CLIENT] handleReport initiated');
 
             const classId = formData.allorindi === 'A' ? 0 : (formData.ASMCL_Id || 0);
             const sectionId = formData.allorindi === 'A' ? 0 : (formData.ASMS_Id || 0);
@@ -31,11 +32,13 @@ export default function StjCharacterCertificatePage() {
                 AMST_Id: formData.AMST_Id,
             };
 
+            console.info('🚀 [CLIENT] Ready to call mutateAsync with payload:', payload);
             const response = await studDetailsMutation.mutateAsync(payload) as any;
+            console.info('🚀 [CLIENT] mutateAsync RESPONSE:', response);
             const data = response.data?.data || response.data;
 
-            if (data && data.studentlist && data.studentlist.length > 0) {
-                const student = data.studentlist[0];
+            if (data && data.studentList && data.studentList.length > 0) {
+                const student = data.studentList[0];
 
                 const mappedData = {
                     studentname: student.studentnam,

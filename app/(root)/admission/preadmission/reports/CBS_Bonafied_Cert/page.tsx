@@ -29,10 +29,10 @@ export default function StjamesBonafiedReportPage() {
             const sectionId = formData.allorindi === 'A' ? 0 : (formData.ASMS_Id || 0);
 
             const payload = {
-                asmaY_Id: formData.ASMAY_Id,
-                asmcL_Id: classId,
-                asmC_Id: sectionId,
-                amsT_Id: formData.AMST_Id,
+                ASMAY_Id: formData.ASMAY_Id,
+                ASMCL_Id: classId,
+                ASMS_Id: sectionId,
+                AMST_Id: formData.AMST_Id,
                 save_flag: saveFlag
             };
 
