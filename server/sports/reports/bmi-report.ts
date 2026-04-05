@@ -1,7 +1,8 @@
 'use server';
 
 import { IBMIReport, IBMIReportClass, IBMIReportLoadData, IBMIReportRequest, IBMIReportSection } from '@/types/sports/reports/bmi-report';
-import { api } from '@/lib/apiService';
+import { api, ApiResponse, getSearchParamsUrl } from '@/lib/apiService';
+import type { ApiSearchparams } from '@/types';
 
 const API_URL = {
     GET_DETAILS: 'BMIReport/getDetails',
@@ -45,23 +46,30 @@ export async function getSectionsForBMI(asMAY_Id: number, asmcL_Id: number): Pro
     }
 }
 
-export async function getBMIReport(data: IBMIReportRequest): Promise<IBMIReport[]> {
+export async function getBMIReport(data: IBMIReportRequest, searchParams?: ApiSearchparams): Promise<ApiResponse<IBMIReport[]>> {
     try {
         const payload = {
-            mI_Id: data.mI_Id, // Pass mI_Id if present
+            mI_Id: data.mI_Id,
             asmaY_Id: data.ASMAY_Id,
             asmcL_Id: data.ASMCL_Id,
             selectedSectionlist: data.selectedSectionlist,
         };
 
-        // The API response returns the data wrapper directly from apiService
-        const response = await api.post<IBMIReport[]>('sports', API_URL.REPORT, payload);
+        const paramsUrl = getSearchParamsUrl(searchParams);
+        const urlWithParams = paramsUrl ? `${API_URL.REPORT}?${paramsUrl}` : API_URL.REPORT;
 
-        // Return the data array from the response
-        // Even if success is false, if data exists, return it as per user requirement to bind data
-        return response.data || [];
+        const response = await api.post<IBMIReport[]>('sports', urlWithParams, payload);
+
+        return response;
     } catch (error) {
         console.error('Error generating BMI Report:', error);
-        return [];
+        return {
+            success: false,
+            message: 'Failed to generate report',
+            data: [],
+            total: 0,
+            page: 1,
+            page_Size: 10
+        };
     }
 }

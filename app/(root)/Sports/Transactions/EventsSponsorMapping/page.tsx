@@ -2,26 +2,29 @@
 
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useEventsSponsor } from '@/hooks/sports/useEventsSponsor';
 import type { IEventSponsorMapping } from '@/types/sports/transactions/events-sponsor';
-import { Plus, X, Loader2 } from 'lucide-react';
+import { Loader2, Plus, X } from 'lucide-react';
+import { use } from 'react';
 import AddEventSponsorMappingForm from './_components/add-form';
 import { eventSponsorColumns } from './_components/columns';
 import UpdateEventSponsorMappingForm from './_components/update-form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-export default function EventsSponsorMappingPage() {
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+export default function EventsSponsorMappingPage(props: { searchParams: SearchParams }) {
+    const searchParams = use(props.searchParams);
     return (
         <FormProvider<IEventSponsorMapping>>
-            <EventsSponsorMappingPageContent />
+            <EventsSponsorMappingPageContent searchParams={searchParams} />
         </FormProvider>
     );
 }
 
-function EventsSponsorMappingPageContent() {
-    const { details } = useEventsSponsor();
+function EventsSponsorMappingPageContent({ searchParams }: { searchParams: any }) {
+    const { details, refetchAll } = useEventsSponsor(searchParams);
     const {
         openAddForm,
         isAddFormOpen,
@@ -67,7 +70,10 @@ function EventsSponsorMappingPageContent() {
                             </Button>
                         </CardHeader>
                         <CardContent className='pt-6'>
-                            <AddEventSponsorMappingForm onSuccess={closeAddForm} />
+                            <AddEventSponsorMappingForm onSuccess={() => {
+                                refetchAll();
+                                closeAddForm();
+                            }} />
                         </CardContent>
                     </Card>
                 </div>
@@ -89,7 +95,10 @@ function EventsSponsorMappingPageContent() {
                             </Button>
                         </CardHeader>
                         <CardContent className='pt-6'>
-                            <UpdateEventSponsorMappingForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                            <UpdateEventSponsorMappingForm selectedRow={selectedRow as IEventSponsorMapping} onSuccess={() => {
+                                refetchAll();
+                                closeEditForm();
+                            }} />
                         </CardContent>
                     </Card>
                 </div>
@@ -106,7 +115,10 @@ function EventsSponsorMappingPageContent() {
                         columns={eventSponsorColumns}
                         isLoading={details.isLoading}
                         error={details.error}
-                        showViewOptions={false}
+                        manualPagination={true}
+                        manualSorting={true}
+                        manualFiltering={true}
+                        showSearchColumns={true}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Fetching mapping details...'
                         noDataTitle='No Mapping records'

@@ -1,22 +1,27 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { CalendarYear } from '@/components/ui/calendar_year';
+import { DatePicker } from '@/components/ui/date-picker';
 import { FormError } from '@/components/ui/extension/field';
 import { MultiSelect } from '@/components/ui/multi-select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
-import { cn } from '@/lib/utils';
 import { employeeMonthlyReportFilterSchema } from '@/schemas/hrms/attendance-management-schemas';
 import { getEmployeeMonthlyReport } from '@/server/hrms/hrmsConfig/reports/employee-monthly-report';
+import {
+    useReportDepartments,
+    useReportDesignations,
+    useReportEmployeesByDeptAndDesignation,
+    useReportGroupTypes
+} from '@/hooks/hrms/useReports';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
-import { format } from 'date-fns';
-import { Calendar as CalendarIcon, Save } from 'lucide-react';
+import { useMemo } from 'react';
+import { Save } from 'lucide-react';
 import { Label } from 'react-aria-components';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { useRouter, usePathname } from 'next/navigation';
 import type { z } from 'zod';
 
 type FormFields = z.infer<typeof employeeMonthlyReportFilterSchema>;
@@ -32,15 +37,19 @@ export default function AddEmployeeMonthlyReportForm({
     onSuccess,
     className = '',
     searchParams,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     groupTypes = []
 }: AddEmployeeMonthlyReportFormProps) {
     const queryClient = useQueryClient();
+    const router = useRouter();
+    const pathname = usePathname();
 
     const {
         handleSubmit,
         control,
         reset,
         watch,
+        clearErrors,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(employeeMonthlyReportFilterSchema),
@@ -50,7 +59,7 @@ export default function AddEmployeeMonthlyReportForm({
             department: [],
             designation: [],
             allOrIndividual: 'All',
-            employeeName: '',
+            employeeIds: [],
             fromDate: '',
             toDate: '',
             reportOptions: []
@@ -58,52 +67,135 @@ export default function AddEmployeeMonthlyReportForm({
     });
 
     const allOrIndividualValue = watch('allOrIndividual');
+    const watchedType = watch('type') || [];
+    const watchedDepartment = watch('department') || [];
+    const watchedDesignation = watch('designation') || [];
+
+    const groupTypeIds = useMemo(() => watchedType.map(Number).filter(Boolean), [watchedType]);
+    const deptIds = useMemo(() => watchedDepartment.map(Number).filter(Boolean), [watchedDepartment]);
+    const desigIds = useMemo(() => watchedDesignation.map(Number).filter(Boolean), [watchedDesignation]);
+
+    const { data: groupTypesData } = useReportGroupTypes();
+    const { data: departmentsData } = useReportDepartments(groupTypeIds.join(','));
+    const { data: designationsData } = useReportDesignations(groupTypeIds.join(','), deptIds.join(','));
+    const { data: employeesData } = useReportEmployeesByDeptAndDesignation(deptIds.join(','), desigIds.join(','));
+
+    const groupTypesDataTransformed = useMemo(() => {
+        return (
+            groupTypesData?.data?.map((gt: any) => ({
+                id: gt.key || gt.hrmgT_Id,
+                name: gt.value || gt.hrmgT_EmployeeGroupType
+            })) || []
+        ).filter((d: any) => d.id != null);
+    }, [groupTypesData]);
+
+    const departmentsDataTransformed = useMemo(() => {
+        return (
+            departmentsData?.data?.map((d: any) => ({
+                id: d.hrmD_Id || d.hrmd_id || d.key || d.id,
+                name: d.hrmD_DepartmentName || d.hrmd_departmentName || d.value || d.name
+            })) || []
+        ).filter((d: any) => d.id != null);
+    }, [departmentsData]);
+
+    const designationsDataTransformed = useMemo(() => {
+        return (
+            designationsData?.data?.map((d: any) => ({
+                id: d.hrmdeS_Id || d.hrmdes_id || d.key || d.id,
+                name: d.hrmdeS_DesignationName || d.hrmdes_designationName || d.value || d.name
+            })) || []
+        ).filter((d: any) => d.id != null);
+    }, [designationsData]);
+
+    const employeesDataTransformed = useMemo(() => {
+        const list = employeesData?.data || employeesData;
+        if (!list || !Array.isArray(list)) return [];
+
+        return list
+            .map((emp: any) => {
+                const id = emp.HRME_Id || emp.hrmE_Id || emp.id || emp.key;
+                if (id == null) return null;
+
+                const firstName = (emp.HRME_EmployeeFirstName || emp.hrmE_EmployeeFirstName || '').trim();
+                const middleName = (emp.HRME_EmployeeMiddleName || emp.hrmE_EmployeeMiddleName || '').trim();
+                const lastName = (emp.HRME_EmployeeLastName || emp.hrmE_EmployeeLastName || '').trim();
+
+                const employeeName =
+                    [firstName, middleName, lastName].filter(Boolean).join(' ') ||
+                    emp.value ||
+                    emp.employeeName ||
+                    'Unknown Employee';
+
+                const employeeCode =
+                    emp.HRME_EmployeeCode ||
+                    emp.hrmE_EmployeeCode ||
+                    emp.employeeCode ||
+                    id.toString();
+
+                return {
+                    id: Number(id),
+                    employeeCode,
+                    employeeName
+                };
+            })
+            .filter(Boolean);
+    }, [employeesData]);
 
     const onSubmit: SubmitHandler<FormFields> = async (data: FormFields) => {
         try {
+            // Determine comma-separated employee IDs
+            let hrmeIds = '0';
+            if (data.allOrIndividual === 'Individual' && data.employeeIds && data.employeeIds.length > 0) {
+                hrmeIds = data.employeeIds.join(',');
+            } else if (data.allOrIndividual === 'All') {
+                const allIds = employeesDataTransformed.map((emp: any) => emp.id).join(',');
+                hrmeIds = allIds || '0';
+            }
+
             const payload = {
-                type: data.type.map(Number),
-                department: data.department.map(Number),
-                designation: data.designation.map(Number),
-                allOrIndividual: data.allOrIndividual,
-                employeeName: data.allOrIndividual === 'Individual' ? data.employeeName : undefined,
-                fromDate: data.fromDate,
-                toDate: data.toDate,
-                reportOptions: data.reportOptions
+                from_date: data.fromDate ? data.fromDate.split('T')[0] : '',
+                to_date: data.toDate ? data.toDate.split('T')[0] : '',
+                hrme_ids: hrmeIds,
+                type: 'monthly'
             };
 
             const response = await getEmployeeMonthlyReport(payload, searchParams);
 
             if (response.success) {
                 toast.success(response.message || 'Report generated successfully');
-                try {
-                    if (response?.total != null) {
-                        queryClient.setQueryData([HRMS_QUERY_KEYS.EMPLOYEE_MONTHLY_REPORT, searchParams ?? {}], response);
-                    } else if (Array.isArray(response?.data)) {
-                        const parseParam = (k: string) => {
-                            const v = (searchParams as any)?.[k];
-                            if (Array.isArray(v)) return Number(v[0]);
-                            return v != null ? Number(v) : undefined;
-                        };
-                        const page = parseParam('page') || 1;
-                        const pageSize = parseParam('page_size') || 10;
-                        const total = response.data.length;
-                        const start = (page - 1) * pageSize;
-                        const pageData = response.data.slice(start, start + pageSize);
 
-                        queryClient.setQueryData([HRMS_QUERY_KEYS.EMPLOYEE_MONTHLY_REPORT, searchParams ?? {}], {
-                            data: pageData,
-                            total,
-                            success: true,
-                            message: response.message
-                        });
-                    } else {
-                        queryClient.setQueryData([HRMS_QUERY_KEYS.EMPLOYEE_MONTHLY_REPORT, searchParams ?? {}], response);
-                    }
-                } catch (e) {
-                    // noop
+                // Update URL parameters to trigger hook and keep state
+                const params = new URLSearchParams();
+                params.set('fromDate', data.fromDate);
+                params.set('toDate', data.toDate);
+                params.set('employee', hrmeIds);
+                params.set('allOrIndividual', data.allOrIndividual);
+                
+                // Add MultiSelect params
+                data.type.forEach(t => params.append('type', t));
+                data.department.forEach(d => params.append('department', d));
+                data.designation.forEach(d => params.append('designation', d));
+                if (data.reportOptions) {
+                    data.reportOptions.forEach(o => params.append('reportOptions', o));
                 }
-                reset();
+
+                router.push(`${pathname}?${params.toString()}`);
+
+                // Update cache with the new reportOptions so page.tsx can read it
+                queryClient.setQueryData([HRMS_QUERY_KEYS.EMPLOYEE_MONTHLY_REPORT, {
+                    fromDate: data.fromDate,
+                    toDate: data.toDate,
+                    employee: hrmeIds,
+                    allOrIndividual: data.allOrIndividual,
+                    type: data.type,
+                    department: data.department,
+                    designation: data.designation,
+                    reportOptions: data.reportOptions
+                }], {
+                    ...response,
+                    reportOptions: data.reportOptions || []
+                });
+
                 onSuccess?.();
             } else {
                 toast.error(response.message || 'Failed to generate report');
@@ -114,7 +206,18 @@ export default function AddEmployeeMonthlyReportForm({
     };
 
     const handleReset = () => {
-        reset();
+        reset({
+            type: [],
+            department: [],
+            designation: [],
+            allOrIndividual: 'All',
+            employeeIds: [],
+            fromDate: '',
+            toDate: '',
+            reportOptions: []
+        });
+        clearErrors();
+        router.push(pathname);
     };
 
     return (
@@ -133,7 +236,10 @@ export default function AddEmployeeMonthlyReportForm({
                                     control={control}
                                     render={({ field }) => (
                                         <MultiSelect
-                                            options={groupTypes.length > 0 ? groupTypes : []}
+                                            options={groupTypesDataTransformed.map((gt: any) => ({
+                                                label: gt.name,
+                                                value: String(gt.id)
+                                            }))}
                                             onValueChange={(values) => field.onChange(values)}
                                             defaultValue={field.value || []}
                                             placeholder='Select Types'
@@ -155,7 +261,10 @@ export default function AddEmployeeMonthlyReportForm({
                                     control={control}
                                     render={({ field }) => (
                                         <MultiSelect
-                                            options={[]}
+                                            options={departmentsDataTransformed.map((dept: any) => ({
+                                                label: dept.name,
+                                                value: String(dept.id)
+                                            }))}
                                             onValueChange={(values) => field.onChange(values)}
                                             defaultValue={field.value || []}
                                             placeholder='Select Departments'
@@ -177,7 +286,10 @@ export default function AddEmployeeMonthlyReportForm({
                                     control={control}
                                     render={({ field }) => (
                                         <MultiSelect
-                                            options={[]}
+                                            options={designationsDataTransformed.map((desg: any) => ({
+                                                label: desg.name,
+                                                value: String(desg.id)
+                                            }))}
                                             onValueChange={(values) => field.onChange(values)}
                                             defaultValue={field.value || []}
                                             placeholder='Select Designations'
@@ -212,25 +324,30 @@ export default function AddEmployeeMonthlyReportForm({
                                 {errors.allOrIndividual && <FormError>{errors.allOrIndividual.message}</FormError>}
                             </div>
 
-                            {/* Employee Name - Only show when Individual is selected */}
+                            {/* Employee - Only show when Individual is selected */}
                             {allOrIndividualValue === 'Individual' && (
                                 <div className='col-span-1'>
                                     <Label className='mb-2 block font-medium text-gray-700 text-sm'>
-                                        Employee Name <span className='ml-1 text-red-500'>*</span>
+                                        Employee <span className='ml-1 text-red-500'>*</span>
                                     </Label>
                                     <Controller
-                                        name='employeeName'
+                                        name='employeeIds'
                                         control={control}
                                         render={({ field }) => (
-                                            <input
-                                                type='text'
-                                                {...field}
-                                                placeholder='Enter employee name'
-                                                className={`w-full rounded-md border px-3 py-2 ${errors.employeeName ? 'border-red-500' : ''}`}
+                                            <MultiSelect
+                                                options={employeesDataTransformed.map((emp: any) => ({
+                                                    label: `${emp.employeeName} - [${emp.employeeCode}]`,
+                                                    value: String(emp.id)
+                                                }))}
+                                                onValueChange={(values) => field.onChange(values)}
+                                                defaultValue={field.value || []}
+                                                placeholder='Select Employees'
+                                                className={`w-full ${errors.employeeIds ? 'border-red-500' : ''}`}
+                                                maxHeight={240}
                                             />
                                         )}
                                     />
-                                    {errors.employeeName && <FormError>{errors.employeeName.message}</FormError>}
+                                    {errors.employeeIds && <FormError>{errors.employeeIds.message}</FormError>}
                                 </div>
                             )}
 
@@ -243,31 +360,21 @@ export default function AddEmployeeMonthlyReportForm({
                                     name='fromDate'
                                     control={control}
                                     render={({ field }) => (
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button
-                                                    type='button'
-                                                    variant='outline'
-                                                    className={cn(
-                                                        'w-full justify-start text-left font-normal',
-                                                        !field.value && 'text-muted-foreground',
-                                                        errors.fromDate && 'border-red-500'
-                                                    )}>
-                                                    <CalendarIcon className='mr-2 h-4 w-4' />
-                                                    {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'From date'}
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className='w-auto p-0' align='start'>
-                                                <CalendarYear
-                                                    mode='single'
-                                                    selected={field.value ? new Date(field.value) : undefined}
-                                                    onSelect={(date: Date | undefined) => field.onChange(date?.toISOString() ?? '')}
-                                                    captionLayout='dropdown'
-                                                    fromYear={2000}
-                                                    toYear={2050}
-                                                />
-                                            </PopoverContent>
-                                        </Popover>
+                                        <DatePicker
+                                            date={field.value ? new Date(field.value) : undefined}
+                                            setDate={(date) => {
+                                                if (date) {
+                                                    const year = date.getFullYear();
+                                                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                                                    const day = String(date.getDate()).padStart(2, '0');
+                                                    field.onChange(`${year}-${month}-${day}`);
+                                                } else {
+                                                    field.onChange('');
+                                                }
+                                            }}
+                                            placeholder='From date'
+                                            className={errors.fromDate ? 'border-red-500' : ''}
+                                        />
                                     )}
                                 />
                                 {errors.fromDate && <FormError>{errors.fromDate.message}</FormError>}
@@ -282,31 +389,21 @@ export default function AddEmployeeMonthlyReportForm({
                                     name='toDate'
                                     control={control}
                                     render={({ field }) => (
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button
-                                                    type='button'
-                                                    variant='outline'
-                                                    className={cn(
-                                                        'w-full justify-start text-left font-normal',
-                                                        !field.value && 'text-muted-foreground',
-                                                        errors.toDate && 'border-red-500'
-                                                    )}>
-                                                    <CalendarIcon className='mr-2 h-4 w-4' />
-                                                    {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'To date'}
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className='w-auto p-0' align='start'>
-                                                <CalendarYear
-                                                    mode='single'
-                                                    selected={field.value ? new Date(field.value) : undefined}
-                                                    onSelect={(date: Date | undefined) => field.onChange(date?.toISOString() ?? '')}
-                                                    captionLayout='dropdown'
-                                                    fromYear={2000}
-                                                    toYear={2050}
-                                                />
-                                            </PopoverContent>
-                                        </Popover>
+                                        <DatePicker
+                                            date={field.value ? new Date(field.value) : undefined}
+                                            setDate={(date) => {
+                                                if (date) {
+                                                    const year = date.getFullYear();
+                                                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                                                    const day = String(date.getDate()).padStart(2, '0');
+                                                    field.onChange(`${year}-${month}-${day}`);
+                                                } else {
+                                                    field.onChange('');
+                                                }
+                                            }}
+                                            placeholder='To date'
+                                            className={errors.toDate ? 'border-red-500' : ''}
+                                        />
                                     )}
                                 />
                                 {errors.toDate && <FormError>{errors.toDate.message}</FormError>}
@@ -344,7 +441,7 @@ export default function AddEmployeeMonthlyReportForm({
                 </div>
 
                 {/* Action Buttons */}
-                <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
+                <div className='flex flex-col md:justify-end gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
                         type='button'
                         variant='outline'
