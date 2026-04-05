@@ -15,9 +15,7 @@ import { cn } from '@/lib/utils';
 import { classWorkSchema } from '@/schemas/upload/transactions/ivrm-classwork.schema';
 import {
     getClassDropDownByAcademicYearlist,
-    getSectionsDropDownByAcademicYearandClasslist
-} from '@/server/exam/exam-module/reports/cumulative-report';
-import {
+    getSectionsDropDownByAcademicYearandClasslist,
     getSubjectsDropDownByAcademicYearandClassandSectionlist,
     uploadClassWork
 } from '@/server/upload/transactions/ivrm-classwork/server-action';
@@ -128,7 +126,7 @@ export default function UpdateClassWorkForm({ onSuccess, selectedRow }: UpdateCl
         (async () => {
             try {
                 const { data } = await getSectionsDropDownByAcademicYearandClasslist(selectedYear, selectedClass);
-                setSections(Array.isArray(data) ? data : []);
+                setSections(Array.isArray(data?.sectionlist) ? data.sectionlist : []);
             } catch {
                 toast.error('Failed to load sections');
                 setSections([]);

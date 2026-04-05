@@ -7,9 +7,7 @@ const baseUrl = 'lessonplanner';
 
 // Get initial details (masteryear, employeedetails) for the transaction form
 export async function getStaffPeriodTransactionInitialData() {
-    const session = await auth();
-    const username = session?.user?.name || '';
-    const url = `/SchoolStaffperiodmapping/Getdetailstransaction?username=${username}`;
+    const url = `/SchoolStaffperiodmapping/Getdetailstransaction`;
     return await api.get<any>(baseUrl, url);
 }
 

@@ -2,10 +2,10 @@
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 
+import { revalidatePath } from 'next/cache';
 import type { ApiSearchparams } from '@/types';
 import type { IClassWorkDetails, ISubjectDetails } from '@/types/upload/reports/classwork-upload-report';
-import { IHomeWorkDetails } from '@/types/upload/reports/homework-upload-report';
-import { revalidatePath } from 'next/cache';
+import type { IAcademicYearandClassandsection } from '@/types/exam/exam-module/report';
 
 const classWorkData: any[] = [
     {
@@ -44,6 +44,19 @@ export async function fetchInitialData() {
         ],
         classwork: classWorkData
     };
+}
+
+export async function getClassDropDownByAcademicYearlist(asmaY_Id: number) {
+    if (!asmaY_Id) throw new Error('Academic Year ID is required');
+    const url = `/exam_master_category/class_drop_down_by_academic_year_list/${asmaY_Id}`;
+    return await api.getArray<IAcademicYearandClassandsection>('exam', url);
+}
+
+export async function getSectionsDropDownByAcademicYearandClasslist(asmaY_Id: number, asmcL_Id: number) {
+    if (!asmaY_Id) throw new Error('Academic Year ID is required');
+    if (!asmcL_Id) throw new Error('Class ID is required');
+    const url = `/ivrm_class_work/section_classwork/${asmcL_Id}/${asmaY_Id}`;
+    return await api.get<any>('portal', url);
 }
 
 export async function fetchSections(classId: number) {
