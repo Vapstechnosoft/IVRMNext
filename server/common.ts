@@ -630,253 +630,344 @@ export async function getUserAccessibleModules() {
                     ]
                 },
 
-                {
-                    id: 9000,
-                    name: 'Admission Client',
-                    icon: 'UserRoundPlus',
-                    menu: [
-                        {
-                            id: 5,
-                            name: 'Client Specific Reports',
-                            icon: 'Settings',
-                            sub_menu: [
-                                {
-                                    id: 11,
-                                    name: 'Calcutta Boys School',
-                                    icon: 'Settings',
-                                    pages: [
+                // {
+                //     id: 9000,
+                //     name: 'Admission Client',
+                //     icon: 'UserRoundPlus',
+                //     menu: [
+                //         {
+                //             id: 5,
+                //             name: 'Client Specific Reports',
+                //             icon: 'Settings',
+                //             sub_menu: [
+                //                 {
+                //                     id: 11,
+                //                     name: 'Calcutta Boys School',
+                //                     icon: 'Settings',
+                //                     pages: [
 
-                                        {
-                                            id: 60,
-                                            name: 'CBS Bonafied Certificate',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/CBS_Bonafied_Cert',
-                                            title: 'CBS Bonafied Certificate',
-                                            description: 'CBS Bonafied Certificate'
-                                        },
-                                        {
-                                            id: 61,
-                                            name: 'CBS Bonafied Certificate CEA',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/CBS_CEA_Cert',
-                                            title: 'CBS Bonafied Certificate CEA',
-                                            description: 'CBS Bonafied Certificate CEA'
-                                        },
-                                        {
-                                            id: 62,
-                                            name: 'Download Student Photos',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/DownloadStudentPhotos',
-                                            title: 'Download Student Photos',
-                                            description: 'Download Student Photos'
-                                        },
-                                        {
-                                            id: 64,
-                                            name: 'CBS No Objection Certificate',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/CBS_NoObjection_Cert',
-                                            title: 'CBS No Objection Certificate',
-                                            description: 'CBS No Objection Certificate'
-                                        },
-                                        {
-                                            id: 65,
-                                            name: 'CBS Student TC',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/cbs-Student-Tc',
-                                            title: 'CBS Student TC',
-                                            description: 'CBS Student TC'
-                                        },
-                                        {
-                                            id: 66,
-                                            name: 'CBS Study Certificate',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/cbs-Study-Certificate',
-                                            title: 'CBS Study Certificate',
-                                            description: 'CBS Study Certificate'
-                                        }
-
-
-                                    ]
-                                },
-                                {
-                                    id: 9,
-                                    name: 'New Shared Host',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 12,
-                                            name: 'Overall Daily Attendance Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/overall-daily-attendance-report',
-                                            title: 'Overall Daily Attendance Report',
-                                            description: 'Overall Daily Attendance Report'
-                                        },
-
-                                        {
-                                            id: 53,
-                                            name: 'Student Birthday Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/student-birthday-report',
-                                            title: 'Student Birthday Report',
-                                            description: 'Student Birthday Report'
-                                        },
-                                        {
-                                            id: 54,
-                                            name: '100% Attendance Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/100attendance-report',
-                                            title: '100% Attendance Report',
-                                            description: '100% Attendance Report'
-                                        },
-
-                                        {
-                                            id: 56,
-                                            name: 'Study Certificate GMVPS Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/study-certificate-gmvps-report',
-                                            title: 'Study Certificate GMVPS Report',
-                                            description: 'Study Certificate GMVPS Report'
-                                        },
-
-                                        {
-                                            id: 67,
-                                            name: 'GM Custom Tc',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/custom-tc',
-                                            title: 'GM Custom Tc',
-                                            description: 'GM Custom Tc'
-                                        }
+                //                         {
+                //                             id: 60,
+                //                             name: 'CBS Bonafied Certificate',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/CBS_Bonafied_Cert',
+                //                             title: 'CBS Bonafied Certificate',
+                //                             description: 'CBS Bonafied Certificate'
+                //                         },
+                //                         {
+                //                             id: 61,
+                //                             name: 'CBS Bonafied Certificate CEA',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/CBS_CEA_Cert',
+                //                             title: 'CBS Bonafied Certificate CEA',
+                //                             description: 'CBS Bonafied Certificate CEA'
+                //                         },
+                //                         {
+                //                             id: 62,
+                //                             name: 'Download Student Photos',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/DownloadStudentPhotos',
+                //                             title: 'Download Student Photos',
+                //                             description: 'Download Student Photos'
+                //                         },
+                //                         {
+                //                             id: 64,
+                //                             name: 'CBS No Objection Certificate',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/CBS_NoObjection_Cert',
+                //                             title: 'CBS No Objection Certificate',
+                //                             description: 'CBS No Objection Certificate'
+                //                         },
+                //                         {
+                //                             id: 65,
+                //                             name: 'CBS Student TC',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/cbs-Student-Tc',
+                //                             title: 'CBS Student TC',
+                //                             description: 'CBS Student TC'
+                //                         },
+                //                         {
+                //                             id: 66,
+                //                             name: 'CBS Study Certificate',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/cbs-Study-Certificate',
+                //                             title: 'CBS Study Certificate',
+                //                             description: 'CBS Study Certificate'
+                //                         }
 
 
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 9,
+                //                     name: 'New Shared Host',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 12,
+                //                             name: 'Overall Daily Attendance Report',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/overall-daily-attendance-report',
+                //                             title: 'Overall Daily Attendance Report',
+                //                             description: 'Overall Daily Attendance Report'
+                //                         },
 
-                                    ]
-                                },
-                                {
-                                    id: 10,
-                                    name: 'stjames',
-                                    icon: 'Settings',
-                                    pages: [
+                //                         {
+                //                             id: 53,
+                //                             name: 'Student Birthday Report',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/student-birthday-report',
+                //                             title: 'Student Birthday Report',
+                //                             description: 'Student Birthday Report'
+                //                         },
+                //                         {
+                //                             id: 54,
+                //                             name: '100% Attendance Report',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/100attendance-report',
+                //                             title: '100% Attendance Report',
+                //                             description: '100% Attendance Report'
+                //                         },
 
-                                        {
-                                            id: 55,
-                                            name: 'St.James TC Custom Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/stjames-tc-customreport',
-                                            title: 'St.James TC Custom Report',
-                                            description: 'St.James TC Custom Report'
-                                        },
+                //                         {
+                //                             id: 56,
+                //                             name: 'Study Certificate GMVPS Report',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/study-certificate-gmvps-report',
+                //                             title: 'Study Certificate GMVPS Report',
+                //                             description: 'Study Certificate GMVPS Report'
+                //                         },
 
-                                        {
-                                            id: 57,
-                                            name: 'St.James Bonafied Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/stjamesbonafiedreport',
-                                            title: 'St.James Bonafied Report',
-                                            description: 'St.James Bonafied Report'
-                                        },
-                                        {
-                                            id: 58,
-                                            name: 'St.James Migration Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/stjamesmigrationcertificate',
-                                            title: 'St.James Migration Report',
-                                            description: 'St.James Migration Report'
-                                        },
-                                        {
-                                            id: 59,
-                                            name: 'St.James Character Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/stjcharactercertificate',
-                                            title: 'St.James Character Report',
-                                            description: 'St.James Character Report'
-                                        }
+                //                         {
+                //                             id: 67,
+                //                             name: 'GM Custom Tc',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/custom-tc',
+                //                             title: 'GM Custom Tc',
+                //                             description: 'GM Custom Tc'
+                //                         }
 
 
-                                    ]
-                                },
-                                {
-                                    id: 10,
-                                    name: 'NDA',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 61,
-                                            name: 'NDA Transfer Certificate',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/nda-transfer-certificate',
-                                            title: 'NDA Transfer Certificate',
-                                            description: 'NDA Transfer Certificate'
-                                        },
-                                        {
-                                            id: 62,
-                                            name: 'NDA Student TC',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/nda-student-tc',
-                                            title: 'NDA Student TC',
-                                            description: 'NDA Student TC'
-                                        },
-                                        {
-                                            id: 63,
-                                            name: 'NDA Student Profile Update',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/nda-student-profile-update',
-                                            title: 'NDA Student Profile Update',
-                                            description: 'NDA Student Profile Update'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 11,
-                                    name: 'Baldwin',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 61,
-                                            name: 'BBHS Study Certificate',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/bbhs-study-certificate',
-                                            title: 'BBHS Study Certificate',
-                                            description: 'BBHS Study Certificate'
-                                        },
-                                        {
-                                            id: 62,
-                                            name: 'BBHS Student Custom TC',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/bbhs-student-tc-report-custom',
-                                            title: 'BBHS Student Custom TC',
-                                            description: 'BBHS Student Custom TC'
-                                        },
-                                        {
-                                            id: 63,
-                                            name: 'BCEH Study Certificate',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/BCEH-Study-Certificate',
-                                            title: 'BCEH Study Certificate',
-                                            description: 'BCEH Study Certificate'
-                                        },
-                                        {
-                                            id: 64,
-                                            name: 'BBHS Student Application Form',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/bbhs-student-application',
-                                            title: 'BBHS Student Application Form',
-                                            description: 'BBHS Student Application Form'
-                                        },
-                                        {
-                                            id: 65,
-                                            name: 'Student TC Report Custom',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/student-tc-report-custom',
-                                            title: 'Student TC Report Custom',
-                                            description: 'Student TC Report Custom'
-                                        }
-                                    ]
-                                }
 
-                            ]
-                        }
-                    ]
-                },
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 10,
+                //                     name: 'stjames',
+                //                     icon: 'Settings',
+                //                     pages: [
+
+                //                         {
+                //                             id: 55,
+                //                             name: 'St.James TC Custom Report',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/stjames-tc-customreport',
+                //                             title: 'St.James TC Custom Report',
+                //                             description: 'St.James TC Custom Report'
+                //                         },
+
+                //                         {
+                //                             id: 57,
+                //                             name: 'St.James Bonafied Report',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/stjamesbonafiedreport',
+                //                             title: 'St.James Bonafied Report',
+                //                             description: 'St.James Bonafied Report'
+                //                         },
+                //                         {
+                //                             id: 58,
+                //                             name: 'St.James Migration Report',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/stjamesmigrationcertificate',
+                //                             title: 'St.James Migration Report',
+                //                             description: 'St.James Migration Report'
+                //                         },
+                //                         {
+                //                             id: 59,
+                //                             name: 'St.James Character Report',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/stjcharactercertificate',
+                //                             title: 'St.James Character Report',
+                //                             description: 'St.James Character Report'
+                //                         }
+
+
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 10,
+                //                     name: 'NDA',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 61,
+                //                             name: 'NDA Transfer Certificate',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/nda-transfer-certificate',
+                //                             title: 'NDA Transfer Certificate',
+                //                             description: 'NDA Transfer Certificate'
+                //                         },
+                //                         {
+                //                             id: 62,
+                //                             name: 'NDA Student TC',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/nda-student-tc',
+                //                             title: 'NDA Student TC',
+                //                             description: 'NDA Student TC'
+                //                         },
+                //                         {
+                //                             id: 63,
+                //                             name: 'NDA Student Profile Update',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/nda-student-profile-update',
+                //                             title: 'NDA Student Profile Update',
+                //                             description: 'NDA Student Profile Update'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 11,
+                //                     name: 'Baldwin',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 61,
+                //                             name: 'BBHS Study Certificate',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/bbhs-study-certificate',
+                //                             title: 'BBHS Study Certificate',
+                //                             description: 'BBHS Study Certificate'
+                //                         },
+                //                         {
+                //                             id: 62,
+                //                             name: 'BBHS Student Custom TC',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/bbhs-student-tc-report-custom',
+                //                             title: 'BBHS Student Custom TC',
+                //                             description: 'BBHS Student Custom TC'
+                //                         },
+                //                         {
+                //                             id: 63,
+                //                             name: 'BCEH Study Certificate',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/BCEH-Study-Certificate',
+                //                             title: 'BCEH Study Certificate',
+                //                             description: 'BCEH Study Certificate'
+                //                         },
+                //                         {
+                //                             id: 64,
+                //                             name: 'BBHS Student Application Form',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/bbhs-student-application',
+                //                             title: 'BBHS Student Application Form',
+                //                             description: 'BBHS Student Application Form'
+                //                         }
+                //                     ]
+                //                 }
+                //                 ,
+                //                 {
+                //                     id: 12,
+                //                     name: 'Sophia',
+                //                     icon: 'Settings',
+                //                     pages: [
+
+                //                         {
+                //                             id: 590,
+                //                             name: 'Smart Card Details',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/Sophia/Smartcarddetails',
+                //                             title: 'Smartcarddetails',
+                //                             description: 'Smartcarddetails'
+                //                         },
+                //                         {
+                //                             id: 591,
+                //                             name: 'Import',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/Sophia/Import',
+                //                             title: 'Import',
+                //                             description: 'Import'
+                //                         },
+                //                         {
+                //                             id: 592,
+                //                             name: 'Master Activities',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/masters/Sophia/MasterActivities',
+                //                             title: 'Master Activities',
+                //                             description: 'Master Activities'
+                //                         },
+                //                         {
+                //                             id: 593,
+                //                             name: 'Section Allotment',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/Sophia/SectionAllotment',
+                //                             title: 'Section Allotment',
+                //                             description: 'Section Allotment'
+                //                         },
+                //                         {
+                //                             id: 594,
+                //                             name: 'CategoryWise Attendance',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/Sophia/CategoryWiseAttendance',
+                //                             title: 'CategoryWise Attendance',
+                //                             description: 'CategoryWise Attendance'
+                //                         },
+                //                         {
+                //                             id: 595,
+                //                             name: 'ClassWise Daily Attendance',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/Sophia/ClassWiseDailyAttendance',
+                //                             title: 'ClassWise Daily Attendance',
+                //                             description: 'ClassWise Daily Attendance'
+                //                         },
+                //                         {
+                //                             id: 596,
+                //                             name: 'Student Search',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/Sophia/StudentSearch',
+                //                             title: 'Student Search',
+                //                             description: 'Student Search'
+                //                         },
+                //                         {
+                //                             id: 597,
+                //                             name: 'Students Search Report',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/Sophia/StudentsSearchReport',
+                //                             title: 'Students Search Report',
+                //                             description: 'Students Search Report'
+                //                         },
+                //                         {
+                //                             id: 598,
+                //                             name: 'Date Of Birth Certificate',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/Sophia/DateOfBirthCertificate',
+                //                             title: 'Date Of Birth Certificate',
+                //                             description: 'Date Of Birth Certificate'
+                //                         }
+
+                //                     ]
+                //                 }
+                //                 ,
+                //                 {
+                //                     id: 12,
+                //                     name: 'St. Thomas Church School',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 61,
+                //                             name: 'Total Strength',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/STCS/total-strength',
+                //                             title: 'Total Strength',
+                //                             description: 'Total Strength'
+                //                         },
+
+                //                     ]
+                //                 }
+
+                //             ]
+                //         }
+                //     ]
+                // },
 
                 {
                     id: 2,

@@ -66,6 +66,36 @@ export const TotalStrengthSchema = z
             path: ['class']
         }
     );
+
+
+export const STCS_TotalStrengthSchema = z
+    .object({
+        reportType: z.enum(['All', 'Individual']),
+        status: z.string().min(1, 'Status is required'),
+        withTc: z.boolean().optional().default(false),
+        withDeactive: z.boolean().optional().default(false),
+        academicYear: z.number().min(1, 'Academic year is required'),
+        class: z.string().optional(),
+        section: z.string().optional(),
+        category: z.string().optional(),
+        electives: z.array(z.number()).optional().default([])
+    })
+    .refine(
+        (data) => {
+            if (data.reportType === 'Individual') {
+                return !!data.class && !!data.section;
+            }
+            return true;
+        },
+        {
+            message: 'Class and Section are required for Individual report',
+            path: ['class']
+        }
+    );
+
+
+
+
 export const studyCertificateReportSchema = z.object({
     selectionMode: z.enum(['all', 'individual']),
     studentStatus: z.enum(['studying', 'left', 'deactive']),
@@ -98,4 +128,23 @@ export const StudentTcDetailsSchema = z.object({
     })).min(1, 'Please select at least one column'),
     PermOrTemp: z.number().optional(),
     AMC_Id: z.number().optional()
+});
+
+export const CategoryWiseAttendanceSchema = z.object({
+    asmaY_Id: z.coerce.number().min(1, 'Academic Year is required'),
+    categoryList: z.array(z.number()).min(1, 'Please select at least one category'),
+    date: z.date({
+        required_error: 'Date is required',
+        invalid_type_error: "That's not a date!"
+    })
+});
+
+export const ClassWiseDailyAttendanceSchema = z.object({
+    asmaY_Id: z.coerce.number().min(1, 'Academic Year is required'),
+    asmcL_Id: z.coerce.number().min(1, 'Class is required'),
+    asmS_Id: z.coerce.number().min(0, 'Section is required'), // 0 is for "All"
+    fromDate: z.date({
+        required_error: 'Date is required',
+        invalid_type_error: "That's not a date!"
+    })
 });
