@@ -99,9 +99,55 @@ export default function UpdateMasterAuthorForm({ onSuccess, className = '', sele
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <InputText
-                            label='FirstName'
-                            {...register('lmaU_AuthorFirstName', {})}
+                            label='Author Name'
+                            required
+                            id='lmaU_AuthorFirstName'
+                            {...register('lmaU_AuthorFirstName')}
                             error={errors.lmaU_AuthorFirstName?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        />
+
+                        <InputText
+                            label='Email Id'
+                            id='lmaU_EmailId'
+                            {...register('lmaU_EmailId')}
+                            error={errors.lmaU_EmailId?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        />
+                    </div>
+
+                    {errors.root && <FormError>{errors.root.message}</FormError>}
+                </div>
+
+                <div className='space-y-4'>
+                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                        <InputText
+                            label='Mobile No'
+                            id='lmaU_MobileNo'
+                            {...register('lmaU_MobileNo')}
+                            error={errors.lmaU_MobileNo?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        />
+
+                        <InputText
+                            label='Author Address'
+                            id='lmaU_Address'
+                            {...register('lmaU_Address')}
+                            error={errors.lmaU_Address?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        />
+                    </div>
+
+                    {errors.root && <FormError>{errors.root.message}</FormError>}
+                </div>
+
+                <div className='space-y-4'>
+                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                        <InputText
+                            label='Phone No'
+                            id='lmaU_PhoneNo'
+                            {...register('lmaU_PhoneNo')}
+                            error={errors.lmaU_PhoneNo?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                     </div>

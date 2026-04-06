@@ -11,6 +11,7 @@ import { use, useEffect } from 'react';
 import AddMasterVendorForm from './_components/add-form';
 import { masterVendorColumns } from './_components/columns';
 import UpdateMasterVendorForm from './_components/update-form';
+import ToggleMasterVendorForm from './_components/toggle-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -178,9 +179,7 @@ function FormSections({ refetch }: { refetch: () => void }) {
                     </CollapsibleSection>
                 </div>
             )}
-            {/* 
-             {isToggleFormOpen && selectedRow && <ToggleMasterVendorForm rowData={selectedRow} onClose={closeToggleForm} />}
-             */}
+            {isToggleFormOpen && selectedRow && <ToggleMasterVendorForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );
 }

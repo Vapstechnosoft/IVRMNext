@@ -11,6 +11,7 @@ import { Plus, X } from 'lucide-react';
 import { use, useEffect } from 'react';
 import AddMasterCategoryForm from './_components/add-form';
 import { masterCategoryColumns } from './_components/columns';
+import ToggleMasterCategoryForm from './_components/toggle-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -88,13 +89,11 @@ function FormSections({ refetch }: { refetch: () => void }) {
     const {
         isAddFormOpen,
         isEditFormOpen,
-        //isDeleteFormOpen,
+        isToggleFormOpen,
         selectedRow,
         closeAddForm,
-        //closeDeleteForm,
-        // closeEditForm,
+        closeToggleForm,
         addFormRef
-        // editFormRef
     } = useFormContext<IMasterCategoryList>();
 
     useEffect(() => {
@@ -139,6 +138,9 @@ function FormSections({ refetch }: { refetch: () => void }) {
                     </CollapsibleSection>
                 </div>
             )}
+
+            {/* Toggle Form */}
+            {isToggleFormOpen && selectedRow && <ToggleMasterCategoryForm rowData={selectedRow} onClose={closeToggleForm} />}
 
             {/* Delete Form */}
             {/* {isDeleteFormOpen && selectedRow && (

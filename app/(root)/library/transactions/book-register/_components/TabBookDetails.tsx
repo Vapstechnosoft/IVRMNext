@@ -1,9 +1,15 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 import type { BookRegisterPayload } from '@/types/library/masters/bookRegister';
+import { format } from 'date-fns';
+import { CalendarIcon } from 'lucide-react';
 import { Controller, useFormContext } from 'react-hook-form';
 
 export default function TabBookDetails({ dropdownData }: { dropdownData: any }) {
@@ -126,7 +132,41 @@ export default function TabBookDetails({ dropdownData }: { dropdownData: any }) 
 
             <InputText label='ISBN No' required {...register('LMB_ISBNNo')} error={errors.LMB_ISBNNo?.message} />
 
+            <div className='flex flex-col gap-1.5'>
+                <Label>
+                    Entry Date <span className='text-red-500'>*</span>
+                </Label>
+                <Controller
+                    control={control}
+                    name='LMB_EntryDate'
+                    render={({ field }) => (
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant={'outline'}
+                                    className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
+                                    {field.value ? format(new Date(field.value), 'PPP') : <span>Pick a date</span>}
+                                    <CalendarIcon className='ml-auto h-4 w-4 opacity-50' />
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className='w-auto p-0' align='start'>
+                                <Calendar
+                                    mode='single'
+                                    selected={field.value ? new Date(field.value) : undefined}
+                                    onSelect={field.onChange}
+                                    disabled={(date) => date > new Date() || date < new Date('1900-01-01')}
+                                    initialFocus
+                                />
+                            </PopoverContent>
+                        </Popover>
+                    )}
+                />
+                {errors.LMB_EntryDate && <FormError>{errors.LMB_EntryDate.message}</FormError>}
+            </div>
+
             <InputText label='Published Year' required {...register('LMB_PublishedYear')} error={errors.LMB_PublishedYear?.message} />
+
+            <InputText label='Edition' {...register('LMB_Edition')} error={errors.LMB_Edition?.message} />
 
             <div className='flex flex-col gap-1.5'>
                 <Label>

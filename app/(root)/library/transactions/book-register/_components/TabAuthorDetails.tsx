@@ -78,7 +78,83 @@ export default function TabAuthorDetails({ dropdownData }: { dropdownData: any }
                     {errors.LRM_Id && <FormError>{errors.LRM_Id.message}</FormError>}
                 </div>
 
-                {/* Rack and Shelf would be similar Selects, omitted for brevity but required by schema often */}
+                <div className='flex flex-col gap-1.5'>
+                    <Label>
+                        Rack <span className='text-red-500'>*</span>
+                    </Label>
+                    <Controller
+                        control={control}
+                        name='LRAM_Id'
+                        render={({ field }) => (
+                            <Select
+                                onValueChange={(val) => field.onChange(Number(val))}
+                                value={field.value ? field.value.toString() : undefined}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder='Select Rack' />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {dropdownData?.racklist?.map((item: any) => (
+                                        <SelectItem key={item.lraM_Id} value={item.lraM_Id.toString()}>
+                                            {item.lraM_RackName}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
+                    {errors.LRAM_Id && <FormError>{errors.LRAM_Id.message}</FormError>}
+                </div>
+
+                <div className='flex flex-col gap-1.5'>
+                    <Label>
+                        Shelf <span className='text-red-500'>*</span>
+                    </Label>
+                    <Controller
+                        control={control}
+                        name='LSM_Id'
+                        render={({ field }) => (
+                            <Select
+                                onValueChange={(val) => field.onChange(Number(val))}
+                                value={field.value ? field.value.toString() : undefined}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder='Select Shelf' />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {dropdownData?.shelflist?.map((item: any) => (
+                                        <SelectItem key={item.lsM_Id} value={item.lsM_Id.toString()}>
+                                            {item.lsM_ShelfNo}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
+                    {errors.LSM_Id && <FormError>{errors.LSM_Id.message}</FormError>}
+                </div>
+
+                <div className='flex flex-col gap-1.5'>
+                    <Label>
+                        Available Status <span className='text-red-500'>*</span>
+                    </Label>
+                    <Controller
+                        control={control}
+                        name='LMBANO_AvialableStatus'
+                        render={({ field }) => (
+                            <Select onValueChange={field.onChange} value={field.value || undefined}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder='Select Status' />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value='Available'>Available</SelectItem>
+                                    <SelectItem value='Reference'>Reference Only</SelectItem>
+                                    <SelectItem value='Lost'>Lost</SelectItem>
+                                    <SelectItem value='Written Off'>Written Off</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
+                    {errors.LMBANO_AvialableStatus && <FormError>{errors.LMBANO_AvialableStatus.message}</FormError>}
+                </div>
             </div>
 
             <div className='rounded-md border p-4'>

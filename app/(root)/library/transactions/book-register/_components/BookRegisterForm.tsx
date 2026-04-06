@@ -25,7 +25,10 @@ export default function BookRegisterForm({ initialData, onSuccess }: { initialDa
             LMB_BookTitle: '',
             LMB_BookType: '',
             LMB_EntryDate: new Date(),
-            Purchase_Date: new Date()
+            Purchase_Date: new Date(),
+            LMBANO_AvialableStatus: 'Available',
+            With_Accessories: false,
+            accessionList: [{ LMBANO_No: '' }]
         }
     });
 

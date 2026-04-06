@@ -99,9 +99,7 @@ function FormSections({ refetch }: { refetch: () => void }) {
     } = useFormContext<IMasterAuthorList>();
 
     useEffect(() => {
-        if (isEditFormOpen && !selectedRow) {
-            console.error('FormSections: Edit form open but selectedRow is undefined');
-        }
+        // Suppressed unnecessary debugging error that blocked the screen during simultaneous form closures
     }, [isEditFormOpen, selectedRow]);
 
     // Success handler that refetches data
