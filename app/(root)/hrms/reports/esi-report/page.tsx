@@ -1,8 +1,9 @@
 'use client';
 
-import { useRef, useState, useMemo } from 'react';
+import { useRef, useState, useMemo, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { useReactToPrint } from 'react-to-print';
+//import { useReactToPrint } from 'react-to-print';
+//Commented due to Build Error
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider } from '@/components/ui/form/form-provider';
 import { Label } from '@/components/ui/extension/field';
@@ -58,6 +59,7 @@ function ESIReportContent() {
 
     const watchedGroupType = watch('groupType');
     const watchedDepartment = watch('department');
+    const watchDesignation = watch('designation');
 
     // Queries - Reusing hooks from cumulative-salary-report for reliability
     const { data: yearsData } = useLeaveYearDropdown();
@@ -71,7 +73,15 @@ function ESIReportContent() {
 
     const { mutate: generateReport, isPending } = useESIReport();
 
+
+    // Clear the reportData when data changes
+
+    useEffect(() => {
+        setReportData(null);
+    }, [watchedGroupType, watchedDepartment, watchDesignation]);
+
     const onSubmit = (data: FilterFormValues) => {
+        console.log('data', data);
         if (!data.year || !data.month) {
             toast.error('Please select Year and Month');
             return;
@@ -92,7 +102,8 @@ function ESIReportContent() {
             designationselected: data.designation.map(Number)
         }, {
             onSuccess: (res) => {
-                if (res.success && res.data) {
+                console.log('API Response:', res);
+                if (res.success && res.data && res?.data?.list?.length > 0) {
                     setReportData(res.data);
                     toast.success('Report generated successfully');
                 } else {
@@ -280,7 +291,7 @@ function ESIReportContent() {
                 </form>
             </CollapsibleSection>
 
-            {reportData && (
+            {reportData  &&  (
                 <CollapsibleSection title="Report Details" defaultOpen={true} className='shadow-md border'
                     rightElement={
                         <div className='flex gap-2'>

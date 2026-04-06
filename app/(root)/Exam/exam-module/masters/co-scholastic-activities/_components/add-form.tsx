@@ -32,7 +32,6 @@ export default function AddCoScholasticActivityForm({ onSuccess, className = '' 
         mode: 'onChange',
         defaultValues: {
             ecacT_Id: 0,
-            mI_Id: 30,
             ecacT_SkillName: '',
             ecacT_SkillCode: ''
         }
@@ -41,8 +40,7 @@ export default function AddCoScholasticActivityForm({ onSuccess, className = '' 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             const payload = {
-                ...data,
-                mI_Id: 30
+                ...data
             };
 
             const response = await addOrUpdatecoScholasticActivity(payload);
@@ -74,7 +72,7 @@ export default function AddCoScholasticActivityForm({ onSuccess, className = '' 
                             error={errors.ecacT_SkillName?.message}
                             onInput={(e) => {
                                 const input = e.currentTarget;
-                                input.value = input.value.replace(/[^A-Za-z0-9 ]/g, '');
+                                input.value = input.value.replace(/[^A-Za-z0-9\s]/g, '');
                             }}
                         />
 

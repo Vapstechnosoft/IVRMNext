@@ -9,38 +9,46 @@ import { Plus, X } from 'lucide-react';
 import AddInstitutionSubscriptionForm from './_components/add-form';
 import { InstitutionSubscriptionColumns } from './_components/columns';
 
-// Static Data
-const staticData: IInstitutionSubscription[] = [
-    {
-        misV_Id: 1,
-        mI_Id: 1,
-        institution: {
-            mI_Name: 'Vaps Institution'
-        },
-        misV_SubscriptionType: 'Annual Plan',
-        misV_FromDate: '2025-01-01',
-        misV_ToDate: '2025-12-31',
-        misV_ActiveFlag: true,
-        misV_ApprovalFlag: 'A',
-        createdDate: '2025-01-01',
-        updatedDate: '2025-01-01'
-    }
-];
+import { useInstitutionSubscriptionData } from '@/hooks/super-admin/super-admin-module/use-institution-subscription';
+import { use } from 'react';
 
-export default function InstitutionSubscriptionPage() {
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+export default function InstitutionSubscriptionPage(props: { searchParams: SearchParams }) {
+    const searchParams = use(props.searchParams);
+    const { data: response, isLoading, error, refetchAll } = useInstitutionSubscriptionData(searchParams);
+
     return (
         <FormProvider<IInstitutionSubscription>>
-            <InstitutionSubscriptionPageContent />
+            <InstitutionSubscriptionPageContent
+                response={response}
+                isLoading={isLoading}
+                error={error}
+                refetchAll={refetchAll}
+            />
         </FormProvider>
     );
 }
 
-function InstitutionSubscriptionPageContent() {
+function InstitutionSubscriptionPageContent({
+    response,
+    isLoading,
+    error,
+    refetchAll
+}: {
+    response: any;
+    isLoading: boolean;
+    error: any;
+    refetchAll: any;
+}) {
     const { openAddForm } = useFormContext<IInstitutionSubscription>();
 
-    // Simulate API loading state
-    const isLoading = false;
-    const error = null;
+    const tableProps = {
+        data: response?.data || [],
+        totalItems: response?.total || 0,
+        success: response?.success,
+        errorMessage: response?.message
+    };
 
     return (
         <div>
@@ -65,11 +73,11 @@ function InstitutionSubscriptionPageContent() {
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
                 >
                     <GenericDataTable<IInstitutionSubscription>
-                        data={staticData}
+                        {...tableProps}
                         columns={InstitutionSubscriptionColumns}
                         isLoading={isLoading}
                         error={error}
-                        totalItems={staticData.length}
+                        total={tableProps.totalItems}
                         loadingMessage='Loading subscription details...'
                         noDataTitle='No Subscription Details Found'
                         noDataDescription='No subscription details available currently.'
@@ -80,18 +88,23 @@ function InstitutionSubscriptionPageContent() {
                 </CollapsibleSection>
 
                 {/* Forms */}
-                <FormSections />
+                <FormSections refetchAll={refetchAll} />
             </div>
         </div>
     );
 }
 
-function FormSections() {
+function FormSections({ refetchAll }: { refetchAll: () => void }) {
     const {
         isAddFormOpen,
         closeAddForm,
         addFormRef
     } = useFormContext<IInstitutionSubscription>();
+
+    const handleSuccess = () => {
+        closeAddForm();
+        refetchAll();
+    };
 
     return (
         <>
@@ -114,7 +127,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddInstitutionSubscriptionForm onSuccess={closeAddForm} />
+                            <AddInstitutionSubscriptionForm onSuccess={handleSuccess} />
                         </div>
                     </CollapsibleSection>
                 </div>

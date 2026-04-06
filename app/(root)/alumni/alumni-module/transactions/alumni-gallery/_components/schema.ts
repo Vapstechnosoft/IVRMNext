@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const alumniGallerySchema = z.object({
     algA_Id: z.number().optional(),
-    ALGA_GalleryName: z.string().min(1, 'Gallery Name is required'),
+    ALGA_GalleryName: z.string().min(1, 'Gallery Name is required').max(25, 'Gallery Name cannot exceed 25 characters'),
     ALGA_Date: z.date({ required_error: 'Date is required' }),
     mediatype: z.enum(['I', 'V']).default('I'),
     images_list: z

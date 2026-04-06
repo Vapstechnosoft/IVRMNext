@@ -7,7 +7,7 @@ import type { IAcademicYear } from '@/types/exam/exam-module/masters';
 
 export async function getYearlyCategoryDatesMapping(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `yearly_category_dates_mapping/30?${urlParams}`;
+    const url = `yearly_category_dates_mapping/?${urlParams}`;
     const response = await api.get<IYearlyCategoryDatesMapping>('exam', url);
 
     return {
@@ -21,8 +21,8 @@ export async function addOrUpdateYearlyCategoryDatesMapping(data: any) {
 }
 
 // server/exam/exam-module/exam-mapping/yearly-category-dates-mapping.ts
-export async function getCategoryDropDownByAcademicYearlist(orgId: number, asmay_id: number) {
+export async function getCategoryDropDownByAcademicYearlist(asmay_id: number) {
     if (!asmay_id) throw new Error('Academic Year ID is required');
-    const url = `/exam_master_category/exam_category_drop_down_by_academic_year_list/${orgId}/${asmay_id}`;
+    const url = `/exam_master_category/exam_category_drop_down_by_academic_year_list/${asmay_id}`;
     return await api.get<IAcademicYear>('exam', url);
 }

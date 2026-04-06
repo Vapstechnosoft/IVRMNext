@@ -138,7 +138,7 @@ export const holidayMasterSchema = {
                     });
                 }
             }
-            
+
             // Conditional validation for WEEK DAY
             if (data.holidayType === 'WEEK DAY') {
                 // For WEEK DAY, at least one day must be selected
@@ -149,7 +149,7 @@ export const holidayMasterSchema = {
                         path: ['selectedDays']
                     });
                 }
-                
+
                 // For WEEK DAY, department is required
                 if (!data.department || data.department.trim() === '') {
                     ctx.addIssue({
@@ -365,7 +365,7 @@ export const employeeInOutReportFilterSchema = z
             required_error: 'All/Individual selection is required'
         }),
         codeOrName: z.enum(['Code', 'Name']).optional(),
-        query: z.string().optional(),
+        query: z.array(z.string()).optional(),
         fromDate: z.string().min(1, 'From Date is required'),
         toDate: z.string().min(1, 'To Date is required'),
         timeInTimeOut: z.enum(['Time In', 'Time Out', 'In Out']).optional() // Optional - used for filtering
@@ -385,7 +385,7 @@ export const employeeInOutReportFilterSchema = z
     .refine(
         (data) => {
             if (data.allOrIndividual === 'Individual') {
-                return !!data.query;
+                return data.query && data.query.length > 0;
             }
             return true;
         },
@@ -416,7 +416,7 @@ export const employeeLateInEarlyOutReportFilterSchema = z
             required_error: 'All/Individual selection is required'
         }),
         codeOrName: z.enum(['Code', 'Name']).optional(),
-        query: z.string().optional(),
+        query: z.array(z.string()).optional(),
         fromDate: z.string().min(1, 'From Date is required'),
         toDate: z.string().min(1, 'To Date is required'),
         mode: z.enum(['Late By', 'Early Out', 'Late In Early Out'], {
@@ -426,7 +426,7 @@ export const employeeLateInEarlyOutReportFilterSchema = z
     .refine(
         (data) => {
             if (data.allOrIndividual === 'Individual') {
-                return !!data.query;
+                return data.query && data.query.length > 0;
             }
             return true;
         },

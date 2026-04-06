@@ -5,12 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import {
-    useEmployeeById
-    // TODO: Migrate payroll-specific hooks when endpoints are refactored
-    // useEmployeeSalaryDetails,
-    // useSaveEmployeeArrear,
-    // useSaveEmployeeDeduction,
-    // useSaveEmployeeEarning
+    useEmployeeById,
+    useGetEmployeeSalaryDetailsByHead,
+    useUpdateEmployeeSalaryDetailsByHead,
+    useEmployeeEarningsDeductions,
+    useSaveEmployeeSalaryDetails
 } from '@/hooks/hrms/useEmployeeRegister';
 import type {
     EmployeeSalaryDetailItem,
@@ -20,13 +19,12 @@ import type {
 } from '@/types/hrms/employee-register';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
 interface PayrollTabProps {
     employeeId: number | null;
     employeeCode: string;
-    grossList?: any[];
-    earningList?: any[];
-    detectionList?: any[];
-    arrearList?: any[];
+    // grossList, earningList, detectionList, arrearList removed as per refactor to use API only
+    MI_Id?: number;
     onSuccess?: () => void;
 }
 type EditablePayrollItem = EmployeeSalaryDetailItem & {
@@ -35,108 +33,107 @@ type EditablePayrollItem = EmployeeSalaryDetailItem & {
     localApplicablePercentage?: string; // % Applicable
     localMaxAmount?: number;
 };
+const DEFAULT_EMPTY_ARRAY: any[] = [];
+
 export function PayrollTab({
     employeeId,
     employeeCode,
-    grossList = [],
-    earningList = [],
-    detectionList = [],
-    arrearList = [],
+    MI_Id: propMI_Id,
     onSuccess
 }: PayrollTabProps) {
-    // TODO: Migrate to new hooks when payroll endpoints are refactored
-    const salaryDetails: any[] = []; // useEmployeeSalaryDetails(employeeId, employeeCode);
-    const isLoading = false;
-    const refetch = () => {};
-    const { data: employeeData } = useEmployeeById(employeeId);
-    // TODO: Create payroll-specific save hooks when endpoints are migrated
-    const saveEarningMutation: any = { mutateAsync: async () => ({ success: false, message: 'Not migrated yet' }), isPending: false };
-    const saveDeductionMutation: any = { mutateAsync: async () => ({ success: false, message: 'Not migrated yet' }), isPending: false };
-    const saveArrearMutation: any = { mutateAsync: async () => ({ success: false, message: 'Not migrated yet' }), isPending: false };
+    const { data: response, isLoading: isLoadingEmployee, refetch } = useEmployeeById(employeeId);
+    const { data: salaryDetailsData, isLoading: isLoadingED } = useEmployeeEarningsDeductions(employeeId);
+    const employeeData = response?.data;
+
+    // Prioritize the specific API response as requested by user
+    // Prioritize the specific API response as requested by user
+    const salaryDetails = salaryDetailsData || DEFAULT_EMPTY_ARRAY;
+    console.log('🔍 [PayrollTab] Loaded salaryDetails from API:', salaryDetails);
+
+    const queryClient = useQueryClient();
+    const MI_Id = propMI_Id || employeeData?.mI_Id || employeeData?.MI_Id || HRMS_MI_ID;
+    const isLoading = isLoadingEmployee || isLoadingED;
+
+    const updateSalaryByHeadMutation = useUpdateEmployeeSalaryDetailsByHead();
     // Local state for editable items
     const [earnings, setEarnings] = useState<EditablePayrollItem[]>([]);
     const [deductions, setDeductions] = useState<EditablePayrollItem[]>([]);
     const [arrears, setArrears] = useState<EditablePayrollItem[]>([]);
-    // Helper function to get name from lists based on HRMED_Id
-    const getNameFromLists = (hrmdId: number, earnDedFlag: string): string => {
-        if (earnDedFlag === 'Earning') {
-            const found = earningList.find((item: any) => item.HRMED_Id === hrmdId);
-            return found?.HRMED_Name || '';
-        }
-        if (earnDedFlag === 'Deduction') {
-            const found = detectionList.find((item: any) => item.HRMED_Id === hrmdId);
-            return found?.HRMED_Name || '';
-        }
-        if (earnDedFlag === 'Arrear') {
-            const found = arrearList.find((item: any) => item.HRMED_Id === hrmdId);
-            return found?.HRMED_Name || '';
-        }
-        if (earnDedFlag === 'Gross') {
-            const found = grossList.find((item: any) => item.HRMED_Id === hrmdId);
-            return found?.HRMED_Name || '';
-        }
-        return '';
-    };
-    // Helper function to get AmountPercentFlag from lists based on HRMED_Id
-    const getAmountPercentFlagFromLists = (hrmdId: number, earnDedFlag: string): string => {
-        if (earnDedFlag === 'Earning') {
-            const found = earningList.find((item: any) => item.HRMED_Id === hrmdId);
-            return found?.HRMED_AmountPercentFlag || 'Amount';
-        }
-        if (earnDedFlag === 'Deduction') {
-            const found = detectionList.find((item: any) => item.HRMED_Id === hrmdId);
-            return found?.HRMED_AmountPercentFlag || 'Amount';
-        }
-        if (earnDedFlag === 'Arrear') {
-            const found = arrearList.find((item: any) => item.HRMED_Id === hrmdId);
-            return found?.HRMED_AmountPercentFlag || 'Amount';
-        }
-        if (earnDedFlag === 'Gross') {
-            const found = grossList.find((item: any) => item.HRMED_Id === hrmdId);
-            return found?.HRMED_AmountPercentFlag || 'Amount';
-        }
-        return 'Amount';
-    };
+    const [grossDetails, setGrossDetails] = useState<EditablePayrollItem | null>(null);
+
+    const getEmployeeSalaryDetailsByHeadMutation = useGetEmployeeSalaryDetailsByHead();
+
     // Initialize local state when data loads
     useEffect(() => {
-        if (salaryDetails && Array.isArray(salaryDetails)) {
-            const earningsList: EditablePayrollItem[] = [];
-            const deductionsList: EditablePayrollItem[] = [];
-            const arrearsList: EditablePayrollItem[] = [];
-            salaryDetails.forEach((item) => {
-                // Get name from lists if not present in salary details
-                const name = item.HRMED_Name || getNameFromLists(item.HRMED_Id, item.HRMED_EarnDedFlag);
-                // Get AmountPercentFlag from lists if not present in salary details
-                // Handle empty string, null, undefined, and whitespace
-                const rawFlag = item.HRMED_AmountPercentFlag;
-                const amountPercentFlag = rawFlag?.toString().trim()
-                    ? rawFlag.toString().trim()
-                    : getAmountPercentFlagFromLists(item.HRMED_Id, item.HRMED_EarnDedFlag);
-                // Preserve all original fields from API response, especially HREED_ActiveFlag
-                const editableItem: EditablePayrollItem = {
-                    ...item,
-                    HRMED_Name: name, // Ensure name is set
-                    HRMED_AmountPercentFlag: amountPercentFlag, // Ensure AmountPercentFlag is set
-                    // Preserve HREED_ActiveFlag from API (could be true or false)
-                    HREED_ActiveFlag: item.HREED_ActiveFlag !== undefined ? Boolean(item.HREED_ActiveFlag) : false,
-                    localAmount: item.HREED_Amount || 0,
-                    localPercentage: item.HREED_Percentage || '0', // Actual %
-                    localApplicablePercentage: item.HREED_ApplicablePercentage || item.HREED_Percentage || '0', // % Applicable
-                    localMaxAmount: item.HREED_ApplicableMaxValue || 0
-                };
-                if (item.HRMED_EarnDedFlag === 'Earning') {
-                    earningsList.push(editableItem);
-                } else if (item.HRMED_EarnDedFlag === 'Deduction') {
-                    deductionsList.push(editableItem);
-                } else if (item.HRMED_EarnDedFlag === 'Arrear') {
-                    arrearsList.push(editableItem);
-                }
-            });
-            setEarnings(earningsList);
-            setDeductions(deductionsList);
-            setArrears(arrearsList);
+        // Show only items returned by the API as requested by user
+        const initializeList = (flag: string) => {
+            return (salaryDetails || [])
+                .filter((sd: any) => (sd.HRMED_EarnDedFlag || sd.hrmeD_EarnDedFlag) === flag)
+                .map((existingItem: any) => {
+                    const hrmedId = existingItem.HRMED_Id || existingItem.hrmeD_Id;
+                    const amount = existingItem.HREED_Amount ?? existingItem.hreeD_Amount ?? 0;
+                    const percentage = existingItem.HREED_Percentage ?? existingItem.hreeD_Percentage ?? '0';
+                    const maxVal = existingItem.HREED_ApplicableMaxValue ?? existingItem.hreeD_ApplicableMaxValue ?? 0;
+                    const active = Boolean(existingItem.HREED_ActiveFlag ?? existingItem.hreeD_ActiveFlag);
+
+                    return {
+                        ...existingItem,
+                        HREED_Id: existingItem.HREED_Id ?? existingItem.hreeD_Id ?? 0,
+                        HRMED_Id: hrmedId,
+                        HRMED_Name: existingItem.HRMED_Name ?? existingItem.hrmeD_Name ?? '',
+                        HRMED_EarnDedFlag: flag,
+                        HRMED_AmountPercentFlag: existingItem.HRMED_AmountPercentFlag ?? existingItem.hrmeD_AmountPercentFlag ?? 'Amount',
+                        HREED_ActiveFlag: active,
+                        HREED_Amount: amount,
+                        HREED_Percentage: percentage,
+                        HREED_ApplicablePercentage: existingItem.HREED_ApplicablePercentage ?? existingItem.hreeD_ApplicablePercentage ?? percentage,
+                        HREED_ApplicableMaxValue: maxVal,
+                        // Local state for editing
+                        localAmount: amount,
+                        localPercentage: percentage,
+                        localApplicablePercentage: existingItem.HREED_ApplicablePercentage ?? existingItem.hreeD_ApplicablePercentage ?? percentage,
+                        localMaxAmount: maxVal,
+                        HREED_MaxApplicableFlg: Boolean(existingItem.HREED_MaxApplicableFlg ?? existingItem.hreeD_MaxApplicableFlg ?? true)
+                    } as EditablePayrollItem;
+                });
+        };
+
+        const earningsList = initializeList('Earning');
+        const deductionsList = initializeList('Deduction');
+        const arrearsList = initializeList('Arrear');
+
+        setEarnings(earningsList);
+        setDeductions(deductionsList);
+        setArrears(arrearsList);
+
+        // Handle Gross separately
+        const existingGross = (salaryDetails || []).find(
+            (sd: any) => (sd.HRMED_EarnDedFlag || sd.hrmeD_EarnDedFlag) === 'Gross'
+        );
+        if (existingGross) {
+            const hrmedId = existingGross.HRMED_Id || existingGross.hrmeD_Id;
+            setGrossDetails({
+                ...existingGross,
+                HREED_Id: existingGross.HREED_Id ?? existingGross.hreeD_Id ?? 0,
+                HRMED_Id: hrmedId,
+                HRMED_Name: existingGross.HRMED_Name ?? existingGross.hrmeD_Name ?? 'GROSS',
+                HRMED_EarnDedFlag: 'Gross',
+                HRMED_AmountPercentFlag: existingGross.HRMED_AmountPercentFlag ?? existingGross.hrmeD_AmountPercentFlag ?? 'Amount',
+                HREED_ActiveFlag: Boolean(existingGross.HREED_ActiveFlag ?? existingGross.hreeD_ActiveFlag ?? true),
+                HREED_Amount: existingGross.HREED_Amount ?? existingGross.hreeD_Amount ?? 0,
+                HREED_Percentage: existingGross.HREED_Percentage ?? existingGross.hreeD_Percentage ?? '0',
+                HREED_ApplicablePercentage: existingGross.HREED_ApplicablePercentage ?? existingGross.hreeD_ApplicablePercentage ?? '0',
+                HREED_ApplicableMaxValue: existingGross.HREED_ApplicableMaxValue ?? existingGross.hreeD_ApplicableMaxValue ?? 0,
+                localAmount: existingGross.HREED_Amount ?? existingGross.hreeD_Amount ?? 0,
+                localPercentage: existingGross.HREED_Percentage ?? existingGross.hreeD_Percentage ?? '0',
+                localApplicablePercentage: existingGross.HREED_ApplicablePercentage ?? existingGross.hreeD_ApplicablePercentage ?? '0',
+                localMaxAmount: existingGross.HREED_ApplicableMaxValue ?? existingGross.hreeD_ApplicableMaxValue ?? 0,
+                HREED_MaxApplicableFlg: Boolean(existingGross.HREED_MaxApplicableFlg ?? existingGross.hreeD_MaxApplicableFlg ?? true)
+            } as EditablePayrollItem);
+        } else {
+            setGrossDetails(null);
         }
-    }, [salaryDetails, earningList, detectionList, arrearList]);
+    }, [salaryDetails]);
     // Helper function to calculate totals with specific arrays (client-side calculation)
     const calculateTotalsWithArrays = (
         earningsArray: EditablePayrollItem[],
@@ -211,6 +208,120 @@ export function PayrollTab({
         if (Number.isNaN(numValue)) return 0;
         return Math.max(0, numValue); // Ensure no negative values
     };
+    // State for calculation trigger
+    const handleCalculateServerSide = async (currentEarnings = earnings, currentDeductions = deductions, currentArrears = arrears, currentGross = grossDetails) => {
+        if (!employeeData) return;
+
+        // Construct standard payload for calculation
+        const allItems = [
+            ...currentEarnings,
+            ...currentDeductions,
+            ...currentArrears,
+            ...(currentGross ? [currentGross] : [])
+        ].map(item => ({
+            ...item,
+            HREED_Amount: item.localAmount ?? item.HREED_Amount ?? 0,
+            HREED_Percentage: item.localPercentage || item.HREED_Percentage || '0',
+            HREED_ActiveFlag: Boolean(item.HREED_ActiveFlag)
+        }));
+
+        const payload = {
+            ...employeeData,
+            employeeEarningsDeductionsDetails: allItems
+        };
+
+        try {
+            const toastId = toast.loading('Calculating salary details...');
+            const result = await getEmployeeSalaryDetailsByHeadMutation.mutateAsync(payload);
+            toast.dismiss(toastId);
+
+            const calcResult = result as any;
+            if (calcResult?.success && calcResult?.data?.employeeEarningsDeductionsDetails) {
+                // Merge calculated results back into state
+                const newDetails = calcResult.data.employeeEarningsDeductionsDetails as EditablePayrollItem[];
+
+                const newEarnings: EditablePayrollItem[] = [];
+                const newDeductions: EditablePayrollItem[] = [];
+                const newArrears: EditablePayrollItem[] = [];
+                let newGross: EditablePayrollItem | null = null;
+
+                newDetails.forEach(item => {
+                    // Get name from salary details only (API driven)
+                    const name = item.HRMED_Name || item.hrmeD_Name || '';
+                    const rawFlag = item.HRMED_AmountPercentFlag;
+                    const amountPercentFlag = rawFlag?.toString().trim()
+                        ? rawFlag.toString().trim()
+                        : (item.hrmeD_AmountPercentFlag || 'Amount');
+
+                    const editableItem: EditablePayrollItem = {
+                        ...item,
+                        HRMED_Name: name,
+                        HRMED_AmountPercentFlag: amountPercentFlag,
+                        HREED_ActiveFlag: item.HREED_ActiveFlag !== undefined ? Boolean(item.HREED_ActiveFlag) : false,
+                        localAmount: item.HREED_Amount || 0,
+                        localPercentage: item.HREED_Percentage || '0',
+                        localApplicablePercentage: item.HREED_ApplicablePercentage || item.HREED_Percentage || '0',
+                        localMaxAmount: item.HREED_ApplicableMaxValue || 0
+                    };
+
+                    if (item.HRMED_EarnDedFlag === 'Earning') {
+                        newEarnings.push(editableItem);
+                    } else if (item.HRMED_EarnDedFlag === 'Deduction') {
+                        newDeductions.push(editableItem);
+                    } else if (item.HRMED_EarnDedFlag === 'Arrear') {
+                        newArrears.push(editableItem);
+                    } else if (item.HRMED_EarnDedFlag === 'Gross') {
+                        newGross = editableItem;
+                    }
+                });
+
+                setEarnings(newEarnings);
+                setDeductions(newDeductions);
+                setArrears(newArrears);
+                if (newGross) setGrossDetails(newGross);
+
+                // Also update totals
+                calculateTotalsWithArrays(newEarnings, newDeductions, newArrears);
+            }
+        } catch (error) {
+            console.error("Calculation error", error);
+        }
+    };
+
+    const handleAutoSave = async (item: EditablePayrollItem) => {
+        if (!employeeId) return;
+
+        // Skip auto-save if this row hasn't been saved to the DB yet (no valid ID)
+        const hreedId = Number(item.HREED_Id || 0);
+        if (!hreedId || hreedId <= 0) {
+            console.log('[PAYROLL AUTO-SAVE] Skipping: HREED_Id is 0 or missing (unsaved row)');
+            return;
+        }
+
+        // Construct payload matching the user's requested structure
+        const payload = {
+            hreeD_Id: Number(item.HREED_Id || 0),
+            mI_Id: Number(employeeData?.mI_Id || employeeData?.MI_Id || MI_Id || 0),
+            hrmE_Id: Number(employeeId),
+            hrmeD_Id: Number(item.HRMED_Id || 0),
+            hrmeD_Name: item.HRMED_Name || '',
+            hreeD_Amount: Number(item.localAmount ?? item.HREED_Amount ?? 0),
+            hreeD_Percentage: String(item.localApplicablePercentage ?? item.HREED_ApplicablePercentage ?? item.HREED_Percentage ?? '0'),
+            hreeD_ActiveFlag: Boolean(item.HREED_ActiveFlag),
+            hreeD_MaxApplicableFlg: Boolean(item.HREED_MaxApplicableFlg ?? true),
+            hreeD_ApplicableMaxValue: Number(item.localMaxAmount ?? item.HREED_ApplicableMaxValue ?? 0),
+            updatedDate: new Date().toISOString(),
+            hreeD_UpdatedBy: 0 // Logged in user ID from backend session
+        };
+
+        try {
+            console.log(`[PAYROLL AUTO-SAVE] Payload for head ${item.HRMED_Id}:`, payload);
+            await updateSalaryByHeadMutation.mutateAsync(payload);
+        } catch (error) {
+            console.error(`❌ [AUTO-SAVE ERROR] Failed for head ${item.HRMED_Id}:`, error);
+        }
+    };
+
     // Update handlers for earnings
     const updateEarning = (index: number, field: keyof EditablePayrollItem, value: any) => {
         const updated = [...earnings];
@@ -226,8 +337,14 @@ export function PayrollTab({
         // If checkbox (HREED_ActiveFlag) is toggled, recalculate totals immediately with updated array
         if (field === 'HREED_ActiveFlag') {
             calculateTotalsWithArrays(updated, deductions, arrears);
+            // Trigger server calc on toggle
+            handleCalculateServerSide(updated, deductions, arrears);
+            // Auto-save toggle status
+            handleAutoSave(updated[index]);
         }
+        return updated;
     };
+
     // Update handlers for deductions
     const updateDeduction = (index: number, field: keyof EditablePayrollItem, value: any) => {
         const updated = [...deductions];
@@ -243,8 +360,14 @@ export function PayrollTab({
         // If checkbox (HREED_ActiveFlag) is toggled, recalculate totals immediately with updated array
         if (field === 'HREED_ActiveFlag') {
             calculateTotalsWithArrays(earnings, updated, arrears);
+            // Trigger server calc on toggle
+            handleCalculateServerSide(earnings, updated, arrears);
+            // Auto-save toggle status
+            handleAutoSave(updated[index]);
         }
+        return updated;
     };
+
     // Update handlers for arrears
     const updateArrear = (index: number, field: keyof EditablePayrollItem, value: any) => {
         const updated = [...arrears];
@@ -260,7 +383,30 @@ export function PayrollTab({
         // If checkbox (HREED_ActiveFlag) is toggled, recalculate totals immediately with updated array
         if (field === 'HREED_ActiveFlag') {
             calculateTotalsWithArrays(earnings, deductions, updated);
+            // Trigger server calc on toggle
+            handleCalculateServerSide(earnings, deductions, updated);
+            // Auto-save toggle status
+            handleAutoSave(updated[index]);
         }
+        return updated;
+    };
+
+    // Update handlers for gross
+    const updateGross = (field: keyof EditablePayrollItem, value: any) => {
+        if (!grossDetails) return null;
+
+        let validatedValue = value;
+        if (field === 'localAmount') {
+            validatedValue = validateAmount(String(value));
+        }
+
+        const updatedGross = { ...grossDetails, [field]: validatedValue };
+        setGrossDetails(updatedGross);
+        return updatedGross;
+    };
+
+    const onBlurGross = (updated = grossDetails) => {
+        handleCalculateServerSide(earnings, deductions, arrears, updated);
     };
     // State for calculated totals from API
     const [calculatedTotals, setCalculatedTotals] = useState<{
@@ -290,131 +436,72 @@ export function PayrollTab({
             return () => clearTimeout(timeoutId);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [earnings.length, deductions.length, arrears.length]);
+    }, [earnings, deductions, arrears]);
     // Use calculated totals from API, fallback to 0 if not calculated yet
     const totalEarning = calculatedTotals.totalEarning;
     const totalDeduction = calculatedTotals.totalDeduction;
     const totalArrear = calculatedTotals.totalArrear;
     const netSalary = calculatedTotals.netSalary;
+
+    const saveEmployeeSalaryDetailsMutation = useSaveEmployeeSalaryDetails();
+
     const handleSave = async () => {
         if (!employeeId) {
             toast.error('Employee ID is required');
             return;
         }
+
         try {
-            // Prepare earnings payload (ALL items - active and inactive) - exact structure as provided
-            const earningsPayload: SaveEarningDetailsRequest = {
-                Employee: {
-                    MI_Id: HRMS_MI_ID,
-                    HRME_Id: employeeId
-                },
-                EmployeeEarningDeductionArrear: earnings.map((item) => {
-                    // Ensure percentage is "0" if zero or empty, not empty string
-                    const percentage = item.localPercentage || item.HREED_Percentage || '0';
-                    const finalPercentage = percentage === '' || percentage === null || percentage === undefined ? '0' : String(percentage);
-                    return {
-                        HREED_Id: Number(item.HREED_Id || 0),
-                        HRMED_Id: Number(item.HRMED_Id || 0),
-                        HREED_Amount: Number(item.localAmount ?? item.HREED_Amount ?? 0),
-                        HREED_Percentage: finalPercentage,
-                        HREED_ActiveFlag: Boolean(item.HREED_ActiveFlag)
-                    };
-                })
-            };
-            // Prepare deductions payload (ALL items - active and inactive) - exact structure as provided
-            const deductionsPayload: SaveDeductionDetailsRequest = {
-                Employee: {
-                    MI_Id: HRMS_MI_ID,
-                    HRME_Id: employeeId
-                },
-                EmployeeEarningDeductionArrear: deductions.map((item) => {
-                    // Ensure percentage is "0" if zero or empty, not empty string
-                    const percentage = item.localPercentage || item.HREED_Percentage || '0';
-                    const finalPercentage = percentage === '' || percentage === null || percentage === undefined ? '0' : String(percentage);
-                    return {
-                        HREED_Id: Number(item.HREED_Id || 0),
-                        HRMED_Id: Number(item.HRMED_Id || 0),
-                        HREED_Amount: Number(item.localAmount ?? item.HREED_Amount ?? 0),
-                        HREED_Percentage: finalPercentage,
-                        HREED_ActiveFlag: Boolean(item.HREED_ActiveFlag)
-                    };
-                })
-            };
-            // Prepare arrears payload (ALL items - active and inactive) - exact structure as provided
-            const arrearsPayload: SaveArrearDetailsRequest = {
-                Employee: {
-                    MI_Id: HRMS_MI_ID,
-                    HRME_Id: employeeId
-                },
-                EmployeeEarningDeductionArrear: arrears.map((item) => {
-                    // Ensure percentage is "0" if zero or empty, not empty string
-                    const percentage = item.localPercentage || item.HREED_Percentage || '0';
-                    const finalPercentage = percentage === '' || percentage === null || percentage === undefined ? '0' : String(percentage);
-                    return {
-                        HREED_Id: Number(item.HREED_Id || 0),
-                        HRMED_Id: Number(item.HRMED_Id || 0),
-                        HREED_Amount: Number(item.localAmount ?? item.HREED_Amount ?? 0),
-                        HREED_Percentage: finalPercentage,
-                        HREED_ActiveFlag: Boolean(item.HREED_ActiveFlag)
-                    };
-                })
-            };
-            // Call all three endpoints
-            const promises: Array<{ type: string; promise: Promise<any> }> = [];
-            if (earningsPayload.EmployeeEarningDeductionArrear.length > 0) {
-                promises.push({
-                    type: 'earnings',
-                    promise: saveEarningMutation.mutateAsync(earningsPayload)
-                });
-            }
-            if (deductionsPayload.EmployeeEarningDeductionArrear.length > 0) {
-                promises.push({
-                    type: 'deductions',
-                    promise: saveDeductionMutation.mutateAsync(deductionsPayload)
-                });
-            }
-            if (arrearsPayload.EmployeeEarningDeductionArrear.length > 0) {
-                promises.push({
-                    type: 'arrears',
-                    promise: saveArrearMutation.mutateAsync(arrearsPayload)
-                });
-            }
-            if (promises.length === 0) {
-                toast.info('No active payroll items to save');
-                return;
-            }
-            // Execute all promises and track results
-            const results = await Promise.all(promises.map((p) => p.promise.then((result) => ({ type: p.type, result }))));
-            // Verify all API calls returned success: true
-            const allSuccessful = results.every((item) => item.result?.success === true);
-            const failedResults = results.filter((item) => item.result?.success !== true);
-            if (!allSuccessful) {
-                const errorMessages = failedResults
-                    .map((item) => {
-                        const type = item.type.charAt(0).toUpperCase() + item.type.slice(1);
-                        return `${type}: ${item.result?.message || 'Unknown error'}`;
-                    })
-                    .join(', ');
-                toast.error(`Failed to save payroll details: ${errorMessages}`);
-                return;
-            }
-            // All APIs returned success: true
-            await refetch();
-            toast.success('Payroll details saved successfully');
-            // Close the form after all three APIs return success: true
-            if (onSuccess) {
-                onSuccess();
+            console.log(`🔍 [PayrollTab] Submitting Final Save for Employee ID: ${employeeId}, MI_Id: ${MI_Id}`);
+            const result = await saveEmployeeSalaryDetailsMutation.mutateAsync({
+                hrme_id: employeeId,
+                MI_Id: MI_Id || 0
+            });
+
+            if (result?.success) {
+                await refetch();
+                // Call onSuccess if provided
+                if (onSuccess) {
+                    onSuccess();
+                }
             }
         } catch (error: any) {
-            toast.error(error.message || 'Failed to save payroll details');
+            console.error('Save error:', error);
+            // Error handling is already in the hook but we catch here to prevent crash
         }
     };
-    const isSaving = saveEarningMutation.isPending || saveDeductionMutation.isPending || saveArrearMutation.isPending;
+    const isSaving = saveEmployeeSalaryDetailsMutation.isPending;
     if (isLoading) {
         return <div className='rounded-md border p-6 text-center text-muted-foreground'>Loading payroll details...</div>;
     }
     return (
         <div className='space-y-6'>
+            {/* Gross Salary Details */}
+            {grossDetails && (
+                <div className='rounded-md border p-4 bg-white'>
+                    <div className='flex items-center gap-4'>
+                        <h3 className='font-semibold text-base text-gray-900 uppercase min-w-[150px]'>GROSS SALARY:</h3>
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium">Amount:</span>
+                            <Input
+                                type='number'
+                                className='h-9 w-40 text-right'
+                                value={grossDetails.localAmount ?? grossDetails.HREED_Amount ?? 0}
+                                onChange={(e) => updateGross('localAmount', e.target.value)}
+                                onBlur={(e) => {
+                                    const validated = validateAmount(e.target.value);
+                                    const updated = updateGross('localAmount', validated);
+                                    if (updated) onBlurGross(updated);
+                                }}
+                                min={0}
+                                max={999999999999999}
+                                step={0.01}
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Earning Details */}
             <div className='rounded-md border'>
                 <div className='border-b bg-muted px-4 py-2'>
@@ -424,6 +511,7 @@ export function PayrollTab({
                     <Table>
                         <TableHeader>
                             <TableRow>
+                                <TableHead className='w-16'>Action</TableHead>
                                 <TableHead className='w-16'>Serial NO.</TableHead>
                                 <TableHead>Earnings</TableHead>
                                 <TableHead className='w-24 whitespace-nowrap text-right'>Actual %</TableHead>
@@ -431,7 +519,6 @@ export function PayrollTab({
                                 <TableHead className='w-32 whitespace-nowrap text-center'>Amount</TableHead>
                                 <TableHead className='w-32 whitespace-nowrap text-center'>Max&nbsp;Amount</TableHead>
                                 <TableHead>Details</TableHead>
-                                <TableHead className='w-16'>Action</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -450,6 +537,12 @@ export function PayrollTab({
                                     const isPercentageType = normalizedFlag === 'percentage';
                                     return (
                                         <TableRow key={item.HREED_Id || index}>
+                                            <TableCell>
+                                                <Checkbox
+                                                    checked={item.HREED_ActiveFlag || false}
+                                                    onCheckedChange={(checked) => updateEarning(index, 'HREED_ActiveFlag', checked)}
+                                                />
+                                            </TableCell>
                                             <TableCell>{index + 1}</TableCell>
                                             <TableCell>{item.HRMED_Name || ''}</TableCell>
                                             <TableCell className='text-right'>
@@ -460,12 +553,13 @@ export function PayrollTab({
                                                     onChange={(e) => updateEarning(index, 'localPercentage', e.target.value)}
                                                     onBlur={(e) => {
                                                         const validated = validatePercentage(e.target.value);
-                                                        updateEarning(index, 'localPercentage', validated);
+                                                        const updated = updateEarning(index, 'localPercentage', validated);
+                                                        handleCalculateServerSide(updated, deductions, arrears);
                                                     }}
                                                     min={0}
                                                     max={100}
                                                     step={0.01}
-                                                    disabled={isAmountType}
+                                                    disabled={!item.HREED_ActiveFlag || isAmountType}
                                                 />
                                             </TableCell>
                                             <TableCell className='text-right'>
@@ -481,12 +575,14 @@ export function PayrollTab({
                                                     onChange={(e) => updateEarning(index, 'localApplicablePercentage', e.target.value)}
                                                     onBlur={(e) => {
                                                         const validated = validatePercentage(e.target.value);
-                                                        updateEarning(index, 'localApplicablePercentage', validated);
+                                                        const updated = updateEarning(index, 'localApplicablePercentage', validated);
+                                                        handleCalculateServerSide(updated, deductions, arrears);
+                                                        handleAutoSave(updated[index]);
                                                     }}
                                                     min={0}
                                                     max={100}
                                                     step={0.01}
-                                                    disabled={isAmountType}
+                                                    disabled={!item.HREED_ActiveFlag || isAmountType}
                                                 />
                                             </TableCell>
                                             <TableCell className='text-right'>
@@ -497,12 +593,14 @@ export function PayrollTab({
                                                     onChange={(e) => updateEarning(index, 'localAmount', e.target.value)}
                                                     onBlur={(e) => {
                                                         const validated = validateAmount(e.target.value);
-                                                        updateEarning(index, 'localAmount', validated);
+                                                        const updated = updateEarning(index, 'localAmount', validated);
+                                                        handleCalculateServerSide(updated, deductions, arrears);
+                                                        handleAutoSave(updated[index]);
                                                     }}
                                                     min={0}
                                                     max={999999999999999}
                                                     step={0.01}
-                                                    disabled={isPercentageType}
+                                                    disabled={!item.HREED_ActiveFlag || isPercentageType}
                                                 />
                                             </TableCell>
                                             <TableCell className='text-right'>
@@ -513,20 +611,16 @@ export function PayrollTab({
                                                     onChange={(e) => updateEarning(index, 'localMaxAmount', e.target.value)}
                                                     onBlur={(e) => {
                                                         const validated = validateAmount(e.target.value);
-                                                        updateEarning(index, 'localMaxAmount', validated);
+                                                        const updated = updateEarning(index, 'localMaxAmount', validated);
+                                                        handleAutoSave(updated[index]);
                                                     }}
                                                     min={0}
                                                     max={999999999999999}
                                                     step={0.01}
+                                                    disabled={!item.HREED_ActiveFlag}
                                                 />
                                             </TableCell>
                                             <TableCell>{item.HREED_MaxApplicableFlg ? 'Yes' : 'No'}</TableCell>
-                                            <TableCell>
-                                                <Checkbox
-                                                    checked={item.HREED_ActiveFlag || false}
-                                                    onCheckedChange={(checked) => updateEarning(index, 'HREED_ActiveFlag', checked)}
-                                                />
-                                            </TableCell>
                                         </TableRow>
                                     );
                                 })
@@ -549,6 +643,7 @@ export function PayrollTab({
                     <Table>
                         <TableHeader>
                             <TableRow>
+                                <TableHead className='w-16'>Action</TableHead>
                                 <TableHead className='w-16'>Serial NO.</TableHead>
                                 <TableHead>Deductions</TableHead>
                                 <TableHead className='w-24 whitespace-nowrap text-right'>Actual %</TableHead>
@@ -556,7 +651,6 @@ export function PayrollTab({
                                 <TableHead className='w-32 whitespace-nowrap text-center'>Amount</TableHead>
                                 <TableHead className='w-32 whitespace-nowrap text-center'>Max&nbsp;Amount</TableHead>
                                 <TableHead>Details</TableHead>
-                                <TableHead className='w-16'>Action</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -575,6 +669,12 @@ export function PayrollTab({
                                     const isPercentageType = normalizedFlag === 'percentage';
                                     return (
                                         <TableRow key={item.HREED_Id || index}>
+                                            <TableCell>
+                                                <Checkbox
+                                                    checked={item.HREED_ActiveFlag || false}
+                                                    onCheckedChange={(checked) => updateDeduction(index, 'HREED_ActiveFlag', checked)}
+                                                />
+                                            </TableCell>
                                             <TableCell>{index + 1}</TableCell>
                                             <TableCell>{item.HRMED_Name || ''}</TableCell>
                                             <TableCell className='text-right'>
@@ -585,12 +685,13 @@ export function PayrollTab({
                                                     onChange={(e) => updateDeduction(index, 'localPercentage', e.target.value)}
                                                     onBlur={(e) => {
                                                         const validated = validatePercentage(e.target.value);
-                                                        updateDeduction(index, 'localPercentage', validated);
+                                                        const updated = updateDeduction(index, 'localPercentage', validated);
+                                                        handleCalculateServerSide(earnings, updated, arrears);
                                                     }}
                                                     min={0}
                                                     max={100}
                                                     step={0.01}
-                                                    disabled={isAmountType}
+                                                    disabled={!item.HREED_ActiveFlag || isAmountType}
                                                 />
                                             </TableCell>
                                             <TableCell className='text-right'>
@@ -606,12 +707,14 @@ export function PayrollTab({
                                                     onChange={(e) => updateDeduction(index, 'localApplicablePercentage', e.target.value)}
                                                     onBlur={(e) => {
                                                         const validated = validatePercentage(e.target.value);
-                                                        updateDeduction(index, 'localApplicablePercentage', validated);
+                                                        const updated = updateDeduction(index, 'localApplicablePercentage', validated);
+                                                        handleCalculateServerSide(earnings, updated, arrears);
+                                                        handleAutoSave(updated[index]);
                                                     }}
                                                     min={0}
                                                     max={100}
                                                     step={0.01}
-                                                    disabled={isAmountType}
+                                                    disabled={!item.HREED_ActiveFlag || isAmountType}
                                                 />
                                             </TableCell>
                                             <TableCell className='text-right'>
@@ -622,12 +725,14 @@ export function PayrollTab({
                                                     onChange={(e) => updateDeduction(index, 'localAmount', e.target.value)}
                                                     onBlur={(e) => {
                                                         const validated = validateAmount(e.target.value);
-                                                        updateDeduction(index, 'localAmount', validated);
+                                                        const updated = updateDeduction(index, 'localAmount', validated);
+                                                        handleCalculateServerSide(earnings, updated, arrears);
+                                                        handleAutoSave(updated[index]);
                                                     }}
                                                     min={0}
                                                     max={999999999999999}
                                                     step={0.01}
-                                                    disabled={isPercentageType}
+                                                    disabled={!item.HREED_ActiveFlag || isPercentageType}
                                                 />
                                             </TableCell>
                                             <TableCell className='text-right'>
@@ -638,20 +743,16 @@ export function PayrollTab({
                                                     onChange={(e) => updateDeduction(index, 'localMaxAmount', e.target.value)}
                                                     onBlur={(e) => {
                                                         const validated = validateAmount(e.target.value);
-                                                        updateDeduction(index, 'localMaxAmount', validated);
+                                                        const updated = updateDeduction(index, 'localMaxAmount', validated);
+                                                        handleAutoSave(updated[index]);
                                                     }}
                                                     min={0}
                                                     max={999999999999999}
                                                     step={0.01}
+                                                    disabled={!item.HREED_ActiveFlag}
                                                 />
                                             </TableCell>
                                             <TableCell>{item.HREED_MaxApplicableFlg ? 'Yes' : 'No'}</TableCell>
-                                            <TableCell>
-                                                <Checkbox
-                                                    checked={item.HREED_ActiveFlag || false}
-                                                    onCheckedChange={(checked) => updateDeduction(index, 'HREED_ActiveFlag', checked)}
-                                                />
-                                            </TableCell>
                                         </TableRow>
                                     );
                                 })
@@ -674,25 +775,32 @@ export function PayrollTab({
                     <Table>
                         <TableHeader>
                             <TableRow>
+                                <TableHead className='w-16'>Action</TableHead>
                                 <TableHead className='w-16'>Serial NO.</TableHead>
                                 <TableHead>Arrear Head</TableHead>
                                 <TableHead className='w-24 whitespace-nowrap text-right'>Actual %</TableHead>
                                 <TableHead className='w-24 whitespace-nowrap text-right'>%&nbsp;Applicable</TableHead>
                                 <TableHead className='w-32 whitespace-nowrap text-center'>Amount</TableHead>
+                                <TableHead className='w-32 whitespace-nowrap text-center'>Max&nbsp;Amount</TableHead>
                                 <TableHead>Details</TableHead>
-                                <TableHead className='w-16'>Action</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {arrears.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={7} className='text-center text-muted-foreground'>
+                                    <TableCell colSpan={8} className='text-center text-muted-foreground'>
                                         No arrear details available
                                     </TableCell>
                                 </TableRow>
                             ) : (
                                 arrears.map((item, index) => (
                                     <TableRow key={item.HREED_Id || index}>
+                                        <TableCell>
+                                            <Checkbox
+                                                checked={item.HREED_ActiveFlag || false}
+                                                onCheckedChange={(checked) => updateArrear(index, 'HREED_ActiveFlag', checked)}
+                                            />
+                                        </TableCell>
                                         <TableCell>{index + 1}</TableCell>
                                         <TableCell>{item.HRMED_Name || ''}</TableCell>
                                         <TableCell className='text-right'>
@@ -703,11 +811,13 @@ export function PayrollTab({
                                                 onChange={(e) => updateArrear(index, 'localPercentage', e.target.value)}
                                                 onBlur={(e) => {
                                                     const validated = validatePercentage(e.target.value);
-                                                    updateArrear(index, 'localPercentage', validated);
+                                                    const updated = updateArrear(index, 'localPercentage', validated);
+                                                    handleCalculateServerSide(earnings, deductions, updated);
                                                 }}
                                                 min={0}
                                                 max={100}
                                                 step={0.01}
+                                                disabled={!item.HREED_ActiveFlag}
                                             />
                                         </TableCell>
                                         <TableCell className='text-right'>
@@ -723,11 +833,14 @@ export function PayrollTab({
                                                 onChange={(e) => updateArrear(index, 'localApplicablePercentage', e.target.value)}
                                                 onBlur={(e) => {
                                                     const validated = validatePercentage(e.target.value);
-                                                    updateArrear(index, 'localApplicablePercentage', validated);
+                                                    const updated = updateArrear(index, 'localApplicablePercentage', validated);
+                                                    handleCalculateServerSide(earnings, deductions, updated);
+                                                    handleAutoSave(updated[index]);
                                                 }}
                                                 min={0}
                                                 max={100}
                                                 step={0.01}
+                                                disabled={!item.HREED_ActiveFlag}
                                             />
                                         </TableCell>
                                         <TableCell className='text-right'>
@@ -738,20 +851,35 @@ export function PayrollTab({
                                                 onChange={(e) => updateArrear(index, 'localAmount', e.target.value)}
                                                 onBlur={(e) => {
                                                     const validated = validateAmount(e.target.value);
-                                                    updateArrear(index, 'localAmount', validated);
+                                                    const updated = updateArrear(index, 'localAmount', validated);
+                                                    handleCalculateServerSide(earnings, deductions, updated);
+                                                    handleAutoSave(updated[index]);
                                                 }}
                                                 min={0}
                                                 max={999999999999999}
                                                 step={0.01}
+                                                disabled={!item.HREED_ActiveFlag}
+                                            />
+                                        </TableCell>
+                                        <TableCell className='text-right'>
+                                            <Input
+                                                type='number'
+                                                className='h-8 w-24 text-right'
+                                                value={item.localMaxAmount ?? item.HREED_ApplicableMaxValue ?? 0}
+                                                onChange={(e) => updateArrear(index, 'localMaxAmount', e.target.value)}
+                                                onBlur={(e) => {
+                                                    const validated = validateAmount(e.target.value);
+                                                    const updated = updateArrear(index, 'localMaxAmount', validated);
+                                                    handleCalculateServerSide(earnings, deductions, arrears);
+                                                    handleAutoSave(updated[index]);
+                                                }}
+                                                min={0}
+                                                max={999999999999999}
+                                                step={0.01}
+                                                disabled={!item.HREED_ActiveFlag}
                                             />
                                         </TableCell>
                                         <TableCell>{item.HREED_MaxApplicableFlg ? 'Yes' : 'No'}</TableCell>
-                                        <TableCell>
-                                            <Checkbox
-                                                checked={item.HREED_ActiveFlag || false}
-                                                onCheckedChange={(checked) => updateArrear(index, 'HREED_ActiveFlag', checked)}
-                                            />
-                                        </TableCell>
                                     </TableRow>
                                 ))
                             )}

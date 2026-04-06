@@ -10,14 +10,14 @@ import type {
 } from '@/types/timetable/masters/masters';
 
 export async function getCategoryClassMappingDetails(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'ttmB_BuildingName');
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'categoryName,className,sectionName');
     const url = `/CategoryClassMappFacade/GetCategoryClassMappingGridList?${urlParams}`;
     console.info('MasterDayFacade', url);
     return await api.get<ICategoryClassMapping[]>('timetable', url);
 }
 
 export async function addOrUpdateCategoryClassMapping(data: any) {
-    const url = '/MasterBuildingFacade/AddorUpdateMasterBuilding';
+    const url = '/CategoryClassMappFacade/AddOrUpdateCategoryClassMapping';
     return await api.post<any>('timetable', url, data);
 }
 
@@ -42,4 +42,8 @@ export async function getuseTimeTableClassDropdownDataDetails() {
     const url = '/TimeTableCommon/GetClassData';
     console.info('MasterDayFacade', url);
     return await api.get<ITimeTableClassDropDownData[]>('timetable', url);
+}
+export async function getuseTimeTableClassDropdownDataDetailsNew(asmay_id: number, ttmc_id: number) {
+    const url = `/CategoryClassMappFacade/ClassDataByAcademicYearAndCategory/${asmay_id}/${ttmc_id}`;
+    return await api.get<any>('timetable', url);
 }

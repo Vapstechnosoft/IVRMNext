@@ -1,5 +1,7 @@
 'use client';
 
+import { format } from 'date-fns';
+
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { useFormContext } from '@/components/ui/form/form-provider';
@@ -19,7 +21,7 @@ import DeleteMasterClassForm from './toggle-form';
 export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationList>[] = [
     {
         accessorKey: 'amsT_Id',
-        header: ({ column }) => <DataTableColumnHeader className='w-full pl-6' column={column} title='Sl.No' />,
+        header: ({ column }) => <DataTableColumnHeader className='w-full pl-6 font-bold text-blue-600' column={column} title='Sl.No' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -38,28 +40,37 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
     // },
     {
         accessorKey: 'studentName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Name/view Profile' />,
+        header: ({ column }) => <DataTableColumnHeader className='font-bold text-blue-600' column={column} title='Name/view Profile' />,
         cell: ({ row }) => <div>{row.getValue('studentName') ?? 'N.A'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'className',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Class' />,
+        header: ({ column }) => <DataTableColumnHeader className='font-bold text-blue-600' column={column} title='Class' />,
         cell: ({ row }) => <div>{row.getValue('className')}</div>,
         enableSorting: true,
         enableHiding: true
     },
+
     {
         accessorKey: 'admissionDate',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Date' />,
-        cell: ({ row }) => <div>{row.getValue('admissionDate')}</div>,
+        header: ({ column }) => <DataTableColumnHeader className='font-bold text-blue-600' column={column} title='Date' />,
+        cell: ({ row }) => {
+            const dateValue = row.getValue('admissionDate');
+            if (!dateValue) return <div>N.A</div>;
+            try {
+                return <div>{format(new Date(dateValue as string | number | Date), 'dd-MM-yyyy')}</div>;
+            } catch (e) {
+                return <div>{String(dateValue)}</div>;
+            }
+        },
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'gender',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Gender' />,
+        header: ({ column }) => <DataTableColumnHeader className='font-bold text-blue-600' column={column} title='Gender' />,
         cell: ({ row }) => <div>{row.getValue('gender')}</div>,
         enableSorting: true,
         enableHiding: true
@@ -67,28 +78,28 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
 
     {
         accessorKey: 'registrationNo',
-        header: ({ column }) => <DataTableColumnHeader className='text-nowrap' column={column} title='Reg.No.' />,
+        header: ({ column }) => <DataTableColumnHeader className='text-nowrap font-bold text-blue-600' column={column} title='Reg.No.' />,
         cell: ({ row }) => <div>{row.getValue('registrationNo')}</div>,
         enableSorting: false,
         enableHiding: true
     },
     {
         accessorKey: 'admissionNo',
-        header: ({ column }) => <DataTableColumnHeader className='text-nowrap' column={column} title='Adm.No.' />,
+        header: ({ column }) => <DataTableColumnHeader className='text-nowrap font-bold text-blue-600' column={column} title='Adm.No.' />,
         cell: ({ row }) => <div>{row.getValue('admissionNo')}</div>,
         enableSorting: false,
         enableHiding: true
     },
     {
         accessorKey: 'emailId',
-        header: ({ column }) => <DataTableColumnHeader className='text-nowrap' column={column} title='Email Id' />,
+        header: ({ column }) => <DataTableColumnHeader className='text-nowrap font-bold text-blue-600' column={column} title='Email Id' />,
         cell: ({ row }) => <div>{row.getValue('emailId')}</div>,
         enableSorting: false,
         enableHiding: true
     },
     {
         accessorKey: 'mobileNo',
-        header: ({ column }) => <DataTableColumnHeader className='text-nowrap' column={column} title='Mobile No' />,
+        header: ({ column }) => <DataTableColumnHeader className='text-nowrap font-bold text-blue-600' column={column} title='Mobile No' />,
         cell: ({ row }) => <div>{row.getValue('mobileNo')}</div>,
         enableSorting: false,
         enableHiding: true
@@ -102,7 +113,7 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
     // },
     {
         accessorKey: 'studentPhotoUrl',
-        header: ({ column }) => <DataTableColumnHeader className='text-nowrap' column={column} title='Photo' />,
+        header: ({ column }) => <DataTableColumnHeader className='text-nowrap font-bold text-blue-600' column={column} title='Photo' />,
         cell: ({ row }) => {
             const photo = row.getValue('studentPhotoUrl') as string | null;
 
@@ -134,6 +145,16 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
 
             return (
                 <div className='flex items-center gap-2'>
+                    <div className='h-10 w-10 overflow-hidden rounded-full border border-gray-200 bg-gray-100'>
+                        {photo ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={photo} alt='Student' className='h-full w-full object-cover' />
+                        ) : (
+                            <div className='flex h-full w-full items-center justify-center bg-gray-100 text-muted-foreground text-xs'>
+                                N/A
+                            </div>
+                        )}
+                    </div>
                     <div>
                         <Button type='button' variant='ghost' size='sm' onClick={handleDownload} className='p-1'>
                             <Download className='h-4 w-4' />
@@ -148,7 +169,7 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
 
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader className='text-center' column={column} title='Actions' />,
+        header: ({ column }) => <DataTableColumnHeader className='text-center font-bold text-blue-600' column={column} title='Actions' />,
         accessorFn: (row: any) => {
             return row;
         },
@@ -201,19 +222,52 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
                                 ...(src.thirdTab || {}),
                                 ...(src.fourthTab || {}),
                                 ...(src.fifthTab || {}),
-                                ...(src.lastTab || {})
+                                ...(src.lastTab || {}),
+                                amsT_Id: src.firstTab?.amsT_Id ?? src.amsT_Id ?? 0
                             };
 
                             payload = {
                                 ...combined,
                                 // normalized arrays expected by update-form.tsx
-                                adm_M_Student_EmailIdDTO: src.firstTab?.emailIds || src.emailIds || src.adm_M_Student_EmailIdDTO || [],
-                                mobileNos: src.firstTab?.mobileNos || src.mobileNos || [],
+                                adm_M_Student_EmailIdDTO:
+                                    src.firstTab?.emailIds ||
+                                    src.emailIds ||
+                                    src.adm_M_Student_EmailIdDTO ||
+                                    combined.adm_M_Student_EmailIdDTO ||
+                                    [],
+                                mobileNos: src.firstTab?.mobileNos || src.mobileNos || combined.mobileNos || [],
+
+                                // Explicit mapping for critical fields known to have variation across endpoints
+                                amsT_MobileNo:
+                                    combined.amsT_MobileNo ??
+                                    combined.mobileNo ??
+                                    combined.mobile_No ??
+                                    combined.amsT_Mobile_No ??
+                                    src.firstTab?.amsT_MobileNo ??
+                                    src.firstTab?.mobileNo ??
+                                    '',
+                                amsT_emailId:
+                                    combined.amsT_emailId ??
+                                    combined.emailId ??
+                                    combined.email_Id ??
+                                    combined.amsT_Email_Id ??
+                                    src.firstTab?.amsT_emailId ??
+                                    src.firstTab?.emailId ??
+                                    '',
+                                amsT_Sex: combined.amsT_Sex ?? combined.gender ?? combined.sex ?? '',
+                                studentCategoryId: combined.studentCategoryId ?? combined.amC_Id ?? combined.imcC_Id ?? 0,
+                                amC_Id: combined.amC_Id ?? combined.studentCategoryId ?? combined.imcC_Id ?? 0,
+                                amsT_AadharNo:
+                                    combined.amsT_AadharNo ?? combined.aadharNo ?? combined.aadhar_No ?? combined.amsT_Aadhar_No ?? '',
+                                amsT_DOB: combined.amsT_DOB ?? combined.dob ?? combined.dateOfBirth ?? combined.pasR_DOB ?? null,
+                                amsT_Date: combined.amsT_Date ?? combined.admissionDate ?? combined.date ?? null,
+
                                 previousSchools: (
                                     src.fourthTab?.previousSchools ||
                                     src.previousSchools ||
                                     src.previous_schools ||
                                     src.previousSchoolDetails ||
+                                    combined.previousSchools ||
                                     []
                                 ).map((ps: any) => ({
                                     amstpS_Id: ps?.amstpS_Id ?? ps?.id ?? '',
@@ -236,106 +290,78 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
                                     src.siblings ||
                                     src.student_siblings ||
                                     src.siblingsDetails ||
+                                    combined.siblings ||
                                     []
                                 ).map((s: any) => ({
                                     ...s,
                                     amsts_Id: s?.amstS_Id ?? s?.amsts_Id ?? s?.id ?? 0
                                 })),
-                                guardian: (src.guardians || src.guardian || src.guardiansDetails || []).map((g: any) => ({
-                                    ...g,
-                                    guardian_Id: g?.guardian_Id ?? g?.guardianId ?? g?.id ?? null
-                                })),
+                                guardian: (src.guardians || src.guardian || src.guardiansDetails || combined.guardian || []).map(
+                                    (g: any) => ({
+                                        ...g,
+                                        guardian_Id: g?.guardian_Id ?? g?.guardianId ?? g?.id ?? null
+                                    })
+                                ),
                                 selectedSourceDetails: (
                                     src.fourthTab?.selectedSourceDetails ||
                                     src.selectedSource ||
                                     src.student_sources ||
+                                    combined.selectedSourceDetails ||
                                     []
                                 )
                                     .filter(Boolean)
                                     .map((s: any) => ({
-                                        pamS_Id: String(s?.pamS_Id)
+                                        pamS_Id: String(s?.pamS_Id),
+                                        pamS_SourceName: s.pamS_SourceName || s.name || ''
                                     })),
                                 selectedRefrenceDetails: (
                                     src.selectedRefrenceDetails ||
                                     src.selectedReference ||
                                     src.student_refrences ||
+                                    combined.selectedRefrenceDetails ||
                                     []
                                 )
                                     .filter(Boolean)
                                     .map((r: any) => ({
-                                        pamR_Id: String(r?.pamR_Id)
+                                        pamR_Id: String(r?.pamR_Id),
+                                        pamR_ReferenceName: r.pamR_ReferenceName || r.name || ''
                                     })),
-                                selectedDocuments: (src.student_documents || src.selectedDocuments || []).filter(Boolean).map((d: any) => ({
-                                    pasrD_Id: d?.pasrD_Id,
-                                    pasR_Id: d?.pasR_Id,
-                                    amsmD_Id: d?.amsmD_Id,
-                                    document_Path: d?.document_Path
-                                })),
-                                activities: (src.fourthTab?.activities || src.activities || []).map((a: any) => ({
+                                selectedDocuments: (src.student_documents || src.selectedDocuments || combined.selectedDocuments || [])
+                                    .filter(Boolean)
+                                    .map((d: any) => ({
+                                        pasrD_Id: d?.pasrD_Id,
+                                        pasR_Id: d?.pasR_Id,
+                                        amsmD_Id: d?.amsmD_Id,
+                                        document_Path: d?.document_Path
+                                    })),
+                                activities: (src.fourthTab?.activities || src.activities || combined.activities || []).map((a: any) => ({
                                     activityId: a?.activityId,
                                     isSelected: a?.isSelected ?? true
                                 })),
-                                sourceDetails: (src.fourthTab?.sourceDetails || src.sourceDetails || []).map((s: any) => ({
-                                    sourceId: s?.sourceId,
-                                    isSelected: s?.isSelected ?? true
-                                }))
+                                sourceDetails: (src.fourthTab?.sourceDetails || src.sourceDetails || combined.sourceDetails || []).map(
+                                    (s: any) => ({
+                                        sourceId: s?.sourceId,
+                                        isSelected: s?.isSelected ?? true
+                                    })
+                                )
                             };
                         } else {
-                            // fallback to older/flat shape
+                            // fallback to aggressive mapping for flat shapes
                             const student = resp?.student_details || resp || {};
                             payload = {
                                 ...student,
-                                // normalized keys for flat responses
-                                adm_M_Student_EmailIdDTO: resp?.emailIds || resp?.adm_M_Student_EmailIdDTO || [],
-                                mobileNos: resp?.mobileNos || [],
-                                previousSchools: (resp?.previousSchools || resp?.previous_schools || []).map((ps: any) => ({
-                                    amstpS_Id: ps?.amstpS_Id ?? ps?.id ?? '',
-                                    schoolName: ps.schoolName ?? ps.pasrpS_PrvSchoolName ?? ps.pasrS_SchoolName ?? '',
-                                    schoolType: String(ps.schoolType ?? ''),
-                                    class: String((ps.class || ps.classId) ?? ''),
-                                    percentage: ps.percentage ?? ps.pasrpS_PreviousPer ?? '',
-                                    grade: ps.grade ?? ps.pasrpS_PreviousGrade ?? '',
-                                    passedYear: ps.passedYear ? Number(ps.passedYear) : 0,
-                                    country: String(ps.country ?? ''),
-                                    state: String(ps.state ?? ''),
-                                    address: ps.address ?? ps.pasrpS_Address ?? '',
-                                    leftReason: ps.leftReason ?? ps.pasrpS_LeftReason ?? '',
-                                    medium: ps.medium ?? '',
-                                    tcNumber: ps.tcNumber ?? ps.pasrpS_TcNo ?? '',
-                                    tcDate: ps.tcDate ? (ps.tcDate instanceof Date ? ps.tcDate.toISOString() : String(ps.tcDate)) : ''
-                                })),
-                                siblings: (resp?.siblings || resp?.student_siblings || []).map((s: any) => ({
-                                    ...s,
-                                    amsts_Id: s?.amstS_Id ?? s?.amsts_Id ?? s?.id ?? 0
-                                })),
-                                guardian: (resp?.guardian || resp?.guardians || []).map((g: any) => ({
-                                    ...g,
-                                    guardian_Id: g?.guardian_Id ?? g?.guardianId ?? g?.id ?? null
-                                })),
-                                selectedSourceDetails: (resp?.student_sources || resp?.studentSource || [])
-                                    .filter(Boolean)
-                                    .map((s: any) => ({
-                                        pamS_Id: String(s?.pamS_Id)
-                                    })),
-                                selectedRefrenceDetails: (resp?.student_refrences || resp?.studentReference || [])
-                                    .filter(Boolean)
-                                    .map((r: any) => ({
-                                        pamR_Id: String(r?.pamR_Id)
-                                    })),
-                                selectedDocuments: (resp?.student_documents || []).filter(Boolean).map((d: any) => ({
-                                    pasrD_Id: d?.pasrD_Id,
-                                    pasR_Id: d?.pasR_Id,
-                                    amsmD_Id: d?.amsmD_Id,
-                                    document_Path: d?.document_Path
-                                })),
-                                activities: (resp?.activities || []).map((a: any) => ({
-                                    activityId: a?.activityId,
-                                    isSelected: a?.isSelected ?? true
-                                })),
-                                sourceDetails: (resp?.sourceDetails || []).map((s: any) => ({
-                                    sourceId: s?.sourceId,
-                                    isSelected: s?.isSelected ?? true
-                                }))
+                                amsT_MobileNo: student.amsT_MobileNo ?? student.mobileNo ?? student.mobile_No ?? '',
+                                amsT_emailId: student.amsT_emailId ?? student.emailId ?? student.email_Id ?? '',
+                                amsT_Sex: student.amsT_Sex ?? student.gender ?? student.sex ?? '',
+                                studentCategoryId: student.studentCategoryId ?? student.amC_Id ?? student.imcC_Id ?? 0,
+                                amC_Id: student.amC_Id ?? student.studentCategoryId ?? student.imcC_Id ?? 0,
+                                adm_M_Student_EmailIdDTO:
+                                    resp?.emailIds ||
+                                    resp?.adm_M_Student_EmailIdDTO ||
+                                    (student.amsT_emailId ? [{ amsT_emailId: student.amsT_emailId }] : []),
+                                mobileNos:
+                                    resp?.mobileNos ||
+                                    (student.amsT_MobileNo ? [{ amsT_MobileNo: student.amsT_MobileNo, amstsmS_CountryCode: '91' }] : [])
                             };
                         }
 

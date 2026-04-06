@@ -38,20 +38,6 @@ export default function ToggleSubSubjectOrSubExamMappedForm({
             EYCESSS_Id: rowData.eycessS_Id ?? null
         }
     });
-    // const subExam = useSubExamsMappedList(30, rowData.eyceS_Id);
-    // const subSubject = useSubSubjectsMappedList(30, rowData.eyceS_Id);
-    // const subSubjectAndExam = useSubSubjectsAndSubExamsMappedList(30, rowData.eyceS_Id);
-
-    // // ✅ Select correct hook based on flags
-    // const activeHook = React.useMemo(() => {
-    //     if (subexamFlag && subsubjectFlag) return subSubjectAndExam;
-    //     if (subexamFlag && !subsubjectFlag) return subExam;
-    //     if (!subexamFlag && subsubjectFlag) return subSubject;
-
-    //     // default case when both are false
-    //     return subSubjectAndExam; // or pick any default you want
-    // }, [subexamFlag, subsubjectFlag, subExam, subSubject, subSubjectAndExam]);
-    // const { refetchAll } = activeHook;
 
     const closeDialog = () => {
         onClose();
@@ -69,7 +55,7 @@ export default function ToggleSubSubjectOrSubExamMappedForm({
 
         try {
             // Call the server function instead of api.put
-            const response = await toggleMappedSubSubjectOrSubExam(30, values.EYCESSS_Id);
+            const response = await toggleMappedSubSubjectOrSubExam(values.EYCESSS_Id);
 
             if (response.success) {
                 toast.success(response.message || 'Mapped SubSubject/SubExam status updated successfully');

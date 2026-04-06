@@ -1,7 +1,6 @@
 'use client';
 
 import { getStatusBadge } from '@/components/extras/helpers/helper';
-import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
@@ -31,7 +30,6 @@ export const ExamSubjectWizardColumns: ColumnDef<IExamSubjectWizard>[] = [
     { accessorKey: 'emE_ExamName', header: ({ column }) => <DataTableColumnHeader column={column} title='Exam Name' /> },
     { accessorKey: 'emE_ExamCode', header: ({ column }) => <DataTableColumnHeader column={column} title='Exam Code' /> },
     { accessorKey: 'emgR_GradeName', header: ({ column }) => <DataTableColumnHeader column={column} title='Grade' /> },
-    { accessorKey: 'asmaY_Order', header: ({ column }) => <DataTableColumnHeader column={column} title='Order' /> },
     {
         accessorKey: 'eycE_BestOfApplicableFlg',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Best Off Applicable' />,
@@ -87,7 +85,9 @@ export const ExamSubjectWizardColumns: ColumnDef<IExamSubjectWizard>[] = [
                     <Eye className='h-4 w-4 text-blue-600' />
                 </button>
             );
-        }
+        },
+        enableHiding: true,
+        enableSorting: false
     },
 
     {

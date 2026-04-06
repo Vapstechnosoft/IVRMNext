@@ -18,17 +18,10 @@ import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 // biome-ignore lint/style/useImportType: <explanation>
 import { z } from 'zod';
-import FeedbackModal from './feedback-modal';
-import NotEnteredSubjectsModal from './not-entered-subjects-modal';
 
 type FormFields = z.infer<typeof examMarksCalculationSchemaSchema.addOrUpdate>;
 
 export default function ExamMarksCalculationForm() {
-    const [notEnteredSubjects, setNotEnteredSubjects] = useState<any[]>([]);
-    const [showNotEnteredModal, setShowNotEnteredModal] = useState(false);
-    const [showFeedbackModal, setShowFeedbackModal] = useState(false);
-    const [selectedInfo, setSelectedInfo] = useState<any>({});
-
     const methods = useForm<FormFields>({
         resolver: zodResolver(examMarksCalculationSchemaSchema.addOrUpdate),
         defaultValues: {
@@ -74,6 +67,11 @@ export default function ExamMarksCalculationForm() {
             try {
                 const { data } = await getClassDropDownByAcademicYearlist(selectedYear);
                 setClasses(Array.isArray(data) ? data : []);
+                setSections([]);
+                setExams([]);
+                setValue('asmcL_Id', 0);
+                setValue('asmS_Id', 0);
+                setValue('emE_Id', 0);
             } catch {
                 toast.error('Failed to load classes');
                 setClasses([]);
@@ -94,6 +92,9 @@ export default function ExamMarksCalculationForm() {
             try {
                 const { data } = await getSectionsDropDownByAcademicYearandClasslist(selectedYear, selectedClass);
                 setSections(Array.isArray(data) ? data : []);
+                setExams([]);
+                setValue('asmS_Id', 0);
+                setValue('emE_Id', 0);
             } catch {
                 toast.error('Failed to load sections');
                 setSections([]);
@@ -123,30 +124,31 @@ export default function ExamMarksCalculationForm() {
         try {
             console.log(data.asmS_Id, data.asmcL_Id, data.asmaY_Id, data.emE_Id);
             const response = await getExamCalculation(data.asmaY_Id, data.asmcL_Id, data.asmS_Id, data.emE_Id);
+            console.log('response', response);
 
-            if (response.notEnteredSubjects && response.notEnteredSubjects.length > 0) {
-                setNotEnteredSubjects(response.notEnteredSubjects);
-                setSelectedInfo({
-                    asmaY_Year: academicYears.find((y) => y.asmaY_Id === data.asmaY_Id)?.asmaY_Year,
-                    asmcL_ClassName: classes.find((c) => c.asmcL_Id === data.asmcL_Id)?.asmcL_ClassName,
-                    asmC_SectionName: sections.find((s) => s.asmS_Id === data.asmS_Id)?.asmC_SectionName,
-                    emE_ExamName: exams.find((e) => e.emE_Id === data.emE_Id)?.emE_ExamName
-                });
-                setShowNotEnteredModal(true);
+            // Handle API response based on C# implementation
+            if (response.success) {
+                toast.success(response.message || 'Exam marks calculated successfully!');
+                // Optionally reset form after successful calculation
+                // reset();
             } else {
-                toast.success('Exam marks calculated successfully!');
+                toast.error(response.message || 'Calculation failed');
             }
         } catch (error: any) {
-            if (error.response?.data?.requiresFeedback) {
-                setShowFeedbackModal(true);
-            } else {
-                toast.error(error.message || 'Calculation failed');
-            }
+            console.error('Calculation error:', error);
+            toast.error(error?.message || 'An error occurred during calculation');
         }
     };
 
     const handleCancel = () => {
         reset();
+        setValue('asmaY_Id', 0);
+        setValue('asmcL_Id', 0);
+        setValue('asmS_Id', 0);
+        setValue('emE_Id', 0);
+        setClasses([]);
+        setSections([]);
+        setExams([]);
         toast.info('Form cleared');
     };
 
@@ -170,8 +172,9 @@ export default function ExamMarksCalculationForm() {
                                                 </Label>
                                                 <div className='flex-1'>
                                                     <Select
+                                                        key={field.value}
                                                         onValueChange={(v) => field.onChange(Number(v))}
-                                                        value={field.value ? String(field.value) : ''}>
+                                                        value={field.value && field.value !== 0 ? String(field.value) : undefined}>
                                                         <SelectTrigger>
                                                             <SelectValue placeholder='Select Academic Year' />
                                                         </SelectTrigger>
@@ -200,9 +203,10 @@ export default function ExamMarksCalculationForm() {
                                                 </Label>
                                                 <div className='flex-1'>
                                                     <Select
+                                                        key={field.value}
                                                         disabled={!selectedYear || selectedYear === 0}
                                                         onValueChange={(v) => field.onChange(Number(v))}
-                                                        value={field.value ? String(field.value) : ''}>
+                                                        value={field.value && field.value !== 0 ? String(field.value) : undefined}>
                                                         <SelectTrigger>
                                                             <SelectValue placeholder='Select Class' />
                                                         </SelectTrigger>
@@ -231,9 +235,10 @@ export default function ExamMarksCalculationForm() {
                                                 </Label>
                                                 <div className='flex-1'>
                                                     <Select
+                                                        key={field.value}
                                                         disabled={!selectedClass || selectedClass === 0}
                                                         onValueChange={(v) => field.onChange(Number(v))}
-                                                        value={field.value ? String(field.value) : ''}>
+                                                        value={field.value && field.value !== 0 ? String(field.value) : undefined}>
                                                         <SelectTrigger>
                                                             <SelectValue placeholder='Select Section' />
                                                         </SelectTrigger>
@@ -262,9 +267,10 @@ export default function ExamMarksCalculationForm() {
                                                 </Label>
                                                 <div className='flex-1'>
                                                     <Select
+                                                        key={field.value}
                                                         disabled={!selectedSection || selectedSection === 0}
                                                         onValueChange={(v) => field.onChange(Number(v))}
-                                                        value={field.value ? String(field.value) : ''}>
+                                                        value={field.value && field.value !== 0 ? String(field.value) : undefined}>
                                                         <SelectTrigger>
                                                             <SelectValue placeholder='Select Exam Name' />
                                                         </SelectTrigger>
@@ -307,22 +313,6 @@ export default function ExamMarksCalculationForm() {
                     </FormProvider>
                 </div>
             </div>
-
-            <NotEnteredSubjectsModal
-                open={showNotEnteredModal}
-                onClose={() => setShowNotEnteredModal(false)}
-                data={notEnteredSubjects}
-                info={selectedInfo}
-            />
-
-            <FeedbackModal
-                open={showFeedbackModal}
-                onClose={() => setShowFeedbackModal(false)}
-                onSubmit={() => {
-                    toast.success('Feedback submitted');
-                    setShowFeedbackModal(false);
-                }}
-            />
         </>
     );
 }

@@ -8,7 +8,7 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { useStudentCountReport } from '@/hooks/admission/preadmission/useReports';
 import type { IMasterStudentCountReportList } from '@/types/admission/preadmission/reports';
 import { X } from 'lucide-react';
-import { use, useState } from 'react';
+import React, { useState } from 'react';
 import PreadmissionStatusCountReport from '../../transactions/application-form/_components/preadmission-status-count-report';
 import AddStudentCountReportForm from './_components/add-from';
 import { masterStudentCountReportColumns } from './_components/columns';
@@ -18,7 +18,7 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function StudentCountReportPage(props: {
     searchParams: SearchParams;
 }) {
-    const searchParams = use(props.searchParams);
+    const searchParams = (React as any).use(props.searchParams);
     const [filterPayload, setFilterPayload] = useState<any>({
         report_type: 1,
         type: 'between',
@@ -27,8 +27,9 @@ export default function StudentCountReportPage(props: {
         asmay_id: 0,
         asmcl_id: 0
     });
+    const [isSearched, setIsSearched] = useState(false);
 
-    const { data: response, isLoading, error } = useStudentCountReport(filterPayload, searchParams);
+    const { data: response, isLoading, error } = useStudentCountReport(filterPayload, searchParams, isSearched);
 
     return (
         <FormProvider<IMasterStudentCountReportList>>
@@ -37,13 +38,21 @@ export default function StudentCountReportPage(props: {
                 isLoading={isLoading}
                 error={error}
                 searchParams={searchParams}
-                onFilterChange={setFilterPayload}
+                onFilterChange={(payload, reset) => {
+                    if (reset) {
+                        setIsSearched(false);
+                    } else {
+                        setFilterPayload(payload);
+                        setIsSearched(true);
+                    }
+                }}
+                isSearched={isSearched}
             />
         </FormProvider>
     );
 }
 
-function FormSections({ searchParams, onFilterChange }: { searchParams?: any; onFilterChange?: (payload: any) => void }) {
+function FormSections({ searchParams, onFilterChange }: { searchParams?: any; onFilterChange?: (payload: any, reset?: boolean) => void }) {
     const { closeAddForm, addFormRef } = useFormContext<IMasterStudentCountReportList>();
 
     return (
@@ -78,13 +87,15 @@ function StudentCountReportPageContent({
     isLoading,
     error,
     searchParams,
-    onFilterChange
+    onFilterChange,
+    isSearched
 }: {
     response: any;
     isLoading: boolean;
     error: any;
     searchParams?: any;
-    onFilterChange?: (payload: any) => void;
+    onFilterChange?: (payload: any, reset?: boolean) => void;
+    isSearched: boolean;
 }) {
     const tableProps = useDataTableProps(response);
 
@@ -98,27 +109,29 @@ function StudentCountReportPageContent({
                 <FormSections searchParams={searchParams} onFilterChange={onFilterChange} />
 
                 {/* Data Table Section */}
-                <CollapsibleSection
-                    defaultOpen={true}
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<IMasterStudentCountReportList>
-                        {...tableProps}
-                        columns={masterStudentCountReportColumns}
-                        isLoading={isLoading}
-                        error={error}
-                        showViewOptions={false}
-                        isSearchRequired={true}
-                        // showSearchColumns={true}
-                        columnPinning={{ right: ['actions'] }}
-                        isPaginationRequired={true}
-                        loadingMessage='Loading  Student Count Reports...'
-                        noDataTitle='No  Student Count Reports Found'
-                        noDataDescription='Get started by creating your first Student Count Reports '
-                        errorTitle='Error Loading Student Count Reports'
-                    />
-                </CollapsibleSection>
+                {isSearched && (
+                    <CollapsibleSection
+                        defaultOpen={true}
+                        variant='default'
+                        size='lg'
+                        className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                        <GenericDataTable<IMasterStudentCountReportList>
+                            {...tableProps}
+                            columns={masterStudentCountReportColumns}
+                            isLoading={isLoading}
+                            error={error}
+                            showViewOptions={false}
+                            isSearchRequired={true}
+                            // showSearchColumns={true}
+                            columnPinning={{ right: ['actions'] }}
+                            isPaginationRequired={true}
+                            loadingMessage='Loading  Student Count Reports...'
+                            noDataTitle='No  Student Count Reports Found'
+                            noDataDescription='Get started by creating your first Student Count Reports '
+                            errorTitle='Error Loading Student Count Reports'
+                        />
+                    </CollapsibleSection>
+                )}
             </div>
         </div>
     );

@@ -19,6 +19,8 @@ export default function MonthendreportPage() {
     const [ifName, setIfName] = useState('');
     const [showReport, setShowReport] = useState(false);
     const [reportData, setReportData] = useState<ReportItem[]>([]);
+    const [formKey, setFormKey] = useState(0);
+    const [logo, setLogo] = useState<string>('/school-logo.png');
 
     const requestData = {
         ASMAY_Id: Number(academicYearId),
@@ -68,6 +70,10 @@ export default function MonthendreportPage() {
         setSelectedMonth('');
         setSelectedYear('');
         setIfName('');
+        setShowReport(false);
+        setReportData([]);
+        setFormKey((prev) => prev + 1);
+        toast.success('Form reset successfully');
     };
 
     // Handle Report Generate
@@ -85,8 +91,11 @@ export default function MonthendreportPage() {
             const res = await refetch();
             toast.dismiss(toastId);
 
-            if (res?.data?.data?.reportdatelist?.length) {
-                const r = res.data.data.reportdatelist[0];
+            const reportList = res?.data?.data?.reportdatelist || (Array.isArray(res?.data?.data) ? res.data.data : []);
+            if (reportList?.length) {
+                const r = reportList[0];
+                const fetchedLogo = r.MI_Logo || r.mI_Logo || r.mi_logo || '/school-logo.png';
+                setLogo(fetchedLogo);
 
                 setReportData([
                     {
@@ -155,8 +164,8 @@ export default function MonthendreportPage() {
                 response instanceof Blob
                     ? response
                     : new Blob([new Uint8Array(response)], {
-                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                      });
+                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                    });
 
             // Create download link
             const url = window.URL.createObjectURL(blob);
@@ -172,9 +181,6 @@ export default function MonthendreportPage() {
                 window.URL.revokeObjectURL(url);
             }, 100);
 
-            setShowReport(false);
-            setReportData([]);
-
             toast.success('Excel downloaded successfully');
         } catch (error) {
             console.error('Download error:', error);
@@ -186,7 +192,7 @@ export default function MonthendreportPage() {
         <div className='min-h-screen'>
             {/* FILTER CARD */}
             <div className='mb-3 space-y-6 rounded-xl border p-6 shadow-xl'>
-                <div className='grid grid-cols-2 gap-6 sm:grid-cols-1 md:grid-cols-4'>
+                <div key={formKey} className='grid grid-cols-2 gap-6 sm:grid-cols-1 md:grid-cols-4'>
                     {/* Academic Year */}
                     <div className='flex w-full flex-col gap-2'>
                         <Label className='font-semibold'>
@@ -297,6 +303,7 @@ export default function MonthendreportPage() {
                         year={Number(selectedYear)}
                         academicYear={Number(academicYearId)}
                         implementationName={ifName}
+                        logoBase64={logo}
                     />
                 </CollapsibleSection>
             )}

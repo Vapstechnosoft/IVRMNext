@@ -23,7 +23,7 @@ export default function ExamTermAndExamMappingDetailsPage({ rowData, onClose }: 
         error,
         isLoading,
         refetchAll
-    } = useExamTermAndExamMappingDetails(30, rowData?.asmaY_Id ?? 0, rowData?.emcA_Id ?? 0, rowData?.ecT_Id ?? 0);
+    } = useExamTermAndExamMappingDetails(rowData?.asmaY_Id ?? 0, rowData?.emcA_Id ?? 0, rowData?.ecT_Id ?? 0);
 
     useEffect(() => {
         refetchAll();

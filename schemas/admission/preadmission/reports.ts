@@ -33,25 +33,12 @@ export const studentSearchSchema = z.object({
             })
         )
         .min(1, 'At least one search criteria is required')
-        .refine(
-            (criteria) => {
-                for (let i = 0; i < criteria.length - 1; i++) {
-                    if (!criteria[i].condition || criteria[i].condition === '') {
-                        return false;
-                    }
-                }
-                return true;
-            },
-            {
-                message: 'All criteria except the last one must have a condition (AND/OR)'
-            }
-        )
 });
 
 export type StudentSearchFormData = z.infer<typeof studentSearchSchema>;
 
 export const admissionReportSchema = z.object({
-    academicYear: z.number().min(1, 'Academic year is required'),
+    academicYear: z.coerce.number().min(1, 'Academic year is required'),
     status: z.number().min(0, 'Status is required'),
     selectedClasses: z.array(z.number()).min(1, 'Please select at least one class'),
     selectedFields: z.array(z.string()).min(1, 'Please select at least one field')
@@ -102,10 +89,13 @@ export const classwiseStudentDetailsSchema = z.object({
 
 export const StudentTcDetailsSchema = z.object({
     ASMAY_Id: z.number().min(1, 'Academic year is required'),
-    AllOrInd: z.string().min(1, 'Please select All or Individual'),
-    ASMCL_Id: z.array(z.number()).min(1, 'Please select at least one section').optional(),
-    ASMC_Id: z.array(z.string()).min(1, 'Please select at least one column').optional(),
-    TempararyArrayheadList: z.array(z.string()).min(1, 'Please select at least one column'),
-    PermOrTemp: z.string().optional(),
+    AllOrInd: z.number().min(1, 'Please select All or Individual'),
+    ASMCL_Id: z.number().optional(),
+    ASMC_Id: z.number().optional(),
+    TempararyArrayheadList: z.array(z.object({
+        columnID: z.string(),
+        columnName: z.string().optional()
+    })).min(1, 'Please select at least one column'),
+    PermOrTemp: z.number().optional(),
     AMC_Id: z.number().optional()
 });

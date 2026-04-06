@@ -22,6 +22,7 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function ExamTermAndExamMappingPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error } = useExamTermAndExamMapping(searchParams);
+    console.log('response', response);
 
     return (
         <FormProvider<IExamTermAndExamMapping>>

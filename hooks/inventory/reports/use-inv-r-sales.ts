@@ -52,7 +52,7 @@ export const useInvRSalesStudentList = (
             const payload = {
                 ASMCL_Id: Number(asmcL_Id),
                 ASMS_Id: asmS_Id ? Number(asmS_Id) : 0,
-                type: individualflag
+                type: 'C' // Always 'C' for student list, even when section is selected
             };
             return getInvRSalesStudentList(payload);
         },
@@ -74,5 +74,16 @@ export const useInvRSalesReport = () => {
             toast.error('An error occurred while generating the report');
             console.error(error);
         }
+    });
+};
+
+export const useInvRSalesReportQuery = (payload: IInvRSalesPayload | null, searchParams: any) => {
+    return useQuery({
+        queryKey: ['invRSalesReport', payload, searchParams],
+        queryFn: () => {
+            if (!payload) return { success: true, data: { get_SalesReport: [] }, total: 0, message: '', page: 1, page_size: 10 };
+            return getInvRSalesReport(payload, searchParams);
+        },
+        enabled: !!payload
     });
 };

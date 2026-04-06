@@ -285,8 +285,29 @@ export default function DailyFeeCollectionReportForm() {
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         setSubmitClicked(true);
 
-        if (!isClassRequired && (data.asmcL_Id === 0 || data.asmcL_Id === null || data.asmcL_Id === undefined)) {
-            toast.error('Please select Class');
+        // if (!isClassRequired && (data.asmcL_Id === 0 || data.asmcL_Id === null || data.asmcL_Id === undefined)) {
+        //     toast.error('Please select Class');
+        //     return;
+        // }
+        if (rpttyp === 'Individual') {
+            if (enableAllClasses === true) {
+                if (asmcL_Id === 0 || asmcL_Id === null || asmcL_Id === undefined) {
+                    toast.error('Please select Class');
+                    return;
+                }
+            }
+        }
+
+        if (
+            reportdate === 'transdate' &&
+            rpttyp === 'All' &&
+            (report === 'All' || report === 'students') &&
+            !chequeDate &&
+            !acdmyr &&
+            !headwise &&
+            !paymentwise
+        ) {
+            toast.error('Please select at least one checkbox Cheque Date/Add Year Wise Report/Headwise/Paymentwise');
             return;
         }
 
@@ -342,8 +363,14 @@ export default function DailyFeeCollectionReportForm() {
         // ===================================================
         // API CALL
         // ===================================================
+
+        if (data.Fmc_allorsudentorother === 'all') {
+            data.Fmc_allorsudentorother = 'multiplepaymentmode';
+        }
         try {
+            setShowTable(false);
             setLoading(true);
+            setTableRows([]);
             // const tempParams: IDailyFeeCollectionRequest = {
             //     AsmayId: 176,
             //     FromDate: '2025-01-01',
@@ -385,6 +412,7 @@ export default function DailyFeeCollectionReportForm() {
                 }));
                 payload = {
                     AsmayId: asmaY_Id,
+                    classid: asmcL_Id ?? 0,
                     FromDate: formatDate(fromDate),
                     ToDate: formatDate(toDate),
                     regornamedetails: report,
@@ -427,6 +455,28 @@ export default function DailyFeeCollectionReportForm() {
                     Cheque: data.chequeDate ? '1' : '0',
                     GroupFlag: selectedGroupIds.length > 0 ? '1' : '0'
                 };
+            } else {
+                const allList = selectedGroupIds.map((id) => ({
+                    FMG_Id: String(id)
+                }));
+                payload = {
+                    AMAY_Id: asmaY_Id,
+                    classid: 0,
+                    Fromdate: formatDate(fromDate),
+                    Todate: formatDate(toDate),
+                    TempararyArrayListstring: reportdate,
+                    allorindivflag: data.rpttyp,
+                    allorstdorothersflag: Fmc_allorsudentorother,
+                    allorcorchoronlineflag: Fmc_allorcorddorop,
+                    mid: 30,
+                    classflag: data.enableAllClasses ? '0' : '1',
+                    groupflag: selectedGroupIds.length > 0 ? '1' : '0',
+                    regornamedetails: report,
+                    All_List: allList,
+                    cheque: data.chequeDate ? '1' : '0',
+                    headwise: headwise,
+                    paymentwise: paymentwise
+                };
             }
 
             console.log('payload', JSON.stringify(payload));
@@ -439,6 +489,7 @@ export default function DailyFeeCollectionReportForm() {
             if (!Array.isArray(rawData?.list) || rawData.list.length === 0) {
                 toast.error('No data found');
                 setShowTable(false);
+                setTableRows([]);
                 return;
             }
 
@@ -838,10 +889,16 @@ export default function DailyFeeCollectionReportForm() {
 
                         {/* SPECIAL CHECKBOXES */}
                         <div className='space-y-3 text-sm'>
-                            <div className='flex items-center gap-2'>
+                            {reportdate !== 'SettledOnline' && reportdate !== 'settdate' && (
+                                <div className='flex items-center gap-2'>
+                                    <Checkbox id='acdmyr-1' checked={chequeDate} onCheckedChange={(v) => setValue('chequeDate', !!v)} />
+                                    <Label htmlFor='acdmyr-1'>Cheque Date</Label>
+                                </div>
+                            )}
+                            {/* <div className='flex items-center gap-2'>
                                 <Checkbox id='acdmyr-1' checked={chequeDate} onCheckedChange={(v) => setValue('chequeDate', !!v)} />
                                 <Label htmlFor='acdmyr-1'>Cheque Date</Label>
-                            </div>
+                            </div> */}
 
                             <div className='flex items-center gap-2'>
                                 <Checkbox id='acdmyr-2' checked={acdmyr} onCheckedChange={(v) => setValue('acdmyr', !!v)} />
@@ -871,13 +928,13 @@ export default function DailyFeeCollectionReportForm() {
                             )}
 
                             {/* ERROR MESSAGE */}
-                            {reportdate === 'transdate' &&
+                            {/* {reportdate === 'transdate' &&
                                 rpttyp === 'All' &&
                                 (report === 'All' || report === 'students') &&
                                 !chequeDate &&
                                 !acdmyr &&
                                 !headwise &&
-                                !paymentwise && <div className='text-red-500 text-sm'>Please select at least one checkbox</div>}
+                                !paymentwise && <div className='text-red-500 text-sm'>Please select at least one checkbox</div>} */}
                         </div>
                     </div>
 

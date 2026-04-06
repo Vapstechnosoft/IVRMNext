@@ -4,6 +4,7 @@ import { api, getSearchParamsUrl } from '@/lib/apiService';
 
 import type { ApiSearchparams } from '@/types';
 import type { IClassWorkDetails, ISubjectDetails } from '@/types/upload/reports/classwork-upload-report';
+import { IHomeWorkDetails } from '@/types/upload/reports/homework-upload-report';
 import { revalidatePath } from 'next/cache';
 
 const classWorkData: any[] = [
@@ -86,10 +87,17 @@ export async function toggleUploadClassWork(id: number) {
     return await api.put('portal', url);
 }
 
-export async function GetHomeWorkUploadedList(data: any, searchParams?: ApiSearchparams) {
+export async function GetHomeWorkUploadedList(asmay_id: number, searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = '/ivrm_class_work/home_work_grid_details';
-    return await api.post<IClassWorkDetails[]>('portal', url, data);
+    const url = `/ivrm_class_work/home_work_grid_details/${asmay_id}?${urlParams}`;
+    return await api.get('portal', url,);
+}
+
+
+// Class work verify using based on  privileges
+export async function SubjectsDropDownByAcademicYearandClassandSection(data: any) {
+    const url = '/ivrm_class_work/subjects_by_class_work_verify';
+    return await api.post<ISubjectDetails>('portal', url, data);
 }
 
 export const fetchClassWorkStudents = async (icW_Id: number): Promise<any[]> => {
@@ -110,13 +118,13 @@ export const fetchClassWorkStudents = async (icW_Id: number): Promise<any[]> => 
                 studentUploads:
                     i % 3 === 0
                         ? [
-                              {
-                                  icwupl_Id: 700 + i,
-                                  icwupl_FileName: 'assignment.pdf',
-                                  icwupl_Attachment: 'https://example.com/assignment.pdf',
-                                  icwupl_Date: '2023-10-26'
-                              }
-                          ]
+                            {
+                                icwupl_Id: 700 + i,
+                                icwupl_FileName: 'assignment.pdf',
+                                icwupl_Attachment: 'https://example.com/assignment.pdf',
+                                icwupl_Date: '2023-10-26'
+                            }
+                        ]
                         : []
             }));
             resolve(students);

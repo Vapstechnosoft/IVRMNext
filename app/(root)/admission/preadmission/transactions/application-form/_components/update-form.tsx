@@ -333,6 +333,21 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
             const dob = new Date(rowData.pasR_DOB);
             const allClasses = preadmissionClass.data;
 
+            // Validate the date of birth
+            if (!rowData.pasR_DOB || Number.isNaN(dob.getTime())) {
+                setFilteredClasses([]);
+                setIsClassDisabled(true);
+                return;
+            }
+
+            // Ensure DOB is not in the future
+            const today = new Date();
+            if (dob > today) {
+                setFilteredClasses([]);
+                setIsClassDisabled(true);
+                return;
+            }
+
             const validClasses: IPreadmissionClassDropdown[] = [];
 
             allClasses.forEach((classItem: IPreadmissionClassDropdown) => {
@@ -581,6 +596,58 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         trigger(fieldName as any);
     };
 
+    const handleReset = () => {
+        reset({
+            pasR_FirstName: '',
+            pasR_MiddleName: '',
+            pasR_LastName: '',
+            asmcL_Id: 0,
+            pasR_emailId: '',
+            pasR_DOB: undefined,
+            pasR_MobileNo: '',
+            pasA_WillingToContributeFlg: 0,
+            pasR_UndertakingFlag: 0,
+            previousSchoolDetails: [
+                {
+                    pasrpS_PrvSchoolName: '',
+                    pasrpS_PreviousClass: '',
+                    pasrpS_Board: '',
+                    pasrpS_LeftYear: '',
+                    pasrpS_LeftReason: '',
+                    pasrpS_Address: ''
+                }
+            ],
+            siblingsDetails: []
+        });
+        setCurrentStep(1);
+        setSelectedSourceItems([]);
+        setSelectedReferenceItems([]);
+        setSameAsResidential(false);
+        setPreviousSchool({
+            pasrpS_Id: 0,
+            pasR_Id: 0,
+            pasrpS_PrvSchoolName: '',
+            pasrpS_PreviousClass: '',
+            pasrpS_Board: '',
+            pasrpS_LeftYear: '',
+            pasrpS_LeftReason: '',
+            pasrpS_Address: ''
+        });
+        setUploadedDocuments([]);
+        setFilteredClasses([]);
+        setIsClassDisabled(true);
+        setStudentPhoto(null);
+        setStudentPhotoError(null);
+        setFatherPhoto(null);
+        setFatherPhotoError(null);
+        setMotherPhoto(null);
+        setMotherPhotoError(null);
+        setDocumentErrors({});
+        setPhoneValues({});
+        setPhoneExpectedInfo({});
+        clearErrors();
+    };
+
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         if (data.pasR_UndertakingFlag === 0) {
             toast.error('Please accept undertaking');
@@ -701,25 +768,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         refetchDropdowns();
     };
 
-    const handleReset = () => {
-        reset();
-        setCurrentStep(1);
-        setSelectedSourceItems([]);
-        setSelectedReferenceItems([]);
-        setSameAsResidential(false);
-        setPreviousSchool({
-            pasrpS_Id: 0,
-            pasR_Id: 0,
-            pasrpS_PrvSchoolName: '',
-            pasrpS_PreviousClass: '',
-            pasrpS_Board: '',
-            pasrpS_LeftYear: '',
-            pasrpS_LeftReason: '',
-            pasrpS_Address: ''
-        });
-        setUploadedDocuments([]);
-        setDocumentErrors({});
-    };
+
 
     const handleSourceSelection = (selectedValues: string[]) => {
         const selectedSources = selectedValues.map((value) => {
@@ -1058,6 +1107,22 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
     const validateAgeForClass = (dob: Date, classData: IPreadmissionClassDropdown, config: any): { isValid: boolean; reason?: string } => {
         const cutOffDate = config.ispaC_ApplCutOffDateFlag === 1 ? new Date(config.asmaY_Cut_Of_Date) : new Date();
 
+        // Validate that DOB is not after cutoff date
+        if (dob > cutOffDate) {
+            return {
+                isValid: false,
+                reason: 'Date of birth cannot be after the application cutoff date'
+            };
+        }
+
+        // Additional validation to ensure DOB is valid and not in the future
+        if (!dob || Number.isNaN(dob.getTime())) {
+            return {
+                isValid: false,
+                reason: 'Invalid date of birth provided'
+            };
+        }
+
         const age = calculateAge(dob, cutOffDate);
 
         // Check minimum age if flag is enabled
@@ -1105,6 +1170,23 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
 
     const handleDOBChange = (date: Date | undefined) => {
         if (!date || !masterConfig?.data) {
+            setIsClassDisabled(true);
+            setFilteredClasses([]);
+            setValue('asmcL_Id', 0);
+            return;
+        }
+
+        // Validate the date
+        if (Number.isNaN(date.getTime())) {
+            setIsClassDisabled(true);
+            setFilteredClasses([]);
+            setValue('asmcL_Id', 0);
+            return;
+        }
+
+        // Ensure date is not in the future
+        const today = new Date();
+        if (date > today) {
             setIsClassDisabled(true);
             setFilteredClasses([]);
             setValue('asmcL_Id', 0);
@@ -1174,6 +1256,42 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         prevPerCountryRef.current = perConuntryId;
     }, [perConuntryId, setValue]);
 
+    // Reactive address synchronization
+    const watchedConStreet = watch('pasR_ConStreet');
+    const watchedConArea = watch('pasR_ConArea');
+    const watchedConCountry = watch('pasR_ConCountry');
+    const watchedConState = watch('pasR_ConState');
+    const watchedConCity = watch('pasR_ConCity');
+    const watchedConPincode = watch('pasR_ConPincode');
+
+    useEffect(() => {
+        if (sameAsResidential) {
+            setValue('pasR_PerStreet', watchedConStreet);
+            setValue('pasR_PerArea', watchedConArea);
+            setValue('pasR_PerCountry', watchedConCountry);
+            setValue('pasR_PerState', watchedConState ? Number(watchedConState) : undefined);
+            setValue('pasR_PerCity', watchedConCity);
+
+            if (perZipLength && typeof watchedConPincode === 'string') {
+                setValue('pasR_PerPincode', watchedConPincode.slice(0, perZipLength));
+            } else if (perZipLength && typeof watchedConPincode === 'number') {
+                setValue('pasR_PerPincode', String(watchedConPincode).slice(0, perZipLength));
+            } else {
+                setValue('pasR_PerPincode', watchedConPincode);
+            }
+        }
+    }, [
+        sameAsResidential,
+        watchedConStreet,
+        watchedConArea,
+        watchedConCountry,
+        watchedConState,
+        watchedConCity,
+        watchedConPincode,
+        setValue,
+        perZipLength
+    ]);
+
     return (
         <>
             <div className={cn('mx-auto w-full max-w-7xl px-4 py-2', className)}>
@@ -1198,8 +1316,8 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                         currentStep === step.id
                                                             ? 'border-blue-600 bg-blue-600 text-white shadow-blue-200 shadow-lg'
                                                             : currentStep > step.id
-                                                              ? 'border-green-500 bg-green-500 text-white'
-                                                              : 'border-gray-300 bg-white text-gray-400'
+                                                                ? 'border-green-500 bg-green-500 text-white'
+                                                                : 'border-gray-300 bg-white text-gray-400'
                                                     )}>
                                                     {currentStep > step.id ? (
                                                         <Check className='h-5 w-5' />
@@ -1248,8 +1366,8 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                         currentStep === step.id
                                                             ? 'border-secondary bg-secondary text-white shadow-blue-200 shadow-lg'
                                                             : currentStep > step.id
-                                                              ? 'border-green-500 bg-green-500 text-white'
-                                                              : 'border-gray-300 bg-white text-gray-500'
+                                                                ? 'border-green-500 bg-green-500 text-white'
+                                                                : 'border-gray-300 bg-white text-gray-500'
                                                     )}>
                                                     {currentStep > step.id ? (
                                                         <Check className='h-6 w-6' />
@@ -1588,9 +1706,8 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             />
                                                             {phoneExpectedInfo.pasR_MobileNo?.expected && (
                                                                 <span className='mt-1 text-muted-foreground text-xs'>
-                                                                    {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MobileNo.expected} digits for ${
-                                                                        phoneExpectedInfo.pasR_MobileNo.name ?? 'selected country'
-                                                                    }`}
+                                                                    {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MobileNo.expected} digits for ${phoneExpectedInfo.pasR_MobileNo.name ?? 'selected country'
+                                                                        }`}
                                                                 </span>
                                                             )}
                                                         </div>
@@ -1944,7 +2061,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
 
                                         <div className='space-y-8'>
                                             <div className='space-y-4'>
-                                                <h3 className='font-semibold text-gray-800 text-lg'>Residential Address</h3>
+                                                <h3 className='font-bold text-gray-800 text-lg'>Residential Address</h3>
                                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                                     <InputText
                                                         label='Street'
@@ -2047,15 +2164,15 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             rules={
                                                                 conZipLength
                                                                     ? {
-                                                                          minLength: {
-                                                                              value: conZipLength,
-                                                                              message: `Pin code must be ${conZipLength} digits`
-                                                                          },
-                                                                          maxLength: {
-                                                                              value: conZipLength,
-                                                                              message: `Pin code must be ${conZipLength} digits`
-                                                                          }
-                                                                      }
+                                                                        minLength: {
+                                                                            value: conZipLength,
+                                                                            message: `Pin code must be ${conZipLength} digits`
+                                                                        },
+                                                                        maxLength: {
+                                                                            value: conZipLength,
+                                                                            message: `Pin code must be ${conZipLength} digits`
+                                                                        }
+                                                                    }
                                                                     : undefined
                                                             }
                                                             render={({ field }) => (
@@ -2119,7 +2236,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                 </Label>
                                             </div>
                                             <div className='space-y-4'>
-                                                <h3 className='font-semibold text-gray-800 text-lg'>Permanent Address</h3>
+                                                <h3 className='font-bold text-gray-800 text-lg'>Permanent Address</h3>
                                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                                     <InputText
                                                         label='Street'
@@ -2226,15 +2343,15 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             rules={
                                                                 perZipLength
                                                                     ? {
-                                                                          minLength: {
-                                                                              value: perZipLength,
-                                                                              message: `Pin code must be ${perZipLength} digits`
-                                                                          },
-                                                                          maxLength: {
-                                                                              value: perZipLength,
-                                                                              message: `Pin code must be ${perZipLength} digits`
-                                                                          }
-                                                                      }
+                                                                        minLength: {
+                                                                            value: perZipLength,
+                                                                            message: `Pin code must be ${perZipLength} digits`
+                                                                        },
+                                                                        maxLength: {
+                                                                            value: perZipLength,
+                                                                            message: `Pin code must be ${perZipLength} digits`
+                                                                        }
+                                                                    }
                                                                     : undefined
                                                             }
                                                             render={({ field }) => (
@@ -2298,7 +2415,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
 
                                         <div className='space-y-8'>
                                             <div className='space-y-4'>
-                                                <h3 className='font-semibold text-gray-800 text-lg'>Father Details</h3>
+                                                <h3 className='font-bold text-gray-800 text-lg'>Father Details</h3>
                                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                                     {/* Father Photo Upload - Mandatory */}
                                                     <div className='col-span-full w-fit'>
@@ -2582,10 +2699,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     />
                                                                     {phoneExpectedInfo.pasR_FatherMobleNo?.expected && (
                                                                         <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_FatherMobleNo.expected} digits for ${
-                                                                                phoneExpectedInfo.pasR_FatherMobleNo.name ??
+                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_FatherMobleNo.expected} digits for ${phoneExpectedInfo.pasR_FatherMobleNo.name ??
                                                                                 'selected country'
-                                                                            }`}
+                                                                                }`}
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -2646,7 +2762,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                             </div>
 
                                             <div className='space-y-4'>
-                                                <h3 className='font-semibold text-gray-800 text-lg'>Mother Details</h3>
+                                                <h3 className='font-bold text-gray-800 text-lg'>Mother Details</h3>
                                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                                     {/* Mother Photo Upload - Mandatory */}
                                                     <div className='col-span-full w-fit'>
@@ -2930,10 +3046,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     />
                                                                     {phoneExpectedInfo.pasR_MotherMobleNo?.expected && (
                                                                         <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MotherMobleNo.expected} digits for ${
-                                                                                phoneExpectedInfo.pasR_MotherMobleNo.name ??
+                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MotherMobleNo.expected} digits for ${phoneExpectedInfo.pasR_MotherMobleNo.name ??
                                                                                 'selected country'
-                                                                            }`}
+                                                                                }`}
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -2994,7 +3109,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                             </div>
 
                                             <div className='space-y-4'>
-                                                <h3 className='font-semibold text-gray-800 text-lg'>Additional Contact</h3>
+                                                <h3 className='font-bold text-gray-800 text-lg'>Additional Contact</h3>
                                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                                                     <div className='flex flex-col gap-1.5 '>
                                                         <Controller
@@ -3038,10 +3153,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     />
                                                                     {phoneExpectedInfo.pasR_AltContactNo?.expected && (
                                                                         <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_AltContactNo.expected} digits for ${
-                                                                                phoneExpectedInfo.pasR_AltContactNo.name ??
+                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_AltContactNo.expected} digits for ${phoneExpectedInfo.pasR_AltContactNo.name ??
                                                                                 'selected country'
-                                                                            }`}
+                                                                                }`}
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -3381,7 +3495,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                         {/* Sibling Details Section (controlled) */}
                                         <div className='space-y-4'>
                                             <div className='flex items-center justify-between'>
-                                                <h3 className='font-semibold text-gray-800 text-lg'>Sibling Details</h3>
+                                                <h3 className='font-bold text-gray-800 text-lg'>Sibling Details</h3>
                                                 <Button
                                                     type='button'
                                                     variant='outline'
@@ -3487,7 +3601,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
 
                                         {/* Previous School Details Section */}
                                         <div className='space-y-4'>
-                                            <h3 className='font-semibold text-gray-800 text-lg'>Previous School Details</h3>
+                                            <h3 className='font-bold text-gray-800 text-lg'>Previous School Details</h3>
                                             <div className='mb-2'>
                                                 {/* <Button
                                                     type='button'
@@ -3759,14 +3873,14 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
 
                             {/* Navigation Footer */}
                             <div className='flex items-center justify-end border-t bg-gray-50 px-6 py-4 md:px-8'>
-                                {/* <Button
+                                <Button
                                     type='button'
                                     variant='outline'
                                     onClick={handleReset}
                                     disabled={isSubmitting}
                                     className='w-fit transition-all duration-200 hover:scale-105'>
                                     Reset Form
-                                </Button> */}
+                                </Button>
 
                                 <div className='flex gap-3'>
                                     {currentStep > 1 && (
@@ -3806,8 +3920,8 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                             classes={ineligibleClasses}
                             cutOffDate={
                                 masterConfig?.data &&
-                                masterConfig.data.ispaC_ApplCutOffDateFlag === 1 &&
-                                masterConfig.data.asmaY_Cut_Of_Date
+                                    masterConfig.data.ispaC_ApplCutOffDateFlag === 1 &&
+                                    masterConfig.data.asmaY_Cut_Of_Date
                                     ? new Date(masterConfig.data.asmaY_Cut_Of_Date)
                                     : new Date()
                             }

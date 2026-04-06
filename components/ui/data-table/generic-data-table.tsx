@@ -23,6 +23,7 @@ interface GenericDataTableProps<T> {
 
     isSearchRequired?: boolean;
     isPaginationRequired?: boolean;
+    showExportOptions?: boolean;
 
     // Row selection
     maxSelectableRows?: number;
@@ -49,6 +50,8 @@ interface GenericDataTableProps<T> {
     defaultVisibility?: { [key: string]: boolean };
     scrollable?: boolean;
     maxHeight?: string;
+    //manualPagination?: boolean;
+    // Bento-Glass Props
 }
 
 export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<any>>(function GenericDataTable<T>(
@@ -74,6 +77,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         LoadingComponent,
         ErrorComponent,
         showSearchColumns = false,
+        showExportOptions = false,
         // manualPagination = true
         scrollable = false,
         maxHeight = '600px'
@@ -128,7 +132,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
             <div className='overflow-hidden rounded-lg bg-card'>
                 <DataTable
                     ref={ref}
-                    isLoading={false}
+                    isLoading={isLoading}
                     columns={columns}
                     data={[]} // Empty array
                     totalItems={0}
@@ -137,6 +141,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                     isPaginationRequired={isPaginationRequired}
                     columnPinning={columnPinning}
                     showSearchColumns={showSearchColumns}
+                    showExportOptions={showExportOptions}
                     maxSelectableRows={maxSelectableRows}
                     //manualPagination={manualPagination}
                     onRowSelectionChange={(selectedRows) => {
@@ -150,10 +155,10 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
     }
 
     return (
-        <div className='overflow-hidden rounded-lg bg-card'>
+        <div className='bg-card'>
             <DataTable
                 ref={ref}
-                isLoading={false}
+                isLoading={isLoading}
                 columns={columns}
                 data={data}
                 totalItems={totalItems}

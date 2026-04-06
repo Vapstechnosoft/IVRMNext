@@ -20,6 +20,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { ViewExamsModal } from './group-mapped-exam-model';
 import { ViewGroupsModal } from './group-mapping-model';
+import { set } from 'date-fns';
+import { usePromotionalSetting } from '@/hooks/exam/exammodule/exam-mapping';
 
 /**
  * Types
@@ -115,6 +117,7 @@ export default function AddPromotionalSettingForm({
     const [passToOverall, setPassToOverall] = useState<boolean>(false);
     const [bestApplicable, setBestApplicable] = useState<boolean>(false);
     const [bestOff, setBestOff] = useState<number | null>(null);
+    const [isDataSaving, setIsDataSaving] = useState<boolean>(false);
 
     // Mode state
     const [promotionType, setPromotionType] = useState<'M' | 'P' | 'T' | 'F'>('P');
@@ -124,6 +127,7 @@ export default function AddPromotionalSettingForm({
 
     // Grades hook
     const { data: gradeDataList, error: gradeError } = useMasterGradeDropdownList();
+    const { refetchAll } = usePromotionalSetting();
     const grades = gradeDataList?.data || [];
 
     const [subjects, setSubjects] = useState<SubjectRow[]>([]);
@@ -184,33 +188,33 @@ export default function AddPromotionalSettingForm({
 
             const subjectsData = Array.isArray(payload.subjectlist)
                 ? payload.subjectlist.map(
-                      (subject: any): SubjectRow => ({
-                          ismS_Id: subject.ismS_Id,
-                          ismS_SubjectName: subject.ismS_SubjectName,
-                          ismS_SubjectCode: subject.ismS_SubjectCode || null,
-                          EMPS_MaxMarks: subject.empS_MaxMarks || subject.ismS_Max_Marks || null,
-                          EMPS_MinMarks: subject.empS_MinMarks || subject.ismS_Min_Marks || null,
-                          EMPS_ConvertForMarks: subject.empS_ConvertForMarks || null,
-                          EMPS_AppToResultFlg: subject.empS_AppToResultFlg ?? true,
-                          EMGR_Id: subject.emgR_Id || null,
-                          EMPS_Id: subject.empS_Id,
-                          checkedvalue: false
-                      })
-                  )
+                    (subject: any): SubjectRow => ({
+                        ismS_Id: subject.ismS_Id,
+                        ismS_SubjectName: subject.ismS_SubjectName,
+                        ismS_SubjectCode: subject.ismS_SubjectCode || null,
+                        EMPS_MaxMarks: subject.empS_MaxMarks || subject.ismS_Max_Marks || null,
+                        EMPS_MinMarks: subject.empS_MinMarks || subject.ismS_Min_Marks || null,
+                        EMPS_ConvertForMarks: subject.empS_ConvertForMarks || null,
+                        EMPS_AppToResultFlg: subject.empS_AppToResultFlg ?? true,
+                        EMGR_Id: subject.emgR_Id || null,
+                        EMPS_Id: subject.empS_Id,
+                        checkedvalue: false
+                    })
+                )
                 : [];
 
             const examsData = Array.isArray(payload.examlist)
                 ? payload.examlist.map(
-                      (exam: any): ExamItem => ({
-                          emE_Id: exam.emE_Id,
-                          emE_ExamName: exam.emE_ExamName,
-                          emE_ExamCode: exam.emE_ExamCode,
-                          checked: false,
-                          ForMaxMarkrs: 0,
-                          ForMaxMarkrs_Temp: 0,
-                          ConvertionReqOrNot: false
-                      })
-                  )
+                    (exam: any): ExamItem => ({
+                        emE_Id: exam.emE_Id,
+                        emE_ExamName: exam.emE_ExamName,
+                        emE_ExamCode: exam.emE_ExamCode,
+                        checked: false,
+                        ForMaxMarkrs: 0,
+                        ForMaxMarkrs_Temp: 0,
+                        ConvertionReqOrNot: false
+                    })
+                )
                 : [];
 
             setSubjects(subjectsData);
@@ -571,12 +575,14 @@ export default function AddPromotionalSettingForm({
                 return;
             }
         }
-
+        setIsDataSaving(true);
         const payload = buildPayload();
         console.info('Save payload:', JSON.stringify(payload, null, 2));
         const response = await addOrUpdatePromotionSettings(payload);
+        setIsDataSaving(false);
         if (response.success) {
-            toast.success(response.message || 'Promotion Setting saved successfully');
+            toast.success('Promotion Setting saved successfully');
+            refetchAll();
             if (onSuccess) onSuccess();
             else handleReset();
         } else {
@@ -645,7 +651,7 @@ export default function AddPromotionalSettingForm({
                     <div className='space-y-4'>
                         {/* Academic Year */}
                         <div>
-                            <Label>Academic Year *</Label>
+                            <Label>Academic Year <span className='text-red-500'>*</span></Label>
                             <Select
                                 key={selectedYear}
                                 value={selectedYear !== 0 ? String(selectedYear) : undefined}
@@ -674,7 +680,7 @@ export default function AddPromotionalSettingForm({
 
                         {/* Category */}
                         <div>
-                            <Label>Category *</Label>
+                            <Label>Category <span className='text-red-500'>*</span></Label>
                             <Select
                                 key={selectedCategory}
                                 value={selectedCategory ? String(selectedCategory) : '__none'}
@@ -697,7 +703,7 @@ export default function AddPromotionalSettingForm({
 
                         {/* Grade */}
                         <div>
-                            <Label>Grade *</Label>
+                            <Label>Grade <span className='text-red-500'>*</span></Label>
                             <Select
                                 key={selectedGrade}
                                 value={selectedGrade || '__none'}
@@ -723,7 +729,7 @@ export default function AddPromotionalSettingForm({
                     <div className='space-y-6'>
                         {/* Radio buttons for promotion type */}
                         <div className='rounded-lg border p-4'>
-                            <div className='mb-2 font-medium text-sm'>Promotion Type *</div>
+                            <div className='mb-2 font-medium text-sm'>Promotion Type <span className='text-red-500'>*</span></div>
                             <div className='flex flex-wrap gap-4'>
                                 <label className='flex items-center space-x-2'>
                                     <input
@@ -824,11 +830,14 @@ export default function AddPromotionalSettingForm({
                                             value={bestOff || ''}
                                             onChange={(e) => {
                                                 const value = e.target.value ? Number.parseInt(e.target.value) : null;
+                                                setBestOff(value);
+                                            }}
+                                            onBlur={(e) => {
+                                                const value = e.target.value ? Number.parseInt(e.target.value) : null;
                                                 if (value && value <= 0) {
                                                     toast.error('Best Off must be greater than 0');
-                                                    return;
+                                                    setBestOff(null);
                                                 }
-                                                setBestOff(value);
                                             }}
                                             className='w-32'
                                             min='1'
@@ -868,12 +877,14 @@ export default function AddPromotionalSettingForm({
                                                 type='number'
                                                 value={headerMaxMarks}
                                                 onChange={(e) => {
+                                                    setHeaderMaxMarks(e.target.value);
+                                                }}
+                                                onBlur={(e) => {
                                                     const value = e.target.value;
                                                     if (value && Number.parseFloat(value) > 1000) {
                                                         toast.error('Max Marks cannot exceed 1000');
-                                                        return;
+                                                        setHeaderMaxMarks('');
                                                     }
-                                                    setHeaderMaxMarks(value);
                                                 }}
                                                 placeholder='All'
                                                 className='h-8 text-sm'
@@ -974,15 +985,22 @@ export default function AddPromotionalSettingForm({
                                                     value={subject.EMPS_MaxMarks || ''}
                                                     onChange={(e) => {
                                                         const value = e.target.value ? Number.parseFloat(e.target.value) : null;
-                                                        if (value && value > 1000) {
-                                                            toast.error('Max Marks cannot exceed 1000');
-                                                            return;
-                                                        }
                                                         setSubjects((prev) =>
                                                             prev.map((s) =>
                                                                 s.ismS_Id === subject.ismS_Id ? { ...s, EMPS_MaxMarks: value } : s
                                                             )
                                                         );
+                                                    }}
+                                                    onBlur={(e) => {
+                                                        const value = e.target.value ? Number.parseFloat(e.target.value) : null;
+                                                        if (value && value > 1000) {
+                                                            toast.error('Max Marks cannot exceed 1000');
+                                                            setSubjects((prev) =>
+                                                                prev.map((s) =>
+                                                                    s.ismS_Id === subject.ismS_Id ? { ...s, EMPS_MaxMarks: null } : s
+                                                                )
+                                                            );
+                                                        }
                                                     }}
                                                     className='h-8 text-sm'
                                                 />
@@ -993,15 +1011,22 @@ export default function AddPromotionalSettingForm({
                                                     value={subject.EMPS_MinMarks || ''}
                                                     onChange={(e) => {
                                                         const value = e.target.value ? Number.parseFloat(e.target.value) : null;
-                                                        if (value && subject.EMPS_MaxMarks && value > subject.EMPS_MaxMarks) {
-                                                            toast.error('Min Marks cannot exceed Max Marks');
-                                                            return;
-                                                        }
                                                         setSubjects((prev) =>
                                                             prev.map((s) =>
                                                                 s.ismS_Id === subject.ismS_Id ? { ...s, EMPS_MinMarks: value } : s
                                                             )
                                                         );
+                                                    }}
+                                                    onBlur={(e) => {
+                                                        const value = e.target.value ? Number.parseFloat(e.target.value) : null;
+                                                        if (value && subject.EMPS_MaxMarks && value > subject.EMPS_MaxMarks) {
+                                                            toast.error('Min Marks cannot exceed Max Marks');
+                                                            setSubjects((prev) =>
+                                                                prev.map((s) =>
+                                                                    s.ismS_Id === subject.ismS_Id ? { ...s, EMPS_MinMarks: null } : s
+                                                                )
+                                                            );
+                                                        }
                                                     }}
                                                     className='h-8 text-sm'
                                                     disabled={!subject.EMPS_MaxMarks}
@@ -1013,19 +1038,30 @@ export default function AddPromotionalSettingForm({
                                                     value={subject.EMPS_ConvertForMarks || ''}
                                                     onChange={(e) => {
                                                         const value = e.target.value ? Number.parseFloat(e.target.value) : null;
-                                                        if (value && value > 1000) {
-                                                            toast.error('Converted Marks cannot exceed 1000');
-                                                            return;
-                                                        }
-                                                        if (value && subject.EMPS_MinMarks && value < subject.EMPS_MinMarks) {
-                                                            toast.error('Converted Marks cannot be less than Min Marks');
-                                                            return;
-                                                        }
                                                         setSubjects((prev) =>
                                                             prev.map((s) =>
                                                                 s.ismS_Id === subject.ismS_Id ? { ...s, EMPS_ConvertForMarks: value } : s
                                                             )
                                                         );
+                                                    }}
+                                                    onBlur={(e) => {
+                                                        const value = e.target.value ? Number.parseFloat(e.target.value) : null;
+                                                        let hasError = false;
+                                                        if (value && value > 1000) {
+                                                            toast.error('Converted Marks cannot exceed 1000');
+                                                            hasError = true;
+                                                        } else if (value && subject.EMPS_MinMarks && value < subject.EMPS_MinMarks) {
+                                                            toast.error('Converted Marks cannot be less than Min Marks');
+                                                            hasError = true;
+                                                        }
+
+                                                        if (hasError) {
+                                                            setSubjects((prev) =>
+                                                                prev.map((s) =>
+                                                                    s.ismS_Id === subject.ismS_Id ? { ...s, EMPS_ConvertForMarks: null } : s
+                                                                )
+                                                            );
+                                                        }
                                                     }}
                                                     className='h-8 text-sm'
                                                     disabled={!subject.EMPS_MaxMarks}
@@ -1107,7 +1143,7 @@ export default function AddPromotionalSettingForm({
 
                 {/* ACTION BUTTONS */}
                 <div className='flex justify-center space-x-4'>
-                    <Button onClick={handleSave}>Save</Button>
+                    <Button className={isDataSaving ? 'cursor-not-allowed' : ''} onClick={handleSave}>{isDataSaving ? 'Saving...' : 'Save'}</Button>
                     <Button onClick={handleReset} variant='outline'>
                         Cancel
                     </Button>
@@ -1143,3 +1179,5 @@ export default function AddPromotionalSettingForm({
         </div>
     );
 }
+
+

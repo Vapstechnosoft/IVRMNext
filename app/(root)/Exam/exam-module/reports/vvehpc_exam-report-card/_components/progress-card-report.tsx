@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import type { IExamReportCard, ISubject } from '@/types/exam/exam-module/report';
+import type { IExamReportCard, IMasterInstitution, Institution, ISubject } from '@/types/exam/exam-module/report';
 import { Printer } from 'lucide-react';
 import Image from 'next/image';
 
@@ -18,10 +18,11 @@ interface Props {
     examName: string;
     examCode: string;
     year: string;
+    institution: Institution | IMasterInstitution | null | undefined;
     onPrint?: () => void;
 }
 
-export default function ProgressCardReport({ reportData, subjects, headerInfo, examName, examCode, year, onPrint }: Props) {
+export default function ProgressCardReport({ reportData, institution, subjects, headerInfo, examName, examCode, year, onPrint }: Props) {
     // Filter only subjects that appear in results
     const resultSubjects = subjects
         .filter((s) => s.eyceS_AplResultFlg !== false)
@@ -107,8 +108,8 @@ export default function ProgressCardReport({ reportData, subjects, headerInfo, e
                         {/* School Header Image */}
                         <div className='mb-4 text-center'>
                             <Image
-                                src='https://kusumadata.blob.core.windows.net/files/30/Vidya%20Vikas%20Marks.jpg'
-                                alt='School Header'
+                                src={institution?.mI_Logo || 'https://kusumadata.blob.core.windows.net/files/30/Vidya%20Vikas%20Marks.jpg'}
+                                alt={institution?.mI_Name || 'School Header'}
                                 width={800}
                                 height={200}
                                 className='inline-block border border-black'

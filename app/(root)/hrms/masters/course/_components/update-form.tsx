@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { InputNumber } from '@/components/ui/extension/input-number';
 import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { useMasterCourse } from '@/hooks/hrms/useMasters';
@@ -56,7 +57,7 @@ export default function UpdateCourseForm({ onSuccess, className = '', selectedRo
                 hrmC_Id: data.hrmC_Id,
                 hrmC_QulaificationName: data.hrmC_QulaificationName?.trim() || '',
                 hrmC_QualificationDesc: data.hrmC_QualificationDesc?.trim() || '',
-                hrmC_Order: data.hrmC_Order || 0,
+                hrmC_Order: Number(data.hrmC_Order) || 0,
                 hrmC_DefaultQualFag: data.hrmC_DefaultQualFag,
                 hrmC_SpecialisationFlag: data.hrmC_SpecialisationFlag,
                 hrmC_ActiveFlag: true
@@ -110,15 +111,24 @@ export default function UpdateCourseForm({ onSuccess, className = '', selectedRo
                             minHeight={20}
                         />
 
-                        <InputText
-                            label='Order'
-                            id='hrmC_Order'
-                            type='number'
-                            placeholder='Enter order'
-                            defaultValue={row.hrmC_Order}
-                            {...register('hrmC_Order', { valueAsNumber: true })}
-                            error={errors.hrmC_Order?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        <Controller
+                            name='hrmC_Order'
+                            control={control}
+                            render={({ field }) => (
+                                <InputNumber
+                                    label='Order'
+                                    id='hrmC_Order'
+                                    placeholder='Enter order'
+                                    value={field.value ?? undefined}
+                                    onChange={(value) => {
+                                        const numValue = value !== null && value !== undefined && !Number.isNaN(value) ? Number(value) : undefined;
+                                        field.onChange(numValue);
+                                    }}
+                                    onBlur={field.onBlur}
+                                    error={errors.hrmC_Order?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                />
+                            )}
                         />
 
                         <div className='flex items-center gap-4 pt-7'>

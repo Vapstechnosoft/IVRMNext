@@ -32,9 +32,9 @@ function SubSubjectSubExamModelViewContent({ rowData, onClose }: SubSubjectModel
     const showSubSubject = rowData.eyceS_SubSubjectFlg;
 
     //  Call hooks
-    const subExamsQuery = useSubExamsMappedList(30, rowData.eyceS_Id);
-    const subSubjectsQuery = useSubSubjectsMappedList(30, rowData.eyceS_Id);
-    const bothQuery = useSubSubjectsAndSubExamsMappedList(30, rowData.eyceS_Id);
+    const subExamsQuery = useSubExamsMappedList(rowData.eyceS_Id);
+    const subSubjectsQuery = useSubSubjectsMappedList(rowData.eyceS_Id);
+    const bothQuery = useSubSubjectsAndSubExamsMappedList(rowData.eyceS_Id);
 
     const [details, setDetails] = useState<ISubSubjectSubExamMapped[]>([]);
     const activeHook = showSubExam && showSubSubject ? bothQuery : showSubExam ? subExamsQuery : subSubjectsQuery;

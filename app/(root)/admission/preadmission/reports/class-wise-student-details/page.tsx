@@ -32,10 +32,13 @@ import { classwiseStudentDetailsSchema } from '@/schemas/admission/preadmission/
 
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
-import { getExcelClassWiseStudentReport } from '@/server/admission/preadmission/reports/month_end_report';
+import * as XLSX from 'xlsx';
+import { getclasswiseStudentDetails } from '@/server/admission/preadmission/reports/report';
 /* ---------------- Columns ---------------- */
 import { getMasterAdmissionReportColumns } from './_components/columns';
 import { ColumnValue } from './_components/columnvalue';
+import { KendoFormat } from './_components/kendo-format';
+import { exportToPdf } from '@/lib/export-to-file';
 
 /* -------------------------------------------------------------------------- */
 /* Types */
@@ -186,38 +189,71 @@ export default function AdmissionReportPage(props: {
 
     /* ---------------- Handlers ---------------- */
 
+    const getValidatedPayload = () => {
+        const fromData = watch();
+
+        if (!fromData.asmaY_Id) {
+            toast.error('Please Select Academic Year');
+            return null;
+        }
+
+        if (!fromData.classes || fromData.classes.length === 0) {
+            toast.error('Please Select Class');
+            return null;
+        }
+
+        if (!fromData.class_section || fromData.class_section.length === 0) {
+            toast.error('Please Select Section');
+            return null;
+        }
+
+        if (!fromData.selectedFields || fromData.selectedFields.length === 0) {
+            toast.error('Please Select Search Fields');
+            return null;
+        }
+
+        return {
+            classdetailsdata: fromData.classes.map((id: any) => {
+                const cls = (masterClass?.data as any)?.find((c: any) => String(c.asmcL_Id) === String(id));
+                return {
+                    asmcL_Id: id.toString(),
+                    asmcL_ClassName: cls?.asmcL_ClassName ?? ''
+                };
+            }),
+            sectionsdetailsdata: fromData.class_section.map((id: any) => {
+                const section = (masterSection?.data as any)?.find((s: any) => String(s.asmS_Id) === String(id));
+                return {
+                    asmS_Id: id.toString(),
+                    asmcL_SectionName: section?.asmC_SectionName ?? ''
+                };
+            }),
+            tempararyArrayheadList: fromData.selectedFields.map((id: string) => {
+                const field = ColumnValue.find((f) => f.columnID === id);
+                return {
+                    columnID: id,
+                    columnName: field?.columnName || ''
+                };
+            })
+        };
+    };
+
     const handleReport = async () => {
         setIsLoading(true);
         try {
-            const isValid = await refetch();
-            if (!isValid) {
-                toast.error('Please fill all required fields');
+            const payload = getValidatedPayload();
+            if (!payload) {
+                setIsLoading(false);
                 return;
             }
-            const fromData = watch();
-            const payload = {
-                classdetailsdata: fromData.classes.map((id: any) => {
-                    const cls = (masterClass?.data as any)?.find((c: any) => String(c.asmcL_Id) === String(id));
-                    return {
-                        asmcL_Id: id.toString(),
-                        asmcL_ClassName: cls?.asmcL_ClassName ?? ''
-                    };
-                }),
-                sectionsdetailsdata: fromData.class_section.map((id: any) => {
-                    const section = (masterSection?.data as any)?.find((s: any) => String(s.asmS_Id) === String(id));
-                    return {
-                        asmS_Id: id.toString(),
-                        asmcL_SectionName: section?.asmC_SectionName ?? ''
-                    };
-                }),
-                tempararyArrayheadList: fromData.selectedFields.map((id: string) => {
-                    const field = ColumnValue.find((f) => f.columnID === id);
-                    return {
-                        columnID: id,
-                        columnName: field?.columnName || ''
-                    };
-                })
-            };
+
+            console.log(' Report Button Parameters Debug:', {
+                watchedYear,
+                studentScope,
+                scopeMapValue: scopeMap[studentScope],
+                watchedStudentCategory,
+                'Concession_Id should be': scopeMap[studentScope],
+                'flag should be': watchedStudentCategory
+            });
 
             setRequestPayload(payload);
             setShowReport(true);
@@ -254,42 +290,91 @@ export default function AdmissionReportPage(props: {
 
     const downloadExcel = async () => {
         try {
-            const response = await getExcelClassWiseStudentReport(
+            const payload = getValidatedPayload();
+            if (!payload) return;
+
+            toast.loading('Preparing Excel export...', { id: 'excel-download' });
+
+            // Fetch all data for export
+            const allDataResponse: any = await getclasswiseStudentDetails(
                 watchedYear,
-                scopeMap[studentScope],
                 watchedStudentCategory ?? 0,
-                requestPayload,
-                resolvedSearchParams
+                scopeMap[studentScope],
+                payload,
+                { page_size: 100000, page: 1 }
             );
 
-            // Ensure we have a Blob
-            const blob =
-                response instanceof Blob
-                    ? response
-                    : new Blob([new Uint8Array(response)], {
-                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                      });
+            const allData = allDataResponse?.data?.printdatatable || [];
 
-            // Create download link
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'ClassWiseStudentReport.xlsx';
-            document.body.appendChild(link);
-            link.click();
+            if (!allData || allData.length === 0) {
+                toast.dismiss('excel-download');
+                toast.error('No data available to export');
+                return;
+            }
 
-            // Cleanup
-            setTimeout(() => {
-                link.remove();
-                window.URL.revokeObjectURL(url);
-            }, 100);
+            const activeFields = ColumnValue.filter((f) => selectedFields.includes(f.columnID));
+            const yearObj = academicYear?.data?.find((y) => y.asmaY_Id === watchedYear);
 
-            setShowReport(false);
+            // Prepare report headers
+            const reportHeaders = [
+                ['CLASS WISE STUDENT DETAILS'],
+                [`Academic Year: ${yearObj?.asmaY_Year || 'N/A'}`],
+                [`Classes: ${selectedClassItems.map(c => c.asmcL_ClassName).join(', ')}`],
+                [`Sections: ${selectedSectionItems.map(s => s.asmcL_SectionName).join(', ')}`],
+                [] // Empty row
+            ];
 
+            // Prepare table data
+            const tableHeaders = ['Sl.No', ...activeFields.map(f => f.columnName)];
+            const tableData = allData.map((row: any, index: number) => {
+                const rowData = [index + 1];
+                activeFields.forEach(field => {
+                    rowData.push(row[field.columnID] || '-');
+                });
+                return rowData;
+            });
+
+            // Create worksheet
+            const ws = XLSX.utils.aoa_to_sheet([...reportHeaders, tableHeaders, ...tableData]);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'ClassWiseStudentReport');
+
+            // Download file
+            XLSX.writeFile(wb, `ClassWiseStudentReport_${yearObj?.asmaY_Year || 'Report'}.xlsx`);
+
+            toast.dismiss('excel-download');
             toast.success('Excel downloaded successfully');
         } catch (error) {
             console.error('Download error:', error);
-            toast.error('Failed to download Excel');
+            toast.dismiss('excel-download');
+            toast.error('Failed to prepare Excel export');
+        }
+    };
+
+    const downloadPdf = async () => {
+        try {
+            const payload = getValidatedPayload();
+            if (!payload || !transformedResponse?.data) {
+                toast.error('No data available to export');
+                return;
+            }
+
+            toast.loading('Preparing PDF...', { id: 'pdf-download' });
+
+            const activeFields = ColumnValue.filter((f) => selectedFields.includes(f.columnID));
+            const pdfColumns = activeFields.map((f) => f.columnName);
+            const pdfData = (transformedResponse.data as any[]).map((row) =>
+                activeFields.map((f) => String(row[f.columnID] || ''))
+            );
+
+            exportToPdf('Class Wise Student Report', pdfColumns, pdfData);
+
+            toast.dismiss('pdf-download');
+            toast.success('PDF downloaded successfully');
+        } catch (error) {
+            console.error('PDF error:', error);
+            toast.dismiss('pdf-download');
+            toast.error('Failed to download PDF');
         }
     };
 
@@ -299,7 +384,7 @@ export default function AdmissionReportPage(props: {
 
     return (
         <div className='container min-h-screen space-y-4 p-2'>
-            <CollapsibleSection title='Admission Register' defaultOpen>
+            <CollapsibleSection title='Class Wise Student Details' defaultOpen>
                 <div className='grid grid-cols-1 gap-4 p-4 md:grid-cols-2'>
                     {/* Academic Year */}
                     <div>
@@ -374,7 +459,7 @@ export default function AdmissionReportPage(props: {
                                     }}
                                     defaultValue={selectedSectionItems.map((data) => data.asmS_Id)}
                                     value={selectedSectionItems.map((data) => data.asmS_Id)}
-                                    placeholder='Select Classes'
+                                    placeholder='Select Sections'
                                     variant='inverted'
                                     disabled={masterSectionLoading}
                                 />
@@ -505,17 +590,27 @@ export default function AdmissionReportPage(props: {
             {/* Report */}
             {showReport && (
                 <CollapsibleSection title='Class Wise Student Report' defaultOpen>
-                    <GenericDataTable
-                        {...tableProps}
-                        ref={tableRef}
-                        columns={columns}
-                        isLoading={isFetching}
-                        error={error}
-                        showViewOptions={false}
-                        isPaginationRequired
-                        loadingMessage='Loading Admission Report...'
-                        noDataTitle='No Records Found'
-                    />
+                    {studentStatus === 'Kformate' ? (
+                        <KendoFormat
+                            data={transformedResponse?.data || []}
+                            selectedFields={selectedFields}
+                            onExportExcel={downloadExcel}
+                            onExportPdf={downloadPdf}
+                            isLoading={isFetching}
+                        />
+                    ) : (
+                        <GenericDataTable
+                            {...tableProps}
+                            ref={tableRef}
+                            columns={columns}
+                            isLoading={isFetching}
+                            error={error}
+                            showViewOptions={false}
+                            isPaginationRequired
+                            loadingMessage='Loading Admission Report...'
+                            noDataTitle='No Records Found'
+                        />
+                    )}
                 </CollapsibleSection>
             )}
         </div>

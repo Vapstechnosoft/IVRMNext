@@ -4,8 +4,7 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useActivePreadmissionDetails } from '@/hooks/admission/preadmission/useTransactions';
-import type { IPreadmissionStudentApplicationList } from '@/types/admission/preadmission/transactions';
+import type { IadmissionStudentApplicationList } from '@/types/admission/admission';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Plus, X } from 'lucide-react';
 import { useSession } from 'next-auth/react';
@@ -20,12 +19,12 @@ export default function StudentApplicationPage(props: {
     searchParams: SearchParams;
 }) {
     const searchParams = use(props.searchParams);
-    const { data: activePreadmission } = useActivePreadmissionDetails();
+    const { data: activePreadmission } = useGetAllAdmissionLists();
     const { data: response, isLoading, error, refetch } = useGetAllAdmissionLists(searchParams);
-    const { data: masterConfig } = useAcademicYearMasterConfiguration(activePreadmission?.data?.asmaY_Id ?? 0);
+    const { data: masterConfig } = useAcademicYearMasterConfiguration(0);
 
     return (
-        <FormProvider<IPreadmissionStudentApplicationList>>
+        <FormProvider<IadmissionStudentApplicationList>>
             <StudentApplicationPageContent
                 response={response}
                 isLoading={isLoading}
@@ -111,18 +110,20 @@ function StudentApplicationPageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<IPreadmissionStudentApplicationList>
-                        {...tableProps}
-                        columns={studentApplicationColumns as ColumnDef<IPreadmissionStudentApplicationList>[]}
-                        isLoading={isLoading}
-                        error={error}
-                        showViewOptions={false}
-                        columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading applications...'
-                        noDataTitle='No Applications Found'
-                        noDataDescription='Get started by creating your first applications'
-                        errorTitle='Error Loading Applications'
-                    />
+                    <div className='[&_table_tbody_tr:nth-child(even)]:!bg-primary/5 [&_table_tbody_tr[data-state=selected]]:!bg-purple-100 [&_table_tbody_tr:hover]:!bg-purple-200 [&_table_tbody_tr:hover_td]:!bg-purple-200 [&_table_tbody_tr]:cursor-pointer [&_table_tbody_tr]:transition-colors'>
+                        <GenericDataTable<IadmissionStudentApplicationList>
+                            {...tableProps}
+                            columns={studentApplicationColumns as ColumnDef<IadmissionStudentApplicationList>[]}
+                            isLoading={isLoading}
+                            error={error}
+                            showViewOptions={false}
+                            columnPinning={{ right: ['actions'] }}
+                            loadingMessage='Loading applications...'
+                            noDataTitle='No Applications Found'
+                            noDataDescription='Get started by creating your first applications'
+                            errorTitle='Error Loading Applications'
+                        />
+                    </div>
                 </CollapsibleSection>
             </div>
         </div>

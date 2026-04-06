@@ -31,7 +31,6 @@ export default function AddCoScholasticAreaForm({ onSuccess, className = '' }: A
         mode: 'onChange',
         defaultValues: {
             ecactA_Id: 0,
-            mI_Id: 30,
             ecactA_SkillArea: '',
             ecactA_SkillOrder: 0
         }
@@ -40,8 +39,7 @@ export default function AddCoScholasticAreaForm({ onSuccess, className = '' }: A
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             const payload = {
-                ...data,
-                mI_Id: 30
+                ...data
             };
 
             const response = await addOrUpdatecoScholasticArea(payload);
@@ -73,7 +71,7 @@ export default function AddCoScholasticAreaForm({ onSuccess, className = '' }: A
                             error={errors.ecactA_SkillArea?.message}
                             onInput={(e) => {
                                 const input = e.currentTarget; // <-- HTMLInputElement
-                                input.value = input.value.replace(/[^A-Za-z0-9 ]/g, '');
+                                input.value = input.value.replace(/[^A-Za-z0-9\s]/g, '');
                             }}
                         />
                         <InputText

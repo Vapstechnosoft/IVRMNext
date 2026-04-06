@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { GitCompareArrows, List, Plus, X } from 'lucide-react';
+import { GitCompareArrows, Plus, X } from 'lucide-react';
 import { use, useState } from 'react';
 
 import { MasterViewDetails } from '@/components/ui/set-order/generic-set-order';
@@ -49,7 +49,7 @@ function MasterSubSubjectPageContent({
     const handleSetOrder = async () => {
         try {
             setOrderModalOpen(true);
-            const response = await getMasterSubSubjectOrderData(30);
+            const response = await getMasterSubSubjectOrderData();
 
             if (response.success && response.data) {
                 const data = Array.isArray(response.data) ? response.data : [];

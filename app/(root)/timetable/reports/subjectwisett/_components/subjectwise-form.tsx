@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useTimeTableAcademicYear, useTimeTableClassDropdownData, useSubjectDropDown } from '@/hooks/timetable/useMasters';
 import { subjectWiseReportSchema } from '@/schemas/timetable/reports';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, Search, X } from 'lucide-react';
@@ -12,36 +13,56 @@ import type { z } from 'zod';
 
 type FormFields = z.infer<typeof subjectWiseReportSchema.search>;
 
+import { getSubjectWiseReport } from '@/server/timetable/reports/subjectwisett';
+
 interface SubjectWiseFormProps {
     initialData: any;
-    onSubmit: (data: any) => void;
+    onReportGenerated: (response: any, payload: any) => void;
     onCancel: () => void;
 }
 
-export default function SubjectWiseForm({ initialData, onSubmit, onCancel }: SubjectWiseFormProps) {
-    const academicList = initialData?.acaYear || [];
-    const classList = initialData?.classDrp || [];
-    const subjectList = initialData?.subjectDrp || [];
+export default function SubjectWiseForm({ initialData, onReportGenerated, onCancel }: SubjectWiseFormProps) {
+    const {
+        data: academicyeardata,
+        isLoading: academicyearloading,
+    } = useTimeTableAcademicYear();
+
+    const {
+        data: classdropdowndata,
+        isLoading: classloading,
+    } = useTimeTableClassDropdownData();
+
+    const {
+        data: subjectdropdowndata,
+        isLoading: subjectloading,
+    } = useSubjectDropDown();
+
+    const academicList = Array.isArray(academicyeardata) ? academicyeardata : (academicyeardata as any)?.data || [];
+    const classList = Array.isArray(classdropdowndata) ? classdropdowndata : (classdropdowndata as any)?.data || [];
+    const subjectList = Array.isArray(subjectdropdowndata) ? subjectdropdowndata : (subjectdropdowndata as any)?.data || [];
 
     const {
         control,
         handleSubmit,
-        formState: { errors, isSubmitting }
+        formState: { errors, isSubmitting },
+        reset
     } = useForm<FormFields>({
         resolver: zodResolver(subjectWiseReportSchema.search),
         defaultValues: {
+            asmaY_Id: undefined,
             classId: [],
             subjectId: []
         }
     });
 
-    const onFormSubmit = (data: FormFields) => {
-        // Construct payload
-        // "ASMAY_Id": $scope.asmaY_Id,
-        // classarray: $scope.albumNameArray1, (selected classes objects)
-        // subarray: $scope.albumNameArray2, (selected subjects objects)
+    const handleCancelClick = () => {
+        reset();
+        onCancel();
+    };
 
+    const onFormSubmit = async (data: FormFields) => {
         const selectedClasses = classList.filter((c: any) => data.classId?.includes(c.asmcL_Id));
+        // Ensure property name matches API response. Usually ismS_Id for subjects.
         const selectedSubjects = subjectList.filter((s: any) => data.subjectId?.includes(s.ismS_Id));
 
         const payload = {
@@ -49,7 +70,16 @@ export default function SubjectWiseForm({ initialData, onSubmit, onCancel }: Sub
             classarray: selectedClasses,
             subarray: selectedSubjects
         };
-        onSubmit(payload);
+
+        try {
+            console.log('Subject wise tt payload:', JSON.stringify(payload));
+            const response = await getSubjectWiseReport(payload);
+            console.log('Subject wise tt response:', response);
+            onReportGenerated(response, payload);
+        } catch (error: any) {
+            console.error('Error generating subject wise report:', error);
+            throw error;
+        }
     };
 
     return (
@@ -64,13 +94,17 @@ export default function SubjectWiseForm({ initialData, onSubmit, onCancel }: Sub
                         control={control}
                         name='asmaY_Id'
                         render={({ field }) => (
-                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                            <Select
+                                key={field.value ?? 'empty'}
+                                onValueChange={(val) => field.onChange(Number(val))}
+                                value={field.value?.toString()}
+                            >
                                 <SelectTrigger>
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {academicList.map((item: any) => (
-                                        <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                    {academicList?.map((item: any) => (
+                                        <SelectItem key={item.asmaY_Id} value={item.asmaY_Id?.toString() || ''}>
                                             {item.asmaY_Year}
                                         </SelectItem>
                                     ))}
@@ -91,7 +125,7 @@ export default function SubjectWiseForm({ initialData, onSubmit, onCancel }: Sub
                         name='classId'
                         render={({ field }) => (
                             <MultiSelect
-                                options={classList.map((c: any) => ({ label: c.asmcL_ClassName, value: c.asmcL_Id.toString() }))}
+                                options={classList?.map((c: any) => ({ label: c.asmcL_ClassName, value: c.asmcL_Id?.toString() || '' }))}
                                 defaultValue={(field.value || []).map(String)}
                                 onValueChange={(val) => field.onChange(val.map(Number))}
                                 placeholder='Select Classes'
@@ -111,7 +145,7 @@ export default function SubjectWiseForm({ initialData, onSubmit, onCancel }: Sub
                         name='subjectId'
                         render={({ field }) => (
                             <MultiSelect
-                                options={subjectList.map((s: any) => ({ label: s.ismS_SubjectName, value: s.ismS_Id.toString() }))}
+                                options={subjectList?.map((s: any) => ({ label: s.ismS_SubjectName, value: s.ismS_Id?.toString() || '' }))}
                                 defaultValue={(field.value || []).map(String)}
                                 onValueChange={(val) => field.onChange(val.map(Number))}
                                 placeholder='Select Subjects'
@@ -128,7 +162,7 @@ export default function SubjectWiseForm({ initialData, onSubmit, onCancel }: Sub
                     <Search className='mr-2 h-4 w-4' />
                     Report
                 </Button>
-                <Button type='button' variant='destructive' onClick={onCancel}>
+                <Button type='button' variant='outline' onClick={handleCancelClick}>
                     <X className='mr-2 h-4 w-4' />
                     Cancel
                 </Button>

@@ -8,20 +8,23 @@ import { Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
+import { useAcademicYearDropdown, useMasterCategoryDropdown } from '@/hooks/admission/preadmission/useMasters';
 import { useMonthEndReport } from '@/hooks/admission/preadmission/useReports';
 import { getExcelMonthEndReport } from '@/server/admission/preadmission/reports/month_end_report';
 import AdmissionMonthEndReport from './_components/columns';
 export default function MonthendreportPage() {
     const [academicYearId, setAcademicYearId] = useState<number>(0);
+    const [categoryId, setCategoryId] = useState<number>(0);
     const [selectedMonth, setSelectedMonth] = useState<string>('');
     const [selectedYear, setSelectedYear] = useState<number>(0);
     const [implementationName, setImplementationName] = useState('');
     const [showReport, setShowReport] = useState(false);
     const [reportData, setReportData] = useState<ReportItem[]>([]);
+    const [logo, setLogo] = useState<string>('/school-logo.png');
 
     const requestData = {
         ASMAY_Id: academicYearId,
+        AMC_Id: categoryId,
         month: selectedMonth,
         year: selectedYear
     };
@@ -53,10 +56,12 @@ export default function MonthendreportPage() {
     }
 
     const { data: academicYearOptions, isLoading: academicYearLoading } = useAcademicYearDropdown();
+    const { data: categoryOptions, isLoading: categoryLoading } = useMasterCategoryDropdown();
     const { refetch } = useMonthEndReport(requestData, false);
     // Handle Reset
     const handleReset = () => {
         setAcademicYearId(0);
+        setCategoryId(0);
         setSelectedMonth('');
         setSelectedYear(0);
         setImplementationName('');
@@ -65,7 +70,7 @@ export default function MonthendreportPage() {
     // Handle Report Generate
 
     const handleGenerateReport = async () => {
-        if (!academicYearId || !selectedMonth || !selectedYear) {
+        if (!academicYearId || !categoryId || !selectedMonth || !selectedYear) {
             toast.error('Please fill all required fields!');
             return;
         }
@@ -77,8 +82,11 @@ export default function MonthendreportPage() {
             const res = await refetch();
             toast.dismiss(toastId);
 
-            if (res?.data?.data?.reportdatelist?.length) {
-                const r = res.data.data.reportdatelist[0];
+            const reportList = res?.data?.data?.reportdatelist || (Array.isArray(res?.data?.data) ? res.data.data : []);
+            if (reportList?.length) {
+                const r = reportList[0];
+                const fetchedLogo = r.MI_Logo || r.mI_Logo || r.mi_logo || '/school-logo.png';
+                setLogo(fetchedLogo);
 
                 setReportData([
                     { name: 'Student Strength', count: r.totalcount },
@@ -108,7 +116,7 @@ export default function MonthendreportPage() {
 
     const downloadExcel = async () => {
         try {
-            if (!academicYearId || !selectedMonth || !selectedYear) {
+            if (!academicYearId || !categoryId || !selectedMonth || !selectedYear) {
                 toast.error('Please fill all required fields!');
                 return;
             }
@@ -120,8 +128,8 @@ export default function MonthendreportPage() {
                 response instanceof Blob
                     ? response
                     : new Blob([new Uint8Array(response)], {
-                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                      });
+                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                    });
 
             // Create download link
             const url = window.URL.createObjectURL(blob);
@@ -136,9 +144,6 @@ export default function MonthendreportPage() {
                 link.remove();
                 window.URL.revokeObjectURL(url);
             }, 100);
-
-            setShowReport(false);
-            setReportData([]);
 
             toast.success('Excel downloaded successfully');
         } catch (error) {
@@ -181,7 +186,34 @@ export default function MonthendreportPage() {
                         </Select>
                     </div>
 
-                    {/* Month */}
+                    {/* Category */}
+                    <div className='flex w-full flex-col gap-2'>
+                        <Label className='font-semibold'>
+                            Category <span className='text-red-500'>*</span>
+                        </Label>
+
+                        <Select
+                            onValueChange={(value) => setCategoryId(Number(value))}
+                            value={categoryId ? String(categoryId) : undefined}>
+                            <SelectTrigger>
+                                <SelectValue placeholder='Select Category' />
+                            </SelectTrigger>
+
+                            <SelectContent>
+                                {categoryLoading && (
+                                    <SelectItem value='loading' disabled>
+                                        Loading...
+                                    </SelectItem>
+                                )}
+
+                                {categoryOptions?.data?.map((item) => (
+                                    <SelectItem key={item.amC_Id} value={String(item.amC_Id)}>
+                                        {item.amC_Name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
                     <div className='flex w-full flex-col gap-2 '>
                         <Label className='font-semibold'>
                             Month <span className='text-red-500'>*</span>
@@ -264,6 +296,7 @@ export default function MonthendreportPage() {
                         year={selectedYear}
                         academicYear={academicYearId}
                         implementationName={implementationName}
+                        logoBase64={logo}
                     />
                 </CollapsibleSection>
             )}

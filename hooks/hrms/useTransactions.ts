@@ -12,9 +12,21 @@ import {
     getEmployeeLoanMasters,
     saveEmployeeLoan
 } from '@/server/hrms/hrmsConfig/transaction/employee-loan';
-import { getSalaryAdvanceById, getSalaryAdvanceDetailsByEmployee, getSalaryAdvanceList, saveSalaryAdvance, searchSalaryAdvanceFilter, toggleSalaryAdvanceStatus } from '@/server/hrms/hrmsConfig/transaction/salary-advance';
+import {
+    addOrUpdateSalaryAdvance,
+    getEmployeeSalaryAdvanceDetails,
+    getSalaryAdvanceEmployeeDropdown,
+    getSalaryAdvanceGrid,
+    toggleSalaryAdvance
+} from '@/server/hrms/hrmsConfig/transaction/salary-advance';
 import { approveSalaries, getSalaryApprovalOnload, searchSalaryApprovalEmployees } from '@/server/hrms/hrmsConfig/transaction/salary-approval';
-import { generateSalaryForSelectedEmployees, getSalaryCalculationOnload, searchSalaryCalculationBySelection } from '@/server/hrms/hrmsConfig/transaction/salary-calculation';
+import {
+    calculateEmployeeSalary,
+    generateSalaryForSelectedEmployees,
+    getSalaryCalculationOnload,
+    searchEmployeesBySelection,
+    searchSalaryCalculationBySelection
+} from '@/server/hrms/hrmsConfig/transaction/salary-calculation';
 import { deleteSalaryIncrement, getSalaryIncrementOnload, saveSalaryIncrement } from '@/server/hrms/hrmsConfig/transaction/salary-increment';
 import { deleteSalaryUpdation, filterSalaryUpdationEmployees, getSalaryUpdationDepartments, getSalaryUpdationDesignations, getSalaryUpdationEmployeeDetailsBySelection, getSalaryUpdationList, getSalaryUpdationOnload, saveSalaryUpdation, updateEmployeesEarningsAndDeductions } from '@/server/hrms/hrmsConfig/transaction/salary-updation';
 import { getEmployeeDetailsBySelection, getMassUpdationDepartments, getMassUpdationDesignations, getMassUpdationOnload, saveMassUpdation, searchMassUpdationEmployees } from '@/server/hrms/hrmsConfig/transaction/mass-updation';
@@ -29,11 +41,11 @@ import type {
     EmployeeLoanSaveResponse
 } from '@/types/hrms/employee-loan';
 import type {
-    SalaryAdvanceDeleteRequest,
-    SalaryAdvanceOnloadRequest,
-    SalaryAdvanceOnloadResponse,
+    SalaryAdvanceEmployeeDropdownItem,
+    SalaryAdvanceGridItem,
     SalaryAdvanceSaveRequest,
-    SalaryAdvanceSaveResponse
+    SalaryAdvanceDetailsRequest,
+    EmployeeSalaryAdvanceDetails
 } from '@/types/hrms/salary-advance';
 import type {
     SalaryApprovalOnloadRequest,
@@ -48,7 +60,11 @@ import type {
     SalaryCalculationGenerateResponse,
     SalaryCalculationOnloadRequest,
     SalaryCalculationOnloadResponse,
-    SalaryCalculationSearchRequest
+    SalaryCalculationSearchRequest,
+    NewSalaryCalculationSearchRequest,
+    NewSalaryCalculationGenerateRequest,
+    SelectionEmployee,
+    ApiResponse
 } from '@/types/hrms/salary-calculation';
 import type {
     SalaryIncrementDeleteRequest,
@@ -204,66 +220,62 @@ export function useActivateDeactivateEmployeeLoan() {
 // ============================================================================
 // SALARY ADVANCE
 // ============================================================================
-export function useSalaryAdvanceList(payload: SalaryAdvanceOnloadRequest) {
-    return useQuery<SalaryAdvanceOnloadResponse, Error>({
-        queryKey: [HRMS_QUERY_KEYS.SALARY_ADVANCE_LIST, payload],
+
+export function useSalaryAdvanceGrid(pageSize: number = 100) {
+    return useQuery<SalaryAdvanceGridItem[], Error>({
+        queryKey: [HRMS_QUERY_KEYS.SALARY_ADVANCE_LIST, 'grid', pageSize],
         queryFn: () =>
-            getSalaryAdvanceList(payload.roleId ?? 30).then((res: any) => {
+            getSalaryAdvanceGrid(pageSize).then((res: any) => {
                 if (!res.success) {
                     throw new Error(res.message);
                 }
                 return res.data!;
             }),
-        staleTime: 1000 * 60 * 5,
-        enabled: !!payload.roleId
+        staleTime: 1000 * 60 * 5
     });
 }
+
+export function useSalaryAdvanceEmployeeDropdown() {
+    return useQuery<SalaryAdvanceEmployeeDropdownItem[], Error>({
+        queryKey: [HRMS_QUERY_KEYS.SALARY_ADVANCE_LIST, 'employee-dropdown'],
+        queryFn: () =>
+            getSalaryAdvanceEmployeeDropdown().then((res: any) => {
+                if (!res.success) {
+                    throw new Error(res.message);
+                }
+                return res.data!;
+            }),
+        staleTime: 1000 * 60 * 10
+    });
+}
+
 export function useSaveSalaryAdvance() {
     const queryClient = useQueryClient();
-    return useMutation<SalaryAdvanceSaveResponse | SalaryAdvanceOnloadResponse, Error, SalaryAdvanceSaveRequest>({
+    return useMutation<any, Error, SalaryAdvanceSaveRequest>({
         mutationFn: (data: SalaryAdvanceSaveRequest) =>
-            saveSalaryAdvance(data).then((res) => {
+            addOrUpdateSalaryAdvance(data).then((res) => {
                 if (!res.success) {
                     throw new Error(res.message);
                 }
                 return res.data!;
             }),
         onSuccess: (data, variables) => {
-            // Always invalidate the cache to refresh the list
             queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.SALARY_ADVANCE_LIST]
             });
-            // Show success message
-            const successMessage =
-                (data as SalaryAdvanceSaveResponse).retrunMsg ||
-                (variables.HRESA_Id === 0 ? 'Salary advance created successfully!' : 'Salary advance updated successfully!');
-            toast.success(successMessage);
+            toast.success(variables.HRESA_Id === 0 ? 'Salary advance created successfully!' : 'Salary advance updated successfully!');
         },
         onError: (error) => {
             toast.error(error.message || 'Failed to save salary advance.');
         }
     });
 }
-export function useDeleteSalaryAdvance() {
+
+export function useToggleSalaryAdvance() {
     const queryClient = useQueryClient();
-    return useMutation<any, Error, SalaryAdvanceDeleteRequest>({
-        mutationFn: async (_data: SalaryAdvanceDeleteRequest) => ({}) as any,
-        onSuccess: () => {
-            toast.success('Salary advance deleted successfully!');
-            queryClient.invalidateQueries({
-                queryKey: [HRMS_QUERY_KEYS.SALARY_ADVANCE_LIST]
-            });
-        },
-        onError: (error) => {
-            toast.error(error.message || 'Failed to delete salary advance.');
-        }
-    });
-}
-export function useToggleSalaryAdvanceStatus() {
-    const queryClient = useQueryClient();
-    return useMutation<any, Error, { hresaId: number; activeFlag: boolean }>({
-        mutationFn: ({ hresaId, activeFlag }) =>
-            toggleSalaryAdvanceStatus(hresaId, activeFlag).then((res) => {
+    return useMutation<any, Error, number>({
+        mutationFn: (hresaId: number) =>
+            toggleSalaryAdvance(hresaId).then((res) => {
                 if (!res.success) {
                     throw new Error(res.message);
                 }
@@ -273,54 +285,53 @@ export function useToggleSalaryAdvanceStatus() {
             queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.SALARY_ADVANCE_LIST]
             });
+            toast.success('Salary advance status updated successfully!');
         },
         onError: (error) => {
             toast.error(error.message || 'Failed to update salary advance status.');
         }
     });
 }
-export function useGetSalaryAdvanceById(id: number) {
-    return useQuery<SalaryAdvanceOnloadResponse, Error>({
-        queryKey: [HRMS_QUERY_KEYS.SALARY_ADVANCE_BY_ID, id],
+
+export function useEmployeeSalaryAdvanceDetails(params: SalaryAdvanceDetailsRequest) {
+    return useQuery<EmployeeSalaryAdvanceDetails, Error>({
+        queryKey: [HRMS_QUERY_KEYS.SALARY_ADVANCE_LIST, 'details', params],
         queryFn: () =>
-            getSalaryAdvanceById(id).then((res: any) => {
+            getEmployeeSalaryAdvanceDetails(params).then((res: any) => {
                 if (!res.success) {
                     throw new Error(res.message);
                 }
                 return res.data!;
             }),
         staleTime: 1000 * 60 * 5,
-        enabled: !!id && id > 0
+        enabled: !!params.HRME_Id
     });
 }
-export function useGetSalaryAdvanceDetailsByEmployee(employeeId: number) {
-    return useQuery<SalaryAdvanceOnloadResponse, Error>({
-        queryKey: [HRMS_QUERY_KEYS.SALARY_ADVANCE_BY_ID, 'employee', employeeId],
-        queryFn: () =>
-            getSalaryAdvanceDetailsByEmployee(employeeId).then((res: any) => {
-                if (!res.success) {
-                    throw new Error(res.message);
-                }
-                return res.data!;
-            }),
-        staleTime: 1000 * 60 * 5,
-        enabled: !!employeeId && employeeId > 0
+
+// Legacy Aliases for compatibility
+export const useSalaryAdvanceList = (payload: any) => useSalaryAdvanceGrid();
+export const useToggleSalaryAdvanceStatus = () => {
+    const mutation = useToggleSalaryAdvance();
+    return {
+        ...mutation,
+        mutate: (data: { hresaId: number; activeFlag?: boolean }, options?: any) =>
+            mutation.mutate(data.hresaId, options),
+        mutateAsync: (data: { hresaId: number; activeFlag?: boolean }, options?: any) =>
+            mutation.mutateAsync(data.hresaId, options)
+    };
+};
+export const useGetSalaryAdvanceById = (id: number) => {
+    // This would need a specific server action if the grid doesn't suffice
+    return useSalaryAdvanceGrid();
+};
+export const useGetSalaryAdvanceDetailsByEmployee = (employeeId: number) => {
+    return useEmployeeSalaryAdvanceDetails({
+        HRME_Id: employeeId,
+        HRESA_Id: 0,
+        HRESA_EntryDate: new Date().toISOString()
     });
-}
-export function useSearchSalaryAdvanceFilter(miId: number, searchFilter: string) {
-    return useQuery<SalaryAdvanceOnloadResponse, Error>({
-        queryKey: [HRMS_QUERY_KEYS.SALARY_ADVANCE_LIST, 'search', miId, searchFilter],
-        queryFn: () =>
-            searchSalaryAdvanceFilter(miId, searchFilter).then((res: any) => {
-                if (!res.success) {
-                    throw new Error(res.message);
-                }
-                return res.data!;
-            }),
-        staleTime: 1000 * 60 * 2,
-        enabled: !!miId && miId > 0
-    });
-}
+};
+export const useSearchSalaryAdvanceFilter = (miId: number, searchFilter: string) => useSalaryAdvanceGrid();
 // ============================================================================
 // SALARY APPROVAL
 // ============================================================================
@@ -470,6 +481,44 @@ export function useGenerateSalary() {
         }
     });
 }
+
+export function useSearchEmployeesBySelection() {
+    return useMutation<ApiResponse<SelectionEmployee[]>, Error, NewSalaryCalculationSearchRequest>({
+        mutationFn: (data: NewSalaryCalculationSearchRequest) =>
+            searchEmployeesBySelection(data).then((res) => {
+                if (!res.success) {
+                    throw new Error(res.message);
+                }
+                return res as ApiResponse<SelectionEmployee[]>;
+            }),
+        onError: (error) => {
+            toast.error(error.message || 'Failed to search employees for salary calculation.');
+        }
+    });
+}
+
+export function useCalculateEmployeeSalary() {
+    const queryClient = useQueryClient();
+    return useMutation<ApiResponse<any>, Error, NewSalaryCalculationGenerateRequest>({
+        mutationFn: (data: NewSalaryCalculationGenerateRequest) =>
+            calculateEmployeeSalary(data).then((res) => {
+                if (!res.success) {
+                    throw new Error(res.message);
+                }
+                return res as ApiResponse<any>;
+            }),
+        onSuccess: (data) => {
+            toast.success(data.message || 'Salary calculated successfully!');
+            queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.SALARY_CALCULATION_ONLOAD]
+            });
+        },
+        onError: (error) => {
+            toast.error(error.message || 'Failed to calculate salary.');
+        }
+    });
+}
+
 // ============================================================================
 // SALARY INCREMENT
 // ============================================================================

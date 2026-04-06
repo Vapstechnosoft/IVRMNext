@@ -537,6 +537,13 @@ export default function AddFeeRefundableForm({
             return;
         }
 
+        if (paymentMode === 'B') {
+            if (!data.fR_CheqNo) {
+                toast.error('Please enter Cheque/DD No');
+                return;
+            }
+        }
+
         // ---------------------------
         // 2) HEAD DATA EXISTS
         // ---------------------------

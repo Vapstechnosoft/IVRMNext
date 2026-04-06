@@ -19,11 +19,13 @@ import {
     useAcademicYearDropDownMasterDayClasswise,
     useBreakTimeSettingDetails,
     useCategtoryDropDownMasterDayClasswise,
-    useClassDropDownMasterDayClasswise,
     useDayDropDownMasterDayClasswise
 } from '@/hooks/timetable/useMasters';
 import { cn } from '@/lib/utils';
-import { getClassDropDownMasterDayClasswiseOnchnageofCatandyr } from '@/server/timetable/masters/masterdayclasswise';
+import {
+    ClassDropDownDataOnchnGeYrAndCategory,
+    getClassDropDownMasterDayClasswiseOnchnageofCatandyr
+} from '@/server/timetable/masters/masterdayclasswise';
 import type { ClassDropDownDataTT, IMasterDayList } from '@/types/timetable/masters/masters';
 import { SpinnerTimePicker } from './SpinnerTimePicker';
 
@@ -54,26 +56,21 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
 
     const [classSearch, setClassSearch] = useState('');
     const [daySearch, setDaySearch] = useState('');
+    const [classloading, setClassloading] = useState(false);
 
     const [isLoadingClasses, setIsLoadingClasses] = useState(false);
 
     const [selectedcalssidsItems, setSelectedcalssidsItems] = useState<{ asmcL_Id: string }[]>([]);
     const [overrideClassData, setOverrideClassData] = useState<ClassDropDownDataTT[] | null>(null);
+
+    const [classdata, setClassdata] = useState<ClassDropDownDataTT[]>([]);
+
     const {
         data: academicList,
         isLoading: academicLoading,
         error: academicError,
         refetchAll: academicRefetch
     } = useAcademicYearDropDownMasterDayClasswise();
-
-    const {
-        data: categoryList,
-        isLoading: categoryLoading,
-        error: categoryError,
-        refetchAll: categoryRefetch
-    } = useCategtoryDropDownMasterDayClasswise();
-
-    const { data: classData, isLoading: classloading, error: classError, refetchAll: classRefetch } = useClassDropDownMasterDayClasswise();
 
     const {
         data: Masterdaydata,
@@ -92,16 +89,65 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(breakTimeSettingsSchema.addOrUpdate),
-        mode: 'onChange',
-        defaultValues: {
-            // Defaults if needed
-        }
+        mode: 'onChange'
     });
 
     const watchedAcademicYear = watch('asmay_id');
     const watchedCategory = watch('ttmC_Id');
     const watchedClasses = watch('calssids');
     const watchedAfterPeriod = watch('ttmB_AfterPeriod');
+
+    const academicyear = watch('asmay_id');
+    const category = watch('ttmC_Id');
+
+    const {
+        data: categoryList,
+        isLoading: categoryLoading,
+        error: categoryError,
+        refetchAll: categoryRefetch
+    } = useCategtoryDropDownMasterDayClasswise({ enabled: !!watchedAcademicYear });
+
+    useEffect(() => {
+        if (!watchedAcademicYear) {
+            setValue('ttmC_Id', undefined as any);
+        }
+    }, [watchedAcademicYear, setValue]);
+
+    // Fetch classes when academic year or category changes
+    useEffect(() => {
+        if (watchedAcademicYear && watchedCategory) {
+            const fetchClasses = async () => {
+                try {
+                    setIsLoadingClasses(true);
+                    const res = await ClassDropDownDataOnchnGeYrAndCategory(academicyear, category);
+
+                    console.log('getClassDropDownMasterDayClasswiseOnchnageofCatandyr res', res);
+
+                    if (res?.success && Array.isArray(res.data)) {
+                        setClassdata(res.data);
+                    } else {
+                        setClassdata([]);
+                    }
+
+                    // Reset class selection when data changes
+                    setValue('calssids', undefined as any);
+                    setSelectedcalssidsItems([]);
+                    setClassSearch('');
+                } catch (err) {
+                    console.error('Error fetching classes', err);
+                    setOverrideClassData([]);
+                } finally {
+                    setIsLoadingClasses(false);
+                }
+            };
+            fetchClasses();
+        } else {
+            // Clear class data if either academic year or category is not selected
+            setOverrideClassData([]);
+            setValue('calssids', undefined as any);
+            setSelectedcalssidsItems([]);
+        }
+    }, [academicyear, category]); // Add dependencies here
 
     // Watch before and after periods from form
     const watchedBeforePeriods = watch('arraybeforeperiodsList') || [];
@@ -179,7 +225,7 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
     }, [watchedAfterPeriod, maxPeriods, setValue]);
 
     const classOptions =
-        classData?.data?.map((h) => ({
+        classdata.map((h) => ({
             id: h.asmcL_Id.toString(),
             label: h.asmcL_ClassName
         })) ?? [];
@@ -209,9 +255,12 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
     };
 
     const selectAllcalssids = () => {
-        const source = classSearch.trim().length > 0 ? filteredcalssids.map((h) => h.asmcL_Id.toString()) : classOptions.map((h) => h.id);
+        const source =
+            classSearch.trim().length > 0
+                ? filteredcalssids.map((h?: ClassDropDownDataTT) => h?.asmcL_Id.toString())
+                : classOptions.map((h) => h.id);
 
-        const isAllSelected = source.every((id) => calss_ids.includes(id));
+        const isAllSelected = source.every((id?: string) => id && calss_ids.includes(id));
 
         if (isAllSelected) {
             const remaining = calss_ids.filter((id) => !source.includes(id));
@@ -231,13 +280,13 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
         }
 
         setSelectedcalssidsItems(
-            (classSearch.trim().length > 0 ? filteredcalssids : classData?.data || []).map((x) => ({
-                asmcL_Id: x.asmcL_Id.toString()
+            (classSearch.trim().length > 0 ? filteredcalssids : classdata || []).map((x?: ClassDropDownDataTT) => ({
+                asmcL_Id: x?.asmcL_Id.toString() || ''
             }))
         );
     };
 
-    const filteredcalssids = classData?.data?.filter((h) => h.asmcL_ClassName.toLowerCase().includes(classSearch.toLowerCase())) ?? [];
+    const filteredcalssids = classdata?.filter((h) => h.asmcL_ClassName.toLowerCase().includes(classSearch.toLowerCase())) ?? [];
 
     const filteredDayIds = Masterdaydata?.data?.filter((d) => d.ttmD_DayName.toLowerCase().includes(daySearch.toLowerCase())) ?? [];
 
@@ -480,7 +529,7 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
                                     className='mb-3'
                                 />
 
-                                {classData?.data && (
+                                {classdata && (
                                     <div
                                         onClick={selectAllcalssids}
                                         className={cn(
@@ -499,10 +548,16 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
                                 )}
 
                                 <div className='max-h-40 overflow-y-auto rounded-md border border-gray-300 p-1'>
-                                    {classloading ? (
-                                        <div className='py-4 text-center text-gray-500 text-sm'>Loading Class...</div>
-                                    ) : classData?.data?.length === 0 ? (
-                                        <div className='py-4 text-center text-gray-500 text-sm'>No Class found</div>
+                                    {isLoadingClasses ? (
+                                        <div className='py-4 text-center text-gray-500 text-sm'>Loading Classes...</div>
+                                    ) : !academicyear || !category ? (
+                                        <div className='py-4 text-center text-gray-500 text-sm'>
+                                            Please select Academic Year and Category first
+                                        </div>
+                                    ) : filteredcalssids.length === 0 ? (
+                                        <div className='py-4 text-center text-gray-500 text-sm'>
+                                            {classSearch ? `No classes found for "${classSearch}"` : 'No classes available'}
+                                        </div>
                                     ) : (
                                         filteredcalssids.map((u) => {
                                             const id = u.asmcL_Id.toString();
@@ -634,7 +689,11 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
                                             <SelectValue placeholder='Select Category' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {categoryLoading ? (
+                                            {!watchedAcademicYear ? (
+                                                <SelectItem value='none' disabled>
+                                                    Please select Academic Year first
+                                                </SelectItem>
+                                            ) : categoryLoading ? (
                                                 <SelectItem value='loading' disabled>
                                                     Loading CategoryData
                                                 </SelectItem>

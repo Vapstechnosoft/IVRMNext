@@ -11,7 +11,7 @@ import type {
 } from '@/types/timetable/masters/masters';
 
 export async function getMasterDayClassWiseDetails(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'academicyr,classname');
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'academicyr,classname,ttmD_DayName');
     const url = `/MasterDayFacade/MasterDayClasswiseDetails?${urlParams}`;
     return await api.get<IMasterDayClassWise[]>('timetable', url);
 }
@@ -49,4 +49,19 @@ export async function getDayDropDownMasterDayClasswise() {
 export async function getClassDropDownMasterDayClasswiseOnchnageofCatandyr(asmay_id: number, TTMC_Id: number) {
     const url = `/TimeTableCommon/GetClassData?asmay_id=${asmay_id}&TTMC_Id=${TTMC_Id}`;
     return await api.get<ClassDropDownDataTT[]>('timetable', url);
+}
+
+export async function getClassDropDownMasterDayClasswiseOnchnageofCatandyEarData(asmay_id: number, TTMC_Id: number) {
+    const url = `/CategoryClassMappFacade/ClassDataByAcademicYearAndCategory/${asmay_id}/${TTMC_Id}`;
+    return await api.get<ClassDropDownDataTT[]>('timetable', url);
+}
+
+export async function ClassDropDownDataOnchnGeYrAndCategory(asmay_id: number, TTMC_Id: number) {
+    const url = `/PeriodAllocationFacade/getclassesOnCategoryAcademicYrBase/${asmay_id}/${TTMC_Id}`;
+    return await api.get<ClassDropDownDataTT[]>('timetable', url);
+}
+
+export async function addOrUpdateMasterDayClasswise(data: any) {
+    const url = '/MasterDayFacade/AddClasswiseDaydetail';
+    return await api.post<any>('timetable', url, data);
 }

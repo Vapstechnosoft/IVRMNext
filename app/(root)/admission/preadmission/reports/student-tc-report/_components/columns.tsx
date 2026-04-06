@@ -14,7 +14,7 @@ const formatDate = (date: unknown): string => {
     }
 };
 
-const FIELD_CONFIG: Record<string, { label: string; isDate?: boolean }> = {
+export const FIELD_CONFIG: Record<string, { label: string; isDate?: boolean }> = {
     AMST_FirstName: { label: 'Student Name' },
     AMST_AdmNo: { label: 'Adm. No.' },
     AMAY_RollNo: { label: 'Roll No.' },
@@ -26,6 +26,12 @@ const FIELD_CONFIG: Record<string, { label: string; isDate?: boolean }> = {
     AMST_MotherTongue: { label: 'Mother Tongue' },
     AMST_MobileNo: { label: 'Phone No.' },
     AMST_emailId: { label: 'Email ID' },
+    ASTC_TCNO: { label: 'TC No.' },
+    ASTC_LeavingReason: { label: 'Leaving Reason' },
+    ASTC_Remarks: { label: 'Remark' },
+    ASTC_TCDate: { label: 'TC Date', isDate: true },
+    ASTC_TCIssueDate: { label: 'TC Issue Date', isDate: true },
+    ASTC_TCApplicationDate: { label: 'TC Application Date', isDate: true },
     AMST_PerAdd3: { label: 'Permanent Address' },
     AMST_ConCity: { label: 'Present Address' },
     IVRMMC_Nationality: { label: 'Nationality' },
@@ -72,7 +78,7 @@ const FIELD_CONFIG: Record<string, { label: string; isDate?: boolean }> = {
 
 const serialNumberColumn: ColumnDef<any> = {
     accessorKey: 'RowNo',
-    header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
+    header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6 font-bold text-black' />,
     cell: ({ row, table }) => {
         const pageIndex = table.getState().pagination.pageIndex;
         const pageSize = table.getState().pagination.pageSize;
@@ -89,7 +95,7 @@ const createDynamicColumn = (fieldId: string): ColumnDef<any> => {
     if (!config) {
         return {
             accessorKey: fieldId,
-            header: ({ column }) => <DataTableColumnHeader column={column} title={fieldId} />,
+            header: ({ column }) => <DataTableColumnHeader column={column} title={fieldId}  className="font-bold text-black" />,
             cell: ({ row }) => <div>{row.getValue(fieldId) || 'N/A'}</div>,
             enableSorting: true,
             enableHiding: true
@@ -98,7 +104,7 @@ const createDynamicColumn = (fieldId: string): ColumnDef<any> => {
 
     return {
         accessorKey: fieldId,
-        header: ({ column }) => <DataTableColumnHeader column={column} title={config.label} />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title={config.label}  className="font-bold text-black" />,
         cell: ({ row }) => {
             const value = row.getValue(fieldId);
 

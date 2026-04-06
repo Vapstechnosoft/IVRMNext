@@ -7,28 +7,30 @@ import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
-import { getCategoryDropDowByExamYearCategoryList } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
+import { getCategoryDropDowByExamYearCategoryList, getExamGroupsByCategory } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
 import {
     addOrUpdateStudentSubjectMappings,
     getSectionListbyClassSectionSubjectGroup,
     getStudentsForSubjectMapping,
     getSubjectlistByCatGroupClass
 } from '@/server/exam/exam-module/exam-mapping/student-subject-mapping';
+import { X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import StudentSubjectMappingTable, { type StudentMappingTableHandle } from './_components/student-mapping-table';
-
-type FormValues = {
-    asmaY_Id?: number;
-    asmcL_Id?: number;
-    asmS_Id?: number;
-    emcA_Id?: number;
-    eme_Id?: number;
-    subject_group_id?: number;
-    Left_Flag?: boolean;
-    Deactive_Flag?: boolean;
-};
+import { studentSubjectMappingSchema, StudentSubjectMappingSchema } from '@/schemas/exam/exam-module/exam-mapping';
+import { zodResolver } from '@hookform/resolvers/zod';
+// type FormValues = {
+//     asmaY_Id?: number;
+//     asmcL_Id?: number;
+//     asmS_Id?: number;
+//     emcA_Id?: number;
+//     eme_Id?: number;
+//     subject_group_id?: number;
+//     Left_Flag?: boolean;
+//     Deactive_Flag?: boolean;
+// };
 
 interface Subject {
     id: number;
@@ -58,7 +60,7 @@ interface Student {
 
 interface Payload {
     estsU_Id: number;
-    mI_Id: number;
+    // mI_Id: number;
     asmaY_Id: number;
     asmcL_Id: number;
     asmS_Id: number;
@@ -82,36 +84,40 @@ export default function StudentSubjectMappingPage() {
 }
 
 function StudentSubjectMappingContent() {
-    const methods = useForm<FormValues>({
+    const methods = useForm<StudentSubjectMappingSchema>({
+        resolver: zodResolver(studentSubjectMappingSchema),
         defaultValues: {
-            asmaY_Id: undefined,
-            asmcL_Id: undefined,
-            asmS_Id: undefined,
-            emcA_Id: undefined,
+            asmaY_Id: 0,
+            asmcL_Id: 0,
+            asmS_Id: 0,
+            emcA_Id: 0,
             eme_Id: 0,
-            subject_group_id: undefined,
+            subject_group_id: 0,
             Left_Flag: true,
             Deactive_Flag: true
         }
     });
 
-    const { control, watch, setValue, reset, getValues } = methods;
+    const { control, watch, setValue, reset, getValues, trigger } = methods;
 
     const watchedAcademicYear = watch('asmaY_Id');
     const watchedClass = watch('asmcL_Id');
     const watchedCategory = watch('emcA_Id');
+    const watchedExams = watch('eme_Id');
 
     const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
 
     const [classes, setClasses] = useState<{ asmcL_Id: number; asmcL_ClassName: string }[]>([]);
     const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
     const [categories, setCategories] = useState<{ emcA_Id: number; emcA_CategoryName: string }[]>([]);
+    const [exams, setExams] = useState<{ emE_Id: number; emE_ExamName: string }[]>([]);
     const [payload, setPayload] = useState<Payload | null>(null);
     const [subjectGroups, setSubjectGroups] = useState<any[]>([]);
 
     const [loadingClasses] = useState(false);
     const [loadingSections, setLoadingSections] = useState(false);
     const [loadingCategories, setLoadingCategories] = useState(false);
+    const [loadingExams, setLoadingExams] = useState(false);
     const [loadingSG, setLoadingSG] = useState(false);
 
     const [students, setStudents] = useState<Student[]>([]);
@@ -121,7 +127,7 @@ function StudentSubjectMappingContent() {
     const [userId] = useState<number>(1); // You should get this from auth context
     const tableRef = useRef<StudentMappingTableHandle>(null);
 
-    const MI_Id = 30;
+    // const MI_Id = 30;
 
     // Set default academic year
     useEffect(() => {
@@ -134,7 +140,7 @@ function StudentSubjectMappingContent() {
     useEffect(() => {
         if (!watchedAcademicYear || !watchedClass) {
             setSections([]);
-            setValue('asmS_Id', undefined);
+            setValue('asmS_Id', 0);
             return;
         }
 
@@ -148,7 +154,7 @@ function StudentSubjectMappingContent() {
                 );
                 setSections(Array.isArray(data) ? data : []);
                 if (data.length === 0) toast.info('No sections found for selected class');
-                setValue('asmS_Id', undefined);
+                setValue('asmS_Id', 0);
             } catch (err: any) {
                 console.error(err);
                 toast.error('Failed to load sections');
@@ -164,14 +170,14 @@ function StudentSubjectMappingContent() {
     useEffect(() => {
         if (!watchedAcademicYear) {
             setCategories([]);
-            setValue('emcA_Id', undefined);
+            setValue('emcA_Id', 0);
             return;
         }
 
         const fetchCategories = async () => {
             setLoadingCategories(true);
             try {
-                const { data: response } = await getCategoryDropDowByExamYearCategoryList(MI_Id, watchedAcademicYear);
+                const { data: response } = await getCategoryDropDowByExamYearCategoryList(watchedAcademicYear);
                 const cats: any[] = Array.isArray(response) ? response : [];
                 console.info('cats', cats);
                 const normalized = cats.map((c) => ({
@@ -182,8 +188,8 @@ function StudentSubjectMappingContent() {
                     toast.info('No categories found for selected academic year');
                 }
                 setCategories(normalized);
-                setValue('emcA_Id', undefined);
-                setValue('subject_group_id', undefined);
+                setValue('emcA_Id', 0);
+                setValue('subject_group_id', 0);
             } catch (err: any) {
                 console.error(err);
                 toast.error(err?.message ?? 'Failed to load categories');
@@ -195,11 +201,37 @@ function StudentSubjectMappingContent() {
         fetchCategories();
     }, [watchedAcademicYear, setValue]);
 
+    // Load Exams
+    useEffect(() => {
+        if (!watchedAcademicYear || !watchedCategory) {
+            setExams([]);
+            setValue('eme_Id', 0);
+            return;
+        }
+
+        const fetchExams = async () => {
+            setLoadingExams(true);
+            try {
+                const { data } = await getExamGroupsByCategory(watchedAcademicYear, watchedCategory);
+                const normalize = data.map((e:any) => ({ emE_Id: e.emE_Id, emE_ExamName: e.emE_ExamName }));
+                setExams(normalize);
+                if (data.length === 0) toast.info('No exams found for selected category');
+                setValue('eme_Id', 0);
+            } catch (err: any) {
+                console.error(err);
+                toast.error('Failed to load exams');
+            } finally {
+                setLoadingExams(false);
+            }
+        };
+        fetchExams();
+        },[watchedAcademicYear, watchedCategory, setValue]);
+
     // Load subject groups
     useEffect(() => {
         if (!watchedAcademicYear || !watchedCategory) {
             setSubjectGroups([]);
-            setValue('subject_group_id', undefined);
+            setValue('subject_group_id', 0);
             return;
         }
 
@@ -219,8 +251,8 @@ function StudentSubjectMappingContent() {
                 if (safeData.grouplist.length === 0) {
                     toast.info('No subject groups found for selected category');
                 }
-                setValue('subject_group_id', undefined);
-                setValue('asmcL_Id', undefined);
+                setValue('subject_group_id', 0);
+                setValue('asmcL_Id', 0);
             } catch (err: any) {
                 console.error(err);
                 toast.error(err?.message ?? 'Failed to load subject groups');
@@ -234,19 +266,19 @@ function StudentSubjectMappingContent() {
 
     // Handle search
     const handleSearch = async () => {
-        const form = getValues();
-
-        if (!form.asmaY_Id || !form.asmcL_Id || !form.asmS_Id || !form.emcA_Id) {
-            toast.info('Please select Academic Year, Class, Section and Category');
+        const isValid = await trigger(['asmaY_Id', 'asmcL_Id', 'asmS_Id', 'emcA_Id', 'subject_group_id']);
+        if (!isValid) {
             return;
         }
+
+        const form = getValues();
 
         setIsLoading(true);
         setIsGridOpen(false);
 
         try {
             const params = {
-                MI_Id,
+                // MI_Id,
                 ASMAY_Id: form.asmaY_Id,
                 ASMCL_Id: form.asmcL_Id,
                 ASMS_Id: form.asmS_Id,
@@ -339,6 +371,17 @@ function StudentSubjectMappingContent() {
             const response = await addOrUpdateStudentSubjectMappings(payload);
             if (response.success) {
                 toast.success(response.message || 'Mapping saved successfully');
+
+                // Close the grid and reset all related state
+                setIsGridOpen(false);
+                setStudents([]);
+                setSubjects([]);
+                setPayload(null);
+
+                // Reset the table if ref is available
+                if (tableRef.current) {
+                    tableRef.current.reset();
+                }
             } else {
                 toast.error(response.message || 'Failed to save mapping');
             }
@@ -346,6 +389,14 @@ function StudentSubjectMappingContent() {
             console.error('Error preparing save:', error);
             toast.error('Failed to prepare save data');
         }
+    };
+
+    // Close grid
+    const handleCloseGrid = () => {
+        setIsGridOpen(false);
+        setStudents([]);
+        setSubjects([]);
+        setPayload(null);
     };
 
     return (
@@ -439,7 +490,7 @@ function StudentSubjectMappingContent() {
                                 <Controller
                                     control={control}
                                     name='eme_Id'
-                                    render={({ field }) => (
+                                    render={({ field, fieldState }) => (
                                         <div>
                                             <Label className='mb-1 block font-medium text-slate-700 text-sm'>Exam</Label>
                                             <Select
@@ -449,10 +500,36 @@ function StudentSubjectMappingContent() {
                                                 <SelectTrigger className='h-10'>
                                                     <SelectValue placeholder='Select Exam (optional)' />
                                                 </SelectTrigger>
-                                                <SelectContent>
+                                                {/* <SelectContent>
                                                     <SelectItem value='0'>Default (0)</SelectItem>
+                                                </SelectContent> */}
+                                                <SelectContent>
+                                                {
+                                                    !watchedCategory || !watchedClass ? (
+                                                        <SelectItem value='error' disabled>
+                                                            Select Category & Class
+                                                        </SelectItem>
+                                                    ) : loadingExams ? (
+                                                        <SelectItem value='loading' disabled>
+                                                            Loading...
+                                                        </SelectItem>
+                                                    ) : exams.length === 0 ? (
+                                                        <SelectItem value='error' disabled>
+                                                            No exams found
+                                                        </SelectItem>
+                                                    ) : (
+                                                        exams.map((e) => (
+                                                            <SelectItem key={e.emE_Id} value={String(e.emE_Id)}>
+                                                                {e.emE_ExamName}
+                                                            </SelectItem>
+                                                        ))
+                                                    )
+                                                }
                                                 </SelectContent>
                                             </Select>
+                                            {/* {
+                                                fieldState.error && <p className='mt-1 text-red-500 text-xs'>{fieldState.error.message}</p>
+                                            } */}
                                         </div>
                                     )}
                                 />
@@ -636,8 +713,10 @@ function StudentSubjectMappingContent() {
                                     setClasses([]);
                                     setCategories([]);
                                     setSections([]);
+                                    setSubjectGroups([]);
+                                    setStudents([]);
                                 }}>
-                                CANCEL
+                                Cancel
                             </Button>
                             <Button type='button' className='px-8 py-2 shadow-lg' onClick={handleSearch} disabled={isLoading}>
                                 {isLoading ? 'Searching...' : 'Search'}
@@ -647,35 +726,47 @@ function StudentSubjectMappingContent() {
 
                     {/* Grid */}
                     {isGridOpen && (
-                        <CollapsibleSection defaultOpen variant='default' size='lg' className='shadow-lg'>
-                            <StudentSubjectMappingTable
-                                ref={tableRef}
-                                students={students}
-                                subjects={subjects}
-                                onUpdateMapping={handleUpdateMapping}
-                                isloading={isLoading}
-                                // Pass required metadata
-                                estsU_Id={0}
-                                mI_Id={MI_Id}
-                                asmaY_Id={getValues('asmaY_Id') || 0}
-                                asmcL_Id={getValues('asmcL_Id') || 0}
-                                asmS_Id={getValues('asmS_Id') || 0}
-                                emG_Id={getValues('subject_group_id') || 0}
-                                emE_Id={getValues('eme_Id') || 0}
-                                userId={userId}
-                                left_Flag={getValues('Left_Flag') ?? true}
-                                deactive_Flag={getValues('Deactive_Flag') ?? true}
-                            />
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={handleCloseGrid}
+                                variant='ghost'
+                                size='sm'
+                                className='absolute top-[10px] right-2 z-10 flex w-fit border bg-white shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
+                            <CollapsibleSection defaultOpen variant='default' size='lg' className='shadow-lg'>
+                                <StudentSubjectMappingTable
+                                    ref={tableRef}
+                                    students={students}
+                                    subjects={subjects}
+                                    onUpdateMapping={handleUpdateMapping}
+                                    isloading={isLoading}
+                                    // Pass required metadata
+                                    estsU_Id={0}
+                                    // mI_Id={MI_Id}
+                                    asmaY_Id={getValues('asmaY_Id') || 0}
+                                    asmcL_Id={getValues('asmcL_Id') || 0}
+                                    asmS_Id={getValues('asmS_Id') || 0}
+                                    emG_Id={getValues('subject_group_id') || 0}
+                                    emE_Id={getValues('eme_Id') || 0}
+                                    userId={userId}
+                                    left_Flag={getValues('Left_Flag') ?? true}
+                                    deactive_Flag={getValues('Deactive_Flag') ?? true}
+                                />
 
-                            <div className='flex w-fit justify-end gap-3 border-t p-4'>
-                                <Button variant='outline' onClick={() => tableRef.current?.reset()}>
-                                    Cancel
-                                </Button>
-                                <Button type='submit' onClick={handleSave}>
-                                    Save Mapping
-                                </Button>
-                            </div>
-                        </CollapsibleSection>
+                                {payload !== null && (
+                                    <div className='flex w-fit justify-end gap-3 border-t p-4'>
+                                        <Button variant='outline' onClick={() => tableRef.current?.reset()}>
+                                            Reset
+                                        </Button>
+                                        <Button type='submit' onClick={handleSave}>
+                                            Save Mapping
+                                        </Button>
+                                    </div>
+                                )}
+                            </CollapsibleSection>
+                        </div>
                     )}
                 </div>
             </div>

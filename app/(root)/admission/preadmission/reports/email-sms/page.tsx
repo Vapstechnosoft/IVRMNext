@@ -10,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
-import { use, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 
 import type { IRigistrationReportList } from '@/types/admission/preadmission/reports';
 import { registrationColumns } from './_components/columns';
@@ -26,7 +26,7 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function EmailSmsPageprops(props: {
     searchParams: SearchParams;
 }) {
-    const searchParams = use(props.searchParams);
+    const searchParams = (React as any).use(props.searchParams);
     const tableRef = useRef<DataTableRef>(null);
 
     /** -----------------------------
@@ -64,7 +64,9 @@ export default function EmailSmsPageprops(props: {
     } = usePreAdmissionEmailSmsReport(academicIdParam, fromDateParam, toDateParam, searchParams);
 
     const tableProps = useDataTableProps({
-        data: response?.data?.combined_listarray ?? []
+        ...(response || {}),
+        data: response?.data?.combined_listarray ?? [],
+        total: response?.data?.combined_listarray?.length ?? 0
     });
 
     const handleReport = () => {
@@ -111,8 +113,8 @@ export default function EmailSmsPageprops(props: {
                 response instanceof Blob
                     ? response
                     : new Blob([new Uint8Array(response)], {
-                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                      });
+                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                    });
 
             // Create download link
             const url = window.URL.createObjectURL(blob);
@@ -275,6 +277,8 @@ export default function EmailSmsPageprops(props: {
                             isLoading={isLoading}
                             error={error}
                             showViewOptions={false}
+                            isSearchRequired={true}
+                            showSearchColumns={true}
                             loadingMessage='Loading Email Sms reports...'
                             noDataTitle='No Data Found'
                             noDataDescription='No Email Sms reports found.'

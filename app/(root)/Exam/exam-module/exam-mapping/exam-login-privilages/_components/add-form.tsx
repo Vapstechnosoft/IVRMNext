@@ -24,7 +24,7 @@ import type { IMasterClassSectionDropDown } from '@/types/admission/preadmission
 import type { IExamLoginPrivileges } from '@/types/exam/exam-module/exam-mapping';
 import type { IClass } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit, Trash2, RefreshCw } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, FormProvider, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -81,8 +81,8 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
     const [sections, setSections] = useState<any[]>([]);
     const [subjects, setSubjects] = useState<any[]>([]);
     const [subSubjects, setSubSubjects] = useState<any[]>([]);
+    // const [userLogins, setUserLogins] = useState<any[]>([]);
     const [userLogins, setUserLogins] = useState<any[]>([]);
-    const [employees, setEmployees] = useState<any[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [details, setDetails] = useState<DetailRow[]>([]);
     const [editingId, setEditingId] = useState<string | null>(null);
@@ -120,8 +120,10 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                 setEditMode('edit');
                 setDisableClassSection(true);
                 console.info(rowData.elP_Id, rowData.asmcL_Id, rowData.asmS_Id);
+                console.log("selected rowData", rowData);
                 // Call API to get edit details
                 const editData = await getExamLoginPrivilegesEditDetails(rowData.elP_Id, rowData.asmcL_Id, rowData.asmS_Id);
+                console.log("editData", editData);
                 if (editData?.success && Array.isArray(editData.data) && editData.data.length > 0) {
                     const editList = Array.isArray(editData.data) ? editData.data : [editData.data];
                     const isSubjectTeacherOrOthers = editList?.[0]?.elP_Flg === 'st' || editList?.[0]?.elP_Flg === 'others';
@@ -133,7 +135,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                         return emp.hrmE_Id === editList[0]?.hrmE_Id;
                     });
 
-                    const employeeName = employee?.hrmE_EmployeeName ?? '';
+                    const employeeName = employee?.hrmE_EmployeeName ?? rowData?.hrmE_EmployeeName ?? '';
 
                     const userId = editList[0].ivrmulF_Id;
                     const subSubjectItem = subSubjects?.find((sub: any) => sub.ismSS_Id === editList[0].ismSS_Id);
@@ -159,8 +161,10 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
 
                     editList.forEach((item: any) => {
                         // Add class
+                        console.log("item", item);
                         const classItem = classes.find((c) => c.asmcL_Id === item.asmcL_Id);
                         const subject = subjects.find((s) => s.ismS_Id === item.ismS_Id);
+                        const subSubject = subSubjects.find((ss) => ss.emsS_Id === item.emsS_Id);
                         const sectionItem = sections.find((s) => s.asmS_Id === item.asmS_Id);
 
                         if (item.asmcL_Id && !uniqueClasses.has(item.asmcL_Id)) {
@@ -187,12 +191,13 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                 ismS_SubjectName: subject?.ismS_SubjectName ?? ''
                             });
                         }
-
                         // Add sub-subject
                         if (item.emsS_Id && !selectedSubSubjects.has(item.emsS_Id)) {
+                            // const subSubjectItem = subSubjects?.find((sub: any) => sub.emsS_Id === item.emsS_Id);
+
                             selectedSubSubjects.set(item.emsS_Id, {
                                 emsS_Id: item.emsS_Id,
-                                emsS_SubSubjectName: subSubjectItem?.issS_SubSubjectName ?? ''
+                                emsS_SubSubjectName: subSubject?.emsS_SubSubjectName ?? ''
                             });
                         }
                     });
@@ -220,7 +225,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                             group.subSubjects.add(selectedSubSubjects.get(item.emsS_Id));
                         }
                     });
-
+                    console.log("classSectionMap", classSectionMap);
                     // Create detail rows
                     // biome-ignore lint/correctness/noUnusedVariables: <explanation>
                     classSectionMap.forEach((group, key) => {
@@ -255,7 +260,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
         };
 
         fetchEditData();
-    }, [rowData, academicYear?.data, employeeData?.data, classTeachersData?.data, subjects]);
+    }, [rowData, academicYear?.data, employeeData?.data, classTeachersData?.data, subjects, subSubjects, classes, sections]);
 
     // Reset to add mode function
     const resetToAddMode = () => {
@@ -298,9 +303,6 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
     }, [masterSubSubject]);
 
     useEffect(() => {
-        if (classTeachersData && Array.isArray(classTeachersData.data)) {
-            setEmployees(classTeachersData.data);
-        }
         if (userList && Array.isArray(userList.data)) {
             setUserLogins(userList.data);
             console.info('userLogins', userList?.data);
@@ -389,8 +391,8 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
             Array.isArray(v.classList) && v.classList.length
                 ? v.classList
                 : v.asmcL_Id
-                  ? classes.filter((c) => c.asmcL_Id === v.asmcL_Id)
-                  : [];
+                    ? classes.filter((c) => c.asmcL_Id === v.asmcL_Id)
+                    : [];
 
         if (rawClasses.length === 0) {
             toast.error('No classes selected');
@@ -411,9 +413,9 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
         // FIXED: Use emsS_Id instead of issS_Id
         const selectedSSubjects: any[] = Array.isArray(v.subSubjectList)
             ? v.subSubjectList.map((ss: any) => ({
-                  emsS_Id: ss.emsS_Id,
-                  emsS_SubSubjectName: ss.emsS_SubSubjectName || ''
-              }))
+                emsS_Id: ss.emsS_Id,
+                emsS_SubSubjectName: ss.emsS_SubSubjectName || ''
+            }))
             : [];
 
         const rows: DetailRow[] = [];
@@ -425,7 +427,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                     yearid: v.asmaY_Id ?? 0,
                     user_id: v.ivrmulF_Id ?? 0,
                     year: academicYear?.data?.find((y: any) => y.asmaY_Id === v.asmaY_Id)?.asmaY_Year ?? '',
-                    emp_name: employees.find((e) => e.hrmE_Id === v.hrmE_Id)?.hrmE_EmployeeName ?? '',
+                    emp_name: (activeTab === 0 ? classTeachersData?.data : employeeData?.data)?.find((e: any) => e.hrmE_Id === v.hrmE_Id)?.hrmE_EmployeeName ?? '',
                     emp_Id: v.hrmE_Id ?? 0,
                     elpflg: activeTab === 0 ? 'ct' : activeTab === 1 ? 'st' : 'others',
                     clas: cls,
@@ -513,7 +515,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
             ssub: Array.isArray(v.subSubjectList) ? v.subSubjectList : details[rowIndex].ssub,
             yearid: v.asmaY_Id ?? details[rowIndex].yearid,
             user_id: v.ivrmulF_Id ?? details[rowIndex].user_id,
-            emp_name: employees.find((e) => e.hrmE_Id === v.hrmE_Id)?.hrmE_EmployeeName ?? details[rowIndex].emp_name,
+            emp_name: (activeTab === 0 ? classTeachersData?.data : employeeData?.data)?.find((e: any) => e.hrmE_Id === v.hrmE_Id)?.hrmE_EmployeeName ?? details[rowIndex].emp_name,
             emp_Id: v.hrmE_Id ?? details[rowIndex].emp_Id,
             elpflg: activeTab === 0 ? 'ct' : activeTab === 1 ? 'st' : 'others'
         };
@@ -646,7 +648,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                 {/* FIXED: Display emsS_SubSubjectName */}
                                 <td className='border p-2'>{(d.ssub || []).map((ss) => ss.emsS_SubSubjectName).join(', ')}</td>
                                 <td className='border p-2 text-center'>
-                                    {d.elpflg === 'ct' ? 'Class Teacher' : d.elpflg === 'st' ? 'Subject Teacher' : 'Others'}
+                                    {d.elpflg === 'BY_CLASS_TEACHER' || d.elpflg === 'ct' ? 'Class Teacher' : d.elpflg === 'BY_SUBJECT_TEACHER' || d.elpflg === 'st' ? 'Subject Teacher' : 'Others'}
                                 </td>
                                 <td className='border p-2'>
                                     <div className='flex justify-center gap-2'>
@@ -692,13 +694,23 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
 
     const isLoading = activeTab === 0 ? classTeacherLoading : employeeDataLoading;
 
-    if (isLoadingEditData) {
+    // Check for any data loading
+    const isDataLoading =
+        academicYearLoading ||
+        classTeacherLoading ||
+        employeeDataLoading ||
+        userListLoading ||
+        masterSectionLoading ||
+        masterClassLoading ||
+        masterSubjectLoading ||
+        masterSubSubjectLoading ||
+        isLoadingEditData;
+
+    if (isDataLoading) {
         return (
-            <div className='flex h-64 items-center justify-center'>
-                <div className='text-center'>
-                    <div className='mb-4 h-8 w-8 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600'> </div>
-                    <p className='text-gray-600'>Loading edit data...</p>
-                </div>
+            <div className='flex flex-col items-center justify-center space-y-4 py-12'>
+                <RefreshCw className='h-8 w-8 animate-spin text-secondary' />
+                <p className='text-muted-foreground text-sm'>Loading data...</p>
             </div>
         );
     }
@@ -892,6 +904,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                                 disabled={disableClassSection || activeTab === 0 || editMode === 'edit'}
                                                 error={fieldState?.error?.message}
                                                 isLoading={masterClassLoading}
+                                                resetKey={activeTab}
                                             />
                                         );
                                     }}
@@ -923,6 +936,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                                 isRequired={true}
                                                 error={fieldState?.error?.message}
                                                 isLoading={masterSubjectLoading}
+                                                resetKey={activeTab}
                                             />
                                         );
                                     }}
@@ -996,6 +1010,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                                 disabled={disableClassSection || activeTab === 0 || editMode === 'edit'}
                                                 error={fieldState?.error?.message}
                                                 isLoading={masterSectionLoading}
+                                                resetKey={activeTab}
                                             />
                                         );
                                     }}
@@ -1032,6 +1047,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                                 isSearchRequired
                                                 error={fieldState?.error?.message}
                                                 isLoading={masterSubSubjectLoading}
+                                                resetKey={activeTab}
                                             />
                                         );
                                     }}
@@ -1121,12 +1137,12 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                                 ? 'Updating...'
                                                 : 'Saving...'
                                             : editMode === 'edit'
-                                              ? 'Update'
-                                              : 'Save'}
+                                                ? 'Update'
+                                                : 'Save'}
                                     </Button>
 
                                     {editMode === 'edit' && (
-                                        <Button type='button' variant='outline' className='ml-3' onClick={handleCancelEdit}>
+                                        <Button type='button' variant='outline' className='mt-2' onClick={handleCancelEdit}>
                                             Cancel
                                         </Button>
                                     )}

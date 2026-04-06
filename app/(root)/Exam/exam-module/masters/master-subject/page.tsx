@@ -7,7 +7,7 @@ import { MasterViewDetails } from '@/components/ui/set-order/generic-set-order';
 import { useMasterSubject } from '@/hooks/exam/exammodule/usemasters';
 import { UpdatedOrderdSubjects, getMasterSubjectOrderData } from '@/server/exam/exam-module/masters/subject';
 import type { IMasterSubject, IMasterSubjectOrder } from '@/types/exam/exam-module/masters';
-import { GitCompareArrows, List, Plus, X } from 'lucide-react';
+import { GitCompareArrows, Plus, X } from 'lucide-react';
 import { use, useState } from 'react';
 import { toast } from 'sonner';
 import AddMasterSubjectForm from './_components/add-form';
@@ -46,10 +46,11 @@ function MasterSubjectPageContent({
     const [isOrderSaving, setIsOrderSaving] = useState(false);
     const [isOrderloading, setIsOrderloading] = useState(true);
 
+
     const handleSetOrder = async () => {
         try {
             setOrderModalOpen(true);
-            const response = await getMasterSubjectOrderData(30);
+            const response = await getMasterSubjectOrderData();
 
             if (response.success && response.data) {
                 const subjects: IMasterSubjectOrder[] = Array.isArray(response.data) ? response.data : [];

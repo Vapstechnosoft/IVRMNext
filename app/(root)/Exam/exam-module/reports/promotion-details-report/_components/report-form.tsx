@@ -8,6 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { type PromotionDetailsReportSchema, promotionDetailsReportSchema } from '@/schemas/exam/exam-module/reports';
+import { getClassDropDownByAcademicYearlist, getSectionsDropDownByAcademicYearandClasslist, getStudentsDropDownByAcademicYearandClassandSectionlist } from '@/server/exam/exam-module/reports/cumulative-report';
 import { getClasses, getReportDetails, getSections, getTermsAndStudents } from '@/server/exam/exam-module/reports/promotion-details-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
@@ -56,7 +57,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
         if (studentSearch.trim() === '') {
             setFilteredStudents(students);
         } else {
-            setFilteredStudents(students.filter((s) => s.studentname.toLowerCase().includes(studentSearch.toLowerCase())));
+            setFilteredStudents(students.filter((s) => s.studentName.toLowerCase().includes(studentSearch.toLowerCase())));
         }
     }, [studentSearch, students]);
 
@@ -64,78 +65,123 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     useEffect(() => {
         setLoading(false);
     }, []);
-
     // Load Classes
     useEffect(() => {
         if (watchYear) {
-            setLoadingClasses(true);
-            getClasses(watchYear)
-                .then((res) => {
-                    if (res.ctlist && res.ctlist.length > 0) {
-                        setClasses(res.ctlist);
-                    } else {
-                        setClasses([]);
-                        toast.info('No classes found');
+            (async () => {
+                try {
+                    setLoadingClasses(true);
+                    const response = await getClassDropDownByAcademicYearlist(Number(watchYear));
+                    const data = response.data as any;
+                    setClasses(Array.isArray(data) ? data : []);
+                    if (!data || (Array.isArray(data) && data.length === 0)) {
+                        toast.info('No Classes found');
                     }
-                    setLoadingClasses(false);
-                })
-                .catch((err) => {
+                } catch (err) {
+                    console.error(err);
                     toast.error('Failed to load classes');
+                } finally {
                     setLoadingClasses(false);
-                });
+                }
+            })();
             setValue('ASMCL_Id', '');
+
+        } else {
+            setClasses([]);
         }
     }, [watchYear, setValue]);
 
     // Load Sections
     useEffect(() => {
-        if (watchClass) {
-            setLoadingSections(true);
-            getSections(watchClass)
-                .then((res) => {
-                    if (res.seclist && res.seclist.length > 0) {
-                        setSections(res.seclist);
-                    } else {
-                        setSections([]);
-                        toast.info('No sections found');
+        if (watchYear && watchClass) {
+            (async () => {
+                try {
+                    setLoadingSections(true);
+                    const response = await getSectionsDropDownByAcademicYearandClasslist(Number(watchYear), Number(watchClass));
+                    const data = response.data as any;
+                    setSections(Array.isArray(data) ? data : []);
+                    if (!data || (Array.isArray(data) && data.length === 0)) {
+                        toast.info('No Sections found');
                     }
-                    setLoadingSections(false);
-                })
-                .catch((err) => {
+                } catch (err) {
+                    console.error(err);
                     toast.error('Failed to load sections');
+                } finally {
                     setLoadingSections(false);
-                });
+                }
+            })();
             setValue('ASMS_Id', '');
-        }
-    }, [watchClass, setValue]);
 
-    // Load Terms & Students
+        } else {
+            setSections([]);
+        }
+    }, [watchYear, watchClass, setValue]);
+
+    // Load Terms 
     useEffect(() => {
         if (watchSection) {
-            setLoadingTerms(true);
-            getTermsAndStudents(watchSection)
-                .then((res) => {
-                    if (res.termlist && res.termlist.length > 0) {
+            (async () => {
+                try {
+                    setLoadingTerms(true);
+                    const res = await getTermsAndStudents(watchSection);
+                    if (res?.termlist && Array.isArray(res.termlist) && res.termlist.length > 0) {
                         setTerms(res.termlist);
                     } else {
                         setTerms([]);
                         toast.info('No terms found');
                     }
-                    if (res.studentlist && res.studentlist.length > 0) {
-                        setStudents(res.studentlist);
-                    } else {
-                        setStudents([]);
-                        toast.info('No students found');
-                    }
-                    setLoadingTerms(false);
-                })
-                .catch((err) => {
+                    // if (res?.studentlist && Array.isArray(res.studentlist) && res.studentlist.length > 0) {
+                    //     setStudents(res.studentlist);
+                    // } else {
+                    //     setStudents([]);
+                    //     toast.info('No students found');
+                    // }
+                } catch (err) {
+                    console.error(err);
                     toast.error('Failed to load terms and students');
+                } finally {
                     setLoadingTerms(false);
-                });
+                }
+            })();
             setValue('selectedStudents', []);
+        } else {
+            setTerms([]);
         }
     }, [watchSection, setValue]);
+
+    // Load Students
+    useEffect(() => {
+        if (!watchYear || !watchClass || !watchSection) return;
+        (async () => {
+            try {
+
+                const { data } = await getStudentsDropDownByAcademicYearandClassandSectionlist(
+                    Number(watchYear),
+                    Number(watchClass),
+                    Number(watchSection)
+                );
+                const valid = Array.isArray(data)
+                    ? data.filter((s): s is any => !!s?.amsT_Id)
+                    : [];
+
+                // Map to consistent format if needed, but the cumulative report logic returns objects with amsT_Id and studentName/amsT_FirstName
+                // We'll map them to a structure suitable for the display
+                const mappedStudents = valid.map(s => ({
+                    amsT_Id: s.amsT_Id,
+                    amsT_AdmNo: s.amsT_AdmNo,
+                    studentName: s.studentName || `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim()
+                }));
+
+                setStudents(mappedStudents);
+                console.log('Students:', mappedStudents);
+                setValue('selectedStudents', []);
+
+            } catch {
+                toast.error('Failed to load students');
+            } finally {
+            }
+        })();
+    }, [watchYear, watchClass, watchSection, setValue]);
 
     // Super Average Logic
     useEffect(() => {
@@ -157,8 +203,20 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
 
     const onSubmit = async (data: PromotionDetailsReportSchema) => {
         try {
-            const result = await getReportDetails(data);
-            onReportGenerated(result, data.superAverage);
+            // Include student names for backend mock data generation
+            const selectedStudentNames = data.selectedStudents.map((id) => {
+                const student = students.find((s) => String(s.amsT_Id) === id);
+                return student ? student.studentName : `Unknown Student ${id}`;
+            });
+
+            const payloadToSubmit = {
+                ...data,
+                selectedStudentNames
+            };
+
+            console.log('tabulation payload data', payloadToSubmit);
+            const result = await getReportDetails(payloadToSubmit);
+            onReportGenerated(result, payloadToSubmit.superAverage);
         } catch (error) {
             console.error('Error:', error);
         }
@@ -406,7 +464,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                                         />
                                                     )}
                                                 />
-                                                <Label className='w-full cursor-pointer font-normal text-sm'>{student.studentname}</Label>
+                                                <Label className='w-full cursor-pointer font-normal text-sm'>{student.studentName}</Label>
                                             </div>
                                         ))}
                                         {filteredStudents.length === 0 && (
@@ -421,11 +479,11 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                         </div>
 
                         <div className='mt-8 flex justify-center gap-4'>
-                            <Button type='submit' disabled={isSubmitting}>
-                                {isSubmitting ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : null} Report
+                            <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting}>
+                                Report
                             </Button>
-                            <Button type='button' variant='destructive' onClick={handleClear} disabled={isSubmitting}>
-                                Cancel
+                            <Button type='button' variant='outline' onClick={handleClear} disabled={isSubmitting}>
+                                Clear
                             </Button>
                         </div>
                     </div>

@@ -10,8 +10,10 @@ import { RefreshCw, Save } from 'lucide-react';
 import { useEffect } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { IFeeGroup, IHostel, saveRoomCategory } from '@/server/hostel/room-category/server-action';
+import { IFeeGroup, IHostel } from '@/types/hostel/hostel-management/masters';
+import { saveRoomCategory } from '@/server/hostel/hostel-management/masters/room-category';
 import { RoomCategorySchema, RoomCategorySchemaType } from '@/schemas/hostel/room-category.schema';
+import { useRoomCategory } from '@/hooks/hostel/useRoomCategory';
 
 interface AddRoomCategoryFormProps {
     onSuccess?: () => void;
@@ -54,7 +56,7 @@ export default function AddRoomCategoryForm({
     });
 
     const sharingFlag = watch('hlmrcA_SharingFlg');
-
+    const { refetchAll } = useRoomCategory();
     useEffect(() => {
         if (!sharingFlag) {
             setValue('HLMRCA_RoomRate', 0);
@@ -65,16 +67,13 @@ export default function AddRoomCategoryForm({
         try {
             const result = await saveRoomCategory(data);
 
-            if (result && result.returnval) {
-                toast.success('Room Category saved successfully');
+            if (result?.success) {
+                toast.success(result?.message);
                 reset();
                 onSuccess?.();
+                refetchAll();
             } else {
-                if (result && result.duplicate) {
-                    toast.error('Record already exists');
-                } else {
-                    toast.error('Failed to save Room Category');
-                }
+                toast.error(result?.message);
             }
         } catch (error: any) {
             toast.error(error.message || 'An unexpected error occurred');

@@ -3,15 +3,15 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-//import { Combobox } from '@/components/ui/combobox';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { consolidatedReportSchema } from '@/schemas/timetable/reports';
-import { getClassByCategory } from '@/server/timetable/masters/perioddistribution';
+import { getConsolidatedReportDetails } from '@/server/timetable/reports/consolidated';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, Search } from 'lucide-react';
+import { Loader2, Search, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+
 import { Controller, useForm } from 'react-hook-form';
 import type { z } from 'zod';
 
@@ -23,89 +23,168 @@ interface ConsolidatedFormProps {
 }
 
 export default function ConsolidatedForm({ initialData, onSubmit }: ConsolidatedFormProps) {
+
+
+    // We use the data directly from initialData as per user request to integrate the facade API lists
+    const academicList = initialData?.acayear || initialData?.academiclist || [];
+    const categoryList = initialData?.cateoglst || initialData?.catelist || initialData?.categorylist || [];
+    const staffList = initialData?.stafflst || initialData?.stafflist || [];
+    const periodList = initialData?.periodslst || initialData?.periodlist || [];
+    const daysList = initialData?.dayslst_fix || initialData?.daylist || [];
+    const sectionList = initialData?.sectionlists || initialData?.sectionlist || [];
+
     const [classList, setClassList] = useState<any[]>([]);
 
-    // Initial lists from props
-    const academicList = initialData?.acayear || [];
-    const categoryList = initialData?.cateoglst || [];
-    const staffList = initialData?.stafflst || [];
-    const periodList = initialData?.periodslst || [];
-    const daysList = initialData?.dayslst_fix || [];
-    const sectionList = initialData?.sectionlists || [];
+    const mockReportTypes = [
+        { id: 'ST', label: 'STAFF WISE DETAILS' },
+        { id: 'STD', label: 'STAFF DAY WISE' },
+        { id: 'CSUB', label: 'CLASS SUBJECT' },
+        { id: 'STSUB', label: 'STAFF SUBJECT' },
+        { id: 'SPW', label: 'STAFF PERIOD WISE WORKLOAD' },
+        { id: 'STFP', label: 'STAFF FREE PERIOD' },
+        { id: 'PSTF', label: 'PERIOD WISE STAFF FREE' },
+        { id: 'SPC', label: 'STAFF-PERIOD CONSOLIDATED' },
+        { id: 'CSPC', label: 'CLASS-SECTION PERIOD CONSOLIDATED' },
+        { id: 'RMR', label: 'ROOM-WISE REPORT' },
+        { id: 'ATG', label: 'STAFF WORKLOAD AFTER TIMETABLE GENERATION' },
+    ];
 
-    const {
-        register,
-        control,
-        handleSubmit,
-        watch,
-        setValue,
-        formState: { errors, isSubmitting }
-    } = useForm<FormFields>({
+    const form = useForm<FormFields>({
         resolver: zodResolver(consolidatedReportSchema.search),
         defaultValues: {
             type: 'ST',
             rpttyp: 'SAWC',
-            rpttypai: false
+            rpttypai: false,
+            asmaY_Id: undefined
         }
     });
+
+    const {
+        control,
+        handleSubmit,
+        watch,
+        setValue,
+        reset,
+        formState: { errors, isSubmitting }
+    } = form;
 
     const watchedType = watch('type');
     const watchedAcademicYear = watch('asmaY_Id');
     const watchedCategory = watch('ttmC_Id');
 
-    // Fetch classes when Category changes
+    // Filter classes based on selected category from the initial classlists
     useEffect(() => {
-        const fetchClasses = async () => {
-            setValue('classId', []); // Reset classes
-            if (watchedAcademicYear && watchedCategory) {
-                try {
-                    const res = await getClassByCategory({
-                        ASMAY_Id: watchedAcademicYear,
-                        TTMC_Id: watchedCategory
-                    });
-                    if (res && (res as any).classbycategory) {
-                        setClassList((res as any).classbycategory);
-                    } else {
-                        setClassList([]);
-                    }
-                } catch (err) {
-                    console.error('Error fetching classes', err);
-                    setClassList([]);
-                }
-            } else {
-                setClassList([]);
-            }
-        };
-        // Only fetch if Type is 'ST' where Category is used, or if needed for others
-        if (watchedType === 'ST') {
-            fetchClasses();
+        const allClassLists = initialData?.classlists || initialData?.classlist || [];
+        if (watchedCategory && allClassLists.length > 0) {
+            // Filter by category if the property exists, otherwise show all
+            const filtered = allClassLists.filter((c: any) =>
+                !c.ttmC_Id || c.ttmC_Id === watchedCategory
+            );
+            setClassList(filtered);
+            // Optionally clear class selection when category changes
+            // setValue('classId', []);
+        } else {
+            setClassList(allClassLists);
         }
-    }, [watchedAcademicYear, watchedCategory, watchedType, setValue]);
+    }, [watchedCategory, initialData]);
 
     const onFormSubmit = (data: FormFields) => {
-        const payload = {
-            ASMAY_Id: data.asmaY_Id,
-            TYPE: data.type,
-            TTMC_Id: data.ttmC_Id,
-            rpttyp: data.rpttyp,
-            rpttypairods: data.rpttypai,
-            // Map IDs to expected backend format (e.g. array of objects)
-            classdss: data.classId?.map((id) => ({ asmcL_Id: id, claslis: true })) || [],
-            sectiondss: data.sectionId?.map((id) => ({ asmS_Id: id, secs: true })) || [],
-            stfidss: data.staffId?.map((id) => ({ hrmE_Id: id, stf: true })) || [],
-            dayidss: data.dayId?.map((id) => ({ ttmD_Id: id, sayy: true })) || [],
-            periodidss: data.periodId?.map((id) => ({ ttmP_Id: id, ppr: true })) || [],
-            TTMD_Id: data.singleDayId,
-            TTMP_Id: data.singlePeriodId
+        const fullClassList = initialData?.classlists || initialData?.classlist || [];
+        const fullSectionList = initialData?.sectionlists || initialData?.sectionlist || [];
+        const fullStaffList = initialData?.stafflst || initialData?.stafflist || [];
+        const fullDayList = initialData?.dayslst_fix || initialData?.daylist || [];
+        const fullPeriodList = initialData?.periodslst || initialData?.periodlist || [];
+
+        // Map selections back to full objects and set the selection flags
+        const classdss = (data.classId || []).map(id => {
+            const obj = { ...fullClassList.find((c: any) => c.asmcL_Id === id) };
+            if (obj) obj.claslis = true;
+            return obj;
+        }).filter(o => o.asmcL_Id);
+
+        const sectiondss = (data.sectionId || []).map(id => {
+            const obj = { ...fullSectionList.find((s: any) => s.asmS_Id === id) };
+            if (obj) obj.secs = true;
+            return obj;
+        }).filter(o => o.asmS_Id);
+
+        const stfidss = (data.staffId || []).map(id => {
+            const obj = { ...fullStaffList.find((s: any) => s.hrmE_Id === id) };
+            if (obj) obj.stf = true;
+            return obj;
+        }).filter(o => o.hrmE_Id);
+
+        const dayidss = (data.dayId || []).map(id => {
+            const obj = { ...fullDayList.find((d: any) => d.ttmD_Id === id) };
+            if (obj) obj.sayy = true;
+            return obj;
+        }).filter(o => o.ttmD_Id);
+
+        const periodidss = (data.periodId || []).map(id => {
+            const obj = { ...fullPeriodList.find((p: any) => p.ttmP_Id === id) };
+            if (obj) obj.ppr = true;
+            return obj;
+        }).filter(o => o.ttmP_Id);
+
+        let payload: any = {
+            ASMAY_Id: String(data.asmaY_Id),
+            TYPE: data.type
         };
+
+        if (['CSUB', 'STSUB', 'SPW'].includes(data.type)) {
+            payload = { ...payload, stfidss, dayidss, periodidss };
+        } else if (data.type === 'PSTF') {
+            payload = {
+                ...payload,
+                TTMD_Id: data.singleDayId,
+                TTMP_Id: data.singlePeriodId,
+                rpttypairods: data.rpttypai,
+                stfidss, dayidss, periodidss
+            };
+        } else if (data.type === 'STFP') {
+            payload = {
+                ...payload,
+                TTMD_Id: data.singleDayId,
+                rpttypairods: data.rpttypai,
+                stfidss, dayidss, periodidss
+            };
+        } else if (data.type === 'RMR') {
+            payload.rpttyp = data.rpttyp;
+        } else if (data.type === 'STD') {
+            payload = {
+                ...payload,
+                stfidss,
+                dayidss
+            };
+        } else if (['ATG', 'SPC', 'CSPC'].includes(data.type)) {
+            // These types use minimal payload in original controller
+        } else {
+            // Default report type (e.g. ST)
+            payload = {
+                ...payload,
+                rpttypairods: data.rpttypai,
+                rpttyp: data.rpttyp,
+                TTMC_Id: data.ttmC_Id,
+                classdss,
+                sectiondss,
+                stfidss,
+                dayidss,
+                periodidss
+            };
+        }
+
         onSubmit(payload);
     };
 
+    const handleClear = () => {
+        reset();
+        onSubmit({ CLEAR: true });
+    };
     return (
         <form onSubmit={handleSubmit(onFormSubmit)} className='space-y-6 rounded-lg border bg-white p-6 shadow-sm'>
             {/* Report Type Selection */}
             <div className='space-y-4'>
-                <Label className='font-semibold text-base'>Report Type</Label>
+                <Label className='font-bold text-gray-700'>Report Type</Label>
                 <Controller
                     control={control}
                     name='type'
@@ -113,62 +192,38 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
                         <RadioGroup
                             onValueChange={field.onChange}
                             defaultValue={field.value}
-                            className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3'>
-                            <div className='flex items-center space-x-2'>
-                                <RadioGroupItem value='ST' id='r1' /> <Label htmlFor='r1'>STAFF WISE DETAILS</Label>
-                            </div>
-                            <div className='flex items-center space-x-2'>
-                                <RadioGroupItem value='STD' id='r2' /> <Label htmlFor='r2'>STAFF DAY WISE</Label>
-                            </div>
-                            <div className='flex items-center space-x-2'>
-                                <RadioGroupItem value='CSUB' id='r3' /> <Label htmlFor='r3'>CLASS SUBJECT</Label>
-                            </div>
-                            <div className='flex items-center space-x-2'>
-                                <RadioGroupItem value='STSUB' id='r4' /> <Label htmlFor='r4'>STAFF SUBJECT</Label>
-                            </div>
-                            <div className='flex items-center space-x-2'>
-                                <RadioGroupItem value='SPW' id='r5' /> <Label htmlFor='r5'>STAFF PERIOD WISE WORKLOAD</Label>
-                            </div>
-                            <div className='flex items-center space-x-2'>
-                                <RadioGroupItem value='STFP' id='r6' /> <Label htmlFor='r6'>STAFF FREE PERIOD</Label>
-                            </div>
-                            <div className='flex items-center space-x-2'>
-                                <RadioGroupItem value='PSTF' id='r7' /> <Label htmlFor='r7'>PERIOD WISE STAFF FREE</Label>
-                            </div>
-                            <div className='flex items-center space-x-2'>
-                                <RadioGroupItem value='SPC' id='r8' /> <Label htmlFor='r8'>STAFF-PERIOD CONSOLIDATED</Label>
-                            </div>
-                            <div className='flex items-center space-x-2'>
-                                <RadioGroupItem value='CSPC' id='r9' /> <Label htmlFor='r9'>CLASS-SECTION PERIOD CONSOLIDATED</Label>
-                            </div>
-                            <div className='flex items-center space-x-2'>
-                                <RadioGroupItem value='RMR' id='r10' /> <Label htmlFor='r10'>ROOM-WISE REPORT</Label>
-                            </div>
-                            <div className='flex items-center space-x-2'>
-                                <RadioGroupItem value='ATG' id='r11' />{' '}
-                                <Label htmlFor='r11'>STAFF WORKLOAD AFTER TIMETABLE GENERATION</Label>
-                            </div>
+                            className='grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3'>
+                            {mockReportTypes.map((type) => (
+                                <div key={type.id} className='flex items-center space-x-2'>
+                                    <RadioGroupItem value={type.id} id={type.id} />
+                                    <Label htmlFor={type.id} className='cursor-pointer text-sm font-medium'>{type.label}</Label>
+                                </div>
+                            ))}
                         </RadioGroup>
                     )}
                 />
             </div>
 
-            <div className='grid grid-cols-1 gap-6 border-t pt-4 md:grid-cols-2 lg:grid-cols-3'>
+            <div className='grid grid-cols-1 gap-6 border-t pt-6 md:grid-cols-2 lg:grid-cols-3'>
                 {/* Common Field: Academic Year */}
                 <div className='space-y-2'>
-                    <Label>
+                    <Label className='font-semibold'>
                         Academic Year <span className='text-red-500'>*</span>
                     </Label>
                     <Controller
-                        control={control}
                         name='asmaY_Id'
+                        control={control}
                         render={({ field }) => (
-                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder='--Select--' />
+                            <Select
+                                onValueChange={(value) => field.onChange(value ? Number(value) : '')}
+                                value={field.value ? field.value.toString() : ''}
+                            >
+                                <SelectTrigger className='w-full'>
+                                    <SelectValue placeholder='Select Academic Year' />
                                 </SelectTrigger>
+
                                 <SelectContent>
-                                    {academicList.map((item: any) => (
+                                    {academicList?.map((item: any) => (
                                         <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
                                             {item.asmaY_Year}
                                         </SelectItem>
@@ -177,13 +232,13 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
                             </Select>
                         )}
                     />
-                    {errors.asmaY_Id && <span className='text-red-500 text-sm'>{errors.asmaY_Id.message}</span>}
+                    {errors.asmaY_Id && <span className='text-red-500 text-sm font-medium'>{errors.asmaY_Id.message}</span>}
                 </div>
 
                 {/* Specific for ST */}
                 {watchedType === 'ST' && (
                     <>
-                        <div className='col-span-1 md:col-span-2 lg:col-span-3'>
+                        <div className='space-y-2'>
                             <div className='flex items-center space-x-2'>
                                 <Controller
                                     control={control}
@@ -192,12 +247,12 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
                                         <Checkbox checked={field.value} onCheckedChange={field.onChange} id='rpttypai' />
                                     )}
                                 />
-                                <Label htmlFor='rpttypai'>Teacher Master</Label>
+                                <Label htmlFor='rpttypai' className='font-semibold'>Teacher Master</Label>
                             </div>
                         </div>
 
                         <div className='space-y-2'>
-                            <Label>
+                            <Label className='font-semibold'>
                                 Category <span className='text-red-500'>*</span>
                             </Label>
                             <Controller
@@ -218,11 +273,11 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
                                     </Select>
                                 )}
                             />
-                            {errors.ttmC_Id && <span className='text-red-500 text-sm'>{errors.ttmC_Id.message}</span>}
+                            {errors.ttmC_Id && <span className='text-red-500 text-sm font-medium'>{errors.ttmC_Id.message}</span>}
                         </div>
 
                         <div className='space-y-2'>
-                            <Label>
+                            <Label className='font-semibold'>
                                 Class <span className='text-red-500'>*</span>
                             </Label>
                             <Controller
@@ -237,11 +292,11 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
                                     />
                                 )}
                             />
-                            {errors.classId && <span className='text-red-500 text-sm'>{errors.classId.message}</span>}
+                            {errors.classId && <span className='text-red-500 text-sm font-medium'>{errors.classId.message}</span>}
                         </div>
 
                         <div className='space-y-2'>
-                            <Label>
+                            <Label className='font-semibold'>
                                 Section <span className='text-red-500'>*</span>
                             </Label>
                             <Controller
@@ -256,7 +311,7 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
                                     />
                                 )}
                             />
-                            {errors.sectionId && <span className='text-red-500 text-sm'>{errors.sectionId.message}</span>}
+                            {errors.sectionId && <span className='text-red-500 text-sm font-medium'>{errors.sectionId.message}</span>}
                         </div>
                     </>
                 )}
@@ -265,7 +320,7 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
                 {['CSUB', 'STSUB', 'SPW'].includes(watchedType) && (
                     <>
                         <div className='space-y-2'>
-                            <Label>
+                            <Label className='font-semibold'>
                                 Staff Name <span className='text-red-500'>*</span>
                             </Label>
                             <Controller
@@ -277,12 +332,14 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
                                         defaultValue={(field.value || []).map(String)}
                                         onValueChange={(val) => field.onChange(val.map(Number))}
                                         placeholder='Select Staff'
+                                        className='border-purple-200'
                                     />
                                 )}
                             />
+                            {errors.staffId && <span className='text-red-500 text-sm font-medium'>{errors.staffId.message}</span>}
                         </div>
                         <div className='space-y-2'>
-                            <Label>
+                            <Label className='font-semibold'>
                                 Day <span className='text-red-500'>*</span>
                             </Label>
                             <Controller
@@ -294,12 +351,14 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
                                         defaultValue={(field.value || []).map(String)}
                                         onValueChange={(val) => field.onChange(val.map(Number))}
                                         placeholder='Select Days'
+                                        className='border-purple-200'
                                     />
                                 )}
                             />
+                            {errors.dayId && <span className='text-red-500 text-sm font-medium'>{errors.dayId.message}</span>}
                         </div>
                         <div className='space-y-2'>
-                            <Label>
+                            <Label className='font-semibold'>
                                 Period <span className='text-red-500'>*</span>
                             </Label>
                             <Controller
@@ -311,9 +370,11 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
                                         defaultValue={(field.value || []).map(String)}
                                         onValueChange={(val) => field.onChange(val.map(Number))}
                                         placeholder='Select Periods'
+                                        className='border-purple-200'
                                     />
                                 )}
                             />
+                            {errors.periodId && <span className='text-red-500 text-sm font-medium'>{errors.periodId.message}</span>}
                         </div>
                     </>
                 )}
@@ -321,7 +382,7 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
                 {/* Specific for STFP, PSTF */}
                 {['STFP', 'PSTF'].includes(watchedType) && (
                     <div className='space-y-2'>
-                        <Label>
+                        <Label className='font-semibold'>
                             Day <span className='text-red-500'>*</span>
                         </Label>
                         <Controller
@@ -329,7 +390,7 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
                             name='singleDayId'
                             render={({ field }) => (
                                 <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
-                                    <SelectTrigger>
+                                    <SelectTrigger className='border-purple-200'>
                                         <SelectValue placeholder='--Select Day--' />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -342,13 +403,14 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
                                 </Select>
                             )}
                         />
+                        {errors.singleDayId && <span className='text-red-500 text-sm font-medium'>{errors.singleDayId.message}</span>}
                     </div>
                 )}
 
                 {/* Specific for PSTF */}
                 {watchedType === 'PSTF' && (
                     <div className='space-y-2'>
-                        <Label>
+                        <Label className='font-semibold'>
                             Period <span className='text-red-500'>*</span>
                         </Label>
                         <Controller
@@ -356,7 +418,7 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
                             name='singlePeriodId'
                             render={({ field }) => (
                                 <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
-                                    <SelectTrigger>
+                                    <SelectTrigger className='border-purple-200'>
                                         <SelectValue placeholder='--Select Period--' />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -369,38 +431,41 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
                                 </Select>
                             )}
                         />
+                        {errors.singlePeriodId && <span className='text-red-500 text-sm font-medium'>{errors.singlePeriodId.message}</span>}
                     </div>
                 )}
 
-                {/* Specific for RMR */}
                 {watchedType === 'RMR' && (
-                    <div className='col-span-1 space-y-2 md:col-span-2'>
-                        <Label>Report Option</Label>
+                    <div className='col-span-1 space-y-3 md:col-span-2'>
+                        <Label className='font-semibold'>Report Option</Label>
                         <Controller
                             control={control}
                             name='rpttyp'
                             render={({ field }) => (
-                                <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className='flex space-x-4'>
+                                <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className='flex flex-wrap gap-4'>
                                     <div className='flex items-center space-x-2'>
-                                        <RadioGroupItem value='SAWC' id='SAWC' />{' '}
-                                        <Label htmlFor='SAWC'>Subject Along With Class Details</Label>
+                                        <RadioGroupItem value='SAWC' id='SAWC' className='border-purple-600 text-purple-600' />
+                                        <Label htmlFor='SAWC' className='cursor-pointer'>Subject Along With Class Details</Label>
                                     </div>
                                     <div className='flex items-center space-x-2'>
-                                        <RadioGroupItem value='SNWC' id='SNWC' />{' '}
-                                        <Label htmlFor='SNWC'>Subject Without Class Details</Label>
+                                        <RadioGroupItem value='SNWC' id='SNWC' className='border-purple-600 text-purple-600' />
+                                        <Label htmlFor='SNWC' className='cursor-pointer'>Subject Without Class Details</Label>
                                     </div>
                                 </RadioGroup>
                             )}
                         />
+                        {errors.rpttyp && <span className='text-red-500 text-sm font-medium'>{errors.rpttyp.message}</span>}
                     </div>
                 )}
             </div>
 
-            <div className='flex justify-center'>
-                <Button type='submit' disabled={isSubmitting}>
-                    {isSubmitting && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
-                    <Search className='mr-2 h-4 w-4' />
-                    Get Report
+            <div className='flex justify-center gap-4 pt-4'>
+                <Button type='submit' disabled={isSubmitting} className='min-w-[120px]'>
+                    {isSubmitting ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Search className='mr-2 h-4 w-4' />}
+                    Report
+                </Button>
+                <Button type='button' variant='outline' onClick={handleClear} className='min-w-[120px]'>
+                    <X className='mr-2 h-4 w-4' /> Cancel
                 </Button>
             </div>
         </form>

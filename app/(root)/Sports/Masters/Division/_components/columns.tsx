@@ -16,8 +16,7 @@ import { toast } from 'sonner';
    ============================================ */
 function ActionsCell({ row }: { row: Row<IMasterDivision> }) {
     const data = row.original;
-    const { refetchAll } = useMasterDivisions();
-    const { openEditForm } = useFormContext<IMasterDivision>();
+    const { openEditForm, openToggleForm } = useFormContext<IMasterDivision>();
 
     return (
         <ActionButtons
@@ -28,19 +27,7 @@ function ActionsCell({ row }: { row: Row<IMasterDivision> }) {
                 delete: false
             }}
             onEdit={() => openEditForm(data)}
-            onToggle={async () => {
-                try {
-                    const response = await deactivateMasterDivision(data);
-                    if (response.success) {
-                        toast.success(response.message || `Division ${data.spccmD_ActiveFlag ? 'deactivated' : 'activated'} successfully`);
-                        await refetchAll();
-                    } else {
-                        toast.error(response.message || 'Failed to update division status');
-                    }
-                } catch (error) {
-                    toast.error('An error occurred while updating division status');
-                }
-            }}
+            onToggle={() => openToggleForm(data)}
             toggleConditionKey='spccmD_ActiveFlag'
         />
     );

@@ -7,7 +7,7 @@ import { MasterViewDetails } from '@/components/ui/set-order/generic-set-order';
 import { useMasterSubExam } from '@/hooks/exam/exammodule/usemasters';
 import { UpdatedOrderdSubExams, getMasterSubExamOrderData } from '@/server/exam/exam-module/masters/sub-exam';
 import type { IMasterSubExam } from '@/types/exam/exam-module/masters';
-import { GitCompareArrows, List, Plus, X } from 'lucide-react';
+import { GitCompareArrows, Plus, X } from 'lucide-react';
 import { use, useState } from 'react';
 import { toast } from 'sonner';
 import AddSubExamForm from './_components/add-form';
@@ -79,13 +79,12 @@ function SubExamPageContent({
             setIsOrderSaving(true);
             // Map updated data with new order
             const updatedOrderData = updatedData.map((item, index) => ({
-                emsE_Id: item.emsE_Id,
-                emE_ExamOrder: index + 1
+                EMSE_Id: item.emsE_Id,
+                EMSE_SubExamOrder: (index + 1).toString()
             }));
 
             const payload = {
-                mI_Id: 30,
-                sub_exam: updatedOrderData // ✅ correct variable name
+                sub_exam: updatedOrderData
             };
             const response = await UpdatedOrderdSubExams(payload);
 

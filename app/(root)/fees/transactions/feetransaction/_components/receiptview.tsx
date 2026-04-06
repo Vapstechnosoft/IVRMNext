@@ -16,9 +16,10 @@ interface ReceiptViewPageProps {
     rowData: Ifeetransaction;
     onClose: () => void;
     asmayId: number;
+    asmayYear: string;
 }
 
-export default function ReceiptViewPage({ rowData, onClose, asmayId }: ReceiptViewPageProps) {
+export default function ReceiptViewPage({ rowData, onClose, asmayId, asmayYear }: ReceiptViewPageProps) {
     const receiptRef = useRef<HTMLDivElement>(null);
     const [institute, setInstitute] = useState<IInstituteDetails>({});
     const [loading, setLoading] = useState(true);
@@ -34,7 +35,7 @@ export default function ReceiptViewPage({ rowData, onClose, asmayId }: ReceiptVi
                     asmaY_Id: asmayId,
                     minstall: '0'
                 });
-                const studentDetails = JSON.parse(JSON.stringify((response as any)?.printtermDTOs?.fee_receipt_ason_date_balances || []));
+                const studentDetails = JSON.parse(JSON.stringify((response as any)?.printtermDTOs?.fee_termwise_fee_receipt_details || []));
                 const currentPaymentDetails = JSON.parse(JSON.stringify((response as any)?.printtermDTOs?.currpaymentdetails || []));
                 // console.log("currentPaymentDetails",currentPaymentDetails)
                 setStudentDetails(studentDetails);
@@ -76,11 +77,12 @@ export default function ReceiptViewPage({ rowData, onClose, asmayId }: ReceiptVi
     // const bank_name = currentPaymentDetails[0]?.fyP_Bank_Name;
     // const cheque_no = currentPaymentDetails[0]?.fyP_DD_Cheque_No;
     const class_name = rowData.classname;
-    const academic_year = studentDetails[0]?.asmay_Year || '2025-2026';
-    const fee_head_name = studentDetails[0]?.fmh_feename;
-    const feeAmount = studentDetails[0]?.feeAmount;
-    const discountAmount = studentDetails[0]?.concession_amount;
-    const paidAmount = studentDetails[0]?.paid_amount;
+    const academic_year = asmayYear || '';
+    // const last = studentDetails[studentDetails.length - 1];
+    // const fee_head_name = last?.fmh_feename;
+    // const feeAmount = last?.feeAmount;
+    // const discountAmount = last?.concession_amount;
+    // const paidAmount = last?.paid_amount;
     const currentPaidAmount = currentPaymentDetails.reduce((sum, p) => {
         return sum + p.fyppM_TotalPaidAmount;
     }, 0);
@@ -327,21 +329,22 @@ export default function ReceiptViewPage({ rowData, onClose, asmayId }: ReceiptVi
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr>
-                                            <td className='border border-gray-400 p-2 text-center'>1</td>
-                                            <td className='border border-gray-400 p-2'>{fee_head_name}</td>
-                                            <td className='border border-gray-400 p-2 text-right'>{feeAmount}</td>
-                                            <td className='border border-gray-400 p-2 text-right'>{discountAmount}</td>
-                                            <td className='border border-gray-400 p-2 text-right'>{paidAmount}</td>
-                                        </tr>
-                                        <tr className='font-bold'>
-                                            <td colSpan={2} className='border border-gray-400 p-2 text-right'>
-                                                Total
-                                            </td>
-                                            <td className='border border-gray-400 p-2 text-right'>{feeAmount}</td>
-                                            <td className='border border-gray-400 p-2 text-right'>{discountAmount}</td>
-                                            <td className='border border-gray-400 p-2 text-right'>{paidAmount}</td>
-                                        </tr>
+                                        {studentDetails.map((detail, index) => (
+                                            <tr key={index}>
+                                                <td className='border border-gray-400 p-2 text-center'>{index + 1}</td>
+                                                <td className='border border-gray-400 p-2'>{detail.fmh_feename}</td>
+                                                <td className='border border-gray-400 p-2 text-right'>{detail.feeAmount ?? 0}</td>
+                                                <td className='border border-gray-400 p-2 text-right'>{detail.concession_amount ?? 0}</td>
+                                                <td className='border border-gray-400 p-2 text-right'>{detail.paid_amount ?? 0}</td>
+                                            </tr>
+                                        ))}
+                                        {studentDetails.length === 0 && (
+                                            <tr>
+                                                <td colSpan={5} className='border border-gray-400 p-4 text-center'>
+                                                    No data available
+                                                </td>
+                                            </tr>
+                                        )}
                                     </tbody>
                                 </table>
 
@@ -428,21 +431,22 @@ export default function ReceiptViewPage({ rowData, onClose, asmayId }: ReceiptVi
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr>
-                                            <td className='border border-gray-400 p-2 text-center'>1</td>
-                                            <td className='border border-gray-400 p-2'>{fee_head_name}</td>
-                                            <td className='border border-gray-400 p-2 text-right'>{feeAmount}</td>
-                                            <td className='border border-gray-400 p-2 text-right'>{discountAmount}</td>
-                                            <td className='border border-gray-400 p-2 text-right'>{paidAmount}</td>
-                                        </tr>
-                                        <tr className='font-bold'>
-                                            <td colSpan={2} className='border border-gray-400 p-2 text-right'>
-                                                Total
-                                            </td>
-                                            <td className='border border-gray-400 p-2 text-right'>{feeAmount}</td>
-                                            <td className='border border-gray-400 p-2 text-right'>{discountAmount}</td>
-                                            <td className='border border-gray-400 p-2 text-right'>{paidAmount}</td>
-                                        </tr>
+                                        {studentDetails.map((detail, index) => (
+                                            <tr key={index}>
+                                                <td className='border border-gray-400 p-2 text-center'>{index + 1}</td>
+                                                <td className='border border-gray-400 p-2'>{detail.fmh_feename}</td>
+                                                <td className='border border-gray-400 p-2 text-right'>{detail.feeAmount ?? 0}</td>
+                                                <td className='border border-gray-400 p-2 text-right'>{detail.concession_amount ?? 0}</td>
+                                                <td className='border border-gray-400 p-2 text-right'>{detail.paid_amount ?? 0}</td>
+                                            </tr>
+                                        ))}
+                                        {studentDetails.length === 0 && (
+                                            <tr>
+                                                <td colSpan={5} className='border border-gray-400 p-4 text-center'>
+                                                    No data available
+                                                </td>
+                                            </tr>
+                                        )}
                                     </tbody>
                                 </table>
 

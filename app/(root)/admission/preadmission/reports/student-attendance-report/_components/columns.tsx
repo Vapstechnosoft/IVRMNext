@@ -1,12 +1,10 @@
 'use client';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import type { IRigistrationReportList } from '@/types/admission/preadmission/reports';
+import type { IStudentAttendanceReportList } from '@/types/admission/preadmission/reports';
 import type { ColumnDef } from '@tanstack/react-table';
 
-import { format } from 'date-fns';
-
-export const registrationColumns: ColumnDef<IRigistrationReportList>[] = [
+export const attendanceColumns: ColumnDef<IStudentAttendanceReportList>[] = [
     {
         id: 'select',
         header: ({ table }) => (
@@ -24,49 +22,53 @@ export const registrationColumns: ColumnDef<IRigistrationReportList>[] = [
         size: 24
     },
     {
-        accessorKey: 'user_Name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
-        cell: ({ row, table }) => {
-            const pageIndex = table.getState().pagination.pageIndex;
-            const pageSize = table.getState().pagination.pageSize;
-            const continuousIndex = pageIndex * pageSize + row.index + 1;
-            return <div className='w-full pl-6'>{continuousIndex}</div>;
-        },
+        accessorKey: 'RowNo',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6 font-bold text-black' />,
+        cell: ({ row }) => <div className='w-full pl-6'>{row.getValue('RowNo')}</div>,
         enableSorting: true,
         enableHiding: false
     },
-
     {
         accessorKey: 'name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('name')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'email_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Email' />,
-        cell: ({ row }) => <div>{row.getValue('email_Id')}</div>,
+        accessorKey: 'AMST_AdmNo',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Admission No' className='font-bold text-black' />,
+        cell: ({ row }) => <div>{row.getValue('AMST_AdmNo')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'mob_No',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Mobile No' />,
-        cell: ({ row }) => <div>{row.getValue('mob_No')}</div>,
+        accessorKey: 'AMAY_RollNo',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Roll No' className='font-bold text-black' />,
+        cell: ({ row }) => <div>{row.getValue('AMAY_RollNo')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'created_Date',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Date' />,
+        accessorKey: 'ASA_ClassHeld',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Class Held' className='font-bold text-black' />,
+        cell: ({ row }) => <div>{row.getValue('ASA_ClassHeld')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'ASA_Class_Attended',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Class Attended' className='font-bold text-black' />,
+        cell: ({ row }) => <div>{row.getValue('ASA_Class_Attended')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'Percentage',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Percentage' className='font-bold text-black' />,
         cell: ({ row }) => {
-            const raw = row.getValue('created_Date');
-            const dateStr = typeof raw === 'string' || typeof raw === 'number' ? raw : '';
-
-            const formattedDate = dateStr ? format(new Date(dateStr), 'dd-MM-yyyy') : '';
-
-            return <div>{formattedDate}</div>;
+            const percentage = Number(row.getValue('Percentage'));
+            return <div>{percentage.toFixed(2)}%</div>;
         },
         enableSorting: true,
         enableHiding: true

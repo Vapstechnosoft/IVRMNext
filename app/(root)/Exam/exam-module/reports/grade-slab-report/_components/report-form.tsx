@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useMasterGradeDropdownList } from '@/hooks/exam/exammodule/usemasters';
 import { gradeSlabReportSchema } from '@/schemas/exam/exam-module/reports';
 import { getReportDetails } from '@/server/exam/exam-module/reports/grade-slab-report';
+import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
 import type { IMasterGrade } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, X } from 'lucide-react';
@@ -95,10 +96,14 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
 
     const onSubmit = async (values: FormFields) => {
         try {
-            const { data: result } = await getReportDetails(values);
+            console.log('Grade Slab Report payload:', values);
+            const [{ data: result }, institutionRes] = await Promise.all([
+                getReportDetails(values),
+                getMasterInstitution()
+            ]);
             const safeData = Array.isArray(result) ? result : [];
             console.info(safeData);
-            onReportGenerated(safeData, {});
+            onReportGenerated(safeData, institutionRes?.success ? institutionRes.data : null);
         } catch (error) {
             console.error('Error generating report:', error);
         }
@@ -206,13 +211,11 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                     </div>
 
                     <div className='flex justify-center gap-4 border-t pt-4'>
-                        <Button type='submit' disabled={isSubmitting} className='flex w-fit'>
-                            {isSubmitting && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+                        <Button type='submit' disabled={isSubmitting} className='flex w-fit' isLoading={isSubmitting}>
                             Report
                         </Button>
                         <Button type='button' variant='outline' onClick={handleCancel} className='flex w-fit'>
-                            <X className='mr-2 h-4 w-4' />
-                            Cancel
+                            Clear
                         </Button>
                     </div>
                 </form>

@@ -11,6 +11,7 @@ import { use } from 'react';
 import AddMasterEventForm from './_components/add-form';
 import { MasterEventColumns } from './_components/columns';
 import UpdateMasterEventForm from './_components/update-form';
+import ToggleMasterEventForm from './_components/toggle-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -39,10 +40,12 @@ function MasterEventPageContent({
     const {
         isAddFormOpen,
         isEditFormOpen,
+        isToggleFormOpen,
         selectedRow,
         openAddForm,
         closeAddForm,
         closeEditForm,
+        closeToggleForm,
         addFormRef,
         editFormRef
     } = useFormContext<IMasterEvent>();
@@ -83,57 +86,76 @@ function MasterEventPageContent({
                 </CollapsibleSection>
 
                 {/* Forms */}
-                <>
-                    {/* Add Form */}
-                    {isAddFormOpen && (
-                        <div ref={addFormRef}>
-                            <CollapsibleSection
-                                title='Add New Master Event'
-                                description='Fill in the details below to create a new master event'
-                                defaultOpen={true}
-                                variant='outline'
-                                size='md'
-                                className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                                <div className='relative'>
-                                    <Button
-                                        type='button'
-                                        onClick={closeAddForm}
-                                        variant='ghost'
-                                        size='sm'
-                                        className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                        <X className='h-4 w-4 text-destructive' /> Close
-                                    </Button>
-                                    <AddMasterEventForm onSuccess={closeAddForm} />
-                                </div>
-                            </CollapsibleSection>
-                        </div>
-                    )}
+                {/* Add Form */}
+                {isAddFormOpen && (
+                    <div ref={addFormRef}>
+                        <CollapsibleSection
+                            title='Add New Master Event'
+                            description='Fill in the details below to create a new master event'
+                            defaultOpen={true}
+                            variant='outline'
+                            size='md'
+                            className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                            <div className='relative'>
+                                <Button
+                                    type='button'
+                                    onClick={closeAddForm}
+                                    variant='ghost'
+                                    size='sm'
+                                    className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                    <X className='h-4 w-4 text-destructive' /> Close
+                                </Button>
+                                <AddMasterEventForm
+                                    onSuccess={() => {
+                                        refetchAll();
+                                        closeAddForm();
+                                    }}
+                                />
+                            </div>
+                        </CollapsibleSection>
+                    </div>
+                )}
 
-                    {/* Edit Form */}
-                    {isEditFormOpen && selectedRow && (
-                        <div ref={editFormRef}>
-                            <CollapsibleSection
-                                title='Edit Master Event'
-                                defaultOpen={true}
-                                variant='outline'
-                                size='md'
-                                className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'>
-                                <div className='relative'>
-                                    <Button
-                                        type='button'
-                                        onClick={closeEditForm}
-                                        variant='ghost'
-                                        size='sm'
-                                        className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                        <X className='h-4 w-4 text-destructive' /> Close
-                                    </Button>
-                                    <UpdateMasterEventForm selectedRow={selectedRow} onSuccess={closeEditForm} />
-                                </div>
-                            </CollapsibleSection>
-                        </div>
-                    )}
-                </>
+                {/* Edit Form */}
+                {isEditFormOpen && selectedRow && (
+                    <div ref={editFormRef}>
+                        <CollapsibleSection
+                            title='Edit Master Event'
+                            defaultOpen={true}
+                            variant='outline'
+                            size='md'
+                            className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'>
+                            <div className='relative'>
+                                <Button
+                                    type='button'
+                                    onClick={closeEditForm}
+                                    variant='ghost'
+                                    size='sm'
+                                    className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                    <X className='h-4 w-4 text-destructive' /> Close
+                                </Button>
+                                <UpdateMasterEventForm
+                                    selectedRow={selectedRow}
+                                    onSuccess={() => {
+                                        refetchAll();
+                                        closeEditForm();
+                                    }}
+                                />
+                            </div>
+                        </CollapsibleSection>
+                    </div>
+                )}
+
+
+                {/* Toggle Form */}
+                {isToggleFormOpen && selectedRow && (
+                    <ToggleMasterEventForm
+                        rowData={selectedRow}
+                        onClose={closeToggleForm}
+                        onSuccess={refetchAll}
+                    />
+                )}
             </div>
-        </div>
+        </div >
     );
 }

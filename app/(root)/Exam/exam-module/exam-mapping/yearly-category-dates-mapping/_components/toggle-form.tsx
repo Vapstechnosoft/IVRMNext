@@ -39,7 +39,7 @@ export default function ToggleCategoryForm({ rowData, onClose }: ToggleCategoryF
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await toggleMasterExamCategory(30, rowData.emcA_Id);
+            const response = await toggleMasterExamCategory(rowData.emcA_Id);
             if (response.success) {
                 toast.success(response.message || 'Category status updated successfully');
                 refetchAll();

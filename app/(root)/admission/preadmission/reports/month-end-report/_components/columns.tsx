@@ -1,13 +1,11 @@
-import { BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Tooltip } from 'chart.js';
-import { Bar } from 'react-chartjs-2';
-
-ChartJS.register(CategoryScale, LinearScale, BarElement, Legend, Tooltip);
+import { Bar, BarChart, CartesianGrid, Legend, Tooltip as RechartsTooltip, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 
 const getMonthName = (monthNumber: number) => {
     return new Date(0, monthNumber - 1).toLocaleString('en-US', {
         month: 'long'
     });
 };
+
 interface ReportItem {
     name: string;
     count?: number;
@@ -24,41 +22,31 @@ interface Props {
     year: number;
     academicYear: number;
     implementationName: string;
+    logoBase64?: string;
 }
 
-export default function AdmissionMonthEndReport({ reportData, month, year, implementationName }: Props) {
+export default function AdmissionMonthEndReport({ reportData, month, year, implementationName, logoBase64 = '/school-logo.png' }: Props) {
     const todayDate = new Date().toLocaleDateString('en-GB', {
         day: '2-digit',
         month: 'short',
         year: 'numeric'
     });
 
-    const chartData = {
-        labels: reportData.map((x) => x.name),
-        datasets: [
-            {
-                label: 'Count',
-                data: reportData.map((x) => x.count)
-            }
-        ]
-    };
+    const chartData = reportData.map((x) => ({
+        name: x.name,
+        count: x.count || 0
+    }));
 
     return (
         <div className='w-full p-5 font-sans'>
             {/* HEADER */}
             <div className='mb-6 text-center'>
-                <img src='/school-logo.png' alt='logo' className='mx-auto mb-3 w-[90px]' />
+                <div className='mx-auto mb-3 w-[150px]'>
+                    {logoBase64 && <img src={logoBase64} className='w-full h-auto object-contain' alt="Logo" />}
+                </div>
 
-                <h2 className='m-0 font-bold text-lg'>VIDYA VIKASA PRIMARY / HIGHER PRIMARY AND HIGH SCHOOL</h2>
-
-                <p className='m-0 text-sm leading-5'>
-                    Basaveshwara Talkies Road, Mob: 7090808194, Tel: 08194 220904 <br />
-                    Chitradurga - 577501, Karnataka
-                </p>
-
-                <h3 className='mt-5 mb-3 font-semibold text-base'>ADMISSION MODULE</h3>
                 <h2 className='font-semibold text-base'>
-                    <h2 className='font-bold text-xl'>{getMonthName(Number(month)).toUpperCase()} MONTH END REPORT</h2>
+                    <span className='font-bold text-xl'>{getMonthName(Number(month)).toUpperCase()} MONTH END REPORT</span>
                 </h2>
             </div>
 
@@ -87,14 +75,14 @@ export default function AdmissionMonthEndReport({ reportData, month, year, imple
             <table className='mb-10 w-full border-collapse'>
                 <thead>
                     <tr className='bg-blue-600 text-white'>
-                        <th className='border p-2 text-sm'>SL.No</th>
-                        <th className='border p-2 text-sm'>Name</th>
-                        <th className='border p-2 text-sm'>Count</th>
-                        <th className='border p-2 text-sm'>SMS</th>
-                        <th className='border p-2 text-sm'>Email Id</th>
-                        <th className='border p-2 text-sm'>Missing Photo</th>
-                        <th className='border p-2 text-sm'>Missing Email</th>
-                        <th className='border p-2 text-sm'>Missing Contact No.</th>
+                        <th className='border p-2 text-sm font-bold'>SL.No</th>
+                        <th className='border p-2 text-sm font-bold'>Name</th>
+                        <th className='border p-2 text-sm font-bold'>Count</th>
+                        <th className='border p-2 text-sm font-bold'>SMS</th>
+                        <th className='border p-2 text-sm font-bold'>Email Id</th>
+                        <th className='border p-2 text-sm font-bold'>Missing Photo</th>
+                        <th className='border p-2 text-sm font-bold'>Missing Email</th>
+                        <th className='border p-2 text-sm font-bold'>Missing Contact No.</th>
                     </tr>
                 </thead>
 
@@ -119,8 +107,17 @@ export default function AdmissionMonthEndReport({ reportData, month, year, imple
 
             {/* CHART + SIGNATURE SECTION */}
             <div className='flex gap-8'>
-                <div className='flex-1'>
-                    <Bar data={chartData} />
+                <div className='h-[300px] flex-1'>
+                    <ResponsiveContainer width='100%' height='100%'>
+                        <BarChart data={chartData}>
+                            <CartesianGrid strokeDasharray='3 3' />
+                            <XAxis dataKey='name' />
+                            <YAxis />
+                            <RechartsTooltip />
+                            <Legend />
+                            <Bar dataKey='count' fill='#3b82f6' />
+                        </BarChart>
+                    </ResponsiveContainer>
                 </div>
 
                 <div className='flex-1 pt-12'>

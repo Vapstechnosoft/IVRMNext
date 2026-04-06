@@ -39,7 +39,6 @@ export default function UpdateCoScholasticActivityForm({
         mode: 'onChange',
         defaultValues: {
             ecacT_Id: 0,
-            mI_Id: 30,
             ecacT_SkillName: '',
             ecacT_SkillCode: ''
         }
@@ -50,7 +49,6 @@ export default function UpdateCoScholasticActivityForm({
         if (row) {
             reset({
                 ecacT_Id: row.ecacT_Id,
-                mI_Id: row.mI_Id ?? 30,
                 ecacT_SkillName: row.ecacT_SkillName ?? '',
                 ecacT_SkillCode: row.ecacT_SkillCode ?? ''
             });
@@ -61,8 +59,7 @@ export default function UpdateCoScholasticActivityForm({
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             const payload = {
-                ...data,
-                mI_Id: 30
+                ...data
             };
 
             const response = await addOrUpdatecoScholasticActivity(payload);
@@ -85,7 +82,6 @@ export default function UpdateCoScholasticActivityForm({
         if (row) {
             reset({
                 ecacT_Id: row.ecacT_Id,
-                mI_Id: row.mI_Id ?? 30,
                 ecacT_SkillName: row.ecacT_SkillName ?? '',
                 ecacT_SkillCode: row.ecacT_SkillCode ?? ''
             });
@@ -104,7 +100,7 @@ export default function UpdateCoScholasticActivityForm({
                         error={errors.ecacT_SkillName?.message}
                         onInput={(e) => {
                             const input = e.currentTarget; // <-- HTMLInputElement
-                            input.value = input.value.replace(/[^A-Za-z0-9 ]/g, '');
+                            input.value = input.value.replace(/[^A-Za-z0-9\s]/g, '');
                         }}
                     />
                     <InputText
@@ -114,7 +110,7 @@ export default function UpdateCoScholasticActivityForm({
                         error={errors.ecacT_SkillCode?.message}
                         onInput={(e) => {
                             const input = e.currentTarget; // <-- HTMLInputElement
-                            input.value = input.value.replace(/[^A-Za-z0-9 ]/g, '');
+                            input.value = input.value.replace(/[^A-Za-z0-9\s]/g, '');
                         }}
                     />
                 </div>

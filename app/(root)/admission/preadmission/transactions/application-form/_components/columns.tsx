@@ -24,7 +24,7 @@ import ToggleStudentApplicationForm from './toggle-form';
 export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicationList>[] = [
     {
         accessorKey: 'pasr_id',
-        header: ({ column }) => <DataTableColumnHeader className='w-full pl-6' column={column} title='Sl.No' />,
+        header: ({ column }) => <DataTableColumnHeader className='w-full pl-6 font-bold text-blue-600' column={column} title='Sl.No' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -36,56 +36,56 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
     },
     {
         accessorKey: 'pasR_RegistrationNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Application No' />,
+        header: ({ column }) => <DataTableColumnHeader className='font-bold text-blue-600' column={column} title='Application No' />,
         cell: ({ row }) => <div>{row.getValue('pasR_RegistrationNo') ?? 'N.A'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'student_name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
+        header: ({ column }) => <DataTableColumnHeader className='font-bold text-blue-600' column={column} title='Student Name' />,
         cell: ({ row }) => <div>{row.getValue('student_name')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'pasR_Sex',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Gender' />,
+        header: ({ column }) => <DataTableColumnHeader className='font-bold text-blue-600' column={column} title='Gender' />,
         cell: ({ row }) => <div>{row.getValue('pasR_Sex')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'applied_class_name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Applied Class' />,
+        header: ({ column }) => <DataTableColumnHeader className='font-bold text-blue-600' column={column} title='Applied Class' />,
         cell: ({ row }) => <div>{row.getValue('applied_class_name')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'application_status',
-        header: ({ column }) => <DataTableColumnHeader className='text-nowrap' column={column} title='Application Status' />,
+        header: ({ column }) => <DataTableColumnHeader className='text-nowrap font-bold text-blue-600' column={column} title='Application Status' />,
         cell: ({ row }) => <div>{row.getValue('application_status')}</div>,
         enableSorting: false,
         enableHiding: true
     },
     {
         accessorKey: 'admission_status',
-        header: ({ column }) => <DataTableColumnHeader className='text-nowrap' column={column} title='Admission Status' />,
+        header: ({ column }) => <DataTableColumnHeader className='text-nowrap font-bold text-blue-600' column={column} title='Admission Status' />,
         cell: ({ row }) => <div>{row.getValue('admission_status')}</div>,
         enableSorting: false,
         enableHiding: true
     },
     {
         accessorKey: 'applied_by',
-        header: ({ column }) => <DataTableColumnHeader className='text-nowrap' column={column} title='User Name' />,
+        header: ({ column }) => <DataTableColumnHeader className='text-nowrap font-bold text-blue-600' column={column} title='User Name' />,
         cell: ({ row }) => <div>{row.getValue('applied_by')}</div>,
         enableSorting: false,
         enableHiding: true
     },
     {
         accessorKey: 'application_form',
-        header: ({ column }) => <DataTableColumnHeader className='text-nowrap' column={column} title='Application Form' />,
+        header: ({ column }) => <DataTableColumnHeader className='text-nowrap font-bold text-blue-600' column={column} title='Application Form' />,
         cell: ({ row }) => {
             const appId = row.original.pasr_id;
             const [showPdfModal, setShowPdfModal] = useState(false);
@@ -104,8 +104,8 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
                                 typeof data?.data === 'string'
                                     ? data.data
                                     : Array.isArray(data?.data)
-                                      ? ((data.data[0] as unknown as string) ?? null)
-                                      : null;
+                                        ? ((data.data[0] as unknown as string) ?? null)
+                                        : null;
                             setPdfBase64(base64);
                         },
                         onError: (error) => {
@@ -146,7 +146,7 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
                                     e.preventDefault();
                                 }}>
                                 <DialogHeader className='p-0'>
-                                    <DialogTitle className='pt-3 text-center font-semibold text-lg'>
+                                    <DialogTitle className='pt-3 text-center font-bold text-lg'>
                                         Pre Admission Application Form
                                     </DialogTitle>
                                 </DialogHeader>
@@ -197,7 +197,7 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader className='text-center' column={column} title='Actions' />,
+        header: ({ column }) => <DataTableColumnHeader className='text-center font-bold text-blue-600' column={column} title='Actions' />,
         accessorFn: (row: any) => {
             return row;
         },

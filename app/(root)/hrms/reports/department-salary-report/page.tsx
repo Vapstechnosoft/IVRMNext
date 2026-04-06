@@ -67,10 +67,13 @@ export default function DepartmentSalaryReportPage() {
 
     // Watch for success
     useEffect(() => {
-        if (reportResult && reportResult.data && reportResult.data.departmentSalaryDetails) {
-            setReportData(reportResult.data);
-        } else if (reportResult) {
-            setReportData(null);
+        if (reportResult) {
+            if (reportResult.data?.departmentSalaryDetails?.length > 0) {
+                setReportData(reportResult.data);
+            } else {
+                setReportData(null);
+                toast.info('No Data Found');
+            }
         }
     }, [reportResult]);
 
@@ -89,8 +92,8 @@ export default function DepartmentSalaryReportPage() {
         }
 
         // Prepare IDs
-        let gIds = data.groupType.includes('All') ? groupTypesData?.data?.map((g: any) => g.HRMGT_Id || g.hrmgT_Id).join(',') : data.groupType.join(',');
-        let dIds = data.department.includes('All') ? departmentsData?.data?.map((d: any) => d.HRMD_Id || d.hrmD_Id).join(',') : data.department.join(',');
+        const gIds = data.groupType.includes('All') ? groupTypesData?.data?.map((g: any) => g.HRMGT_Id || g.hrmgT_Id).join(',') : data.groupType.join(',');
+        const dIds = data.department.includes('All') ? departmentsData?.data?.map((d: any) => d.HRMD_Id || d.hrmD_Id).join(',') : data.department.join(',');
         let desIds = '';
         if (data.designation && data.designation.length > 0) {
             desIds = data.designation.includes('All') ? designationsData?.data?.map((d: any) => d.HRMDES_Id || d.hrmdeS_Id).join(',') : data.designation.join(',');
@@ -148,7 +151,7 @@ export default function DepartmentSalaryReportPage() {
     if (!isClient) return null;
 
     return (
-        <div className='min-h-screen p-4 space-y-6'>
+        <div className='container min-h-screen space-y-4 p-2'>
             <CollapsibleSection defaultOpen={true} title="Department Salary Report">
                 <form onSubmit={handleSubmit(onSubmit)} className='space-y-6 p-4'>
                     <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
@@ -202,7 +205,7 @@ export default function DepartmentSalaryReportPage() {
                             <Label>Department <span className='text-red-500'>*</span></Label>
                             <Controller name='department' control={control} render={({ field }) => (
                                 <MultiSelect
-                                    options={[{ label: 'All', value: 'All' }, ...(departmentsData?.data || []).map((d: any) => ({ label: d.HRMD_DepartmentName || d.hrmD_DepartmentName, value: d.HRMD_Id?.toString() || d.hrmD_Id?.toString() || '' }))]}
+                                    options={[ ...(departmentsData?.data || []).map((d: any) => ({ label: d.HRMD_DepartmentName || d.hrmD_DepartmentName, value: d.HRMD_Id?.toString() || d.hrmD_Id?.toString() || '' }))]}
                                     onValueChange={field.onChange}
                                     defaultValue={field.value}
                                     placeholder="Select Department"
@@ -212,10 +215,11 @@ export default function DepartmentSalaryReportPage() {
                         </div>
                         {/* Designation */}
                         <div className='space-y-2'>
-                            <Label>Designation</Label>
+                            {/* <Label>Designation</Label> */}
+                            <Label>Designation <span className='text-red-500'>*</span></Label>
                             <Controller name='designation' control={control} render={({ field }) => (
                                 <MultiSelect
-                                    options={[{ label: 'All', value: 'All' }, ...(designationsData?.data || []).map((d: any) => ({ label: d.HRMDES_DesignationName || d.hrmdeS_DesignationName, value: d.HRMDES_Id?.toString() || d.hrmdeS_Id?.toString() || '' }))]}
+                                    options={[ ...(designationsData?.data || []).map((d: any) => ({ label: d.HRMDES_DesignationName || d.hrmdeS_DesignationName, value: d.HRMDES_Id?.toString() || d.hrmdeS_Id?.toString() || '' }))]}
                                     onValueChange={field.onChange}
                                     defaultValue={field.value}
                                     placeholder="Select Designation"

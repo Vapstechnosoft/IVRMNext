@@ -1,24 +1,52 @@
 'use client';
 
-import { use } from 'react';
+import { use, useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, ShoppingCart, PlusCircle, Pencil } from 'lucide-react';
 import { useInvTSales } from '@/hooks/inventory/transactions/use-inv-t-sales';
 import type { IInvTSales } from '@/types/inventory/transactions/inv-t-sales';
 import AddSalesForm from './_components/add-form';
-import { getColumns } from './_components/columns';
-// import UpdateSalesForm from './_components/update-form';
+import { getInvTSalesColumns } from './_components/columns';
+import UpdateSalesForm from './_components/update-form';
 // import ViewSalesDetailsModal from './_components/view-details-modal';
+import { ToggleSalesModal } from './_components/toggle-modal';
+import { ViewReceiptModal } from './_components/view-receipt-modal';
 import { Heading } from '@/components/layout/heading';
+import { ViewReceiptItemModal } from './_components/view-receipt-item-modal';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
+import { tableSearchVariables } from '@/lib/data-table.config';
+
 export default function InvTSalesPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useInvTSales(searchParams);
+
+    // Pagination & Search State synced with URL
+    const [currentPage] = useQueryState(
+        tableSearchVariables.page,
+        parseAsInteger.withOptions({ shallow: false }).withDefault(1)
+    );
+    const [pageSize] = useQueryState(
+        tableSearchVariables.page_size,
+        parseAsInteger.withOptions({ shallow: false }).withDefault(10)
+    );
+    const [searchQuery] = useQueryState(
+        tableSearchVariables.search,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
+
+    const queryParams = {
+        ...searchParams,
+        page: currentPage,
+        page_size: pageSize,
+        search_query: searchQuery
+    };
+
+    const { data: response, isLoading, error } = useInvTSales(queryParams);
 
     return (
         <FormProvider<IInvTSales>>
@@ -43,35 +71,36 @@ function InvTSalesPageContent({
     const {
         openAddForm,
         openEditForm,
-        openDeleteForm,
         openToggleForm,
         openDetailsView,
         selectedRow,
         isDetailsViewOpen,
-        closeDetailsView
+        closeDetailsView,
+        isToggleFormOpen,
+        closeToggleForm
     } = useFormContext<IInvTSales>();
 
-    const { deleteMutation, toggleActiveMutation } = useInvTSales();
+    const [isItemViewOpen, setIsItemViewOpen] = useState(false);
+    const [itemRowData, setItemRowData] = useState<IInvTSales | null>(null);
 
-    const columns = getColumns({
-        onEdit: openEditForm,
-        onDelete: (item) => {
-            if (confirm('Are you sure you want to delete this Sales record?')) {
-                deleteMutation.mutate(item);
-            }
-        },
-        onToggleActive: (item) => {
-            if (confirm(`Are you sure you want to ${item.invmsL_ActiveFlg ? 'deactivate' : 'activate'} this Sales record?`)) {
-                toggleActiveMutation.mutate(item);
-            }
-        },
-        onView: openDetailsView
-    });
+    const handleViewItem = (row: IInvTSales) => {
+        setItemRowData(row);
+        setIsItemViewOpen(true);
+    };
+
+    const closeViewItem = () => {
+        setIsItemViewOpen(false);
+        setItemRowData(null);
+    };
+
+    // const { deleteMutation, toggleActiveMutation } = useInvTSales(); // Moved to columns component
 
     const tableProps = useDataTableProps(response?.data, {
         dataKey: 'get_Sale',
         totalKey: 'total'
     });
+
+    const columns = useMemo(() => getInvTSalesColumns(handleViewItem), []);
 
     return (
         <div className='min-h-screen'>
@@ -97,13 +126,15 @@ function InvTSalesPageContent({
                     defaultOpen={true}
                     variant='default'
                     size='lg'
-                    className='shadow-lg'>
+                    className='shadow-lg'
+                    icon={<ShoppingCart className='h-5 w-5' />}>
                     <GenericDataTable<IInvTSales>
                         {...tableProps}
                         data={response?.data?.get_Sale || []}
                         columns={columns}
                         isLoading={isLoading}
                         error={error}
+                        isSearchRequired={true}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading Sales records...'
                         noDataTitle='No Sales Found'
@@ -112,13 +143,23 @@ function InvTSalesPageContent({
                     />
                 </CollapsibleSection>
 
-                {/* {isDetailsViewOpen && selectedRow && (
-                    <ViewSalesDetailsModal
+                {isToggleFormOpen && selectedRow && (
+                    <ToggleSalesModal rowData={selectedRow} onClose={closeToggleForm} />
+                )}
+
+                {isDetailsViewOpen && selectedRow && (
+                    <ViewReceiptModal
                         rowData={selectedRow}
-                        isOpen={isDetailsViewOpen}
                         onClose={closeDetailsView}
                     />
-                )} */}
+                )}
+
+                {isItemViewOpen && itemRowData && (
+                    <ViewReceiptItemModal
+                        rowData={itemRowData}
+                        onClose={closeViewItem}
+                    />
+                )}
             </div>
         </div>
     );
@@ -145,7 +186,8 @@ function FormSections() {
                         defaultOpen={true}
                         variant='outline'
                         size='md'
-                        className='animate-in slide-in-from-top-4 duration-300 shadow-md mb-6'>
+                        className='animate-in slide-in-from-top-4 duration-300 shadow-md mb-6'
+                        icon={<PlusCircle className='h-5 w-5' />}>
                         <div className='relative'>
                             <Button
                                 type='button'
@@ -168,7 +210,8 @@ function FormSections() {
                         defaultOpen={true}
                         variant='outline'
                         size='md'
-                        className='animate-in slide-in-from-top-4 duration-300 shadow-md mb-6 border-primary/20'>
+                        className='animate-in slide-in-from-top-4 duration-300 shadow-md mb-6 border-primary/20'
+                        icon={<Pencil className='h-5 w-5' />}>
                         <div className='relative'>
                             <Button
                                 type='button'
@@ -178,8 +221,8 @@ function FormSections() {
                                 className='absolute top-[-3.5rem] right-0 hover:bg-destructive/10 text-destructive'>
                                 <X className='h-4 w-4 mr-1' /> Close
                             </Button>
-                            {/* <UpdateSalesForm selectedRow={selectedRow} onSuccess={closeEditForm} /> */}
-                            <div>Update Form Placeholder</div>
+                            <UpdateSalesForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                            {/* <div>Update Form Placeholder</div> */}
                         </div>
                     </CollapsibleSection>
                 </div>

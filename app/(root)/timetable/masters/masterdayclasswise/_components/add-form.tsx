@@ -7,14 +7,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import {
     useAcademicYearDropDownMasterDayClasswise,
     useCategtoryDropDownMasterDayClasswise,
-    useClassDropDownMasterDayClasswise,
     useDayDropDownMasterDayClasswise,
     useMasterDayClasswiseDetails
 } from '@/hooks/timetable/useMasters';
 import { cn } from '@/lib/utils';
 import { masterDayClasswiseSchema } from '@/schemas/timetable/masters';
-import { getClassDropDownMasterDayClasswiseOnchnageofCatandyr } from '@/server/timetable/masters/masterdayclasswise';
-import { savePeriodClass } from '@/server/timetable/masters/periodallocation';
+import { ClassDropDownDataOnchnGeYrAndCategory, addOrUpdateMasterDayClasswise } from '@/server/timetable/masters/masterdayclasswise';
 import type { ClassDropDownDataTT } from '@/types/timetable/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckSquare, Save, Square } from 'lucide-react';
@@ -31,15 +29,12 @@ interface MasterPeriodClassFormProps {
 
 export default function MasterDayClassWiseAddForm({ onSuccess }: MasterPeriodClassFormProps) {
     const { refetchAll } = useMasterDayClasswiseDetails();
-    const [classList, setClassList] = useState<any[]>([]);
-
     const [classSearch, setClassSearch] = useState('');
     const [daySearch, setDaySearch] = useState('');
-
     const [isLoadingClasses, setIsLoadingClasses] = useState(false);
-
     const [selectedcalssidsItems, setSelectedcalssidsItems] = useState<{ asmcL_Id: string }[]>([]);
-    const [overrideClassData, setOverrideClassData] = useState<ClassDropDownDataTT[] | null>(null);
+    const [overrideClassData, setOverrideClassData] = useState<ClassDropDownDataTT[]>([]);
+
     const {
         data: academicList,
         isLoading: academicLoading,
@@ -54,15 +49,12 @@ export default function MasterDayClassWiseAddForm({ onSuccess }: MasterPeriodCla
         refetchAll: categoryRefetch
     } = useCategtoryDropDownMasterDayClasswise();
 
-    const { data: classData, isLoading: classloading, error: classError, refetchAll: classRefetch } = useClassDropDownMasterDayClasswise();
-
     const {
         data: Masterdaydata,
         isLoading: masterdaydataloading,
         error: masterdaydataError,
         refetchAll: masterdaydataRefetch
     } = useDayDropDownMasterDayClasswise();
-    // Convert calssids API to { label, id }
 
     const {
         register,
@@ -74,22 +66,68 @@ export default function MasterDayClassWiseAddForm({ onSuccess }: MasterPeriodCla
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterDayClasswiseSchema.addOrUpdate),
+        //  defaultValues: {}
         defaultValues: {
-            // noOfPeriods: 1
+            asmay_id: undefined,
+            ttmC_Id: undefined,
+            calssids: undefined,
+            dayids: undefined
         }
     });
 
-    const finalClassData = overrideClassData ?? classData?.data ?? [];
+    const academicyear = watch('asmay_id');
+    const category = watch('ttmC_Id');
 
-    const classOptions =
-        classData?.data?.map((h) => ({
-            id: h.asmcL_Id.toString(),
-            label: h.asmcL_ClassName
-        })) ?? [];
+    // Fetch classes when academic year or category changes
+    useEffect(() => {
+        if (academicyear && category) {
+            const fetchClasses = async () => {
+                try {
+                    setIsLoadingClasses(true);
+                    const res = await ClassDropDownDataOnchnGeYrAndCategory(academicyear, category);
+
+                    console.log('getClassDropDownMasterDayClasswiseOnchnageofCatandyr res', res);
+
+                    if (res?.success && Array.isArray(res.data)) {
+                        setOverrideClassData(res.data);
+                    } else {
+                        setOverrideClassData([]);
+                    }
+
+                    // Reset class selection when data changes
+                    setValue('calssids', undefined as any);
+                    setSelectedcalssidsItems([]);
+                    setClassSearch('');
+                } catch (err) {
+                    console.error('Error fetching classes', err);
+                    setOverrideClassData([]);
+                } finally {
+                    setIsLoadingClasses(false);
+                }
+            };
+            fetchClasses();
+        } else {
+            // Clear class data if either academic year or category is not selected
+            setOverrideClassData([]);
+            setValue('calssids', undefined as any);
+            setSelectedcalssidsItems([]);
+        }
+    }, [academicyear, category]); // Add dependencies here
+
+    // Convert class data to options format
+    const classOptions = overrideClassData.map((h: ClassDropDownDataTT) => ({
+        id: h.asmcL_Id.toString(),
+        label: h.asmcL_ClassName
+    }));
 
     // Define form value for calss_ids
     const calss_ids = watch('calssids') || [];
     const day_ids = watch('dayids') || [];
+
+    // Filter classes based on search
+    const filteredcalssids = overrideClassData.filter((h: ClassDropDownDataTT) =>
+        h.asmcL_ClassName.toLowerCase().includes(classSearch.toLowerCase())
+    );
 
     const toggleClass = (id: string) => {
         let updated = [];
@@ -112,26 +150,14 @@ export default function MasterDayClassWiseAddForm({ onSuccess }: MasterPeriodCla
         setSelectedcalssidsItems(updated.map((x) => ({ asmcL_Id: x })));
     };
 
-    // const selectAllcalssids = () => {
-    //     const all = classOptions.map((h) => h.id);
-
-    //     if (calss_ids.length === all.length) {
-    //         // Option: clear selection → field becomes undefined
-    //         setValue('calssids', undefined as any);
-    //         setSelectedcalssidsItems([]);
-    //     } else {
-    //         setValue('calssids', all as [string, ...string[]], {
-    //             shouldValidate: true
-    //         });
-    //         setSelectedcalssidsItems(all.map((x) => ({ asmcL_Id: x })));
-    //     }
-    // };
-
     const selectAllcalssids = () => {
         // Decide source based on search
-        const source = classSearch.trim().length > 0 ? filteredcalssids.map((h) => h.asmcL_Id.toString()) : classOptions.map((h) => h.id);
+        const source =
+            classSearch.trim().length > 0
+                ? filteredcalssids.map((h: ClassDropDownDataTT) => h.asmcL_Id.toString())
+                : classOptions.map((h) => h.id);
 
-        const isAllSelected = source.every((id) => calss_ids.includes(id));
+        const isAllSelected = source.every((id: string) => calss_ids.includes(id));
 
         if (isAllSelected) {
             // Unselect only the affected items
@@ -139,10 +165,12 @@ export default function MasterDayClassWiseAddForm({ onSuccess }: MasterPeriodCla
 
             if (remaining.length === 0) {
                 setValue('calssids', undefined as any);
+                setSelectedcalssidsItems([]);
             } else {
                 setValue('calssids', remaining as [string, ...string[]], {
                     shouldValidate: true
                 });
+                setSelectedcalssidsItems(remaining.map((x) => ({ asmcL_Id: x })));
             }
         } else {
             // Merge current + source (avoid duplicates)
@@ -151,16 +179,9 @@ export default function MasterDayClassWiseAddForm({ onSuccess }: MasterPeriodCla
             setValue('calssids', merged as [string, ...string[]], {
                 shouldValidate: true
             });
+            setSelectedcalssidsItems(merged.map((x) => ({ asmcL_Id: x })));
         }
-
-        setSelectedcalssidsItems(
-            (classSearch.trim().length > 0 ? filteredcalssids : classData?.data || []).map((x) => ({
-                asmcL_Id: x.asmcL_Id.toString()
-            }))
-        );
     };
-
-    const filteredcalssids = classData?.data?.filter((h) => h.asmcL_ClassName.toLowerCase().includes(classSearch.toLowerCase())) ?? [];
 
     const filteredDayIds = Masterdaydata?.data?.filter((d) => d.ttmD_DayName.toLowerCase().includes(daySearch.toLowerCase())) ?? [];
 
@@ -208,70 +229,28 @@ export default function MasterDayClassWiseAddForm({ onSuccess }: MasterPeriodCla
         }
     };
 
-    const watchedAcademicYear = watch('asmay_id');
-    const watchedCategory = watch('ttmC_Id');
-
-    useEffect(() => {
-        const fetchClassesOnCategoryChange = async () => {
-            if (!watchedAcademicYear || !watchedCategory) return;
-
-            try {
-                setIsLoadingClasses(true);
-
-                const res = await getClassDropDownMasterDayClasswiseOnchnageofCatandyr(watchedAcademicYear, watchedCategory);
-
-                // ✅ override class dropdown data
-                if (res?.data?.length) {
-                    setOverrideClassData(res.data);
-                } else {
-                    setOverrideClassData([]);
-                }
-
-                // reset selection
-                setValue('calssids', undefined as any);
-                setClassSearch('');
-            } catch (err) {
-                console.error('Error fetching classes on category change', err);
-                setOverrideClassData([]);
-            } finally {
-                setIsLoadingClasses(false);
-            }
-        };
-
-        fetchClassesOnCategoryChange();
-    }, [watchedCategory]);
-
     const onSubmit = async (data: FormFields) => {
         try {
+            const temp_day_Arraydata = data.dayids.map((id) => ({ ttmD_Id: Number(id) }));
+            const temp_day_Classdata = data.calssids.map((id) => ({ asmcL_Id: Number(id) }));
             const payload = {
-                TTMPC_Id: 0,
-                // temp_period_Array: periods.map((p) => ({
-                //     ttmP_Id: p.ttmP_Id,
-                //     ttmP_PeriodName: p.ttmP_PeriodName
-                // })),
-                ASMAY_Id: data.asmay_id
-                // Temp_class_Array: data.classIds.map((c) => ({
-                //     asmcL_Id: c.asmcL_Id,
-                //     asmcL_ClassName: c.asmcL_ClassName,
-                //     class: true // Mimic legacy structure if needed
-                // }))
+                ttmdC_Id: 0,
+                asmaY_Id: data.asmay_id,
+                temp_day_Array: temp_day_Arraydata,
+                temp_class_Array: temp_day_Classdata
+
+                // Add other required fields based on your schema
             };
 
-            const response = await savePeriodClass(payload);
-            if (response.returnval) {
-                // if (data.classIds.length > 1) {
-                //     toast.warning('Select Only One Class !!!'); // Mimic legacy behavior/alert if needed, though successfully saved maybe?
-                //     // Legacy code: if (promise.returnval === true) { ... if ($scope.checkclaaslst.length > 1) { swal('Select Only One Class !!!'); } ... }
-                //     // Does it actually prevent save? Logic seems mixed in legacy.
-                //     // It says "Data successfully Saved" otherwise.
-                // } else {
-                //     toast.success('Data successfully Saved');
-                // }
+            // TODO: Replace with actual save function for day class wise
+            const response = await addOrUpdateMasterDayClasswise(payload);
+            if (response.success) {
+                toast.success(response.message);
                 onSuccess?.();
-            } else if (response.returnduplicatestatus === 'Duplicate') {
-                toast.error('Records Already Exist !');
+                refetchAll();
+                handleReset();
             } else {
-                toast.error('Data Not Saved !');
+                toast.error(response.message);
             }
         } catch (error: any) {
             toast.error(error.message || 'An error occurred');
@@ -280,6 +259,22 @@ export default function MasterDayClassWiseAddForm({ onSuccess }: MasterPeriodCla
 
     const handleReset = () => {
         reset();
+        // //     asmay_id: null,
+        // //     ttmC_Id: null,
+        // //     calssids: [],
+        // //     dayids: []
+        // //   });
+        // academicRefetch();
+        // categoryRefetch();
+        // masterdaydataRefetch();
+        // setSelectedcalssidsItems([]);
+        // setClassSearch('');
+        // setDaySearch('');
+        // setIsLoadingClasses(false);
+
+        // // 🔥 IMPORTANT
+        // setOverrideClassData([]);
+        // setSelectedcalssidsItems([]);
     };
 
     return (
@@ -294,9 +289,9 @@ export default function MasterDayClassWiseAddForm({ onSuccess }: MasterPeriodCla
                         control={control}
                         render={({ field }) => (
                             <Select
-                                key={field.value || 'empty'}
+                                key={field.value?.toString() || 'empty'}
                                 onValueChange={(value) => {
-                                    field.onChange(Number(value) || '');
+                                    field.onChange(value ? Number(value) : '');
                                 }}
                                 value={field.value?.toString() || undefined}>
                                 <SelectTrigger className='w-full'>
@@ -334,20 +329,20 @@ export default function MasterDayClassWiseAddForm({ onSuccess }: MasterPeriodCla
                         control={control}
                         render={({ field }) => (
                             <Select
-                                key={field.value || 'empty'}
+                                key={field.value?.toString() || 'empty'}
                                 onValueChange={(value) => {
-                                    field.onChange(Number(value) || '');
+                                    field.onChange(value ? Number(value) : '');
                                 }}
                                 value={field.value?.toString() || undefined}>
                                 <SelectTrigger className='w-full'>
                                     <SelectValue placeholder='Select Category' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {academicLoading ? (
+                                    {categoryLoading ? (
                                         <SelectItem value='loading' disabled>
                                             Loading CategoryData
                                         </SelectItem>
-                                    ) : academicError ? (
+                                    ) : categoryError ? (
                                         <SelectItem value='error' disabled>
                                             Error loading CategoryData
                                         </SelectItem>
@@ -372,23 +367,23 @@ export default function MasterDayClassWiseAddForm({ onSuccess }: MasterPeriodCla
 
                     <div className='mt-2 rounded-md border border-gray-300 bg-white p-3'>
                         <InputText
-                            placeholder='Search calssids...'
+                            placeholder='Search classes...'
                             value={classSearch}
                             onChange={(e) => setClassSearch(e.target.value)}
                             className='mb-3'
                         />
 
-                        {/* Select All Users */}
-                        {classData?.data && (
+                        {/* Select All Classes */}
+                        {overrideClassData.length > 0 && (
                             <div
                                 onClick={selectAllcalssids}
                                 className={cn(
                                     'mb-2 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 font-medium text-sm transition-all',
-                                    calss_ids.length === classOptions.length && classOptions.length
+                                    calss_ids.length === classOptions.length && classOptions.length > 0
                                         ? 'border-primary bg-primary/5 text-primary'
                                         : 'border-gray-300 hover:border-primary/40'
                                 )}>
-                                {calss_ids.length === classOptions.length && classOptions.length ? (
+                                {calss_ids.length === classOptions.length && classOptions.length > 0 ? (
                                     <CheckSquare className='h-4 w-4 text-primary' />
                                 ) : (
                                     <Square className='h-4 w-4 text-gray-400' />
@@ -398,12 +393,14 @@ export default function MasterDayClassWiseAddForm({ onSuccess }: MasterPeriodCla
                         )}
 
                         <div className='max-h-40 overflow-y-auto rounded-md border border-gray-300 p-1'>
-                            {classloading ? (
-                                <div className='py-4 text-center text-gray-500 text-sm'>Loading Class...</div>
-                            ) : classData?.data?.length === 0 ? (
-                                <div className='py-4 text-center text-gray-500 text-sm'>No Class found</div>
+                            {isLoadingClasses ? (
+                                <div className='py-4 text-center text-gray-500 text-sm'>Loading Classes...</div>
+                            ) : !academicyear || !category ? (
+                                <div className='py-4 text-center text-gray-500 text-sm'>Please select Academic Year and Category first</div>
+                            ) : filteredcalssids.length === 0 ? (
+                                <div className='py-4 text-center text-gray-500 text-sm'>No classes found</div>
                             ) : (
-                                filteredcalssids.map((u) => {
+                                filteredcalssids.map((u: ClassDropDownDataTT) => {
                                     const id = u.asmcL_Id.toString();
                                     const selected = calss_ids.includes(id);
 
@@ -451,12 +448,12 @@ export default function MasterDayClassWiseAddForm({ onSuccess }: MasterPeriodCla
                                 className={cn(
                                     'mb-2 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 font-medium text-sm transition-all',
                                     day_ids.length === (daySearch.trim() ? filteredDayIds.length : Masterdaydata.data.length) &&
-                                        day_ids.length
+                                        day_ids.length > 0
                                         ? 'border-primary bg-primary/5 text-primary'
                                         : 'border-gray-300 hover:border-primary/40'
                                 )}>
                                 {day_ids.length === (daySearch.trim() ? filteredDayIds.length : Masterdaydata.data.length) &&
-                                day_ids.length ? (
+                                day_ids.length > 0 ? (
                                     <CheckSquare className='h-4 w-4 text-primary' />
                                 ) : (
                                     <Square className='h-4 w-4 text-gray-400' />
@@ -513,7 +510,7 @@ export default function MasterDayClassWiseAddForm({ onSuccess }: MasterPeriodCla
                 </Button>
                 <Button
                     type='submit'
-                    disabled={isSubmitting}
+                    // disabled={isSubmitting || !academicyear || !category || calss_ids.length === 0 || day_ids.length === 0}
                     className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
                     isLoading={isSubmitting}
                     loadingText='Saving...'>

@@ -52,21 +52,50 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
 
     // Helper function to map API response to dropdown items
     const mapToDropdownItems = (response: any) => {
-        const rawData = Array.isArray(response) ? response : response?.data || [];
+        let rawData: any[] = [];
+        if (Array.isArray(response)) {
+            rawData = response;
+        } else if (response?.data) {
+            if (Array.isArray(response.data)) {
+                rawData = response.data;
+            } else if (response.data?.$values && Array.isArray(response.data.$values)) {
+                rawData = response.data.$values;
+            } else if (typeof response.data === 'object') {
+                rawData = [response.data];
+            }
+        } else if (response?.$values && Array.isArray(response.$values)) {
+            rawData = response.$values;
+        }
+
         return rawData.map((item: any) => {
-            // If already has key/value, use them
-            if (item.key !== undefined && item.value !== undefined) {
-                return item;
+            if (!item || typeof item !== 'object') return { key: String(item || ''), value: String(item || '') };
+
+            const keyVal = item.key ?? item.id ?? item.idField ?? item.hrmedT_Id ?? item.HRMED_Id;
+            const displayVal = item.hrmedT_EarnDedType ?? item.HRMEDT_EarnDedType ?? item.name ?? item.text ?? item.label ?? item.value;
+
+            if (keyVal !== undefined && displayVal !== undefined) {
+                return { key: String(keyVal).trim(), value: String(displayVal).trim() };
             }
 
-            // Find potential ID field (ends with Id or ID, case insensitive)
-            const idField = Object.keys(item).find(k => /Id$/i.test(k));
-            // Find potential Name/Value field (ends with Name, Type, Description, or is specific field)
-            const valueField = Object.keys(item).find(k => /Name$|Type$|Desc$/i.test(k) && !/Id$/i.test(k));
+            const keys = Object.keys(item);
+            const idField = keys.find((k) => k.toLowerCase().endsWith('id'));
+            const nameField = keys.find(
+                (k) =>
+                    (k.toLowerCase().includes('type') ||
+                        k.toLowerCase().includes('name') ||
+                        k.toLowerCase().includes('flag') ||
+                        k.toLowerCase().includes('desc') ||
+                        k.toLowerCase().includes('text') ||
+                        k.toLowerCase().includes('label')) &&
+                    !k.toLowerCase().endsWith('id')
+            );
+
+            const finalKey = idField ? item[idField] : keyVal ?? (keys[0] ? item[keys[0]] : '');
+            const finalValue = nameField ? item[nameField] : displayVal ?? finalKey;
 
             return {
-                key: item[idField || ''] ?? item.key,
-                value: item[valueField || ''] ?? item.value
+                key: String(finalKey ?? '').trim(),
+                value: String(finalValue ?? '').trim()
             };
         });
     };
@@ -111,9 +140,6 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
         name: 'HRMED_AmountPercentFlag',
         defaultValue: 'Amount'
     });
-    useEffect(() => {
-        trigger('HRMED_AmountPercent');
-    }, [calculationType, trigger]);
     const onSubmit = async (data: MasterEarningsDeductionsInput) => {
         try {
             // Build the request body - map to lowercase field names as per API
@@ -190,16 +216,16 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
                                         ) : (
                                             (earningsDeductionsTypeDropdown || [])
                                                 .filter((item) => {
-                                                    const key = item.key || item.value;
-                                                    return key != null && key !== '' && String(key).trim() !== '';
+                                                    const val = item.value || item.key;
+                                                    return val != null && val !== '' && String(val).trim() !== '';
                                                 })
                                                 .map((item) => {
-                                                    const key = (item.key || item.value)?.toString().trim();
-                                                    const value = item.value || String(key);
+                                                    const key = (item.value || item.key)?.toString().trim();
+                                                    const label = item.value || String(key);
                                                     if (!key || key === '') return null;
                                                     return (
                                                         <SafeSelectItem key={key} value={key}>
-                                                            {value}
+                                                            {label}
                                                         </SafeSelectItem>
                                                     );
                                                 })

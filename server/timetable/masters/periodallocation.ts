@@ -11,23 +11,29 @@ export async function getAllPeriodDetails(searchParams?: ApiSearchparams) {
 }
 
 export async function savePeriod(data: any) {
-    const url = '/PeriodAllocation/saveperiod/';
+    const url = '/PeriodAllocationFacade/PeriodAllocationMasterPeriodSave';
     return await api.post<any>('timetable', url, data);
 }
 
+export async function savePeriodPeriodAllocation(data: any) {
+    const url = '/TimeTableCommon/AddOrUpdateMasterPeriod';
+    return await api.post<any>('timetable', url, data);
+}
+
+//Master Period Class save button
 export async function savePeriodClass(data: any) {
-    const url = '/PeriodAllocation/savedetail/';
+    const url = '/PeriodAllocationFacade/PeriodDistributionSavedetailClassWise';
     return await api.post<any>('timetable', url, data);
 }
 
-export async function deactivatePeriod(data: any) {
-    const url = '/PeriodAllocation/deactivate';
-    return await api.post<any>('timetable', url, data);
+export async function deactivatePeriod(TTMP_Id: number) {
+    const url = `/PeriodAllocationFacade/MasterPeriodActivateDeactive/${TTMP_Id}`;
+    return await api.put<any>('timetable', url);
 }
 
-export async function deactivatePeriodClass(data: any) {
-    const url = '/PeriodAllocation/deactivate1';
-    return await api.post<any>('timetable', url, data);
+export async function deactivatePeriodClass(TTMPC_Id: number) {
+    const url = `/PeriodAllocationFacade/MasterPeriodClassWiseActivateDeactive/${TTMPC_Id}`;
+    return await api.put<any>('timetable', url);
 }
 
 export async function getPeriodClass(data: any) {

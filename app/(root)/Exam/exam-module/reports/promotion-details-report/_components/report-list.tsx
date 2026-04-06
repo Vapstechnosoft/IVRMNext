@@ -2,15 +2,18 @@
 
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import * as XLSX from 'xlsx';
+import { Printer, FileSpreadsheet } from 'lucide-react';
+import { IMasterInstitution } from '@/types/exam/exam-module/report';
 
 interface ReportListProps {
     data: any;
     isSuperAverage: boolean;
+    institution: IMasterInstitution | null;
 }
 
-export const ReportList = ({ data, isSuperAverage }: ReportListProps) => {
+export const ReportList = ({ data, isSuperAverage, institution }: ReportListProps) => {
     const tableRef = useRef<HTMLTableElement>(null);
 
     if (!data || !data.getstudentmarksdetails_temp || data.getstudentmarksdetails_temp.length === 0) {
@@ -18,6 +21,8 @@ export const ReportList = ({ data, isSuperAverage }: ReportListProps) => {
     }
 
     const { YearName, stream, section, empG_GroupName } = data;
+
+
 
     const handlePrint = () => {
         const printContent = tableRef.current?.outerHTML;
@@ -30,7 +35,7 @@ export const ReportList = ({ data, isSuperAverage }: ReportListProps) => {
                 );
                 printWindow.document.write('</head><body>');
                 printWindow.document.write('<div style="text-align: center; margin-bottom: 20px;">');
-                printWindow.document.write("<h3>St. Thomas' Church School</h3>");
+                printWindow.document.write(`<h3>${institution?.mI_Name}</h3>`);
                 printWindow.document.write(`<h5>${isSuperAverage ? 'CLASS WISE AVERAGE REPORT' : 'CLASS WISE TERM REPORT'}</h5>`);
                 printWindow.document.write(
                     `<h4>${isSuperAverage ? 'SUPER AVERAGE SHEET' : 'TABULATION SHEET'} : ${YearName} Class : ${stream}: Section : ${section} ${!isSuperAverage ? '- EXAM : ' + empG_GroupName : ''}</h4>`
@@ -136,7 +141,7 @@ export const ReportList = ({ data, isSuperAverage }: ReportListProps) => {
     return (
         <div className='space-y-4'>
             <div className='space-y-2 border-b pb-4 text-center'>
-                <h3 className='font-bold text-xl'>St. Thomas' Church School</h3>
+                <h3 className='font-bold text-xl'>{institution?.mI_Name}</h3>
                 <h5 className='font-semibold'>{isSuperAverage ? 'CLASS WISE AVERAGE REPORT' : 'CLASS WISE TERM REPORT'}</h5>
                 <h4 className='font-semibold'>
                     {isSuperAverage ? 'SUPER AVERAGE SHEET' : 'TABULATION SHEET'} : {YearName} Class : {stream}: Section : {section}{' '}
@@ -144,12 +149,15 @@ export const ReportList = ({ data, isSuperAverage }: ReportListProps) => {
                 </h4>
             </div>
 
-            <div className='flex justify-end space-x-2'>
-                <Button onClick={handlePrint} variant='outline'>
-                    <i className='fa fa-print mr-2' /> Print
+            <div className='flex justify-end space-x-2 p-2'>
+                <Button onClick={handlePrint} className=" hover:bg-orange-800 text-white flex w-fit">
+                    <Printer className="h-4 w-4" />
+                    <span>PRINT</span>
                 </Button>
-                <Button onClick={handleExport} variant='outline'>
-                    <i className='fa fa-file-excel-o mr-2' /> Export to Excel
+
+                <Button onClick={handleExport} className=' hover:bg-orange-800 text-white w-fit'>
+                    <FileSpreadsheet className='h-4 w-4' />
+                    Export to Excel
                 </Button>
             </div>
 

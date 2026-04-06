@@ -20,7 +20,7 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function ExamSubjectWizardPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error, refetchAll } = useExamSubjectWizard(searchParams);
-
+    console.log('grid', response);
     return (
         <FormProvider<IExamSubjectWizard>>
             <ExamSubjectWizardPageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
@@ -50,7 +50,7 @@ function ExamSubjectWizardPageContent({
         (async () => {
             if (isOrderDetailsOpen && selectedRow?.eycE_Id) {
                 try {
-                    const response = await getExamSubjectWizardDetails(30, selectedRow.eycE_Id);
+                    const response = await getExamSubjectWizardDetails(selectedRow.eycE_Id);
 
                     if (response.success && response.data) {
                         const subjects: IExamSubjectOrder[] = Array.isArray(response.data) ? response.data : [];

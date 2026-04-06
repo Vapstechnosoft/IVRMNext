@@ -1,70 +1,34 @@
-'use server';
+'use server'; // Server actions
 
 import { api } from '@/lib/apiService';
-import { CumulativeSubjectLoadData, SubjectListResponse, ExamDetailsResponse } from './types';
+import { auth } from '@/lib/auth';
 
-// Mock data as fallback
-const mockLoadData: CumulativeSubjectLoadData = {
-    stuyearlist: [
-        { asmaY_Id: 2024, asmaY_Year: '2024-2025', asmcL_Id: 10, asmcL_ClassName: 'X', asmS_Id: 1, asmC_SectionName: 'A' },
-        { asmaY_Id: 2023, asmaY_Year: '2023-2024', asmcL_Id: 9, asmcL_ClassName: 'IX', asmS_Id: 1, asmC_SectionName: 'A' }
-    ]
-};
-
-const mockSubjectData: SubjectListResponse = {
-    subjectlist: [
-        { ismS_Id: 101, ismS_SubjectName: 'Mathematics' },
-        { ismS_Id: 102, ismS_SubjectName: 'Science' },
-        { ismS_Id: 103, ismS_SubjectName: 'English' },
-        { ismS_Id: 104, ismS_SubjectName: 'Social Studies' }
-    ],
-    stuyearlist: mockLoadData.stuyearlist
-};
-
-const mockExamDetails: ExamDetailsResponse = {
-    examgradelist: [
-        { emE_Id: 1, emE_ExamName: 'Mid Term', estmpS_MaxMarks: 100, estmpS_ObtainedMarks: 85, estmpS_ObtainedGrade: 'A' },
-        { emE_Id: 2, emE_ExamName: 'Quarterly', estmpS_MaxMarks: 50, estmpS_ObtainedMarks: 42, estmpS_ObtainedGrade: 'A+' },
-        { emE_Id: 3, emE_ExamName: 'Annual', estmpS_MaxMarks: 100, estmpS_ObtainedMarks: 92, estmpS_ObtainedGrade: 'O' }
-    ]
-};
-
-
-export async function getCumulativeSubjectLoadData() {
-    const url = `/api/CumulativeSubject/getloaddata`;
-    try {
-        const response = await api.post<CumulativeSubjectLoadData>('default', url, {});
-        // Ensure we always return a flat object if the API returns wrapped data
-        if (response && response.data) return response.data;
-        return response as unknown as CumulativeSubjectLoadData;
-    } catch (e) {
-        console.warn("API Failed, using mock data for getCumulativeSubjectLoadData", e);
-        return mockLoadData;
-    }
+export async function getExamloadCumulativeReport() {
+    const url = '/ExamReport/get_Cumulative_loaddata';
+    return await api.post<any>('portal', url);
 }
 
-export async function getSubjectsData(data: any) {
-    const url = `/api/CumulativeSubject/getSubjectsdata`;
-    try {
-        const response = await api.post<SubjectListResponse>('default', url, data);
-        if (response && response.data) return response.data;
-        return response as unknown as SubjectListResponse;
-    } catch (e) {
-        console.warn("API Failed, using mock data for getSubjectsData", e);
-        return mockSubjectData;
-    }
+export async function getAcademicYearList() {
+    const url = '/fee_class_category/academicyearlist';
+    return await api.get<any>('fees', url);
 }
 
-export async function getExamDetails(data: any) {
-    const url = `/api/CumulativeSubject/getexamdetails`;
-    try {
-        const response = await api.post<ExamDetailsResponse>('default', url, data);
-        if (response && response.data) return response.data;
-        return response as unknown as ExamDetailsResponse;
-    } catch (e) {
-        console.warn("API Failed, using mock data for getExamDetails", e);
-        // Simulate a delay
-        await new Promise(resolve => setTimeout(resolve, 500));
-        return mockExamDetails;
-    }
+export async function getExamDataforExamReport(asmay_Id: number, type: string) {
+    const session = await auth();
+    const amst_Id = (session as any)?.amst_id;
+    const url = `/ExamReport/get-exam-data?AMST_Id=${amst_Id}&ASMAY_Id=${asmay_Id}&Type=${type}`;
+    return await api.post<any>('portal', url,);
 }
+
+export async function getSubjectDataforExamReport(asmay_Id: number) {
+    const session = await auth();
+    const amst_Id = (session as any)?.user?.amst_id || (session as any)?.amst_id || 18828;
+    const payload = {
+        "AMST_Id": amst_Id,
+        "ASMAY_Id": asmay_Id
+    };
+    const url = 'ExamReport/get-Subjects';
+    return await api.post<any>('portal', url, payload);
+}
+
+

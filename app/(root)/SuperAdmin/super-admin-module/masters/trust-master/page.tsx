@@ -1,38 +1,56 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { useTrustMasterData } from '@/hooks/super-admin/super-admin-module/use-trust-masters';
 import type { ITrustMaster } from '@/types/super-admin/super-admin-module/trust-masters';
 import { Plus, X } from 'lucide-react';
+import { use } from 'react';
 import AddTrustMasterForm from './_components/add-form';
 import { TrustMasterColumns } from './_components/columns';
+import ToggleTrustMasterForm from './_components/toggle-form';
 
-import { useTrustMasterData } from '@/hooks/super-admin/super-admin-module/use-trust-masters';
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-// Removed staticData
+export default function TrustMasterPage(props: { searchParams: SearchParams }) {
+    const searchParams = use(props.searchParams);
+    const { data: response, isLoading, error, refetchAll } = useTrustMasterData(searchParams);
 
-export default function TrustMasterPage() {
     return (
         <FormProvider<ITrustMaster>>
-            <TrustMasterPageContent />
+            <div className='min-h-screen'>
+                <div className='container space-y-4 p-1'>
+                    <TrustMasterPageContent
+                        response={response}
+                        isLoading={isLoading}
+                        error={error}
+                        refetchAll={refetchAll}
+                    />
+                </div>
+            </div>
         </FormProvider>
     );
 }
 
-function TrustMasterPageContent() {
+function TrustMasterPageContent({
+    response,
+    isLoading,
+    error,
+    refetchAll
+}: {
+    response: any;
+    isLoading: boolean;
+    error: any;
+    refetchAll: any;
+}) {
     const { openAddForm } = useFormContext<ITrustMaster>();
-
-    // Using hardcoded values 0 and 1 as requested for initial load
-    const { data: apiResponse, isLoading, error } = useTrustMasterData(0, 1);
-    const trustMasters = apiResponse?.data?.organisations || [];
-
+    const tableProps = useDataTableProps(response);
 
     return (
-        <div>
-            <div className='container space-y-4 p-1'>
-                {/* Header */}
+        <>
+            <div className='flex justify-end'>
                 <div className='flex gap-4 sm:flex-row sm:items-center sm:justify-self-end'>
                     <Button
                         type='button'
@@ -42,47 +60,46 @@ function TrustMasterPageContent() {
                         Add Master Trust
                     </Button>
                 </div>
-
-                {/* Data Table Section */}
-                <CollapsibleSection
-                    title='Trust Details'
-                    defaultOpen={true}
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
-                >
-                    <GenericDataTable<ITrustMaster>
-                        data={trustMasters}
-                        columns={TrustMasterColumns}
-                        isLoading={isLoading}
-                        error={error}
-                        totalItems={trustMasters.length}
-                        loadingMessage='Loading trust details...'
-                        noDataTitle='No Trust Details Found'
-                        noDataDescription='No trust details available currently.'
-                        isSearchRequired={true}
-                        isPaginationRequired={true}
-                        columnPinning={{ right: ['actions'] }}
-                    />
-                </CollapsibleSection>
-
-                {/* Forms */}
-                <FormSections />
             </div>
-        </div>
+
+            <CollapsibleSection
+                title='Trust Details'
+                defaultOpen={true}
+                variant='default'
+                size='lg'
+                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
+            >
+                <GenericDataTable<ITrustMaster>
+                    {...tableProps}
+                    total={response?.total}
+                    columns={TrustMasterColumns}
+                    isLoading={isLoading}
+                    error={error}
+                    columnPinning={{ right: ['actions'] }}
+                    loadingMessage='Loading trust masters...'
+                    noDataTitle='No Trust Masters Found'
+                    noDataDescription='Get started by adding a new master trust'
+                    errorTitle='Error Loading Trust Masters'
+                />
+            </CollapsibleSection>
+
+            <FormSections refetchAll={refetchAll} />
+        </>
     );
 }
 
-function FormSections() {
+function FormSections({ refetchAll }: { refetchAll: any }) {
     const {
         isAddFormOpen,
+        isToggleFormOpen,
+        selectedRow,
         closeAddForm,
+        closeToggleForm,
         addFormRef
     } = useFormContext<ITrustMaster>();
 
     return (
         <>
-            {/* Add Form */}
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
@@ -101,10 +118,19 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddTrustMasterForm onSuccess={closeAddForm} />
+                            <AddTrustMasterForm onSuccess={closeAddForm} onRefresh={refetchAll} />
                         </div>
                     </CollapsibleSection>
                 </div>
+            )}
+
+            {/* Toggle Confirmation Modal */}
+            {isToggleFormOpen && selectedRow && (
+                <ToggleTrustMasterForm
+                    rowData={selectedRow}
+                    onClose={closeToggleForm}
+                    onRefresh={refetchAll}
+                />
             )}
         </>
     );

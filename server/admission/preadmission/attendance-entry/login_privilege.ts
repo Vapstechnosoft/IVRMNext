@@ -8,10 +8,7 @@ const CONTROLLER = 'LoginPrivelege';
 export async function getLoginPrivileges() {
     try {
         const res = await api.post<any>('admission', `/${CONTROLLER}/GetStaffWiseGrid`, {});
-        // Ensure we return the array if wrapped in a data property
-        // Common pattern: res.data might be the array, or res itself.
-        // apiService usually returns response.data, so 'res' here is the response body.
-        // Check if $values or similar exists
+
         return res?.data || res || [];
     } catch (error) {
         console.error('Error fetching login privileges:', error);

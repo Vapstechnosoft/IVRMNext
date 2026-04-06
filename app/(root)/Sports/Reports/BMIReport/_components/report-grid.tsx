@@ -19,40 +19,40 @@ export default function ReportGrid({ data, searchQuery, setSearchQuery, manualPa
             header: 'SL. No.',
             cell: ({ row }) => row.index + 1,
         },
+        // {
+        //     accessorKey: 'spccmH_HouseName', // Not in current API interface provided in task description, check if needed
+        //     header: 'House Name',
+        // },
         {
-            accessorKey: 'SPCCMH_HouseName',
-            header: 'House Name',
-        },
-        {
-            accessorKey: 'AMST_Name',
+            accessorKey: 'amsT_Name',
             header: 'Student Name',
         },
         {
-            accessorKey: 'AMST_AdmNo',
+            accessorKey: 'amsT_AdmNo',
             header: 'Adm. No.',
         },
         {
-            accessorKey: 'ASMCL_ClassName',
+            accessorKey: 'asmcL_ClassName',
             header: 'Class',
         },
         {
-            accessorKey: 'ASMC_SectionName',
+            accessorKey: 'asmC_SectionName',
             header: 'Section',
         },
         {
-            accessorKey: 'SPCCSH_Height',
+            accessorKey: 'spccshW_HeighT',
             header: 'Height',
         },
         {
-            accessorKey: 'SPCCSH_Weight',
+            accessorKey: 'spccshW_WeighT',
             header: 'Weight',
         },
         {
-            accessorKey: 'SPCCSH_BMI',
+            accessorKey: 'spccshW_BMi',
             header: 'BMI',
         },
         {
-            accessorKey: 'SPCCSH_BMIRemarks',
+            accessorKey: 'spccshW_BMiRemark',
             header: 'Remark',
         },
     ];
@@ -60,10 +60,10 @@ export default function ReportGrid({ data, searchQuery, setSearchQuery, manualPa
     const filteredData = data.filter((item) => {
         const query = searchQuery.toLowerCase();
         return (
-            item.AMST_Name.toLowerCase().includes(query) ||
-            item.AMST_AdmNo.toLowerCase().includes(query) ||
-            item.ASMCL_ClassName.toLowerCase().includes(query) ||
-            item.SPCCMH_HouseName.toLowerCase().includes(query)
+            item.amsT_Name.toLowerCase().includes(query) ||
+            item.amsT_AdmNo.toLowerCase().includes(query) ||
+            item.asmcL_ClassName.toLowerCase().includes(query)
+            // item.spccmH_HouseName.toLowerCase().includes(query)
         );
     });
 

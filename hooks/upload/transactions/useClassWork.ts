@@ -8,7 +8,7 @@ export const ClassWorkUploadedList = (payload: any, searchParams?: ApiSearchpara
 
     return {
         ...useQuery({
-            queryKey: [PORTAL_QUERY_KEYS.CLASS_WORK_UPLOADED, searchParams ?? {}],
+            queryKey: [PORTAL_QUERY_KEYS.CLASS_WORK_UPLOADED, searchParams ?? {}, payload],
             queryFn: async () => GetClassWorkUploadedList(payload, searchParams),
             staleTime: 0
         }),

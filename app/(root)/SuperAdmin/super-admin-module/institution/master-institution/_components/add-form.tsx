@@ -11,7 +11,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, Save, Trash2, X } from 'lucide-react';
 import React, { useEffect } from 'react';
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
-import { countries, states } from '@/app/(root)/SuperAdmin/super-admin-module/common';
+import { useCountryDropdown, useStateDropdown } from '@/hooks/super-admin/super-admin-module/use-master-institution';
+import type { ICountryDropdown, IStateDropdown } from '@/types/super-admin/super-admin-module/institution/master-institution';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
@@ -26,10 +27,11 @@ const vcMasterData = [
 
 interface AddMasterInstitutionFormProps {
     onSuccess?: () => void;
+    onRefresh?: () => void;
     className?: string;
 }
 
-export default function AddMasterInstitutionForm({ onSuccess, className = '' }: AddMasterInstitutionFormProps) {
+export default function AddMasterInstitutionForm({ onSuccess, onRefresh, className = '' }: AddMasterInstitutionFormProps) {
     const {
         control,
         register,
@@ -81,8 +83,22 @@ export default function AddMasterInstitutionForm({ onSuccess, className = '' }: 
     const schoolCollegeFlag = useWatch({ control, name: 'mI_SchoolCollegeFlag' });
     const naacType = useWatch({ control, name: 'mI_NAAC_InstitutionTypeFlg' });
     const vcDetailsWatch = useWatch({ control, name: 'vcDetails' });
+    const countryId = useWatch({ control, name: 'ivrmmC_Id' });
 
     const [showMSTeams, setShowMSTeams] = React.useState(false);
+
+    const { data: countryResponse, isLoading: isCountriesLoading } = useCountryDropdown();
+    const countryList = (countryResponse?.data || []) as ICountryDropdown[];
+
+    const { data: stateResponse, isLoading: isStatesLoading } = useStateDropdown(countryId);
+    const stateList = (stateResponse?.data || []) as IStateDropdown[];
+
+    // Reset state when country changes
+    useEffect(() => {
+        if (countryId) {
+            setValue('ivrmmS_Id', undefined as any);
+        }
+    }, [countryId, setValue]);
 
     // Dynamic Lists
     const { fields: phoneFields, append: appendPhone, remove: removePhone } = useFieldArray({ control, name: 'phones' });
@@ -97,6 +113,7 @@ export default function AddMasterInstitutionForm({ onSuccess, className = '' }: 
             await new Promise((resolve) => setTimeout(resolve, 1000));
             toast.success('Institution Master added successfully (Simulation)');
             reset();
+            onRefresh?.();
             onSuccess?.();
         } catch (error: any) {
             toast.error(error.message || 'Something went wrong');
@@ -133,10 +150,10 @@ export default function AddMasterInstitutionForm({ onSuccess, className = '' }: 
                         <div className='space-y-1'>
                             <Label>State <span className='text-red-500'>*</span></Label>
                             <Controller control={control} name='ivrmmS_Id' render={({ field }) => (
-                                <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value ? String(field.value) : undefined}>
-                                    <SelectTrigger><SelectValue placeholder='Select State' /></SelectTrigger>
+                                <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value ? String(field.value) : undefined} disabled={!countryId || isStatesLoading}>
+                                    <SelectTrigger><SelectValue placeholder={!countryId ? 'Select Country First' : isStatesLoading ? 'Loading States...' : 'Select State'} /></SelectTrigger>
                                     <SelectContent>
-                                        {states.map(s => <SelectItem key={s.ivrmmS_Id} value={String(s.ivrmmS_Id)}>{s.ivrmmS_Name}</SelectItem>)}
+                                        {stateList.map((s) => <SelectItem key={s.ivrmmS_Id} value={String(s.ivrmmS_Id)}>{s.ivrmmS_Name}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             )} />
@@ -284,9 +301,9 @@ export default function AddMasterInstitutionForm({ onSuccess, className = '' }: 
                             <Label>Country <span className='text-red-500'>*</span></Label>
                             <Controller control={control} name='ivrmmC_Id' render={({ field }) => (
                                 <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value ? String(field.value) : undefined}>
-                                    <SelectTrigger><SelectValue placeholder='Select Country' /></SelectTrigger>
+                                    <SelectTrigger><SelectValue placeholder={isCountriesLoading ? 'Loading countries...' : 'Select Country'} /></SelectTrigger>
                                     <SelectContent>
-                                        {countries.map(c => <SelectItem key={c.ivrmmC_Id} value={String(c.ivrmmC_Id)}>{c.ivrmmC_CountryName}</SelectItem>)}
+                                        {countryList.map(c => <SelectItem key={c.ivrmmC_Id} value={String(c.ivrmmC_Id)}>{c.ivrmmC_CountryName}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             )} />

@@ -1,4 +1,14 @@
-import { fetchInitialData } from '@/server/upload/transactions/notice-board/server-action';
+import { PORTAL_QUERY_KEYS } from '@/constants/query-keys';
+import {
+    fetchInitialData,
+    getBusRoutingforNoticeBoard,
+    getDepartmentforNoticeBoard,
+    getDesignationforNoticeBoard,
+    getEmployeesforNoticeBoard,
+    getGroupforNoticeBoard,
+    getTermforNoticeBoard
+} from '@/server/upload/transactions/notice-board/server-action';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -23,7 +33,7 @@ export const useNoticeBoard = () => {
         setIsLoading(true);
         try {
             const result = await fetchInitialData();
-            setData(result);
+            // setData(result);
         } catch (err) {
             setError(err);
             toast.error('Failed to load notice board data');
@@ -41,5 +51,110 @@ export const useNoticeBoard = () => {
         isLoading,
         error,
         refetchAll: loadData
+    };
+};
+
+export const useDepartmentsForNoticeBoard = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [PORTAL_QUERY_KEYS.GET_DEPARTMENT_FOR_NOTICE_BOARD],
+            queryFn: async () => getDepartmentforNoticeBoard(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [PORTAL_QUERY_KEYS.GET_DEPARTMENT_FOR_NOTICE_BOARD]
+            });
+        }
+    };
+};
+
+export const useDesignationForNoticeBoard = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [PORTAL_QUERY_KEYS.GET_DESIGNATION_FOR_NOTICE_BOARD],
+            queryFn: async () => getDesignationforNoticeBoard(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [PORTAL_QUERY_KEYS.GET_DESIGNATION_FOR_NOTICE_BOARD]
+            });
+        }
+    };
+};
+
+export const useEmployeesForNoticeBoard = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [PORTAL_QUERY_KEYS.GET_EMPLOYEES_FOR_NOTICE_BOARD],
+            queryFn: async () => getEmployeesforNoticeBoard(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [PORTAL_QUERY_KEYS.GET_EMPLOYEES_FOR_NOTICE_BOARD]
+            });
+        }
+    };
+};
+
+export const useBusRoutingForNoticeBoard = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [PORTAL_QUERY_KEYS.GET_ROUTES_FOR_NOTICE_BOARD],
+            queryFn: async () => getBusRoutingforNoticeBoard(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [PORTAL_QUERY_KEYS.GET_ROUTES_FOR_NOTICE_BOARD]
+            });
+        }
+    };
+};
+
+export const useGroupForNoticeBoard = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [PORTAL_QUERY_KEYS.GET_GROUPS_FOR_NOTICE_BOARD],
+            queryFn: async () => getGroupforNoticeBoard(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [PORTAL_QUERY_KEYS.GET_GROUPS_FOR_NOTICE_BOARD]
+            });
+        }
+    };
+};
+
+export const useTermForNoticeBoard = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [PORTAL_QUERY_KEYS.GET_TERMS_FOR_NOTICE_BOARD],
+            queryFn: async () => getTermforNoticeBoard(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [PORTAL_QUERY_KEYS.GET_TERMS_FOR_NOTICE_BOARD]
+            });
+        }
     };
 };

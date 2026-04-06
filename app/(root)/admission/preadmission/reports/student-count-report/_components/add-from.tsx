@@ -28,7 +28,7 @@ interface AddStudentCountReportFormProps {
     onSuccess?: () => void;
     className?: string;
     searchParams?: any;
-    onFilterChange?: (payload: any) => void;
+    onFilterChange?: (payload: any, reset?: boolean) => void;
 }
 
 export default function AddStudentCountReportForm({
@@ -37,7 +37,7 @@ export default function AddStudentCountReportForm({
     searchParams,
     onFilterChange
 }: AddStudentCountReportFormProps) {
-    const [reportType, setReportType] = useState<string>('');
+    const [reportType, setReportType] = useState<string>('2');
     const [rangeType, setRangeType] = useState<string>('between');
     const [fromDate, setFromDate] = useState<string>('');
     const [toDate, setToDate] = useState<string>('');
@@ -77,6 +77,7 @@ export default function AddStudentCountReportForm({
                 asmcl_id: data.asmcL_Id || 0
             };
 
+            toast.loading('Searching...', { id: 'search-loading' });
             const response = await addOrUpdateStudentCountReport(payload, searchParams);
 
             // Update parent state with the current filter payload
@@ -84,9 +85,15 @@ export default function AddStudentCountReportForm({
                 onFilterChange(payload);
             }
 
+            toast.dismiss('search-loading');
             if (response.success) {
-                toast.success(response.message);
-                setResults(response.data || []);
+                const resultData = response.data || [];
+                if (resultData.length > 0) {
+                    toast.success(`Record Fetched Successfully`);
+                } else {
+                    toast.error('No records found');
+                }
+                setResults(resultData);
                 try {
                     // If API already returned pagination meta (total), use it directly
                     if (response?.total != null) {
@@ -117,13 +124,7 @@ export default function AddStudentCountReportForm({
                 } catch (e) {
                     // noop
                 }
-                reset();
-                setReportType('');
-                setRangeType('between');
-                setFromDate('');
-                setToDate('');
-                refetchAcademicYear();
-                refetchMasterClass();
+                // Removed reset() and state resets to keep the selected filters
                 onSuccess?.();
             } else {
                 toast.error(response.message);
@@ -135,8 +136,12 @@ export default function AddStudentCountReportForm({
 
     const handleReset = () => {
         reset();
+        setReportType('2');
+        setRangeType('between');
+        if (onFilterChange) {
+            onFilterChange({}, true);
+        }
     };
-
     return (
         <div className={`${className}`}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
@@ -170,7 +175,10 @@ export default function AddStudentCountReportForm({
                                 <div className='mb-3 flex items-center gap-6'>
                                     <RadioGroup
                                         value={rangeType}
-                                        onValueChange={(v) => setRangeType(v)}
+                                        onValueChange={(v) => {
+                                            setRangeType(v);
+                                            setReportType(v === 'yearwise' ? '1' : '2');
+                                        }}
                                         className='flex items-center gap-4'>
                                         <div className='flex items-center gap-2'>
                                             <RadioGroupItem value='yearwise' id='rg-year' />

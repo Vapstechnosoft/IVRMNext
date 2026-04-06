@@ -27,54 +27,55 @@ export const getColumns = (
         cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("purOBQty")).toFixed(2)}</div>
     };
 
+
     // Non-Overall columns
     const rateCol: ColumnDef<IInvRStockReportData> = {
         accessorKey: "invstO_PurchaseRate",
         header: "Rate",
-        cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("invstO_PurchaseRate")).toFixed(2)}</div>
+        cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("invstO_PurchaseRate") || 0).toFixed(2)}</div>
     };
 
     const obAmtCol: ColumnDef<IInvRStockReportData> = {
         accessorKey: "obAmount",
         header: "OB Amount",
-        cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("obAmount")).toFixed(2)}</div>
+        cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("obAmount") || 0).toFixed(2)}</div>
     };
 
 
     const saleQtyCol: ColumnDef<IInvRStockReportData> = {
         accessorKey: "salesQty",
         header: "Sale Qty",
-        cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("salesQty")).toFixed(2)}</div>
+        cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("salesQty") || 0).toFixed(2)}</div>
     };
 
     const itemConQtyCol: ColumnDef<IInvRStockReportData> = {
         accessorKey: "invstO_ItemConQty",
         header: "Item Cons.",
-        cell: ({ row }) => <div className={commonNumberClass}>{row.getValue("invstO_ItemConQty")}</div>
+        cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("invstO_ItemConQty") || 0).toFixed(2)}</div>
     };
 
     const checkedOutQtyCol: ColumnDef<IInvRStockReportData> = {
         accessorKey: "invstO_CheckedOutQty",
         header: "Checked Out",
-        cell: ({ row }) => <div className={commonNumberClass}>{row.getValue("invstO_CheckedOutQty")}</div>
+        cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("invstO_CheckedOutQty") || 0).toFixed(2)}</div>
     };
 
     const stockPlusCol: ColumnDef<IInvRStockReportData> = {
         accessorKey: "invstO_PhyPlusQty",
         header: "Stock +",
-        cell: ({ row }) => <div className={commonNumberClass}>{row.getValue("invstO_PhyPlusQty")}</div>
+        cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("invstO_PhyPlusQty") || 0).toFixed(2)}</div>
     };
 
     const stockMinCol: ColumnDef<IInvRStockReportData> = {
         accessorKey: "invstO_PhyMinQty",
         header: "Stock -",
-        cell: ({ row }) => <div className={commonNumberClass}>{row.getValue("invstO_PhyMinQty")}</div>
+        cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("invstO_PhyMinQty") || 0).toFixed(2)}</div>
     };
 
     const balanceCol: ColumnDef<IInvRStockReportData> = {
         accessorKey: "invstO_AvaiableStock",
         header: "Balance",
-        cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("invstO_AvaiableStock")).toFixed(2)}</div>
+        cell: ({ row }) => <div className={commonNumberClass}>{Number(row.getValue("invstO_AvaiableStock") || 0).toFixed(2)}</div>
     };
 
     let columns: ColumnDef<IInvRStockReportData>[] = [slNoCol];

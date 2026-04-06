@@ -1,6 +1,7 @@
 'use client';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { DatePicker } from '@/components/ui/date-picker';
 import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
@@ -25,6 +26,7 @@ interface LeaveReportFiltersProps {
     departments: Array<{ id: number; name: string }>;
     designations: Array<{ id: number; name: string }>;
     employees: Array<{ id: number; employeeCode: string; employeeName: string; designation?: string; department?: string }>;
+    leaves: Array<{ id: number; name: string }>;
     isLoadingTypes?: boolean;
     isLoadingDepartments?: boolean;
     isLoadingDesignations?: boolean;
@@ -39,6 +41,7 @@ export function LeaveReportFilters({
     departments,
     designations,
     employees,
+    leaves,
     isLoadingTypes = false,
     isLoadingDepartments = false,
     isLoadingDesignations = false,
@@ -60,10 +63,10 @@ export function LeaveReportFilters({
             <div className='grid grid-cols-1 gap-6'>
                 {/* Type, Department, Designation MultiSelect Dropdowns */}
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-                    {/* Type */}
+                    {/* Group Type */}
                     <div className='space-y-2'>
                         <Label className='font-medium text-sm'>
-                            Type <span className='text-red-500'>*</span>
+                            Group Type <span className='text-red-500'>*</span>
                         </Label>
                         {isLoadingTypes ? (
                             <div className='flex items-center justify-center rounded-md border p-3'>
@@ -71,18 +74,18 @@ export function LeaveReportFilters({
                             </div>
                         ) : (
                             <MultiSelect
-                                options={types.map((type) => ({
+                                options={(types || []).map((type) => ({
                                     label: type.name,
                                     value: type.id.toString()
                                 }))}
-                                defaultValue={filters.selectedTypes.map((id) => id.toString())}
+                                defaultValue={(filters.selectedTypes || []).filter(id => id != null).map((id) => id.toString())}
                                 onValueChange={(values) =>
                                     onFilterChange(
                                         'selectedTypes',
-                                        values.map((v) => Number.parseInt(v))
+                                        values.filter(v => v != null && v !== '').map((v) => Number.parseInt(v))
                                     )
                                 }
-                                placeholder='Select types'
+                                placeholder='Select group types'
                             />
                         )}
                     </div>
@@ -97,15 +100,15 @@ export function LeaveReportFilters({
                             </div>
                         ) : (
                             <MultiSelect
-                                options={departments.map((dept) => ({
+                                options={(departments || []).map((dept) => ({
                                     label: dept.name,
                                     value: dept.id.toString()
                                 }))}
-                                defaultValue={filters.selectedDepartments.map((id) => id.toString())}
+                                defaultValue={(filters.selectedDepartments || []).filter(id => id != null).map((id) => id.toString())}
                                 onValueChange={(values) =>
                                     onFilterChange(
                                         'selectedDepartments',
-                                        values.map((v) => Number.parseInt(v))
+                                        values.filter(v => v != null && v !== '').map((v) => Number.parseInt(v))
                                     )
                                 }
                                 placeholder='Select departments'
@@ -123,15 +126,15 @@ export function LeaveReportFilters({
                             </div>
                         ) : (
                             <MultiSelect
-                                options={designations.map((desg) => ({
+                                options={(designations || []).map((desg) => ({
                                     label: desg.name,
                                     value: desg.id.toString()
                                 }))}
-                                defaultValue={filters.selectedDesignations.map((id) => id.toString())}
+                                defaultValue={(filters.selectedDesignations || []).filter(id => id != null).map((id) => id.toString())}
                                 onValueChange={(values) =>
                                     onFilterChange(
                                         'selectedDesignations',
-                                        values.map((v) => Number.parseInt(v))
+                                        values.filter(v => v != null && v !== '').map((v) => Number.parseInt(v))
                                     )
                                 }
                                 placeholder='Select designations'
@@ -179,19 +182,19 @@ export function LeaveReportFilters({
                                         onValueChange={(value) =>
                                             onFilterChange('selectedEmployeeId', value ? Number.parseInt(value) : null)
                                         }
-                                        disabled={employees.length === 0}>
+                                        disabled={(employees || []).length === 0}>
                                         <SelectTrigger id='employee-select'>
                                             <SelectValue
                                                 placeholder={
-                                                    employees.length === 0
+                                                    (employees || []).length === 0
                                                         ? 'No employees available'
                                                         : 'Select or search Employee in the list...'
                                                 }
                                             />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {employees.length > 0 ? (
-                                                employees.map((emp) => (
+                                            {(employees || []).length > 0 ? (
+                                                (employees || []).map((emp) => (
                                                     <SelectItem key={emp.id} value={emp.id.toString()}>
                                                         {emp.employeeCode} - {emp.employeeName}
                                                     </SelectItem>
@@ -217,9 +220,10 @@ export function LeaveReportFilters({
                                 <SelectValue placeholder='--Select--' />
                             </SelectTrigger>
                             <SelectContent>
-                                {['All', 'Casual Leave', 'Sick Leave', 'Privilege Leave', 'Comp Off', 'Optional Leave'].map((l) => (
-                                    <SelectItem key={l} value={l}>
-                                        {l}
+                                {/* <SelectItem value='All'>All</SelectItem> */}
+                                {(leaves || []).map((l) => (
+                                    <SelectItem key={l.id} value={String(l.id)}>
+                                        {l.name}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -230,22 +234,20 @@ export function LeaveReportFilters({
                             <Label htmlFor='from-date-input' className='font-medium text-sm'>
                                 From Date <span className='text-red-500'>*</span>
                             </Label>
-                            <InputText
-                                id='from-date-input'
-                                type='date'
-                                value={filters.fromDate}
-                                onChange={(e) => onFilterChange('fromDate', e.target.value)}
+                            <DatePicker
+                                date={filters.fromDate ? new Date(filters.fromDate) : undefined}
+                                setDate={(date) => onFilterChange('fromDate', date ? date.toISOString().split('T')[0] : '')}
+                                placeholder='Select from date'
                             />
                         </div>
                         <div>
                             <Label htmlFor='to-date-input' className='font-medium text-sm'>
                                 To Date <span className='text-red-500'>*</span>
                             </Label>
-                            <InputText
-                                id='to-date-input'
-                                type='date'
-                                value={filters.toDate}
-                                onChange={(e) => onFilterChange('toDate', e.target.value)}
+                            <DatePicker
+                                date={filters.toDate ? new Date(filters.toDate) : undefined}
+                                setDate={(date) => onFilterChange('toDate', date ? date.toISOString().split('T')[0] : '')}
+                                placeholder='Select to date'
                             />
                         </div>
                     </div>

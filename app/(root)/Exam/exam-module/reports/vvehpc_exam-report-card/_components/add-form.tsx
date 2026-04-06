@@ -18,6 +18,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react';
 import type { z } from 'zod';
 
 type FormFields = z.infer<typeof vvehpc_examreportcardSchema.addOrUpdate> & {
@@ -29,13 +30,13 @@ type FormFields = z.infer<typeof vvehpc_examreportcardSchema.addOrUpdate> & {
 export default function ProgressCardReportForm({
     onSuccess
 }: {
-    onSuccess?: (payload: any) => void;
+    onSuccess?: (payload: any) => Promise<void> | void;
 }) {
     const methods = useForm<FormFields>({
         resolver: zodResolver(vvehpc_examreportcardSchema.addOrUpdate),
         mode: 'all',
         defaultValues: {
-            mI_Id: 30,
+            // mI_Id: 30,
             asmaY_Id: 0,
             asmcL_Id: 0,
             asmS_Id: 0,
@@ -137,12 +138,19 @@ export default function ProgressCardReportForm({
                     selectedSection
                 );
                 const valid = Array.isArray(data)
-                    ? data.filter((s): s is { amsT_AdmNo: number; amsT_Id: number; studentName?: string } => !!s?.amsT_Id)
+                    ? data.filter((s): s is any => !!s?.amsT_Id)
                     : [];
                 if (valid.length === 0) {
                     toast.info('No students found');
                 }
-                setStudents(valid);
+
+                const mappedStudents = valid.map((s) => ({
+                    amsT_Id: s.amsT_Id,
+                    amsT_AdmNo: s.amsT_AdmNo,
+                    studentName: s.studentName || `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim()
+                }));
+
+                setStudents(mappedStudents);
                 setValue('studentList', []);
                 setAllStudentsSelected(false);
             } catch {
@@ -180,7 +188,7 @@ export default function ProgressCardReportForm({
 
         const currentDateTime = new Date().toISOString();
         const payload: any = {
-            mI_Id: 30,
+            // mI_Id: 30,
             asmaY_Id: data.asmaY_Id,
             asmcL_Id: data.asmcL_Id,
             asmS_Id: data.asmS_Id,
@@ -189,7 +197,10 @@ export default function ProgressCardReportForm({
             fromDate: currentDateTime,
             toDate: currentDateTime
         };
-        onSuccess?.(payload);
+        if (onSuccess) {
+            await onSuccess(payload);
+        }
+
     };
     const handleAllStudents = (checked: boolean) => {
         if (checked && students.length) {
@@ -408,7 +419,8 @@ export default function ProgressCardReportForm({
                         <hr className='my-6 border-gray-300' />
 
                         <div className='flex justify-center gap-3'>
-                            <Button type='submit' disabled={isSubmitting || !hasStudentsSelected} className='min-w-[140px]'>
+                            <Button type='submit' isLoading={isSubmitting} disabled={isSubmitting || !hasStudentsSelected} className='min-w-[140px]'>
+                                  
                                 {isSubmitting ? 'Generating...' : 'Report'}
                             </Button>
                             <Button
@@ -419,7 +431,7 @@ export default function ProgressCardReportForm({
                                     setStudents([]);
                                 }}
                                 className='min-w-[100px]'>
-                                Cancel
+                                Clear
                             </Button>
                         </div>
                     </form>

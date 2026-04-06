@@ -14,7 +14,7 @@ const formatDate = (date: unknown): string => {
     }
 };
 
-const FIELD_CONFIG: Record<string, { label: string; isDate?: boolean }> = {
+export const FIELD_CONFIG: Record<string, { label: string; isDate?: boolean }> = {
     AMST_AdmNo: { label: 'Adm No' },
     AMST_FirstName: { label: 'First Name' },
     AMST_MiddleName: { label: 'Middle Name' },
@@ -35,14 +35,14 @@ const FIELD_CONFIG: Record<string, { label: string; isDate?: boolean }> = {
     AMST_MotherTongue: { label: 'Language' },
     AMST_MobileNo: { label: 'Phone number' },
     AMST_emailId: { label: 'Email id' },
-    AMST_PlaceOfBirth: { label: 'Place of Birth' },
+    // AMST_PlaceOfBirth: { label: 'Place of Birth' },
     AMST_AadharNo: { label: 'Aadhar Card Number' },
     IVRMMR_Name: { label: 'Religion' }
 };
 
 const serialNumberColumn: ColumnDef<any> = {
     accessorKey: 'AMST_Id',
-    header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
+    header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6 font-bold text-black' />,
     cell: ({ row, table }) => {
         const pageIndex = table.getState().pagination.pageIndex;
         const pageSize = table.getState().pagination.pageSize;
@@ -59,7 +59,7 @@ const createDynamicColumn = (fieldId: string): ColumnDef<any> => {
     if (!config) {
         return {
             accessorKey: fieldId,
-            header: ({ column }) => <DataTableColumnHeader column={column} title={fieldId} />,
+            header: ({ column }) => <DataTableColumnHeader column={column} title={fieldId} className='font-bold text-black' />,
             cell: ({ row }) => <div>{row.getValue(fieldId) || 'N/A'}</div>,
             enableSorting: true,
             enableHiding: true
@@ -68,7 +68,7 @@ const createDynamicColumn = (fieldId: string): ColumnDef<any> => {
 
     return {
         accessorKey: fieldId,
-        header: ({ column }) => <DataTableColumnHeader column={column} title={config.label} />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title={config.label} className='font-bold text-black' />,
         cell: ({ row }) => {
             const value = row.getValue(fieldId);
 

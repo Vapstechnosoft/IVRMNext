@@ -8,8 +8,8 @@ import { masterSubSubjectSchema } from '@/schemas/exam/exam-module/masters';
 import { addOrUpdateMasterSubSubject } from '@/server/exam/exam-module/masters/sus-subject';
 import type { IMasterSubSubject } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Save } from 'lucide-react';
-import { useEffect } from 'react';
+import { Save, RefreshCw } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -24,7 +24,7 @@ interface UpdateMasterSubSubjectFormProps {
 
 export default function UpdateMasterSubSubjectForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterSubSubjectFormProps) {
     const { refetchAll } = useMasterSubSubject();
-
+    const [isLoading, setIsLoading] = useState(false);
     const {
         register,
         handleSubmit,
@@ -72,8 +72,8 @@ export default function UpdateMasterSubSubjectForm({ onSuccess, className = '', 
 
             if (response.success) {
                 toast.success(response.message || 'Sub Subject updated successfully');
-                reset(payload);
                 refetchAll();
+                reset(payload);
                 onSuccess?.();
             } else {
                 toast.error(response.message || 'Failed to update Sub Subject');
@@ -84,6 +84,22 @@ export default function UpdateMasterSubSubjectForm({ onSuccess, className = '', 
     };
 
     const handleReset = () => reset();
+    useEffect(() => {
+        setIsLoading(true);
+        const timer = setTimeout(() => {
+            setIsLoading(false);
+        }, 300)
+        return () => clearTimeout(timer);
+    }, [row])
+
+    if (isLoading) {
+        return (
+            <div className='flex flex-col items-center justify-center space-y-4 py-12'>
+                <RefreshCw className='h-8 w-8 animate-spin text-secondary' />
+                <p className='text-muted-foreground text-sm'>Loading data...</p>
+            </div>
+        );
+    }
 
     return (
         <div className={className}>

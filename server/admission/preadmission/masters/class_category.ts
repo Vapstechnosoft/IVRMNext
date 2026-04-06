@@ -4,7 +4,7 @@ import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type {
     IAcademicYearDropDown,
-    IMasterCategoryDropDown,
+    IMasterCategoryList,
     IMasterClassCategoryList,
     IMasterClassCategorySectionList,
     IMasterClassDropDown,
@@ -12,7 +12,7 @@ import type {
 } from '@/types/admission/preadmission/masters';
 
 export async function getMasterClassCategory(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'asmaY_Year,amC_Name,asmcL_ClassName');
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'asmaY_Year,amC_Name,asmcL_ClassName,asmC_SectionName');
     const url = `/master_class_category?${urlParams}`;
     return await api.get<IMasterClassCategoryList[]>('admission', url);
 }
@@ -48,13 +48,22 @@ export async function toggleMasterClassCategory(id: number) {
 
 export async function getClassCategorySection(id: number) {
     const url = `/master_class_category/category_class_section_details/${id}`;
-    return await api.get<IMasterClassCategorySectionList>('admission', url);
+    return await api.get<IMasterClassCategorySectionList | IMasterClassCategorySectionList[]>('admission', url);
 }
 export async function toggleMasterClassCategorySection(id: number) {
     const url = `/master_class_category/toggle_section/${id}`;
     return await api.put('admission', url);
 }
 export async function getMasterCategoryDropdown() {
-    const url = '/master_class_category/master_category_drop_down_list';
-    return await api.get<IMasterCategoryDropDown[]>('admission', url);
+    const url = '/master_category?page=1&page_size=1000&sort_column=&sort_direction=asc';
+    return await api.get<IMasterCategoryList[]>('admission', url);
+}
+
+export async function getStudentCategoryByClass(asmcL_Id: number, asmaY_Id: number) {
+    const url = '/StudentAdmissionFacade/studentcategory';
+    return await api.post<{ asmcC_Id: number; amC_Name: string }[]>('admission', url, {
+        mI_Id: 0,
+        asmcL_Id,
+        asmaY_Id
+    });
 }

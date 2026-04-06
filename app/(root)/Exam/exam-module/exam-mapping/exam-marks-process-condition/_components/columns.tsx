@@ -39,7 +39,8 @@ export const ExamMarksProcessConditionColumns: ColumnDef<IExamMarksProcessCondit
         header: ({ column }) => <DataTableColumnHeader column={column} title='Exam Start Date' />,
         cell: ({ row }) => {
             const value = row.original.eycE_ExamStartDate;
-            return <div>{value ? value.split('T')[0] : '-'}</div>;
+            const isInvalidDate = !value || value.startsWith('0001') || value.startsWith('1900');
+            return <div>{isInvalidDate ? '-' : value.split('T')[0]}</div>;
         }
     },
 
@@ -49,7 +50,8 @@ export const ExamMarksProcessConditionColumns: ColumnDef<IExamMarksProcessCondit
         header: ({ column }) => <DataTableColumnHeader column={column} title='Exam End Date' />,
         cell: ({ row }) => {
             const value = row.original.eycE_ExamEndDate;
-            return <div>{value ? value.split('T')[0] : '-'}</div>;
+            const isInvalidDate = !value || value.startsWith('0001') || value.startsWith('1900');
+            return <div>{isInvalidDate ? '-' : value.split('T')[0]}</div>;
         }
     },
 
@@ -59,7 +61,8 @@ export const ExamMarksProcessConditionColumns: ColumnDef<IExamMarksProcessCondit
         header: ({ column }) => <DataTableColumnHeader column={column} title='Marks Entry Last Date' />,
         cell: ({ row }) => {
             const value = row.original.eycE_MarksEntryLastDate;
-            return <div>{value ? value.split('T')[0] : '-'}</div>;
+            const isInvalidDate = !value || value.startsWith('0001') || value.startsWith('1900');
+            return <div>{isInvalidDate ? '-' : value.split('T')[0]}</div>;
         }
     },
 
@@ -69,7 +72,8 @@ export const ExamMarksProcessConditionColumns: ColumnDef<IExamMarksProcessCondit
         header: ({ column }) => <DataTableColumnHeader column={column} title='Marks Process Last Date' />,
         cell: ({ row }) => {
             const value = row.original.eycE_MarksProcessLastDate;
-            return <div>{value ? value.split('T')[0] : '-'}</div>;
+            const isInvalidDate = !value || value.startsWith('0001') || value.startsWith('1900');
+            return <div>{isInvalidDate ? '-' : value.split('T')[0]}</div>;
         }
     },
 
@@ -79,7 +83,8 @@ export const ExamMarksProcessConditionColumns: ColumnDef<IExamMarksProcessCondit
         header: ({ column }) => <DataTableColumnHeader column={column} title='Marks Publish Date' />,
         cell: ({ row }) => {
             const value = row.original.eycE_MarksPublishDate;
-            return <div>{value ? value.split('T')[0] : '-'}</div>;
+            const isInvalidDate = !value || value.startsWith('0001') || value.startsWith('1900');
+            return <div>{isInvalidDate ? '-' : value.split('T')[0]}</div>;
         }
     }
 ];

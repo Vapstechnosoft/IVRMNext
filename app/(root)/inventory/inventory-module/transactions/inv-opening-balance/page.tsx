@@ -6,20 +6,46 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, RotateCcw, Wallet, PlusCircle, Pencil, List } from 'lucide-react';
 import { useInvOpeningBalance } from '@/hooks/inventory/transactions/use-inv-opening-balance';
 import type { IInvOpeningBalance } from '@/types/inventory/transactions/inv-opening-balance';
 import AddOBForm from './_components/add-form';
-import { getColumns } from './_components/columns';
+import { invOpeningBalanceColumns } from './_components/columns';
+import { ToggleOBModal } from './_components/toggle-modal';
 import { Heading } from '@/components/layout/heading';
 // import UpdateOBForm from './_components/update-form'; // To be implemented
 // import ViewOBDetailsModal from './_components/view-details-modal'; // To be implemented
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
+import { tableSearchVariables } from '@/lib/data-table.config';
+
 export default function InvOpeningBalancePage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useInvOpeningBalance(searchParams);
+
+    // Pagination & Search State synced with URL
+    const [currentPage] = useQueryState(
+        tableSearchVariables.page,
+        parseAsInteger.withOptions({ shallow: false }).withDefault(1)
+    );
+    const [pageSize] = useQueryState(
+        tableSearchVariables.page_size,
+        parseAsInteger.withOptions({ shallow: false }).withDefault(10)
+    );
+    const [searchQuery] = useQueryState(
+        tableSearchVariables.search,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
+
+    const queryParams = {
+        ...searchParams,
+        page: currentPage,
+        page_size: pageSize,
+        search_query: searchQuery
+    };
+
+    const { data: response, isLoading, error } = useInvOpeningBalance(queryParams);
 
     return (
         <FormProvider<IInvOpeningBalance>>
@@ -48,75 +74,64 @@ function InvOpeningBalancePageContent({
         openDetailsView,
         selectedRow,
         isDetailsViewOpen,
-        closeDetailsView
+        closeDetailsView,
+        isToggleFormOpen,
+        closeToggleForm
     } = useFormContext<IInvOpeningBalance>();
 
-    const { toggleActiveMutation } = useInvOpeningBalance();
-
-    const columns = getColumns({
-        onEdit: openEditForm,
-        onToggleActive: (item) => {
-            if (confirm(`Are you sure you want to ${item.invoB_ActiveFlg ? 'deactivate' : 'activate'} this Record?`)) {
-                toggleActiveMutation.mutate(item);
-            }
-        },
-        onView: openDetailsView
-    });
+    const { toggleActiveMutation, storesQuery } = useInvOpeningBalance(); // Unused here, kept if logic needs restore
 
     const tableProps = useDataTableProps(response?.data, {
         dataKey: 'get_openingbalance',
         totalKey: 'total'
     });
 
+    // Force fetching from new API in AddOBForm by passing empty list
+    const storeList: any[] = [];
+
     return (
         <div className='min-h-screen'>
-            <div className='container space-y-4 p-4'>
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <Heading
-                        title='Opening Balance'
-                        description='Manage Inventory Opening Balances'
-                    />
+            <div className='container space-y-4 p-1'>
+                <div className='flex gap-4 sm:flex-row sm:items-center sm:justify-self-end'>
                     <Button
                         type='button'
                         onClick={openAddForm}
-                        className='w-fit shadow-md transition-all duration-200 hover:scale-105'>
-                        <Plus className='h-4 w-4 mr-2' />
-                        Add New OB
+                        className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
+                        <Plus className='h-4 w-4' />
+                        Add Opening Balance
                     </Button>
                 </div>
 
-                <FormSections
-                    storeList={response?.data?.get_Store || []}
-                    itemList={response?.data?.get_item || []}
-                />
-
                 <CollapsibleSection
-                    title='Opening Balance List'
                     defaultOpen={true}
                     variant='default'
                     size='lg'
-                    className='shadow-lg'>
+                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
+                    title='Opening Balance Records'
+                    icon={<Wallet className='h-5 w-5' />}>
                     <GenericDataTable<IInvOpeningBalance>
                         {...tableProps}
                         data={response?.data?.get_openingbalance || []}
-                        columns={columns}
+                        columns={invOpeningBalanceColumns}
                         isLoading={isLoading}
                         error={error}
+                        isSearchRequired={true}
                         columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading Opening Balance records...'
+                        loadingMessage='Retrieving Opening Balance records...'
                         noDataTitle='No Records Found'
-                        noDataDescription='Create a new Opening Balance to start'
+                        noDataDescription='Begin by creating your first Opening Balance entry.'
                         errorTitle='Error Loading Data'
                     />
                 </CollapsibleSection>
 
-                {/* {isDetailsViewOpen && selectedRow && (
-                    <ViewOBDetailsModal
-                        rowData={selectedRow}
-                        isOpen={isDetailsViewOpen}
-                        onClose={closeDetailsView}
-                    />
-                )} */}
+                <FormSections
+                    storeList={storeList}
+                    itemList={response?.data?.get_item || []}
+                />
+
+                {isToggleFormOpen && selectedRow && (
+                    <ToggleOBModal rowData={selectedRow} onClose={closeToggleForm} />
+                )}
             </div>
         </div>
     );
@@ -138,20 +153,21 @@ function FormSections({ storeList, itemList }: { storeList: any[], itemList: any
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title='Add Opening Balance'
-                        description='Enter the details'
+                        title='Add New Opening Balance'
+                        description='Fill in the details below to record opening balance'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
-                        className='animate-in slide-in-from-top-4 duration-300 shadow-md mb-6'>
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'
+                        icon={<PlusCircle className='h-5 w-5' />}>
                         <div className='relative'>
                             <Button
                                 type='button'
                                 onClick={closeAddForm}
                                 variant='ghost'
                                 size='sm'
-                                className='absolute top-[-3.5rem] right-0 hover:bg-destructive/10 text-destructive'>
-                                <X className='h-4 w-4 mr-1' /> Close
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
                             <AddOBForm onSuccess={closeAddForm} storeList={storeList} itemList={itemList} />
                         </div>
@@ -166,15 +182,16 @@ function FormSections({ storeList, itemList }: { storeList: any[], itemList: any
                         defaultOpen={true}
                         variant='outline'
                         size='md'
-                        className='animate-in slide-in-from-top-4 duration-300 shadow-md mb-6 border-primary/20'>
+                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'
+                        icon={<Pencil className='h-5 w-5' />}>
                         <div className='relative'>
                             <Button
                                 type='button'
                                 onClick={closeEditForm}
                                 variant='ghost'
                                 size='sm'
-                                className='absolute top-[-3.5rem] right-0 hover:bg-destructive/10 text-destructive'>
-                                <X className='h-4 w-4 mr-1' /> Close
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
                             <AddOBForm
                                 onSuccess={closeEditForm}

@@ -37,6 +37,7 @@ export default function UpdateInvMasterStoreForm({ onSuccess, empname_list, sele
             invmS_ContactPerson: selectedRow.invmS_ContactPerson || '',
             invmS_ContactNo: selectedRow.invmS_ContactNo,
             hrmE_Id: selectedRow.hrmE_Id,
+            invmS_ActiveFlg: selectedRow.invmS_ActiveFlg,
         }
     });
 
@@ -51,17 +52,22 @@ export default function UpdateInvMasterStoreForm({ onSuccess, empname_list, sele
         }
     }, [selectedEmpId, empname_list, setValue]);
 
+    const onInvalid = (errors: any) => {
+        console.error('UpdateInvMasterStoreForm: Validation errors:', errors);
+    };
+
     const onSubmit = async (data: TInvMasterStore) => {
+        console.log('UpdateInvMasterStoreForm: onSubmit triggered with data:', data);
         try {
             const result = await saveInvMasterStore(data);
-            if (result.returnval) {
-                toast.success('Record updated successfully');
+            if (result.success || result.returnval) {
+                toast.success(result.message || 'Record updated successfully');
                 refetchAll();
                 onSuccess();
             } else if (result.returnduplicatestatus === 'Duplicate') {
                 toast.error('Record already exists');
             } else {
-                toast.error('Failed to update record');
+                toast.error(result.message || 'Failed to update record');
             }
         } catch (error: any) {
             toast.error(error.message || 'An error occurred');
@@ -69,7 +75,7 @@ export default function UpdateInvMasterStoreForm({ onSuccess, empname_list, sele
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className='space-y-4 p-4'>
+        <form onSubmit={handleSubmit(onSubmit, onInvalid)} className='space-y-4 p-4'>
             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                 <div className='space-y-2'>
                     <Label htmlFor='invmS_StoreName'>

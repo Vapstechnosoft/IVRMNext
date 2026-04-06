@@ -19,8 +19,14 @@ const routeMatcher = createRouterMatcher([
 ]);
 
 export async function middleware(request: NextRequest) {
-    const session = await auth();
     const { pathname } = request.nextUrl;
+
+    // ✅ Skip middleware for API routes that need public or direct access
+    if (pathname.startsWith('/api/auth/') || pathname.startsWith('/api/header-voice')) {
+        return NextResponse.next();
+    }
+
+    const session = await auth();
 
     const isLoggedIn = session;
     const userRole = session?.role;

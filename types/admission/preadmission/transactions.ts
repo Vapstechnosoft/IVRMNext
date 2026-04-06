@@ -16,6 +16,14 @@ export interface IStateDropdown {
     ivrmmS_Id: number;
     ivrmmS_Name: string;
 }
+export interface IDistrictDropdown {
+    ivrmmD_Id: number;
+    ivrmmD_Name: string;
+}
+export interface IMasterCategoryDropDown {
+    amC_Id: number; // NOTE: Backend returns 'amC_Id' but frontend often expects 'imC_Id'. Keeping consistent with API response.
+    amC_Name: string;
+}
 export interface IGenderDropdown {
     ivrmmG_Id: number;
     ivrmmG_GenderName: string;
@@ -138,4 +146,13 @@ export interface IPreadmissionDocumentView {
     academic_year: string;
     class_name: string;
     pasr_id: number;
+    student_name: string;
+    pasR_RegistrationNo: string;
+    pasR_Date?: string;
+    applied_class_name: string;
+    classname?: string;
+    pasR_Student_Pic_Path?: string;
+    pasR_FatherPhoto?: string;
+    pasR_MotherPhoto?: string;
+    doclist?: any[];
 }

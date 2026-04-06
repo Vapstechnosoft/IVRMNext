@@ -10,8 +10,15 @@ import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
 import { cn } from '@/lib/utils';
 import { employeeInOutReportFilterSchema } from '@/schemas/hrms/attendance-management-schemas';
 import { getEmployeeInOutReport } from '@/server/hrms/hrmsConfig/reports/employee-inout-report';
+import {
+    useReportDepartments,
+    useReportDesignations,
+    useReportEmployeesByDeptAndDesignation,
+    useReportGroupTypes
+} from '@/hooks/hrms/useReports';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
+import { useMemo } from 'react';
 import { format } from 'date-fns';
 import { Calendar as CalendarIcon, Save } from 'lucide-react';
 import { Label } from 'react-aria-components';
@@ -51,7 +58,7 @@ export default function AddEmployeeInOutReportForm({
             designation: [],
             allOrIndividual: 'All',
             codeOrName: 'Code',
-            query: '',
+            query: [],
             fromDate: '',
             toDate: '',
             timeInTimeOut: undefined
@@ -60,6 +67,80 @@ export default function AddEmployeeInOutReportForm({
 
     const allOrIndividualValue = watch('allOrIndividual');
 
+    const watchedType = watch('type') || [];
+    const watchedDepartment = watch('department') || [];
+    const watchedDesignation = watch('designation') || [];
+
+    const groupTypeIds = watchedType.map(Number).filter(Boolean);
+    const deptIds = watchedDepartment.map(Number).filter(Boolean);
+    const desigIds = watchedDesignation.map(Number).filter(Boolean);
+
+    const { data: groupTypesData } = useReportGroupTypes();
+    const { data: departmentsData } = useReportDepartments(groupTypeIds.toString());
+    const { data: designationsData } = useReportDesignations(groupTypeIds.toString(), deptIds.toString());
+    const { data: employeesData } = useReportEmployeesByDeptAndDesignation(deptIds.toString(), desigIds.toString());
+
+    const groupTypesDataTransformed = useMemo(() => {
+        return (
+            groupTypesData?.data?.map((gt: any) => ({
+                id: gt.key || gt.hrmgT_Id,
+                name: gt.value || gt.hrmgT_EmployeeGroupType
+            })) || []
+        ).filter((d: any) => d.id != null);
+    }, [groupTypesData]);
+
+    const departmentsDataTransformed = useMemo(() => {
+        return (
+            departmentsData?.data?.map((d: any) => ({
+                id: d.hrmD_Id || d.hrmd_id || d.key || d.id,
+                name: d.hrmD_DepartmentName || d.hrmd_departmentName || d.value || d.name
+            })) || []
+        ).filter((d: any) => d.id != null);
+    }, [departmentsData]);
+
+    const designationsDataTransformed = useMemo(() => {
+        return (
+            designationsData?.data?.map((d: any) => ({
+                id: d.hrmdeS_Id || d.hrmdes_id || d.key || d.id,
+                name: d.hrmdeS_DesignationName || d.hrmdes_designationName || d.value || d.name
+            })) || []
+        ).filter((d: any) => d.id != null);
+    }, [designationsData]);
+
+    const employeesDataTransformed = useMemo(() => {
+        const list = employeesData?.data || employeesData;
+        if (!list || !Array.isArray(list)) return [];
+
+        return list
+            .map((emp: any) => {
+                const id = emp.HRME_Id || emp.hrmE_Id || emp.id || emp.key;
+                if (id == null) return null;
+
+                const firstName = (emp.HRME_EmployeeFirstName || emp.hrmE_EmployeeFirstName || '').trim();
+                const middleName = (emp.HRME_EmployeeMiddleName || emp.hrmE_EmployeeMiddleName || '').trim();
+                const lastName = (emp.HRME_EmployeeLastName || emp.hrmE_EmployeeLastName || '').trim();
+
+                const employeeName =
+                    [firstName, middleName, lastName].filter(Boolean).join(' ') ||
+                    emp.value ||
+                    emp.employeeName ||
+                    'Unknown Employee';
+
+                const employeeCode =
+                    emp.HRME_EmployeeCode ||
+                    emp.hrmE_EmployeeCode ||
+                    emp.employeeCode ||
+                    id.toString();
+
+                return {
+                    id: Number(id),
+                    employeeCode,
+                    employeeName
+                };
+            })
+            .filter(Boolean);
+    }, [employeesData]);
+
     const onSubmit: SubmitHandler<FormFields> = async (data: FormFields) => {
         try {
             const payload = {
@@ -67,8 +148,8 @@ export default function AddEmployeeInOutReportForm({
                 department: (data.department || []).map(Number),
                 designation: (data.designation || []).map(Number),
                 allOrIndividual: data.allOrIndividual,
-                employeeCode: data.allOrIndividual === 'Individual' && data.codeOrName === 'Code' ? data.query : undefined,
-                employeeName: data.allOrIndividual === 'Individual' && data.codeOrName === 'Name' ? data.query : undefined,
+                employeeCode: data.allOrIndividual === 'Individual' ? (data.query || []).join(',') : undefined,
+                employeeName: data.allOrIndividual === 'Individual' ? (data.query || []).join(',') : undefined, // Ignored since we are passing IDs in employeeCode essentially, pending API match
                 codeOrName: data.codeOrName,
                 fromDate: data.fromDate,
                 toDate: data.toDate,
@@ -136,7 +217,10 @@ export default function AddEmployeeInOutReportForm({
                                     control={control}
                                     render={({ field }) => (
                                         <MultiSelect
-                                            options={groupTypes.length > 0 ? groupTypes : []}
+                                            options={groupTypesDataTransformed.map((gt: any) => ({
+                                                label: gt.name,
+                                                value: String(gt.id)
+                                            }))}
                                             onValueChange={(values) => field.onChange(values)}
                                             defaultValue={field.value || []}
                                             placeholder='Select Types'
@@ -158,7 +242,10 @@ export default function AddEmployeeInOutReportForm({
                                     control={control}
                                     render={({ field }) => (
                                         <MultiSelect
-                                            options={[]}
+                                            options={departmentsDataTransformed.map((dept: any) => ({
+                                                label: dept.name,
+                                                value: String(dept.id)
+                                            }))}
                                             onValueChange={(values) => field.onChange(values)}
                                             defaultValue={field.value || []}
                                             placeholder='Select Departments'
@@ -180,7 +267,10 @@ export default function AddEmployeeInOutReportForm({
                                     control={control}
                                     render={({ field }) => (
                                         <MultiSelect
-                                            options={[]}
+                                            options={designationsDataTransformed.map((desg: any) => ({
+                                                label: desg.name,
+                                                value: String(desg.id)
+                                            }))}
                                             onValueChange={(values) => field.onChange(values)}
                                             defaultValue={field.value || []}
                                             placeholder='Select Designations'
@@ -225,11 +315,16 @@ export default function AddEmployeeInOutReportForm({
                                         name='query'
                                         control={control}
                                         render={({ field }) => (
-                                            <input
-                                                type='text'
-                                                {...field}
-                                                placeholder='Enter employee code or name'
-                                                className={`w-full rounded-md border px-3 py-2 ${errors.query ? 'border-red-500' : ''}`}
+                                            <MultiSelect
+                                                options={employeesDataTransformed.map((emp: any) => ({
+                                                    label: `${emp.employeeName} - [${emp.employeeCode}]`,
+                                                    value: String(emp.id)
+                                                }))}
+                                                onValueChange={(values) => field.onChange(values)}
+                                                defaultValue={field.value || []}
+                                                placeholder='Select Employees'
+                                                className={`w-full ${errors.query ? 'border-red-500' : ''}`}
+                                                maxHeight={240}
                                             />
                                         )}
                                     />
@@ -323,13 +418,13 @@ export default function AddEmployeeInOutReportForm({
                                     control={control}
                                     render={({ field }) => (
                                         <Select
-                                            value={field.value || ''}
-                                            onValueChange={(value) => field.onChange(value === '' ? undefined : value)}>
+                                            value={field.value || 'all'}
+                                            onValueChange={(value) => field.onChange(value === 'all' ? undefined : value)}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Time In/Out' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value=''>All</SelectItem>
+                                                <SelectItem value='all'>All</SelectItem>
                                                 <SelectItem value='Time In'>Time In</SelectItem>
                                                 <SelectItem value='Time Out'>Time Out</SelectItem>
                                                 <SelectItem value='In Out'>In Out</SelectItem>

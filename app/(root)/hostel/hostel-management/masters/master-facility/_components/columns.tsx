@@ -10,26 +10,32 @@ import { useCallback } from 'react';
 
 const columnHelper = createColumnHelper<IMasterFacility>();
 
+
 export const masterFacilityColumns: ColumnDef<IMasterFacility, any>[] = [
-    columnHelper.display({
-        id: 'sn',
-        header: 'SL NO',
-        cell: (info) => info.row.index + 1,
-        enableSorting: false
-    }),
-    columnHelper.accessor('hlmftY_FacilityName', {
-        header: ({ column }) => <ColumnHeader column={column} title='Facility Name' />,
-        meta: { title: 'Facility Name' }
-    }),
-    columnHelper.accessor('hlmftY_FacilityDesc', {
-        header: ({ column }) => <ColumnHeader column={column} title='Description' />,
-        meta: { title: 'Description' }
-    }),
-    columnHelper.accessor('hlmftY_ActiveFlag', {
+    {
+        accessorKey: 'sn',
+        header: ({ column }) => <ColumnHeader column={column} title='Sl.No' />,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            return <div>{pageIndex * pageSize + row.index + 1}</div>;
+        },
+        enableSorting: false,
+        enableHiding: false
+    },
+    {
+        accessorKey: 'hlmftY_FacilityName',
+        header: ({ column }) => <ColumnHeader column={column} title='Facility Name' />
+    },
+    {
+        accessorKey: 'hlmftY_FacilityDesc',
+        header: ({ column }) => <ColumnHeader column={column} title='Description' />
+    },
+    {
+        accessorKey: 'hlmftY_ActiveFlag',
         header: ({ column }) => <ColumnHeader column={column} title='Status' />,
-        meta: { title: 'Status' },
-        cell: (info) =>
-            info.getValue() ? (
+        cell: ({ row }) =>
+            row.original.hlmftY_ActiveFlag ? (
                 <span className='flex items-center text-green-600 font-medium'>
                     <Check className='mr-1 h-4 w-4' /> Active
                 </span>
@@ -38,12 +44,12 @@ export const masterFacilityColumns: ColumnDef<IMasterFacility, any>[] = [
                     <X className='mr-1 h-4 w-4' /> Inactive
                 </span>
             )
-    }),
-    columnHelper.display({
+    },
+    {
         id: 'actions',
-        header: 'Actions',
-        cell: (info) => <ActionButtonsCell rowData={info.row.original} />
-    })
+        header: ({ column }) => <ColumnHeader column={column} title='Actions' className='text-center' />,
+        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
+    }
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IMasterFacility }) {
