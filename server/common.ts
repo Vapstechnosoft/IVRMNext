@@ -695,7 +695,6 @@ export async function getUserAccessibleModules() {
                 //                             description: 'CBS Study Certificate'
                 //                         }
 
-
                 //                     ]
                 //                 },
                 //                 {
@@ -747,8 +746,6 @@ export async function getUserAccessibleModules() {
                 //                             description: 'GM Custom Tc'
                 //                         }
 
-
-
                 //                     ]
                 //                 },
                 //                 {
@@ -790,7 +787,6 @@ export async function getUserAccessibleModules() {
                 //                             title: 'St.James Character Report',
                 //                             description: 'St.James Character Report'
                 //                         }
-
 
                 //                     ]
                 //                 },
@@ -862,6 +858,89 @@ export async function getUserAccessibleModules() {
                 //                             title: 'BBHS Student Application Form',
                 //                             description: 'BBHS Student Application Form'
                 //                         }
+                //                     ]
+                //                 }
+
+                //                 ,
+                //                 {
+                //                     id: 12,
+                //                     name: 'Sophia',
+                //                     icon: 'Settings',
+                //                     pages: [
+
+                //                         {
+                //                             id: 590,
+                //                             name: 'Smartcarddetails',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/Sophia/Smartcarddetails',
+                //                             title: 'Smartcarddetails',
+                //                             description: 'Smartcarddetails'
+                //                         },
+                //                         {
+                //                             id: 591,
+                //                             name: 'Import',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/Sophia/Import',
+                //                             title: 'Import',
+                //                             description: 'Import'
+                //                         },
+                //                         {
+                //                             id: 592,
+                //                             name: 'Master Activities',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/Sophia/MasterActivities',
+                //                             title: 'Master Activities',
+                //                             description: 'Master Activities'
+                //                         },
+                //                         {
+                //                             id: 593,
+                //                             name: 'Section Allotment',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/Sophia/SectionAllotment',
+                //                             title: 'Section Allotment',
+                //                             description: 'Section Allotment'
+                //                         },
+                //                         {
+                //                             id: 594,
+                //                             name: 'CategoryWise Attendance',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/Sophia/CategoryWiseAttendance',
+                //                             title: 'CategoryWise Attendance',
+                //                             description: 'CategoryWise Attendance'
+                //                         },
+                //                         {
+                //                             id: 595,
+                //                             name: 'ClassWise Daily Attendance',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/Sophia/ClassWiseDailyAttendance',
+                //                             title: 'ClassWise Daily Attendance',
+                //                             description: 'ClassWise Daily Attendance'
+                //                         },
+                //                         {
+                //                             id: 596,
+                //                             name: 'Student Search',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/Sophia/StudentSearch',
+                //                             title: 'Student Search',
+                //                             description: 'Student Search'
+                //                         },
+                //                         {
+                //                             id: 597,
+                //                             name: 'Students Search Report',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/Sophia/StudentsSearchReport',
+                //                             title: 'Students Search Report',
+                //                             description: 'Students Search Report'
+                //                         },
+                //                         {
+                //                             id: 598,
+                //                             name: 'Date Of Birth Certificate',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/Sophia/DateOfBirthCertificate',
+                //                             title: 'Date Of Birth Certificate',
+                //                             description: 'Date Of Birth Certificate'
+                //                         }
+
                 //                     ]
                 //                 }
 
@@ -2234,10 +2313,10 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 8,
-                                            name: "Employee Salary Increment Details",
-                                            icon: "CreditCard",
-                                            url: "/hrms/transactions/employee-increment-salary",
-                                            title: "Employee Salary Increment Details",
+                                            name: 'Employee Salary Increment Details',
+                                            icon: 'CreditCard',
+                                            url: '/hrms/transactions/employee-increment-salary',
+                                            title: 'Employee Salary Increment Details',
                                             description: 'Manage Employee Salary Increment Deatails'
                                         }
                                     ]
@@ -2465,7 +2544,6 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/reports/salary-increment-report',
                                             title: 'Salary Increment Report',
                                             description: 'Salary Increment Report'
-
                                         },
                                         {
                                             id: 26,
@@ -2731,8 +2809,7 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/attendance-management/masters/front-office-addlogs',
                                             title: 'Front Office Addlogs',
                                             description: 'Front Office Addlogs'
-                                        },
-
+                                        }
                                     ]
                                 },
                                 {
@@ -6622,7 +6699,6 @@ export async function getUserAccessibleModules() {
                                     name: 'Transaction',
                                     icon: 'FileBarChart',
                                     pages: [
-
                                         {
                                             id: 4,
                                             name: 'School Staff Period Transaction',
