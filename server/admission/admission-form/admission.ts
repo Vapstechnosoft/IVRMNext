@@ -105,3 +105,7 @@ export async function deleteAdmissionForm(id: number) {
     const url = `/StudentAdmissionFacade/delete-admission/${id}`;
     return await api.delete('admission', url);
 }
+export async function getAdmissionFormDetails() {
+    const url = '/StudentAdmissionFacade/Getdetails';
+    return await api.get<any>('admission', url);
+}

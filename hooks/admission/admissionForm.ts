@@ -1,5 +1,5 @@
 import { ADMISSION_QUERY_KEYS } from '@/constants/query-keys';
-import { getAllAdmissionLists, getStudentAdmissionFormById } from '@/server/admission/admission-form/admission';
+import { getAllAdmissionLists, getStudentAdmissionFormById, getAdmissionFormDetails } from '@/server/admission/admission-form/admission';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -35,6 +35,21 @@ export const useStudentAdmissionFormById = (amstId: number) => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [ADMISSION_QUERY_KEYS.STUDENT_ADMISSION_FORM]
+            });
+        }
+    };
+};
+export const useAdmissionFormDetails = () => {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_FORM_DETAILS],
+            queryFn: async () => getAdmissionFormDetails(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_FORM_DETAILS]
             });
         }
     };
