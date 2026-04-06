@@ -7,8 +7,9 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { useEmployeeAbsentReport } from '@/hooks/hrms/attendance-management/useReports';
 import { exportToExcel } from '@/lib/utils';
 import { FileSpreadsheet, Printer, X, Download } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { use } from 'react';
+import { toast } from 'sonner';
 import AddEmployeeAbsentReportForm from './_components/add-from';
 import type { EmployeeAbsentReportRow } from './_components/columns';
 import { employeeAbsentReportColumns } from './_components/columns';
@@ -20,6 +21,30 @@ export default function EmployeeAbsentReportPage(props: {
 }) {
     const resolvedSearchParams = use(props.searchParams);
     const { data: response, isLoading, error } = useEmployeeAbsentReport(resolvedSearchParams);
+    const [lastToastId, setLastToastId] = useState<string | number | null>(null);
+
+    // Toast notifications based on request state
+    useEffect(() => {
+        if (isLoading) {
+            const id = toast.loading('Generating Absent Report...');
+            setLastToastId(id);
+        } else {
+            if (lastToastId) {
+                toast.dismiss(lastToastId);
+                setLastToastId(null);
+            }
+            
+            if (error) {
+                toast.error('Failed to generate report');
+            } else if (response?.data) {
+                if (response.data.length > 0) {
+                    toast.success(`Successfully generated report with ${response.data.length} records`);
+                } else if (resolvedSearchParams?.fromDate) {
+                    toast.info('No records found for the selected criteria');
+                }
+            }
+        }
+    }, [response]);
 
     // Process data to parse attendance_data JSON string
     const processedResponse = useMemo(() => {
@@ -55,7 +80,7 @@ export default function EmployeeAbsentReportPage(props: {
     );
 }
 
-function FormSections({ resolvedSearchParams }: { resolvedSearchParams?: any }) {
+function FormSections({ resolvedSearchParams, isLoading }: { resolvedSearchParams?: any, isLoading?: boolean }) {
     const { closeAddForm, addFormRef } = useFormContext<EmployeeAbsentReportRow>();
 
     return (
@@ -68,7 +93,7 @@ function FormSections({ resolvedSearchParams }: { resolvedSearchParams?: any }) 
                 size='md'
                 className='slide-in-from-top-4 animate-in shadow-lg duration-300'
             >
-                <AddEmployeeAbsentReportForm onSuccess={closeAddForm} resolvedSearchParams={resolvedSearchParams} />
+                <AddEmployeeAbsentReportForm onSuccess={closeAddForm} resolvedSearchParams={resolvedSearchParams} isPageLoading={isLoading} />
             </CollapsibleSection>
         </div>
     );
@@ -186,10 +211,10 @@ function EmployeeAbsentReportPageContent({
         <div className='min-h-screen bg-background/50'>
             <div className='container max-w-7xl space-y-6 py-2'>
                 {/* Add Form Section */}
-                <FormSections resolvedSearchParams={resolvedSearchParams} />
+                <FormSections resolvedSearchParams={resolvedSearchParams} isLoading={isLoading} />
 
                 {
-                    response?.data?.length > 0 && (
+                    (response?.data && !isLoading || (resolvedSearchParams?.fromDate && response?.data)) && (
                         <CollapsibleSection
                             title="Employee Absent Report"
                             description='Managing the Employee Absent Report'

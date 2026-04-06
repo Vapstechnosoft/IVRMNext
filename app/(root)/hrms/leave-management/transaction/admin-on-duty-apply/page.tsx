@@ -82,8 +82,9 @@ export default function AdminOnDutyApplyPage() {
                             }}
                             className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'
                         >
-                            {showForm ? <X className='h-4 w-4' /> : <Plus className='h-4 w-4' />}
-                            {showForm ? 'Close Form' : 'Add Admin On Duty'}
+                            {/* {showForm ? <X className='h-4 w-4' /> : <Plus className='h-4 w-4' />}
+                            {showForm ? 'Close Form' : 'Add Admin On Duty'} */}
+                            <p>Add Admin On Duty</p>
                         </Button>
                     </div>
 
@@ -134,9 +135,9 @@ export default function AdminOnDutyApplyPage() {
                                             }}
                                             variant='ghost'
                                             size='sm'
-                                            className='-top-[3.5rem] absolute right-4 w-fit border p-2 shadow-md hover:bg-destructive/10'
+                                            className='-top-[3.5rem] absolute right-9 w-fit border p-2 shadow-md hover:bg-destructive/10'
                                         >
-                                            <X className='h-4 w-4 text-destructive' /> Close
+                                            <X className='h-4 w-4 text-destructive ' /> Close
                                         </Button>
                                         <ApplyLeaveForm
                                             editingRow={editingRow}

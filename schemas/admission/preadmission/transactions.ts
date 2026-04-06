@@ -200,6 +200,8 @@ export const studentApplicationFormSchema = {
 export const studentApplicationFormUpdateSchema = {
     update: z.object({
         pasR_Id: z.number().int().optional(), // Made optional for add operation
+        pasR_RegistrationNo: z.string().optional(),
+
 
         // Student Details
         pasR_FirstName: createStringOnlySchema('First Name', 1, 100),
