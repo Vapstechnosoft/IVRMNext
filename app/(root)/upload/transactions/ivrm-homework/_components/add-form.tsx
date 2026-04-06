@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Checkbox } from '@/components/ui/checkbox';
+import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -24,7 +25,6 @@ import { CalendarIcon, Eye, Loader2, Minus, Plus, Save, Upload, X } from 'lucide
 import { useEffect, useRef, useState } from 'react';
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
-import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 
 interface AddHomeWorkFormProps {
     onSuccess: () => void;
@@ -87,7 +87,6 @@ export default function AddHomeWorkForm({ onSuccess, classList }: AddHomeWorkFor
         control,
         name: 'ihW_Attachment_Array'
     });
-
 
     // Populate classes when Academic Year changes
     useEffect(() => {
@@ -432,9 +431,7 @@ export default function AddHomeWorkForm({ onSuccess, classList }: AddHomeWorkFor
                         name='ihW_Assignment'
                         render={({ field }) => (
                             <div>
-                                <Label>
-                                    Assignment <span className='text-red-500'>*</span>
-                                </Label>
+                                <Label>Assignment</Label>
                                 <Textarea {...field} value={field.value || ''} placeholder='Enter Assignment' rows={3} />
                             </div>
                         )}

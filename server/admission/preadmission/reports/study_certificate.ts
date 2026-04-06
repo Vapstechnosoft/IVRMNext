@@ -43,3 +43,16 @@ export async function getStudyCertificateQR(data: any) {
     const url = '/StudyCertificate/QRCODECertificates';
     return await api.post<any>('admission', url, data);
 }
+
+/**
+ * Fetches Study Certificate details for BCEH (Baldwin Co-Education)
+ */
+export async function getBcehStudyCertDetails(data: {
+    ASMAY_Id: number;
+    ASMCL_Id: number;
+    ASMC_Id: number;
+    AMST_Id: number;
+}) {
+    const url = `/StudyCertificate/getStudData?ASMAY_Id=${data.ASMAY_Id}&ASMCL_Id=${data.ASMCL_Id}&ASMC_Id=${data.ASMC_Id}&AMST_Id=${data.AMST_Id}`;
+    return await api.post<any>('admission', url, {});
+}

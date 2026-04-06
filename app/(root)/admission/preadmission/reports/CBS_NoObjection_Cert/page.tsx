@@ -122,7 +122,7 @@ export default function CBSNoObjectionCertPage() {
                     ASCISS_CertificateNo: `BC${filterData.asmaY_Id}${student.amsT_Id || student.AMST_Id}`,
                     ASCISS_HtmlTemplate: htmlTemplate,
                     ASCISS_PDFFileName: `NOC_${student.studentname.replace(/\s+/g, "_")}.pdf`,
-                    ASCISS_QRCode: "" 
+                    ASCISS_QRCode: ""
                 };
 
                 await saveQRCodeMutation.mutateAsync(payload);

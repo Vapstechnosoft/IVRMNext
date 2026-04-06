@@ -95,6 +95,7 @@ function EmployeeStrengthReportContent() {
 
         generateReport(payload, {
             onSuccess: (res) => {
+                console.log("res", res)
                 if (res.success && res.data) {
                     setReportData(res.data);
                     toast.success('Report generated successfully');
@@ -165,7 +166,7 @@ function EmployeeStrengthReportContent() {
         baseColumns.push({
             accessorKey: 'totalEmployees',
             header: 'Total No. of Emp',
-            cell: ({ row }: any) => <div className="text-right">{row.original.totalEmployees}</div>
+            cell: ({ row }: any) => <div >{row.original.totalEmployees}</div>
         } as any);
 
         return baseColumns;
@@ -322,8 +323,8 @@ function EmployeeStrengthReportContent() {
                             data={reportData?.employeeDetails || reportData?.alldata || reportData?.list || (Array.isArray(reportData) ? reportData : [])}
                             columns={columns}
                             totalItems={(reportData?.employeeDetails || reportData?.alldata || reportData?.list || (Array.isArray(reportData) ? reportData : [])).length}
-                            isPaginationRequired={false}
-                            isSearchRequired={false}
+                            isPaginationRequired={true}
+                            isSearchRequired={true}
                             showSearchColumns={false}
                             isLoading={isPending}
                         />
@@ -332,7 +333,7 @@ function EmployeeStrengthReportContent() {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-muted/20 rounded-lg border">
                             <div className="space-y-1">
                                 <p className="text-xs text-muted-foreground uppercase font-semibold">Total Employees</p>
-                                <p className="text-2xl font-bold">{totalEmployeesSum}</p>
+                                <p className="text-2xl font-bold">{reportData.totalLeftEmployees + reportData.totalWorkingEmployees  || 0}</p>
                             </div>
                             <div className="space-y-1">
                                 <p className="text-xs text-muted-foreground uppercase font-semibold">Working Employees</p>

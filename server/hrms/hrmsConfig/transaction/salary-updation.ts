@@ -577,33 +577,40 @@ export async function getHeadDropdown() {
 
 // Helper to map UI earning/deduction items to Backend API format
 function mapToUpdateItem(item: any, userId: number): SalaryUpdationUpdateItem {
+    // Robust mapping for Swagger format: handles both PascalCase (Updation) and camelCase (Approval)
+    // specifically adding hresD_ prefix support for Amount, Percentage, etc.
     return {
-        hreeD_Id: item.HREED_Id,
-        mI_Id: item.MI_Id,
-        hrmE_Id: item.HRME_Id,
-        hrmeD_Id: item.HRMED_Id,
-        hreeD_Amount: item.HREED_Amount,
-        hreeD_Percentage: item.HREED_Percentage || '0',
-        hreeD_ActiveFlag: item.HREED_ActiveFlag,
-        hreeD_MaxApplicableFlg: item.HREED_MaxApplicableFlg,
-        hreeD_ApplicableMaxValue: item.HREED_ApplicableMaxValue,
+        // IMPORTANT: We do NOT map hresD_Id to hreeD_Id here because hresD_Id is a Transaction ID 
+        // while the update API expects HREED_Id (Master ID). Sending 0 allows the backend to 
+        // match the master record by HRME_Id and HRMED_Id.
+        hreeD_Id: item.HREED_Id ?? item.hreeD_Id ?? 0,
+        mI_Id: item.MI_Id ?? item.mI_Id ?? 30, // Default institutional ID
+        hrmE_Id: item.HRME_Id ?? item.hrmE_Id ?? 0,
+        hrmeD_Id: item.HRMED_Id ?? item.hrmeD_Id ?? 0,
+        hreeD_Amount: item.HREED_Amount ?? item.hresD_Amount ?? item.hreeD_Amount ?? 0,
+        hreeD_Percentage: item.HREED_Percentage ?? item.hresD_Percentage ?? item.hreeD_Percentage ?? '0',
+        hreeD_ActiveFlag: item.HREED_ActiveFlag ?? item.hresD_ActiveFlag ?? item.hreeD_ActiveFlag ?? true,
+        hreeD_MaxApplicableFlg: item.HREED_MaxApplicableFlg ?? item.hresD_MaxApplicableFlg ?? item.hreeD_MaxApplicableFlg ?? false,
+        hreeD_ApplicableMaxValue: item.HREED_ApplicableMaxValue ?? item.hresD_ApplicableMaxValue ?? item.hreeD_ApplicableMaxValue ?? 0,
         updatedDate: new Date().toISOString(),
         hreeD_UpdatedBy: userId,
     };
 }
 
+
 export async function updateEmployeesEarningsAndDeductions(data: { earningResult?: any[], deductionResult?: any[], LoginUserId: number }) {
-    console.log('📥 [SALARY UPDATION - BACKEND] Update request payload size (earnings):', data.earningResult?.length);
-    console.log('📥 [SALARY UPDATION - BACKEND] Update request payload size (deductions):', data.deductionResult?.length);
+    console.log('📥 [SALARY UPDATION - SERVER] RAW INPUT:', JSON.stringify(data, null, 2));
 
     const url = '/api/SalaryUpdation/update_employees_earnings_and_deductions';
-
+    
     // Map PascalCase UI objects to camelCase Backend objects
-    const userId = data.LoginUserId;
+    const userId = data.LoginUserId || 30; // Use provided LoginUserId or default
     const requestBody: SalaryUpdationUpdateRequest = {
         earnings: (data.earningResult || []).map(item => mapToUpdateItem(item, userId)),
         deductions: (data.deductionResult || []).map(item => mapToUpdateItem(item, userId))
     };
+
+    console.log('📤 [SALARY UPDATION - SERVER] FINAL PAYLOAD:', JSON.stringify(requestBody, null, 2));
 
     return await api.put<any>('hrms', url, requestBody);
 }

@@ -62,6 +62,14 @@ export const useNoticeBoardEmployees = () => {
     });
 };
 
+export const useEmployeesForNoticeBoard = () => {
+    return useQuery({
+        queryKey: [PORTAL_QUERY_KEYS.GET_EMPLOYEES_FOR_NOTICE_BOARD],
+        queryFn: async () => getNoticeBoardEmployees({}),
+        staleTime: 30 * 60 * 1000,
+    });
+};
+
 export const useBusRoutingForNoticeBoardQuery = () => {
     return useQuery({
         queryKey: [PORTAL_QUERY_KEYS.GET_ROUTES_FOR_NOTICE_BOARD],

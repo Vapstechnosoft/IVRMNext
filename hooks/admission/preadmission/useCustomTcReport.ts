@@ -2,6 +2,8 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import {
     getCustomTcInitialData,
     getCustomTcStudentList,
+    getCustomTcChangeClass,
+    getCustomTcChangeSection,
     getCustomTcStudentNameChange,
     onCustomTcTempPerChange,
     getCustomTcDetails
@@ -29,6 +31,18 @@ export const useCustomTcInitialData = () => {
 export const useCustomTcStudentList = () => {
     return useMutation({
         mutationFn: getCustomTcStudentList,
+    });
+};
+
+export const useCustomTcChangeClass = () => {
+    return useMutation({
+        mutationFn: getCustomTcChangeClass,
+    });
+};
+
+export const useCustomTcChangeSection = () => {
+    return useMutation({
+        mutationFn: getCustomTcChangeSection,
     });
 };
 

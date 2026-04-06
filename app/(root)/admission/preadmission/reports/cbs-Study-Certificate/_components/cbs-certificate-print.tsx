@@ -5,190 +5,273 @@ import { format } from 'date-fns';
 
 interface CbsCertificatePrintProps {
     data: any;
-    mode: '0' | '1'; // 0: Study, 1: Character
+    mode: '0' | '1' | '2'; // 0: Study, 1: Character, 2: No Objection
 }
 
 export const CbsCertificatePrint = forwardRef<HTMLDivElement, CbsCertificatePrintProps>(
     ({ data, mode }, ref) => {
         if (!data) return null;
 
-        const {
-            studentname,
-            fathername,
-            mothername,
-            className, // from studentlist[0].class
-            section,
-            rollNo,
-            admno,
-            date,
-            milogo,
-            boardType,
-            charType,
-            genderLabel, // Master/Miss
-        } = data;
+        const students = data.studentList || [];
 
         return (
-            <div ref={ref} className="print-container bg-white p-0 m-0 w-[210mm] min-h-[297mm] relative overflow-hidden">
-                <style dangerouslySetInnerHTML={{ __html: `
-                    @page {
-                        size: A4;
-                        margin: 0;
+            <div ref={ref} className="bg-white text-black print-container">
+                <style dangerouslySetInnerHTML={{
+                    __html: `
+                    @font-face {
+                        font-family: "Old English Text MT";
+                        src: url("https://db.onlinewebfonts.com/t/f3258385782c4c96aa24fe8b5d5f9782.eot");
+                        src: url("https://db.onlinewebfonts.com/t/f3258385782c4c96aa24fe8b5d5f9782.eot?#iefix")format("embedded-opentype"), 
+                             url("https://db.onlinewebfonts.com/t/f3258385782c4c96aa24fe8b5d5f9782.woff")format("woff"), 
+                             url("https://db.onlinewebfonts.com/t/f3258385782c4c96aa24fe8b5d5f9782.woff2")format("woff2"), 
+                             url("https://db.onlinewebfonts.com/t/f3258385782c4c96aa24fe8b5d5f9782.ttf")format("truetype"), 
+                             url("https://db.onlinewebfonts.com/t/f3258385782c4c96aa24fe8b5d5f9782.svg#Old English Text MT")format("svg");
+                        font-weight: normal;
+                        font-style: normal;
+                        font-display: swap;
                     }
-
-                    .main-container {
-                        padding: 56px 56px 38px 56px;
+                    @media print {
+                        @page { 
+                            size: A4 portrait; 
+                            margin: 0; 
+                        }
+                        body { 
+                            margin: 0 !important; 
+                            padding: 0 !important; 
+                            -webkit-print-color-adjust: exact !important; 
+                            print-color-adjust: exact !important; 
+                            background: white !important;
+                        }
+                        .print-container {
+                            visibility: visible !important;
+                            display: block !important;
+                            width: 210mm !important;
+                            margin: 0 !important;
+                            padding: 0 !important;
+                            overflow: hidden !important;
+                            background: white !important;
+                        }
+                        .page-container {
+                            visibility: visible !important;
+                            display: block !important;
+                            width: 210mm !important;
+                            height: 297mm !important;
+                            margin: 0 !important;
+                            padding: 0 !important;
+                            position: relative !important;
+                            overflow: hidden !important;
+                            background: white !important;
+                            page-break-after: always !important;
+                        }
+                        .print-container * {
+                            visibility: visible !important;
+                        }
+                    }
+                    .page-container {
+                        width: 210mm;
+                        height: 297mm;
+                        padding: 15mm;
+                        margin: 0 auto;
                         box-sizing: border-box;
-                        min-height: 297mm;
-                        background: url("https://vapsclg.blob.core.windows.net/files/57/COE_Images_Videos/f3a56e64-883f-4c81-9e9e-41c34eeb0b21.png") no-repeat center 320px;
-                        background-size: 95% auto;
-                        -webkit-print-color-adjust: exact;
-                        print-color-adjust: exact;
+                        background: white;
+                        color: black !important;
                     }
-
-                    .cert-border-outer {
+                    .outer-border {
                         border-left: 5px solid #d5303b !important;
-                        height: 100%;
-                        min-height: 270mm;
+                        height: 98%;
                     }
-
-                    .cert-border-middle {
+                    .middle-border {
                         border-left: 5px solid #e7cb7d !important;
                         height: 100%;
-                        min-height: 270mm;
                     }
-
-                    .cert-border-inner {
+                    .inner-border {
                         border-left: 4px solid #211f21 !important;
                         height: 100%;
-                        min-height: 270mm;
-                        padding: 30px;
                     }
-
-                    .georgia-text {
-                        font-family: Georgia, Times New Roman, serif;
-                        line-height: 2.2;
+                    .content-wrapper {
+                        margin: 30px !important;
+                        font-family: 'system-ui', -apple-system, sans-serif !important;
+                        display: flex;
+                        flex-direction: column;
+                        height: 90%;
                     }
-
-                    .title-underline {
-                        text-decoration: underline;
-                        font-family: system-ui, -apple-system, sans-serif;
-                        font-weight: bold;
-                        text-transform: uppercase;
-                        font-size: 1.25rem;
-                        text-align: center;
-                        margin-bottom: 2rem;
-                    }
-
-                    .content-text {
-                        font-family: "Times New Roman", Times, serif;
+                    .certificate-title {
+                        font-family: 'system-ui', -apple-system, sans-serif !important;
                         font-size: 20px;
-                        line-height: 1.8;
-                        margin-top: 2rem;
+                        font-weight: 600;
+                        text-decoration: underline;
+                        text-align: center;
+                        margin-top: 50px;
+                        margin-bottom: 50px;
                     }
-
-                    .content-text b {
-                        border-bottom: 1px solid #000;
-                        padding-bottom: 1px;
+                    .cert-text {
+                        font-family: 'system-ui', -apple-system, sans-serif !important;
+                        font-size: 20px !important;
+                        line-height: 1.6;
+                        margin-top: 30px;
                     }
-
-                    @media print {
-                        body {
-                            -webkit-print-color-adjust: exact;
-                        }
-                        .main-container {
-                            width: 100%;
-                        }
+                    .underline-text {
+                        border-bottom: 1px solid black;
+                        display: inline-block;
+                        padding: 0 4px;
                     }
-                `}} />
+                    .signatory-block {
+                        margin-top: 20px;
+                        text-align: right;
+                        width: 95%;
+                        font-size: 20px !important;
+                    }
+                    .georgia-text {
+                        font-family: Georgia, serif !important;
+                    }
+                ` }} />
 
-                <div className="main-container">
-                    <div className="cert-border-outer">
-                        <div className="cert-border-middle">
-                            <div className="cert-border-inner">
-                                <div id="BBKVTC" className="space-y-6">
-                                    {/* Header Logo */}
-                                    <div className="w-full">
-                                        <img 
-                                            src={milogo || "https://calcuttaboy.blob.core.windows.net/files/Logo_Main_Campus.jpg"} 
-                                            alt="School Logo" 
-                                            className="w-full object-fill"
-                                            style={{ height: 'auto', minHeight: '100px' }}
-                                        />
-                                    </div>
-
-                                    {/* Title */}
-                                    <div className="mt-12">
-                                        <h4 className="title-underline">TO WHOM IT MAY CONCERN</h4>
-                                    </div>
-
-                                    {/* Main Body content */}
-                                    <div className="content-text space-y-8">
-                                        {mode === '1' ? (
-                                            /* Character Certificate Layout */
-                                            <>
-                                                <p>
-                                                    Certified that {genderLabel || 'Master'} <b>{studentname}</b> S/o <b>{fathername} and {mothername}</b> was a bonafide student of this school studying in <b>Class {className}-{section}</b> (Scholar ID) UID: <b>{admno}</b>
-                                                </p>
-                                                <p>
-                                                    He appeared for and Passed the <b>{boardType}</b> Examination held in <b>March 2024</b> from this School.
-                                                </p>
-                                                <p>
-                                                    To the best of my knowledge his conduct and character is <b>{charType}</b>.
-                                                </p>
-                                                <p>
-                                                    I wish him all success in the future.
-                                                </p>
-                                            </>
-                                        ) : (
-                                            /* Study Certificate Layout (Dynamic based on logic) */
-                                            <>
-                                                <p>
-                                                    This is to certify that {genderLabel || 'Master'} <b>{studentname}</b> S/o <b>{fathername} and {mothername}</b> is a bonafide student of this school.
-                                                </p>
-                                                <p>
-                                                    He is presently/was studying in <b>Class {className}</b> section <b>{section}</b> with scholar number <b>{admno}</b> in the academic year <b>{data.acadamicyear}</b>.
-                                                </p>
-                                                <p>
-                                                    His date of birth according to the school records is <b>{data.dob ? format(new Date(data.dob), 'dd/MM/yyyy') : '--'}</b> (in words: <b>{data.dobinwords}</b>).
-                                                </p>
-                                                <p>
-                                                    He joined the school in <b>{data.admitedyear}</b> in class <b>{data.admitedclass}</b>.
-                                                </p>
-                                                <p>
-                                                    His address in our record is <b>{data.street} {data.area} {data.city}</b>.
-                                                </p>
-                                            </>
-                                        )}
-                                    </div>
-
-                                    {/* Signature Section */}
-                                    <div className="mt-20">
-                                        <div className="text-right pr-4 space-y-1">
-                                            <p className="text-xl font-medium">(Raja McGee)</p>
-                                            <p className="text-xl font-bold">Principal & Secretary</p>
+                {students.map((student: any, index: number) => (
+                    <div key={student.amsT_Id || index} className="page-container">
+                        <div className="outer-border">
+                            <div className="middle-border">
+                                <div className="inner-border">
+                                    <div className="content-wrapper">
+                                        {/* Header Logo */}
+                                        <div className="w-full">
+                                            <img
+                                                src="https://calcuttaboy.blob.core.windows.net/files/Logo_Main_Campus.jpg"
+                                                alt="School Header"
+                                                className="w-full object-fill"
+                                            />
                                         </div>
-                                    </div>
 
-                                    {/* Dated Footer */}
-                                    <div className="mt-8 border-b border-black w-fit px-2 inline-block">
-                                        <p className="text-xl font-medium">
-                                            Dated: {date ? format(new Date(date), 'dd/MMMM/yyyy') : '--'}
-                                        </p>
-                                    </div>
+                                        {mode === '1' ? (
+                                            /* CHARACTER CERTIFICATE REPORT */
+                                            <div className="flex flex-col flex-grow">
+                                                <div className="certificate-title">
+                                                    TO WHOM IT MAY CONCERN
+                                                </div>
 
-                                    {/* Footer Image */}
-                                    <div className="mt-12 flex justify-center">
-                                        <img 
-                                            src="https://calcuttaboy.blob.core.windows.net/files/Bonafied_Footer_cbs.jpg" 
-                                            alt="Footer" 
-                                            className="h-[100px] object-contain"
-                                        />
+                                                <div className="cert-text">
+                                                    Certified that {student.genderLabel || 'Master'} <b className="underline-text">{student.studentname}</b> {student.genderLabel === 'Miss' ? 'd/o' : 's/o'} <b className="underline-text">{student.fatherName || student.fathername}</b> was a bonafide student of this school studying in <b className="underline-text">Class {student.className}{student.section ? `-${student.section}` : ''}</b> (Scholar ID) UID: <b className="underline-text">{student.admno}</b>
+                                                </div>
+
+                                                <div className="cert-text">
+                                                    He/She appeared for and Passed the <b>{student.boardType || 'ICSE'}</b> Examination held in <b>March 2024</b> from this School.
+                                                </div>
+
+                                                <div className="cert-text">
+                                                    To the best of my knowledge his/her conduct and character is {student.charType || 'satisfactory'}.
+                                                </div>
+
+                                                <div className="cert-text">
+                                                    I wish him/her all success in the future.
+                                                </div>
+
+                                                <div className="mt-auto">
+                                                    <div className="signatory-block pb-4 pr-6" style={{ lineHeight: '20px' }}>
+                                                        <p className="georgia-text font-bold text-[20px] mb-1">(Raja McGee)</p>
+                                                        <p className="georgia-text font-bold text-[20px] underline">Principal & Secretary</p>
+                                                    </div>
+
+                                                    <div className="mt-12">
+                                                        <label className="georgia-text text-[20px] font-medium border-b border-black">
+                                                            Dated: {student.date ? format(new Date(student.date), 'dd/MMMM/yyyy') : format(new Date(), 'dd/MMMM/yyyy')}
+                                                        </label>
+                                                    </div>
+
+                                                    <div className="mt-6">
+                                                        <img
+                                                            src="https://calcuttaboy.blob.core.windows.net/files/Bonafied_Footer_cbs.jpg"
+                                                            alt="Footer"
+                                                            className="h-[100px] object-contain w-full"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ) : mode === '2' ? (
+                                            /* NO OBJECTION CERTIFICATE REPORT */
+                                            <div className="flex flex-col flex-grow">
+                                                <div className="text-center mt-12 mb-12">
+                                                    <h3 className="text-[22px] font-bold underline georgia-text tracking-wide uppercase">
+                                                        TO WHOM IT MAY CONCERN
+                                                    </h3>
+                                                </div>
+
+                                                <div className="georgia-text text-[20px] leading-[36px] text-justify mt-4">
+                                                    <p>
+                                                        It is hereby certified that {student.genderLabel || 'Master'} <b className="underline">{student.studentname}</b> , {student.genderLabel === 'Miss' ? 'D/o' : 'S/o'} <b className="underline">{student.fatherName || student.fathername}</b> is a bonafide student of this school
+                                                        studying in Class <b className="underline">{student.className || student.class}</b> Section <b className="underline">{student.section}</b>, Roll No. and Scholor No. <b className="underline">{student.admno}</b> of this school.
+                                                        <br /><br />
+                                                        The School has no objection to {student.studentname} applying for the
+                                                        Schengen Visa for visiting Norway, Denmark and Finland from Tuesday, 30th April 2024 to Wednesday 15th May 2024.
+                                                    </p>
+                                                </div>
+
+                                                <div className="mt-auto">
+                                                    <div className="signatory-block pb-4 pr-6" style={{ lineHeight: '20px' }}>
+                                                        <p className="georgia-text font-bold text-[20px] mb-1">(Raja McGee)</p>
+                                                        <p className="georgia-text font-bold text-[20px] underline">Principal & Secretary</p>
+                                                    </div>
+
+                                                    <div className="mt-12">
+                                                        <p className="georgia-text text-[22px]">
+                                                            Dated: <span className="border-b border-black font-medium">{student.date ? format(new Date(student.date), 'dd MMMM yyyy') : format(new Date(), 'dd MMMM yyyy')}</span>
+                                                        </p>
+                                                    </div>
+
+                                                    <div className="mt-6">
+                                                        <img
+                                                            src="https://calcuttaboy.blob.core.windows.net/files/Bonafied_Footer_cbs.jpg"
+                                                            alt="Footer"
+                                                            className="h-[100px] object-contain w-full"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            /* STUDY CERTIFICATE REPORT */
+                                            <div className="flex flex-col flex-grow">
+                                                <div className="certificate-title">
+                                                    STUDY CERTIFICATE
+                                                </div>
+
+                                                <div className="cert-text">
+                                                    Certified that {student.genderLabel || 'Master'} <b className="underline-text">{student.studentname}</b> {student.genderLabel === 'Miss' ? 'd/o' : 's/o'} <b className="underline-text">{student.fatherName || student.fathername}</b> is/was a bonafide student of this school studying in <b className="underline-text"> {student.className}{student.section ? `-${student.section}` : ''}</b> during the academic year <b className="underline-text">{student.acadamicyear}</b>.
+                                                </div>
+
+                                                <div className="cert-text">
+                                                    His/Her date of birth as per school records is <b>{student.dob ? format(new Date(student.dob), 'dd/MM/yyyy') : '--'}</b> ({student.dobinwords}).
+                                                </div>
+
+                                                <div className="cert-text">
+                                                    The above information is true to the best of my knowledge.
+                                                </div>
+
+                                                <div className="mt-auto">
+                                                    <div className="signatory-block pb-4 pr-6" style={{ lineHeight: '20px' }}>
+                                                        <p className="georgia-text font-bold text-[20px] mb-1">(Raja McGee)</p>
+                                                        <p className="georgia-text font-bold text-[20px] underline">Principal & Secretary</p>
+                                                    </div>
+
+                                                    <div className="mt-12">
+                                                        <label className="georgia-text text-[20px] font-medium border-b border-black">
+                                                            Dated: {student.date ? format(new Date(student.date), 'dd/MMMM/yyyy') : format(new Date(), 'dd/MMMM/yyyy')}
+                                                        </label>
+                                                    </div>
+
+                                                    <div className="mt-6">
+                                                        <img
+                                                            src="https://calcuttaboy.blob.core.windows.net/files/Bonafied_Footer_cbs.jpg"
+                                                            alt="Footer"
+                                                            className="h-[100px] object-contain w-full"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                ))}
             </div>
         );
     }

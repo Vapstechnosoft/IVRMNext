@@ -1,16 +1,23 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import {
     getCbsStudyCertLoadData,
+    getCbsStudyCertAcademicYearChange,
     getCbsStudyCertSearchFilter,
     getCbsStudyCertDetails,
     getCbsCharacterCertDetails,
     saveCbsStudyCertQRCode
 } from '@/server/admission/preadmission/reports/cbs_study_certificate';
 
-export const useCbsStudyCertLoadData = (pageId: number) => {
+export const useCbsStudyCertLoadData = () => {
     return useQuery({
-        queryKey: ['cbs-study-cert-load-data', pageId],
-        queryFn: () => getCbsStudyCertLoadData(pageId),
+        queryKey: ['cbs-study-cert-load-data'],
+        queryFn: () => getCbsStudyCertLoadData(),
+    });
+};
+
+export const useCbsStudyCertAcademicYearChange = () => {
+    return useMutation({
+        mutationFn: (data: { AMST_SOL: string; ASMAY_Id: number }) => getCbsStudyCertAcademicYearChange(data),
     });
 };
 

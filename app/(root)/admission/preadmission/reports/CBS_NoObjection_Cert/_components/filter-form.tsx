@@ -151,13 +151,6 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                {initialData?.masterCompany?.[0]?.companyname && (
-                    <div className="bg-primary/5 p-3 rounded-lg border border-primary/20 text-center">
-                        <h2 className="text-lg font-bold text-primary uppercase tracking-wider">
-                            {initialData.masterCompany[0].companyname}
-                        </h2>
-                    </div>
-                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Filter Type */}
@@ -255,7 +248,7 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                                     <FormLabel>Academic Year <span className="text-destructive">*</span></FormLabel>
                                     <Select 
                                         onValueChange={(val) => onAcademicYearChange(Number(val))} 
-                                        value={field.value?.toString()}
+                                        value={field.value?.toString() || ""}
                                     >
                                         <FormControl>
                                             <SelectTrigger>
@@ -285,7 +278,7 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                                     <Select 
                                         disabled={watchAllOrIndi === 'A'}
                                         onValueChange={(val) => field.onChange(Number(val))} 
-                                        value={field.value?.toString()}
+                                        value={field.value?.toString() || ""}
                                     >
                                         <FormControl>
                                             <SelectTrigger>
@@ -315,7 +308,7 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                                     <Select 
                                         disabled={watchAllOrIndi === 'A'}
                                         onValueChange={(val) => field.onChange(Number(val))} 
-                                        value={field.value?.toString()}
+                                        value={field.value?.toString() || ""}
                                     >
                                         <FormControl>
                                             <SelectTrigger>
