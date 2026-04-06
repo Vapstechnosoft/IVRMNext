@@ -2288,16 +2288,15 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/reports/employee-offer-letter',
                                             title: 'Employee offer letter',
                                             description: 'Generate Offer Letters'
+                                        },                                    
+                                        {
+                                            id: 23,
+                                            name: 'Loan Report',
+                                            icon: 'CreditCard',
+                                            url: '/hrms/reports/loan-report',
+                                            title: 'Loan Report',
+                                            description: 'Employee Loan Report'
                                         },
-                                        //,
-                                        // {
-                                        //     id: 23,
-                                        //     name: 'Loan Report',
-                                        //     icon: 'CreditCard',
-                                        //     url: '/hrms/reports/loan-report',
-                                        //     title: 'Loan Report',
-                                        //     description: 'Employee Loan Report'
-                                        // }
                                         {
                                             id: 24,
                                             name: 'Employee Profile Report',
@@ -2329,6 +2328,14 @@ export async function getUserAccessibleModules() {
                                             icon: 'FileType',
                                             url: '/hrms/reports/employeeSalarySlipStJames',
                                             title: 'Employee Salary Slip ST James Report',
+                                            description: 'Employee Salary Slips'
+                                        },
+                                        {
+                                            id:28,
+                                            name: 'Employee Salary Slip Calcutta Boys Report',
+                                            icon: 'FileType',
+                                            url: '/hrms/reports/CBSSalarySlip',
+                                            title: 'Employee Salary Slip Calcutta Boys Report',
                                             description: 'Employee Salary Slips'
                                         }
                                     ]
