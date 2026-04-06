@@ -25,11 +25,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { ChevronDown, Sparkles, Volume2, Play, Square } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ChevronDown, Sparkles, Volume2, Play, Square, Upload } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import Script from 'next/script';
-import { chatGPT, whatsAppCall, languageTranslator } from '@/server/intelligent-apps';
-import { SchoolAssistantBot } from '@/components/chatbot/school-assistant-bot';
+import { chatGPT, whatsAppCall, whatsAppBulkCall, languageTranslator } from '@/server/intelligent-apps';
 
 export function IntelligentAppsMenu() {
     // Force Rebuild: Intelligent Apps Menu
@@ -46,7 +46,6 @@ export function IntelligentAppsMenu() {
                     </div>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align='end'>
-                    <DropdownMenuItem onSelect={() => setOpenDialog('schoolbot')}>Intelligent Bot</DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => setOpenDialog('whatsapp')}>Whatsapp</DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => setOpenDialog('chatgpt')}>ChatGPT</DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => setOpenDialog('translator')}>Language Translator</DropdownMenuItem>
@@ -59,7 +58,6 @@ export function IntelligentAppsMenu() {
 
             <WhatsAppDialog open={openDialog === 'whatsapp'} onOpenChange={(open) => !open && setOpenDialog(null)} />
             <ChatGPTDialog open={openDialog === 'chatgpt'} onOpenChange={(open) => !open && setOpenDialog(null)} />
-            <SchoolAssistantBot open={openDialog === 'schoolbot'} onOpenChange={(open) => !open && setOpenDialog(null)} />
             <LanguageTranslatorDialog open={openDialog === 'translator'} onOpenChange={(open) => !open && setOpenDialog(null)} />
             <TextToSpeechDialog open={openDialog === 'speech'} onOpenChange={(open) => !open && setOpenDialog(null)} />
             <PdfConverterDialog open={openDialog === 'pdf'} onOpenChange={(open) => !open && setOpenDialog(null)} />
@@ -280,38 +278,58 @@ function WhatsAppDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (
     const [mobile, setMobile] = useState('');
     const [loading, setLoading] = useState(false);
     const [fields, setFields] = useState<Record<string, string>>({});
+    const [bulkFile, setBulkFile] = useState<File | null>(null);
+    const [activeTab, setActiveTab] = useState('single');
 
     const handleSend = async () => {
-        if (!mobile) {
-            alert('Mobile number is required');
-            return;
-        }
-        setLoading(true);
-        // Using 'any' to construct the DTO dynamically
-        const data: any = {
-            MobileNumber: mobile,
-            Typedropdown: type,
-            ...fields
-        };
-        try {
-            const res = await whatsAppCall(data);
-            if (res === 'success') {
-                alert('Message sent successfully!');
-                onOpenChange(false);
-            } else {
-                alert('Failed to send message.');
+        if (activeTab === 'single') {
+            if (!mobile) {
+                alert('Mobile number is required');
+                return;
             }
-        } catch (e) {
-            alert('Error sending message');
+            setLoading(true);
+            const data: any = {
+                MobileNumber: mobile,
+                Typedropdown: type,
+                ...fields
+            };
+            try {
+                const res = await whatsAppCall(data);
+                if (res === 'success') {
+                    alert('Message sent successfully!');
+                    onOpenChange(false);
+                } else {
+                    alert('Failed to send message.');
+                }
+            } catch (e) {
+                alert('Error sending message');
+            }
+            setLoading(false);
+        } else {
+            if (!bulkFile) {
+                alert('Please upload an excel file');
+                return;
+            }
+            setLoading(true);
+            const formData = new FormData();
+            formData.append('file', bulkFile);
+            formData.append('type', type);
+            try {
+                const res = await whatsAppBulkCall(formData);
+                alert(res);
+                onOpenChange(false);
+            } catch (e) {
+                alert('Error sending bulk messages');
+            }
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     const renderFields = () => {
         switch (type) {
             case 'Birthday':
                 return (
-                    <>
+                    <div className="space-y-4">
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label className="text-right">Name</Label>
                             <Input value={fields.BirthdayName || ''} onChange={(e) => setFields({ ...fields, BirthdayName: e.target.value })} className="col-span-3" />
@@ -320,15 +338,19 @@ function WhatsAppDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (
                             <Label className="text-right">Institute</Label>
                             <Input value={fields.InstituteNameB || ''} onChange={(e) => setFields({ ...fields, InstituteNameB: e.target.value })} className="col-span-3" />
                         </div>
-                    </>
+                    </div>
                 );
             case 'Attendance':
-                return [1, 2, 3, 4, 5].map(i => (
-                    <div key={i} className="grid grid-cols-4 items-center gap-4">
-                        <Label className="text-right">Att {i}</Label>
-                        <Input value={fields[`Attendance${i}`] || ''} onChange={(e) => setFields({ ...fields, [`Attendance${i}`]: e.target.value })} className="col-span-3" />
+                return (
+                    <div className="space-y-4">
+                        {[1, 2, 3, 4, 5].map(i => (
+                            <div key={i} className="grid grid-cols-4 items-center gap-4">
+                                <Label className="text-right">Att {i}</Label>
+                                <Input value={fields[`Attendance${i}`] || ''} onChange={(e) => setFields({ ...fields, [`Attendance${i}`]: e.target.value })} className="col-span-3" />
+                            </div>
+                        ))}
                     </div>
-                ));
+                );
             case 'FeeDue':
                 return (
                     <div className="grid grid-cols-4 items-center gap-4">
@@ -337,57 +359,130 @@ function WhatsAppDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (
                     </div>
                 );
             case 'FeeTransaction':
-                return [1, 2, 3, 4, 5].map(i => (
-                    <div key={i} className="grid grid-cols-4 items-center gap-4">
-                        <Label className="text-right">Trans {i}</Label>
-                        <Input value={fields[`FeeTransaction${i}`] || ''} onChange={(e) => setFields({ ...fields, [`FeeTransaction${i}`]: e.target.value })} className="col-span-3" />
+                return (
+                    <div className="space-y-4">
+                        {[1, 2, 3, 4, 5].map(i => (
+                            <div key={i} className="grid grid-cols-4 items-center gap-4">
+                                <Label className="text-right">Trans {i}</Label>
+                                <Input value={fields[`FeeTransaction${i}`] || ''} onChange={(e) => setFields({ ...fields, [`FeeTransaction${i}`]: e.target.value })} className="col-span-3" />
+                            </div>
+                        ))}
                     </div>
-                ));
+                );
             case 'LoginCredentials':
             default:
                 if (type === 'Board') return <div>No specific parameters configured for Board.</div>;
-                return [1, 2, 3, 4, 5].map(i => (
-                    <div key={i} className="grid grid-cols-4 items-center gap-4">
-                        <Label className="text-right">Cred {i}</Label>
-                        <Input value={fields[`LoginCredentials${i}`] || ''} onChange={(e) => setFields({ ...fields, [`LoginCredentials${i}`]: e.target.value })} className="col-span-3" />
+                return (
+                    <div className="space-y-4">
+                        {[1, 2, 3, 4, 5].map(i => (
+                            <div key={i} className="grid grid-cols-4 items-center gap-4">
+                                <Label className="text-right">Cred {i}</Label>
+                                <Input value={fields[`LoginCredentials${i}`] || ''} onChange={(e) => setFields({ ...fields, [`LoginCredentials${i}`]: e.target.value })} className="col-span-3" />
+                            </div>
+                        ))}
                     </div>
-                ));
+                );
         }
     };
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto">
-                <DialogHeader>
+            <DialogContent className="sm:max-w-[500px] max-h-[90vh] flex flex-col p-0">
+                <DialogHeader className="px-6 pt-6 pb-2">
                     <DialogTitle>WhatsApp Sender</DialogTitle>
                     <DialogDescription>Send template messages via WhatsApp.</DialogDescription>
                 </DialogHeader>
-                <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="mobile" className="text-right">Mobile</Label>
-                        <Input id="mobile" value={mobile} onChange={(e) => setMobile(e.target.value)} className="col-span-3" placeholder="Number (e.g. 9199...)" />
+
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 overflow-hidden flex flex-col">
+                    <div className="px-6">
+                        <TabsList className="grid w-full grid-cols-2">
+                            <TabsTrigger value="single">Single Message</TabsTrigger>
+                            <TabsTrigger value="bulk">Bulk Messaging</TabsTrigger>
+                        </TabsList>
                     </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="type" className="text-right">Type</Label>
-                        <Select value={type} onValueChange={(val) => { setType(val); setFields({}); }}>
-                            <SelectTrigger className="col-span-3">
-                                <SelectValue placeholder="Select type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="Birthday">Birthday</SelectItem>
-                                <SelectItem value="Attendance">Attendance</SelectItem>
-                                <SelectItem value="FeeDue">Fee Due</SelectItem>
-                                <SelectItem value="FeeTransaction">Fee Transaction</SelectItem>
-                                <SelectItem value="LoginCredentials">Login Credentials</SelectItem>
-                                <SelectItem value="Board">Board</SelectItem>
-                            </SelectContent>
-                        </Select>
+
+                    <div className="flex-1 overflow-y-auto px-6 py-4">
+                        <div className="grid gap-4">
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="type" className="text-right">Type</Label>
+                                <Select value={type} onValueChange={(val) => { setType(val); setFields({}); }}>
+                                    <SelectTrigger className="col-span-3">
+                                        <SelectValue placeholder="Select type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Birthday">Birthday</SelectItem>
+                                        <SelectItem value="Attendance">Attendance</SelectItem>
+                                        <SelectItem value="FeeDue">Fee Due</SelectItem>
+                                        <SelectItem value="FeeTransaction">Fee Transaction</SelectItem>
+                                        <SelectItem value="LoginCredentials">Login Credentials</SelectItem>
+                                        <SelectItem value="Board">Board</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <TabsContent value="single" className="m-0 pt-2 space-y-4">
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="mobile" className="text-right">Mobile</Label>
+                                    <Input id="mobile" value={mobile} onChange={(e) => setMobile(e.target.value)} className="col-span-3" placeholder="Number (e.g. 9199...)" />
+                                </div>
+                                {renderFields()}
+                            </TabsContent>
+
+                            <TabsContent value="bulk" className="m-0 pt-2 space-y-6">
+                                <div className="flex flex-col gap-3">
+                                    <Label className="text-sm font-semibold">Upload Excel Sheet</Label>
+                                    <div className="border-2 border-dashed border-muted-foreground/25 rounded-xl p-8 text-center hover:bg-muted/50 transition-colors relative group">
+                                        <input
+                                            type="file"
+                                            accept=".xlsx, .xls"
+                                            onChange={(e) => setBulkFile(e.target.files?.[0] || null)}
+                                            className="hidden"
+                                            id="bulk-upload"
+                                        />
+                                        <label htmlFor="bulk-upload" className="cursor-pointer flex flex-col items-center gap-3">
+                                            <div className="p-3 bg-primary/10 rounded-full text-primary group-hover:scale-110 transition-transform">
+                                                <Upload size={24} />
+                                            </div>
+                                            {bulkFile ? (
+                                                <div className="space-y-1">
+                                                    <p className="text-sm font-medium text-foreground">{bulkFile.name}</p>
+                                                    <p className="text-xs text-muted-foreground">{(bulkFile.size / 1024).toFixed(1)} KB</p>
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-1">
+                                                    <p className="text-sm font-medium">Click to upload or drag and drop</p>
+                                                    <p className="text-xs text-muted-foreground">Excel files (.xlsx, .xls) only</p>
+                                                </div>
+                                            )}
+                                        </label>
+                                    </div>
+                                    <div className="bg-muted/30 rounded-lg p-3 border">
+                                        <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Required Columns</p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {['MobileNumber', 'Name', 'Institute', 'Attendance', 'FeeDue', 'Credentials'].map(col => (
+                                                <span key={col} className="px-2 py-0.5 bg-background border rounded text-[10px] text-foreground font-medium">
+                                                    {col}
+                                                </span>
+                                            ))}
+                                        </div>
+                                        <p className="text-[10px] text-muted-foreground mt-2 italic">* MobileNumber is Mandatory for all messages</p>
+                                    </div>
+                                </div>
+                            </TabsContent>
+                        </div>
                     </div>
-                    {renderFields()}
-                </div>
-                <DialogFooter>
-                    <Button onClick={handleSend} disabled={loading}>
-                        {loading ? 'Sending...' : 'Send'}
+                </Tabs>
+
+                <DialogFooter className="px-6 py-4 border-t bg-muted/50">
+                    <Button onClick={handleSend} disabled={loading} className="w-full sm:w-auto">
+                        {loading ? (
+                            <span className="flex items-center gap-2">
+                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                                {activeTab === 'single' ? 'Sending...' : 'Processing Bulk...'}
+                            </span>
+                        ) : (
+                            activeTab === 'single' ? 'Send Message' : 'Send Bulk Messages'
+                        )}
                     </Button>
                 </DialogFooter>
             </DialogContent>

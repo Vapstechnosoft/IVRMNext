@@ -10,7 +10,7 @@ import { useCallback } from 'react';
 export const masterPeriodColumns: ColumnDef<IMasterPeriodDetailsList>[] = [
     {
         accessorKey: 'impcM_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='font-bold text-black' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -22,35 +22,35 @@ export const masterPeriodColumns: ColumnDef<IMasterPeriodDetailsList>[] = [
     },
     {
         accessorKey: 'categoryName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Category Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Category Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('categoryName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'imP_PeriodName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Period Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Period Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('imP_PeriodName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'imP_PeriodOrder',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Period Order' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Period Order' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('imP_PeriodOrder')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'half',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Type' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Type' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('half')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='font-bold text-black' />,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
     }
 ];

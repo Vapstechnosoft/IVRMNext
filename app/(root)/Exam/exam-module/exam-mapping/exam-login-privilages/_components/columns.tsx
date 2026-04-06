@@ -56,7 +56,11 @@ function ActionButtonsCell({ rowData }: { rowData: IExamLoginPrivileges }) {
 
     return (
         <div className='flex justify-center gap-2'>
-            <button type='button' onClick={handleView} className='rounded-md p-2 transition hover:bg-muted' title='View Details'>
+            <button
+                type='button'
+                onClick={handleView}
+                className='w-fit rounded-md p-2 transition hover:bg-muted'
+                title='View Details'>
                 <Eye className='h-4 w-4 text-blue-600' />
             </button>
             <ActionButtons

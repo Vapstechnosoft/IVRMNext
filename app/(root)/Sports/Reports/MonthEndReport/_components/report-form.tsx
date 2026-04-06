@@ -38,10 +38,10 @@ export default function ReportForm({ setReportData, setFormData }: ReportFormPro
         generateReport.mutate(data, {
             onSuccess: (result) => {
                 setReportData(result || null);
-                if (result) {
-                    toast.success('Report generated successfully!');
+                if (result && (result.total_count_student > 0 || result.total_partic_student > 0)) {
+                    toast.success('Report generated successfully');
                 } else {
-                    toast.info('No records found.');
+                    toast.info('No records found');
                 }
             },
             onError: (error) => {
@@ -141,12 +141,6 @@ export default function ReportForm({ setReportData, setFormData }: ReportFormPro
                 <div className="flex justify-center gap-4 pt-4 border-t">
                     <Button type="submit" disabled={generateReport.isPending}>
                         {generateReport.isPending ? 'Generating...' : 'Report'}
-                    </Button>
-                    <Button type="button" variant="outline" onClick={() => toast.info('Excel Export functionality mock')}>
-                        Export to Excel
-                    </Button>
-                    <Button type="button" variant="outline" onClick={() => toast.info('Print functionality mock')}>
-                        Print
                     </Button>
                     <Button type="button" variant="destructive" onClick={handleClear}>
                         Cancel

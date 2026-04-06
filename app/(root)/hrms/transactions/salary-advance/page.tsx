@@ -114,9 +114,23 @@ function SalaryAdvancePageContent({
                 enableHiding: true
             },
             {
+                accessorKey: 'hresA_ReferenceNo',
+                header: ({ column }) => <DataTableColumnHeader column={column} title='Reference No' />,
+                cell: ({ row }) => <div>{row.getValue('hresA_ReferenceNo')}</div>,
+                enableSorting: true,
+                enableHiding: true
+            },
+            {
                 accessorKey: 'hresA_AppliedAmount',
                 header: ({ column }) => <DataTableColumnHeader column={column} title='Applied Amount' />,
                 cell: ({ row }) => <div>₹{row.getValue('hresA_AppliedAmount')?.toLocaleString()}</div>,
+                enableSorting: true,
+                enableHiding: true
+            },
+            {
+                accessorKey: 'hresA_Remarks',
+                header: ({ column }) => <DataTableColumnHeader column={column} title='Remarks' />,
+                cell: ({ row }) => <div>{row.getValue('hresA_Remarks')}</div>,
                 enableSorting: true,
                 enableHiding: true
             },
@@ -142,6 +156,7 @@ function SalaryAdvancePageContent({
                 enableSorting: true,
                 enableHiding: true
             },
+            
             {
                 id: 'actions',
                 header: 'Actions',

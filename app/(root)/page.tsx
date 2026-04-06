@@ -24,7 +24,7 @@ export default function Page() {
             // );
             router.push('/school-admin');
         } else if (role === ROLES.STUDENT) {
-            router.push('/StudentPortal/StudentPortalDashboard');
+            router.push('/StudentPortal/student-dashboard');
         } else if (role === ROLES.CHAIRMAN) {
             router.push('/chairman');
         } else if (role === ROLES.STAFF) {

@@ -31,8 +31,8 @@ export default function AddMasterUOMForm({
         <GenericForm<IMasterUOM, (typeof masterUOMSchema)['addOrUpdate']>
             schema={masterUOMSchema.addOrUpdate}
             initialValues={{
-                spccmuoM_Id: selectedRow?.spccmuoM_Id ?? (selectedRow as any)?.SPCCMUOM_Id ?? (selectedRow as any)?.spccmuom_Id ?? 0,
-                spccmuoM_UOMName: selectedRow?.spccmuoM_UOMName ?? (selectedRow as any)?.SPCCMUOM_UOMName ?? (selectedRow as any)?.spccmuom_UOMName ?? '',
+                spccmuoM_Id: selectedRow?.spccmuoM_Id || (selectedRow as any)?.SPCCMUOM_Id || (selectedRow as any)?.spccmuom_Id || 0,
+                spccmuoM_UOMName: selectedRow?.spccmuoM_UOMName || (selectedRow as any)?.SPCCMUOM_UOMName || (selectedRow as any)?.spccmuom_UOMName || '',
                 spccmuoM_ActiveFlag: selectedRow?.spccmuoM_ActiveFlag ?? (selectedRow as any)?.SPCCMUOM_ActiveFlag ?? (selectedRow as any)?.spccmuom_ActiveFlag ?? true
             }}
             onSubmit={async (values) => {
@@ -40,22 +40,39 @@ export default function AddMasterUOMForm({
                 try {
                     const response = await saveMasterUOM(values);
 
-                    if (response?.success || response?.returnVal == true || response?.returnVal_update == true) {
-                        toast.success((response.msg as string) || (response.message as string) || 'UOM saved successfully');
-                        refetchAll();
-                        onSuccess?.();
-                    } else if (response?.duplicate_UOM_name_bool || response?.message === 'duplicate') {
-                        toast.error('UOM Name Already Exists');
+                    // Robust success check for IVRM backend responses
+                    const msg = (response?.message || response?.Message || response?.msg || '') as string;
+                    const isSuccess = response?.success || 
+                                     response?.returnval == true || 
+                                     response?.returnVal == true ||
+                                     response?.returnVal === true ||
+                                     response?.returnVal_update === true ||
+                                     response?.returnVal === 'saved' || 
+                                     response?.returnVal === 'updated' ||
+                                     msg.toLowerCase() === 'saved' ||
+                                     msg.toLowerCase() === 'updated' ||
+                                     msg.toLowerCase().includes('success');
+
+                    if (isSuccess) {
+                        toast.success('Record saved successfully');
+                    } else if (response?.duplicate_UOM_name_bool || response?.returnVal === 'duplicate' || msg.toLowerCase() === 'duplicate') {
+                        toast.error('Record already exists');
+                        throw new Error('duplicate');
                     } else {
-                        toast.error((response?.msg as string) || (response?.message as string) || 'Failed to save UOM');
+                        const errorMsg = (response?.msg as string) || (response?.message as string) || (response?.Message as string) || 'Failed to save record';
+                        toast.error(errorMsg);
+                        throw new Error(errorMsg);
                     }
                 } catch (error: any) {
-                    toast.error(error.message || 'Something went wrong');
+                    if (error.message !== 'duplicate' && !error.message?.includes('Failed to save UOM')) {
+                        toast.error(error.message || 'Something went wrong');
+                    }
+                    throw error;
                 }
             }}
             mode={selectedRow ? 'edit' : 'create'}
-            successMessage={`UOM ${selectedRow ? 'updated' : 'added'} successfully`}
-            errorMessage={`Failed to ${selectedRow ? 'update' : 'add'} UOM`}
+            successMessage={''}
+            errorMessage={''}
             onSuccess={() => {
                 refetchAll();
                 onSuccess?.();

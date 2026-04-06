@@ -7,12 +7,19 @@ import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TimePicker } from '@/components/ui/time-picker/time-picker';
-import { useBreakTimeSettingDetails } from '@/hooks/timetable/useMasters';
+import {
+    useAcademicYearDropDownMasterDayClasswise,
+    useBreakTimeSettingDetails,
+    useCategtoryDropDownMasterDayClasswise,
+    useDayDropDownMasterDayClasswise
+} from '@/hooks/timetable/useMasters';
 
 import { breakTimeSettingsSchema } from '@/schemas/timetable/masters';
-import { getBreakTimeSettingsById, getClassByCategory, saveBreakTimeSettings } from '@/server/timetable/masters/breaktimesettings';
+import { getBreakTimeSettingsEdit, getMaximumPeriodsCount, saveBreakTimeSettings } from '@/server/timetable/masters/breaktimesettings';
+import { ClassDropDownDataOnchnGeYrAndCategory } from '@/server/timetable/masters/masterdayclasswise';
 import type { IBreakTimeSettingsList, IMasterDayList } from '@/types/timetable/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
 import { Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
@@ -34,10 +41,6 @@ export default function UpdateBreakTimeSettingsForm({ onSuccess, selectedRow }: 
     const [maxPeriods, setMaxPeriods] = useState<number>(0);
     const [isLoadingData, setIsLoadingData] = useState(true);
 
-    const academicList = (response as any)?.academiclist || [];
-    const categoryList = (response as any)?.catelist || [];
-    const dayList: IMasterDayList[] = (response as any)?.daysDrpDwn || [];
-
     const {
         register,
         handleSubmit,
@@ -52,22 +55,72 @@ export default function UpdateBreakTimeSettingsForm({ onSuccess, selectedRow }: 
         defaultValues: {}
     });
 
+    const {
+        data: academicListRes,
+        isLoading: academicLoading
+    } = useAcademicYearDropDownMasterDayClasswise();
+    const {
+        data: Masterdaydata,
+        isLoading: masterdaydataloading
+    } = useDayDropDownMasterDayClasswise();
+
+    const academicList = (academicListRes as any)?.data || [];
+    const categoryList = (response as any)?.catelist || []; // Try from response first
+    const dayList: any[] = (Masterdaydata as any)?.data || [];
+
+    const academicyear = watch('asmay_id');
+    const {
+        data: categoryListRes,
+        isLoading: categoryLoading
+    } = useCategtoryDropDownMasterDayClasswise({ enabled: !!academicyear });
+
+    const finalCategoryList = (categoryListRes as any)?.data || categoryList;
+
     // Fetch Details on Mount
     useEffect(() => {
         const fetchData = async () => {
             if (selectedRow?.ttmB_Id) {
                 try {
-                    const res = await getBreakTimeSettingsById(selectedRow.ttmB_Id);
-                    if (res?.breaktimelistedit && (res.breaktimelistedit as any[]).length > 0) {
-                        const data = (res.breaktimelistedit as any[])[0];
+                    const res = await getBreakTimeSettingsEdit(selectedRow.ttmB_Id);
+                    console.log('getBreakTimeSettingsEdit res', res);
 
-                        // Prefill basic fields
-                        setValue('asmay_id', data.asmaY_Id);
-                        setValue('ttmC_Id', data.ttmC_Id);
-                        setValue('ttmB_BreakName', data.ttmB_BreakName);
-                        setValue('ttmB_AfterPeriod', data.ttmB_AfterPeriod);
+                    // Robust extraction logic
+                    let breakData: any[] = [];
+                    if (res) {
+                        if (Array.isArray(res)) {
+                            breakData = res;
+                        } else if (res.data && Array.isArray(res.data)) {
+                            breakData = res.data;
+                        } else if (res.breaklist && Array.isArray(res.breaklist)) {
+                            breakData = res.breaklist;
+                        } else if (res.breakList && Array.isArray(res.breakList)) {
+                            breakData = res.breakList;
+                        } else if (res.editlist && Array.isArray(res.editlist)) {
+                            breakData = res.editlist;
+                        } else if (res.editList && Array.isArray(res.editList)) {
+                            breakData = res.editList;
+                        } else if (res.editdetails && Array.isArray(res.editdetails)) {
+                            breakData = res.editdetails;
+                        } else if (res.editDetails && Array.isArray(res.editDetails)) {
+                            breakData = res.editDetails;
+                        } else if (res.data?.breaklist && Array.isArray(res.data.breaklist)) {
+                            breakData = res.data.breaklist;
+                        } else if (res.data?.editdetails && Array.isArray(res.data.editdetails)) {
+                            breakData = res.data.editdetails;
+                        }
+                    }
+
+                    if (breakData.length > 0) {
+                        const data = breakData[0];
+
+                        // Prefill basic fields (handling case sensitivity)
+                        setValue('asmay_id', data.asmaY_Id ?? data.ASMAY_Id ?? data.asmay_id);
+                        setValue('ttmC_Id', data.ttmC_Id ?? data.TTMC_Id ?? data.ttmc_id);
+                        setValue('ttmB_BreakName', data.ttmB_BreakName ?? data.TTMB_BreakName ?? data.ttmb_breakname);
+                        setValue('ttmB_AfterPeriod', data.ttmB_AfterPeriod ?? data.TTMB_AfterPeriod ?? data.ttmb_afterperiod);
 
                         const parseTime = (timeStr: string) => {
+                            if (!timeStr) return new Date();
                             const d = new Date();
                             const [time, modifier] = timeStr.split(' ');
                             let [hours, minutes] = time.split(':');
@@ -77,41 +130,54 @@ export default function UpdateBreakTimeSettingsForm({ onSuccess, selectedRow }: 
                             return d;
                         };
 
-                        let startTime = new Date(data.ttmB_BreakStartTime);
-                        if (Number.isNaN(startTime.getTime())) startTime = parseTime(data.ttmB_BreakStartTime);
+                        const startTimeStr = data.ttmB_BreakStartTime ?? data.TTMB_BreakStartTime ?? data.ttmb_breakstarttime;
+                        let startTime = new Date(startTimeStr);
+                        if (Number.isNaN(startTime.getTime())) startTime = parseTime(startTimeStr);
 
-                        let endTime = new Date(data.ttmB_BreakEndTime);
-                        if (Number.isNaN(endTime.getTime())) endTime = parseTime(data.ttmB_BreakEndTime);
+                        const endTimeStr = data.ttmB_BreakEndTime ?? data.TTMB_BreakEndTime ?? data.ttmb_breakendtime;
+                        let endTime = new Date(endTimeStr);
+                        if (Number.isNaN(endTime.getTime())) endTime = parseTime(endTimeStr);
 
                         setValue('ttmB_BreakStartTime', startTime);
                         setValue('ttmB_BreakEndTime', endTime);
 
                         // Trigger class fetch
-                        const classRes = await getClassByCategory({
-                            ASMAY_Id: data.asmaY_Id,
-                            TTMC_Id: data.ttmC_Id
-                        });
-                        if (classRes?.classbycategory) {
-                            setClassList(classRes.classbycategory as any[]);
+                        const asmay_id = data.asmaY_Id ?? data.ASMAY_Id ?? data.asmay_id;
+                        const ttmC_Id = data.ttmC_Id ?? data.TTMC_Id ?? data.ttmc_id;
 
-                            const selectedcalssids = (res.breaktimelistedit as any[]).map((r: any) => r.asmcL_Id);
+                        const classRes = await ClassDropDownDataOnchnGeYrAndCategory(asmay_id, ttmC_Id);
+
+                        if (classRes?.data && Array.isArray(classRes.data)) {
+                            const classListRaw = classRes.data;
+                            setClassList(classListRaw as any[]);
+
+                            const selectedcalssids = breakData.map((r: any) => r.asmcL_Id || r.ASMCL_Id || r.asmcl_id);
                             const uniquecalssids = Array.from(new Set(selectedcalssids));
 
-                            const selectedObjs = (classRes.classbycategory as any[])
-                                .filter((c: any) => uniquecalssids.includes(c.asmcL_Id))
-                                .map((c: any) => ({ asmcL_Id: c.asmcL_Id, asmcL_ClassName: c.asmcL_ClassName }));
+                            const selectedObjs = (classListRaw as any[])
+                                .filter((c: any) => uniquecalssids.includes(c.asmcL_Id || c.ASMCL_Id || c.asmcl_id))
+                                .map((c: any) => ({
+                                    asmcL_Id: c.asmcL_Id || c.ASMCL_Id || c.asmcl_id,
+                                    asmcL_ClassName: c.asmcL_ClassName || c.ASMCL_ClassName || c.asmcl_classname
+                                }));
 
-                            // setValue('calssids', selectedObjs);
+                            setValue('calssids', selectedObjs as [any, ...any[]]);
                         }
 
                         // Set Selected Days
-                        const selecteddayids = (res.breaktimelistedit as any[]).map((r: any) => r.ttmD_Id);
+                        const selecteddayids = breakData.map((r: any) => r.ttmD_Id || r.TTMD_Id || r.ttmd_id);
                         const uniquedayids = Array.from(new Set(selecteddayids));
                         const selectedDayObjs = dayList
-                            .filter((d: any) => uniquedayids.includes(d.ttmD_Id))
-                            .map((d: any) => ({ ttmD_Id: d.ttmD_Id, ttmD_DayName: d.ttmD_DayName }));
-                        //setValue('dayids', selectedDayObjs);
+                            .filter((d: any) => uniquedayids.includes(d.ttmD_Id || d.TTMD_Id || d.ttmd_id))
+                            .map((d: any) => ({
+                                ttmD_Id: d.ttmD_Id || d.TTMD_Id || d.ttmd_id,
+                                ttmD_DayName: d.ttmD_DayName || d.TTMD_DayName || d.ttmd_dayname
+                            }));
+                        setValue('dayids', selectedDayObjs as [any, ...any[]]);
 
+                        setIsLoadingData(false);
+                    } else {
+                        console.warn('No break data found for edit', res);
                         setIsLoadingData(false);
                     }
                 } catch (err) {
@@ -121,7 +187,7 @@ export default function UpdateBreakTimeSettingsForm({ onSuccess, selectedRow }: 
             }
         };
         fetchData();
-    }, [selectedRow]);
+    }, [selectedRow, dayList, setValue]);
 
     const watchedCategory = watch('ttmC_Id');
     const watchedAcademicYear = watch('asmay_id');
@@ -135,42 +201,72 @@ export default function UpdateBreakTimeSettingsForm({ onSuccess, selectedRow }: 
                 try {
                     const classId = watchedClasses[watchedClasses.length - 1].asmcL_Id.toString();
                     const count = watchedClasses.length;
-                    // const res = await getMaximumPeriodsCount({ classid: classId, calssidscount: count });
-                    // if (res?.calssidscountreturn) {
-                    //     setMaxPeriods(res.calssidscountreturn as number);
-                    // }
+                    const res = await getMaximumPeriodsCount(Number(classId), count);
+                    if (res?.success) {
+                        setMaxPeriods(res.data as number);
+                    } else {
+                        setMaxPeriods(0);
+                    }
                 } catch (err) {
                     console.error('Error fetching max periods', err);
+                    setMaxPeriods(0);
                 }
+            } else {
+                setMaxPeriods(0);
             }
         };
-        if (!isLoadingData) fetchMaxPeriods();
-    }, [watchedClasses, isLoadingData]);
+        fetchMaxPeriods();
+    }, [watchedClasses]);
 
     useEffect(() => {
-        if (watchedAfterPeriod && maxPeriods) {
+        if (watchedAfterPeriod !== undefined && maxPeriods > 0) {
             const ap = Number(watchedAfterPeriod);
+
+            if (ap > maxPeriods) {
+                toast.error(`After Period cannot exceed Max Periods (${maxPeriods})`);
+                setValue('ttmB_AfterPeriod', 0);
+                setPeriodsBefore([]);
+                setPeriodsAfter([]);
+                return;
+            }
+
             const before = [];
-            for (let i = 1; i <= ap; i++) before.push({ key: i, label: `${i}` });
+            for (let i = 1; i <= ap; i++) {
+                before.push({ key: i, label: `Period ${i}` });
+            }
             setPeriodsBefore(before);
 
+            if (before.length > 0) {
+                const allBeforeKeys = before.map((p) => p.key);
+                setValue('arraybeforeperiodsList', allBeforeKeys);
+            }
+
             const after = [];
-            for (let i = ap + 1; i <= maxPeriods; i++) after.push({ key: i, label: `${i}` });
+            for (let i = ap + 1; i <= maxPeriods; i++) {
+                after.push({ key: i, label: `Period ${i}` });
+            }
             setPeriodsAfter(after);
+
+            if (after.length > 0) {
+                const allAfterKeys = after.map((p) => p.key);
+                setValue('arrayafterperiodsList', allAfterKeys);
+            }
         }
-    }, [watchedAfterPeriod, maxPeriods]);
+    }, [watchedAfterPeriod, maxPeriods, setValue]);
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {
+            const formatTime = (date: Date) => format(date, 'h:mm a');
+
             const payload = {
                 TTMB_Id: selectedRow.ttmB_Id,
                 ASMAY_Id: data.asmay_id,
                 TTMC_Id: data.ttmC_Id,
-                ArrayClassList: data.calssids,
-                ArrayDayList: data.dayids,
+                ArrayClassList: data.calssids.map((c: any) => ({ asmcL_Id: Number(c.asmcL_Id) })),
+                ArrayDayList: data.dayids.map((d: any) => ({ ttmD_Id: Number(d.ttmD_Id) })),
                 TTMB_BreakName: data.ttmB_BreakName,
-                TTMB_BreakStartTime: data.ttmB_BreakStartTime,
-                TTMB_BreakEndTime: data.ttmB_BreakEndTime,
+                TTMB_BreakStartTime: formatTime(data.ttmB_BreakStartTime),
+                TTMB_BreakEndTime: formatTime(data.ttmB_BreakEndTime),
                 TTMB_AfterPeriod: data.ttmB_AfterPeriod,
                 ArraybeforeperiodsList: periodsBefore.map((p) => ({ TTPeriodnameB: p.key })),
                 ArrayafterperiodsList: periodsAfter.map((p) => ({ TTPeriodnameA: p.key })),
@@ -210,11 +306,15 @@ export default function UpdateBreakTimeSettingsForm({ onSuccess, selectedRow }: 
                                             <SelectValue placeholder='--Select--' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {academicList.map((item: any) => (
-                                                <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                    {item.asmaY_Year}
-                                                </SelectItem>
-                                            ))}
+                                            {academicLoading ? (
+                                                <SelectItem value='loading' disabled>Loading...</SelectItem>
+                                            ) : (
+                                                academicList.map((item: any) => (
+                                                    <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                        {item.asmaY_Year}
+                                                    </SelectItem>
+                                                ))
+                                            )}
                                         </SelectContent>
                                     </Select>
                                 )}
@@ -241,7 +341,7 @@ export default function UpdateBreakTimeSettingsForm({ onSuccess, selectedRow }: 
                                                         : null;
                                                 })
                                                 .filter((x) => x) as any[];
-                                            field.onChange(selectedObjs);
+                                            field.onChange(selectedObjs as [any, ...any[]]);
                                         }}
                                         placeholder='Select Classes'
                                     />
@@ -293,11 +393,15 @@ export default function UpdateBreakTimeSettingsForm({ onSuccess, selectedRow }: 
                                             <SelectValue placeholder='--Select--' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {categoryList.map((item: any) => (
-                                                <SelectItem key={item.ttmC_Id} value={item.ttmC_Id.toString()}>
-                                                    {item.ttmC_CategoryName}
-                                                </SelectItem>
-                                            ))}
+                                            {categoryLoading ? (
+                                                <SelectItem value='loading' disabled>Loading...</SelectItem>
+                                            ) : (
+                                                finalCategoryList.map((item: any) => (
+                                                    <SelectItem key={item.ttmC_Id} value={item.ttmC_Id.toString()}>
+                                                        {item.ttmC_CategoryName}
+                                                    </SelectItem>
+                                                ))
+                                            )}
                                         </SelectContent>
                                     </Select>
                                 )}
@@ -313,16 +417,22 @@ export default function UpdateBreakTimeSettingsForm({ onSuccess, selectedRow }: 
                                 name='dayids'
                                 render={({ field }) => (
                                     <MultiSelect
-                                        options={dayList.map((d: any) => ({ label: d.ttmD_DayName, value: d.ttmD_Id.toString() }))}
-                                        defaultValue={field.value?.map((v: any) => v.ttmD_Id.toString()) || []}
+                                        options={dayList.map((d: any) => ({
+                                            label: d.ttmD_DayName || (d as any).TTMD_DayName,
+                                            value: (d.ttmD_Id || (d as any).TTMD_Id).toString()
+                                        }))}
+                                        defaultValue={field.value?.map((v: any) => (v.ttmD_Id || (v as any).TTMD_Id).toString()) || []}
                                         onValueChange={(vals) => {
                                             const selectedObjs = vals
                                                 .map((id) => {
-                                                    const found = dayList.find((d) => d.ttmD_Id.toString() === id);
-                                                    return found ? { ttmD_Id: found.ttmD_Id, ttmD_DayName: found.ttmD_DayName } : null;
+                                                    const found = dayList.find((d: any) => (d.ttmD_Id || (d as any).TTMD_Id).toString() === id);
+                                                    return found ? {
+                                                        ttmD_Id: found.ttmD_Id || (found as any).TTMD_Id,
+                                                        ttmD_DayName: found.ttmD_DayName || (found as any).TTMD_DayName
+                                                    } : null;
                                                 })
                                                 .filter((x) => x);
-                                            field.onChange(selectedObjs);
+                                            field.onChange(selectedObjs as [any, ...any[]]);
                                         }}
                                         placeholder='Select Days'
                                     />

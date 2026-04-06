@@ -2,7 +2,7 @@
 
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
@@ -17,7 +17,13 @@ interface ReportFormProps {
 }
 
 export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
-    const { loadData, generateReport } = useSportPointsAndRecordReport();
+    const { loadData, classHouseEventMutation, sectionMutation, generateReport } = useSportPointsAndRecordReport();
+    const [houseList, setHouseList] = useState<any[]>([]);
+    const [programList, setProgramList] = useState<any[]>([]);
+    const [eventList, setEventList] = useState<any[]>([]);
+    const [divisionList, setDivisionList] = useState<any[]>([]);
+    const [classList, setClassList] = useState<any[]>([]);
+    const [sectionList, setSectionList] = useState<any[]>([]);
 
     const form = useForm<SportPointsAndRecordReportFormSchema>({
         resolver: zodResolver(SportPointsAndRecordReportSchema),
@@ -26,7 +32,54 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
         },
     });
 
+    const watchYear = useWatch({ control: form.control, name: 'asmaY_Id' });
+    const watchClass = useWatch({ control: form.control, name: 'asmcL_Id' });
     const watchType = useWatch({ control: form.control, name: 'qualification_type' });
+
+    useEffect(() => {
+        if (watchYear) {
+            classHouseEventMutation.mutate({ asmaY_Id: watchYear }, {
+                onSuccess: (data) => {
+                    if (data.classList) setClassList(data.classList);
+                    if (data.houseList && data.houseList.length > 0) setHouseList(data.houseList);
+                    if (data.events && data.events.length > 0) setProgramList(data.events);
+                    else if (data.eventList && data.eventList.length > 0) setProgramList(data.eventList);
+                    if (data.eventList && data.eventList.length > 0) setEventList(data.eventList);
+                }
+            });
+        } else {
+            setClassList([]);
+            setHouseList([]);
+            setProgramList([]);
+            setEventList([]);
+            form.setValue('asmcL_Id', undefined);
+            form.setValue('asmS_Id', undefined);
+        }
+    }, [watchYear]);
+
+    useEffect(() => {
+        if (watchYear && watchClass) {
+            sectionMutation.mutate({ asmaY_Id: watchYear, asmcL_Id: watchClass }, {
+                onSuccess: (data) => {
+                    setSectionList(data.sectionList || []);
+                }
+            });
+        } else {
+            setSectionList([]);
+            form.setValue('asmS_Id', undefined);
+        }
+    }, [watchYear, watchClass]);
+
+    useEffect(() => {
+        if (loadData.data) {
+            if (loadData.data.houseList) setHouseList(loadData.data.houseList);
+            if (loadData.data.events || loadData.data.eventList) {
+                setProgramList(loadData.data.events || loadData.data.eventList || []);
+            }
+            if (loadData.data.eventList) setEventList(loadData.data.eventList);
+            if (loadData.data.divisionList) setDivisionList(loadData.data.divisionList);
+        }
+    }, [loadData.data]);
 
     const handleSubmit = (data: SportPointsAndRecordReportFormSchema) => {
         generateReport.mutate(data, {
@@ -50,18 +103,20 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
     const handleCancel = () => {
         form.reset({
             qualification_type: 'others',
-            ASMAY_Id: undefined,
-            SPCCMH_Id: undefined,
-            SPCCE_Id: undefined,
-            SPCCME_Id: undefined,
-            SPCCMD_Id: undefined,
+            asmaY_Id: undefined,
+            asmcL_Id: undefined,
+            asmS_Id: undefined,
+            spccmH_Id: undefined,
+            spccE_Id: undefined,
+            spccmE_Id: undefined,
+            spccmD_Id: undefined,
         });
         onReportGenerated([]);
     };
 
     return (
         <div className="p-4 bg-white rounded-lg shadow-sm border space-y-4">
-            <h2 className="text-lg font-semibold border-b pb-2">Sport Point And Record Report</h2>
+            <h2 className="text-lg font-semibold border-b pb-2">Sport Points And Record Report</h2>
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
                     {/* Radio Buttons for Qualification Type */}
@@ -111,20 +166,72 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
                         {/* Academic Year */}
                         <FormField
                             control={form.control}
-                            name="ASMAY_Id"
+                            name="asmaY_Id"
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Academic Year <span className="text-red-500">*</span></FormLabel>
-                                    <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value ? String(field.value) : ''}>
+                                    <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString() || ''}>
                                         <FormControl>
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Select Academic Year" />
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            {loadData.data?.academicYear.map((year) => (
-                                                <SelectItem key={year.asmaY_Id} value={String(year.asmaY_Id)}>
+                                            {loadData.data?.academicYear?.map((year, index) => (
+                                                <SelectItem key={`${year.asmaY_Id}-${index}`} value={year.asmaY_Id.toString()}>
                                                     {year.asmaY_Year}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        {/* Class Name */}
+                        <FormField
+                            control={form.control}
+                            name="asmcL_Id"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Class Name</FormLabel>
+                                    <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString() || ''}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select Class Name" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {classList.map((cls, index) => (
+                                                <SelectItem key={`${cls.asmcL_Id}-${index}`} value={String(cls.asmcL_Id)}>
+                                                    {cls.asmcL_ClassName}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        {/* Section Name */}
+                        <FormField
+                            control={form.control}
+                            name="asmS_Id"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Section Name</FormLabel>
+                                    <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString() || ''}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select Section Name" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {sectionList.map((sec, index) => (
+                                                <SelectItem key={`${sec.asmS_Id}-${index}`} value={String(sec.asmS_Id)}>
+                                                    {sec.asmC_SectionName}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -137,19 +244,19 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
                         {/* House Name */}
                         <FormField
                             control={form.control}
-                            name="SPCCMH_Id"
+                            name="spccmH_Id"
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>House Name <span className="text-red-500">*</span></FormLabel>
-                                    <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value ? String(field.value) : ''}>
+                                    <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString() || ''}>
                                         <FormControl>
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Select House Name" />
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            {loadData.data?.houseList.map((house) => (
-                                                <SelectItem key={house.spccmH_Id} value={String(house.spccmH_Id)}>
+                                            {houseList.map((house, index) => (
+                                                <SelectItem key={`${house.spccmH_Id}-${index}`} value={String(house.spccmH_Id)}>
                                                     {house.spccmH_HouseName}
                                                 </SelectItem>
                                             ))}
@@ -163,22 +270,28 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
                         {/* Program Master (Events) */}
                         <FormField
                             control={form.control}
-                            name="SPCCE_Id"
+                            name="spccE_Id"
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Program Master <span className="text-red-500">*</span></FormLabel>
-                                    <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value ? String(field.value) : ''}>
+                                    <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString() || ''}>
                                         <FormControl>
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Select Program Name" />
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            {loadData.data?.events.map((prog) => (
-                                                <SelectItem key={prog.spccE_Id} value={String(prog.spccE_Id)}>
-                                                    {prog.spccpM_Name}
-                                                </SelectItem>
-                                            ))}
+                                            {programList.map((prog, index) => {
+                                                const idValue = String(prog.spccE_Id || prog.spccpM_Id || prog.spccmE_Id || index);
+                                                return (
+                                                    <SelectItem 
+                                                        key={`${idValue}-${index}`} 
+                                                        value={idValue}
+                                                    >
+                                                        {prog.spccpM_Name || prog.spccE_EventName || prog.spccmE_EventName || "Unnamed Program"}
+                                                    </SelectItem>
+                                                );
+                                            })}
                                         </SelectContent>
                                     </Select>
                                     <FormMessage />
@@ -189,22 +302,25 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
                         {/* Event Name */}
                         <FormField
                             control={form.control}
-                            name="SPCCME_Id"
+                            name="spccmE_Id"
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Event Name <span className="text-red-500">*</span></FormLabel>
-                                    <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value ? String(field.value) : ''}>
+                                    <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString() || ''}>
                                         <FormControl>
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Select Event Name" />
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            {loadData.data?.eventList.map((evt) => (
-                                                <SelectItem key={evt.spccmE_Id} value={String(evt.spccmE_Id)}>
-                                                    {evt.spccmE_EventName}
-                                                </SelectItem>
-                                            ))}
+                                            {eventList.map((evt, index) => {
+                                                const idValue = String(evt.spccmE_Id || index);
+                                                return (
+                                                    <SelectItem key={`${idValue}-${index}`} value={idValue}>
+                                                        {evt.spccmE_EventName}
+                                                    </SelectItem>
+                                                );
+                                            })}
                                         </SelectContent>
                                     </Select>
                                     <FormMessage />
@@ -215,19 +331,19 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
                         {/* Division Name */}
                         <FormField
                             control={form.control}
-                            name="SPCCMD_Id"
+                            name="spccmD_Id"
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Division Name <span className="text-red-500">*</span></FormLabel>
-                                    <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value ? String(field.value) : ''}>
+                                    <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString() || ''}>
                                         <FormControl>
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Select Division Name" />
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            {loadData.data?.divisionList.map((div) => (
-                                                <SelectItem key={div.spccmD_Id} value={String(div.spccmD_Id)}>
+                                            {divisionList.map((div, index) => (
+                                                <SelectItem key={`${div.spccmD_Id}-${index}`} value={String(div.spccmD_Id)}>
                                                     {div.spccmD_DivisionName}
                                                 </SelectItem>
                                             ))}

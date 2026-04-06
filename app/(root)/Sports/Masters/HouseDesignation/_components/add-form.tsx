@@ -5,6 +5,7 @@ import { GenericInputField, GenericTextAreaField } from '@/components/ui/form/in
 import { masterHouseDesignationSchema } from '@/schemas/sports/masters/house-designation';
 import { saveMasterHouseDesignation } from '@/server/sports/masters/house-designation';
 import type { IMasterHouseDesignation } from '@/types/sports/masters/house-designation';
+import { toast } from 'sonner';
 
 interface AddMasterHouseDesignationFormProps {
     onSuccess?: () => void;
@@ -22,11 +23,40 @@ export default function AddMasterHouseDesignationForm({ onSuccess }: AddMasterHo
                 spccmhD_ActiveFlag: true
             }}
             onSubmit={async (values) => {
-                await saveMasterHouseDesignation(values);
+                try {
+                    const response = await saveMasterHouseDesignation(values);
+
+                    // Robust success check for IVRM backend responses
+                    const msg = (response?.message || response?.Message || '') as string;
+                    const isSuccess = response?.success || 
+                                     response?.returnval == true || 
+                                     response?.returnVal == true ||
+                                     response?.returnVal === 'saved' || 
+                                     response?.returnVal === 'updated' || 
+                                     msg.toLowerCase() === 'saved' ||
+                                     msg.toLowerCase() === 'updated' ||
+                                     msg.toLowerCase().includes('success');
+
+                    if (isSuccess) {
+                        toast.success('Record saved successfully');
+                    } else if (response?.returnVal === 'duplicate' || msg.toLowerCase() === 'duplicate') {
+                        toast.error('Record already exists');
+                        throw new Error('duplicate');
+                    } else {
+                        const errorMsg = (response?.message || response?.Message || 'Failed to save record') as string;
+                        toast.error(errorMsg);
+                        throw new Error(errorMsg);
+                    }
+                } catch (error: any) {
+                    if (error.message !== 'duplicate' && !error.message?.includes('Failed to save record')) {
+                        toast.error(error.message || 'Something went wrong');
+                    }
+                    throw error;
+                }
             }}
             mode='create'
-            successMessage='Record Saved Successfully'
-            errorMessage='Failed to Save'
+            successMessage={''}
+            errorMessage={''}
             onSuccess={onSuccess}
             className='space-y-4'>
             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>

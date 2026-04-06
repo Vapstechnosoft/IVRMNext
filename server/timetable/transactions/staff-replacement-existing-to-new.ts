@@ -7,9 +7,9 @@ import type {
     Class,
     Section,
     Staff,
-    Subject,
     StaffReplacementExistingToNewMasters,
-    StaffReplacementGridData
+    StaffReplacementGridData,
+    Subject
 } from '@/types/timetable/Transaction/staff-replacement-existing-to-new';
 
 export async function getStaffReplacementExistingToNewMasters(): Promise<StaffReplacementExistingToNewMasters> {
@@ -45,13 +45,17 @@ export async function getSectionsByClass(asmcL_Id: number): Promise<Section[]> {
 }
 
 export async function getSectionDropdown() {
+    // biome-ignore lint/style/noUnusedTemplateLiteral: <explanation>
     const url = `/TimeTableCommon/section-details`;
     return await api.get<any>('timetable', url);
 }
 
 export async function getStaffReplacementGridData(searchParams?: ApiSearchparams) {
     console.log('searchParams', searchParams);
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'ttmD_DayName,ttmD_DayCode');
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'ttmD_DayName,ttmD_DayCode,ismS_SubjectName,asmcL_ClassName,asmC_SectionName,staffName,ttmP_PeriodName'
+    );
     const url = `/StaffReplacementForClassSectionFacade/GetstaffreplacementfromexistingtonewGrid?${urlParams}`;
     return await api.get<StaffReplacementGridData[]>('timetable', url);
 }
@@ -67,30 +71,22 @@ export async function getStaffReplacementInitialDetails(id = 0) {
     return await api.get<any>('timetable', url);
 }
 
-export async function saveStaffReplacementExistingToNew(payload: {
-    ttmC_Id: string;
-    asmcL_Id?: string;
-    asms_Id?: string;
-    hrmE_Id_From: string;
-    hrmE_Id_To: string;
-    ismS_Id?: string;
-}): Promise<{ returnval: boolean; returnduplicatestatus?: string }> {
+export async function saveStaffReplacementExistingToNew(payload: any) {
     try {
         const url = '/StaffReplacementFromExistingToNewFacade/savedetail';
         const data = {
-            asmaY_Id: 0, // Using default 0 as it's no longer a form field
+            asmaY_Id: Number(payload.asmaY_Id || 0),
             ttmC_Id: Number(payload.ttmC_Id),
             asmcL_Id: Number(payload.asmcL_Id || 0),
-            asmS_Id: Number(payload.asms_Id || 0), // Mapping asms_Id to asmS_Id to match legacy
+            asmS_Id: Number(payload.asms_Id || 0),
             staf_from: Number(payload.hrmE_Id_From),
             staf_to: Number(payload.hrmE_Id_To),
             ismS_Id: Number(payload.ismS_Id || 0)
         };
-
         const response = await api.post<any>('timetable', url, data);
-        return (response.data ?? response) as unknown as { returnval: boolean; returnduplicatestatus?: string };
+        return response.data ?? response;
     } catch (error) {
         console.error('Error saving staff replacement:', error);
-        return { returnval: false };
+        throw error;
     }
 }

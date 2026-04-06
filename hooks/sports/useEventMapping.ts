@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { getEventMappingDetails, saveEventMapping, editEventMapping, deactivateEventMapping, getModelData } from '@/server/sports/transactions/events-mapping';
 
 export const useEventMapping = () => {
@@ -22,7 +23,12 @@ export const useEventMapping = () => {
 
     const deactivate = useMutation({
         mutationFn: (data: any) => deactivateEventMapping(data),
-        onSuccess: () => {
+        onSuccess: (response: any) => {
+            if (response.success ?? true) {
+                toast.success(response.message || 'Status updated successfully');
+            } else {
+                toast.error(response.message || 'Failed to update status');
+            }
             queryClient.invalidateQueries({ queryKey: ['events-mapping-details'] });
         },
     });

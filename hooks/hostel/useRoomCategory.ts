@@ -1,15 +1,30 @@
 'use client';
-
-import { getRoomCategoryList } from '@/server/hostel/hostel-management/masters/room-category';
+import { EXAM_QUERY_KEYS, HOSTEL_QUERY_KEYS } from '@/constants/query-keys';
+import { getRoomCategoryDropdownList, getRoomCategoryList } from '@/server/hostel/hostel-management/masters/room-category';
 import { useQuery } from '@tanstack/react-query';
 
-const ROOM_CATEGORY_QUERY_KEY = ['ROOM_CATEGORY_LIST'];
 
 export const useRoomCategory = (searchParams?: { [key: string]: string | string[] | undefined }) => {
     return {
         ...useQuery({
-            queryKey: [ROOM_CATEGORY_QUERY_KEY, searchParams ?? {}],
+            queryKey: [HOSTEL_QUERY_KEYS.MASTER_ROOM_CATEGORY_LIST, searchParams ?? {}],
             queryFn: async () => getRoomCategoryList(),
+            staleTime: 0
+        }),
+        refetchAll: async () => {
+            // InvalidateQueries or manual refetch handled by react-query if usage component calls refetch
+        },
+        // Just standard useQuery return is mostly sufficient, but matching pattern
+        queryKey: HOSTEL_QUERY_KEYS.MASTER_ROOM_CATEGORY_LIST
+    };
+};
+
+export const useRoomCategoryDropdownList = (searchParams?: { [key: string]: string | string[] | undefined }) => {
+    return {
+        ...useQuery({
+            queryKey: [HOSTEL_QUERY_KEYS.MASTER_ROOM_CATEGORY_DROPDOWN_LIST, searchParams ?? {}],
+            queryFn: async () => getRoomCategoryDropdownList(),
+            select: (data) => data?.data || [],
             staleTime: 0
         }),
 
@@ -17,6 +32,6 @@ export const useRoomCategory = (searchParams?: { [key: string]: string | string[
             // InvalidateQueries or manual refetch handled by react-query if usage component calls refetch
         },
         // Just standard useQuery return is mostly sufficient, but matching pattern
-        queryKey: ROOM_CATEGORY_QUERY_KEY
+        queryKey: HOSTEL_QUERY_KEYS.MASTER_ROOM_CATEGORY_DROPDOWN_LIST
     };
 };

@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useMessDropdownList } from '@/hooks/hostel/useMasterHostel';
+import { useMasterMessCategoryDropdown } from '@/hooks/hostel/useMasterMessCategory';
 import { MessMenuSchema, MessMenuSchemaType } from '@/schemas/hostel/mess-menu.schema';
 import { saveMessMenu } from '@/server/hostel/hostel-management/masters/menu';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,12 +15,10 @@ import { toast } from 'sonner';
 
 interface AddMessMenuFormProps {
     onSuccess?: () => void;
-    messList: { hlmM_Id: number; hlmM_Name: string }[];
-    categoryList: { hlmmC_Id: number; hlmmC_Name: string }[];
     className?: string;
 }
 
-export default function AddMessMenuForm({ onSuccess, messList, categoryList, className = '' }: AddMessMenuFormProps) {
+export default function AddMessMenuForm({ onSuccess, className = '' }: AddMessMenuFormProps) {
     const {
         register,
         handleSubmit,
@@ -36,7 +36,8 @@ export default function AddMessMenuForm({ onSuccess, messList, categoryList, cla
             hlmmN_MenuDesc: '',
         },
     });
-
+    const { data: messes } = useMessDropdownList();
+    const { data: messcategories } = useMasterMessCategoryDropdown();
     const onSubmit: SubmitHandler<MessMenuSchemaType> = async (data) => {
         try {
             const result = await saveMessMenu(data);
@@ -82,7 +83,7 @@ export default function AddMessMenuForm({ onSuccess, messList, categoryList, cla
                                     <SelectValue placeholder="Select Mess" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {messList.map((mess) => (
+                                    {messes?.data?.map((mess: any) => (
                                         <SelectItem key={mess.hlmM_Id} value={mess.hlmM_Id.toString()}>
                                             {mess.hlmM_Name}
                                         </SelectItem>
@@ -105,7 +106,7 @@ export default function AddMessMenuForm({ onSuccess, messList, categoryList, cla
                                     <SelectValue placeholder="Select Category" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {categoryList.map((cat) => (
+                                    {messcategories?.data?.map((cat: any) => (
                                         <SelectItem key={cat.hlmmC_Id} value={cat.hlmmC_Id.toString()}>
                                             {cat.hlmmC_Name}
                                         </SelectItem>

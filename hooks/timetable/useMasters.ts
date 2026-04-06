@@ -30,12 +30,14 @@ import {
     getMasterDayClassWiseDetails
 } from '@/server/timetable/masters/masterdayclasswise';
 import { CategorydropDownData, getMasterPeriodDetails } from '@/server/timetable/masters/masterperiod';
-import { getAllPeriodDetails } from '@/server/timetable/masters/periodallocation';
+import { getAllPeriodDetails, getPeriodAllocationmasterPeriodGrid } from '@/server/timetable/masters/periodallocation';
 import {
+    EditPeriodDistribution,
     getAcademicYearPeriodDistrubution,
     getCategoryPeriodDistrubution,
     getClassPeriodDistrubution,
     getPeriodDistributionDetails,
+    getPeriodDistributionEditDetails,
     getPeriodDistributionViewData,
     getPeriodDropdown,
     getSectionPeriodDistrubution,
@@ -473,6 +475,30 @@ export const usePeriodDistributionViewData = ({ id, enabled }: { id?: number; en
     });
 };
 
+export const usePeriodDistributionEditDetails = ({ id, enabled }: { id?: number; enabled: boolean }) => {
+    return useQuery({
+        queryKey: [TIMETABLE_QUERY_KEYS.TT_PERIOD_DISTRIBUTION_EDIT, id],
+        queryFn: async () => {
+            if (!id) return null;
+            return getPeriodDistributionEditDetails(id);
+        },
+        enabled: enabled && !!id,
+        staleTime: 0
+    });
+};
+
+export const useEditPeriodDistribution = ({ id, enabled }: { id?: number; enabled: boolean }) => {
+    return useQuery({
+        queryKey: [TIMETABLE_QUERY_KEYS.TT_PERIOD_DISTRIBUTION_EDIT, 'facade', id],
+        queryFn: async () => {
+            if (!id) return null;
+            return EditPeriodDistribution(id);
+        },
+        enabled: enabled && !!id,
+        staleTime: 0
+    });
+};
+
 //academic Year
 export const useAcademicYearPeriodDistrubution = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
@@ -764,6 +790,24 @@ export const useConsecutiveConstraints = (searchParams?: ApiSearchparams) => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [TIMETABLE_QUERY_KEYS.MASTER_CONSECUTIVE_CONSTRAINTS]
+            });
+        }
+    };
+};
+
+export const getPeriodAllocationmasterPeriodGridData = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.MASTER_PERIOD_ALLOCATION_MASTERPERIOD, searchParams ?? {}],
+            queryFn: async () => getPeriodAllocationmasterPeriodGrid(searchParams),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.MASTER_PERIOD_ALLOCATION_MASTERPERIOD]
             });
         }
     };

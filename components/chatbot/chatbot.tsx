@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bot, Send, X, Minus, Maximize2, Minimize2, MessageSquare, User, Loader2, Sparkles } from 'lucide-react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -37,6 +37,7 @@ export const Chatbot = () => {
         if (pathname.toLowerCase().includes('admission')) return { name: 'Admission', color: 'from-sky-500 to-indigo-600' };
         if (pathname.toLowerCase().includes('fees')) return { name: 'Fees', color: 'from-emerald-500 to-teal-600' };
         if (pathname.toLowerCase().includes('exam')) return { name: 'Exams', color: 'from-violet-500 to-purple-600' };
+        if (pathname.toLowerCase().includes('staffportal')) return { name: 'Staff Support', color: 'from-orange-500 to-rose-600' };
         return { name: 'Help Desk', color: 'from-indigo-600 to-blue-700' };
     };
     const currentContext = context();
@@ -88,11 +89,14 @@ export const Chatbot = () => {
     }, [pathname, isOpen]);
 
     // Early guard AFTER all hooks are declared
-    // Strictly Admin Portal only (Exclude Student and Staff portals)
+    const params = useParams();
+    const sub_domain = params?.sub_domain;
+    const isAuthPage = pathname?.toLowerCase().includes('login') ||
+        pathname?.toLowerCase().includes('sign-in') ||
+        pathname === `/${sub_domain}`;
     const isStudentPortal = pathname?.toLowerCase().includes('studentportal');
-    const isStaffPortal = pathname?.toLowerCase().includes('staffportal');
 
-    if (!mounted || isStudentPortal || isStaffPortal) return null;
+    if (!mounted || isStudentPortal || isAuthPage) return null;
 
     // Helper to resolve links from common.ts data (environment-aware)
     const resolveLink = (targetName: string, fallbackLink?: string) => {
@@ -276,7 +280,7 @@ export const Chatbot = () => {
     };
 
     return (
-        <div className="fixed bottom-3 right-3 z-[2147483647] flex flex-col items-end">
+        <div className="fixed bottom-1 right-1 z-[2147483647] flex flex-col items-end">
             <AnimatePresence>
                 {isOpen && !isMinimized && (
                     <motion.div
@@ -469,35 +473,35 @@ export const Chatbot = () => {
             </AnimatePresence>
 
             {/* Toggle Button */}
-            <div className="flex flex-col items-center gap-1.5">
+            <div className="flex flex-col items-center gap-1">
                 <motion.button
                     whileHover={{ scale: 1.1, rotate: 5, boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}
                     whileTap={{ scale: 0.9 }}
                     onClick={toggleChat}
                     className={cn(
-                        "w-[52px] h-[52px] rounded-full shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)] flex items-center justify-center transition-all duration-500 ring-2 ring-white/90 dark:ring-zinc-800/90 overflow-hidden relative group",
+                        "w-[42px] h-[42px] rounded-full shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)] flex items-center justify-center transition-all duration-500 ring-2 ring-white/90 dark:ring-zinc-800/90 overflow-hidden relative group",
                         isOpen && !isMinimized ? "bg-red-500 ring-red-100" : cn("bg-gradient-to-tr", currentContext.color)
                     )}
                 >
                     <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity" />
                     {isOpen && !isMinimized ? (
-                        <X className="w-5 h-5 text-white z-10" />
+                        <X className="w-4 h-4 text-white z-10" />
                     ) : (
                         <div className="relative flex flex-col items-center justify-center w-full h-full">
-                            <Bot className="w-6 h-6 text-white z-10 drop-shadow-lg" />
+                            <Bot className="w-5 h-5 text-white z-10 drop-shadow-lg" />
 
                             <motion.div
                                 animate={{ scale: [1, 1.2, 1] }}
                                 transition={{ repeat: Infinity, duration: 2 }}
-                                className="absolute top-1 right-1 w-2.5 h-2.5 bg-white rounded-full z-20 flex items-center justify-center"
+                                className="absolute top-[2px] right-[2px] w-2 h-2 bg-white rounded-full z-20 flex items-center justify-center"
                             >
-                                <Sparkles className="w-1.5 h-1.5 text-primary" />
+                                <Sparkles className="w-1 h-1 text-primary" />
                             </motion.div>
                         </div>
                     )}
                 </motion.button>
                 {!isOpen && (
-                    <span className="text-[10px] font-bold text-foreground/80 dark:text-white/80 tracking-wider bg-white/50 dark:bg-black/20 px-2 py-0.5 rounded-full backdrop-blur-sm whitespace-nowrap shadow-sm border border-black/5">
+                    <span className="text-[8px] font-bold text-foreground/80 dark:text-white/80 tracking-wider bg-white/50 dark:bg-black/20 px-1.5 py-[1px] rounded-full backdrop-blur-sm whitespace-nowrap shadow-sm border border-black/5">
                         AI VRM HELP
                     </span>
                 )}

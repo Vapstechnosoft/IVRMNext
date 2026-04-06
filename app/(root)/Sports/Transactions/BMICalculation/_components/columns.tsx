@@ -1,61 +1,74 @@
-'use client';
-
 import { ColumnDef } from '@tanstack/react-table';
 import { IBMICalculation } from '@/types/sports/transactions/bmi-calculation';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import { useBMICalculation } from '@/hooks/sports/useBMICalculation';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-import { Edit } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 
 export const bmiCalculationColumns: ColumnDef<IBMICalculation>[] = [
     {
-        id: 'slno',
-        header: 'Sl.No.',
-        cell: ({ row }) => row.index + 1,
+        id: 'id',
+        accessorKey: 'spccshW_Id',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            const continuousIndex = pageIndex * pageSize + row.index + 1;
+            return <div className='pl-6'>{continuousIndex}</div>;
+        },
+        enableSorting: true,
+        enableHiding: false
     },
     {
         accessorKey: 'asmaY_Year',
-        header: 'Year',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Year' />,
+        enableSorting: true,
     },
     {
         accessorKey: 'studentName',
-        header: 'Student Name',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
+        enableSorting: true,
     },
     {
         accessorKey: 'amsT_AdmNo',
-        header: 'Adm No.',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Adm No.' />,
+        enableSorting: true,
     },
     {
         accessorKey: 'asmcL_ClassName',
-        header: 'Class',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Class' />,
+        enableSorting: true,
     },
     {
         accessorKey: 'asmC_SectionName',
-        header: 'Section',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Section' />,
+        enableSorting: true,
     },
     {
         accessorKey: 'asondate',
-        header: 'As On Date',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='As On Date' />,
+        enableSorting: true,
     },
     {
         accessorKey: 'spccshW_Height',
-        header: 'Height',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Height' />,
+        enableSorting: true,
     },
     {
         accessorKey: 'spccshW_Weight',
-        header: 'Weight',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Weight' />,
+        enableSorting: true,
     },
     {
         accessorKey: 'spccshW_BMI',
-        header: 'BMI',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='BMI' />,
+        enableSorting: true,
     },
     {
         accessorKey: 'spccshW_BMIRemark',
-        header: 'Remark',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Remark' />,
+        enableSorting: true,
         cell: ({ row }) => {
             const remark = row.original.spccshW_BMIRemark || row.original.SPCCSHW_BMIRemark;
             let variant: 'default' | 'secondary' | 'destructive' | 'outline' = 'outline';
@@ -68,32 +81,25 @@ export const bmiCalculationColumns: ColumnDef<IBMICalculation>[] = [
     },
     {
         id: 'actions',
-        header: 'Action',
+        header: 'Actions',
         cell: ({ row }) => {
-            const { edit, deactivate } = useBMICalculation();
+            const { deactivate } = useBMICalculation();
             const { openEditForm } = useFormContext<IBMICalculation>();
-            const isActive = row.original.spccmhW_ActiveFlag || row.original.SPCCMHW_ActiveFlag;
-
+            
             return (
-                <div key={row.id} className='flex items-center gap-3'>
-                    <Button
-                        variant='ghost'
-                        size='sm'
-                        onClick={() => openEditForm(row.original)}
-                        className='h-8 w-8 p-0 text-primary hover:bg-primary/10'>
-                        <Edit className='h-4 w-4' />
-                    </Button>
-                    <Button
-                        variant='link'
-                        size='sm'
-                        onClick={() => deactivate.mutate(row.original.spccshW_Id || row.original.SPCCSHW_Id || 0)}
-                        className={cn(
-                            'h-auto p-0 font-medium text-xs',
-                            isActive ? 'text-destructive hover:text-destructive/80' : 'text-green-600 hover:text-green-700'
-                        )}>
-                        {isActive ? 'De-Activate' : 'Activate'}
-                    </Button>
-                </div>
+                <ActionButtons
+                    rowData={row.original}
+                    buttons={{
+                        edit: true,
+                        toggle: true,
+                        delete: false
+                    }}
+                    onEdit={() => openEditForm(row.original)}
+                    onToggle={(data) => {
+                        deactivate.mutate(data.spccshW_Id || data.SPCCSHW_Id || 0);
+                    }}
+                    toggleConditionKey='spccmhW_ActiveFlag'
+                />
             );
         },
     },

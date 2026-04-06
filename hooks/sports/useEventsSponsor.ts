@@ -1,14 +1,21 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { getEventsSponsorMapping, saveEventsSponsorMapping, deactivateEventsSponsorMapping } from '@/server/sports/transactions/events-sponsor';
+import { getEventsSponsorMapping, saveEventsSponsorMapping, deactivateEventsSponsorMapping, getEditEventsSponsorMapping } from '@/server/sports/transactions/events-sponsor';
 import { toast } from 'sonner';
+import { ApiSearchparams } from '@/types';
 
-export const useEventsSponsor = () => {
+export const useEventsSponsor = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     const details = useQuery({
-        queryKey: ['events-sponsor-mapping-details'],
-        queryFn: () => getEventsSponsorMapping(),
+        queryKey: ['events-sponsor-mapping-details', searchParams || {}],
+        queryFn: () => getEventsSponsorMapping(searchParams),
     });
+
+    const refetchAll = () => {
+        return queryClient.invalidateQueries({
+            queryKey: ['events-sponsor-mapping-details']
+        });
+    };
 
     const saveMutation = useMutation({
         mutationFn: saveEventsSponsorMapping,
@@ -40,14 +47,24 @@ export const useEventsSponsor = () => {
         }
     });
 
+    const useEditDetails = (id?: number) => {
+        return useQuery({
+            queryKey: ['events-sponsor-mapping-edit', id],
+            queryFn: () => getEditEventsSponsorMapping(id!),
+            enabled: !!id
+        });
+    };
+
     return {
         details,
         saveMutation,
         deactivateMutation,
+        useEditDetails,
         // For backward compatibility if needed, but we should refactor usages
         data: details.data,
         isLoading: details.isLoading,
         error: details.error,
-        refetch: details.refetch
+        refetch: details.refetch,
+        refetchAll
     };
 };

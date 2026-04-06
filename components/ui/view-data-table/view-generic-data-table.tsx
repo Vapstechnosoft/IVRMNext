@@ -50,6 +50,9 @@ interface GenericDataTableProps<T> {
     NoDataComponent?: React.ComponentType;
     searchQuery?: string;
     currentApiParams?: ApiSearchparams;
+    manualPagination?: boolean;
+    manualSorting?: boolean;
+    manualFiltering?: boolean;
 }
 
 export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<any>>(function GenericDataTable<T>(
@@ -77,7 +80,10 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         ErrorIcon = Database,
         LoadingComponent,
         ErrorComponent,
-        currentApiParams
+        currentApiParams,
+        manualPagination,
+        manualSorting,
+        manualFiltering
     }: GenericDataTableProps<T>,
     ref: React.Ref<DataTableRef>
 ) {
@@ -148,6 +154,9 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                             onSearchQueryChange(value);
                         }
                     }}
+                    manualPagination={manualPagination}
+                    manualSorting={manualSorting}
+                    manualFiltering={manualFiltering}
                 />
             </div>
         );
@@ -179,6 +188,9 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                     }
                 }}
                 currentApiParams={currentApiParams}
+                manualPagination={manualPagination}
+                manualSorting={manualSorting}
+                manualFiltering={manualFiltering}
             />
         </div>
     );

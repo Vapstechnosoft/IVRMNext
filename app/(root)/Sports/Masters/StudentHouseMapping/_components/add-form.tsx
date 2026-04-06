@@ -121,12 +121,26 @@ export const AddForm = ({ onSuccess, onCancel, initialData }: AddFormProps) => {
 
     const onSubmit = async (values: z.infer<typeof studentHouseMappingSchema.addOrUpdate>) => {
         try {
-            const result = await saveStudentHouseMapping(values);
-            if (result.success) {
-                toast.success(result.message);
+            const result = await saveStudentHouseMapping(values) as any;
+            // Robust success check for IVRM backend responses
+            const msg = (result?.message || result?.Message || '') as string;
+            const isSuccess = result.success || 
+                             result?.returnval == true || 
+                             result?.returnVal == true ||
+                             result?.returnVal === 'saved' || 
+                             result?.returnVal === 'updated' || 
+                             msg.toLowerCase() === 'saved' ||
+                             msg.toLowerCase() === 'updated' ||
+                             msg.toLowerCase().includes('success');
+
+            if (isSuccess) {
+                toast.success('Record saved successfully');
                 onSuccess();
+            } else if (result?.returnVal === 'duplicate' || msg.toLowerCase() === 'duplicate') {
+                toast.error('Record already exists');
             } else {
-                toast.error(result.message);
+                const errorMsg = (result?.message || result?.Message || 'Failed to save record') as string;
+                toast.error(errorMsg);
             }
         } catch (error) {
             console.error(error);

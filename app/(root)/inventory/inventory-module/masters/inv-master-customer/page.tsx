@@ -129,8 +129,8 @@ function FormSections() {
                                 onClick={closeAddForm}
                                 variant='ghost'
                                 size='sm'
-                                className='absolute top-[-3.5rem] right-0 hover:bg-destructive/10 text-destructive'>
-                                <X className='h-4 w-4 mr-1' /> Close
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
                             <AddCustomerForm onSuccess={closeAddForm} />
                         </div>
@@ -153,8 +153,8 @@ function FormSections() {
                                 onClick={closeEditForm}
                                 variant='ghost'
                                 size='sm'
-                                className='absolute top-[-3.5rem] right-0 hover:bg-destructive/10 text-destructive'>
-                                <X className='h-4 w-4 mr-1' /> Close
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
                             <UpdateCustomerForm selectedRow={selectedRow} onSuccess={closeEditForm} />
                         </div>

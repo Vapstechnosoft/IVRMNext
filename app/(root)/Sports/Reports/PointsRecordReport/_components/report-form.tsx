@@ -1,18 +1,20 @@
 'use client';
 
-import { useForm, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
+import { useForm, useWatch } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { IPointsRecordReportData, PointsRecordReportFormSchema, PointsRecordReportSchema } from '@/types/sports/reports/points-record-report';
+import { RefreshCcw, FileText, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { PointsRecordReportFormSchema, pointsRecordReportSchema } from '../schema';
 import { usePointsRecordReport } from '@/hooks/sports/usePointsRecordReport';
+import { MultiSelect } from '@/components/ui/multi-select';
+import { useEffect, useState } from 'react';
+import { IClass, IEvent, IHouse, ISection, ICategory } from '@/types/sports/reports/points-record-report';
+import { IPointsRecordReportData } from '@/types/sports/reports/points-record-report';
 
 interface ReportFormProps {
     setReportData: (data: IPointsRecordReportData[] | null) => void;
@@ -20,312 +22,420 @@ interface ReportFormProps {
 }
 
 export default function ReportForm({ setReportData, setFormData }: ReportFormProps) {
-    const { loadData, generateReport } = usePointsRecordReport();
+    const { loadData, classHouseEventMutation, sectionMutation, generateReport } = usePointsRecordReport();
 
-    // Local state for search filters
-    const [searchValues, setSearchValues] = useState({
-        house: '',
-        section: '',
-        event: '',
-        sports: '',
-        place: '',
-    });
+    const [classList, setClassList] = useState<IClass[]>([]);
+    const [houseList, setHouseList] = useState<IHouse[]>([]);
+    const [eventList, setEventList] = useState<IEvent[]>([]);
+    const [sectionList, setSectionList] = useState<ISection[]>([]);
+    const [categoryList, setCategoryList] = useState<ICategory[]>([]);
 
-    const {
-        control,
-        handleSubmit,
-        setValue,
-        formState: { errors },
-    } = useForm<PointsRecordReportFormSchema>({
-        resolver: zodResolver(PointsRecordReportSchema),
+    const form = useForm<PointsRecordReportFormSchema>({
+        resolver: zodResolver(pointsRecordReportSchema),
         defaultValues: {
             Type: 'House',
-            ASMAY_Id: 0,
+            ASMAY_Id: undefined,
             selectedhouselist: [],
             selectedSectionlist: [],
             selectedEventlist: [],
             selectedSportslist: [],
             placListData: [],
+            ASMCL_Id: undefined,
+            SPCCMCC_Id: undefined
         },
     });
 
-    const watchType = useWatch({ control, name: 'Type' });
-    const watchHouses = useWatch({ control, name: 'selectedhouselist' }) || [];
-    const watchSections = useWatch({ control, name: 'selectedSectionlist' }) || [];
-    const watchEvents = useWatch({ control, name: 'selectedEventlist' }) || [];
-    const watchSports = useWatch({ control, name: 'selectedSportslist' }) || [];
-    const watchPlaces = useWatch({ control, name: 'placListData' }) || [];
+    const watchedType = useWatch({ control: form.control, name: 'Type' });
+    const watchedYear = useWatch({ control: form.control, name: 'ASMAY_Id' });
+    const watchedClass = useWatch({ control: form.control, name: 'ASMCL_Id' });
 
-    // Reset dependents when Type changes
+    // Initial Data Logic
     useEffect(() => {
-        setValue('selectedhouselist', []);
-        setValue('selectedSectionlist', []);
-        setValue('selectedEventlist', []);
-        setValue('selectedSportslist', []);
-        setValue('placListData', []);
-        setValue('ASMCL_Id', undefined);
-        setValue('SPCCMCC_Id', undefined);
+        if (loadData.data) {
+            if (loadData.data.categoryList) setCategoryList(loadData.data.categoryList);
+            if (loadData.data.houseList) setHouseList(loadData.data.houseList);
+            if (loadData.data.eventList) setEventList(loadData.data.eventList);
+            // Sports list if available
+            // Note: classList/sectionList usually fetched cascadingly
+        }
+    }, [loadData.data]);
+
+    // Reset fields when Type changes
+    useEffect(() => {
+        form.setValue('selectedSectionlist', []);
+        form.setValue('ASMCL_Id', undefined);
+        form.setValue('SPCCMCC_Id', undefined);
+        form.setValue('placListData', []);
         setReportData(null);
         setFormData(null);
-    }, [watchType, setValue, setReportData, setFormData]);
+        // We keep House/Event/Sports selections? 
+        // Report logic: clear them to avoid confusion
+        form.setValue('selectedhouselist', []);
+        form.setValue('selectedEventlist', []);
+        form.setValue('selectedSportslist', []);
+    }, [watchedType, form, setReportData, setFormData]);
 
-    const onSubmit = (data: PointsRecordReportFormSchema) => {
-        setFormData(data);
-        generateReport.mutate(data, {
-            onSuccess: (result) => {
-                setReportData(result || null);
-                if (result && result.length > 0) {
-                    toast.success('Report generated successfully!');
+    // Fetch Cascading Data (Classes, Houses, Events) when Year changes
+    useEffect(() => {
+        if (watchedYear) {
+            classHouseEventMutation.mutate({ asmaY_Id: watchedYear }, {
+                onSuccess: (data: { classList: any; houseList: any; eventList: any; }) => {
+                    setClassList(data.classList || []);
+                    setHouseList(data.houseList || []);
+                    setEventList(data.eventList || []);
+                }
+            });
+        } else {
+            setClassList([]);
+            setHouseList([]);
+            setEventList([]);
+        }
+    }, [watchedYear]);
+
+    // Fetch Sections when Class changes (and Type is CS)
+    useEffect(() => {
+        if (watchedYear && watchedClass && watchedType === 'CS') {
+            sectionMutation.mutate({ asmaY_Id: watchedYear, asmcL_Id: watchedClass }, {
+                onSuccess: (data: { sectionList: any; }) => {
+                    setSectionList(data.sectionList || []);
+                }
+            });
+        } else {
+            setSectionList([]);
+        }
+    }, [watchedYear, watchedClass, watchedType]);
+
+    function onSubmit(data: PointsRecordReportFormSchema) {
+        setFormData(data); // Store form data for grid headers/logic
+
+        // Building payload according to user examples and SP requirements
+        const payload: any = {
+            type: data.Type,
+            asmaY_Id: Number(data.ASMAY_Id),
+            selectedhouselist: data.selectedhouselist || [],
+            selectedeventlist: data.selectedEventlist || [],
+            selectedsportslist: data.selectedSportslist || [],
+        };
+
+        if (data.Type === 'CS') {
+            payload.asmcL_Id = data.ASMCL_Id || 0;
+            payload.selectedSectionlist = data.selectedSectionlist || [];
+        } else if (data.Type === 'CC') {
+            payload.spccmcC_Id = data.SPCCMCC_Id || 0;
+            payload.placListData = data.placListData || [];
+        } else {
+            // House type example shows ASMCL_Id: 0
+            payload.asmcL_Id = 0;
+        }
+
+        generateReport.mutate(payload, {
+            onSuccess: (responseData) => {
+                setReportData(responseData);
+                if (responseData && responseData.length > 0) {
+                    toast.success('Report generated successfully');
                 } else {
-                    toast.info('No records found.');
+                    toast.info('No records found');
                 }
             },
             onError: (error) => {
-                toast.error('Failed to generate report.');
-            },
+                console.error(error);
+                toast.error('Failed to generate report');
+            }
         });
-    };
+    }
 
-    const handleClear = () => {
-        setValue('Type', 'House');
-        setValue('ASMAY_Id', 0);
+    const handleReset = () => {
+        form.reset();
         setReportData(null);
         setFormData(null);
-    };
-
-    // Generic Multi-Select Helper
-    const renderMultiSelect = (
-        label: string,
-        items: any[],
-        idKey: string,
-        nameKey: string,
-        searchKey: keyof typeof searchValues,
-        formField: any, // keyof PointsRecordReportFormSchema
-        watchList: any[],
-        idProp: string
-    ) => {
-        const filteredItems = items.filter(item =>
-            item[nameKey].toLowerCase().includes(searchValues[searchKey].toLowerCase())
-        );
-
-        const isSelected = (id: number | string) => watchList.some((i: any) => i[idProp] == id);
-
-        const toggleSelectAll = () => {
-            if (watchList.length === filteredItems.length && filteredItems.length > 0) {
-                setValue(formField, []);
-            } else {
-                const allSelected = filteredItems.map(item => ({ [idProp]: item[idKey] }));
-                setValue(formField, allSelected);
-            }
-        };
-
-        const toggleItem = (id: number | string) => {
-            if (isSelected(id)) {
-                setValue(formField, watchList.filter((i: any) => i[idProp] != id));
-            } else {
-                setValue(formField, [...watchList, { [idProp]: id }]);
-            }
-        };
-
-        return (
-            <div className="space-y-2">
-                <Label>{label}</Label>
-                <div className="rounded-md border p-2 bg-white">
-                    <Input
-                        placeholder={`Search ${label}...`}
-                        className="mb-2 h-8"
-                        value={searchValues[searchKey]}
-                        onChange={(e) => setSearchValues(prev => ({ ...prev, [searchKey]: e.target.value }))}
-                    />
-                    <div className="mb-2 flex items-center space-x-2 border-b pb-1">
-                        <Checkbox
-                            id={`select-all-${searchKey}`}
-                            checked={filteredItems.length > 0 && watchList.length === filteredItems.length}
-                            onCheckedChange={toggleSelectAll}
-                        />
-                        <label htmlFor={`select-all-${searchKey}`} className="cursor-pointer text-sm font-semibold">
-                            All
-                        </label>
-                    </div>
-                    <ScrollArea className="h-32">
-                        <div className="space-y-2">
-                            {filteredItems.map((item) => (
-                                <div key={item[idKey]} className="flex items-center space-x-2">
-                                    <Checkbox
-                                        id={`${searchKey}-${item[idKey]}`}
-                                        checked={isSelected(item[idKey])}
-                                        onCheckedChange={() => toggleItem(item[idKey])}
-                                    />
-                                    <label htmlFor={`${searchKey}-${item[idKey]}`} className="cursor-pointer text-sm">
-                                        {item[nameKey]}
-                                    </label>
-                                </div>
-                            ))}
-                            {filteredItems.length === 0 && (
-                                <p className="text-center text-xs text-muted-foreground">No items found</p>
-                            )}
-                        </div>
-                    </ScrollArea>
-                </div>
-            </div>
-        );
+        setClassList([]);
+        setHouseList([]);
+        setEventList([]);
+        setSectionList([]);
     };
 
     const rankList = [
-        { id: '1', name: '1' }, { id: '2', name: '2' }, { id: '3', name: '3' },
-        { id: '4', name: '4' }, { id: '5', name: '5' }, { id: '6', name: '6' },
-        { id: '7', name: '7' }, { id: '8', name: '8' }, { id: '9', name: '9' },
-        { id: '10', name: '10' },
+        { label: '1', value: '1' }, { label: '2', value: '2' }, { label: '3', value: '3' },
+        { label: '4', value: '4' }, { label: '5', value: '5' }, { label: '6', value: '6' },
+        { label: '7', value: '7' }, { label: '8', value: '8' }, { label: '9', value: '9' },
+        { label: '10', value: '10' },
     ];
 
     return (
-        <div className="rounded-md border bg-card p-4 shadow-sm">
-            <div className="mb-4 flex items-center justify-between border-b pb-2">
-                <h2 className="text-lg font-semibold">Points Record Report</h2>
-            </div>
+        <Card>
+            <CardHeader className="bg-primary/5 border-b py-4">
+                <CardTitle className="text-lg font-bold flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-primary" />
+                    Points Record Report Filter
+                </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-
-                {/* Radio Group type */}
-                <div className="flex justify-center space-x-6 bg-slate-50 p-3 rounded-md border">
-                    <Controller
-                        control={control}
-                        name="Type"
-                        render={({ field }) => (
-                            <RadioGroup
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
-                                className="flex gap-8"
-                            >
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="House" id="r1" />
-                                    <Label htmlFor="r1" className="cursor-pointer">By House</Label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="CS" id="r2" />
-                                    <Label htmlFor="r2" className="cursor-pointer">By Class/Section</Label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="CC" id="r3" />
-                                    <Label htmlFor="r3" className="cursor-pointer">Competition Category</Label>
-                                </div>
-                            </RadioGroup>
-                        )}
-                    />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {/* Academic Year - Always Visible */}
-                    <div className="space-y-2">
-                        <Label>Academic Year <span className="text-red-500">*</span></Label>
-                        <Controller
-                            control={control}
-                            name="ASMAY_Id"
+                        {/* Report Type Radio */}
+                        <FormField
+                            control={form.control}
+                            name="Type"
                             render={({ field }) => (
-                                <Select
-                                    onValueChange={(val) => field.onChange(Number(val))}
-                                    value={field.value ? field.value.toString() : ''}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select Year" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {loadData.data?.academicYear.map((item) => (
-                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                {item.asmaY_Year}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                <FormItem className="space-y-3">
+                                    <FormControl>
+                                        <RadioGroup
+                                            onValueChange={field.onChange}
+                                            defaultValue={field.value}
+                                            className="flex flex-col sm:flex-row gap-6 justify-center"
+                                        >
+                                            <div className="flex items-center space-x-2">
+                                                <RadioGroupItem value="House" id="r1" />
+                                                <label htmlFor="r1" className="cursor-pointer font-medium">By House</label>
+                                            </div>
+                                            <div className="flex items-center space-x-2">
+                                                <RadioGroupItem value="CS" id="r2" />
+                                                <label htmlFor="r2" className="cursor-pointer font-medium">By Class/Section</label>
+                                            </div>
+                                            <div className="flex items-center space-x-2">
+                                                <RadioGroupItem value="CC" id="r3" />
+                                                <label htmlFor="r3" className="cursor-pointer font-medium">Competition Category</label>
+                                            </div>
+                                        </RadioGroup>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
                             )}
                         />
-                        {errors.ASMAY_Id && <p className="text-sm font-medium text-destructive">{errors.ASMAY_Id.message}</p>}
-                    </div>
 
-                    {/* Class - Only for CS */}
-                    {watchType === 'CS' && (
-                        <div className="space-y-2">
-                            <Label>Class Name <span className="text-red-500">*</span></Label>
-                            <Controller
-                                control={control}
-                                name="ASMCL_Id"
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-end">
+                            {/* Academic Year */}
+                            <FormField
+                                control={form.control}
+                                name="ASMAY_Id"
                                 render={({ field }) => (
-                                    <Select
-                                        onValueChange={(val) => field.onChange(Number(val))}
-                                        value={field.value ? field.value.toString() : ''}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select Class" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {loadData.data?.classList.map((item) => (
-                                                <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
-                                                    {item.asmcL_ClassName}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                    <FormItem>
+                                        <FormLabel className="font-semibold">Academic Year <span className="text-destructive">*</span></FormLabel>
+                                        <Select
+                                            onValueChange={(value) => field.onChange(Number(value))}
+                                            value={field.value?.toString()}
+                                            disabled={loadData.isLoading}
+                                        >
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select Year" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                {loadData.data?.yearlist?.map((year) => (
+                                                    <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>
+                                                        {year.asmaY_Year}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
                                 )}
                             />
-                        </div>
-                    )}
 
-                    {/* Competition Category - Only for CC */}
-                    {watchType === 'CC' && (
-                        <div className="space-y-2">
-                            <Label>Competition Category <span className="text-red-500">*</span></Label>
-                            <Controller
-                                control={control}
-                                name="SPCCMCC_Id"
+                            {/* Class Selection (Only if Type == CS) */}
+                            {watchedType === 'CS' && (
+                                <FormField
+                                    control={form.control}
+                                    name="ASMCL_Id"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="font-semibold">Class <span className="text-destructive">*</span></FormLabel>
+                                            <Select
+                                                onValueChange={(value) => field.onChange(Number(value))}
+                                                value={field.value?.toString()}
+                                                disabled={!watchedYear}
+                                            >
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select Class" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    {classList.map((cls) => (
+                                                        <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()}>
+                                                            {cls.asmcL_ClassName}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            )}
+
+                            {/* Section Selection (Only if Type == CS) */}
+                            {watchedType === 'CS' && (
+                                <FormField
+                                    control={form.control}
+                                    name="selectedSectionlist"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="font-semibold">Section <span className="text-destructive">*</span></FormLabel>
+                                            <FormControl>
+                                                <MultiSelect
+                                                    options={sectionList.map(s => ({ value: s.asmS_Id.toString(), label: s.asmC_SectionName }))}
+                                                    onValueChange={(vals) => field.onChange(vals.map(v => ({ asmS_Id: Number(v) })))}
+                                                    defaultValue={field.value?.map(v => v.asmS_Id.toString()) || []}
+                                                    placeholder="Select Sections"
+                                                    disabled={!watchedClass || sectionMutation.isPending}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            )}
+
+                            {/* Category Selection (Only if Type == CC) */}
+                            {watchedType === 'CC' && (
+                                <FormField
+                                    control={form.control}
+                                    name="SPCCMCC_Id"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="font-semibold">Category <span className="text-destructive">*</span></FormLabel>
+                                            <Select
+                                                onValueChange={(value) => field.onChange(Number(value))}
+                                                value={field.value?.toString()}
+                                            // disabled={!watchedYear} // Category might depend on year, but list comes from initial load currently
+                                            >
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select Category" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    {categoryList.map((cat) => (
+                                                        <SelectItem key={cat.spccmcC_Id} value={cat.spccmcC_Id.toString()}>
+                                                            {cat.spccmcC_CompitionCategory}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            )}
+
+                            {/* Place Selection (Only if Type == CC) */}
+                            {watchedType === 'CC' && (
+                                <FormField
+                                    control={form.control}
+                                    name="placListData"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="font-semibold">Place</FormLabel>
+                                            <FormControl>
+                                                <MultiSelect
+                                                    options={rankList}
+                                                    onValueChange={(vals) => field.onChange(vals.map(v => ({ spccestR_Rank: v })))}
+                                                    defaultValue={field.value?.map(v => v.spccestR_Rank) || []}
+                                                    placeholder="Select Place"
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            )}
+
+                            {/* House Selection */}
+                            <FormField
+                                control={form.control}
+                                name="selectedhouselist"
                                 render={({ field }) => (
-                                    <Select
-                                        onValueChange={(val) => field.onChange(Number(val))}
-                                        value={field.value ? field.value.toString() : ''}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select Category" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {loadData.data?.categoryList.map((item) => (
-                                                <SelectItem key={item.spccmcC_Id} value={item.spccmcC_Id.toString()}>
-                                                    {item.spccmcC_CompitionCategory}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                    <FormItem>
+                                        <FormLabel className="font-semibold">House <span className="text-destructive">*</span></FormLabel>
+                                        <FormControl>
+                                            <MultiSelect
+                                                options={houseList.map(h => ({ value: h.spccmH_Id.toString(), label: h.spccmH_HouseName }))}
+                                                onValueChange={(vals) => field.onChange(vals.map(v => ({ spccmH_Id: Number(v) })))}
+                                                defaultValue={field.value?.map(v => v.spccmH_Id.toString()) || []}
+                                                placeholder="Select Houses"
+                                                disabled={!watchedYear}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
                                 )}
                             />
+
+                            {/* Event Selection */}
+                            <FormField
+                                control={form.control}
+                                name="selectedEventlist"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="font-semibold">Event</FormLabel>
+                                        <FormControl>
+                                            <MultiSelect
+                                                options={eventList.map(e => ({ value: e.spccmE_Id.toString(), label: e.spccmE_EventName }))}
+                                                onValueChange={(vals) => field.onChange(vals.map(v => ({ spccmE_Id: Number(v) })))}
+                                                defaultValue={field.value?.map(v => v.spccmE_Id.toString()) || []}
+                                                placeholder="Select Events"
+                                                disabled={!watchedYear}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            {/* Sports Selection */}
+                            <FormField
+                                control={form.control}
+                                name="selectedSportslist"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="font-semibold">Sports</FormLabel>
+                                        <FormControl>
+                                            <MultiSelect
+                                                options={loadData.data?.sportslist?.map(s => ({ value: s.spccmscC_Id.toString(), label: s.spccmscC_SportsCCName })) || []}
+                                                onValueChange={(vals) => field.onChange(vals.map(v => ({ spccmscC_Id: Number(v) })))}
+                                                defaultValue={field.value?.map(v => v.spccmscC_Id.toString()) || []}
+                                                placeholder="Select Sports"
+                                                disabled={loadData.isLoading}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
                         </div>
-                    )}
 
-                    {/* Section - Only for CS */}
-                    {watchType === 'CS' && renderMultiSelect('Section', loadData.data?.sectionList || [], 'asmS_Id', 'asmC_SectionName', 'section', 'selectedSectionlist', watchSections, 'asmS_Id')}
-
-                    {/* Place - Only for CC */}
-                    {watchType === 'CC' && renderMultiSelect('Place', rankList, 'id', 'name', 'place', 'placListData', watchPlaces, 'spccestR_Rank')}
-
-                    {/* Common Filters */}
-                    {renderMultiSelect('House Name', loadData.data?.houseList || [], 'spccmH_Id', 'spccmH_HouseName', 'house', 'selectedhouselist', watchHouses, 'spccmH_Id')}
-                    {renderMultiSelect('Event Name', loadData.data?.eventList || [], 'spccmE_Id', 'spccmE_EventName', 'event', 'selectedEventlist', watchEvents, 'spccmE_Id')}
-                    {renderMultiSelect('Sports Name', loadData.data?.sportsList || [], 'spccmscC_Id', 'spccmscC_SportsCCName', 'sports', 'selectedSportslist', watchSports, 'spccmscC_Id')}
-
-                </div>
-
-                <div className="flex justify-center gap-4 pt-4 border-t">
-                    <Button type="submit" disabled={generateReport.isPending}>
-                        {generateReport.isPending ? 'Generating...' : 'Report'}
-                    </Button>
-                    <Button type="button" variant="outline" onClick={() => toast.info('Excel Export functionality mock')}>
-                        Export to Excel
-                    </Button>
-                    <Button type="button" variant="outline" onClick={() => toast.info('Print functionality mock')}>
-                        Print
-                    </Button>
-                    <Button type="button" variant="destructive" onClick={handleClear}>
-                        Cancel
-                    </Button>
-                </div>
-            </form>
-        </div>
+                        {/* Buttons */}
+                        <div className="flex justify-center gap-4 pt-4">
+                            <Button
+                                type="submit"
+                                className="min-w-[150px] font-bold"
+                                disabled={generateReport.isPending}
+                            >
+                                {generateReport.isPending ? (
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                ) : (
+                                    <FileText className="h-4 w-4 mr-2" />
+                                )}
+                                Report
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={handleReset}
+                                className="min-w-[150px]"
+                            >
+                                <RefreshCcw className="h-4 w-4 mr-2" />
+                                Cancel
+                            </Button>
+                        </div>
+                    </form>
+                </Form>
+            </CardContent>
+        </Card>
     );
 }

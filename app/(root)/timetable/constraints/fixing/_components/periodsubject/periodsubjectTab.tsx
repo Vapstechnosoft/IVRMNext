@@ -67,7 +67,9 @@ function PeriodSubjectTabContent({ initialData, searchParams }: PeriodSubjectTab
         selectedRow,
         isDetailsViewOpen,
         selectedRow: viewRow,
-        closeDetailsView
+        closeDetailsView,
+        addFormRef,
+        editFormRef
     } = useFormContext();
 
     const { data: academicData } = usebifurcationAcademicYear();
@@ -113,6 +115,7 @@ function PeriodSubjectTabContent({ initialData, searchParams }: PeriodSubjectTab
                     if (!id) return;
 
                     const res = await getFixingPeriodSubjectDetails(id);
+                    // biome-ignore lint/complexity/useOptionalChain: <explanation>
                     const subDetails = res?.fix_period_subject__classecedit || (res?.data && res.data[0]?.tempararyArrayList);
                     if (subDetails && Array.isArray(subDetails)) {
                         const details = subDetails.map((sub: any) => ({
@@ -172,8 +175,9 @@ function PeriodSubjectTabContent({ initialData, searchParams }: PeriodSubjectTab
             {isToggleFormOpen && selectedRow && <PeriodSubjectToggle rowData={selectedRow} onClose={closeToggleForm} />}
 
             {(isAddFormOpen || isEditFormOpen) && (
-                <CollapsibleSection
-                    title={isEditFormOpen ? 'Edit Period Subject Constraint' : 'Add New Period Subject Constraint'}
+                <div ref={isAddFormOpen ? addFormRef : editFormRef}>
+                    <CollapsibleSection
+                        title={isEditFormOpen ? 'Edit Period Subject Constraint' : 'Add New Period Subject Constraint'}
                     defaultOpen={true}
                     variant='outline'
                     size='md'
@@ -210,6 +214,7 @@ function PeriodSubjectTabContent({ initialData, searchParams }: PeriodSubjectTab
                         )}
                     </div>
                 </CollapsibleSection>
+                </div>
             )}
 
             <FixingViewModal

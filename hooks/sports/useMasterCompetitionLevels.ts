@@ -6,9 +6,10 @@ export const useMasterCompetitionLevels = (searchParams?: any) => {
 
     return {
         ...useQuery({
-            queryKey: ['master-competition-levels', searchParams ?? {}],
+            queryKey: ['master-competition-levels', searchParams || {}],
             queryFn: async () => getMasterCompetitionLevels(searchParams),
-            staleTime: 0
+            staleTime: 1000 * 60 * 5, // 5 minutes
+            refetchOnWindowFocus: false,
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({

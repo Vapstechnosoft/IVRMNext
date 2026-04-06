@@ -3,59 +3,61 @@
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useStudentEligibleReport } from '@/hooks/sports/useStudentEligibleReport';
-import type { IStudentEligibleReportDetail } from '@/types/sports/reports/student-eligible-report';
+import type { IStudentEligibleReportDetail, IStudentEligibleReportRequest } from '@/types/sports/reports/student-eligible-report';
 import { useEffect, useState } from 'react';
-import { columns, exportToExcel, printTable } from './_components/columns';
+import { columns } from './_components/columns';
 import ReportForm from './_components/report-form';
+import { useRef } from 'react';
+import { useReactToPrint } from 'react-to-print';
+import * as XLSX from 'xlsx';
 
-export default function StudentEligibleReportPage() {
-    const { data: loadGridData, isLoading, error } = useStudentEligibleReport();
-    const [reportResponse, setReportResponse] = useState<any>(null);
+import { use } from 'react';
 
-    useEffect(() => {
-        if (loadGridData) {
-            setReportResponse(loadGridData);
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+export default function StudentEligibleReportPage(props: { searchParams: SearchParams }) {
+    const searchParams = use(props.searchParams);
+    const [currentPayload, setCurrentPayload] = useState<IStudentEligibleReportRequest | null>(null);
+    
+    // Using the query version of the report fetcher to manage dependencies and avoid infinite loops
+    // This correctly depends on both the user's form payload AND the table's state (searchParams)
+    const { 
+        reportQuery, 
+        isLoading: isLoadLoading 
+    } = useStudentEligibleReport(currentPayload || undefined, searchParams);
+    
+    const reportResponse = reportQuery.data;
+    const componentRef = useRef<HTMLDivElement>(null);
+
+    const handlePrint = useReactToPrint({
+        contentRef: componentRef,
+        documentTitle: 'Student_Eligible_Report',
+        pageStyle: `
+          @page { size: portrait; margin: 20mm; }
+          @media print {
+            body { -webkit-print-color-adjust: exact; }
+            table { border-collapse: collapse !important; width: 100% !important; }
+            th, td { border: 1px solid #000 !important; padding: 8px !important; text-align: center !important; }
+          }
+        `
+    });
+
+    const handleExcel = () => {
+        if (reportResponse?.data) {
+            const worksheet = XLSX.utils.json_to_sheet(reportResponse.data);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
+            XLSX.writeFile(workbook, "StudentEligibleReport.xlsx");
         }
-    }, [loadGridData]);
+    };
 
-    const handleReport = (data: any) => {
-        setReportResponse(data);
+    const handleReport = (data: any, payload: any) => {
+        // Just set the payload; the reportQuery in useStudentEligibleReport will handle the fetching
+        setCurrentPayload(payload);
     };
 
     const handleReset = () => {
-        if (loadGridData) {
-            setReportResponse(loadGridData);
-        }
-    };
-
-    const handlePrint = () => {
-        const data = reportResponse?.data || [];
-        const headers = ['Adm. No.', 'Student Name', 'Class', 'Section', 'Age', 'Father Name', 'Mother Name'];
-        const rows = data.map((item: any) => ({
-            'Adm. No.': item.adm_no,
-            'Student Name': item.studentname,
-            Class: item.classname,
-            Section: item.sectionname,
-            Age: item.pasR_Age,
-            'Father Name': item.amsT_FatherName,
-            'Mother Name': item.amsT_MotherName
-        }));
-        printTable(headers, rows);
-    };
-
-    const handleExcel = () => {
-        const data = reportResponse?.data || [];
-        const rows = data.map((item: any) => ({
-            'Adm. No.': item.adm_no,
-            'Student Name': item.studentname,
-            Class: item.classname,
-            Section: item.sectionname,
-            Age: item.pasR_Age,
-            'Father Name': item.amsT_FatherName,
-            'Mother Name': item.amsT_MotherName,
-            Address: item.address
-        }));
-        exportToExcel(rows, 'Student_Eligible_Report');
+        setCurrentPayload(null);
     };
 
     const tableProps = useDataTableProps(reportResponse);
@@ -71,29 +73,103 @@ export default function StudentEligibleReportPage() {
                     <ReportForm
                         onReport={handleReport}
                         onReset={handleReset}
-                        onPrint={handlePrint}
+                        onPrint={() => handlePrint()}
                         onExcel={handleExcel}
                         hasData={!!reportResponse?.data?.length}
+                        isLoading={reportQuery.isLoading || reportQuery.isFetching} 
                     />
                 </CollapsibleSection>
 
                 <CollapsibleSection
                     title='STUDENT ELIGIBLE REPORT LIST'
-                    defaultOpen={true}
+                    defaultOpen={!!reportResponse?.data?.length}
                     variant='default'
                     size='lg'
                     className='shadow-lg'>
-                    <GenericDataTable<IStudentEligibleReportDetail>
-                        {...tableProps}
-                        columns={columns}
-                        isLoading={isLoading}
-                        error={error}
-                        //manualPagination={false}
-                        showViewOptions={true}
-                        loadingMessage='Loading report data...'
-                        noDataTitle='No Records Found'
-                        errorTitle='Error Loading Data'
-                    />
+                    <div ref={componentRef} className="p-4 bg-white rounded-lg">
+                        <style jsx global>{`
+                            @media screen {
+                                .print-only { display: none !important; }
+                            }
+                            @media print {
+                                .screen-only { display: none !important; }
+                                .print-only { display: block !important; }
+                                body { -webkit-print-color-adjust: exact !important; background: white !important; }
+                            }
+                        `}</style>
+
+                        <div className="hidden print:block text-center mb-6">
+                            <h2 className="text-2xl font-bold uppercase underline text-primary">Student Eligible Report</h2>
+                        </div>
+
+                        <div className="screen-only">
+                            <GenericDataTable<IStudentEligibleReportDetail>
+                                {...tableProps}
+                                columns={columns}
+                                isLoading={reportQuery.isLoading}
+                                error={reportQuery.isError ? reportQuery.error : null}
+                                manualPagination={true}
+                                manualSorting={true}
+                                manualFiltering={true}
+                                showSearchColumns={true}
+                                showViewOptions={true}
+                                loadingMessage='Loading report data...'
+                                noDataTitle='No Records Found'
+                                errorTitle='Error Loading Data'
+                            />
+                        </div>
+
+                        <div className="print-only overflow-x-auto">
+                            <table className="w-full border-collapse border border-gray-300 text-center text-[10pt]">
+                                <thead>
+                                    <tr className="bg-gray-100">
+                                        <th className="border border-gray-300 p-2 font-bold bg-gray-50 whitespace-nowrap">SL. No.</th>
+                                        <th className="border border-gray-300 p-2 font-bold bg-gray-50 whitespace-nowrap">Adm. No.</th>
+                                        <th className="border border-gray-300 p-2 font-bold bg-gray-50 whitespace-nowrap">Student Name</th>
+                                        <th className="border border-gray-300 p-2 font-bold bg-gray-50 whitespace-nowrap">Class</th>
+                                        <th className="border border-gray-300 p-2 font-bold bg-gray-50 whitespace-nowrap">Section</th>
+                                        <th className="border border-gray-300 p-2 font-bold bg-gray-50 whitespace-nowrap">DOB</th>
+                                        <th className="border border-gray-300 p-2 font-bold bg-gray-50 whitespace-nowrap">Age</th>
+                                        <th className="border border-gray-300 p-2 font-bold bg-gray-50 whitespace-nowrap">Father Name</th>
+                                        <th className="border border-gray-300 p-2 font-bold bg-gray-50 whitespace-nowrap">Mother Name</th>
+                                        <th className="border border-gray-300 p-2 font-bold bg-gray-50 whitespace-nowrap">Address</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {(reportResponse?.data || []).length > 0 ? (
+                                        reportResponse?.data?.map((row: any, rowIndex: number) => (
+                                            <tr key={rowIndex}>
+                                                {columns.map((col: any, colIndex) => (
+                                                    <td key={colIndex} className="border border-gray-300 p-2">
+                                                        {(col.id === 'serialNo' || col.accessorKey === 'serialNo') ? 
+                                                 ((Number(searchParams?.page) || 1) - 1) * (Number(searchParams?.page_size) || 10) + rowIndex + 1 : 
+                                                         col.accessorKey ? row[col.accessorKey] : 
+                                                         col.cell ? (col.cell as any)({ 
+                                                             row: { original: row, index: rowIndex }, 
+                                                             table: { 
+                                                                 getState: () => ({ 
+                                                                     pagination: { 
+                                                                         pageIndex: (Number(searchParams?.page) || 1) - 1, 
+                                                                         pageSize: Number(searchParams?.page_size) || 10 
+                                                                     } 
+                                                                 }) 
+                                                             } 
+                                                         }) : ''}
+                                                    </td>
+                                                ))}
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan={columns.length} className="border border-gray-300 p-10 text-center text-muted-foreground font-medium">
+                                                No Records Found
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </CollapsibleSection>
             </div>
         </div>

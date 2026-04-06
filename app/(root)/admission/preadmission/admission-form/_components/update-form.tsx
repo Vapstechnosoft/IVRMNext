@@ -2071,7 +2071,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
 
             const payload = {
                 amsT_Id: Number(formData.amsT_Id ?? 0),
-                mI_Id: Number(formData.mI_Id ?? 30),
                 asmaY_Id: Number(formData.asmaY_Id ?? formData.asmaY_Year ?? 0),
                 asmcL_Id: Number(formData.asmcL_Id ?? 0),
                 asmS_Id: Number(formData.asmS_Id ?? 0),
@@ -2155,10 +2154,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 amsT_Tpin: formData.amsT_Tpin ?? '',
                 amsT_GPSTrackingId: formData.amsT_GPSTrackingId ?? '',
                 amsT_MediumOfInstruction: formData.amsT_MediumOfInstruction ?? '',
-                userId: Number(formData.userId ?? 0) || 21602,
                 editFlag: !!formData.editFlag,
-                studentPhotoUrl: '',
-                returnVal: true
+                studentPhotoUrl: ''
             };
 
             console.debug('[Admission] saveFirstTab payload:', payload);
@@ -2202,8 +2199,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
 
             const payload = {
                 amsT_Id: getAmsTIdToUse(),
-                userId: 21602,
-                miId: 30,
                 amsT_FatherPassingYear: Number(formData.amsT_FatherPassingYear ?? 0) || 0,
 
                 // Father
@@ -2561,8 +2556,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
 
                     const payload = {
                         amsT_Id: getAmsTIdToUse(),
-                        mI_Id: 30,
-                        userId: 0,
                         amsT_Studentillness: formData.amsT_Studentillness || '',
                         amsT_MedicalComplaints: formData.amsT_MedicalComplaints || '',
                         amsT_AdmissionReason: formData.amsT_AdmissionReason || '',
@@ -2672,9 +2665,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
 
                     const payload: any = {
                         amsT_Id: getAmsTIdToUse(),
-                        mI_Id: 30,
-                        userId: 0,
-
                         activities: activities,
                         achievements: formData.achievements || '',
                         sourceDetails: sourceDetails,
@@ -2695,10 +2685,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                         amsT_NoOfYoungerBrothers: Number(formData.amsT_NoOfYoungerBrothers ?? 0) || 0,
                         amsT_Noofsisters: Number(formData.amsT_Noofsisters ?? 0) || 0,
                         amsT_NoOfElderSisters: Number(formData.amsT_NoOfElderSisters ?? 0) || 0,
-                        amsT_NoOfYoungerSisters: Number(formData.amsT_NoOfYoungerSisters ?? 0) || 0,
-
-                        message: '',
-                        returnVal: true
+                        amsT_NoOfYoungerSisters: Number(formData.amsT_NoOfYoungerSisters ?? 0) || 0
                     };
 
                     console.log('[Admission] early saveFourthTab payload:', payload);
@@ -2720,21 +2707,16 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                     return;
                 }
             }
-            // If validation passed for Step 1, save the data
             if (isValid && Object.keys(errors).length === 0 && Number(currentStep) === 1) {
-                // All validations (including student photo, EMIS, ECS) have already been checked above
-                // If we reach here, all validations passed
                 try {
                     const formData = getValues();
                     const res = await saveFirstTab({
                         ...formData,
                         amsT_Photoname: studentPhoto?.amsT_Photoname,
-                        // Map mobile numbers to backend expected format
                         mobileNos: (formData.mobileNos || []).map((m: any) => ({
                             MobileCountryCode: m.amstsmS_CountryCode?.replace('+', '') || '91',
                             MobileNumber: m.amsT_MobileNo || m.amstsmS_MobileNo
                         })),
-                        // Map emails to backend expected format
                         adm_M_Student_EmailIdDTO: (formData.adm_M_Student_EmailIdDTO || []).map((e: any) => ({
                             EmailId: e.amsT_emailId || e.amstE_EmailId
                         }))
@@ -2746,7 +2728,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                         return;
                     }
 
-                    // Extract returned student id from response and persist into form state
                     const returnedId =
                         Number(
                             res?.data?.amsT_Id ??
@@ -2761,7 +2742,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                         setSavedAmsTId(returnedId);
                     }
 
-                    // After successful first-tab save, persist student photo only if it changed
                     try {
                         const amsIdToUse = returnedId || Number(getValues('amsT_Id' as any) ?? 0);
                         if (!amsIdToUse) {
@@ -2773,7 +2753,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                         const photoChanged = Boolean(studentPhotoFile) || currentPhoto !== initialPhoto;
 
                         if (!photoChanged) {
-                            // No change to photo — skip calling the photo API
                             toast.success('Step 1 saved successfully');
                             setCurrentStep((prev) => Math.min(prev + 1, steps.length));
                             setIsSavingStep(false);
@@ -2785,7 +2764,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                         if (studentPhotoFile) {
                             photoPayload.append('StudentPhoto', studentPhotoFile);
                         } else {
-                            // If studentPhoto is null/empty, this will send empty string signaling deletion
                             photoPayload.append('StudentPhoto', String(studentPhoto?.amsT_Photoname ?? ''));
                         }
 
@@ -2797,7 +2775,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                             return;
                         }
 
-                        // Update initial ref to reflect the saved value so subsequent saves are no-ops
                         initialStudentPhotoRef.current = studentPhoto?.amsT_Photoname ?? '';
 
                         toast.success('Step 1 saved');
@@ -2818,9 +2795,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 }
             }
 
-            // If validation passed for Step 2, persist Step 2 to server (ensure schema validated)
             if (isValid && Number(currentStep) === 2) {
-                // Additional client-side pincode checks before save
                 const conPincodeVal = String(watch('amsT_ConPincode') ?? '');
                 if (conZipLength && conPincodeVal !== '' && conPincodeVal.length !== conZipLength) {
                     setError('amsT_ConPincode', {
@@ -2855,11 +2830,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                     };
 
                     const payload: any = {
-                        userid: 21602,
                         amsT_Id: getAmsTIdToUse(),
-                        mI_Id: 30,
-
-                        // Permanent address
                         amsT_PerStreet: pick(['amsT_PerStreet']) || '',
                         amsT_PerArea: pick(['amsT_PerArea']) || '',
                         amsT_PerCity: pick(['amsT_PerCity']) || '',
@@ -2868,7 +2839,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                         amsT_PerCountry: Number(pick(['amsT_PerCountry']) ?? 0) || 0,
                         amsT_PerPincode: Number(pick(['amsT_PerPincode']) ?? 0) || 0,
 
-                        // Residential address
                         amsT_ConStreet: pick(['amsT_ConStreet']) || '',
                         amsT_ConArea: pick(['amsT_ConArea']) || '',
                         amsT_ConCity: pick(['amsT_ConCity']) || '',
@@ -2876,9 +2846,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                         amsT_ConDistrict: Number(pick(['amsT_ConDistrict']) ?? 0) || 0,
                         amsT_ConCountry: Number(pick(['amsT_ConCountry']) ?? 0) || 0,
                         amsT_ConPincode: Number(pick(['amsT_ConPincode']) ?? 0) || 0,
-
-                        message: '',
-                        returnval: true
                     };
 
                     console.debug('[Admission] saveSecondTab payload:', payload);
@@ -2901,15 +2868,12 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             }
             if (!isValid && Number(currentStep) !== 4) {
                 console.debug('[Admission] Validation failed. errors:', errors);
-                // Build a short friendly message for the user from up to 5 errors
                 try {
-                    // Show a single generic message instead of per-field details
                     toast.error('Please fill required fields');
                 } catch (e) {
                     console.debug('Error showing generic validation toast', e);
                 }
 
-                // Additional client-side checks for pincode length because schema is static
                 if (isValid) {
                     if (currentStep === 1) {
                         console.debug('[Admission] Step1 values:', {
@@ -2920,7 +2884,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                             studentPhoto: studentPhoto?.amsT_Photoname
                         });
 
-                        // If minimal info present, still attempt to save to server and advance
                         const first = String(watch('amsT_FirstName') ?? '').trim();
                         const last = String(watch('amsT_LastName') ?? '').trim();
                         const mobile = String(watch('amsT_MobileNo') ?? phoneValues.amsT_MobileNo ?? watch('amsT_MobileNo') ?? '').trim();
@@ -2973,7 +2936,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 }
                 if (Number(currentStep) === 2) {
                     const conPincodeVal = String(watch('amsT_ConPincode') ?? '');
-                    // if conZipLength is defined and user has entered a value, enforce exact length
                     if (conZipLength && conPincodeVal !== '' && conPincodeVal.length !== conZipLength) {
                         setError('amsT_ConPincode', {
                             type: 'manual',
@@ -2992,7 +2954,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                             return;
                         }
                     }
-                    // After client-side pincode checks, call server API for Step 2
                     try {
                         const values = getValues();
 
@@ -3005,10 +2966,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                         };
 
                         const payload: any = {
-                            userid: 21602,
                             amsT_Id: getAmsTIdToUse(),
-                            mI_Id: 30,
-
                             // Permanent address
                             amsT_PerStreet: pick(['amsT_PerStreet']) || '',
                             amsT_PerArea: pick(['amsT_PerArea']) || '',
@@ -3026,9 +2984,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                             amsT_ConDistrict: Number(pick(['amsT_ConDistrict']) ?? 0) || 0,
                             amsT_ConCountry: Number(pick(['amsT_ConCountry']) ?? 0) || 0,
                             amsT_ConPincode: Number(pick(['amsT_ConPincode']) ?? 0) || 0,
-
-                            message: '',
-                            returnval: true
                         };
 
                         console.debug('[Admission] saveSecondTab payload:', payload);
@@ -3061,10 +3016,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                     try {
                         const minimalPayloadForFourth: any = {
                             amsT_Id: getAmsTIdToUse(),
-                            mI_Id: 0,
-                            userId: 0,
-                            message: '',
-                            returnVal: true
                         };
                         console.debug('[Admission] auto saveFourthTab (entering Step 4) payload:', minimalPayloadForFourth);
                         const autoRes = await saveFourthTabApi(minimalPayloadForFourth);
@@ -3147,9 +3098,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
 
                         const payload: any = {
                             amsT_Id: getAmsTIdToUse(),
-                            mI_Id: 0,
-                            userId: 0,
-
                             activities: activities,
                             achievements: formData.achievements || '',
                             sourceDetails: sourceDetails,
@@ -3170,10 +3118,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                             amsT_NoOfYoungerBrothers: Number(formData.amsT_NoOfYoungerBrothers ?? 0) || 0,
                             amsT_Noofsisters: Number(formData.amsT_Noofsisters ?? 0) || 0,
                             amsT_NoOfElderSisters: Number(formData.amsT_NoOfElderSisters ?? 0) || 0,
-                            amsT_NoOfYoungerSisters: Number(formData.amsT_NoOfYoungerSisters ?? 0) || 0,
-
-                            message: '',
-                            returnVal: true
+                            amsT_NoOfYoungerSisters: Number(formData.amsT_NoOfYoungerSisters ?? 0) || 0
                         };
 
                         const res = await saveFourthTabApi(payload);
@@ -4210,7 +4155,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
         }
     };
 
-    // derive zip/pincode length allowed from selected country (useMemo to wait for data)
     const conCountryObj = useMemo(() => {
         if (!country?.data || conCountryId === undefined || conCountryId === null) return undefined;
         return country.data.find((c: any) => String(c.ivrmmC_Id) === String(conCountryId));
@@ -4240,13 +4184,11 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
     const motherZipLength: number | undefined = motherCountryObj?.ivrmmC_ZipNoLength ?? undefined;
 
     useEffect(() => {
-        // Don't clear pincode during initialization if we're restoring from payload
         if (_isInitializingRef.current || _initialPincodesRef.current?.con) return;
         setValue('amsT_ConPincode', '');
     }, [conCountryId, setValue]);
 
     useEffect(() => {
-        // Don't clear pincode during initialization if we're restoring from payload
         if (_isInitializingRef.current || _initialPincodesRef.current?.per) return;
         if (!sameAsResidential) {
             setValue('amsT_PerPincode', '');
@@ -4254,15 +4196,12 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
     }, [perCountryId, setValue, sameAsResidential]);
 
     useEffect(() => {
-        // Do not clear section while we're initializing the form from payload
         if (_isInitializingRef.current) return;
 
-        // If section data has loaded and there are available sections, auto-select the first one
         if (sectionData?.data && sectionData.data.length > 0) {
             const firstSection = sectionData.data[0];
             setValue('asmS_Id', firstSection.asmS_Id);
         } else {
-            // Otherwise, clear the section
             setValue('asmS_Id', 0);
         }
     }, [classId, sectionData, setValue]);
@@ -4271,12 +4210,9 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
         if (submittingFinal) return;
         setSubmittingFinal(true);
         try {
-            // Ensure mandatory documents are uploaded
-            // Document checklist removed; user-uploaded documents are submitted with final form
 
             const values = getValues();
 
-            // Helper: try to resolve uploaded document path by name (case-insensitive substring match)
             const findUploadedPath = (needle: string) => {
                 const found = uploadedDocuments.find((d) => (d.documentName || '').toLowerCase().includes(needle.toLowerCase()));
                 return found ? found.document_Path || '' : '';
@@ -4286,8 +4222,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             const fd = new FormData();
             const amsTIdToUse = savedAmsTId ?? (Number(getValues('amsT_Id' as any) ?? 0) || 25533);
             fd.append('amsT_Id', String(amsTIdToUse));
-            fd.append('mI_Id', String(30));
-            fd.append('userId', String(21602));
             fd.append('hostelRequired', String(Boolean(values.hostelRequired)));
             fd.append('transportRequired', String(Boolean(values.transportRequired)));
 
@@ -8236,7 +8170,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                 {phoneExpectedInfo?.[`guardian_${idx}_phone`]?.expected && (
                                                                                     <span className='mt-1 text-muted-foreground text-xs'>
                                                                                         {`Mobile number must be exactly ${phoneExpectedInfo[`guardian_${idx}_phone`]
-                                                                                                .expected
+                                                                                            .expected
                                                                                             } digits for ${phoneExpectedInfo[`guardian_${idx}_phone`]
                                                                                                 .name ?? 'selected country'
                                                                                             }`}

@@ -40,7 +40,9 @@ function DaySubjectTabContent({ initialData, searchParams }: DaySubjectTabProps)
         closeAllForms,
         isToggleFormOpen,
         closeToggleForm,
-        selectedRow
+        selectedRow,
+        addFormRef,
+        editFormRef
     } = useFormContext();
 
     const { data: academicData } = usebifurcationAcademicYear();
@@ -103,8 +105,9 @@ function DaySubjectTabContent({ initialData, searchParams }: DaySubjectTabProps)
             {isToggleFormOpen && selectedRow && <DaySubjectToggle rowData={selectedRow} onClose={closeToggleForm} />}
 
             {(isAddFormOpen || isEditFormOpen) && (
-                <CollapsibleSection
-                    title={isEditFormOpen ? 'Edit Day Subject Constraint' : 'Add New Day Subject Constraint'}
+                <div ref={isAddFormOpen ? addFormRef : editFormRef}>
+                    <CollapsibleSection
+                        title={isEditFormOpen ? 'Edit Day Subject Constraint' : 'Add New Day Subject Constraint'}
                     defaultOpen={true}
                     variant='outline'
                     size='md'
@@ -141,6 +144,7 @@ function DaySubjectTabContent({ initialData, searchParams }: DaySubjectTabProps)
                         )}
                     </div>
                 </CollapsibleSection>
+                </div>
             )}
         </div>
     );

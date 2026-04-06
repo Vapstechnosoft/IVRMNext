@@ -761,7 +761,7 @@ Go to **Std Fee Details** page
     },
     // --- DETAILED PROCEDURES ---
     howToFillForm: {
-        keywords: ['fill form', 'fill application', 'how to apply', 'application steps', 'admission form steps'],
+        keywords: ['fill form', 'fill application', 'how to apply', 'application steps', 'admission form steps', 'fill', 'application', 'aplication', 'form'],
         response: `To fill the **Preadmission Form**:
 1. Go to **Admission > Preadmission > Transactions > Preadmission Form**.
 2. **Student Details**: Enter Name, DOB, Gender, Class.
@@ -899,7 +899,7 @@ export async function POST(req: NextRequest) {
                     messages: [
                         {
                             role: 'system',
-                            content: `You are the **${context === 'StudentPortal' ? 'Student Assistant' : 'AI VRM Help Desk'}**, a helpful guide. 
+                            content: `You are the **${context === 'StudentPortal' ? 'School Assistant' : 'AI VRM Help Desk'}**, a helpful guide. 
                             
                             **KNOWLEDGE CONTEXT:**
                             ${data.response}
@@ -931,7 +931,7 @@ export async function POST(req: NextRequest) {
             messages: [
                 {
                     role: 'system',
-                    content: `You are the **${context === 'StudentPortal' ? 'Student Assistant' : 'AI VRM Help Desk'}**.
+                    content: `You are the **${context === 'StudentPortal' ? 'School Assistant' : 'AI VRM Help Desk'}**.
                     
                     ${context === 'StudentPortal' ?
                             `**AVAILABLE STUDENT PAGES:**

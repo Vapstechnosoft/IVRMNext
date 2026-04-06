@@ -17,6 +17,7 @@ interface RequestListProps {
     totalItems?: number;
     currentApiParams?: any;
     onSearchParamsChange?: (params: any) => void;
+    currentAlumniId: number;
 }
 
 export default function RequestList({
@@ -25,7 +26,8 @@ export default function RequestList({
     onRefresh,
     totalItems,
     currentApiParams,
-    onSearchParamsChange
+    onSearchParamsChange,
+    currentAlumniId
 }: RequestListProps) {
     const [selectedRows, setSelectedRows] = useState<IAlumniFriendRequest[]>([]);
     const [viewingAlumniId, setViewingAlumniId] = useState<number | null>(null);
@@ -40,7 +42,10 @@ export default function RequestList({
 
         setIsSending(true);
         try {
-            const requestalumni = selectedRows.map((row) => ({ almsT_Id: row.ALMST_Id }));
+            const requestalumni = selectedRows.map((row) => ({
+                almsT_Id: currentAlumniId,
+                alsfrnD_FriendsId: row.ALMST_Id
+            }));
             const res = await sendFriendRequest({
                 requestalumni
             });
