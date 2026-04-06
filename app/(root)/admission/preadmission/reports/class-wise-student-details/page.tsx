@@ -1,9 +1,10 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CheckSquare, FileText, RotateCcw, Search, Square, X } from 'lucide-react';
+import { CheckSquare, FileText, Printer, RotateCcw, Search, Square, X } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useReactToPrint } from 'react-to-print';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -39,6 +40,7 @@ import { getMasterAdmissionReportColumns } from './_components/columns';
 import { ColumnValue } from './_components/columnvalue';
 import { KendoFormat } from './_components/kendo-format';
 import { exportToPdf } from '@/lib/export-to-file';
+import { ClasswisePrint } from './_components/classwise-print';
 
 /* -------------------------------------------------------------------------- */
 /* Types */
@@ -58,6 +60,7 @@ export default function AdmissionReportPage(props: {
     const router = useRouter();
     const currentSearchParams = useSearchParams();
     const tableRef = useRef<DataTableRef>(null);
+    const printRef = useRef<HTMLDivElement>(null);
 
     /* ---------------- Form ---------------- */
 
@@ -108,6 +111,8 @@ export default function AdmissionReportPage(props: {
     const [resolvedSearchParams, setResolvedSearchParams] = useState<Record<string, string | string[] | undefined>>({});
     const [fieldSearch, setFieldSearch] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [printTimestamp, setPrintTimestamp] = useState('');
+    const [printData, setPrintData] = useState<any[]>([]);
 
     /* ---------------- Masters ---------------- */
 
@@ -378,6 +383,47 @@ export default function AdmissionReportPage(props: {
         }
     };
 
+    /* ---------------- Print ---------------- */
+
+    const triggerPrint = useReactToPrint({
+        contentRef: printRef,
+        documentTitle: 'ClassWiseStudentReport'
+    });
+
+    const handlePrint = async () => {
+        if (!showReport) {
+            toast.error('No report data to print');
+            return;
+        }
+        const payload = getValidatedPayload();
+        if (!payload) return;
+
+        try {
+            toast.loading('Preparing print...', { id: 'print-load' });
+            const allDataResponse: any = await getclasswiseStudentDetails(
+                watchedYear,
+                watchedStudentCategory ?? 0,
+                scopeMap[studentScope],
+                payload,
+                { page_size: 100000, page: 1 }
+            );
+            const allData = allDataResponse?.data?.printdatatable || [];
+            if (!allData.length) {
+                toast.dismiss('print-load');
+                toast.error('No data available to print');
+                return;
+            }
+            setPrintData(allData);
+            setPrintTimestamp(new Date().toLocaleString());
+            toast.dismiss('print-load');
+            // Small delay to let React re-render printData into the hidden component
+            setTimeout(() => triggerPrint(), 300);
+        } catch (err) {
+            toast.dismiss('print-load');
+            toast.error('Failed to prepare print');
+        }
+    };
+
     /* -------------------------------------------------------------------------- */
     /* Render */
     /* -------------------------------------------------------------------------- */
@@ -580,6 +626,10 @@ export default function AdmissionReportPage(props: {
                     <Button onClick={downloadExcel} className='w-fit'>
                         Export to Excel
                     </Button>
+                    <Button variant='outline' onClick={handlePrint} disabled={!showReport}>
+                        <Printer className='mr-2 h-4 w-4' />
+                        Print
+                    </Button>
                     <Button variant='outline' onClick={handleCancel}>
                         <X className='mr-2 h-4 w-4' />
                         Cancel
@@ -613,6 +663,19 @@ export default function AdmissionReportPage(props: {
                     )}
                 </CollapsibleSection>
             )}
+
+            {/* Hidden Print Layout */}
+            <div style={{ display: 'none' }}>
+                <ClasswisePrint
+                    ref={printRef}
+                    data={printData}
+                    selectedFields={selectedFields}
+                    academicYear={academicYear?.data?.find((y) => y.asmaY_Id === watchedYear)?.asmaY_Year || ''}
+                    classes={selectedClassItems.map((c) => c.asmcL_ClassName).join(', ')}
+                    sections={selectedSectionItems.map((s) => s.asmcL_SectionName).join(', ')}
+                    printTimestamp={printTimestamp}
+                />
+            </div>
         </div>
     );
 }

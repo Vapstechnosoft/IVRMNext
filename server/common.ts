@@ -695,6 +695,7 @@ export async function getUserAccessibleModules() {
                 //                             description: 'CBS Study Certificate'
                 //                         }
 
+
                 //                     ]
                 //                 },
                 //                 {
@@ -746,6 +747,8 @@ export async function getUserAccessibleModules() {
                 //                             description: 'GM Custom Tc'
                 //                         }
 
+
+
                 //                     ]
                 //                 },
                 //                 {
@@ -787,6 +790,7 @@ export async function getUserAccessibleModules() {
                 //                             title: 'St.James Character Report',
                 //                             description: 'St.James Character Report'
                 //                         }
+
 
                 //                     ]
                 //                 },
@@ -860,7 +864,6 @@ export async function getUserAccessibleModules() {
                 //                         }
                 //                     ]
                 //                 }
-
                 //                 ,
                 //                 {
                 //                     id: 12,
@@ -870,7 +873,7 @@ export async function getUserAccessibleModules() {
 
                 //                         {
                 //                             id: 590,
-                //                             name: 'Smartcarddetails',
+                //                             name: 'Smart Card Details',
                 //                             icon: 'Settings',
                 //                             url: '/admission/preadmission/reports/Sophia/Smartcarddetails',
                 //                             title: 'Smartcarddetails',
@@ -888,7 +891,7 @@ export async function getUserAccessibleModules() {
                 //                             id: 592,
                 //                             name: 'Master Activities',
                 //                             icon: 'Settings',
-                //                             url: '/admission/preadmission/reports/Sophia/MasterActivities',
+                //                             url: '/admission/preadmission/masters/Sophia/MasterActivities',
                 //                             title: 'Master Activities',
                 //                             description: 'Master Activities'
                 //                         },
@@ -940,6 +943,23 @@ export async function getUserAccessibleModules() {
                 //                             title: 'Date Of Birth Certificate',
                 //                             description: 'Date Of Birth Certificate'
                 //                         }
+
+                //                     ]
+                //                 }
+                //                 ,
+                //                 {
+                //                     id: 12,
+                //                     name: 'St. Thomas Church School',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 61,
+                //                             name: 'Total Strength',
+                //                             icon: 'Settings',
+                //                             url: '/admission/preadmission/reports/STCS/total-strength',
+                //                             title: 'Total Strength',
+                //                             description: 'Total Strength'
+                //                         },
 
                 //                     ]
                 //                 }
@@ -2313,10 +2333,10 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 8,
-                                            name: 'Employee Salary Increment Details',
-                                            icon: 'CreditCard',
-                                            url: '/hrms/transactions/employee-increment-salary',
-                                            title: 'Employee Salary Increment Details',
+                                            name: "Employee Salary Increment Details",
+                                            icon: "CreditCard",
+                                            url: "/hrms/transactions/employee-increment-salary",
+                                            title: "Employee Salary Increment Details",
                                             description: 'Manage Employee Salary Increment Deatails'
                                         }
                                     ]
@@ -2544,6 +2564,7 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/reports/salary-increment-report',
                                             title: 'Salary Increment Report',
                                             description: 'Salary Increment Report'
+
                                         },
                                         {
                                             id: 26,
@@ -2809,7 +2830,8 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/attendance-management/masters/front-office-addlogs',
                                             title: 'Front Office Addlogs',
                                             description: 'Front Office Addlogs'
-                                        }
+                                        },
+
                                     ]
                                 },
                                 {
@@ -6699,6 +6721,7 @@ export async function getUserAccessibleModules() {
                                     name: 'Transaction',
                                     icon: 'FileBarChart',
                                     pages: [
+
                                         {
                                             id: 4,
                                             name: 'School Staff Period Transaction',
