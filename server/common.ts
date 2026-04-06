@@ -2082,11 +2082,11 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 8,
-                                            name:"Employee Salary Increment Details",
-                                            icon:"CreditCard",
-                                            url:"/hrms/transactions/employee-increment-salary",
-                                            title:"Employee Salary Increment Details",
-                                            description:'Manage Employee Salary Increment Deatails'
+                                            name: "Employee Salary Increment Details",
+                                            icon: "CreditCard",
+                                            url: "/hrms/transactions/employee-increment-salary",
+                                            title: "Employee Salary Increment Details",
+                                            description: 'Manage Employee Salary Increment Deatails'
                                         }
                                     ]
                                 },
@@ -2307,7 +2307,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Employee Profile Report'
                                         },
                                         {
-                                            id:25,
+                                            id: 25,
                                             name: 'Salary Increment Report',
                                             icon: 'FileSearch',
                                             url: '/hrms/reports/salary-increment-report',
@@ -2572,7 +2572,7 @@ export async function getUserAccessibleModules() {
                                             title: 'Master Time Setting',
                                             description: 'Configure Time Settings'
                                         },
-                                         {
+                                        {
                                             id: 9,
                                             name: 'Front Office Addlogs',
                                             icon: 'ClipboardList',
@@ -2580,7 +2580,7 @@ export async function getUserAccessibleModules() {
                                             title: 'Front Office Addlogs',
                                             description: 'Front Office Addlogs'
                                         },
-                                        
+
                                     ]
                                 },
                                 {
@@ -6471,6 +6471,51 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/feereports/feedefaulterreport',
                                             title: 'Fee Defaulter Report',
                                             description: 'Monitor Fee Defaulters'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    id: 5,
+                    name: 'AI Edge',
+                    icon: 'Sparkles',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'AI Edge',
+                            icon: 'BookOpen',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'AI Tools',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'AI Question Paper Generator',
+                                            icon: 'FileText',
+                                            url: '/StaffPortal/ai-question-paper-generator',
+                                            title: 'AI Question Paper Generator',
+                                            description: 'Generate question papers from textbooks using AI'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'AI Notemaker',
+                                            icon: 'FileText',
+                                            url: '/StaffPortal/ai-notemaker',
+                                            title: 'AI Notemaker',
+                                            description: 'Summarize and create structured notes from textbooks using AI'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'AI Performance Analysis',
+                                            icon: 'BarChart',
+                                            url: '/StaffPortal/ai-performance-analysis',
+                                            title: 'AI Performance Analysis',
+                                            description: 'Analyze performance metrics and AI-driven insights'
                                         }
                                     ]
                                 }
