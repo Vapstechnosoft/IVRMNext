@@ -86,7 +86,8 @@ const StatCard = ({ item }: { item: any }) => (
                     <item.icon className={item.color} size={24} />
                 </div>
                 <div className="flex flex-col items-end">
-                    <button className="text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-primary transition-colors flex items-center gap-1 group/btn">
+                    {/* biome-ignore lint/a11y/useButtonType: <explanation> */}
+                    <button className='group/btn flex items-center gap-1 font-black text-[10px] text-slate-400 uppercase tracking-widest transition-colors hover:text-primary'>
                         More info <ChevronRight size={12} className="group-hover/btn:translate-x-0.5 transition-transform" />
                     </button>
                 </div>
@@ -131,6 +132,7 @@ export default function ChairmanDashboard() {
 
     useEffect(() => {
         const fetchData = async () => {
+            console.log('fetching preadmission data');
             const { data } = await getDashboardCounts();
             console.log('preadmission data', data?.data)
             setDashboardData(data?.data);

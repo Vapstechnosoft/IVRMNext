@@ -26,7 +26,7 @@ export default function SchoolAdminLoginPage() {
         setTimeout(() => {
             if (username === 'admin' && password === 'admin123') {
                 toast.success('Login successful! Redirecting...');
-                router.push('/chairman');
+                router.push('/school-admin');
             } else {
                 toast.error('Invalid credentials. Hint: admin / admin123');
                 setIsLoading(false);

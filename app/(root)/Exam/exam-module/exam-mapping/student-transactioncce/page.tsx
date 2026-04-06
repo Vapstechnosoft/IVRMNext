@@ -238,6 +238,12 @@ function StudentTransactionContent() {
 
         const fetchExamData = async () => {
             setLoadingExamData(true);
+            console.log({
+                ASMAY_Id: watchAcademicYear,
+                ASMCL_Id: watchClass,
+                ASMS_Id: watchSection,
+                EXAM_TERMWISE_FLAG: watchExamType
+            });
             try {
                 const response = await getTermOrExams({
                     ASMAY_Id: watchAcademicYear,
@@ -697,8 +703,8 @@ function StudentTransactionContent() {
                                             <button
                                                 type='button'
                                                 className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${field.value === 'TermWise'
-                                                        ? 'bg-purple-600 text-white'
-                                                        : 'bg-transparent text-gray-600 hover:bg-gray-100'
+                                                    ? 'bg-purple-600 text-white'
+                                                    : 'bg-transparent text-gray-600 hover:bg-gray-100'
                                                     }`}
                                                 onClick={() => {
                                                     field.onChange('TermWise');
@@ -711,8 +717,8 @@ function StudentTransactionContent() {
                                             <button
                                                 type='button'
                                                 className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${field.value === 'ExamWise'
-                                                        ? 'bg-purple-600 text-white'
-                                                        : 'bg-transparent text-gray-600 hover:bg-gray-100'
+                                                    ? 'bg-purple-600 text-white'
+                                                    : 'bg-transparent text-gray-600 hover:bg-gray-100'
                                                     }`}
                                                 onClick={() => {
                                                     field.onChange('ExamWise');

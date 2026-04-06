@@ -381,7 +381,7 @@ export const toppersListReportSchema = z
             .min(1, 'Top count is required')
             .regex(/^\d+$/, 'Must be a number')
             .refine((val) => Number.parseInt(val) > 0, 'Top count must be greater than 0'),
-        EME_Id: z.string().min(1, 'Exam is required'),
+        EME_Id: z.string().optional(),
         subjectwise: z.boolean().default(false),
         ISMS_Id: z.string().optional(), // Subject (Required only when subjectwise is checked)
         // Hidden fields for API payload

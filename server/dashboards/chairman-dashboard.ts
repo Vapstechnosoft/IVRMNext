@@ -1,9 +1,8 @@
 'use server';
 
-import { api, getSearchParamsUrl } from '@/lib/apiService';
-import type { ApiSearchparams } from '@/types';
+import { api } from '@/lib/apiService';
 
 export async function getDashboardCounts() {
-    const url = '/configuration/dashboard';
-    return await api.get<any>('preadmission', url);
+    const url = '/api/configuration/dashboard';
+    return await api.get('preadmission', url);
 }
