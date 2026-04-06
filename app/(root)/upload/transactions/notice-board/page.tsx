@@ -1,126 +1,200 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { useState, useMemo, useCallback } from 'react';
 import { useNoticeBoard } from '@/hooks/upload/transactions/use-notice-board';
-import type { INoticeBoard } from '@/schemas/upload/transactions/notice-board.schema';
-import { Loader2, Plus, X } from 'lucide-react';
-import { Suspense } from 'react';
+import { getNoticeBoardColumns } from './_components/columns';
+import { DataTable } from '@/components/ui/data-table';
+import { Button } from '@/components/ui/button';
+import { Plus, Loader2 } from 'lucide-react';
 import AddNoticeBoardForm from './_components/add-form';
-import { noticeBoardColumns } from './_components/columns';
-
+import UpdateNoticeBoardForm from './_components/update-form';
+import ViewRecordsModal from './_components/view-records-modal';
+import AttachmentPreview from './_components/attachment-preview';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle
+} from '@/components/ui/dialog';
+import { toggleNoticeBoardStatus } from '@/server/upload/transactions/notice-board/server-action';
 import { toast } from 'sonner';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { INoticeBoard } from '@/schemas/upload/transactions/notice-board.schema';
 
 export default function NoticeBoardPage() {
-    return (
-        <Suspense fallback={<div className='flex h-full items-center justify-center'><Loader2 className='h-8 w-8 animate-spin' /></div>}>
-            <NoticeBoardContent />
-        </Suspense>
+    const { data: response, isLoading, refetch } = useNoticeBoard();
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+    const [isViewRecordsOpen, setIsViewRecordsOpen] = useState(false);
+    const [isAttachmentOpen, setIsAttachmentOpen] = useState(false);
+    const [selectedRow, setSelectedRow] = useState<any>(null);
+    const [selectedAttachment, setSelectedAttachment] = useState<{ url: string, name: string } | null>(null);
+
+    const handleEdit = useCallback((row: INoticeBoard) => {
+        setSelectedRow(row);
+        setIsUpdateModalOpen(true);
+    }, []);
+
+    const handleToggle = useCallback(async (row: INoticeBoard) => {
+        if (!row.intB_Id) {
+            toast.error('Invalid Notice ID');
+            return;
+        }
+        try {
+            const result = await toggleNoticeBoardStatus({ intB_Id: row.intB_Id });
+            if (result?.success) {
+                toast.success(result.message || 'Notice board status updated successfully.');
+                refetch();
+            } else {
+                toast.error(result?.message || 'Failed to update notice board status.');
+            }
+        } catch (error: any) {
+            toast.error(error?.message || 'Error updating notice board status');
+        }
+    }, [refetch]);
+
+    const handleViewRecords = useCallback((row: INoticeBoard) => {
+        setSelectedRow(row);
+        setIsViewRecordsOpen(true);
+    }, []);
+
+    const handleViewAttachment = useCallback((row: INoticeBoard) => {
+        if (row.intB_FilePath_Array && row.intB_FilePath_Array.length > 0) {
+            setSelectedAttachment({
+                url: row.intB_FilePath_Array[0].intbfL_FilePath,
+                name: row.intB_FilePath_Array[0].fileName || 'Attachment'
+            });
+            setIsAttachmentOpen(true);
+        }
+    }, []);
+
+    const columns = useMemo(() =>
+        getNoticeBoardColumns(handleEdit, handleToggle, handleViewRecords, handleViewAttachment),
+        [handleEdit, handleToggle, handleViewRecords, handleViewAttachment]
     );
-}
 
-function NoticeBoardContent() {
-    const { data, isLoading, error, refetchAll } = useNoticeBoard();
+    const yearList = useMemo(() => (response as any)?.data?.yearlist || (response as any)?.yearlist || [], [response]);
+    const classList = useMemo(() => (response as any)?.data?.studentList1 || (response as any)?.studentList1 || (response as any)?.data?.studentlist1 || (response as any)?.studentlist1 || [], [response]);
+    const deptList = useMemo(() => (response as any)?.data?.studentList2 || (response as any)?.studentList2 || (response as any)?.data?.studentlist2 || (response as any)?.studentlist2 || [], [response]);
+    const desgList = useMemo(() => (response as any)?.data?.studentList3 || (response as any)?.studentList3 || (response as any)?.data?.studentlist3 || (response as any)?.studentlist3 || [], [response]);
+    const routeList = useMemo(() => (response as any)?.data?.route_list || (response as any)?.route_list || [], [response]);
+    const feeGroupList = useMemo(() => (response as any)?.data?.fee_group || (response as any)?.fee_group || [], [response]);
+    const feeTermList = useMemo(() => (response as any)?.data?.fee_terms || (response as any)?.fee_terms || (response as any)?.data?.fee_term || (response as any)?.fee_term || [], [response]);
 
-    return (
-        <FormProvider<INoticeBoard>>
-            <NoticeBoardManager
-                data={data}
-                isLoading={isLoading}
-                error={error}
-                refetchAll={refetchAll}
-            />
-        </FormProvider>
-    );
-}
+    const activeYear = useMemo(() => (response as any)?.data?.academicyear?.[0]?.asmaY_Year || (response as any)?.academicyear?.[0]?.asmaY_Year || '', [response]);
+    const activeYearId = useMemo(() => (response as any)?.data?.academicyear?.[0]?.asmaY_Id || (response as any)?.academicyear?.[0]?.asmaY_Id || 0, [response]);
 
-function NoticeBoardManager({
-    data,
-    isLoading,
-    error,
-    refetchAll
-}: {
-    data: any;
-    isLoading: boolean;
-    error: any;
-    refetchAll: () => void;
-}) {
-    const { openAddForm, isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } = useFormContext<INoticeBoard>();
-
-    const tableProps = {
-        data: data?.noticeList || [],
-        isLoading,
-        error
-    };
+    const noticeList = useMemo(() => {
+        const list = (response as any)?.data?.studentList || (response as any)?.studentList || (response as any)?.data?.studentlist || (response as any)?.studentlist || [];
+        return list.map((notice: any) => {
+            const year = yearList.find((y: any) => y.asmaY_Id === notice.asmaY_Id);
+            return {
+                ...notice,
+                asmaY_Year: year ? year.asmaY_Year : activeYear,
+                // Ensure active flag is a boolean (handles "true"/"false" strings from some APIs)
+                intB_ActiveFlag: typeof notice.intB_ActiveFlag === 'string' 
+                    ? notice.intB_ActiveFlag.toLowerCase() === 'true' 
+                    : !!notice.intB_ActiveFlag
+            };
+        });
+    }, [response, yearList, activeYear]);
 
     return (
-        <div className='min-h-screen'>
-            <div className='container space-y-4 p-1'>
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end'>
-                    <Button
-                        type='button'
-                        onClick={openAddForm}
-                        className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                        <Plus className='h-4 w-4' />
-                        Add Notice
-                    </Button>
-                </div>
-
-                <CollapsibleSection
-                    title='Notice Board List'
-                    defaultOpen={true}
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg'>
-                    <GenericDataTable<INoticeBoard>
-                        {...tableProps}
-                        columns={noticeBoardColumns}
-                        isLoading={isLoading}
-                        error={error}
-                        columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading notices...'
-                        noDataTitle='No Notices Found'
-                        noDataDescription='Get started by creating your first notice'
-                        errorTitle='Error Loading Notices'
-                    />
-                </CollapsibleSection>
-
-                {isAddFormOpen && (
-                    <div ref={addFormRef}>
-                        <CollapsibleSection
-                            title='Add New Notice'
-                            defaultOpen={true}
-                            variant='outline'
-                            className='slide-in-from-top-4 animate-in shadow-lg'>
-                            <div className='relative'>
-                                <Button
-                                    type='button'
-                                    onClick={closeAddForm}
-                                    variant='ghost'
-                                    size='sm'
-                                    className='absolute -top-12 right-0 border p-2 shadow-md hover:bg-destructive/10'>
-                                    <X className='h-4 w-4 text-destructive' /> Close
-                                </Button>
-                                <AddNoticeBoardForm
-                                    onSuccess={() => { closeAddForm(); refetchAll(); }}
-                                    yearList={data?.yearlist || []}
-                                    classList={data?.classlist || []}
-                                    sectionList={data?.sectionlist || []}
-                                    departmentList={data?.departmentList || []}
-                                    designationList={data?.designationList || []}
-                                    staffList={data?.staffList || []}
-                                    studentList={data?.studentList || []}
-                                    routeList={data?.routes || []}
-                                    feeGroupList={data?.feeGroups || []}
-                                    subjectList={data?.subjectList || []}
-                                />
-                            </div>
-                        </CollapsibleSection>
-                    </div>
-                )}
+        <div className='flex flex-col gap-6 p-6'>
+            <div className='flex items-center justify-between'>
+                <h1 className='text-3xl font-bold tracking-tight'>Notice Board</h1>
+                <Button onClick={() => setIsAddModalOpen(true)} className="shadow-md" style={{ width: '196px' }}>
+                    <Plus className='mr-2 h-4 w-4' /> Add Notice
+                </Button>
             </div>
+
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Notice Board Records</CardTitle>
+                    {/* <div className="flex gap-2">
+                        <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isLoading}>
+                            <RefreshCw className={cn("h-4 w-4 mr-2", isLoading && "animate-spin")} /> Refresh
+                        </Button>
+                        <Button variant="outline" size="sm">
+                            <Filter className="h-4 w-4 mr-2" /> Filter
+                        </Button>
+                    </div> */}
+                </CardHeader>
+                <CardContent>
+                    {isLoading ? (
+                        <div className="flex h-64 items-center justify-center">
+                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        </div>
+                    ) : (
+                        <DataTable columns={columns} data={noticeList} totalItems={noticeList.length} manualPagination={false} />
+                    )}
+                </CardContent>
+            </Card>
+
+            {/* Add Modal */}
+            <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+                <DialogContent className='max-w-[85vw] max-h-[90vh] overflow-y-auto'>
+                    <DialogHeader>
+                        <DialogTitle>Add Notice Board</DialogTitle>
+                    </DialogHeader>
+                    <AddNoticeBoardForm 
+                        onSuccess={() => {
+                            setIsAddModalOpen(false);
+                            refetch();
+                        }}
+                        defaultYearId={activeYearId}
+                        yearList={yearList}
+                        classList={classList}
+                        deptList={deptList}
+                        desgList={desgList}
+                        routeList={routeList}
+                        feeGroupList={feeGroupList}
+                        feeTermList={feeTermList}
+                    />
+                </DialogContent>
+            </Dialog>
+
+            {/* Update Modal */}
+            <Dialog open={isUpdateModalOpen} onOpenChange={setIsUpdateModalOpen}>
+                <DialogContent className='max-w-[85vw] max-h-[90vh] overflow-y-auto'>
+                    <DialogHeader>
+                        <DialogTitle>Update Notice Board</DialogTitle>
+                    </DialogHeader>
+                    {selectedRow && (
+                        <UpdateNoticeBoardForm 
+                            selectedRow={selectedRow}
+                            onSuccess={() => {
+                                setIsUpdateModalOpen(false);
+                                refetch();
+                            }}
+                            yearList={yearList}
+                            classList={classList}
+                            deptList={deptList}
+                            desgList={desgList}
+                            routeList={routeList}
+                            feeGroupList={feeGroupList}
+                            feeTermList={feeTermList}
+                        />
+                    )}
+                </DialogContent>
+            </Dialog>
+
+            {/* View Records Modal */}
+            <ViewRecordsModal
+                isOpen={isViewRecordsOpen}
+                onClose={() => setIsViewRecordsOpen(false)}
+                selectedRow={selectedRow}
+            />
+
+            {/* Attachment Preview Modal */}
+            {selectedAttachment && (
+                <AttachmentPreview
+                    isOpen={isAttachmentOpen}
+                    onClose={() => setIsAttachmentOpen(false)}
+                    url={selectedAttachment.url}
+                    fileName={selectedAttachment.name}
+                />
+            )}
         </div>
     );
 }

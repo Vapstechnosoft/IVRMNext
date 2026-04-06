@@ -12,3 +12,8 @@ export async function getHeadWiseReportData(asmaY_Id: number, classcategoryid: n
     const url = `/FeeheadWiseReportFacade/get-fee-headwise-report?asmay_id=${asmaY_Id}&fmcc_id=${classcategoryid}`;
     return await api.get<HeadwiseReportData[]>('fees', url);
 }
+
+export async function getFeeStudentheadWiseReportforCBCS(paylaod: any) {
+    const url = '/FeeheadWiseReportFacade/FeeStudentHeadWiseReport';
+    return await api.post<any[]>('fees', url, paylaod);
+}

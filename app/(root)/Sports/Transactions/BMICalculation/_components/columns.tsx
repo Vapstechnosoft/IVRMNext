@@ -8,6 +8,7 @@ import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 
 export const bmiCalculationColumns: ColumnDef<IBMICalculation>[] = [
     {
+        id: 'id',
         accessorKey: 'spccshW_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
         cell: ({ row, table }) => {
@@ -21,43 +22,53 @@ export const bmiCalculationColumns: ColumnDef<IBMICalculation>[] = [
     },
     {
         accessorKey: 'asmaY_Year',
-        header: 'Year',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Year' />,
+        enableSorting: true,
     },
     {
         accessorKey: 'studentName',
-        header: 'Student Name',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
+        enableSorting: true,
     },
     {
         accessorKey: 'amsT_AdmNo',
-        header: 'Adm No.',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Adm No.' />,
+        enableSorting: true,
     },
     {
         accessorKey: 'asmcL_ClassName',
-        header: 'Class',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Class' />,
+        enableSorting: true,
     },
     {
         accessorKey: 'asmC_SectionName',
-        header: 'Section',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Section' />,
+        enableSorting: true,
     },
     {
         accessorKey: 'asondate',
-        header: 'As On Date',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='As On Date' />,
+        enableSorting: true,
     },
     {
         accessorKey: 'spccshW_Height',
-        header: 'Height',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Height' />,
+        enableSorting: true,
     },
     {
         accessorKey: 'spccshW_Weight',
-        header: 'Weight',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Weight' />,
+        enableSorting: true,
     },
     {
         accessorKey: 'spccshW_BMI',
-        header: 'BMI',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='BMI' />,
+        enableSorting: true,
     },
     {
         accessorKey: 'spccshW_BMIRemark',
-        header: 'Remark',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Remark' />,
+        enableSorting: true,
         cell: ({ row }) => {
             const remark = row.original.spccshW_BMIRemark || row.original.SPCCSHW_BMIRemark;
             let variant: 'default' | 'secondary' | 'destructive' | 'outline' = 'outline';

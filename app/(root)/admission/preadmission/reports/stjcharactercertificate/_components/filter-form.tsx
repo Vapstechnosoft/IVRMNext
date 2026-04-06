@@ -66,6 +66,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
 
     const form = useForm<StjCharacterCertificateFields>({
         resolver: zodResolver(StjCharacterCertificateSchema),
+        mode: 'onChange',
         defaultValues: {
             allorindi: 'A',
             optradio: 'S',
@@ -87,7 +88,14 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
         },
     });
 
-    const { watch, setValue, reset, formState: { isValid } } = form;
+    const { watch, setValue, reset, formState: { isValid, errors } } = form;
+
+    useEffect(() => {
+        if (Object.keys(errors).length > 0) {
+            console.warn('⚠️ [CLIENT] Character Filter Form Errors:', errors);
+        }
+    }, [errors]);
+
     const allorindi = watch('allorindi');
     const optradio = watch('optradio');
     const asmayId = watch('ASMAY_Id');
@@ -147,7 +155,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
             ASMAY_Id: asmayId,
             AMST_SOL: optradio,
             ASMCL_Id: Number(allorindi === 'A' ? 0 : (asmclId || 0)),
-            ASMC_Id: Number(allorindi === 'A' ? 0 : (asmsId || 0)),
+            ASMS_Id: Number(allorindi === 'A' ? 0 : (asmsId || 0)),
             allorindid: allorindi,
         }, {
             onSuccess: (response: any) => {
@@ -503,10 +511,10 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                                         {searchFilterMutation.isPending ? 'Searching...' : 'No student found. Type 3+ characters to search.'}
                                                     </CommandEmpty>
                                                     <CommandGroup>
-                                                        {studentList.map((s: any) => (
+                                                        {studentList.map((s: any, index: number) => (
                                                             <CommandItem
-                                                                value={s.amsT_FirstName}
-                                                                key={s.amsT_Id}
+                                                                value={`${s.amsT_FirstName}-${s.amsT_Id}-${index}`}
+                                                                key={`${s.amsT_Id}-${index}`}
                                                                 onSelect={() => {
                                                                     field.onChange(s.amsT_Id);
                                                                     setStudentOpen(false);
@@ -649,7 +657,6 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                     <Button
                         type="submit"
                         className="w-full transition-all duration-200 hover:scale-105 sm:w-fit"
-                        disabled={!isValid}
                     >
                         <FileText className="mr-2 h-4 w-4" />
                         Report
