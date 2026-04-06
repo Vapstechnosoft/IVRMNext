@@ -783,6 +783,98 @@ export async function getUserAccessibleModules() {
 
 
                                     ]
+                                },
+                                {
+                                    id: 10,
+                                    name: 'GMVPS',
+                                    icon: 'Settings',
+                                    pages: [
+
+
+
+                                    ]
+                                }
+                                ,
+                                {
+                                    id: 10,
+                                    name: 'Sophia',
+                                    icon: 'Settings',
+                                    pages: [
+
+                                        {
+                                            id: 590,
+                                            name: 'Smartcarddetails',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/Sophia/Smartcarddetails',
+                                            title: 'Smartcarddetails',
+                                            description: 'Smartcarddetails'
+                                        },
+                                        {
+                                            id: 591,
+                                            name: 'Import',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/Sophia/Import',
+                                            title: 'Import',
+                                            description: 'Import'
+                                        },
+                                        {
+                                            id: 592,
+                                            name: 'Master Activities',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/Sophia/MasterActivities',
+                                            title: 'Master Activities',
+                                            description: 'Master Activities'
+                                        },
+                                        {
+                                            id: 593,
+                                            name: 'Section Allotment',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/Sophia/SectionAllotment',
+                                            title: 'Section Allotment',
+                                            description: 'Section Allotment'
+                                        },
+                                        {
+                                            id: 594,
+                                            name: 'CategoryWise Attendance',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/Sophia/CategoryWiseAttendance',
+                                            title: 'CategoryWise Attendance',
+                                            description: 'CategoryWise Attendance'
+                                        },
+                                        {
+                                            id: 595,
+                                            name: 'ClassWise Daily Attendance',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/Sophia/ClassWiseDailyAttendance',
+                                            title: 'ClassWise Daily Attendance',
+                                            description: 'ClassWise Daily Attendance'
+                                        },
+                                        {
+                                            id: 596,
+                                            name: 'Student Search',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/Sophia/StudentSearch',
+                                            title: 'Student Search',
+                                            description: 'Student Search'
+                                        },
+                                        {
+                                            id: 597,
+                                            name: 'Students Search Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/Sophia/StudentsSearchReport',
+                                            title: 'Students Search Report',
+                                            description: 'Students Search Report'
+                                        },
+                                        {
+                                            id: 598,
+                                            name: 'Date Of Birth Certificate',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/Sophia/DateOfBirthCertificate',
+                                            title: 'Date Of Birth Certificate',
+                                            description: 'Date Of Birth Certificate'
+                                        }
+
+                                    ]
                                 }
 
                             ]
