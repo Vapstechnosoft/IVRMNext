@@ -87,93 +87,81 @@ export function LoanReportFilters({
                     <Label htmlFor='group-type' className='font-medium text-foreground text-sm'>
                         Group Type: <span className='text-red-500'>*</span>
                     </Label>
-                    {isLoading ? (
-                        <div className='h-10 w-full animate-pulse rounded-md bg-muted' />
-                    ) : groupTypes.length === 0 ? (
-                        <div className='text-muted-foreground text-sm'>No group types available</div>
-                    ) : (
-                        <MultiSelect
-                            options={groupTypes
-                                .filter((gt) => gt.HRMGT_Id && gt.HRMGT_EmployeeGroupType && gt.HRMGT_ActiveFlag)
-                                .map((gt) => ({
-                                    label: gt.HRMGT_EmployeeGroupType,
-                                    value: gt.HRMGT_Id.toString()
-                                }))}
-                            defaultValue={filters.selectedGroupTypes.map((id) => id.toString())}
-                            onValueChange={(values) => {
-                                onFilterChange({
-                                    ...filters,
-                                    selectedGroupTypes: values.map((v) => Number.parseInt(v)),
-                                    selectedEmployee: '' // Reset employee when filters change
-                                });
-                            }}
-                            placeholder='Select Group Types'
-                            className='w-full'
-                            maxHeight={240}
-                        />
-                    )}
+
+                    <MultiSelect
+                        options={groupTypes
+                            .filter((gt) => gt.HRMGT_Id && gt.HRMGT_EmployeeGroupType && gt.HRMGT_ActiveFlag)
+                            .map((gt) => ({
+                                label: gt.HRMGT_EmployeeGroupType,
+                                value: gt.HRMGT_Id.toString()
+                            }))}
+                        defaultValue={filters.selectedGroupTypes.map((id) => id.toString())}
+                        onValueChange={(values) => {
+                            onFilterChange({
+                                ...filters,
+                                selectedGroupTypes: values.map((v) => Number.parseInt(v)),
+                                selectedEmployee: '' // Reset employee when filters change
+                            });
+                        }}
+                        placeholder='Select Group Types'
+                        className='w-full'
+                        maxHeight={240}
+                    />
+
                 </div>
                 {/* Department Section */}
                 <div className='space-y-2'>
                     <Label htmlFor='department' className='font-medium text-foreground text-sm'>
                         Department: <span className='text-red-500'>*</span>
                     </Label>
-                    {isLoading ? (
-                        <div className='h-10 w-full animate-pulse rounded-md bg-muted' />
-                    ) : departments.length === 0 ? (
-                        <div className='text-muted-foreground text-sm'>No departments available</div>
-                    ) : (
-                        <MultiSelect
-                            options={departments
-                                .filter((dept) => dept.HRMD_Id && dept.HRMD_DepartmentName && dept.HRMD_ActiveFlag)
-                                .map((dept) => ({
-                                    label: dept.HRMD_DepartmentName,
-                                    value: dept.HRMD_Id.toString()
-                                }))}
-                            defaultValue={filters.selectedDepartments.map((id) => id.toString())}
-                            onValueChange={(values) => {
-                                onFilterChange({
-                                    ...filters,
-                                    selectedDepartments: values.map((v) => Number.parseInt(v)),
-                                    selectedEmployee: '' // Reset employee when filters change
-                                });
-                            }}
-                            placeholder='Select Departments'
-                            className='w-full'
-                            maxHeight={240}
-                        />
-                    )}
+
+                    <MultiSelect
+                        options={departments
+                            .filter((dept) => dept.HRMD_Id && dept.HRMD_DepartmentName && dept.HRMD_ActiveFlag)
+                            .map((dept) => ({
+                                label: dept.HRMD_DepartmentName,
+                                value: dept.HRMD_Id.toString()
+                            }))}
+                        defaultValue={filters.selectedDepartments.map((id) => id.toString())}
+                        onValueChange={(values) => {
+                            onFilterChange({
+                                ...filters,
+                                selectedDepartments: values.map((v) => Number.parseInt(v)),
+                                selectedEmployee: '' // Reset employee when filters change
+                            });
+                        }}
+                        placeholder='Select Departments'
+                        className='w-full'
+                        maxHeight={240}
+                    />
+
                 </div>
                 {/* Designation Section */}
                 <div className='space-y-2'>
                     <Label htmlFor='designation' className='font-medium text-foreground text-sm'>
                         Designation: <span className='text-red-500'>*</span>
                     </Label>
-                    {isLoading ? (
-                        <div className='h-10 w-full animate-pulse rounded-md bg-muted' />
-                    ) : designations.length === 0 ? (
-                        <div className='text-muted-foreground text-sm'>No designations available</div>
-                    ) : (
-                        <MultiSelect
-                            options={designations
-                                .filter((desg) => desg.HRMDES_Id && desg.HRMDES_DesignationName && desg.HRMDES_ActiveFlag)
-                                .map((desg) => ({
-                                    label: desg.HRMDES_DesignationName,
-                                    value: desg.HRMDES_Id.toString()
-                                }))}
-                            defaultValue={filters.selectedDesignations.map((id) => id.toString())}
-                            onValueChange={(values) => {
-                                onFilterChange({
-                                    ...filters,
-                                    selectedDesignations: values.map((v) => Number.parseInt(v)),
-                                    selectedEmployee: '' // Reset employee when filters change
-                                });
-                            }}
-                            placeholder='Select Designations'
-                            className='w-full'
-                            maxHeight={240}
-                        />
-                    )}
+
+                    <MultiSelect
+                        options={designations
+                            .filter((desg) => desg.HRMDES_Id && desg.HRMDES_DesignationName && desg.HRMDES_ActiveFlag)
+                            .map((desg) => ({
+                                label: desg.HRMDES_DesignationName,
+                                value: desg.HRMDES_Id.toString()
+                            }))}
+                        defaultValue={filters.selectedDesignations.map((id) => id.toString())}
+                        onValueChange={(values) => {
+                            onFilterChange({
+                                ...filters,
+                                selectedDesignations: values.map((v) => Number.parseInt(v)),
+                                selectedEmployee: '' // Reset employee when filters change
+                            });
+                        }}
+                        placeholder='Select Designations'
+                        className='w-full'
+                        maxHeight={240}
+                    />
+
                 </div>
             </div>
             {/* Employee Selection - Only show when Individual is selected */}

@@ -124,8 +124,6 @@ function FormSections({ refetch }: { refetch?: () => void }) {
 
             <div ref={addFormRef}>
                 <CollapsibleSection
-                    title='Add New Master Birthday'
-                    description='Fill in the details below to create a New Master Birthday'
                     defaultOpen={true}
                     variant='outline'
                     size='md'

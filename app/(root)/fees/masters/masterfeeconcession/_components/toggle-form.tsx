@@ -40,7 +40,7 @@ export default function ToggleMasterConcessionForm({ rowData, onClose }: ToggleM
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await toggleMasterConcession(30, Number(rowData.fmcC_Id));
+            const response = await toggleMasterConcession(0, Number(rowData.fmcC_Id));
 
             toast.success(response.message);
             if (response.success) {

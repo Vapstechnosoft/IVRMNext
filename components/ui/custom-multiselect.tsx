@@ -45,7 +45,7 @@ export const CustomMultiSelectBox: React.FC<CustomMultiSelectBoxProps> = ({
         setSearch('');
     }, [resetKey]);
 
-    const filteredOptions = options.filter((opt) => opt.label.toLowerCase().includes(search.toLowerCase()));
+    const filteredOptions = options.filter((opt) => (opt.label || '').toLowerCase().includes(search.toLowerCase()));
 
     const allSelected = filteredOptions.length > 0 && filteredOptions.every((opt) => value.includes(opt.value));
 

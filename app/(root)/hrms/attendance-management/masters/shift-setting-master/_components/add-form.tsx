@@ -33,6 +33,18 @@ export default function AddShiftSettingMasterForm({ onSuccess, className = '' }:
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(hrmsMasterSchemas.shiftSettingMaster.add),
+        defaultValues: {
+            foms_ShiftName: '',
+            fomsT_IHalfLoginTime: '00:00',
+            fomsT_IIHalfLogoutTime: '00:00',
+            fomsT_IHalfLogoutTime: '00:00',
+            fomsT_IIHalfLoginTime: '00:00',
+            fomsT_FDWHrMin: '00:00',
+            fomsT_HDWHrMin: '00:00',
+            fomsT_LunchHoursDuration: '00:00',
+            fomsT_DelayPerShiftHrMin: '00:00',
+            fomsT_EarlyPerShiftHrMin: '00:00'
+        },
         mode: 'onChange'
     });
 

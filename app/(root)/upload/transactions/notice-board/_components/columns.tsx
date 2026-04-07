@@ -1,69 +1,129 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import type { INoticeBoard } from '@/schemas/upload/transactions/notice-board.schema';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Eye, Pencil, Trash2 } from 'lucide-react';
-
-export const noticeBoardColumns: ColumnDef<INoticeBoard>[] = [
-    {
-        accessorKey: 'index',
-        header: 'SL.NO',
-        cell: ({ row }) => row.index + 1,
-        enableSorting: false,
-    },
-    {
-        accessorKey: 'intB_Title',
-        header: 'Notice Title',
-        enableSorting: true,
-    },
-    {
-        accessorKey: 'intB_Description',
-        header: 'Description',
-        enableSorting: true,
-    },
-    {
-        accessorKey: 'intB_StartDate',
-        header: 'Start Date',
-        cell: ({ row }) => {
-            const date = row.getValue('intB_StartDate') as string | Date;
-            return date ? new Date(date).toLocaleDateString() : '';
-        }
-    },
-    {
-        accessorKey: 'intB_EndDate',
-        header: 'End Date',
-        cell: ({ row }) => {
-            const date = row.getValue('intB_EndDate') as string | Date;
-            return date ? new Date(date).toLocaleDateString() : '';
-        }
-    },
-    {
-        accessorKey: 'intB_DisplayDate',
-        header: 'Display Date',
-        cell: ({ row }) => {
-            const date = row.getValue('intB_DisplayDate') as string | Date;
-            return date ? new Date(date).toLocaleDateString() : '';
-        }
-    },
-    {
-        id: 'actions',
-        header: 'Action',
-        cell: ({ row }) => {
-            const data = row.original;
-            return (
-                <div className='flex items-center gap-2'>
-                    <Button variant='ghost' size='icon' className='text-primary hover:text-primary/80'>
-                        <Eye className='h-4 w-4' />
-                    </Button>
-                    <Button variant='ghost' size='icon' className='text-primary hover:text-primary/80'>
+import { Eye, Pencil, Trash2, UserCheck, Paperclip } from 'lucide-react';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+export const getNoticeBoardColumns = (
+    onEdit: (row: INoticeBoard) => void,
+    onToggle: (row: INoticeBoard) => void,
+    onViewRecords: (row: INoticeBoard) => void,
+    onViewAttachment: (row: INoticeBoard) => void,
+): ColumnDef<INoticeBoard>[] => [
+        {
+            accessorKey: 'index',
+            header: 'SL.NO',
+            cell: ({ row }) => row.index + 1,
+            enableSorting: false,
+        },
+        {
+            accessorKey: 'intB_Title',
+            header: 'Notice Title',
+            enableSorting: true,
+            cell: ({ row }) => (
+                <div>{row.original.intB_Title}</div>
+            )
+        },
+        {
+            accessorKey: 'intB_Description',
+            header: 'Description',
+            enableSorting: true,
+            cell: ({ row }) => (
+                <div>
+                    {row.original.intB_Description || '---'}
+                </div>
+            )
+        },
+        {
+            accessorKey: 'intB_StartDate',
+            header: 'Start Date',
+            cell: ({ row }) => {
+                const date = row.original.intB_StartDate;
+                return date ? format(new Date(date), 'dd/MM/yyyy') : '---';
+            }
+        },
+        {
+            accessorKey: 'intB_EndDate',
+            header: 'End Date',
+            cell: ({ row }) => {
+                const date = row.original.intB_EndDate;
+                return date ? format(new Date(date), 'dd/MM/yyyy') : '---';
+            }
+        },
+        {
+            accessorKey: 'intB_DisplayDate',
+            header: 'Display Date',
+            cell: ({ row }) => {
+                const date = row.original.intB_DisplayDate;
+                return date ? format(new Date(date), 'dd/MM/yyyy') : '---';
+            }
+        },
+        {
+            id: 'view_attachment',
+            header: 'View Attachment',
+            cell: ({ row }) => {
+                const data = row.original;
+                const hasFiles = data.intB_FilePath_Array && data.intB_FilePath_Array.length > 0;
+                return (
+                    <div className="flex justify-center">
+                        <Button
+                            variant='ghost'
+                            size='icon'
+                            onClick={() => onViewAttachment(data)}
+                            className='h-8 w-8 text-blue-500 hover:bg-blue-50'
+                            disabled={!hasFiles}
+                        >
+                            {hasFiles ? <Paperclip className='h-4 w-4' /> : <span className="text-slate-400">---</span>}
+                        </Button>
+                    </div>
+                );
+            }
+        },
+        {
+            id: 'edit',
+            header: 'Edit',
+            cell: ({ row }) => (
+                <div className="flex justify-center">
+                    <Button variant='ghost' size='icon' onClick={() => onEdit(row.original)} className='h-8 w-8 text-blue-600 hover:bg-blue-50'>
                         <Pencil className='h-4 w-4' />
                     </Button>
-                    <Button variant='ghost' size='icon' className={data.intB_ActiveFlag ? 'text-destructive hover:text-destructive/80' : 'text-green-600 hover:text-green-700'}>
-                        {data.intB_ActiveFlag ? <Trash2 className='h-4 w-4' /> : 'Activate'}
+                </div>
+            )
+        },
+        {
+            id: 'view_details',
+            header: 'View Details',
+            cell: ({ row }) => (
+                <div className="flex justify-center">
+                    <Button variant='ghost' size='icon' onClick={() => onViewRecords(row.original)} className='h-8 w-8 text-indigo-600 hover:bg-indigo-50'>
+                        <Eye className='h-4 w-4' />
                     </Button>
                 </div>
-            );
+            )
         },
-    },
-];
+        {
+            id: 'action',
+            header: 'Action',
+            cell: ({ row }) => {
+                const isActive = row.original.intB_ActiveFlag;
+                return (
+                    <div className="flex justify-center">
+                        <Button
+                            variant='link'
+                            size='sm'
+                            onClick={() => onToggle(row.original)}
+                            className={cn(
+                                'h-8 px-2 font-semibold transition-colors',
+                                isActive ? 'text-destructive hover:text-red-700' : 'text-green-600 hover:text-green-700'
+                            )}
+                        >
+                            {isActive ? 'De-Activate' : 'Activate'}
+                        </Button>
+                    </div>
+                );
+            }
+        },
+    ];

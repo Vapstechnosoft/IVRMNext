@@ -12,14 +12,15 @@ export const MigrationCertificatePrint = forwardRef<HTMLDivElement, MigrationCer
         const printDate = data.ASA_FromDate ? new Date(data.ASA_FromDate) : new Date();
 
         return (
-            <div ref={ref} className="w-[210mm] min-h-[297mm] p-[20mm] bg-[#fffacd] text-black font-sans relative">
+            <div ref={ref} className="bg-white text-black printable-content" style={{ width: '210mm', minHeight: '297mm', padding: '20mm', fontFamily: 'Calibri, sans-serif', margin: '0 auto' }}>
                 <style type="text/css" media="print">
                     {`
                         @page { size: auto; margin: 0; }
                         @media print {
                             body {
-                                background-color: #fffacd !important;
-                                -webkit-print-color-adjust: exact;
+                                background-color: white !important;
+                                -webkit-print-color-adjust: exact !important;
+                                print-color-adjust: exact !important;
                             }
                         }
                     `}

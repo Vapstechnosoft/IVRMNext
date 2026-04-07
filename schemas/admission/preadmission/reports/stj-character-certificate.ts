@@ -10,10 +10,10 @@ export const StjCharacterCertificateSchema = z.object({
     ASA_FromDate: z.date({ required_error: 'Please select Date' }),
     
     // Checkbox groups
-    House: z.record(z.string(), z.boolean()).optional(),
-    activities: z.record(z.string(), z.boolean()).optional(),
-    staticActivities: z.record(z.string(), z.boolean()).optional(), // Clubs
-    School: z.record(z.string(), z.boolean()).optional(),
+    House: z.record(z.string(), z.any()).optional(),
+    activities: z.record(z.string(), z.any()).optional(),
+    staticActivities: z.record(z.string(), z.any()).optional(), // Clubs
+    School: z.record(z.string(), z.any()).optional(),
 
     // Text fields
     Posts: z.string().optional(),
