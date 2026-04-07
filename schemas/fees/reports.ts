@@ -500,3 +500,9 @@ export const feeDefaulterreportStthomas = z
             }
         }
     });
+
+export const feesTrailAuditReportSchema = z.object({
+    radio_val: z.enum(['receipt', 'studentttt', 'date']).default('receipt'),
+    statusType: z.enum(['IU', 'D']).default('D'),
+    academicYearId: z.number().min(1, 'Academic Year is required')
+});
