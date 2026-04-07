@@ -6658,6 +6658,51 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
+                },
+                {
+                    id: 5,
+                    name: 'AI Edge',
+                    icon: 'Sparkles',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'AI Edge',
+                            icon: 'BookOpen',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'AI Tools',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'AI Question Paper Generator',
+                                            icon: 'FileText',
+                                            url: '/StaffPortal/ai-question-paper-generator',
+                                            title: 'AI Question Paper Generator',
+                                            description: 'Generate question papers from textbooks using AI'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'AI Notemaker',
+                                            icon: 'FileText',
+                                            url: '/StaffPortal/ai-notemaker',
+                                            title: 'AI Notemaker',
+                                            description: 'Summarize and create structured notes from textbooks using AI'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'AI Performance Analysis',
+                                            icon: 'BarChart',
+                                            url: '/StaffPortal/ai-performance-analysis',
+                                            title: 'AI Performance Analysis',
+                                            description: 'Analyze performance metrics and AI-driven insights'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
                 }
             ]
         };

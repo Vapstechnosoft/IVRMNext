@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useParams } from 'next/navigation';
 import { SchoolAssistantBot } from './school-assistant-bot';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -14,7 +14,12 @@ export function FloatingSchoolBot() {
         setMounted(true);
     }, []);
 
-    const isAuthPage = pathname?.toLowerCase().includes('login') || pathname?.toLowerCase().includes('sign-in');
+    const params = useParams();
+    const sub_domain = params?.sub_domain;
+
+    const isAuthPage = pathname?.toLowerCase().includes('login') ||
+        pathname?.toLowerCase().includes('sign-in') ||
+        pathname === `/${sub_domain}`;
 
     if (!mounted || isAuthPage) return null;
 
