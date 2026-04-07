@@ -242,15 +242,18 @@ function EmployeeAbsentReportPageContent({
                                     <GenericDataTable<EmployeeAbsentReportRow>
                                         {...tableProps}
                                         columns={employeeAbsentReportColumns}
-                                        isLoading={isLoading}
+                                        isLoading={false}
                                         error={error}
                                         showViewOptions={false}
                                         columnPinning={{ left: ['hrme_id'], right: ['actions'] }}
-                                        isPaginationRequired={true}
+                                        isPaginationRequired={false}
+                                        isSearchRequired={false}
+                                        manualPagination={true}
                                         loadingMessage='Analyzing attendance records...'
                                         noDataTitle='No records matches your criteria'
                                         noDataDescription='Try adjusting your category, department or date range filters.'
                                         errorTitle='Unable to load report'
+                                        scrollable={true}
                                     />
                                 </div>
                             </div>
