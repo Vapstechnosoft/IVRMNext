@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Script from 'next/script';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,41 +10,82 @@ import { Upload, FileCheck, ClipboardCheck, PlayCircle, Eye, Download, FileText,
 import { toast } from 'sonner';
 import { evaluateOmr } from '@/server/omr-evaluation';
 
-// Helper to convert images to PNG and get dimensions for validation
-const convertToPng = async (file: File): Promise<{ file: File; width: number; height: number }> => {
-    if (!file.type.startsWith('image/')) {
-        // Return original file if it's not an image (like PDF), width/height 0
-        return { file, width: 0, height: 0 };
+// Helper to convert images and PDFs to JPEG for backend OCR compatibility
+const convertToJpeg = async (file: File): Promise<{ file: File; width: number; height: number }> => {
+    // 1. Handle PDF Conversion
+    if (file.type === 'application/pdf') {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const typedarray = new Uint8Array(e.target?.result as ArrayBuffer);
+                    const pdfjsLib = (window as any).pdfjsLib;
+                    if (!pdfjsLib) return reject('PDF rendering library not loaded. Please wait a moment.');
+
+                    const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                    const page = await pdf.getPage(1);
+                    const viewport = page.getViewport({ scale: 2.0 }); // High scale for better OCR accuracy
+
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    if (!context) return reject('Canvas context failed');
+
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+
+                    await page.render({ canvasContext: context, viewport: viewport }).promise;
+
+                    canvas.toBlob((blob) => {
+                        if (blob) {
+                            const newName = file.name.replace(/\.[^/.]+$/, "") + ".jpg";
+                            resolve({
+                                file: new File([blob], newName, { type: 'image/jpeg' }),
+                                width: viewport.width,
+                                height: viewport.height
+                            });
+                        } else reject('PDF to Image conversion failed');
+                    }, 'image/jpeg', 0.95);
+                } catch (err) {
+                    reject('Failed to process PDF: ' + err);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
     }
 
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const img = new Image();
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                canvas.width = img.width;
-                canvas.height = img.height;
-                const ctx = canvas.getContext('2d');
-                if (!ctx) return reject('Canvas context failed');
-                ctx.drawImage(img, 0, 0);
-                canvas.toBlob((blob) => {
-                    if (blob) {
-                        const newName = file.name.replace(/\.[^/.]+$/, "") + ".png";
-                        resolve({
-                            file: new File([blob], newName, { type: 'image/png' }),
-                            width: img.width,
-                            height: img.height
-                        });
-                    } else reject('Blob conversion failed');
-                }, 'image/png');
+    // 2. Handle Image Conversion (ensure JPEG)
+    if (file.type.startsWith('image/')) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    if (!ctx) return reject('Canvas context failed');
+                    ctx.drawImage(img, 0, 0);
+                    canvas.toBlob((blob) => {
+                        if (blob) {
+                            const newName = file.name.replace(/\.[^/.]+$/, "") + ".jpg";
+                            resolve({
+                                file: new File([blob], newName, { type: 'image/jpeg' }),
+                                width: img.width,
+                                height: img.height
+                            });
+                        } else reject('Image to JPEG conversion failed');
+                    }, 'image/jpeg', 0.95);
+                };
+                img.onerror = () => reject('Image load failed');
+                img.src = e.target?.result as string;
             };
-            img.onerror = () => reject('Image load failed');
-            img.src = e.target?.result as string;
-        };
-        reader.onerror = () => reject('File read failed');
-        reader.readAsDataURL(file);
-    });
+            reader.onerror = () => reject('File read failed');
+            reader.readAsDataURL(file);
+        });
+    }
+
+    return { file, width: 0, height: 0 };
 };
 
 export default function OmrMarkSheetEvaluationPage() {
@@ -68,9 +110,9 @@ export default function OmrMarkSheetEvaluationPage() {
         setIsEvaluating(true);
 
         try {
-            // Ensure both files are PNG for the backend API and get metadata for validation
-            const studentInfo = await convertToPng(studentFile);
-            const answerKeyInfo = await convertToPng(answerKeyFile);
+            // Ensure both files are JPEG for the backend API and get metadata for validation
+            const studentInfo = await convertToJpeg(studentFile);
+            const answerKeyInfo = await convertToJpeg(answerKeyFile);
 
             // Robust validation: Check if they are the same image content 
             // (Same dimensions and same base filename even if format differs)
@@ -137,6 +179,15 @@ export default function OmrMarkSheetEvaluationPage() {
 
     return (
         <div className="min-h-screen bg-[#f8fafc] p-4 lg:p-8">
+            <Script
+                src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"
+                strategy="lazyOnload"
+                onLoad={() => {
+                    if ((window as any).pdfjsLib) {
+                        (window as any).pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                    }
+                }}
+            />
             <div className="max-w-7xl mx-auto space-y-6">
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

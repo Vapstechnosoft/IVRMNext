@@ -100,46 +100,58 @@ export default function AINotemaker() {
         if (!result) return;
 
         const doc = new jsPDF();
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 20;
+        const maxWidth = pageWidth - margin * 2;
         let yPos = 20;
 
+        const addNewPage = () => {
+            doc.addPage();
+            yPos = 20;
+        };
+
+        // Header
         doc.setFontSize(18);
-        doc.text('AI NOTEMAKER', 105, yPos, { align: 'center' });
+        doc.setFont('helvetica', 'bold');
+        doc.text('AI NOTEMAKER', pageWidth / 2, yPos, { align: 'center' });
         yPos += 10;
 
         doc.setFontSize(12);
-        doc.text(`Chapter: ${result.chapter || 'Entire Document'}`, 105, yPos, { align: 'center' });
-        yPos += 15;
-        doc.line(20, yPos, 190, yPos);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Chapter: ${result.chapter || 'Entire Document'}`, pageWidth / 2, yPos, { align: 'center' });
+        yPos += 10;
+        doc.line(margin, yPos, pageWidth - margin, yPos);
         yPos += 10;
 
-        if (result.summary) {
+        const printLargeText = (title: string, content: string) => {
+            if (yPos > pageHeight - margin - 20) addNewPage();
+
             doc.setFontSize(14);
             doc.setFont('helvetica', 'bold');
-            doc.text('SUMMARY', 20, yPos);
+            doc.text(title, margin, yPos);
             yPos += 10;
 
             doc.setFontSize(11);
             doc.setFont('helvetica', 'normal');
-            const splitSummary = doc.splitTextToSize(result.summary, 170);
-            doc.text(splitSummary, 20, yPos);
-            yPos += splitSummary.length * 5 + 15;
+            const lines = doc.splitTextToSize(content, maxWidth);
+
+            for (const line of lines) {
+                if (yPos > pageHeight - margin) {
+                    addNewPage();
+                }
+                doc.text(line, margin, yPos);
+                yPos += 7;
+            }
+            yPos += 10;
+        };
+
+        if (result.summary) {
+            printLargeText('SUMMARY', result.summary);
         }
 
         if (result.notes) {
-            if (yPos > 270) {
-                doc.addPage();
-                yPos = 20;
-            }
-
-            doc.setFontSize(14);
-            doc.setFont('helvetica', 'bold');
-            doc.text('STRUCTURED NOTES', 20, yPos);
-            yPos += 10;
-
-            doc.setFontSize(11);
-            doc.setFont('helvetica', 'normal');
-            const splitNotes = doc.splitTextToSize(result.notes, 170);
-            doc.text(splitNotes, 20, yPos);
+            printLargeText('STRUCTURED NOTES', result.notes);
         }
 
         doc.save(`notes-${Date.now()}.pdf`);
