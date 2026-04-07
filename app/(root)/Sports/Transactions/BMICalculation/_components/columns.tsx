@@ -26,6 +26,7 @@ export const bmiCalculationColumns: ColumnDef<IBMICalculation>[] = [
         enableSorting: true,
     },
     {
+        id: 'studentName',
         accessorKey: 'studentName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
         enableSorting: true,

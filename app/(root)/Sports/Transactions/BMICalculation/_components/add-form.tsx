@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useForm, Controller, useFieldArray } from 'react-hook-form';
+import { useForm, Controller, useFieldArray, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { bmiCalculationSchema, IBMICalculation } from '@/types/sports/transactions/bmi-calculation';
 import { useBMICalculation } from '@/hooks/sports/useBMICalculation';
@@ -124,22 +124,20 @@ export default function BMICalculationForm({ onSuccess, selectedRow }: BMICalcul
     };
 
     const handleWeightHeightChange = (index: number, type: 'weight' | 'height', value: string) => {
-        const numValue = parseFloat(value);
-        if (isNaN(numValue)) return; // Prevent NaN
+        // Allow the empty string to propagate to allow clearing the field
+        const numValue = value === '' ? 0 : parseFloat(value);
 
-        const student = fields[index];
-        const newWeight = type === 'weight' ? numValue : (Number(student.SPCCSHW_Weight) || 0);
-        const newHeight = type === 'height' ? numValue : (Number(student.SPCCSHW_Height) || 0);
+        // Update the form state directly for these properties
+        // This is much faster than using update() for real-time input
+        const weight = type === 'weight' ? numValue : (Number(watch(`student.${index}.SPCCSHW_Weight`)) || 0);
+        const height = type === 'height' ? numValue : (Number(watch(`student.${index}.SPCCSHW_Height`)) || 0);
 
-        const { bmi, remark } = calculateBMI(newWeight, newHeight);
+        const { bmi, remark } = calculateBMI(weight, height);
 
-        update(index, {
-            ...student,
-            [type === 'weight' ? 'SPCCSHW_Weight' : 'SPCCSHW_Height']: numValue,
-            SPCCSHW_BMI: bmi,
-            SPCCSHW_BMIRemark: remark,
-            selected: true // Auto-select on change
-        });
+        setValue(`student.${index}.${type === 'weight' ? 'SPCCSHW_Weight' : 'SPCCSHW_Height'}`, value === '' ? '' : numValue);
+        setValue(`student.${index}.SPCCSHW_BMI`, bmi);
+        setValue(`student.${index}.SPCCSHW_BMIRemark`, remark);
+        setValue(`student.${index}.selected`, true);
     };
 
     const onSubmit = async (values: IBMICalculation) => {
@@ -152,9 +150,6 @@ export default function BMICalculationForm({ onSuccess, selectedRow }: BMICalcul
             return;
         }
 
-        // Format date to local ISO string without milliseconds/Z if needed, 
-        // but normally Date object is fine for server actions. 
-        // Let's ensure it's a clean payload.
         const dataToSave = {
             ASMAY_Id: Number(values.ASMAY_Id),
             ASMCL_Id: Number(values.ASMCL_Id),
@@ -165,9 +160,9 @@ export default function BMICalculationForm({ onSuccess, selectedRow }: BMICalcul
                 AMST_Id: s.AMST_Id,
                 AMST_AdmNo: s.AMST_AdmNo,
                 studentName: s.studentName,
-                SPCCSHW_Height: Number(s.SPCCSHW_Height),
-                SPCCSHW_Weight: Number(s.SPCCSHW_Weight),
-                SPCCSHW_BMI: Number(s.SPCCSHW_BMI),
+                SPCCSHW_Height: Number(s.SPCCSHW_Height) || 0,
+                SPCCSHW_Weight: Number(s.SPCCSHW_Weight) || 0,
+                SPCCSHW_BMI: Number(s.SPCCSHW_BMI) || 0,
                 SPCCSHW_BMIRemark: s.SPCCSHW_BMIRemark
             }))
         };
@@ -297,7 +292,7 @@ export default function BMICalculationForm({ onSuccess, selectedRow }: BMICalcul
                         <thead className='bg-muted/50'>
                             <tr className='border-b'>
                                 <th className='p-2 w-10 text-center'>
-                                    <Checkbox onCheckedChange={(checked) => fields.forEach((_, i) => update(i, { ...fields[i], selected: !!checked }))} />
+                                    <Checkbox onCheckedChange={(checked) => fields.forEach((_, i) => setValue(`student.${i}.selected`, !!checked))} />
                                 </th>
                                 <th className='p-2 text-center w-12'>SL.No</th>
                                 <th className='p-2 text-left'>Student Name</th>
@@ -309,51 +304,13 @@ export default function BMICalculationForm({ onSuccess, selectedRow }: BMICalcul
                             </tr>
                         </thead>
                         <tbody>
-                            {fields.map((field, index) => (
-                                <tr key={field.id} className='border-b hover:bg-muted/20'>
-                                    <td className='p-2 text-center'>
-                                        <Controller
-                                            name={`student.${index}.selected`}
-                                            control={control}
-                                            render={({ field: checkField }) => (
-                                                <Checkbox checked={!!checkField.value} onCheckedChange={checkField.onChange} />
-                                            )}
-                                        />
-                                    </td>
-                                    <td className='p-2 text-center'>{index + 1}</td>
-                                    <td className='p-2'>{field.studentName}</td>
-                                    <td className='p-2'>{field.AMST_AdmNo}</td>
-                                    <td className='p-2'>
-                                        <Input
-                                            type='number'
-                                            step='0.1'
-                                            className='h-8 w-20'
-                                            value={field.SPCCSHW_Weight}
-                                            onChange={(e) => handleWeightHeightChange(index, 'weight', e.target.value)}
-                                        />
-                                    </td>
-                                    <td className='p-2'>
-                                        <Input
-                                            type='number'
-                                            step='0.1'
-                                            className='h-8 w-20'
-                                            value={field.SPCCSHW_Height}
-                                            onChange={(e) => handleWeightHeightChange(index, 'height', e.target.value)}
-                                        />
-                                    </td>
-                                    <td className='p-2'>{field.SPCCSHW_BMI}</td>
-                                    <td className='p-2'>
-                                        {field.SPCCSHW_BMIRemark && (
-                                            <Badge variant={
-                                                field.SPCCSHW_BMIRemark === 'Normal' ? 'default' :
-                                                    field.SPCCSHW_BMIRemark === 'Overweight' ? 'secondary' :
-                                                        field.SPCCSHW_BMIRemark === 'Obese' ? 'destructive' : 'outline'
-                                            }>
-                                                {field.SPCCSHW_BMIRemark}
-                                            </Badge>
-                                        )}
-                                    </td>
-                                </tr>
+                            {fields.map((_, index) => (
+                                <StudentRow 
+                                    key={_.id} 
+                                    index={index} 
+                                    control={control} 
+                                    handleWeightHeightChange={handleWeightHeightChange} 
+                                />
                             ))}
                         </tbody>
                     </table>
@@ -371,5 +328,70 @@ export default function BMICalculationForm({ onSuccess, selectedRow }: BMICalcul
                 </div>
             )}
         </form>
+    );
+}
+
+function StudentRow({ 
+    index, 
+    control, 
+    handleWeightHeightChange 
+}: { 
+    index: number; 
+    control: any; 
+    handleWeightHeightChange: any 
+}) {
+    // useWatch ensures ONLY this row re-renders when its specific values change
+    const rowData = useWatch({
+        control,
+        name: `student.${index}`
+    });
+
+    if (!rowData) return null;
+
+    return (
+        <tr className='border-b hover:bg-muted/20'>
+            <td className='p-2 text-center'>
+                <Controller
+                    name={`student.${index}.selected`}
+                    control={control}
+                    render={({ field: checkField }) => (
+                        <Checkbox checked={!!checkField.value} onCheckedChange={checkField.onChange} />
+                    )}
+                />
+            </td>
+            <td className='p-2 text-center'>{index + 1}</td>
+            <td className='p-2'>{rowData.studentName}</td>
+            <td className='p-2'>{rowData.AMST_AdmNo}</td>
+            <td className='p-2'>
+                <Input
+                    type='number'
+                    step='0.1'
+                    className='h-8 w-20'
+                    value={rowData.SPCCSHW_Weight ?? ''}
+                    onChange={(e) => handleWeightHeightChange(index, 'weight', e.target.value)}
+                />
+            </td>
+            <td className='p-2'>
+                <Input
+                    type='number'
+                    step='0.1'
+                    className='h-8 w-20'
+                    value={rowData.SPCCSHW_Height ?? ''}
+                    onChange={(e) => handleWeightHeightChange(index, 'height', e.target.value)}
+                />
+            </td>
+            <td className='p-2'>{rowData.SPCCSHW_BMI}</td>
+            <td className='p-2'>
+                {rowData.SPCCSHW_BMIRemark && (
+                    <Badge variant={
+                        rowData.SPCCSHW_BMIRemark === 'Normal' ? 'default' :
+                            rowData.SPCCSHW_BMIRemark === 'Overweight' ? 'secondary' :
+                                rowData.SPCCSHW_BMIRemark === 'Obese' ? 'destructive' : 'outline'
+                    }>
+                        {rowData.SPCCSHW_BMIRemark}
+                    </Badge>
+                )}
+            </td>
+        </tr>
     );
 }
