@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
     getMasterActivitiesDetails,
     getSelectedMasterActivityRow,
-    saveMasterActivityData,
+    addOrUpdateMasterActivity,
     deleteMasterActivityData
 } from '@/server/admission/preadmission/masters/master_activity';
 import type { ApiSearchparams } from '@/types';
@@ -19,11 +19,22 @@ const QUERY_KEYS = {
  * Hook for Master Activity Details
  */
 export const useMasterActivityDetails = (searchParams?: ApiSearchparams) => {
-    return useQuery({
+    const queryClient = useQueryClient();
+    
+    const query = useQuery({
         queryKey: [QUERY_KEYS.MASTER_ACTIVITY_DETAILS, searchParams ?? {}],
         queryFn: () => getMasterActivitiesDetails(searchParams),
         staleTime: 0
     });
+
+    const refetchAll = () => {
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.MASTER_ACTIVITY_DETAILS] });
+    };
+
+    return {
+        ...query,
+        refetchAll
+    };
 };
 
 /**
@@ -43,7 +54,7 @@ export const useSelectedMasterActivityRow = (id: number, enabled = false) => {
 export const useSaveMasterActivity = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (data: IMasterActivity) => saveMasterActivityData(data),
+        mutationFn: (data: IMasterActivity) => addOrUpdateMasterActivity(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.MASTER_ACTIVITY_DETAILS] });
         }

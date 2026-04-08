@@ -1,39 +1,52 @@
 'use client';
 
-import { Checkbox } from '@/components/ui/checkbox';
+import { toast } from 'sonner';
+import { Pencil, Trash2 } from 'lucide-react';
+import type { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { Pencil, Trash2 } from 'lucide-react';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { IMasterActivityList } from '@/schemas/admission/preadmission/master_activity';
 import { useDeleteMasterActivity } from '@/hooks/admission/preadmission/useMasterActivity';
-import { toast } from 'sonner';
+import Swal from 'sweetalert2';
 
-export const masterActivityColumns: any[] = [
+export const masterActivityColumns: ColumnDef<IMasterActivityList>[] = [
     {
-        header: 'SL.NO',
-        cell: (info: any) => info.row.index + 1,
+        accessorKey: 'slNo',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='SL. NO' />,
+        cell: ({ row }) => <div className='pl-4'>{row.index + 1}</div>,
         size: 80
     },
     {
-        header: 'Name',
         accessorKey: 'amA_Activity',
-        sortable: true
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Activity Name' />,
+        cell: ({ row }) => <div>{row.getValue('amA_Activity')}</div>
     },
     {
-        header: 'Description',
         accessorKey: 'amA_Activity_Desc',
-        sortable: true
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Description' />,
+        cell: ({ row }) => <div>{row.getValue('amA_Activity_Desc')}</div>
     },
     {
         id: 'actions',
-        header: 'Action',
-        cell: function ActionCell(info: any) {
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Action' className='justify-center' />,
+        cell: function ActionCell({ row: { original: row } }) {
             const { openEditForm } = useFormContext<IMasterActivityList>();
-            const row = info.row.original;
             const deleteMutation = useDeleteMasterActivity();
 
             const handleDelete = async () => {
-                if (window.confirm('Are you sure? Do you want to delete this item?')) {
+                const result = await Swal.fire({
+                    title: 'Are you sure?',
+                    text: 'Do you want to delete this item?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, delete it!',
+                    cancelButtonText: 'No, cancel'
+                });
+
+                if (result.isConfirmed) {
                     toast.loading('Deleting...', { id: 'delete' });
                     try {
                         const res = await deleteMutation.mutateAsync(row.amA_Id);

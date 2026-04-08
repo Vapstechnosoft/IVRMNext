@@ -9,7 +9,7 @@ import type { IMasterActivity, IMasterActivityList } from '@/schemas/admission/p
  */
 export const getMasterActivitiesDetails = async (searchParams?: ApiSearchparams) => {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'amA_Activity');
-    const url = `/MasterActivity/Getdetails?${urlParams}`;
+    const url = `/MasterActivity/GetMasterActivityData?${urlParams}`;
     return await api.get('admission', url);
 };
 
@@ -24,8 +24,8 @@ export const getSelectedMasterActivityRow = async (id: number) => {
 /**
  * Save or Update Master Activity
  */
-export const saveMasterActivityData = async (data: IMasterActivity) => {
-    const url = '/MasterActivity/';
+export const addOrUpdateMasterActivity = async (data: IMasterActivity) => {
+    const url = '/MasterActivity/MasterActivityData/';
     return await api.post('admission', url, {
         amA_Id: data.amA_Id ?? 0,
         AMA_Activity: data.amA_Activity,
@@ -36,7 +36,7 @@ export const saveMasterActivityData = async (data: IMasterActivity) => {
 /**
  * Delete Master Activity
  */
-export const deleteMasterActivityData = async (id: number) => {
-    const url = `/MasterActivity/MasterDeleteModulesDTO/${id}`;
-    return await api.get('admission', url);
+export const deleteMasterActivityData = async (AMA_Id: number) => {
+    const url = `/MasterActivity/MasterDeleteModulesDATA/${AMA_Id}`;
+    return await api.delete('admission', url);
 };

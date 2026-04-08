@@ -34,12 +34,13 @@ function MasterActivityPageContent({
     error: any;
 }) {
     const { openAddForm } = useFormContext<IMasterActivityList>();
-    const tableProps = useDataTableProps(response, { dataKey: 'masterActivityname' });
+    const tableProps = useDataTableProps(response);
 
     return (
         <div className='min-h-screen p-1'>
             <div className='container space-y-4'>
-                {/* Fixed Action Button */}
+
+                {/* Header */}
                 <div className='flex justify-end'>
                     <Button
                         type='button'
@@ -49,7 +50,6 @@ function MasterActivityPageContent({
                         Add Master Activity
                     </Button>
                 </div>
-
                 {/* Data Table Section */}
                 <CollapsibleSection title='Master Activities List' defaultOpen={true}>
                     <GenericDataTable<IMasterActivityList>
@@ -92,15 +92,7 @@ function FormSections() {
                         defaultOpen={true}
                         variant='outline'
                         className='slide-in-from-top-4 animate-in shadow-lg'>
-                        <div className='relative p-4 pt-10'>
-                            <Button
-                                type='button'
-                                onClick={closeAddForm}
-                                variant='ghost'
-                                size='sm'
-                                className='absolute top-4 right-4 border shadow-sm hover:bg-destructive/10'>
-                                <X className='h-4 w-4 text-destructive' />
-                            </Button>
+                        <div className='p-4'>
                             <ActivityForm onSuccess={closeAddForm} />
                         </div>
                     </CollapsibleSection>
@@ -115,15 +107,7 @@ function FormSections() {
                         defaultOpen={true}
                         variant='outline'
                         className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg'>
-                        <div className='relative p-4 pt-10'>
-                            <Button
-                                type='button'
-                                onClick={closeEditForm}
-                                variant='ghost'
-                                size='sm'
-                                className='absolute top-4 right-4 border shadow-sm hover:bg-destructive/10'>
-                                <X className='h-4 w-4 text-destructive' />
-                            </Button>
+                        <div className='p-4'>
                             <ActivityForm initialData={selectedRow} onSuccess={closeEditForm} />
                         </div>
                     </CollapsibleSection>
