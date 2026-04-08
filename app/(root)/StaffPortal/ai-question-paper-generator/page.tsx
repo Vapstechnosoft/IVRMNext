@@ -191,68 +191,77 @@ export default function AIQuestionPaperGenerator() {
         if (!generatedPaper) return;
 
         const doc = new jsPDF();
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 20;
+        const maxWidth = pageWidth - margin * 2;
         let yPos = 20;
+
+        const addNewPage = () => {
+            doc.addPage();
+            yPos = 20;
+        };
 
         // Header
         doc.setFontSize(18);
-        doc.text(generatedPaper.title.toUpperCase(), 105, yPos, { align: "center" });
+        doc.setFont('helvetica', 'bold');
+        doc.text(generatedPaper.title.toUpperCase(), pageWidth / 2, yPos, { align: "center" });
         yPos += 10;
 
         doc.setFontSize(12);
-        doc.text(`Total Marks: ${generatedPaper.totalMarks}`, 105, yPos, { align: "center" });
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Total Marks: ${generatedPaper.totalMarks}`, pageWidth / 2, yPos, { align: "center" });
         if (chapters) {
             yPos += 7;
-            doc.text(`Chapters: ${chapters}`, 105, yPos, { align: "center" });
+            doc.text(`Chapters: ${chapters}`, pageWidth / 2, yPos, { align: "center" });
         }
-        yPos += 15;
-        doc.line(20, yPos, 190, yPos);
+        yPos += 10;
+        doc.line(margin, yPos, pageWidth - margin, yPos);
         yPos += 10;
 
         // Content
         generatedPaper.sections.forEach((section, sIdx) => {
             // Check for page break
-            if (yPos > 270) {
-                doc.addPage();
-                yPos = 20;
-            }
+            if (yPos > pageHeight - 30) addNewPage();
 
             doc.setFontSize(14);
             doc.setFont("helvetica", "bold");
-            doc.text(`Section ${sIdx + 1}: ${section.markValue} Marks Questions`, 20, yPos);
+            doc.text(`Section ${String.fromCharCode(65 + sIdx)}: ${section.markValue} Marks Questions`, margin, yPos);
             yPos += 10;
 
             doc.setFontSize(11);
             doc.setFont("helvetica", "normal");
 
             section.questions.forEach((q, qIdx) => {
-                // Check for page break
-                if (yPos > 270) {
-                    doc.addPage();
-                    yPos = 20;
-                }
-
                 // Split text to fit page width
-                const splitQuestion = doc.splitTextToSize(`${qIdx + 1}. ${q.text}`, 170);
-                doc.text(splitQuestion, 20, yPos);
-                yPos += (splitQuestion.length * 5) + 2;
+                const questionText = `${qIdx + 1}. ${q.text}`;
+                const splitQuestion = doc.splitTextToSize(questionText, maxWidth);
+
+                const qHeight = splitQuestion.length * 6;
+                if (yPos + qHeight > pageHeight - margin) addNewPage();
+
+                doc.text(splitQuestion, margin, yPos);
+                yPos += qHeight + 2;
 
                 if (q.type === 'MCQ' && q.options) {
                     q.options.forEach(opt => {
-                        // Simple check if option is correct (remove * for student paper usually, but here we keep context)
-                        // Implementation: Remove * for PDF view if needed, but per prompt instruction we show keys? 
-                        // Let's print them cleanly.
                         const cleanOpt = opt.replace('*', '').trim();
-                        doc.text(`   ${cleanOpt}`, 25, yPos);
-                        yPos += 5;
+                        const splitOpt = doc.splitTextToSize(`   ${cleanOpt}`, maxWidth - 5);
+
+                        const optHeight = splitOpt.length * 6;
+                        if (yPos + optHeight > pageHeight - margin) addNewPage();
+
+                        doc.text(splitOpt, margin + 5, yPos);
+                        yPos += optHeight;
                     });
                     yPos += 2;
                 }
 
                 // Add spacing between questions
-                yPos += 3;
+                yPos += 5;
             });
 
-            yPos += 10; // Extra space after section
+            yPos += 5; // Extra space after section
         });
 
         doc.save(`question-paper-${Date.now()}.pdf`);
