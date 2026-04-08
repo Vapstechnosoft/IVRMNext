@@ -13,6 +13,7 @@ import {
     useSTCSTotalStrengthClasses,
     useSTCSTotalStrengthElectives,
     useSTCSTotalStrengthInitialDetails,
+    useSTCSTotalStrengthMasterCompany,
     useSTCSTotalStrengthReportDetails,
     useSTCSTotalStrengthSections
 } from '@/hooks/admission/preadmission/useSTCSTotalStrength';
@@ -38,7 +39,8 @@ export default function TotalStrengthPage() {
 
     // Dropdown Hooks
     const { data: initialDetails, isLoading: initialLoading } = useSTCSTotalStrengthInitialDetails();
-
+    const { data: masterCompanyResponse } = useSTCSTotalStrengthMasterCompany();
+    console.log("masterCompanyResponse", masterCompanyResponse);
     const {
         control,
         watch,
@@ -70,14 +72,41 @@ export default function TotalStrengthPage() {
 
     const { data: electiveResponse, isLoading: electiveLoading } = useSTCSTotalStrengthElectives(watchAcademicYear);
     const electiveList = electiveResponse?.data;
+
+    const resolvedElectiveList = useMemo(() => {
+        if (Array.isArray(electiveList)) return electiveList;
+        if (electiveList && typeof electiveList === 'object' && Array.isArray((electiveList as any).allElectives)) {
+            return (electiveList as any).allElectives;
+        }
+        return [];
+    }, [electiveList]);
+
     const { data: classResponse, isLoading: classLoading } = useSTCSTotalStrengthClasses(watchAcademicYear, Number(watchCategory || 0));
     const classList = classResponse?.data;
+
+    const resolvedClassList = useMemo(() => {
+        if (Array.isArray(classList)) return classList;
+        if (classList && typeof classList === 'object' && Array.isArray((classList as any).allClass)) {
+            return (classList as any).allClass;
+        }
+        return [];
+    }, [classList]);
+
     const { data: sectionResponse, isLoading: sectionLoading } = useSTCSTotalStrengthSections(watchAcademicYear, Number(watchClass || 0), Number(watchCategory || 0));
     const sectionList = sectionResponse?.data;
+
+    const resolvedSectionList = useMemo(() => {
+        if (Array.isArray(sectionList)) return sectionList;
+        if (sectionList && typeof sectionList === 'object' && Array.isArray((sectionList as any).allSection)) {
+            return (sectionList as any).allSection;
+        }
+        return [];
+    }, [sectionList]);
 
     const [reportPayload, setReportPayload] = useState<any>(null);
     const { data: reportResponse, isLoading: isReportLoading } = useSTCSTotalStrengthReportDetails(reportPayload);
 
+    console.log("API response", reportResponse?.data?.MasterCompany?.[0]?.milogo);
     const handleReport = async () => {
         const isValid = await trigger();
         if (isValid) {
@@ -97,8 +126,9 @@ export default function TotalStrengthPage() {
                 withtc: values.withTc ? 'Y' : 'N',
                 withdeactive: values.withDeactive ? 'Y' : 'N',
                 AMC_Id: Number(values.category || 0),
+                page_size: 100000,
                 Electivearray: values.electives.map(id => {
-                    const item = Array.isArray(electiveList?.allElectives) ? (electiveList.allElectives as any[]).find((e: any) => e.ismS_Id === id) : undefined;
+                    const item = resolvedElectiveList.find((e: any) => e.ismS_Id === id);
                     return { ismS_Id: id, ismS_SubjectName: item?.ismS_SubjectName || '' };
                 })
             };
@@ -115,27 +145,30 @@ export default function TotalStrengthPage() {
     };
 
     const studentList: any[] = useMemo(() => {
-        const list = reportResponse?.studentlist;
+        const data = reportResponse?.data || reportResponse;
+        const list = data?.studentlist || (data as any)?.studentList || (data as any)?.studentList1 || (data as any)?.studentlist1;
         return Array.isArray(list) ? list : [];
     }, [reportResponse]);
 
     const dynamicElectives: any[] = useMemo(() => {
-        const list = reportResponse?.electivelist;
+        const data = reportResponse?.data || reportResponse;
+        const list = data?.ElectiveSum || (data as any)?.electiveSum || data?.studentElectivelist || (data as any)?.studentElectiveList || data?.electivelist;
         return Array.isArray(list) ? list : [];
     }, [reportResponse]);
 
     const groupedData = useMemo(() => {
-        const grouped: Record<number, any[]> = {};
+        const grouped: Record<string, any[]> = {};
         studentList.forEach((item: any) => {
-            const rowNum = item.RowNumber || 0;
-            if (!grouped[rowNum]) grouped[rowNum] = [];
-            grouped[rowNum].push(item);
+            const groupKey = item.classname || 'Total';
+            if (!grouped[groupKey]) grouped[groupKey] = [];
+            grouped[groupKey].push(item);
         });
         return grouped;
     }, [studentList]);
 
-    const calculateClassTotalByRow = (rowNumber: number, field: string) => {
-        const items = groupedData[rowNumber] || [];
+    console.log(groupedData);
+    const calculateClassTotalByGroup = (groupKey: string, field: string) => {
+        const items = groupedData[groupKey] || [];
         return items.reduce((sum, item) => sum + (item[field] || 0), 0);
     };
 
@@ -158,19 +191,78 @@ export default function TotalStrengthPage() {
 
     const exportToExcelMutation = useSTCSExportTotalStrengthReport();
 
-    const handleExportExcel = async () => {
-        if (!reportPayload) return;
+    const handleExportExcel = () => {
+        if (!studentList.length) {
+            toast.error('No data available to export');
+            return;
+        }
         try {
-            const data = await exportToExcelMutation.mutateAsync(reportPayload);
-            const blob = new Blob([new Uint8Array(data)], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'TotalStrengthReport.xlsx';
-            a.click();
-            window.URL.revokeObjectURL(url);
+            const excelData: any[] = [];
+
+            Object.entries(groupedData).forEach(([groupKey, sections]) => {
+                sections.forEach((item: any, sectionIndex: number) => {
+                    const row: any = {
+                        'Sl.No': sectionIndex + 1,
+                        'Class': sectionIndex === 0 ? item.classname : '',
+                        'Section': item.sectionname,
+                        'Boys': item.boys || 0,
+                        'Girls': item.girls || 0,
+                        'Total': item.totalstudents || 0,
+                        'New Admission': item.newAdmission || 0
+                    };
+
+                    dynamicElectives.forEach((e: any) => {
+                        const fieldName = e.ISMS_SubjectName || (e as any).ismS_SubjectName;
+                        row[fieldName] = item[fieldName] || 0;
+                    });
+
+                    excelData.push(row);
+                });
+
+                // Add Subtotal Row
+                const subtotalRow: any = {
+                    'Sl.No': '',
+                    'Class': 'Total',
+                    'Section': '',
+                    'Boys': calculateClassTotalByGroup(groupKey, 'boys'),
+                    'Girls': calculateClassTotalByGroup(groupKey, 'girls'),
+                    'Total': calculateClassTotalByGroup(groupKey, 'totalstudents'),
+                    'New Admission': calculateClassTotalByGroup(groupKey, 'newAdmission')
+                };
+
+                dynamicElectives.forEach((e: any) => {
+                    const fieldName = e.ISMS_SubjectName || (e as any).ismS_SubjectName;
+                    subtotalRow[fieldName] = calculateClassTotalByGroup(groupKey, fieldName);
+                });
+
+                excelData.push(subtotalRow);
+            });
+
+            // Add Grand Total Row
+            const grandTotalRow: any = {
+                'Sl.No': '',
+                'Class': 'GRAND TOTAL',
+                'Section': '',
+                'Boys': calculateGrandTotal('boys'),
+                'Girls': calculateGrandTotal('girls'),
+                'Total': calculateGrandTotal('totalstudents'),
+                'New Admission': calculateGrandTotal('newAdmission')
+            };
+
+            dynamicElectives.forEach((e: any) => {
+                const fieldName = e.ISMS_SubjectName || (e as any).ismS_SubjectName;
+                grandTotalRow[fieldName] = calculateGrandTotal(fieldName);
+            });
+
+            excelData.push(grandTotalRow);
+
+            const worksheet = XLSX.utils.json_to_sheet(excelData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Total Strength');
+            XLSX.writeFile(workbook, 'TotalStrengthReport.xlsx');
             toast.success('Excel exported successfully');
         } catch (error) {
+            console.error('Excel Export Error:', error);
             toast.error('Failed to export Excel');
         }
     };
@@ -184,11 +276,10 @@ export default function TotalStrengthPage() {
     };
 
     const handleSelectAllElectives = () => {
-        const allElectives = electiveList?.allElectives;
-        if (watchElectives.length === (Array.isArray(allElectives) ? allElectives.length : 0)) {
+        if (watchElectives.length === resolvedElectiveList.length && resolvedElectiveList.length > 0) {
             setValue('electives', []);
         } else {
-            setValue('electives', Array.isArray(allElectives) ? (allElectives as any[]).map((e: any) => e.ismS_Id) : []);
+            setValue('electives', resolvedElectiveList.map((e: any) => e.ismS_Id));
         }
     };
 
@@ -328,7 +419,7 @@ export default function TotalStrengthPage() {
                                                 <Select value={field.value} onValueChange={field.onChange}>
                                                     <SelectTrigger><SelectValue placeholder='Select Class' /></SelectTrigger>
                                                     <SelectContent>
-                                                        {Array.isArray(classList?.allClass) && classList.allClass.map((c: any) => (
+                                                        {resolvedClassList.map((c: any) => (
                                                             <SelectItem key={c.asmcL_Id} value={c.asmcL_Id.toString()}>{c.asmcL_ClassName}</SelectItem>
                                                         ))}
                                                     </SelectContent>
@@ -346,7 +437,7 @@ export default function TotalStrengthPage() {
                                                 <Select value={field.value} onValueChange={field.onChange}>
                                                     <SelectTrigger><SelectValue placeholder='Select Section' /></SelectTrigger>
                                                     <SelectContent>
-                                                        {Array.isArray(sectionList?.allSection) && sectionList.allSection.map((s: any) => (
+                                                        {resolvedSectionList.map((s: any) => (
                                                             <SelectItem key={s.asmS_Id} value={s.asmS_Id.toString()}>{s.asmC_SectionName}</SelectItem>
                                                         ))}
                                                     </SelectContent>
@@ -357,16 +448,18 @@ export default function TotalStrengthPage() {
                                     </div>
                                 </div>
                             )}
-
+                            <Label>Elective Subjects <span className='text-red-500'>*</span></Label>
                             <div className='space-y-1 border rounded p-2 bg-white'>
-                                <div className='flex items-center justify-between border-b pb-1 mb-1'>
-                                    <Label className='font-bold cursor-pointer flex items-center gap-2' onClick={handleSelectAllElectives}>
-                                        <Checkbox checked={watchElectives.length === (Array.isArray(electiveList?.allElectives) ? electiveList.allElectives.length : 0) && watchElectives.length > 0} />
-                                        Elective Subjects
-                                    </Label>
-                                </div>
+                                <div className='space-y-1 '>
+                                    <div className='flex items-center justify-between border-b pb-1 mb-1'>
+
+                                        <Label className=' cursor-pointer flex items-center gap-2' onClick={handleSelectAllElectives}>
+                                            <Checkbox checked={watchElectives.length === resolvedElectiveList.length && resolvedElectiveList.length > 0} />
+                                            All
+                                        </Label>
+                                    </div>   </div>
                                 <div className='max-h-32 overflow-y-auto grid grid-cols-2 gap-2'>
-                                    {Array.isArray(electiveList?.allElectives) && (electiveList.allElectives as any[]).map((e: any) => (
+                                    {resolvedElectiveList.map((e: any) => (
                                         <div key={e.ismS_Id} className='flex items-center gap-2 text-sm'>
                                             <Checkbox
                                                 id={`e-${e.ismS_Id}`}
@@ -402,55 +495,56 @@ export default function TotalStrengthPage() {
                                         <th className='border border-gray-300 p-2 text-left'>Section</th>
                                         <th className='border border-gray-300 p-2'>Boys</th>
                                         <th className='border border-gray-300 p-2'>Girls</th>
-                                        {dynamicElectives.map((e: any) => (
-                                            <th key={e.ISMS_Id} className='border border-gray-300 p-2'>{e.ISMS_SubjectName}</th>
-                                        ))}
-                                        <th className='border border-gray-300 p-2'>New Adm</th>
                                         <th className='border border-gray-300 p-2 text-right'>Total</th>
+                                        <th className='border border-gray-300 p-2'>New Admission</th>
+                                        {dynamicElectives.map((e: any) => (
+                                            <th key={e.ISMS_Id || (e as any).ismS_Id} className='border border-gray-300 p-2'>{e.ISMS_SubjectName || (e as any).ismS_SubjectName}</th>
+                                        ))}
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {Object.entries(groupedData)
-                                        .sort(([a], [b]) => Number(a) - Number(b))
-                                        .map(([rowNumber, sections], index) => (
-                                            <Fragment key={rowNumber}>
+                                        .map(([groupKey, sections], index) => (
+                                            <Fragment key={groupKey}>
                                                 {sections.map((item: any, sectionIndex) => (
-                                                    <tr key={`${rowNumber}-${sectionIndex}`} className='hover:bg-gray-50'>
-                                                        <td className='border border-gray-300 p-2 text-center'>{sectionIndex === 0 ? index + 1 : ''}</td>
-                                                        <td className='border border-gray-300 p-2'>{sectionIndex === 0 ? item.classname : ''}</td>
+                                                    <tr key={`${groupKey}-${sectionIndex}`} className='hover:bg-gray-50'>
+                                                        <td className='border border-gray-300 p-2 text-center'>{sectionIndex + 1}</td>
+                                                        <td className='border border-gray-300 p-2'>{item.classname}</td>
                                                         <td className='border border-gray-300 p-2'>{item.sectionname}</td>
                                                         <td className='border border-gray-300 p-2 text-center'>{item.boys}</td>
                                                         <td className='border border-gray-300 p-2 text-center'>{item.girls}</td>
-                                                        {dynamicElectives.map((e: any) => (
-                                                            <td key={e.ISMS_Id} className='border border-gray-300 p-2 text-center'>{item[e.ISMS_SubjectName] || 0}</td>
-                                                        ))}
-                                                        <td className='border border-gray-300 p-2 text-center'>{item.newAdmission || 0}</td>
                                                         <td className='border border-gray-300 p-2 text-right font-medium'>{item.totalstudents}</td>
+                                                        <td className='border border-gray-300 p-2 text-center'>{item.newAdmission || 0}</td>
+                                                        {dynamicElectives.map((e: any) => (
+                                                            <td key={e.ISMS_Id || (e as any).ismS_Id} className='border border-gray-300 p-2 text-center'>{item[e.ISMS_SubjectName || (e as any).ismS_SubjectName] || 0}</td>
+                                                        ))}
                                                     </tr>
                                                 ))}
                                                 <tr className='bg-blue-50 font-bold'>
-                                                    <td colSpan={3} className='border border-gray-300 p-2 text-right'>
-                                                        Total for {sections[0]?.classname}
-                                                    </td>
-                                                    <td className='border border-gray-300 p-2 text-center'>{calculateClassTotalByRow(Number(rowNumber), 'boys')}</td>
-                                                    <td className='border border-gray-300 p-2 text-center'>{calculateClassTotalByRow(Number(rowNumber), 'girls')}</td>
+                                                    <td className='border border-gray-300 p-2'></td>
+                                                    <td className='border border-gray-300 p-2'>Total</td>
+                                                    <td className='border border-gray-300 p-2'></td>
+                                                    <td className='border border-gray-300 p-2 text-center'>{calculateClassTotalByGroup(groupKey, 'boys')}</td>
+                                                    <td className='border border-gray-300 p-2 text-center'>{calculateClassTotalByGroup(groupKey, 'girls')}</td>
+                                                    <td className='border border-gray-300 p-2 text-right'>{calculateClassTotalByGroup(groupKey, 'totalstudents')}</td>
+                                                    <td className='border border-gray-300 p-2 text-center'>{calculateClassTotalByGroup(groupKey, 'newAdmission')}</td>
                                                     {dynamicElectives.map((e: any) => (
-                                                        <td key={e.ISMS_Id} className='border border-gray-300 p-2 text-center'>{calculateClassTotalByRow(Number(rowNumber), e.ISMS_SubjectName)}</td>
+                                                        <td key={e.ISMS_Id || (e as any).ismS_Id} className='border border-gray-300 p-2 text-center'>{calculateClassTotalByGroup(groupKey, e.ISMS_SubjectName || (e as any).ismS_SubjectName)}</td>
                                                     ))}
-                                                    <td className='border border-gray-300 p-2 text-center'>{calculateClassTotalByRow(Number(rowNumber), 'newAdmission')}</td>
-                                                    <td className='border border-gray-300 p-2 text-right'>{calculateClassTotalByRow(Number(rowNumber), 'totalstudents')}</td>
                                                 </tr>
                                             </Fragment>
                                         ))}
                                     <tr className='bg-green-100 font-black text-base uppercase'>
-                                        <td colSpan={3} className='border border-gray-300 p-2 text-right'>Grand Total</td>
+                                        <td className='border border-gray-300 p-2'></td>
+                                        <td className='border border-gray-300 p-2'>Grand Total</td>
+                                        <td className='border border-gray-300 p-2'></td>
                                         <td className='border border-gray-300 p-2 text-center'>{calculateGrandTotal('boys')}</td>
                                         <td className='border border-gray-300 p-2 text-center'>{calculateGrandTotal('girls')}</td>
-                                        {dynamicElectives.map((e: any) => (
-                                            <td key={e.ISMS_Id} className='border border-gray-300 p-2 text-center'>{calculateGrandTotal(e.ISMS_SubjectName)}</td>
-                                        ))}
-                                        <td className='border border-gray-300 p-2 text-center'>{calculateGrandTotal('newAdmission')}</td>
                                         <td className='border border-gray-300 p-2 text-right'>{calculateGrandTotal('totalstudents')}</td>
+                                        <td className='border border-gray-300 p-2 text-center'>{calculateGrandTotal('newAdmission')}</td>
+                                        {dynamicElectives.map((e: any) => (
+                                            <td key={e.ISMS_Id || (e as any).ismS_Id} className='border border-gray-300 p-2 text-center'>{calculateGrandTotal(e.ISMS_SubjectName || (e as any).ismS_SubjectName)}</td>
+                                        ))}
                                     </tr>
                                 </tbody>
                             </table>
@@ -459,12 +553,17 @@ export default function TotalStrengthPage() {
                 </div>
             )}
 
-            <div style={{ display: 'none' }}>
+            <div style={{ height: 0, overflow: 'hidden', position: 'absolute', pointerEvents: 'none' }}>
                 <TotalStrengthPrint
                     ref={printRef}
                     groupedData={groupedData}
                     totalGrand={calculateGrandTotal('totalstudents')}
                     dynamicElectives={dynamicElectives}
+                    schoolName={masterCompanyResponse?.data?.[0]?.companyname || reportResponse?.data?.MasterCompany?.[0]?.companyname || initialDetails?.data?.m_School_Address?.[0]?.m_School_Name}
+                    schoolAddress={masterCompanyResponse?.data?.[0]?.address || reportResponse?.data?.MasterCompany?.[0]?.address || initialDetails?.data?.m_School_Address?.[0]?.m_School_Address}
+                    schoolPhone={initialDetails?.data?.m_School_Address?.[0]?.m_School_PhoneNo}
+                    logoUrl={masterCompanyResponse?.data?.[0]?.milogo || reportResponse?.data?.MasterCompany?.[0]?.milogo || initialDetails?.data?.m_School_Address?.[0]?.m_School_Logo}
+                    yearString={academicYear?.data?.find(y => y.asmaY_Id === watchAcademicYear)?.asmaY_Year || ''}
                 />
             </div>
         </div>

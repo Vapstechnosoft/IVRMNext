@@ -950,6 +950,78 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/reports/Sophia/DateOfBirthCertificate',
                                             title: 'Date Of Birth Certificate',
                                             description: 'Date Of Birth Certificate'
+                                        },
+                                        {
+                                            id: 599,
+                                            name: 'Sophia study certificate',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/sophia/reports/SophiaStudyCertificate',
+                                            title: 'Sophia study certificate',
+                                            description: 'Sophia study certificate'
+                                        },
+                                        {
+                                            id: 600,
+                                            name: 'SophiaRegistrationXI',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/Sophia/reports/SophiaRegistrationXI',
+                                            title: 'SophiaRegistrationXI',
+                                            description: 'SophiaRegistrationXI'
+                                        },
+                                        {
+                                            id: 600,
+                                            name: 'SophiaRegistration',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/Sophia/reports/SophiaRegistration',
+                                            title: 'SophiaRegistration',
+                                            description: 'SophiaRegistration'
+                                        },
+                                        {
+                                            id: 601,
+                                            name: 'OverallDailyAttendanceReport',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/Sophia/reports/OverallDailyAttendanceReport',
+                                            title: 'OverallDailyAttendanceReport',
+                                            description: 'OverallDailyAttendanceReport'
+                                        },
+                                        {
+                                            id: 602,
+                                            name: 'Studenttcapply',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/Sophia/reports/Studenttcapply',
+                                            title: 'Studenttcapply',
+                                            description: 'Studenttcapply'
+                                        },
+                                        {
+                                            id: 603,
+                                            name: 'StudentTcApproval',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/Sophia/reports/StudentTcApproval',
+                                            title: 'StudentTcApproval',
+                                            description: 'StudentTcApproval'
+                                        },
+                                        {
+                                            id: 604,
+                                            name: 'SophiaMultiTransferCertificate',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/Sophia/reports/SophiaMultiTransferCertificate',
+                                            title: 'SophiaMultiTransferCertificate',
+                                            description: 'SophiaMultiTransferCertificate'
+                                        },
+                                        {
+                                            id: 605,
+                                            name: 'Attendanceentry',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/Sophia/reports/Attendanceentry',
+                                            title: 'Attendanceentry',
+                                            description: 'Attendanceentry'
+                                        },
+                                        {
+                                            id: 606,
+                                            name: 'SophiaStudentParticulars',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/Sophia/reports/SophiaStudentParticulars',
+                                            title: 'SophiaStudentParticulars',
+                                            description: 'SophiaStudentParticulars'
                                         }
 
                                     ]
