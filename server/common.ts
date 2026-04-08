@@ -861,6 +861,14 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/bbhs-student-application',
                                             title: 'BBHS Student Application Form',
                                             description: 'BBHS Student Application Form'
+                                        },
+                                        {
+                                            id: 65,
+                                            name: 'Student tc custom report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/student-tc-report-custom',
+                                            title: 'Student tc custom report',
+                                            description: 'Student tc custom report'
                                         }
                                     ]
                                 }
@@ -883,7 +891,7 @@ export async function getUserAccessibleModules() {
                                             id: 591,
                                             name: 'Import',
                                             icon: 'Settings',
-                                            url: '/admission/preadmission/reports/Sophia/Import',
+                                            url: '/admission/preadmission/sophia/masters/import',
                                             title: 'Import',
                                             description: 'Import'
                                         },
@@ -954,12 +962,28 @@ export async function getUserAccessibleModules() {
                                     pages: [
                                         {
                                             id: 61,
+                                            name: 'St. Thomas Admission Form',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/stthomas/admission-form',
+                                            title: 'St. Thomas Admission Form',
+                                            description: 'St. Thomas Admission Form'
+                                        },
+                                        {
+                                            id: 62,
                                             name: 'Total Strength',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/reports/STCS/total-strength',
                                             title: 'Total Strength',
                                             description: 'Total Strength'
                                         },
+                                        {
+                                            id: 63,
+                                            name: 'St. Thomas TC Custom Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/stthomas/reports/stthomas-tc-custom-report',
+                                            title: 'St. Thomas TC Custom Report',
+                                            description: 'St. Thomas TC Custom Report'
+                                        }
 
                                     ]
                                 }

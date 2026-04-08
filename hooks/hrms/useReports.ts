@@ -117,6 +117,8 @@ import {
     getEmployeesByDeptAndDesignation as getMasterDropdownEmployees
 } from '@/server/hrms/master-dropdown';
 
+import { getEmployeesLoanReport, type LoanReportRequest } from '@/server/hrms/reports/loan-report';
+
 
 export function useCumulativeSalaryReport() {
     return useMutation({
@@ -650,6 +652,19 @@ export function useMonthEndReport() {
         mutationFn: (data: MonthEndReportRequest) => getMonthEndReport(data),
         onError: (error: Error) => {
             toast.error(error.message || 'Failed to fetch Month End Report');
+        }
+    });
+}
+
+
+/**
+ * Hook for Loan Report
+ */
+export function useLoanReport() {
+    return useMutation({
+        mutationFn: (data: LoanReportRequest) => getEmployeesLoanReport(data),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to fetch Loan Report');
         }
     });
 }
