@@ -1,7 +1,8 @@
 import { ADMISSION_QUERY_KEYS } from '@/constants/query-keys';
 import { getAllAdmissionLists, getStudentAdmissionFormById, getAdmissionFormDetails } from '@/server/admission/admission-form/admission';
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { IadmissionFormDetails } from '@/types/admission/admission';
+import { useQuery, useQueryClient, UseQueryResult } from '@tanstack/react-query';
 
 import type { ApiSearchparams } from '@/types';
 
@@ -39,18 +40,43 @@ export const useStudentAdmissionFormById = (amstId: number) => {
         }
     };
 };
-export const useAdmissionFormDetails = () => {
+export const useAdmissionFormDetails = (): UseQueryResult<IadmissionFormDetails> & { refetchAll: () => void } => {
     const queryClient = useQueryClient();
+    const query = useQuery<IadmissionFormDetails>({
+        queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_FORM_DETAILS],
+        queryFn: async () => {
+            const response = await getAdmissionFormDetails();
+            return response.data as IadmissionFormDetails;
+        },
+        staleTime: 0
+    });
+
     return {
-        ...useQuery({
-            queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_FORM_DETAILS],
-            queryFn: async () => getAdmissionFormDetails(),
-            staleTime: 0
-        }),
+        ...query,
         refetchAll: () => {
-            return queryClient.invalidateQueries({
+            queryClient.invalidateQueries({
                 queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_FORM_DETAILS]
             });
         }
-    };
+    } as any;
+};
+
+import { onchangeclassApi, onchangestreamApi } from '@/server/admission/admission-form/admission';
+
+export const useOnChangeClass = (classId: number, asmayId: number) => {
+    return useQuery({
+        queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_FORM_ONCHANGE_CLASS, classId, asmayId],
+        queryFn: async () => onchangeclassApi({ ASMCL_Id: classId, ASMAY_Id: asmayId }),
+        enabled: !!classId,
+        staleTime: 0
+    });
+};
+
+export const useOnChangeStream = (streamId: number) => {
+    return useQuery({
+        queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_FORM_ONCHANGE_STREAM, streamId],
+        queryFn: async () => onchangestreamApi({ ASMST_Id: streamId }),
+        enabled: !!streamId,
+        staleTime: 0
+    });
 };

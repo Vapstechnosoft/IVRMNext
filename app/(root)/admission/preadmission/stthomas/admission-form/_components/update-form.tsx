@@ -12,29 +12,16 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { calculateAge, dateToWords } from '@/lib/utils';
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import {
-    useAcademicYearDropdown,
-    useConcessionDropdown,
     useMasterSectionHeld,
     useStudentCategoryByClass
 } from '@/hooks/admission/preadmission/useMasters';
-import {
-    useActivePreadmissionDetails,
-    useAdmissionClassDropdown,
-    useCasteDropdown,
-    useCountryDropdown,
-    useDistrictDropdown,
-    useReferenceDropdown,
-    useReligionDropdown,
-    useSourceDropdown,
-    useStateDropdown
-} from '@/hooks/admission/preadmission/useTransactions';
-import { getIconByName } from '@/lib/lucide-icon-registry';
-import { cn } from '@/lib/utils';
+import { useAdmissionFormDetails, useOnChangeClass, useOnChangeStream } from '@/hooks/admission/admissionForm';
+import { useDistrictDropdown, useActivePreadmissionDetails } from '@/hooks/admission/preadmission/useTransactions';
+import { calculateAge, dateToWords, cn } from '@/lib/utils';
 import { studentAdmissionFormSchema } from '@/schemas/admission/admission-form';
 import {
     getAllAdmissionLists,
@@ -54,7 +41,9 @@ import { CalendarIcon, Check, ChevronLeft, ChevronRight, Eye, Save, Trash } from
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { number, type z } from 'zod';
+import { type z } from 'zod';
+import { getIconByName } from '@/lib/lucide-icon-registry';
+import type { IadmissionFormDetails } from '@/types/admission/admission';
 
 type FormFields = z.infer<typeof studentAdmissionFormSchema.add>;
 
@@ -155,6 +144,123 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
         control,
         name: 'previousSchools'
     });
+
+    const { data: admissionDetails, refetch: refetchAdmissionDetails, isLoading: detailsLoading, error: detailsError } = useAdmissionFormDetails();
+
+    const admissionClass = useMemo(() => ({ data: admissionDetails?.allClass || [] }), [admissionDetails]);
+    const religion = useMemo(() => ({ data: admissionDetails?.allReligion || [] }), [admissionDetails]);
+    const country = useMemo(() => ({ data: admissionDetails?.allCountry || [] }), [admissionDetails]);
+    const allState = useMemo(() => admissionDetails?.allState || [], [admissionDetails]);
+    const source = useMemo(() => ({ data: admissionDetails?.allSources || [] }), [admissionDetails]);
+    const reference = useMemo(() => ({ data: admissionDetails?.allReference || [] }), [admissionDetails]);
+    const concession = useMemo(() => ({ data: (admissionDetails as any)?.admissionConfiguration?.allConcession || [] }), [admissionDetails]);
+    const academicYears = useMemo(() => ({ data: (admissionDetails as any)?.academicYearOnLoad || (admissionDetails as any)?.allAcademicYear || [] }), [admissionDetails]);
+
+    // Missing variables for state and loading aliases
+    const [conStateId, setConStateId] = useState<number | string>('');
+    const [perStateId, setPerStateId] = useState<number | string>('');
+
+    // Compatibility aliases for loading states
+    const referenceLoading = detailsLoading;
+    const admissionClassLoading = detailsLoading;
+    const casteLoading = detailsLoading;
+    const countryLoading = detailsLoading;
+    const fatherPresentStateLoading = detailsLoading;
+    const religionLoading = detailsLoading;
+    const fatherCasteLoading = detailsLoading;
+    const motherPresentStateLoading = detailsLoading;
+    const motherCasteLoading = detailsLoading;
+    const sourceLoading = detailsLoading;
+    const academicLoading = detailsLoading;
+    const birthStateLoading = detailsLoading;
+    const sectionLoading = detailsLoading;
+    const categoryLoading = detailsLoading;
+    const concessionLoading = detailsLoading;
+    const studentStateLoading = detailsLoading;
+
+    // Compatibility aliases for error states
+    const countryError = detailsError;
+    const fatherPresentStateError = detailsError;
+    const religionError = detailsError;
+    const fatherCasteError = detailsError;
+    const motherPresentStateError = detailsError;
+    const motherCasteError = detailsError;
+    const admissionClassError = detailsError;
+    const birthStateError = detailsError;
+    const sectionError = detailsError;
+    const categoryError = detailsError;
+    const studentStateError = detailsError;
+
+    const allCaste = useMemo(() => admissionDetails?.allCaste || [], [admissionDetails]);
+
+    const studentCaste = useMemo(() => {
+        const religionId = watch('amsT_ReligionId');
+        if (!religionId) return { data: [] };
+        return { data: allCaste.filter((c: any) => Number(c.ivrmmR_Id) === Number(religionId)) };
+    }, [allCaste, watch('amsT_ReligionId')]);
+
+    const fatherCaste = useMemo(() => {
+        const religionId = watch('fatherReligionId');
+        if (!religionId) return { data: [] };
+        return { data: allCaste.filter((c: any) => Number(c.ivrmmR_Id) === Number(religionId)) };
+    }, [allCaste, watch('fatherReligionId')]);
+
+    const motherCaste = useMemo(() => {
+        const religionId = watch('motherReligionId');
+        if (!religionId) return { data: [] };
+        return { data: allCaste.filter((c: any) => Number(c.ivrmmR_Id) === Number(religionId)) };
+    }, [allCaste, watch('motherReligionId')]);
+
+    const conState = useMemo(() => {
+        const countryId = watch('amsT_ConCountry');
+        if (!countryId) return { data: [] };
+        return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(countryId)) };
+    }, [allState, watch('amsT_ConCountry')]);
+
+    const perState = useMemo(() => {
+        const countryId = watch('amsT_PerCountry');
+        if (!countryId) return { data: [] };
+        return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(countryId)) };
+    }, [allState, watch('amsT_PerCountry')]);
+
+    const studentState = useMemo(() => {
+        const countryId = watch('amsT_Nationality');
+        if (!countryId) return { data: [] };
+        return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(countryId)) };
+    }, [allState, watch('amsT_Nationality')]);
+
+    const fatherPresentState = useMemo(() => {
+        const countryId = watch('fatherNationality');
+        if (!countryId) return { data: [] };
+        return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(countryId)) };
+    }, [allState, watch('fatherNationality')]);
+
+    const motherPresentState = useMemo(() => {
+        const countryId = watch('motherNationality');
+        if (!countryId) return { data: [] };
+        return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(countryId)) };
+    }, [allState, watch('motherNationality')]);
+
+    const birthState = useMemo(() => {
+        const countryId = watch('amsT_PlaceOfBirthCountry');
+        if (!countryId) return { data: [] };
+        return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(countryId)) };
+    }, [allState, watch('amsT_PlaceOfBirthCountry')]);
+
+    // Backward compatibility aliases for refetching
+    const refetchAdmissionClass = refetchAdmissionDetails;
+    const refetchReligion = refetchAdmissionDetails;
+    const refetchCaste = refetchAdmissionDetails;
+    const refetchCountry = refetchAdmissionDetails;
+    const refetchReference = refetchAdmissionDetails;
+
+    // Additional loading/error aliases
+    const conStateLoading = detailsLoading;
+    const conStateError = detailsError;
+    const perStateLoading = detailsLoading;
+    const perStateError = detailsError;
+    const casteError = detailsError;
+
 
     // student mobile numbers (allow multiple up to 5)
     const { fields: mobileFields, append: appendMobile } = useFieldArray({
@@ -1118,7 +1224,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                         nextPhoneVals[`guardian_${i}_phone`] = String(g.guardianPhone);
                     }
                 });
-                if (Object.keys(nextPhoneVals).length > 0) setPhoneValues((p) => ({ ...p, ...nextPhoneVals }));
+                if (Object.keys(nextPhoneVals).length > 0) setPhoneValues((p: any) => ({ ...p, ...nextPhoneVals }));
 
                 // Helper to check if sibling has any content
                 const siblingHasAnyContent = (s: any) => {
@@ -1387,7 +1493,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                     const formatted = `+${cleanMobCode} ${numberOnly}`;
                     console.debug('[UpdateAdmission] Formatting mobile:', { rawMob, cleanMobCode, numberOnly, formatted });
                     setValue('amsT_MobileNo', formatted, { shouldValidate: true, shouldDirty: true });
-                    setPhoneValues((p) => ({ ...p, amsT_MobileNo: formatted }));
+                    setPhoneValues((p: any) => ({ ...p, amsT_MobileNo: formatted }));
                 }
 
                 // 9. BLOOD GROUP
@@ -1427,12 +1533,12 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 try {
                     if (payload.fatherMobileNumbers) {
                         const fMob = String(payload.fatherMobileNumbers);
-                        setPhoneValues((p) => ({ ...p, fatherMobileNumbers: fMob }));
+                        setPhoneValues((p: any) => ({ ...p, fatherMobileNumbers: fMob }));
                         setValue('fatherMobileNumbers' as any, fMob);
                     }
                     if (payload.motherMobileNumbers) {
                         const mMob = String(payload.motherMobileNumbers);
-                        setPhoneValues((p) => ({ ...p, motherMobileNumbers: mMob }));
+                        setPhoneValues((p: any) => ({ ...p, motherMobileNumbers: mMob }));
                         setValue('motherMobileNumbers' as any, mMob);
                     }
                 } catch (_e) {
@@ -1492,7 +1598,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
     const [_documentErrors, setDocumentErrors] = useState<Record<number, string>>({});
     const [_handledStep3, setHandledStep3] = useState(false);
 
-    const { data: activePreadmission } = useActivePreadmissionDetails();
+    const { data: activePreadmission } = useActivePreadmissionDetails(); // For Step 1 Year persistence logic
 
     // Ensure the academic year from active preadmission is present in react-hook-form state
     useEffect(() => {
@@ -1522,9 +1628,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             if (!perState) setValue('amsT_PerState', getValues('amsT_ConState'));
         }
     }, [conPincode, sameAsResidential, setValue, getValues]);
-
-    const { data: religion, isLoading: religionLoading, error: religionError, refetchAll: refetchReligion } = useReligionDropdown();
-
     // Watch all country fields
     const studentCountryId = watch('amsT_Nationality');
     const conCountryId = watch('amsT_ConCountry');
@@ -1586,250 +1689,41 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
 
     // Use the nationality fields used in the Step 3 UI so state dropdowns refetch correctly
     const fatherPresentCountryId = watch('fatherNationality');
-    const _fatherPermanentCountryId = watch('fatherNationality');
     const motherPresentCountryId = watch('motherNationality');
-    const _motherPermanentCountryId = watch('motherNationality');
     const birthCountryId = watch('amsT_PlaceOfBirthCountry');
 
     const fatherAlive = watch('fatherAliveFlag');
     // Support multiple possible keys for mother-alive checkbox coming from different places
     const motherAlive = watch('motherAliveFlag') || watch('MotherAliveFlag') || false;
-    const {
-        data: caste,
-        isLoading: casteLoading,
-        error: casteError,
-        refetchAll: refetchCaste
-    } = useCasteDropdown(Number(watch('amsT_ReligionId') ?? 0));
 
-    // Caste dropdowns for father and mother should depend on their selected religion
-    const {
-        data: fatherCaste,
-        isLoading: fatherCasteLoading,
-        error: fatherCasteError,
-        refetchAll: refetchFatherCaste
-    } = useCasteDropdown(watch('fatherReligionId') ?? 0);
-
-    const {
-        data: motherCaste,
-        isLoading: motherCasteLoading,
-        error: motherCasteError,
-        refetchAll: refetchMotherCaste
-    } = useCasteDropdown(watch('motherReligionId') ?? 0);
-
-    const {
-        data: admissionClass,
-        isLoading: admissionClassLoading,
-        isError: admissionClassError,
-        refetchAll: refetchAdmissionClass
-    } = useAdmissionClassDropdown();
-
-    const classId = watch('asmcL_Id');
-    const asmaY_Id = watch('asmaY_Id' as any);
-    const {
-        data: category,
-        isLoading: categoryLoading,
-        isError: categoryError,
-        refetchAll: refetchCategory
-    } = useStudentCategoryByClass(Number(classId), Number(asmaY_Id));
-
+    const classId = watch('asmcL_Id' as any);
     const {
         data: sectionData,
-        isLoading: sectionLoading,
-        isError: sectionError,
         refetchAll: refetchSection
     } = useMasterSectionHeld(Number(classId));
 
-    const { data: country, isLoading: countryLoading, isError: countryError, refetchAll: refetchCountry } = useCountryDropdown();
-
     const {
-        data: studentState,
-        isLoading: studentStateLoading,
-        isError: studentStateError,
-        refetchAll: refetchStudentState
-    } = useStateDropdown(Number(studentCountryId));
-
-    const {
-        data: conState,
-        isLoading: conStateLoading,
-        isError: conStateError,
-        refetchAll: refetchConState
-    } = useStateDropdown(Number(conCountryId));
-    const [conStateId, setConStateId] = useState<number | string>('');
-    const {
-        data: conDistrict,
-        isLoading: conDistrictLoading,
-        isError: conDistrictError,
-        refetchAll: refetchConDistrict
-    } = useDistrictDropdown(Number(conStateId));
-
-    const {
-        data: perState,
-        isLoading: perStateLoading,
-        isError: perStateError,
-        refetchAll: refetchPerState
-    } = useStateDropdown(Number(perCountryId));
-    const [perStateId, setPerStateId] = useState<number | string>('');
-    const {
-        data: perDistrict,
-        isLoading: perDistrictLoading,
-        isError: perDistrictError,
-        refetchAll: refetchPerDistrict
-    } = useDistrictDropdown(Number(perStateId));
-
-    // Father address states
-    const {
-        data: fatherPresentState,
-        isLoading: fatherPresentStateLoading,
-        error: fatherPresentStateError,
-        refetchAll: refetchFatherPresentState
-    } = useStateDropdown(Number(fatherPresentCountryId));
-
-    // Mother address states
-    const {
-        data: motherPresentState,
-        isLoading: motherPresentStateLoading,
-        error: motherPresentStateError,
-        refetchAll: refetchMotherPresentState
-    } = useStateDropdown(Number(motherPresentCountryId));
-
-    // Birth place state
-    const {
-        data: birthState,
-        isLoading: birthStateLoading,
-        error: birthStateError,
-        refetchAll: refetchBirthState
-    } = useStateDropdown(Number(birthCountryId));
-
-    const { data: source, isLoading: sourceLoading, refetchAll: refetchSource } = useSourceDropdown();
-    const { data: reference, isLoading: referenceLoading, refetchAll: refetchReference } = useReferenceDropdown();
-    // Preadmission documents API removed - using local uploads instead
-    const { data: concession, isLoading: concessionLoading, refetchAll: refetchConcession } = useConcessionDropdown();
-    const { data: academicYears, isLoading: academicLoading, refetchAll: refetchAcademic } = useAcademicYearDropdown();
-
-    // Reactive sync for Caste selection when data arrives
-    const currentCasteId = watch('imC_Id');
-    const currentReligionId = watch('amsT_ReligionId');
-
-    useEffect(() => {
-        if (!casteLoading && caste?.data && caste.data.length > 0) {
-            console.debug('[UpdateAdmission] Caste Data Loaded:', caste.data.length, 'records');
-        }
-        if (!casteLoading && caste?.data && caste.data.length > 0 && currentCasteId && currentReligionId) {
-            const hasCaste = caste.data.some((c) => Number(c.imC_Id) === Number(currentCasteId));
-            if (hasCaste) {
-                console.debug('[UpdateAdmission] Re-applying existing Caste ID:', currentCasteId);
-                // Re-apply to ensure Select component picks it up after data load
-                setValue('imC_Id', Number(currentCasteId));
-                // Also sync caste_Id if it's in the schema but not set
-                if (!getValues('caste_Id')) {
-                    setValue('caste_Id' as any, Number(currentCasteId));
-                }
-            } else {
-                console.warn(
-                    '[UpdateAdmission] Current Caste ID',
-                    currentCasteId,
-                    'not found in loaded caste options for religion',
-                    currentReligionId
-                );
-
-                // Heuristic: Search rowData for any value that matches a caste option
-                if (rowData && caste.data) {
-                    const src = rowData.data?.firstTab || rowData.firstTab || rowData.data || rowData;
-                    const matches: string[] = [];
-                    Object.entries(src).forEach(([key, val]) => {
-                        if (val && (typeof val === 'number' || typeof val === 'string')) {
-                            const match = caste?.data?.find((c) => Number(c.imC_Id) === Number(val));
-                            if (match) {
-                                matches.push(`${key}=${val} (Matches: ${match.imC_CasteName})`);
-                            }
-                        }
-                    });
-                    if (matches.length > 0) {
-                        console.debug('[UpdateAdmission] DISCOVERED POTENTIAL CASTE IDS IN DATA:', matches);
-                        // Optional: Auto-fix if we find exactly one strong match and current is empty?
-                        // For now, just log it.
-                    }
-                }
-            }
-        }
-    }, [casteLoading, caste?.data, currentCasteId, currentReligionId, setValue, getValues, rowData]);
-
-    // Reactive sync for Student Category selection when data arrives
-    const currentCategoryId = watch('asmcC_Id');
-    useEffect(() => {
-        const items = (category as any)?.data || [];
-        if (!categoryLoading && Array.isArray(items) && items.length > 0) {
-            if (currentCategoryId && Number(currentCategoryId) > 0) {
-                const hasCategory = items.some((item: any) => Number(item.asmcC_Id) === Number(currentCategoryId));
-                if (hasCategory) {
-                    console.debug('[UpdateAdmission] Re-applying existing Category ID:', currentCategoryId);
-                    setValue('asmcC_Id', Number(currentCategoryId));
-                    setValue('studentCategoryId', Number(currentCategoryId));
-                    setValue('amsT_StudentCategory_Id' as any, Number(currentCategoryId));
-                }
-            } else if (!currentCategoryId || Number(currentCategoryId) === 0) {
-                // If none selected and items available, pick first to match add-form behavior
-                console.debug('[UpdateAdmission] Auto-selecting first available Category');
-                const firstId = items[0].asmcC_Id;
-                if (firstId) {
-                    setValue('asmcC_Id', firstId);
-                    setValue('studentCategoryId', firstId);
-                    setValue('amsT_StudentCategory_Id' as any, firstId);
-                }
-            }
-        }
-    }, [categoryLoading, category, currentCategoryId, setValue]);
+        data: category,
+        refetchAll: refetchCategory
+    } = useStudentCategoryByClass(Number(classId), Number(watch('asmaY_Id' as any)));
 
     const _refetchDropdowns = () => {
-        console.debug('[UpdateAdmission] _refetchDropdowns called');
-        refetchReligion();
-
-        refetchCaste();
-        refetchFatherCaste();
-        refetchMotherCaste();
-        refetchCountry();
-        refetchSource();
-        refetchReference();
-        refetchConcession();
-        refetchAcademic();
-        refetchConState();
-        refetchPerState();
-        refetchFatherPresentState();
-
-        refetchMotherPresentState();
-
-        refetchBirthState();
-        refetchCategory();
-        refetchConDistrict();
-        refetchPerDistrict();
-        refetchStudentState();
+        refetchAdmissionDetails();
     };
 
+    const watchedConStateId = watch('amsT_ConState');
+    const { data: conDistrict } = useDistrictDropdown(Number(watchedConStateId));
+
+    const watchedPerStateId = watch('amsT_PerState');
+    const { data: perDistrict } = useDistrictDropdown(Number(watchedPerStateId));
+
+    // Component for a single previous-school row's country/state selects.
     const PreviousSchoolRow = ({ idx }: { idx: number }) => {
         const countryId = watch(`previousSchools.${idx}.countryId` as const) as any;
-        const { data: prevStates, isLoading: prevStatesLoading } = useStateDropdown(Number(countryId));
-
-        // If the row has a state name but no stateId yet, try to resolve it
-        useEffect(() => {
-            try {
-                const curState = getValues(`previousSchools.${idx}.state` as any) as string | undefined;
-                const curStateId = getValues(`previousSchools.${idx}.stateId` as any) as any;
-                if (
-                    curState &&
-                    (!curStateId || Number(curStateId) === 0) &&
-                    Array.isArray(prevStates?.data) &&
-                    prevStates.data.length > 0
-                ) {
-                    const found = prevStates.data.find((s: any) => String(s.ivrmmS_Name) === String(curState));
-                    if (found) {
-                        setValue(`previousSchools.${idx}.stateId` as any, Number(found.ivrmmS_Id));
-                    }
-                }
-            } catch (_e) {
-                // ignore
-            }
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, [prevStates?.data, getValues(`previousSchools.${idx}.state` as any)]);
+        const prevStates = useMemo(() => {
+            if (!countryId) return { data: [] };
+            return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(countryId)) };
+        }, [countryId]);
 
         return (
             <>
@@ -1843,30 +1737,21 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                             <Select
                                 value={field.value?.toString() || ''}
                                 onValueChange={(val) => {
-                                    const id = Number(val) || 0;
-                                    field.onChange(id);
-                                    // Save the human-readable country name alongside the id
-                                    const found = country?.data?.find((c: Country) => c.ivrmmC_Id === id);
-                                    setValue(`previousSchools.${idx}.country` as any, found?.ivrmmC_CountryName ?? '');
-                                    // Clear any previously selected state when country changes
-                                    setValue(`previousSchools.${idx}.stateId` as any, '');
-                                    setValue(`previousSchools.${idx}.state` as any, '');
+                                    const num = Number(val);
+                                    field.onChange(num);
+                                    const sel = country?.data?.find((c: any) => Number(c.ivrmmC_Id) === num);
+                                    (setValue as any)(`previousSchools.${idx}.country`, sel?.ivrmmC_CountryName ?? '');
                                 }}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Country' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {countryLoading ? (
-                                        <SelectItem value='loading' disabled>
-                                            Loading...
-                                        </SelectItem>
-                                    ) : (
-                                        country?.data?.map((item: Country) => (
+                                    {country?.data?.map((item: any) => (
                                             <SelectItem key={item.ivrmmC_Id} value={item.ivrmmC_Id.toString()}>
                                                 {item.ivrmmC_CountryName}
                                             </SelectItem>
                                         ))
-                                    )}
+                                    }
                                 </SelectContent>
                             </Select>
                         )}
@@ -1877,7 +1762,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
 
                 <div className='flex flex-col gap-1.5'>
                     <Label>State</Label>
-
                     <Controller
                         name={`previousSchools.${idx}.stateId` as const}
                         control={control}
@@ -1885,27 +1769,21 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                             <Select
                                 value={field.value?.toString() || ''}
                                 onValueChange={(val) => {
-                                    const id = Number(val) || 0;
-                                    field.onChange(id);
-                                    // Save the human-readable state name alongside the id
-                                    const foundState = prevStates?.data?.find((s: any) => s.ivrmmS_Id === id);
-                                    setValue(`previousSchools.${idx}.state` as any, foundState?.ivrmmS_Name ?? '');
+                                    const num = Number(val);
+                                    field.onChange(num);
+                                    const sel = prevStates?.data?.find((s: any) => Number(s.ivrmmS_Id) === num);
+                                    (setValue as any)(`previousSchools.${idx}.state`, sel?.ivrmmS_Name ?? '');
                                 }}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select State' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {prevStatesLoading ? (
-                                        <SelectItem value='loading' disabled>
-                                            Loading...
-                                        </SelectItem>
-                                    ) : (
-                                        prevStates?.data?.map((item) => (
+                                    {prevStates?.data?.map((item: any) => (
                                             <SelectItem key={item.ivrmmS_Id} value={item.ivrmmS_Id.toString()}>
                                                 {item.ivrmmS_Name}
                                             </SelectItem>
                                         ))
-                                    )}
+                                    }
                                 </SelectContent>
                             </Select>
                         )}
@@ -2023,7 +1901,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
         try {
             const requiredFields = ['amsT_FirstName', 'asmcL_Id', 'amsT_Date', 'amsT_DOB'];
 
-            const missingRequired = requiredFields.filter((k) => {
+            const missingRequired = requiredFields.filter((k: any) => {
                 const v = formData?.[k];
                 return v === undefined || v === null || (typeof v === 'string' && v.trim() === '');
             });
@@ -2525,8 +2403,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 setShowStep3Errors(false);
                 // Get selected religion details
                 const selectedReligionId = watch('motherReligionId');
-                const selectedReligion = religion?.data?.find((r) => r.ivrmmR_Id === selectedReligionId);
-                const _isRomanCatholic = selectedReligion?.ivrmmR_Name === 'Roman Catholic';
+                const selectedReligion = religion?.data?.find((r: any) => r.ivrmmR_Id === selectedReligionId);
+                const _isRomanCatholic = selectedReligion?.ivrmmR_ReligionName === 'Roman Catholic' || selectedReligion?.ivrmmR_Name === 'Roman Catholic';
             }
 
             if (isValid && Number(currentStep) === 3) {
@@ -4866,7 +4744,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                         Error loading religions
                                                                     </SelectItem>
                                                                 ) : (
-                                                                    religion?.data?.map((item) => (
+                                                                    religion?.data?.map((item: any) => (
                                                                         <SelectItem key={item.ivrmmR_Id} value={item.ivrmmR_Id.toString()}>
                                                                             {item.ivrmmR_Name}
                                                                         </SelectItem>
@@ -4890,7 +4768,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
-                                                            key={`caste_${field.value || 'empty'}_${caste?.data?.length || 0}`}
+                                                            key={`caste_${field.value || 'empty'}_${studentCaste?.data?.length || 0}`}
                                                             onValueChange={(value) => field.onChange(Number(value))}
                                                             value={field.value?.toString() || ''}>
                                                             <SelectTrigger className={cn((errors as any).imC_Id && 'border-red-500')}>
@@ -4907,8 +4785,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                     <SelectItem value='error' disabled>
                                                                         Error loading castes
                                                                     </SelectItem>
-                                                                ) : caste?.data && caste.data.length > 0 ? (
-                                                                    caste.data.map((item) => (
+                                                                ) : studentCaste?.data && studentCaste.data.length > 0 ? (
+                                                                    studentCaste.data.map((item: any) => (
                                                                         <SelectItem key={item.imC_Id} value={item.imC_Id.toString()}>
                                                                             {item.imC_CasteName}
                                                                         </SelectItem>
@@ -5628,7 +5506,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                 Error loading
                                                                             </SelectItem>
                                                                         ) : (
-                                                                            country?.data?.map((item) => (
+                                                                            country?.data?.map((item: any) => (
                                                                                 <SelectItem
                                                                                     key={item.ivrmmC_Id}
                                                                                     value={item.ivrmmC_Id.toString()}>
@@ -5670,7 +5548,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                 Error loading
                                                                             </SelectItem>
                                                                         ) : (
-                                                                            conState?.data?.map((item) => (
+                                                                            conState?.data?.map((item: any) => (
                                                                                 <SelectItem
                                                                                     key={item.ivrmmS_Id}
                                                                                     value={item.ivrmmS_Id.toString()}>
@@ -5815,7 +5693,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                 Error loading
                                                                             </SelectItem>
                                                                         ) : (
-                                                                            country?.data?.map((item) => (
+                                                                            country?.data?.map((item: any) => (
                                                                                 <SelectItem
                                                                                     key={item.ivrmmC_Id}
                                                                                     value={item.ivrmmC_Id.toString()}>
@@ -5858,7 +5736,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                 Error loading
                                                                             </SelectItem>
                                                                         ) : (
-                                                                            perState?.data?.map((item) => (
+                                                                            perState?.data?.map((item: any) => (
                                                                                 <SelectItem
                                                                                     key={item.ivrmmS_Id}
                                                                                     value={item.ivrmmS_Id.toString()}>
@@ -6172,7 +6050,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                 Error loading
                                                                             </SelectItem>
                                                                         ) : (
-                                                                            country?.data?.map((item) => (
+                                                                            country?.data?.map((item: any) => (
                                                                                 <SelectItem
                                                                                     key={item.ivrmmC_Id}
                                                                                     value={item.ivrmmC_Id.toString()}>
@@ -6245,7 +6123,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                         Error loading
                                                                                     </SelectItem>
                                                                                 ) : (
-                                                                                    country?.data?.map((item) => (
+                                                                                    country?.data?.map((item: any) => (
                                                                                         <SelectItem
                                                                                             key={item.ivrmmC_CountryName}
                                                                                             value={item.ivrmmC_CountryName.toString()}>
@@ -6288,7 +6166,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                         Error loading
                                                                                     </SelectItem>
                                                                                 ) : (
-                                                                                    fatherPresentState?.data?.map((item) => (
+                                                                                    fatherPresentState?.data?.map((item: any) => (
                                                                                         <SelectItem
                                                                                             key={item.ivrmmS_Id}
                                                                                             value={item.ivrmmS_Id.toString()}>
@@ -6434,7 +6312,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                         Error loading
                                                                                     </SelectItem>
                                                                                 ) : (
-                                                                                    country?.data?.map((item) => (
+                                                                                    country?.data?.map((item: any) => (
                                                                                         <SelectItem
                                                                                             key={item.ivrmmC_CountryName}
                                                                                             value={item.ivrmmC_CountryName.toString()}>
@@ -6478,7 +6356,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                         Error loading
                                                                                     </SelectItem>
                                                                                 ) : (
-                                                                                    fatherPresentState?.data?.map((item) => (
+                                                                                    fatherPresentState?.data?.map((item: any) => (
                                                                                         <SelectItem
                                                                                             key={item.ivrmmS_Id}
                                                                                             value={item.ivrmmS_Id.toString()}>
@@ -6713,11 +6591,11 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                         Error loading
                                                                                     </SelectItem>
                                                                                 ) : (
-                                                                                    religion?.data?.map((item) => (
+                                                                                    religion?.data?.map((item: any) => (
                                                                                         <SelectItem
                                                                                             key={item.ivrmmR_Id}
                                                                                             value={item.ivrmmR_Id.toString()}>
-                                                                                            {item.ivrmmR_Name}
+                                                                                            {item.ivrmmR_ReligionName}
                                                                                         </SelectItem>
                                                                                     ))
                                                                                 )}
@@ -6753,7 +6631,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                         Error loading
                                                                                     </SelectItem>
                                                                                 ) : (
-                                                                                    fatherCaste?.data?.map((item) => (
+                                                                                    fatherCaste?.data?.map((item: any) => (
                                                                                         <SelectItem
                                                                                             key={item.imC_Id}
                                                                                             value={item.imC_Id.toString()}>
@@ -7036,7 +6914,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                 Error loading
                                                                             </SelectItem>
                                                                         ) : (
-                                                                            country?.data?.map((item) => (
+                                                                            country?.data?.map((item: any) => (
                                                                                 <SelectItem
                                                                                     key={item.ivrmmC_Id}
                                                                                     value={item.ivrmmC_Id.toString()}>
@@ -7119,7 +6997,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                         Error loading
                                                                                     </SelectItem>
                                                                                 ) : (
-                                                                                    country?.data?.map((item) => (
+                                                                                    country?.data?.map((item: any) => (
                                                                                         <SelectItem
                                                                                             key={item.ivrmmC_CountryName}
                                                                                             value={item.ivrmmC_CountryName.toString()}>
@@ -7163,7 +7041,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                         Error loading
                                                                                     </SelectItem>
                                                                                 ) : (
-                                                                                    motherPresentState?.data?.map((item) => (
+                                                                                    motherPresentState?.data?.map((item: any) => (
                                                                                         <SelectItem
                                                                                             key={item.ivrmmS_Id}
                                                                                             value={item.ivrmmS_Id.toString()}>
@@ -7320,7 +7198,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                         Error loading
                                                                                     </SelectItem>
                                                                                 ) : (
-                                                                                    country?.data?.map((item) => (
+                                                                                    country?.data?.map((item: any) => (
                                                                                         <SelectItem
                                                                                             key={item.ivrmmC_CountryName}
                                                                                             value={item.ivrmmC_CountryName.toString()}>
@@ -7364,7 +7242,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                         Error loading
                                                                                     </SelectItem>
                                                                                 ) : (
-                                                                                    motherPresentState?.data?.map((item) => (
+                                                                                    motherPresentState?.data?.map((item: any) => (
                                                                                         <SelectItem
                                                                                             key={item.ivrmmS_Id}
                                                                                             value={item.ivrmmS_Id.toString()}>
@@ -7598,11 +7476,11 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                         Error loading
                                                                                     </SelectItem>
                                                                                 ) : (
-                                                                                    religion?.data?.map((item) => (
+                                                                                    religion?.data?.map((item: any) => (
                                                                                         <SelectItem
                                                                                             key={item.ivrmmR_Id}
                                                                                             value={item.ivrmmR_Id.toString()}>
-                                                                                            {item.ivrmmR_Name}
+                                                                                            {item.ivrmmR_ReligionName}
                                                                                         </SelectItem>
                                                                                     ))
                                                                                 )}
@@ -7638,7 +7516,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                         Error loading
                                                                                     </SelectItem>
                                                                                 ) : (
-                                                                                    motherCaste?.data?.map((item) => (
+                                                                                    motherCaste?.data?.map((item: any) => (
                                                                                         <SelectItem
                                                                                             key={item.imC_Id}
                                                                                             value={item.imC_Id.toString()}>
@@ -7761,7 +7639,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                     render={({ field }) => (
                                                         <MultiSelect
                                                             options={
-                                                                source?.data?.map((data) => ({
+                                                                source?.data?.map((data: any) => ({
                                                                     label: data.pamS_SourceName,
                                                                     value: data.pamS_Id.toString()
                                                                 })) || []
@@ -7770,8 +7648,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                 field.onChange(selectedValues);
                                                                 handleSourceSelection(selectedValues);
                                                             }}
-                                                            defaultValue={selectedSourceItems.map((data) => data.pamS_Id)}
-                                                            value={selectedSourceItems.map((data) => data.pamS_Id)}
+                                                            defaultValue={selectedSourceItems.map((data: any) => data.pamS_Id)}
+                                                            value={selectedSourceItems.map((data: any) => data.pamS_Id)}
                                                             placeholder='Select sources'
                                                             variant='inverted'
                                                             disabled={sourceLoading}
@@ -7901,7 +7779,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                             Error loading classes
                                                                                         </SelectItem>
                                                                                     ) : (
-                                                                                        admissionClass?.data?.map((item) => (
+                                                                                        admissionClass?.data?.map((item: any) => (
                                                                                             <SelectItem
                                                                                                 key={item.asmcL_Id}
                                                                                                 value={item.asmcL_Id.toString()}>
@@ -8654,7 +8532,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                             Error loading
                                                                         </SelectItem>
                                                                     ) : (
-                                                                        country?.data?.map((item) => (
+                                                                        country?.data?.map((item: any) => (
                                                                             <SelectItem
                                                                                 key={item.ivrmmC_Id}
                                                                                 value={item.ivrmmC_Id.toString()}>
@@ -8692,7 +8570,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                             Error loading
                                                                         </SelectItem>
                                                                     ) : (
-                                                                        birthState?.data?.map((item) => (
+                                                                        birthState?.data?.map((item: any) => (
                                                                             <SelectItem
                                                                                 key={item.ivrmmS_Id}
                                                                                 value={item.ivrmmS_Id.toString()}>

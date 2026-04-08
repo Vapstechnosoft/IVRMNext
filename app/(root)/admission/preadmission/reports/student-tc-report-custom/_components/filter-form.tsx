@@ -3,20 +3,20 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { useEffect, useState } from 'react';
-import { 
-    Form, 
-    FormControl, 
-    FormField, 
-    FormItem, 
-    FormLabel, 
-    FormMessage 
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage
 } from '@/components/ui/form';
-import { 
-    Select, 
-    SelectContent, 
-    SelectItem, 
-    SelectTrigger, 
-    SelectValue 
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue
 } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Button } from '@/components/ui/button';
@@ -37,7 +37,7 @@ interface FilterFormProps {
 export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) {
     const [studentList, setStudentList] = useState<any[]>([]);
     const [studentOpen, setStudentOpen] = useState(false);
-    
+
     const searchMutation = useStudentTcStudentList();
     const acsMutation = useStudentTcACS();
 
@@ -123,11 +123,11 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel className="font-semibold text-slate-700">Left Year <span className="text-red-500">*</span></FormLabel>
-                                    <Select 
+                                    <Select
                                         onValueChange={(val) => {
                                             field.onChange(val);
                                             form.setValue('AMST_Id', null);
-                                        }} 
+                                        }}
                                         value={field.value}
                                     >
                                         <FormControl>
@@ -136,8 +136,8 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            {initialData?.academicList?.map((yr: any) => (
-                                                <SelectItem key={yr.asmaY_Id} value={yr.asmaY_Id.toString()}>
+                                            {initialData?.academicList?.map((yr: any, index: number) => (
+                                                <SelectItem key={`${yr.asmaY_Id}-${index}`} value={yr.asmaY_Id.toString()}>
                                                     {yr.asmaY_Year}
                                                 </SelectItem>
                                             ))}
@@ -181,11 +181,11 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel className="font-semibold text-slate-700">Class <span className="text-red-500">*</span></FormLabel>
-                                    <Select 
+                                    <Select
                                         onValueChange={(val) => {
                                             field.onChange(val);
                                             form.setValue('AMST_Id', null);
-                                        }} 
+                                        }}
                                         value={field.value}
                                     >
                                         <FormControl>
@@ -194,8 +194,8 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            {initialData?.fillclass?.map((cls: any) => (
-                                                <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()}>
+                                            {initialData?.fillclass?.map((cls: any, index: number) => (
+                                                <SelectItem key={`${cls.asmcL_Id}-${index}`} value={cls.asmcL_Id.toString()}>
                                                     {cls.asmcL_ClassName}
                                                 </SelectItem>
                                             ))}
@@ -206,7 +206,7 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                             )}
                         />
 
-                        {isGirls && (
+                        {/* {isGirls && (
                             <FormField
                                 control={form.control}
                                 name="ASMCL_Id1"
@@ -223,8 +223,8 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                {initialData?.fillclass?.map((cls: any) => (
-                                                    <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()}>
+                                                {initialData?.fillclass?.map((cls: any, index: number) => (
+                                                    <SelectItem key={`${cls.asmcL_Id}-${index}`} value={cls.asmcL_Id.toString()}>
                                                         {cls.asmcL_ClassName}
                                                     </SelectItem>
                                                 ))}
@@ -234,7 +234,7 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                                     </FormItem>
                                 )}
                             />
-                        )}
+                        )} */}
                     </div>
 
                     {/* Column 2 */}
@@ -245,11 +245,11 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel className="font-semibold text-slate-700">Section <span className="text-red-500">*</span></FormLabel>
-                                    <Select 
+                                    <Select
                                         onValueChange={(val) => {
                                             field.onChange(val);
                                             form.setValue('AMST_Id', null);
-                                        }} 
+                                        }}
                                         value={field.value}
                                     >
                                         <FormControl>
@@ -258,8 +258,8 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            {initialData?.fillsec?.map((sec: any) => (
-                                                <SelectItem key={sec.asmS_Id} value={sec.asmS_Id.toString()}>
+                                            {initialData?.fillsec?.map((sec: any, index: number) => (
+                                                <SelectItem key={`${sec.asmS_Id}-${index}`} value={sec.asmS_Id.toString()}>
                                                     {sec.asmC_SectionName}
                                                 </SelectItem>
                                             ))}
@@ -303,9 +303,9 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                                                     <CommandList>
                                                         <CommandEmpty className="p-4 text-sm text-slate-500 text-center">No student found.</CommandEmpty>
                                                         <CommandGroup className="max-h-72 overflow-y-auto">
-                                                            {studentList.map((s: any) => (
+                                                            {studentList.map((s: any, index: number) => (
                                                                 <CommandItem
-                                                                    key={s.amsT_Id || s.amst_id}
+                                                                    key={`${s.amsT_Id || s.amst_id}-${index}`}
                                                                     value={`${s.amsT_FirstName || s.studentname} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''} ${s.amsT_AdmNo || s.amst_admno || ''}`}
                                                                     onSelect={() => {
                                                                         field.onChange(s);
@@ -379,10 +379,10 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                                     <FormItem>
                                         <FormLabel className="font-semibold text-slate-700">Previous School</FormLabel>
                                         <FormControl>
-                                            <Input 
-                                                {...field} 
-                                                placeholder="Enter previous school name" 
-                                                className="h-10 bg-white border-slate-200 shadow-sm focus:border-indigo-400" 
+                                            <Input
+                                                {...field}
+                                                placeholder="Enter previous school name"
+                                                className="h-10 bg-white border-slate-200 shadow-sm focus:border-indigo-400"
                                                 maxLength={50}
                                             />
                                         </FormControl>
@@ -395,18 +395,18 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                 </div>
 
                 <div className="flex flex-wrap items-center justify-center gap-4 pt-8 border-t border-slate-100">
-                    <Button 
-                        type="submit" 
+                    <Button
+                        type="submit"
                         size="lg"
                         className="min-w-[140px] bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg active:scale-95 transition-all font-semibold"
                         disabled={searchMutation.isPending}
                     >
                         <FileText className="mr-2 h-5 w-5" /> Report
                     </Button>
-                    <Button 
-                        type="button" 
-                        variant="outline" 
-                        size="lg" 
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="lg"
                         onClick={handleReset}
                         className="min-w-[140px] shadow-sm active:scale-95 transition-all text-slate-600 border-slate-200 font-semibold"
                     >

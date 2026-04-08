@@ -79,7 +79,9 @@ export const ADMISSION_QUERY_KEYS = {
     DATE_OF_BIRTH_REPORT: 'date_of_birth_report',
     STUDENT_ATTENDANCE_SEARCH: 'student_attendance_search',
     STUDENT_CATEGORY_BY_CLASS: 'student_category_by_class',
-    ADMISSION_FORM_DETAILS: 'admission_form_details'
+    ADMISSION_FORM_DETAILS: 'admission_form_details',
+    ADMISSION_FORM_ONCHANGE_CLASS: 'admission_form_onchange_class',
+    ADMISSION_FORM_ONCHANGE_STREAM: 'admission_form_onchange_stream'
 };
 
 export const PREADMISSION_QUERY_KEYS = {

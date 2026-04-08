@@ -35,6 +35,17 @@ interface FilterFormProps {
     onReset: () => void;
 }
 
+const uniqueBy = <T,>(arr: T[], key: keyof T): T[] => {
+    const seen = new Set();
+    return arr.filter(item => {
+        const val = item[key];
+        if (val === undefined || val === null) return true; // Keep items with missing keys (will be handled by index or ignored)
+        if (seen.has(val)) return false;
+        seen.add(val);
+        return true;
+    });
+};
+
 export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) {
     const [studentList, setStudentList] = useState<any[]>([]);
     const [studentOpen, setStudentOpen] = useState(false);
@@ -75,7 +86,8 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                 const data = (response?.data || response) as any;
 
                 const studentData = data.studentlist || data.studentList || [];
-                setStudentList(Array.isArray(studentData) ? studentData : []);
+                const distinctStudents = uniqueBy(Array.isArray(studentData) ? studentData : [], 'amsT_Id');
+                setStudentList(distinctStudents);
             } catch (error) {
                 console.error('Fetch students error:', error);
             }
@@ -92,7 +104,8 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                     const response = await acsMutation.mutateAsync(parseInt(watchYear));
                     const data = (response?.data || response) as any;
                     const studentData = data.studentlist || data.studentList || [];
-                    setStudentList(Array.isArray(studentData) ? studentData : []);
+                    const distinctStudents = uniqueBy(Array.isArray(studentData) ? studentData : [], 'amsT_Id');
+                    setStudentList(distinctStudents);
                 } catch (error) {
                     console.error('getACS failed:', error);
                 }
@@ -132,7 +145,7 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            {initialData?.academicList?.map((yr: any) => (
+                                            {uniqueBy(initialData?.academicList || [], 'asmaY_Id').map((yr: any) => (
                                                 <SelectItem key={yr.asmaY_Id} value={yr.asmaY_Id.toString()}>
                                                     {yr.asmaY_Year}
                                                 </SelectItem>
@@ -190,7 +203,7 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            {initialData?.fillclass?.map((cls: any) => (
+                                            {uniqueBy(initialData?.fillclass || [], 'asmcL_Id').map((cls: any) => (
                                                 <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()}>
                                                     {cls.asmcL_ClassName}
                                                 </SelectItem>
@@ -224,7 +237,7 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            {initialData?.fillsec?.map((sec: any) => (
+                                            {uniqueBy(initialData?.fillsec || [], 'asmS_Id').map((sec: any) => (
                                                 <SelectItem key={sec.asmS_Id} value={sec.asmS_Id.toString()}>
                                                     {sec.asmC_SectionName}
                                                 </SelectItem>
