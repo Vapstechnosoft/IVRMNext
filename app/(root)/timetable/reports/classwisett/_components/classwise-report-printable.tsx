@@ -8,16 +8,20 @@ interface ClassWiseReportPrintableProps {
 
 const ClassWiseReportPrintable = forwardRef<HTMLDivElement, ClassWiseReportPrintableProps>(({ reportData }, ref) => {
     return (
-        <div ref={ref} className='print-only'>
+        <div ref={ref} className='printable-content'>
             <style jsx global>{`
                 @media screen {
-                    .print-only {
+                    .printable-content {
                         display: none;
                     }
                 }
                 @media print {
-                    .print-only {
-                        display: block;
+                    .printable-content {
+                        display: block !important;
+                        visibility: visible !important;
+                    }
+                    .printable-content * {
+                        visibility: visible !important;
                     }
                     .page-break {
                         page-break-after: always;
@@ -41,6 +45,7 @@ const ClassWiseReportPrintable = forwardRef<HTMLDivElement, ClassWiseReportPrint
                     .day-cell {
                         color: blue !important;
                         -webkit-print-color-adjust: exact;
+                        font-weight: bold;
                     }
                     .break-text {
                         color: red !important;
@@ -61,7 +66,7 @@ const ClassWiseReportPrintable = forwardRef<HTMLDivElement, ClassWiseReportPrint
                     <table>
                         <thead>
                             <tr>
-
+                                <th>Day / Period</th>
                                 {table.periodList.map((p: any, pIdx: number) => (
                                     <th key={pIdx}>Period {p.ped_name}</th>
                                 ))}
