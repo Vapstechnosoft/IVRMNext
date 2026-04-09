@@ -10,29 +10,29 @@ export async function getTotalStrengthInitialDetails() {
 
 
 export async function getTotalStrengthElectives(asmay_id: number) {
-    const url = `/TotalStrength/getelectives/${asmay_id}`;
+    const url = `/TotalStrengthReport/getelectives/${asmay_id}`;
     return await api.get<any>('admission', url);
 }
 
 
 export async function getTotalStrengthClasses(asmay_id: number, amc_id: number) {
-    const url = `/TotalStrength/getclasses?ASMAY_Id=${asmay_id}&AMC_Id=${amc_id}`;
+    const url = `/TotalStrengthReport/getclasses?ASMAY_Id=${asmay_id}&AMC_Id=${amc_id}`;
     return await api.post<any>('admission', url);
 }
 
 export async function getTotalStrengthSections(asmay_id: number, asmcl_id: number, amc_id: number) {
-    const url = `/TotalStrength/getsections?ASMAY_Id=${asmay_id}&ASMCL_Id=${asmcl_id}&AMC_Id=${amc_id}`;
+    const url = `/TotalStrengthReport/getsections?ASMAY_Id=${asmay_id}&ASMCL_Id=${asmcl_id}&AMC_Id=${amc_id}`;
     return await api.post<any>('admission', url);
 }
 
 
 export async function getTotalStrengthReportDetails(data: any) {
-    const url = '/TotalStrength/GetTotalStrengthReport';
+    const url = '/TotalStrengthReport/SophiaGetTotalStrengthReport';
     return await api.post<any>('admission', url, data);
 }
 
 export async function exportTotalStrengthReportToExcel(data: any) {
-    const url = '/TotalStrength/ExportTotalStrengthReportToExcel';
+    const url = '/TotalStrengthReport/ExportTotalStrengthReportToExcel';
     try {
         const responseData = await api.postBinary('admission', url, data);
 
@@ -41,4 +41,9 @@ export async function exportTotalStrengthReportToExcel(data: any) {
         console.error('Total Strength Excel export error:', error);
         throw error;
     }
+}
+
+export async function getMasterCompany() {
+    const url = '/HHSStudyCertificate/getMasterCompany';
+    return await api.get<any>('admission', url);
 }

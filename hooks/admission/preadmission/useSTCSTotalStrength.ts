@@ -7,7 +7,8 @@ import {
     getTotalStrengthElectives,
     getTotalStrengthInitialDetails,
     getTotalStrengthReportDetails,
-    getTotalStrengthSections
+    getTotalStrengthSections,
+    getMasterCompany
 } from '@/server/admission/preadmission/reports/total_strength';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -65,5 +66,13 @@ export const useSTCSTotalStrengthReportDetails = (data: any) => {
 export const useSTCSExportTotalStrengthReport = () => {
     return useMutation({
         mutationFn: (data: any) => exportTotalStrengthReportToExcel(data)
+    });
+};
+
+export const useSTCSTotalStrengthMasterCompany = () => {
+    return useQuery({
+        queryKey: [ADMISSION_QUERY_KEYS.TOTAL_STRENGTH_REPORT, 'master_company'],
+        queryFn: () => getMasterCompany(),
+        staleTime: 0
     });
 };

@@ -1,31 +1,32 @@
 'use client';
 
 import { format } from 'date-fns';
-import React, { Fragment } from 'react';
+import React, { Fragment, useMemo } from 'react';
 
 interface TotalStrengthPrintProps {
-    groupedData: Record<number, any[]>;
+    groupedData: Record<string, any[]>;
     totalGrand: number;
     dynamicElectives?: any[];
     schoolName?: string;
     schoolAddress?: string;
     schoolPhone?: string;
     logoUrl?: string;
+    yearString?: string;
 }
 
 export const TotalStrengthPrint = React.forwardRef<HTMLDivElement, TotalStrengthPrintProps>(
-    ({ groupedData, totalGrand, dynamicElectives = [], schoolName, schoolAddress, schoolPhone, logoUrl }, ref) => {
+    ({ groupedData, totalGrand, dynamicElectives = [], schoolName, schoolAddress, schoolPhone, logoUrl, yearString }, ref) => {
         const currentDate = format(new Date(), 'dd/MM/yyyy');
 
-        const calculateClassTotalByRow = (rowNumber: number, field: string) => {
-            const items = groupedData[rowNumber] || [];
-            return items.reduce((sum, item) => sum + (item[field] || 0), 0);
+        const calculateClassTotalByGroup = (groupKey: string, field: string) => {
+            const items = groupedData[groupKey] || [];
+            return items.reduce((sum: number, item: any) => sum + (item[field] || 0), 0);
         };
 
         const calculateGrandTotal = (field: string) => {
             let grand = 0;
-            Object.values(groupedData).forEach(sections => {
-                sections.forEach(item => {
+            Object.values(groupedData).forEach((sections: any[]) => {
+                sections.forEach((item: any) => {
                     grand += (item[field] || 0);
                 });
             });
@@ -33,7 +34,7 @@ export const TotalStrengthPrint = React.forwardRef<HTMLDivElement, TotalStrength
         };
 
         return (
-            <div ref={ref} className='print-preview-container bg-white text-black min-h-full w-full'>
+            <div ref={ref} className='print-preview-container bg-white text-black min-h-full w-full printable-content'>
                 <style>
                     {`
                         @media print {
@@ -42,7 +43,6 @@ export const TotalStrengthPrint = React.forwardRef<HTMLDivElement, TotalStrength
                                 size: A4 landscape;
                             }
                             body {
-                                visibility: hidden;
                                 background: white;
                             }
                             .print-preview-container {
@@ -57,7 +57,7 @@ export const TotalStrengthPrint = React.forwardRef<HTMLDivElement, TotalStrength
                                 width: 100%;
                             }
                             th, td {
-                                border: 0.5pt solid black;
+                                border: 0.5pt solid black !important;
                                 padding: 4px;
                                 text-align: center;
                                 font-size: 10px;
@@ -73,17 +73,30 @@ export const TotalStrengthPrint = React.forwardRef<HTMLDivElement, TotalStrength
                     `}
                 </style>
 
-                <div className='p-2'>
+                <div className='p-4'>
                     {/* Header */}
+                    <div className='flex items-start gap-6 mb-4 mt-4'>
+                        {logoUrl && (
+                            <img src={logoUrl} alt='Logo' className='h-60 w-auto max-w-[1000px] object-contain' />
+                        )}
+                        {/* <div className='flex-1 text-center'>
+                            <h1 className='text-5xl italic mb-1' style={{ fontFamily: 'Georgia, serif', color: '#102d7d' }}>{schoolName}</h1>
+                            <div className='border-t-2 border-orange-400 w-full mb-3'></div>
+                            <div className='text-[14px] leading-relaxed text-gray-800 font-medium'>
+                                <p className='whitespace-pre-line'>{schoolAddress}</p>
+                                {schoolPhone && <p className='mt-2'>Phone No : {schoolPhone}</p>}
+                            </div>
+                        </div> */}
+                    </div>
+
                     <div className='text-center mb-4'>
-                        <h1 className='text-xl font-bold uppercase'>{schoolName || 'Institution Name'}</h1>
-                        <p className='text-xs'>{schoolAddress}</p>
-                        <h2 className='text-lg font-bold border-y border-black my-2 inline-block px-8 py-1 truncate capitalize'>TOTAL STRENGTH REPORT</h2>
-                        <p className='text-xs text-right italic'>Date: {currentDate}</p>
+                        <h2 className='text-xl font-bold border-b-2 border-black inline-block px-4 pb-0.5'>
+                            Total Strength Report For Year {yearString}
+                        </h2>
                     </div>
 
                     {/* Table */}
-                    <table>
+                    <table className='w-full'>
                         <thead>
                             <tr className='bg-gray-100 uppercase'>
                                 <th style={{ width: '40px' }}>Sl.No</th>
@@ -91,53 +104,57 @@ export const TotalStrengthPrint = React.forwardRef<HTMLDivElement, TotalStrength
                                 <th className='text-left'>Section</th>
                                 <th style={{ width: '45px' }}>Boys</th>
                                 <th style={{ width: '45px' }}>Girls</th>
-                                {dynamicElectives.map((e: any) => (
-                                    <th key={e.ISMS_Id}>{e.ISMS_SubjectName}</th>
-                                ))}
-                                <th style={{ width: '50px' }}>New Adm</th>
                                 <th className='text-right' style={{ width: '60px' }}>Total</th>
+                                <th style={{ width: '50px' }}>New Admission</th>
+                                {dynamicElectives.map((e: any) => (
+                                    <th key={e.ISMS_Id || (e as any).ismS_Id}>{e.ISMS_SubjectName || (e as any).ismS_SubjectName}</th>
+                                ))}
                             </tr>
                         </thead>
                         <tbody>
                             {Object.entries(groupedData)
-                                .sort(([a], [b]) => Number(a) - Number(b))
-                                .map(([rowNumber, sections], index) => (
-                                    <Fragment key={rowNumber}>
+                                .map(([groupKey, sections], index) => (
+                                    <Fragment key={groupKey}>
                                         {sections.map((item: any, sectionIndex) => (
-                                            <tr key={`${rowNumber}-${sectionIndex}`}>
-                                                <td>{sectionIndex === 0 ? index + 1 : ''}</td>
-                                                <td className='text-left'>{sectionIndex === 0 ? item.classname : ''}</td>
+                                            <tr key={`${groupKey}-${sectionIndex}`}>
+                                                <td>{sectionIndex + 1}</td>
+                                                {/* <td className='text-left'>{sectionIndex === 0 ? item.classname : ''}</td> */}
+                                                <td>{item.classname}</td>
                                                 <td className='text-left'>{item.sectionname}</td>
                                                 <td>{item.boys}</td>
                                                 <td>{item.girls}</td>
-                                                {dynamicElectives.map((e: any) => (
-                                                    <td key={e.ISMS_Id}>{item[e.ISMS_SubjectName] || 0}</td>
-                                                ))}
+                                                <td className='text-right font-bold'>{item.totalstudents}</td>
                                                 <td>{item.newAdmission || 0}</td>
-                                                <td className='text-right'>{item.totalstudents}</td>
+                                                {dynamicElectives.map((e: any) => (
+                                                    <td key={e.ISMS_Id || (e as any).ismS_Id}>{item[e.ISMS_SubjectName || (e as any).ismS_SubjectName] || 0}</td>
+                                                ))}
                                             </tr>
                                         ))}
                                         <tr className='bg-gray-50 font-bold'>
-                                            <td colSpan={3} className='text-right'>Total for {sections[0]?.classname}</td>
-                                            <td>{calculateClassTotalByRow(Number(rowNumber), 'boys')}</td>
-                                            <td>{calculateClassTotalByRow(Number(rowNumber), 'girls')}</td>
+                                            <td></td>
+                                            <td className='text-left'>Total</td>
+                                            <td></td>
+                                            <td>{calculateClassTotalByGroup(groupKey, 'boys')}</td>
+                                            <td>{calculateClassTotalByGroup(groupKey, 'girls')}</td>
+                                            <td className='text-right'>{calculateClassTotalByGroup(groupKey, 'totalstudents')}</td>
+                                            <td>{calculateClassTotalByGroup(groupKey, 'newAdmission')}</td>
                                             {dynamicElectives.map((e: any) => (
-                                                <td key={e.ISMS_Id}>{calculateClassTotalByRow(Number(rowNumber), e.ISMS_SubjectName)}</td>
+                                                <td key={e.ISMS_Id || (e as any).ismS_Id}>{calculateClassTotalByGroup(groupKey, e.ISMS_SubjectName || (e as any).ismS_SubjectName)}</td>
                                             ))}
-                                            <td>{calculateClassTotalByRow(Number(rowNumber), 'newAdmission')}</td>
-                                            <td className='text-right'>{calculateClassTotalByRow(Number(rowNumber), 'totalstudents')}</td>
                                         </tr>
                                     </Fragment>
                                 ))}
                             <tr className='bg-gray-200 font-bold uppercase'>
-                                <td colSpan={3} className='text-right'>Grand Total</td>
+                                <td></td>
+                                <td className='text-left'>Grand Total</td>
+                                <td></td>
                                 <td>{calculateGrandTotal('boys')}</td>
                                 <td>{calculateGrandTotal('girls')}</td>
-                                {dynamicElectives.map((e: any) => (
-                                    <td key={e.ISMS_Id}>{calculateGrandTotal(e.ISMS_SubjectName)}</td>
-                                ))}
-                                <td>{calculateGrandTotal('newAdmission')}</td>
                                 <td className='text-right'>{totalGrand}</td>
+                                <td>{calculateGrandTotal('newAdmission')}</td>
+                                {dynamicElectives.map((e: any) => (
+                                    <td key={e.ISMS_Id || (e as any).ismS_Id}>{calculateGrandTotal(e.ISMS_SubjectName || (e as any).ismS_SubjectName)}</td>
+                                ))}
                             </tr>
                         </tbody>
                     </table>
