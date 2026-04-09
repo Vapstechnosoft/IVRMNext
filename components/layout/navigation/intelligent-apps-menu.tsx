@@ -30,7 +30,6 @@ import { ChevronDown, Sparkles, Volume2, Play, Square, Upload } from 'lucide-rea
 import { useState, useEffect } from 'react';
 import Script from 'next/script';
 import { chatGPT, whatsAppCall, whatsAppBulkCall, languageTranslator } from '@/server/intelligent-apps';
-import { SchoolAssistantBot } from '@/components/chatbot/school-assistant-bot';
 
 export function IntelligentAppsMenu() {
     // Force Rebuild: Intelligent Apps Menu
@@ -47,7 +46,6 @@ export function IntelligentAppsMenu() {
                     </div>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align='end'>
-                    <DropdownMenuItem onSelect={() => setOpenDialog('schoolbot')}>Intelligent Bot</DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => setOpenDialog('whatsapp')}>Whatsapp</DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => setOpenDialog('chatgpt')}>ChatGPT</DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => setOpenDialog('translator')}>Language Translator</DropdownMenuItem>
@@ -60,7 +58,6 @@ export function IntelligentAppsMenu() {
 
             <WhatsAppDialog open={openDialog === 'whatsapp'} onOpenChange={(open) => !open && setOpenDialog(null)} />
             <ChatGPTDialog open={openDialog === 'chatgpt'} onOpenChange={(open) => !open && setOpenDialog(null)} />
-            <SchoolAssistantBot open={openDialog === 'schoolbot'} onOpenChange={(open) => !open && setOpenDialog(null)} />
             <LanguageTranslatorDialog open={openDialog === 'translator'} onOpenChange={(open) => !open && setOpenDialog(null)} />
             <TextToSpeechDialog open={openDialog === 'speech'} onOpenChange={(open) => !open && setOpenDialog(null)} />
             <PdfConverterDialog open={openDialog === 'pdf'} onOpenChange={(open) => !open && setOpenDialog(null)} />

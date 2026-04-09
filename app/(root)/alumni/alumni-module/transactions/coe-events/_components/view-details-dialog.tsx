@@ -22,15 +22,15 @@ export default function ViewDetailsDialog({ isOpen, onClose, title, description,
     const isArrayData = Array.isArray(data);
 
     // Extract data sections gracefully if structured
-    // Extract data sections gracefully if structured
-    // Prioritize edit_map_event for schedule details (Events Mapping), fallback to edit_m_event (Master Events)
-    const mapEventInfo = isStructuredData ? data?.edit_map_event?.[0] || {} : {};
-    const masterEventInfo = isStructuredData ? data?.edit_m_event?.[0] || {} : {};
+    // Prioritize edit_m_event for schedule details (Mapping), and edit_m_events for templates (Master)
+    const mapEventInfo = isStructuredData ? data?.edit_m_event?.[0] || {} : {};
+    const masterEventInfo = isStructuredData ? data?.edit_m_events?.[0] || {} : {};
 
-    // Merge info: Prefer mapping info for specific schedule, master info for generic details
-    const eventInfo = { ...masterEventInfo, ...mapEventInfo };
+    // Merge info: Provide mapping info for schedule, master info for templates
+    const eventInfo = mapEventInfo;
     const masterInfo = masterEventInfo;
-    const classes = isStructuredData ? data?.edit_stu_class_list || [] : [];
+
+    const classes = isStructuredData ? data?.edit_stu_class_list || data?.alumniClslist || [] : [];
     const employees = isStructuredData ? data?.edit_emp_type_list || [] : [];
     const others = isStructuredData ? data?.edit_oth_mobilenos_list || [] : [];
     const images = isStructuredData ? data?.edit_images_list || [] : [];
@@ -70,8 +70,9 @@ export default function ViewDetailsDialog({ isOpen, onClose, title, description,
                         </div>
                     ) : isStructuredData ? (
                         <Tabs defaultValue='summary' className='w-full'>
-                            <TabsList className='sticky top-0 z-10 mb-6 grid w-full grid-cols-5 bg-background shadow-sm'>
+                            <TabsList className='sticky top-0 z-10 mb-6 grid w-full grid-cols-6 bg-background shadow-sm'>
                                 <TabsTrigger value='summary'>Summary</TabsTrigger>
+                                <TabsTrigger value='notifications'>Notifications</TabsTrigger>
                                 <TabsTrigger value='classes'>Classes ({classes.length})</TabsTrigger>
                                 <TabsTrigger value='employees'>Employees ({employees.length})</TabsTrigger>
                                 <TabsTrigger value='others'>Others ({others.length})</TabsTrigger>
@@ -104,6 +105,19 @@ export default function ViewDetailsDialog({ isOpen, onClose, title, description,
                                                     </p>
                                                 </div>
                                             </div>
+                                            {eventInfo.coeE_ReminderDate && (
+                                                <div className='flex items-start gap-3'>
+                                                    <Calendar className='mt-0.5 h-5 w-5 text-orange-500' />
+                                                    <div>
+                                                        <p className='font-semibold text-muted-foreground text-xs uppercase tracking-wider'>
+                                                            Reminder Date
+                                                        </p>
+                                                        <p className='font-medium text-lg text-orange-600'>
+                                                            {formatDate(eventInfo.coeE_ReminderDate)}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                         <div className='space-y-4'>
                                             <div className='flex items-center gap-3'>
@@ -134,6 +148,55 @@ export default function ViewDetailsDialog({ isOpen, onClose, title, description,
                                         <p className='text-sm leading-relaxed'>{masterInfo.coemE_EventDesc}</p>
                                     </div>
                                 )}
+                            </TabsContent>
+
+                            <TabsContent value='notifications' className='mt-0 space-y-6'>
+                                <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
+                                    {/* SMS Template */}
+                                    <Card
+                                        className={`border-t-4 shadow-sm ${eventInfo.coeE_SMSActiveFlag ? 'border-t-green-500' : 'border-t-muted-foreground/30'}`}>
+                                        <CardContent className='space-y-4 pt-6'>
+                                            <div className='flex items-center gap-2 font-bold text-lg text-primary'>
+                                                <MessageSquare className='h-5 w-5 text-green-500' />
+                                                SMS Content
+                                            </div>
+                                            <div className='rounded-md bg-muted/20 p-4 text-sm italic leading-relaxed shadow-inner'>
+                                                {masterInfo.coemE_SMSMessage || 'N/A'}
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+
+                                    {/* Email Template */}
+                                    <Card
+                                        className={`border-t-4 shadow-sm ${eventInfo.coeE_MailActiveFlag ? 'border-t-blue-500' : 'border-t-muted-foreground/30'}`}>
+                                        <CardContent className='space-y-4 pt-6'>
+                                            <div className='flex items-center gap-2 font-bold text-lg text-primary'>
+                                                <Mail className='h-5 w-5 text-blue-500' />
+                                                Email Template
+                                            </div>
+                                            <div className='space-y-4 text-sm'>
+                                                <div>
+                                                    <p className='font-semibold text-muted-foreground text-xs uppercase'>Subject</p>
+                                                    <p className='font-medium'>{masterInfo.coemE_MailSubject || 'N/A'}</p>
+                                                </div>
+                                                <div>
+                                                    <p className='font-semibold text-muted-foreground text-xs uppercase'>Header</p>
+                                                    <p className='font-medium'>{masterInfo.coemE_MailHeader || 'N/A'}</p>
+                                                </div>
+                                                <div>
+                                                    <p className='font-semibold text-muted-foreground text-xs uppercase'>Message Body</p>
+                                                    <div className='mt-1 rounded-md bg-muted/20 p-3 italic leading-relaxed shadow-inner'>
+                                                        {masterInfo.coemE_Mail_Message || 'N/A'}
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <p className='font-semibold text-muted-foreground text-xs uppercase'>Footer</p>
+                                                    <p className='font-medium'>{masterInfo.coemE_MailFooter || 'N/A'}</p>
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                </div>
                             </TabsContent>
 
                             <TabsContent value='classes' className='mt-0'>
@@ -258,32 +321,98 @@ export default function ViewDetailsDialog({ isOpen, onClose, title, description,
                         </Tabs>
                     ) : (
                         <div className='space-y-4'>
-                            <GenericDataTable
-                                isLoading={loading}
-                                columns={[
-                                    { header: 'SL No', cell: (info: any) => info.row.index + 1, size: 80 },
-                                    { header: 'Event Name', accessorKey: 'coemE_EventName' },
-                                    { header: 'Year', accessorKey: 'asmaY_Year' },
-                                    {
-                                        header: 'Start Date',
-                                        accessorKey: 'coeE_EStartDate',
-                                        cell: (info: any) => formatDate(info.getValue())
-                                    },
-                                    { header: 'End Date', accessorKey: 'coeE_EEndDate', cell: (info: any) => formatDate(info.getValue()) },
-                                    {
-                                        header: 'Status',
-                                        accessorKey: 'coemE_ActiveFlag',
-                                        cell: (info: any) =>
-                                            info.getValue() ? (
-                                                <Badge variant='success'>Active</Badge>
-                                            ) : (
-                                                <Badge variant='destructive'>Inactive</Badge>
+                            {data && data.length > 0 && (data[0].coemE_SMSMessage !== undefined || data[0].coemE_MailSubject !== undefined) ? (
+                                <>
+                                    <div className='mb-4 text-center font-bold text-xl uppercase text-primary'>
+                                        Event Templates
+                                    </div>
+                                    <GenericDataTable
+                                        isLoading={loading}
+                                        columns={[
+                                            {
+                                                id: 'sno',
+                                                header: () => <div className='text-center uppercase font-bold text-black'>SLNO</div>,
+                                                cell: (info: any) => <div className='text-center'>{info.row.index + 1}</div>,
+                                                size: 80
+                                            },
+                                            {
+                                                header: () => <div className='text-center uppercase font-bold text-black'>SMS Message</div>,
+                                                accessorKey: 'coemE_SMSMessage',
+                                                cell: (info: any) => <div className='text-center'>{info.getValue() || '[NAME]'}</div>
+                                            },
+                                            {
+                                                header: () => <div className='text-center uppercase font-bold text-black'>Mail Subject</div>,
+                                                accessorKey: 'coemE_MailSubject',
+                                                cell: (info: any) => <div className='text-center'>{info.getValue() || '-'}</div>
+                                            },
+                                            {
+                                                header: () => <div className='text-center uppercase font-bold text-black'>Mail Header</div>,
+                                                accessorKey: 'coemE_MailHeader',
+                                                cell: (info: any) => <div className='text-center'>{info.getValue() || '-'}</div>
+                                            },
+                                            {
+                                                header: () => <div className='text-center uppercase font-bold text-black'>Mail Footer</div>,
+                                                accessorKey: 'coemE_MailFooter',
+                                                cell: (info: any) => <div className='text-center'>{info.getValue() || '-'}</div>
+                                            },
+                                            {
+                                                header: () => <div className='text-center uppercase font-bold text-black'>Mail Message</div>,
+                                                accessorKey: 'coemE_Mail_Message',
+                                                cell: (info: any) => <div className='text-center'>{info.getValue() || '[NAME]'}</div>
+                                            }
+                                        ]}
+                                        data={data}
+                                        noDataTitle='No Event Templates'
+                                    />
+                                </>
+                            ) : (
+                                <GenericDataTable
+                                    isLoading={loading}
+                                    columns={[
+                                        {
+                                            id: 'sno',
+                                            header: () => <div className='text-center uppercase font-bold text-black'>SL NO</div>,
+                                            cell: (info: any) => <div className='text-center'>{info.row.index + 1}</div>,
+                                            size: 80
+                                        },
+                                        {
+                                            header: () => <div className='text-center uppercase font-bold text-black'>Event Name</div>,
+                                            accessorKey: 'coemE_EventName',
+                                            cell: (info: any) => <div className='text-center'>{info.getValue()}</div>
+                                        },
+                                        {
+                                            header: () => <div className='text-center uppercase font-bold text-black'>Year</div>,
+                                            accessorKey: 'asmaY_Year',
+                                            cell: (info: any) => <div className='text-center'>{info.getValue()}</div>
+                                        },
+                                        {
+                                            header: () => <div className='text-center uppercase font-bold text-black'>Start Date</div>,
+                                            accessorKey: 'coeE_EStartDate',
+                                            cell: (info: any) => <div className='text-center'>{formatDate(info.getValue())}</div>
+                                        },
+                                        {
+                                            header: () => <div className='text-center uppercase font-bold text-black'>End Date</div>,
+                                            accessorKey: 'coeE_EEndDate',
+                                            cell: (info: any) => <div className='text-center'>{formatDate(info.getValue())}</div>
+                                        },
+                                        {
+                                            header: () => <div className='text-center uppercase font-bold text-black'>Status</div>,
+                                            accessorKey: 'coemE_ActiveFlag',
+                                            cell: (info: any) => (
+                                                <div className='flex justify-center'>
+                                                    {info.getValue() ? (
+                                                        <Badge variant='success'>Active</Badge>
+                                                    ) : (
+                                                        <Badge variant='destructive'>Inactive</Badge>
+                                                    )}
+                                                </div>
                                             )
-                                    }
-                                ]}
-                                data={data}
-                                noDataTitle='No records'
-                            />
+                                        }
+                                    ]}
+                                    data={data}
+                                    noDataTitle='No records'
+                                />
+                            )}
                         </div>
                     )}
                 </div>

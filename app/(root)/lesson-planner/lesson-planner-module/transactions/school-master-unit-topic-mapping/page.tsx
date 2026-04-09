@@ -106,14 +106,14 @@ export default function SchoolMasterUnitTopicMappingPage() {
     };
 
     const handleToggleActive = async (item: IMappingGridItem) => {
-        const lpmuT_Id = findValue(item, ['lpmuT_Id', 'LPMUT_Id', 'id']);
+        const lpmuT_Id = findValue(item, ['lpmtU_Id', 'LPMTU_Id', 'lpmuT_Id', 'LPMUT_Id', 'id']);
         const lpmU_Id = findValue(item, ['lpmU_Id', 'LPMU_Id', 'unitId']);
         const lpmT_Id = findValue(item, ['lpmT_Id', 'LPMT_Id', 'topicId']);
 
         const payload = {
-            LPMTU_Id: lpmuT_Id,
-            LPMU_Id: lpmU_Id,
-            LPMT_Id: lpmT_Id,
+            LPMTU_Id: lpmuT_Id ?? 0,
+            LPMU_Id: lpmU_Id ?? 0,
+            LPMT_Id: lpmT_Id ?? 0,
             LPMUT_ActiveFlag: item.lpmuT_ActiveFlag
         };
 

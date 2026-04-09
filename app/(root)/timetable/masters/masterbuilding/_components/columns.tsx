@@ -25,7 +25,7 @@ export const masterBuildingsColumns: ColumnDef<IMasterBuildingList>[] = [
     // },
     {
         accessorKey: 'ttmB_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='font-bold text-black' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -37,7 +37,7 @@ export const masterBuildingsColumns: ColumnDef<IMasterBuildingList>[] = [
     },
     {
         accessorKey: 'ttmB_BuildingName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Building Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Building Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('ttmB_BuildingName')}</div>,
         enableSorting: true,
         enableHiding: true
@@ -45,7 +45,7 @@ export const masterBuildingsColumns: ColumnDef<IMasterBuildingList>[] = [
 
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='font-bold text-black' />,
         accessorFn: (row: any) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />

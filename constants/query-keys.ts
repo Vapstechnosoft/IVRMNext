@@ -276,7 +276,8 @@ export const FEES_QUERY_KEYS = {
     FEE_STUDENT_TERM_WISE_PAID_CLASS_YEAR_DROP: 'fee_student_term_wise_paid_class_drop',
     FEE_STUDENT_TERM_WISE_PAID_SECTION_YEAR_DROP: 'fee_student_term_wise_paid_section_drop',
     FEE_STUDENT_TERM_WISE_PAID_TERM_LIST: 'fee_student_term_wise_paid_term_list',
-    FEE_FEE_RECEIPT_REPORT_LOGO: 'fee_fee_receipt_report_logo'
+    FEE_FEE_RECEIPT_REPORT_LOGO: 'fee_fee_receipt_report_logo',
+    FEE_CATEGORY_DROPDOWNS: 'fee_category_dropdown'
 };
 
 export const EXAM_QUERY_KEYS = {
@@ -376,6 +377,7 @@ export const HRMS_QUERY_KEYS = {
     SALARY_APPROVAL_ONLOAD: 'hrms_salary_approval_onload',
     SALARY_APPROVAL_EMPLOYEES: 'hrms_salary_approval_employees',
     SALARY_INCREMENT_ONLOAD: 'hrms_salary_increment_onload',
+    EMPLOYEE_INCREMENT_GRID: 'hrms_employee_increment_grid',
     SALARY_UPDATION_ONLOAD: 'hrms_salary_updation_onload',
     MASS_UPDATION_ONLOAD: 'hrms_mass_updation_onload',
     SALARY_ADVANCE_ONLOAD: 'hrms_salary_advance_onload',
@@ -504,7 +506,15 @@ export const HOSTEL_QUERY_KEYS = {
     MASTER_COUNTRY_DROPDOWN_LIST: 'hostel_master_country_dropdown_list',
     MASTER_STATE_DROPDOWN_LIST: 'hostel_master_state_dropdown_list',
     MASTER_FACILITY_DROPDOWN_LIST: 'hostel_master_facility_dropdown_list',
-    MASTER_PHOTO_LIST: 'hostel_master_photo_list'
+    MASTER_PHOTO_LIST: 'hostel_master_photo_list',
+    MASTER_ROOM_CATEGORY_DROPDOWN_LIST: 'hostel_master_room_category_dropdown_list',
+    MASTER_ROOM_CATEGORY_LIST: 'hostel_master_room_category_list',
+    MASTER_MESS_CATEGORY_GRID: 'hostel_master_mess_category_grid',
+    MASTER_MESS_CATEGORY_DROPDOWN: 'hostel_master_mess_category_dropdown',
+    MESS_MENU_GRID_LIST: 'MESS_MENU_DATA',
+    MATER_ROOM_GRID_LIST: 'master-room-list',
+    MASTER_ROOM_DROPDOWN_LIST: 'master-room-dropdown-list',
+    HOSTEL_GUEST_ALLOTMENT_LIST: 'hostel_guest_allotment_list_',
 };
 export const LIBRARY_QUERY_KEYS = {
     MASTER_LIBRARY_LIST_DATA: 'master_library_list_data',
@@ -536,6 +546,8 @@ export const LIBRARY_QUERY_KEYS = {
     LIBRARY_LOST_BOOK_LIST: 'library_lost_book_list'
 };
 export const PORTAL_QUERY_KEYS = {
+    NOTICE_BOARD_LIST: 'notice_board_list',
+    CLASSWORK_LIST: 'classwork_list',
     CLASS_WORK_UPLOADED: 'class_work_uploaded',
     HOME_WORK_UPLOADED: 'home_work_uploaded',
     STUDENT_PORTAL_FEEDBACK: 'student_portal_feedback',

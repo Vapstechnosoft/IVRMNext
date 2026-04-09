@@ -1,6 +1,6 @@
 'use server';
 
-import { api, type ApiResponse } from '@/lib/apiService';
+import { api, getSearchParamsUrl, type ApiResponse } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type { IEventSponsorInitialData } from '@/types/sports/transactions/events-sponsor';
 
@@ -9,8 +9,9 @@ import type { IEventSponsorInitialData } from '@/types/sports/transactions/event
  */
 export async function getEventsSponsorMapping(searchParams?: ApiSearchparams): Promise<ApiResponse<IEventSponsorInitialData>> {
     try {
+        const urlParams = getSearchParamsUrl(searchParams ?? {});
         // Controller uses [HttpPost("getDetails")]
-        const response = await api.post<IEventSponsorInitialData>('sports', '/EventsSponsor/getDetails', {});
+        const response = await api.post<IEventSponsorInitialData>('sports', `/EventsSponsor/getDetails?${urlParams}`, {});
         return response;
     } catch (error: any) {
         return {

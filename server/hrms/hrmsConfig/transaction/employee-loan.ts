@@ -205,22 +205,25 @@ export async function saveEmployeeLoan(data: EmployeeLoanSaveRequest): Promise<E
 
     // Construct Payload matching user requirements
     const requestBody = {
-        HREL_Id: data.HREL_Id || 0,
-        HRME_Id: data.HRME_Id || 0,
-        HREL_AppliedDate: data.HREL_AppliedDate, // "2026-01-23T00:00:00" format assumed passed from UI or handled here
-        HREL_EmpLoanId: data.HREL_EmpLoanId || "0", // Defaulting if not passed
-        HRMLN_Id: data.HRMLN_Id || 0,
-        HREL_LoanAmount: data.HREL_LoanAmount || 0,
-        HREL_LoanInsallments: String(data.HREL_LoanInsallments || ''),
-        HREL_LaonEMI: String(data.HREL_LaonEMI || ''),
-        HREL_SanctionedAmount: data.HREL_SanctionedAmount || data.HREL_LoanAmount, // Default to loan amount if not provided
-        HREL_TotalPrincipalPaid: data.HREL_TotalPrincipalPaid || 0,
-        HREL_TotalInterestPaid: data.HREL_TotalInterestPaid || 0,
-        HREL_TotalPending: data.HREL_TotalPending || data.HREL_LoanAmount, // Default to loan amount if new
-        HREL_LoanInterest: data.HREL_LoanInterest || 0,
-        HREL_ModeOfPayment: data.HREL_ModeOfPayment || '',
-        HREL_ReferenceNo: data.HREL_ReferenceNo,
-        HREL_NoofInstallment: Number(data.HREL_LoanInsallments) || 0
+        hreL_Id: data.HREL_Id || 0,
+        hrmE_Id: data.HRME_Id || 0,
+        hreL_AppliedDate: data.HREL_AppliedDate,
+        hreL_EmpLoanId: data.HREL_EmpLoanId || "0",
+        hrmlN_Id: data.HRMLN_Id || 0,
+        hreL_LoanAmount: data.HREL_LoanAmount || 0,
+        hreL_LoanInsallments: String(data.HREL_LoanInsallments || ''),
+        hreL_LaonEMI: String(data.HREL_LaonEMI || ''),
+        hreL_LoanStatus: data.HREL_LoanStatus || 'Applied',
+        hreL_SanctionedAmount: data.HREL_SanctionedAmount || data.HREL_LoanAmount,
+        hreL_TotalPrincipalPaid: data.HREL_TotalPrincipalPaid || 0,
+        hreL_TotalInterestPaid: data.HREL_TotalInterestPaid || 0,
+        hreL_TotalPending: data.HREL_TotalPending || data.HREL_LoanAmount,
+        hreL_LoanInterest: data.HREL_LoanInterest || 0,
+        hreL_ModeOfPayment: data.HREL_ModeOfPayment || '',
+        hreL_ReferenceNo: Number(data.HREL_ReferenceNo) || 0,
+        hreL_ActiveFlag: data.HREL_ActiveFlag ?? true,
+        hreL_NoofInstallment: data.HREL_NoofInstallment || Number(data.HREL_LoanInsallments) || 0,
+        MI_Id: data.MI_Id || 0
     };
 
     try {

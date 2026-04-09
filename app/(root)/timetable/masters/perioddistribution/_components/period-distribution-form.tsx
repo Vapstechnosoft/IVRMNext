@@ -8,8 +8,8 @@ import {
     useAcademicYearPeriodDistrubution,
     useCategtoryPeriodDistrubution,
     useClassPeriodDistrubution,
+    useEditPeriodDistribution,
     usePeriodDistributionDetails,
-    usePeriodDistributionEditDetails,
     useSectionPeriodDistrubution,
     useStaffPeriodDistrubution,
     useSubjectPeriodDistrubution
@@ -82,8 +82,8 @@ export default function PeriodDistributionForm({ onSuccess, initialData }: Perio
     const watchedTotalWeeklyPeriods = watch('nop1');
     const watchedStaff = watch('hrmE_Id');
 
-    // Fetch full details if editing
-    const { data: editData, isLoading: isLoadingEdit } = usePeriodDistributionEditDetails({
+    // Fetch full details if editing — using new GET facade endpoint
+    const { data: editData, isLoading: isLoadingEdit } = useEditPeriodDistribution({
         id: initialData?.ttfpD_Id,
         enabled: !!initialData?.ttfpD_Id
     });
@@ -91,46 +91,92 @@ export default function PeriodDistributionForm({ onSuccess, initialData }: Perio
     // Populate form for editing
     useEffect(() => {
         if (initialData && !isLoadingEdit && !editLoaded) {
+            // API returns: { success, message, data: [...] }
+            const rows: any[] = (editData as any)?.data || [];
 
-            const fullData = (editData as any) || {};
+            if (rows.length === 0) {
+                setEditLoaded(true);
+                return;
+            }
 
-            const asmaY_Id = fullData.asmaY_Id || initialData.asmaY_Id;
-            const hrmE_Id = fullData.hrmE_Id || initialData.hrmE_Id;
-            const nop1 = fullData.ttfpD_TotWeekPeriods || initialData.ttfpD_TotWeekPeriods;
-            const ttfpD_StaffConsecutive =
-                fullData.ttfpD_StaffConsecutive || initialData.ttfpD_StaffConsecutive || 1;
+            // Top-level fields come from the first record
+            const firstRow = rows[0];
+
+            // Resolve asmaY_Id from academic list by year string
+            const asmaY_Id =
+                initialData.asmaY_Id ||
+                academicList.find(
+                    (a: any) =>
+                        a.asmaY_Year?.trim().toLowerCase() ===
+                        firstRow.asmaY_Year?.trim().toLowerCase()
+                )?.asmaY_Id;
+
+            // Resolve hrmE_Id from staff list by name
+            const hrmE_Id =
+                initialData.hrmE_Id ||
+                staffList.find(
+                    (s: any) =>
+                        s.staffName?.trim().toLowerCase() ===
+                        firstRow.staffName?.trim().toLowerCase()
+                )?.hrmE_Id;
+
+            const nop1 = initialData.ttfpD_TotWeekPeriods || 1;
+            const ttfpD_StaffConsecutive = initialData.ttfpD_StaffConsecutive || 1;
 
             if (asmaY_Id) setValue('asmaY_Id', Number(asmaY_Id));
             if (hrmE_Id) setValue('hrmE_Id', Number(hrmE_Id));
             if (nop1) setValue('nop1', Number(nop1));
-
             setValue('ttfpD_StaffConsecutive', Number(ttfpD_StaffConsecutive));
 
-            const details =
-                (editData as any)?.periodDistributionDetails ||
-                (editData as any)?.data?.periodDistributionDetails;
+            // Map each row: resolve IDs from dropdown lists by matching display names
+            const mappedDetails = rows.map((row: any) => {
+                const ttmC_Id =
+                    categoryList.find(
+                        (c: any) =>
+                            c.ttmC_CategoryName?.trim().toLowerCase() ===
+                            row.ttmC_CategoryName?.trim().toLowerCase()
+                    )?.ttmC_Id || undefined;
 
-            if (details && Array.isArray(details)) {
-                const mappedDetails = details.map((detail: any) => ({
-                    id: detail.ttfpdD_Id || Date.now() + Math.random(),
-                    catDisplay: detail.ttmC_CategoryName,
-                    clsDisplay: detail.asmcL_ClassName,
-                    sectDisplay: detail.asmC_SectionName,
-                    subDisplay: detail.ismS_SubjectName,
-                    pedDisplay: detail.ttfpD_TotalPeriods,
-                    asmcL_Id: detail.asmcL_Id,
-                    asmS_Id: detail.asmS_Id,
-                    ismS_Id: detail.ismS_Id,
-                    ttmC_Id: detail.ttmC_Id,
-                    ttfpdD_Id: detail.ttfpdD_Id
-                }));
+                const asmcL_Id =
+                    classList.find(
+                        (c: any) =>
+                            c.asmcL_ClassName?.trim().toLowerCase() ===
+                            row.asmcL_ClassName?.trim().toLowerCase()
+                    )?.asmcL_Id || undefined;
 
-                setTempList(mappedDetails);
-            }
+                const asmS_Id =
+                    sectionList.find(
+                        (s: any) =>
+                            s.asmC_SectionName?.trim().toLowerCase() ===
+                            row.asmC_SectionName?.trim().toLowerCase()
+                    )?.asmS_Id || undefined;
 
+                const ismS_Id =
+                    subjectList.find(
+                        (s: any) =>
+                            s.ismS_SubjectName?.trim().toLowerCase() ===
+                            row.ismS_SubjectName?.trim().toLowerCase()
+                    )?.ismS_Id || undefined;
+
+                return {
+                    id: row.ttfpdD_Id || Date.now() + Math.random(),
+                    ttfpdD_Id: row.ttfpdD_Id,
+                    catDisplay: row.ttmC_CategoryName,
+                    clsDisplay: row.asmcL_ClassName,
+                    sectDisplay: row.asmC_SectionName,
+                    subDisplay: row.ismS_SubjectName,
+                    pedDisplay: row.ttfpD_TotalPeriods,
+                    ttmC_Id,
+                    asmcL_Id,
+                    asmS_Id,
+                    ismS_Id
+                };
+            });
+
+            setTempList(mappedDetails);
             setEditLoaded(true);
         }
-    }, [initialData, editData, isLoadingEdit]);
+    }, [initialData, editData, isLoadingEdit, academicList, staffList, categoryList, classList, sectionList, subjectList]);
 
     // Calculate Available Periods
     useEffect(() => {

@@ -36,6 +36,9 @@ interface NoticeListTableProps {
   onFilterStartDateChange: (date: Date | undefined) => void;
   onFilterEndDateChange: (date: Date | undefined) => void;
   onViewAttachments: (notice: Notice) => void;
+  onEdit?: (notice: Notice) => void;
+  onDelete?: (notice: Notice) => void;
+  onToggleActive?: (notice: Notice) => void;
 }
 
 export function NoticeListTable({
@@ -46,7 +49,10 @@ export function NoticeListTable({
   filterEndDate,
   onFilterStartDateChange,
   onFilterEndDateChange,
-  onViewAttachments
+  onViewAttachments,
+  onEdit,
+  onDelete,
+  onToggleActive
 }: NoticeListTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -81,20 +87,27 @@ export function NoticeListTable({
   };
 
   const handleEdit = (notice: Notice) => {
-    // Mock edit functionality - replace with actual implementation
-    console.log('Editing notice:', notice);
+    if (onEdit) {
+      onEdit(notice);
+    } else {
+      console.log('Editing notice:', notice);
+    }
   };
 
   const handleDelete = (notice: Notice) => {
-    // Mock delete functionality - replace with actual implementation
-    if (confirm(`Are you sure you want to delete "${notice.intB_Title}"?`)) {
+    if (onDelete) {
+      onDelete(notice);
+    } else if (confirm(`Are you sure you want to delete "${notice.intB_Title}"?`)) {
       console.log('Deleting notice:', notice);
     }
   };
 
   const toggleActiveStatus = (notice: Notice) => {
-    // Mock toggle active status - replace with actual implementation
-    console.log('Toggling active status for notice:', notice);
+    if (onToggleActive) {
+      onToggleActive(notice);
+    } else {
+      console.log('Toggling active status for notice:', notice);
+    }
   };
 
   return (
@@ -188,34 +201,34 @@ export function NoticeListTable({
         {/* Notice Table */}
         <div className="overflow-x-auto border rounded-md">
           <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-16">SL.NO</TableHead>
-                <TableHead>Notice Title</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Start Date</TableHead>
-                <TableHead>End Date</TableHead>
-                <TableHead>Display Date</TableHead>
-                <TableHead>View Attachment</TableHead>
-                <TableHead className="w-32">Actions</TableHead>
+            <TableHeader className="bg-[#1e59a8]">
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="w-16 text-center border text-white font-bold">SLNO</TableHead>
+                <TableHead className="border text-white font-bold text-left">Notice Title</TableHead>
+                <TableHead className="border text-white font-bold text-left">Description</TableHead>
+                <TableHead className="text-center border text-white font-bold whitespace-nowrap">Start Date</TableHead>
+                <TableHead className="text-center border text-white font-bold whitespace-nowrap">End Date</TableHead>
+                <TableHead className="text-center border text-white font-bold whitespace-nowrap">Display Date</TableHead>
+                <TableHead className="text-center border text-white font-bold">View Attachment</TableHead>
+                <TableHead className="w-32 text-center border text-white font-bold">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {currentNotices.map((notice, index) => (
                 <TableRow key={notice.intB_Id}>
-                  <TableCell className="text-center">{startIndex + index + 1}</TableCell>
-                  <TableCell className="text-left font-medium">{notice.intB_Title}</TableCell>
-                  <TableCell className="text-left max-w-xs">
+                  <TableCell className="text-center border">{startIndex + index + 1}</TableCell>
+                  <TableCell className="text-left font-medium border">{notice.intB_Title}</TableCell>
+                  <TableCell className="text-left max-w-xs border">
                     <div className="truncate" title={notice.intB_Description}>
                       {notice.intB_Description}
                     </div>
                   </TableCell>
-                  <TableCell className="text-center">{formatDate(notice.intB_StartDate)}</TableCell>
-                  <TableCell className="text-center">{formatDate(notice.intB_EndDate)}</TableCell>
-                  <TableCell className="text-center">
+                  <TableCell className="text-center border">{formatDate(notice.intB_StartDate)}</TableCell>
+                  <TableCell className="text-center border">{formatDate(notice.intB_EndDate)}</TableCell>
+                  <TableCell className="text-center border">
                     {notice.intB_DisplayDate ? formatDate(notice.intB_DisplayDate) : '--'}
                   </TableCell>
-                  <TableCell className="text-center">
+                  <TableCell className="text-center border">
                     {notice.intB_Attachment ? (
                       <Button
                         variant="ghost"
@@ -228,8 +241,8 @@ export function NoticeListTable({
                       <span className="text-gray-400">--</span>
                     )}
                   </TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-1">
+                  <TableCell className="border">
+                    <div className="flex items-center justify-center space-x-1">
                       <Button
                         variant="ghost"
                         size="sm"

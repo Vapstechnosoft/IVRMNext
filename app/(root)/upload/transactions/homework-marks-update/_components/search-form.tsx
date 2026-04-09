@@ -17,7 +17,7 @@ import { SubjectsDropDownByAcademicYearandClassandSection } from '@/server/uploa
 import { fetchHomeWorkMarksList } from '@/server/upload/transactions/ivrm-homework/server-action';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { CalendarIcon, Search } from 'lucide-react';
+import { CalendarIcon, Search, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -125,9 +125,6 @@ export default function SearchForm({ yearList, classList }: SearchFormProps) {
         try {
             const result = await fetchHomeWorkMarksList(data);
             if (result.gethomework_list && result.gethomework_list.length > 0) {
-                // For Marks entry, we typically might need to select a specific homework from a list first
-                // if the search returns multiple homeworks.
-                // In this simplified mock, we'll just open the view with the first homework found or a placeholder
                 openDetailsView({
                     ihW_Id: 1, // Mock ID
                     asmaY_Id: data.asmaY_Id,
@@ -141,6 +138,24 @@ export default function SearchForm({ yearList, classList }: SearchFormProps) {
         } catch (error) {
             toast.error('Search failed');
         }
+    };
+
+    const handleCancel = () => {
+        methods.reset({
+            asmaY_Id: undefined,
+            asmcL_Id: undefined,
+            asmS_Id: undefined,
+            ismS_Id: undefined,
+            from_date: undefined,
+            to_date: undefined
+        });
+        setValue('asmaY_Id', undefined as any);
+        setValue('from_date', undefined as any);
+        setValue('to_date', undefined as any);
+        setClasses([]);
+        setSections([]);
+        setSubjects([]);
+        closeDetailsView();
     };
 
     return (
@@ -226,7 +241,7 @@ export default function SearchForm({ yearList, classList }: SearchFormProps) {
                 render={({ field }) => (
                     <div className='grow space-y-2'>
                         <Label>
-                            Subject <span className='text-red-500'>*</span>
+                            Subject
                         </Label>
                         <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                             <SelectTrigger>
@@ -250,7 +265,7 @@ export default function SearchForm({ yearList, classList }: SearchFormProps) {
                 render={({ field }) => (
                     <div className='flex flex-col space-y-2'>
                         <Label>
-                            From Date <span className='text-red-500'>*</span>
+                            From Date
                         </Label>
                         <Popover>
                             <PopoverTrigger asChild>
@@ -275,7 +290,7 @@ export default function SearchForm({ yearList, classList }: SearchFormProps) {
                 render={({ field }) => (
                     <div className='flex flex-col space-y-2'>
                         <Label>
-                            To Date <span className='text-red-500'>*</span>
+                            To Date
                         </Label>
                         <Popover>
                             <PopoverTrigger asChild>
@@ -294,12 +309,17 @@ export default function SearchForm({ yearList, classList }: SearchFormProps) {
                 )}
             />
 
-            <div className='flex items-end lg:col-span-3'>
-                <Button type='submit' className='w-full sm:w-auto' disabled={isSubmitting}>
+            <div className='flex items-end gap-2 lg:col-span-3'>
+                <Button type='submit' className='w-full sm:w-auto font-bold' disabled={isSubmitting}>
                     <Search className='mr-2 h-4 w-4' />
                     {isSubmitting ? 'Searching...' : 'Search'}
                 </Button>
+                <Button type='button' variant='outline' className='w-full sm:w-auto font-bold' onClick={handleCancel}>
+                    <X className='mr-2 h-4 w-4' />
+                    Cancel
+                </Button>
             </div>
         </form>
+
     );
 }

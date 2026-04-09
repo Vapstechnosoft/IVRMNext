@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { useBreakTimeSettingDetails } from '@/hooks/timetable/useMasters';
-import { deactivateBreakTimeSettings } from '@/server/timetable/masters/breaktimesettings';
+import { deactivateBreakTimeSettings, getBreakTimeSettingsToggle } from '@/server/timetable/masters/breaktimesettings';
 import type { IBreakTimeSettingsList } from '@/types/timetable/masters/masters';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -29,7 +29,7 @@ export default function ToggleBreakTimeSettingsForm({ rowData, onClose }: Toggle
     const onSubmit = async () => {
         try {
             // Legacy sends the whole object
-            const response = await deactivateBreakTimeSettings(rowData);
+            const response = await getBreakTimeSettingsToggle(rowData.ttmB_Id);
 
             if (response.success) {
                 toast.success(response.message);

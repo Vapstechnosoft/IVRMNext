@@ -131,5 +131,6 @@ export async function deleteHostel(id: number) {
 }
 
 export async function getHostelDropdownList() {
-    return await api.get<any>('hostel', '/MasterHostel/get_hostel_list');
+    return await api.get<any>('hostel', '/MasterHostel/get_hostel_dropdown_list');
 }
+

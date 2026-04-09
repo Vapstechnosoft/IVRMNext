@@ -150,6 +150,7 @@ export interface IPreadmissionDocumentView {
     pasR_RegistrationNo: string;
     pasR_Date?: string;
     applied_class_name: string;
+    section_name: string;
     classname?: string;
     pasR_Student_Pic_Path?: string;
     pasR_FatherPhoto?: string;

@@ -99,6 +99,7 @@ export const salaryAdvanceFormSchema = z.object({
     entryDate: z.string().min(1, 'Entry Date is required'),
     advanceYear: z.string().min(1, 'Advanced Year is required'),
     advanceMonth: z.string().min(1, 'Advanced Month is required'),
+    grossSalary: z.number().optional().default(0),
     appliedAmount: z
         .number()
         .min(0.01, 'Advanced Amount must be greater than 0')
@@ -114,7 +115,7 @@ export const salaryAdvanceFormSchema = z.object({
         .regex(/^[A-Za-z0-9]*$/, 'Reference No must be alphanumeric')
         .optional()
         .or(z.literal('')),
-    remarks: z.string().max(255, 'Remarks must not exceed 255 characters').optional().or(z.literal(''))
+    remarks: z.string().min(1, 'Remarks is required').max(255, 'Remarks must not exceed 255 characters')
 });
 
 export const salaryAdvanceSchema = z.object({

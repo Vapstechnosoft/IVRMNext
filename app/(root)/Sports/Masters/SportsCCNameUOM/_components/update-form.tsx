@@ -91,9 +91,15 @@ export default function UpdateMasterSportsCCNameUOMForm({ selectedRow, onSuccess
         }
     };
 
+    const onError = (errors: any) => {
+        const firstError = Object.values(errors)[0] as any;
+        const message = firstError?.message || 'Please fix the validation errors before updating';
+        toast.error(message);
+    };
+
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+            <form onSubmit={form.handleSubmit(onSubmit, onError)} className="space-y-4 pt-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                         control={form.control}

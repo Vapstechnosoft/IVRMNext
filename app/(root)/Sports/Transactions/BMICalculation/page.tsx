@@ -92,7 +92,10 @@ function BMICalculationPageContent({
                         columns={bmiCalculationColumns}
                         isLoading={isLoading}
                         error={error}
-                        //manualPagination={false}
+                        manualPagination={true}
+                        manualSorting={true}
+                        manualFiltering={true}
+                        showSearchColumns={true}
                         showViewOptions={true}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading BMI data...'
