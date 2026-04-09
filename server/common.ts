@@ -1634,6 +1634,21 @@ export async function getUserAccessibleModules() {
                                     ]
                                 },
                                 {
+                                    id: 1000,
+                                    name: 'ONLINE QUIZ',
+                                    icon: 'Trophy',
+                                    pages: [
+                                        {
+                                            id: 1001,
+                                            name: 'Online MCQ Quiz',
+                                            icon: 'Trophy',
+                                            url: '/Exam/exam-module/online-quiz/online-mcq-quiz',
+                                            title: 'Online MCQ Quiz',
+                                            description: 'Conduct and manage online MCQ quizzes'
+                                        }
+                                    ]
+                                },
+                                {
                                     id: 9,
                                     name: 'Configuration',
                                     icon: 'Settings',

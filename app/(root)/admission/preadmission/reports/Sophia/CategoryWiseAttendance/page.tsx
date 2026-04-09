@@ -38,10 +38,10 @@ export default function CategoryWiseAttendancePage() {
     const [reportPayload, setReportPayload] = useState<{ asmaY_Id: number; fromdate: Date; categoryIds: number[] } | null>(null);
     const [showReport, setShowReport] = useState(false);
     const [categorySearch, setCategorySearch] = useState('');
-    const [printTimestamp, setPrintTimestamp] = useState('');
+    const [selectedRows, setSelectedRows] = useState<any[]>([]);
     const printRef = useRef<HTMLDivElement>(null);
 
-    const { data: reportResponse, isFetching: isReportLoading, error: reportError } = useCategoryWiseAttendanceReport(
+    const { data: reportResponse, isFetching: isReportLoading } = useCategoryWiseAttendanceReport(
         reportPayload?.asmaY_Id ?? 0,
         reportPayload?.fromdate,
         reportPayload?.categoryIds ?? [],
@@ -69,20 +69,83 @@ export default function CategoryWiseAttendancePage() {
     const selectedCategories = watch('categoryList');
 
     /* ---------------- Memoized Data ---------------- */
+    const innerData = initialData?.data?.data || initialData?.data || initialData;
 
-    const years = (initialData?.data as any)?.academicList || [];
-    const categories = (initialData?.data as any)?.category_list || [];
-    const logoUrl = (reportResponse?.data as any)?.AMC_logo?.[0]?.amC_FilePath || (initialData?.data as any)?.imgname;
+    const years = useMemo(() => {
+        return (
+            innerData?.academicList ||
+            innerData?.yearList ||
+            innerData?.academicYearList ||
+            innerData?.yearlist ||
+            []
+        );
+    }, [innerData]);
+
+    const categories = useMemo(() => {
+        return (
+            innerData?.category_list ||
+            innerData?.categoryList ||
+            innerData?.categories ||
+            []
+        );
+    }, [innerData]);
+
+    const categoryFlag = !!innerData?.categoryflag;
+
+    const logoUrl = (reportResponse?.data as any)?.logo?.[0]?.logo || (reportResponse?.data as any)?.AMC_logo?.[0]?.amC_FilePath || (initialData?.data as any)?.imgname;
+
+    const selectedYearData = useMemo(() => {
+        return years.find((y: any) => y.asmaY_Id === watchedYear);
+    }, [years, watchedYear]);
+
+    const dateRestrictions = useMemo(() => {
+        if (!selectedYearData) return { min: undefined, max: undefined };
+
+        // Use direct dates from API if available
+        if (selectedYearData.asmaY_From_Date && selectedYearData.asmaY_To_Date) {
+            return {
+                min: new Date(selectedYearData.asmaY_From_Date),
+                max: new Date(selectedYearData.asmaY_To_Date)
+            };
+        }
+
+        // Fallback to year string parsing
+        const yearStr = selectedYearData.asmaY_Year;
+        if (yearStr) {
+            const parts = yearStr.split('-');
+            if (parts.length === 2) {
+                const startYear = parseInt(parts[0]);
+                const endYear = parseInt(parts[1]);
+                return {
+                    min: new Date(startYear, 0, 1),
+                    max: new Date(endYear, 11, 31)
+                };
+            }
+        }
+        return { min: undefined, max: undefined };
+    }, [selectedYearData]);
 
     const filteredCategories = useMemo(() => {
         return categories.filter((cat: any) =>
-            cat.amC_Name.toLowerCase().includes(categorySearch.toLowerCase())
+            (cat.amC_Name || cat.amc_name || '').toLowerCase().includes(categorySearch.toLowerCase())
         );
     }, [categories, categorySearch]);
 
     const reportData = useMemo(() => {
-        return (reportResponse?.data as any)?.studentAttendanceList || [];
+        const rawReport = reportResponse?.data?.data || reportResponse?.data || reportResponse;
+        if (Array.isArray(rawReport)) return rawReport;
+        return rawReport?.studentAttendanceList || rawReport?.attendanceList || [];
     }, [reportResponse]);
+
+    /* ---------------- Effects ---------------- */
+
+    // Set default year if available
+    useEffect(() => {
+        if (innerData?.defalutYearList && innerData.defalutYearList.length > 0) {
+            const defaultYearId = innerData.defalutYearList[0].asmaY_Id;
+            setValue('asmaY_Id', defaultYearId);
+        }
+    }, [innerData, setValue]);
 
     /* ---------------- Handlers ---------------- */
 
@@ -95,39 +158,49 @@ export default function CategoryWiseAttendancePage() {
     };
 
     const onSubmit = (data: any) => {
+        let finalCategoryIds = data.categoryList;
+
+        if (categoryFlag && (!finalCategoryIds || finalCategoryIds.length === 0)) {
+            // Legacy logic: if none selected, send all
+            finalCategoryIds = categories.map((c: any) => c.amC_Id);
+        }
+
         setReportPayload({
             asmaY_Id: data.asmaY_Id,
             fromdate: data.date,
-            categoryIds: data.categoryList
+            categoryIds: finalCategoryIds
         });
+        setSelectedRows([]);
         setShowReport(true);
         toast.info('Generating report...');
     };
 
     const handleReset = () => {
-        reset();
-        setShowReport(false);
-        setReportPayload(null);
+        window.location.reload();
     };
 
     const exportToExcel = () => {
-        if (!reportData.length) return;
+        const dataToExport = selectedRows.length > 0 ? selectedRows : reportData;
+        if (!dataToExport.length) {
+            toast.error('Please Select Records to be Exported');
+            return;
+        }
 
         const yearLabel = years.find((y: any) => y.asmaY_Id === reportPayload?.asmaY_Id)?.asmaY_Year || '';
         const reportDate = reportPayload?.fromdate ? format(reportPayload.fromdate, 'dd-MM-yyyy') : '';
 
-        const worksheetData = reportData.map((row: any, idx: number) => ({
+        const worksheetData = dataToExport.map((row: any, idx: number) => ({
             'SL. No.': idx + 1,
-            'Category Name': row.AMC_Name,
-            'Total Boys': row.Total_Male,
-            'Total Girls': row.Total_Female,
-            'Total Students': (row.Total_Male || 0) + (row.Total_Female || 0),
-            'Present Boys': row.Premale,
-            'Present Girls': row.PreFemale,
-            'Total Present': (row.Premale || 0) + (row.PreFemale || 0),
+            'Category Name': row.amc_name || row.AMC_Name,
+            'Total Boys': row.total_male ?? row.Total_Male,
+            'Total Girls': row.total_female ?? row.Total_Female,
+            'Total Students': (Number(row.total_male || row.Total_Male) || 0) + (Number(row.total_female || row.Total_Female) || 0),
+            'Present Boys': row.premale ?? row.Premale,
+            'Present Girls': row.prefemale ?? row.PreFemale,
+            'Total Present': (Number(row.premale || row.Premale) || 0) + (Number(row.prefemale || row.PreFemale) || 0),
             'Absent Boys': row.absmale,
-            'Absent Girls': row.absFemale,
-            'Total Absent': (row.absmale || 0) + (row.absFemale || 0)
+            'Absent Girls': row.absfemale || row.absFemale,
+            'Total Absent': (Number(row.absmale) || 0) + (Number(row.absfemale || row.absFemale) || 0)
         }));
 
         const ws = XLSX.utils.json_to_sheet(worksheetData);
@@ -142,7 +215,12 @@ export default function CategoryWiseAttendancePage() {
     });
 
     const handlePrint = () => {
-        setPrintTimestamp(new Date().toLocaleString());
+        if (selectedRows.length === 0 && reportData.length > 0) {
+            toast.error('Please Select Records to be Printed');
+            return;
+        }
+        if (reportData.length === 0) return;
+
         setTimeout(() => triggerPrint(), 300);
     };
 
@@ -150,13 +228,34 @@ export default function CategoryWiseAttendancePage() {
 
     const columns: any[] = [
         {
+            id: 'select',
+            header: ({ table }: any) => (
+                <Checkbox
+                    checked={table.getIsAllPageRowsSelected()}
+                    onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+                    aria-label='Select all'
+                />
+            ),
+            cell: ({ row }: any) => (
+                <Checkbox
+                    checked={row.getIsSelected()}
+                    onCheckedChange={(value) => row.toggleSelected(!!value)}
+                    aria-label='Select row'
+                />
+            ),
+            enableSorting: false,
+            enableHiding: false,
+            size: 40
+        },
+        {
             header: 'SL. No.',
             cell: (info: any) => info.row.index + 1,
             size: 70
         },
         {
             header: 'Category Name',
-            accessorKey: 'AMC_Name',
+            accessorKey: 'amc_name',
+            cell: (info: any) => info.row.original.amc_name || info.row.original.AMC_Name,
             size: 200
         },
         {
@@ -164,17 +263,22 @@ export default function CategoryWiseAttendancePage() {
             columns: [
                 {
                     header: 'Total Boys',
-                    accessorKey: 'Total_Male',
+                    accessorKey: 'total_male',
+                    cell: (info: any) => info.row.original.total_male ?? info.row.original.Total_Male,
                     size: 110
                 },
                 {
                     header: 'Total Girls',
-                    accessorKey: 'Total_Female',
+                    accessorKey: 'total_female',
+                    cell: (info: any) => info.row.original.total_female ?? info.row.original.Total_Female,
                     size: 110
                 },
                 {
                     header: 'Total Students',
-                    cell: (info: any) => (info.row.original.Total_Male || 0) + (info.row.original.Total_Female || 0),
+                    cell: (info: any) => {
+                        const row = info.row.original;
+                        return (Number(row.total_male || row.Total_Male) || 0) + (Number(row.total_female || row.Total_Female) || 0);
+                    },
                     size: 130
                 }
             ]
@@ -184,17 +288,22 @@ export default function CategoryWiseAttendancePage() {
             columns: [
                 {
                     header: 'Boys',
-                    accessorKey: 'Premale',
+                    accessorKey: 'premale',
+                    cell: (info: any) => info.row.original.premale ?? info.row.original.Premale,
                     size: 100
                 },
                 {
                     header: 'Girls',
-                    accessorKey: 'PreFemale',
+                    accessorKey: 'prefemale',
+                    cell: (info: any) => info.row.original.prefemale ?? info.row.original.PreFemale,
                     size: 100
                 },
                 {
                     header: 'Total Present',
-                    cell: (info: any) => (info.row.original.Premale || 0) + (info.row.original.PreFemale || 0),
+                    cell: (info: any) => {
+                        const row = info.row.original;
+                        return (Number(row.premale || row.Premale) || 0) + (Number(row.prefemale || row.PreFemale) || 0);
+                    },
                     size: 140
                 }
             ]
@@ -209,12 +318,16 @@ export default function CategoryWiseAttendancePage() {
                 },
                 {
                     header: 'Girls',
-                    accessorKey: 'absFemale',
+                    accessorKey: 'absfemale',
+                    cell: (info: any) => info.row.original.absfemale ?? info.row.original.absFemale,
                     size: 100
                 },
                 {
                     header: 'Total Absent',
-                    cell: (info: any) => (info.row.original.absmale || 0) + (info.row.original.absFemale || 0),
+                    cell: (info: any) => {
+                        const row = info.row.original;
+                        return (Number(row.absmale) || 0) + (Number(row.absfemale || row.absFemale) || 0);
+                    },
                     size: 140
                 }
             ]
@@ -225,13 +338,43 @@ export default function CategoryWiseAttendancePage() {
 
     return (
         <div className='container min-h-screen space-y-4 p-2'>
-            <CollapsibleSection title='Categorywise Attendance Report' defaultOpen>
+            <style dangerouslySetInnerHTML={{
+                __html: `
+                .vaps-table thead th {
+                    background-color: #337ab7 !important;
+                    color: white !important;
+                    border: 1px solid #ddd !important;
+                    text-align: center !important;
+                    vertical-align: middle !important;
+                    font-weight: 600 !important;
+                    text-transform: capitalize !important;
+                }
+                .vaps-table tbody td {
+                    border: 1px solid #ddd !important;
+                }
+                .vaps-box-header {
+                    background-color: #3c8dbc;
+                    color: white;
+                    padding: 10px;
+                    font-weight: bold;
+                    text-transform: uppercase;
+                }
+                `
+            }} />
+
+            <div className='bg-white shadow border border-t-4 border-t-[#3c8dbc] rounded-sm'>
+                <div className='p-3 border-b flex justify-between items-center'>
+                    <h3 className='text-sm font-bold uppercase'>Categorywise Attendance Report</h3>
+                </div>
                 <form onSubmit={handleSubmit(onSubmit)} className='p-4 space-y-6'>
+                    {/* ... (existing form content) ... */}
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto'>
                         <div className='space-y-4'>
                             {/* Academic Year */}
                             <div className='space-y-2'>
-                                <Label>Academic Year *</Label>
+                                <Label className='flex items-center gap-1 text-[13px] font-bold'>
+                                    Academic Year <span className='text-red-500'>*</span>
+                                </Label>
                                 <Controller
                                     name='asmaY_Id'
                                     control={control}
@@ -240,7 +383,7 @@ export default function CategoryWiseAttendancePage() {
                                             onValueChange={(val) => field.onChange(Number(val))}
                                             value={field.value ? field.value.toString() : ''}
                                         >
-                                            <SelectTrigger>
+                                            <SelectTrigger className='w-full rounded-none h-9 border-gray-300'>
                                                 <SelectValue placeholder='--Select--' />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -253,12 +396,14 @@ export default function CategoryWiseAttendancePage() {
                                         </Select>
                                     )}
                                 />
-                                {errors.asmaY_Id && <p className='text-xs text-red-500'>{errors.asmaY_Id.message}</p>}
+                                {errors.asmaY_Id && <p className='text-xs text-red-500 font-medium'>{errors.asmaY_Id.message}</p>}
                             </div>
 
                             {/* Select Date */}
                             <div className='space-y-2'>
-                                <Label>Select Date *</Label>
+                                <Label className='flex items-center gap-1 text-[13px] font-bold'>
+                                    Select Date <span className='text-red-500'>*</span>
+                                </Label>
                                 <Controller
                                     name='date'
                                     control={control}
@@ -266,25 +411,30 @@ export default function CategoryWiseAttendancePage() {
                                         <DatePicker
                                             date={field.value}
                                             setDate={field.onChange}
-                                            className='w-full'
+                                            className='w-full rounded-none h-9 border-gray-300'
+                                            fromDate={dateRestrictions.min}
+                                            toDate={dateRestrictions.max}
                                         />
                                     )}
                                 />
-                                {errors.date && <p className='text-xs text-red-500'>{errors.date.message}</p>}
+                                {errors.date && <p className='text-xs text-red-500 font-medium'>{errors.date.message}</p>}
                             </div>
                         </div>
 
                         {/* Category Multiselect */}
-                        <div className='space-y-2'>
-                            <Label>Category *</Label>
-                            <div className='border rounded-md p-2 space-y-2'>
+                        {/* <div className={`space-y-2 ${!categoryFlag && categories.length === 0 ? 'opacity-50 pointer-events-none' : ''}`}>
+                            <Label className='flex items-center gap-1 text-[13px] font-bold'>
+                                Category {categoryFlag && <span className='text-red-500'>*</span>}
+                            </Label>
+                            <div className='border border-gray-300 rounded-none p-2 space-y-2 bg-white'>
                                 <div className='relative'>
                                     <Search className='absolute left-2 top-2.5 h-4 w-4 text-muted-foreground' />
                                     <Input
                                         placeholder='Search category...'
                                         value={categorySearch}
                                         onChange={(e) => setCategorySearch(e.target.value)}
-                                        className='pl-8 mb-2'
+                                        className='pl-8 mb-2 h-9 border-gray-200 rounded-none'
+                                        disabled={!categoryFlag && categories.length === 0}
                                     />
                                 </div>
                                 <div className='flex items-center space-x-2 pb-2 border-b'>
@@ -292,82 +442,103 @@ export default function CategoryWiseAttendancePage() {
                                         id='select-all'
                                         checked={selectedCategories.length === filteredCategories.length && filteredCategories.length > 0}
                                         onCheckedChange={(checked) => handleSelectAllCategories(!!checked)}
+                                        disabled={!categoryFlag && categories.length === 0}
+                                        className='rounded-none'
                                     />
                                     <label htmlFor='select-all' className='text-sm font-medium leading-none cursor-pointer'>
                                         Select All
                                     </label>
                                 </div>
-                                <div className='h-40 overflow-y-auto space-y-2 mt-2'>
+                                <div className='h-40 overflow-y-auto space-y-1.5 mt-2 pr-1 custom-scrollbar'>
+                                    {categories.length === 0 && (
+                                        <p className='text-xs text-muted-foreground p-2'>No categories available</p>
+                                    )}
                                     {filteredCategories.map((cat: any) => (
-                                        <div key={cat.amC_Id} className='flex items-center space-x-2'>
+                                        <div key={cat.amC_Id || cat.amc_id} className='flex items-center space-x-2 p-1 hover:bg-slate-50 transition-colors'>
                                             <Checkbox
-                                                id={`cat-${cat.amC_Id}`}
-                                                checked={selectedCategories.includes(cat.amC_Id)}
+                                                id={`cat-${cat.amC_Id || cat.amc_id}`}
+                                                checked={selectedCategories.includes(cat.amC_Id || cat.amc_id)}
                                                 onCheckedChange={(checked) => {
                                                     const updated = !!checked
-                                                        ? [...selectedCategories, cat.amC_Id]
-                                                        : selectedCategories.filter((id) => id !== cat.amC_Id);
+                                                        ? [...selectedCategories, cat.amC_Id || cat.amc_id]
+                                                        : selectedCategories.filter((id) => id !== (cat.amC_Id || cat.amc_id));
                                                     setValue('categoryList', updated);
                                                 }}
+                                                className='rounded-none'
                                             />
-                                            <label htmlFor={`cat-${cat.amC_Id}`} className='text-sm leading-none cursor-pointer'>
-                                                {cat.amC_Name}
+                                            <label htmlFor={`cat-${cat.amC_Id || cat.amc_id}`} className='text-sm leading-none cursor-pointer flex-1 py-1'>
+                                                {cat.amC_Name || cat.amc_name}
                                             </label>
                                         </div>
                                     ))}
                                 </div>
                             </div>
-                            {errors.categoryList && <p className='text-xs text-red-500'>{errors.categoryList.message}</p>}
-                        </div>
+                            {errors.categoryList && <p className='text-xs text-red-500 font-medium'>{errors.categoryList.message}</p>}
+                        </div> */}
                     </div>
 
-                    <div className='flex justify-center gap-3 pt-4 border-t'>
-                        <Button type='submit' isLoading={isReportLoading}>
+                    <div className='flex justify-center gap-3 pt-6 border-t'>
+                        <Button type='submit' isLoading={isReportLoading} className='min-w-[120px] bg-[#3c8dbc] hover:bg-[#367fa9] text-white uppercase font-bold rounded-sm'>
                             <FileText className='mr-2 h-4 w-4' />
                             Report
                         </Button>
-                        <Button variant='outline' type='button' onClick={handleReset}>
-                            <RotateCcw className='mr-2 h-4 w-4' />
-                            Reset
-                        </Button>
-                        <Button variant='outline' type='button' disabled={!showReport || !reportData.length} onClick={exportToExcel}>
-                            <FileSpreadsheet className='mr-2 h-4 w-4' />
-                            Export
-                        </Button>
-                        <Button variant='outline' type='button' disabled={!showReport || !reportData.length} onClick={handlePrint}>
-                            <Printer className='mr-2 h-4 w-4' />
-                            Print
-                        </Button>
-                        <Button variant='ghost' type='button'>
+                        <Button variant='destructive' type='button' onClick={handleReset} className='min-w-[120px] bg-[#f39c12] hover:bg-[#e08e0b] text-white uppercase font-bold rounded-sm'>
                             <X className='mr-2 h-4 w-4' />
                             Cancel
                         </Button>
+                        <Button variant='outline' type='button' disabled={!showReport || !reportData.length} onClick={exportToExcel} className='min-w-[120px] bg-[#3c8dbc] hover:bg-[#367fa9] text-white border-0 uppercase font-bold rounded-sm disabled:opacity-50'>
+                            <FileSpreadsheet className='mr-2 h-4 w-4' />
+                            Export
+                        </Button>
+                        <Button variant='outline' type='button' disabled={!showReport || !reportData.length} onClick={handlePrint} className='min-w-[120px] bg-[#dd4b39] hover:bg-[#d73925] text-white border-0 uppercase font-bold rounded-sm disabled:opacity-50'>
+                            <Printer className='mr-2 h-4 w-4' />
+                            Print
+                        </Button>
                     </div>
                 </form>
-            </CollapsibleSection>
+            </div>
 
             {showReport && (
-                <CollapsibleSection title='Report Details' defaultOpen>
-                    <div className='p-4'>
-                        <GenericDataTable
-                            data={reportData}
-                            columns={columns}
-                            isLoading={isReportLoading}
-                            noDataTitle='No records found for the selected criteria'
-                            isPaginationRequired={reportData.length > 10}
-                        />
+                <div className='bg-white shadow border border-t-4 border-t-[#3c8dbc] rounded-sm mt-4'>
+                    <div className='p-3 border-b flex justify-between items-center'>
+                        <h3 className='text-sm font-bold uppercase'>Categorywise Attendance Report</h3>
                     </div>
-                </CollapsibleSection>
+                    <div className='p-4'>
+                        <div className='flex justify-between items-center mb-4 px-2 py-2 bg-gray-50 border rounded-sm'>
+                            <div className='flex gap-4'>
+                                <div className='text-sm font-bold flex items-center gap-2'>
+                                    Total Grid Records : <span className='bg-[#337ab7] text-white px-2 py-0.5 rounded-full text-xs'>{reportData.length}</span>
+                                </div>
+                                {selectedRows.length > 0 && (
+                                    <div className='text-sm font-bold flex items-center gap-2'>
+                                        Selected : <span className='bg-green-600 text-white px-2 py-0.5 rounded-full text-xs'>{selectedRows.length}</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        <div className='vaps-table'>
+                            <GenericDataTable
+                                data={reportData}
+                                columns={columns}
+                                isLoading={isReportLoading}
+                                noDataTitle='No records found for the selected criteria'
+                                isPaginationRequired={reportData.length > 10}
+                                onRowSelectionChange={(rows) => setSelectedRows(rows)}
+                            />
+                        </div>
+                    </div>
+                </div>
             )}
 
             {/* Hidden Print Content */}
             <div style={{ display: 'none' }}>
                 <CategoryWiseAttendancePrint
                     ref={printRef}
-                    data={reportData}
+                    data={selectedRows.length > 0 ? selectedRows : reportData}
                     academicYear={years.find((y: any) => y.asmaY_Id === reportPayload?.asmaY_Id)?.asmaY_Year}
                     date={reportPayload?.fromdate}
                     logoUrl={logoUrl}
+                    userName={typeof window !== 'undefined' ? localStorage.getItem('username') || undefined : undefined}
                 />
             </div>
         </div>

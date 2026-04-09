@@ -19,130 +19,123 @@ export const ClassWiseDailyAttendancePrint = forwardRef<HTMLDivElement, ClassWis
         const currentDate = format(new Date(), 'dd/MM/yyyy');
         const reportDate = date ? format(date, 'dd/MM/yyyy') : '';
 
-        const presentCount = data.filter((r) => r.ASA_Class_Attended === 1).length;
-        const absentCount = data.filter((r) => r.ASA_Class_Attended === 0).length;
-        const halfDayCount = data.filter((r) => r.ASA_Class_Attended === 0.5).length;
+        const presentCount = data.filter((r) => r.asa_class_attended === 1 || r.ASA_Class_Attended === 1).length;
+        const absentCount = data.filter((r) => r.asa_class_attended === 0 || r.ASA_Class_Attended === 0).length;
+        const halfDayCount = data.filter((r) => r.asa_class_attended === 0.5 || r.ASA_Class_Attended === 0.5).length;
 
         return (
-            <div ref={ref} className="print-container bg-white text-black min-h-[100vh] w-full">
+            <div ref={ref} className="print-only bg-white text-black w-full">
                 <style
                     dangerouslySetInnerHTML={{
                         __html: `
+                    @media screen {
+                        .print-only {
+                            display: none !important;
+                        }
+                    }
                     @media print {
                         @page {
                             size: A4 portrait;
-                            margin: 10mm;
+                            margin: 5mm;
                         }
-                        body {
+                        body * {
                             visibility: hidden !important;
-                            background: white !important;
-                            margin: 0 !important;
-                            padding: 0 !important;
                         }
-                        .print-container {
+                        .print-only, .print-only * {
                             visibility: visible !important;
+                        }
+                        .print-only {
                             position: absolute;
-                            left: 0mm;
-                            top: 0mm;
+                            left: 0;
+                            top: 0;
                             width: 100%;
-                            padding: 10mm;
-                            margin: 0;
-                        }
-                        .print-container * {
-                            visibility: visible !important;
+                            display: block !important;
                         }
                         table {
                             border-collapse: collapse;
                             width: 100%;
-                            margin-top: 10px;
+                            border: 1px solid black;
                         }
                         th, td {
                             border: 0.5pt solid black;
-                            padding: 6px;
+                            padding: 4px 6px;
                             text-align: center;
-                            font-size: 11px;
+                            font-size: 10px;
+                            color: black !important;
                         }
                         th {
-                            background-color: #f1f1f1 !important;
-                            -webkit-print-color-adjust: exact;
+                            background-color: transparent !important;
+                            font-weight: bold;
+                            text-transform: uppercase;
                         }
                     }
                     `,
                     }}
                 />
 
-                <div className="p-2 flex flex-col items-center w-full">
-                    {/* Header */}
-                    {logoUrl && (
-                        <div className="flex justify-center mb-4">
-                            <img src={logoUrl} alt="Logo" className="h-24 object-contain" />
+                <div className="flex flex-col items-center w-full p-4">
+                    {/* Header Section */}
+                    <div className="w-full flex items-center justify-between border-b border-black pb-2 mb-2">
+                        <div className="flex-shrink-0">
+                            {logoUrl ? (
+                                <img src={logoUrl} alt="Logo" className="h-20 w-100 object-contain" text-align="center" />
+                            ) : (
+                                <div className="h-20 w-20 border border-dashed flex items-center justify-center text-[20px]">Logo</div>
+                            )}
                         </div>
-                    )}
-                    <h2 className="text-lg font-bold uppercase underline mb-4 text-center">ClassWise Daily Attendance Report</h2>
 
-                    <div className="w-full grid grid-cols-2 gap-4 text-sm font-semibold mb-2">
-                        <div className="border p-2">Academic Year: {academicYear}</div>
-                        <div className="border p-2">Date: {reportDate}</div>
-                        <div className="border p-2">Class: {className}</div>
-                        <div className="border p-2">Section: {sectionName}</div>
+                    </div>
+
+                    {/* Metadata Bars */}
+                    <div className="w-full border border-black mb-1">
+                        <div className="bg-white text-center py-1 font-bold text-[11px] border-b border-black uppercase">
+                            ClassWise Daily Attendance Report For Academic Year: {academicYear}
+                        </div>
+                        <div className="bg-white text-center py-1 font-bold text-[11px] uppercase">
+                            Attendance Details For Class: {className} Section : {sectionName} Date : {reportDate}
+                        </div>
                     </div>
 
                     {/* Table */}
-                    <table className="w-full">
+                    <table className="w-full border-black">
                         <thead>
-                            <tr className="bg-gray-100">
-                                <th style={{ width: '50px' }}>SL.No.</th>
+                            <tr>
+                                <th style={{ width: '40px' }}>SL.No.</th>
                                 <th className="text-left font-bold border-black">Student Name</th>
                                 <th style={{ width: '80px' }}>Roll No.</th>
                                 <th style={{ width: '120px' }}>Admission No.</th>
-                                <th style={{ width: '100px' }}>Status</th>
+                                <th style={{ width: '80px' }}>Status</th>
                             </tr>
                         </thead>
                         <tbody>
                             {data.map((user, index) => (
                                 <tr key={index}>
                                     <td>{index + 1}</td>
-                                    <td className="text-left">{user.AMST_FirstName}</td>
-                                    <td>{user.AMAY_RollNo}</td>
-                                    <td>{user.AMST_AdmNo}</td>
-                                    <td className="font-medium">
-                                        {user.ASA_Class_Attended === 1 ? 'Present' : user.ASA_Class_Attended === 0.5 ? 'Half Day' : 'Absent'}
+                                    <td className="text-left uppercase font-medium">{user.studentname || user.AMST_FirstName}</td>
+                                    <td>{user.amay_rollno || user.AMAY_RollNo}</td>
+                                    <td>{user.amst_admno || user.AMST_AdmNo}</td>
+                                    <td>
+                                        {(user.asa_class_attended === 1 || user.ASA_Class_Attended === 1) ? 'Present' :
+                                            (user.asa_class_attended === 0.5 || user.ASA_Class_Attended === 0.5) ? 'Half Day' : 'Absent'}
                                     </td>
                                 </tr>
                             ))}
                         </tbody>
-                        <tfoot className="border-t">
-                            <tr>
-                                <td colSpan={5} className="p-0">
-                                    <div className="p-2 text-left space-y-1 font-bold bg-gray-50">
-                                        <div>
-                                            Number of Present Students:{' '}
-                                            <span className="ml-2 inline-flex items-center justify-center bg-blue-100 text-blue-800 px-2.5 py-0.5 rounded-full text-xs">
-                                                {presentCount}
-                                            </span>
-                                        </div>
-                                        <div>
-                                            Number of Absent Students:{' '}
-                                            <span className="ml-2 inline-flex items-center justify-center bg-red-100 text-red-800 px-2.5 py-0.5 rounded-full text-xs">
-                                                {absentCount}
-                                            </span>
-                                        </div>
-                                        <div>
-                                            Number of Half Day Present Students:{' '}
-                                            <span className="ml-2 inline-flex items-center justify-center bg-yellow-100 text-yellow-800 px-2.5 py-0.5 rounded-full text-xs">
-                                                {halfDayCount}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td colSpan={5} className="text-center p-4 border-none text-[10px] italic pt-8 opacity-70">
-                                    Date: {currentDate} | Generated by: {username || 'System Administrator'} | {disclaimer}
-                                </td>
-                            </tr>
-                        </tfoot>
                     </table>
+
+                    {/* Footer Counts Box */}
+                    <div className="w-full border-x border-b border-black mt-0">
+                        <div className="grid grid-cols-1 border-t border-black text-center text-[10px] font-bold uppercase">
+                            <div className="py-0.5 border-b border-black">Number of Present Students: {presentCount}</div>
+                            <div className="py-0.5 border-b border-black">Number of Absent Students: {absentCount}</div>
+                            <div className="py-0.5">Number of Half Day Present Students(Half Day): {halfDayCount}</div>
+                        </div>
+                    </div>
+
+                    {/* Footer Info */}
+                    <div className="w-full text-center mt-4 text-[9px] italic opacity-60">
+                        Date: {currentDate} | Generated by: {username || 'System Administrator'} | {disclaimer}
+                    </div>
                 </div>
             </div>
         );

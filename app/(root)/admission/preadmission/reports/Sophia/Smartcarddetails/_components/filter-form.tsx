@@ -14,17 +14,21 @@ import { Check, ClipboardList, RotateCcw } from 'lucide-react';
 interface FilterFormProps {
     onSubmit: (data: SophiaSmartcardReportFields) => void;
     onReset: () => void;
+    onExport: () => void;
+    onPrint: () => void;
+    hasData: boolean;
+    hasSelectedData: boolean;
 }
 
-export const FilterForm = ({ onSubmit, onReset }: FilterFormProps) => {
+export const FilterForm = ({ onSubmit, onReset, onExport, onPrint, hasData, hasSelectedData }: FilterFormProps) => {
     const { loadData, reportMutation } = useSophiaSmartcardReport();
 
     const form = useForm<SophiaSmartcardReportFields>({
         resolver: zodResolver(SophiaSmartcardReportSchema),
         defaultValues: {
-            ASMAY_Id: undefined,
-            ASMCL_Id: undefined,
-            ASMC_Id: undefined,
+            ASMAY_Id: 0,
+            ASMCL_Id: 0,
+            ASMS_Id: 0,
             Admnoallind: 'Regular'
         }
     });
@@ -37,7 +41,8 @@ export const FilterForm = ({ onSubmit, onReset }: FilterFormProps) => {
         form.reset({
             ASMAY_Id: undefined,
             ASMCL_Id: undefined,
-            ASMC_Id: undefined,
+            ASMS_Id: undefined,
+            SPCCMH_Id: undefined,
             Admnoallind: 'Regular'
         });
         onReset();
@@ -47,11 +52,12 @@ export const FilterForm = ({ onSubmit, onReset }: FilterFormProps) => {
     const yearList = data?.academicList || [];
     const classList = data?.classlist || [];
     const sectionList = data?.sectionList || [];
+    const houseList = data?.houseList || [];
 
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {/* Academic Year */}
                     <FormField
                         control={form.control}
@@ -107,7 +113,7 @@ export const FilterForm = ({ onSubmit, onReset }: FilterFormProps) => {
                     {/* Section */}
                     <FormField
                         control={form.control}
-                        name="ASMC_Id"
+                        name="ASMS_Id"
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel className="font-bold uppercase tracking-wider text-xs">Section <span className="text-red-500">*</span></FormLabel>
@@ -129,6 +135,33 @@ export const FilterForm = ({ onSubmit, onReset }: FilterFormProps) => {
                             </FormItem>
                         )}
                     />
+
+                    {/* House */}
+                    {/* <FormField
+                        control={form.control}
+                        name="SPCCMH_Id"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel className="font-bold uppercase tracking-wider text-xs">House</FormLabel>
+                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
+                                    <FormControl>
+                                        <SelectTrigger className="border-slate-300">
+                                            <SelectValue placeholder="---Select---" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        <SelectItem value="0">All</SelectItem>
+                                        {houseList.map((h: any) => (
+                                            <SelectItem key={h.spccmH_Id} value={h.spccmH_Id.toString()}>
+                                                {h.spccmH_HouseName}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    /> */}
                 </div>
 
                 <div className="flex flex-col items-center justify-center p-4 bg-slate-50 border rounded-lg space-y-3">
@@ -162,10 +195,10 @@ export const FilterForm = ({ onSubmit, onReset }: FilterFormProps) => {
                     />
                 </div>
 
-                <div className="flex gap-4 items-center justify-center pt-4">
+                <div className="flex flex-wrap gap-4 items-center justify-center pt-4">
                     <Button
                         type="submit"
-                        className="min-w-[120px] bg-sky-600 hover:bg-sky-700 transition-all font-bold"
+                        className="min-w-[120px] bg-[#3c8dbc] hover:bg-[#367fa9] text-white rounded-none font-bold uppercase"
                         disabled={reportMutation.isPending}
                     >
                         {reportMutation.isPending ? 'Generating...' : (
@@ -176,11 +209,26 @@ export const FilterForm = ({ onSubmit, onReset }: FilterFormProps) => {
                     </Button>
                     <Button
                         type="button"
-                        variant="secondary"
                         onClick={handleReset}
-                        className="min-w-[120px] font-bold border-slate-300"
+                        className="min-w-[120px] bg-[#dd4b39] hover:bg-[#c23321] text-white rounded-none font-bold uppercase"
                     >
                         <RotateCcw className="w-4 h-4 mr-2" /> Cancel
+                    </Button>
+                    <Button
+                        type="button"
+                        onClick={onExport}
+                        disabled={!hasData}
+                        className="min-w-[120px] bg-[#337ab7] hover:bg-[#286090] text-white rounded-none font-bold uppercase"
+                    >
+                        <ClipboardList className="w-4 h-4 mr-2" /> Export to Excel
+                    </Button>
+                    <Button
+                        type="button"
+                        onClick={onPrint}
+                        disabled={!hasSelectedData}
+                        className="min-w-[120px] bg-[#f0ad4e] hover:bg-[#ec971f] text-white rounded-none font-bold uppercase"
+                    >
+                        <RotateCcw className="w-4 h-4 mr-2" /> Print
                     </Button>
                 </div>
             </form>
