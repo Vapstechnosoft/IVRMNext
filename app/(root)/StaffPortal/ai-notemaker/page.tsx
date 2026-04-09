@@ -147,7 +147,7 @@ export default function AINotemaker() {
         };
 
         if (result.summary) {
-            printLargeText('SUMMARY', result.summary);
+            printLargeText('AI SUMMARY', result.summary);
         }
 
         if (result.notes) {

@@ -11,7 +11,10 @@ interface MobileNumberInputProps extends React.InputHTMLAttributes<HTMLInputElem
     error?: string;
     inputFieldClassName?: string;
     showSpinner?: boolean;
+    requiredTooltip?: string;
 }
+
+import { StandardTooltip } from '@/components/StandardTooltip';
 
 function MobileNumberInput({
     label,
@@ -23,6 +26,7 @@ function MobileNumberInput({
     optional,
     showSpinner = true,
     value,
+    requiredTooltip,
     ...props
 }: MobileNumberInputProps) {
     const handleNumericInput = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -34,7 +38,11 @@ function MobileNumberInput({
         <div className={cn('group flex flex-col gap-1.5', className)}>
             <Label aria-label={label}>
                 {label}
-                {required && <span className='ml-1 text-red-500'>*</span>}
+                {required && (
+                    <StandardTooltip content={requiredTooltip || `${label} is mandatory. Please fill it.`}>
+                        <span className='ml-1 text-red-500 font-bold hover:scale-110 transition-transform'>*</span>
+                    </StandardTooltip>
+                )}
                 {optional && <span className='text-muted-foreground'>(optional)</span>}
             </Label>
             <FieldGroup className={cn('w-full', inputFieldClassName)}>

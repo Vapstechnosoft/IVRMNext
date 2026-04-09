@@ -237,7 +237,13 @@ export default function AdminDashboardPage() {
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center justify-between gap-2">
                                         <p className="font-black text-slate-900 text-[11px] leading-tight truncate">{item.title}</p>
-                                        <Badge variant="outline" className="text-[8px] h-4 px-1 font-black uppercase tracking-tighter border-slate-100 shrink-0">{item.status}</Badge>
+                                        <Badge
+                                            variant="outline"
+                                            className="text-[8px] h-4 px-1 font-black uppercase tracking-tighter border-slate-100 shrink-0"
+                                            toolTip={`Action required: ${item.status === 'New' ? 'Review this circular immediately.' : 'Already released to public.'}`}
+                                        >
+                                            {item.status}
+                                        </Badge>
                                     </div>
                                     <p className="text-slate-400 text-[9px] font-bold mt-0.5">{item.date}</p>
                                 </div>
@@ -271,7 +277,10 @@ export default function AdminDashboardPage() {
                                         </td>
                                         <td className="py-3 text-xs font-bold text-slate-600">{app.class}</td>
                                         <td className="py-3 text-center">
-                                            <Badge className="bg-orange-50 text-orange-600 border-none font-black text-[9px] rounded-md px-2 py-0.5">
+                                            <Badge
+                                                className="bg-orange-50 text-orange-600 border-none font-black text-[9px] rounded-md px-2 py-0.5"
+                                                toolTip="Verification in progress. Awaiting principal's final approval."
+                                            >
                                                 {app.status}
                                             </Badge>
                                         </td>
