@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, keepPreviousData } from '@tanstack/react-query';
 import {
     getStudentEligibleReportLoadData,
     getClassesForStudentEligible,
@@ -35,6 +35,7 @@ export const useStudentEligibleReport = (payload?: IStudentEligibleReportRequest
         queryKey: ['student-eligible-report-data', payload, searchParams],
         queryFn: () => payload ? getStudentEligibleReport(payload, searchParams) : null,
         enabled: !!payload,
+        placeholderData: keepPreviousData,
         staleTime: 0
     });
 

@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bot, Send, X, Minus, Maximize2, Minimize2, MessageSquare, User, Loader2, Sparkles } from 'lucide-react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -37,6 +37,7 @@ export const Chatbot = () => {
         if (pathname.toLowerCase().includes('admission')) return { name: 'Admission', color: 'from-sky-500 to-indigo-600' };
         if (pathname.toLowerCase().includes('fees')) return { name: 'Fees', color: 'from-emerald-500 to-teal-600' };
         if (pathname.toLowerCase().includes('exam')) return { name: 'Exams', color: 'from-violet-500 to-purple-600' };
+        if (pathname.toLowerCase().includes('staffportal')) return { name: 'Staff Support', color: 'from-orange-500 to-rose-600' };
         return { name: 'Help Desk', color: 'from-indigo-600 to-blue-700' };
     };
     const currentContext = context();
@@ -88,12 +89,14 @@ export const Chatbot = () => {
     }, [pathname, isOpen]);
 
     // Early guard AFTER all hooks are declared
-    // Strictly Admin Portal only (Exclude Student and Staff portals)
-    const isAuthPage = pathname?.toLowerCase().includes('login') || pathname?.toLowerCase().includes('sign-in');
+    const params = useParams();
+    const sub_domain = params?.sub_domain;
+    const isAuthPage = pathname?.toLowerCase().includes('login') ||
+        pathname?.toLowerCase().includes('sign-in') ||
+        pathname === `/${sub_domain}`;
     const isStudentPortal = pathname?.toLowerCase().includes('studentportal');
-    const isStaffPortal = pathname?.toLowerCase().includes('staffportal');
 
-    if (!mounted || isStudentPortal || isStaffPortal || isAuthPage) return null;
+    if (!mounted || isStudentPortal || isAuthPage) return null;
 
     // Helper to resolve links from common.ts data (environment-aware)
     const resolveLink = (targetName: string, fallbackLink?: string) => {

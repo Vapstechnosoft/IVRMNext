@@ -92,7 +92,9 @@ export function SalarySlipFilters({
             <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                 {/* Group Type Filter */}
                 <div className='space-y-2'>
-                    <Label className='font-medium'>Group Type <span className='ml-1 text-destructive'>*</span></Label>
+                    <Label htmlFor='group-type' className='font-medium text-foreground text-sm'>
+                        Group Type: <span className='text-red-500'>*</span>
+                    </Label>
                     <MultiSelect
                         options={groupTypes.map((gt) => ({
                             label: gt.value || gt.HRMGT_EmployeeGroupType,
@@ -105,12 +107,16 @@ export function SalarySlipFilters({
                                 groupType: values.map((v) => Number.parseInt(v))
                             })
                         }
-                        placeholder='Select group types'
+                        placeholder='Select Group Types'
+                        className='w-full'
+                        maxHeight={240}
                     />
                 </div>
                 {/* Department Filter */}
                 <div className='space-y-2'>
-                    <Label className='font-medium'>Department <span className='ml-1 text-destructive'>*</span></Label>
+                    <Label htmlFor='department' className='font-medium text-foreground text-sm'>
+                        Department: <span className='text-red-500'>*</span>
+                    </Label>
                     <MultiSelect
                         options={departments.map((dept) => ({
                             label: dept.hrmD_DepartmentName || dept.HRMD_DepartmentName,
@@ -123,12 +129,16 @@ export function SalarySlipFilters({
                                 department: values.map((v) => Number.parseInt(v))
                             })
                         }
-                        placeholder='Select departments'
+                        placeholder='Select Departments'
+                        className='w-full'
+                        maxHeight={240}
                     />
                 </div>
                 {/* Designation Filter */}
                 <div className='space-y-2'>
-                    <Label className='font-medium'>Designation <span className='ml-1 text-destructive'>*</span></Label>
+                    <Label htmlFor='designation' className='font-medium text-foreground text-sm'>
+                        Designation: <span className='text-red-500'>*</span>
+                    </Label>
                     <MultiSelect
                         options={designations.map((desg) => ({
                             label: desg.hrmdeS_DesignationName || desg.HRMDES_DesignationName,
@@ -141,7 +151,9 @@ export function SalarySlipFilters({
                                 designation: values.map((v) => Number.parseInt(v))
                             })
                         }
-                        placeholder='Select designations'
+                        placeholder='Select Designations'
+                        className='w-full'
+                        maxHeight={240}
                     />
                 </div>
             </div>

@@ -10,58 +10,58 @@ interface CharacterCertificatePrintProps {
 export const CharacterCertificatePrint = forwardRef<HTMLDivElement, CharacterCertificatePrintProps>(
     function CharacterCertificatePrint({ data }, ref) {
         const getSelectedActivities = () => {
-             const selected: string[] = [];
-             if (data.staticActivities) {
-                 Object.entries(data.staticActivities).forEach(([key, value]) => {
-                     if (value) {
-                         selected.push(key.charAt(0).toUpperCase() + key.slice(1));
-                     }
-                 });
-             }
-             return selected;
+            const selected: string[] = [];
+            if (data.staticActivities) {
+                Object.entries(data.staticActivities).forEach(([key, value]) => {
+                    if (value) {
+                        selected.push(key.charAt(0).toUpperCase() + key.slice(1));
+                    }
+                });
+            }
+            return selected;
         };
 
         const Getclassin = () => {
-             const selected: string[] = [];
-             if (data.activities) {
-                 Object.entries(data.activities).forEach(([key, value]) => {
-                     if (value) {
-                         selected.push(key.charAt(0).toUpperCase() + key.slice(1));
-                     }
-                 });
-             }
-             return selected;
+            const selected: string[] = [];
+            if (data.activities) {
+                Object.entries(data.activities).forEach(([key, value]) => {
+                    if (value) {
+                        selected.push(key.charAt(0).toUpperCase() + key.slice(1));
+                    }
+                });
+            }
+            return selected;
         };
 
         const Gethousein = () => {
-             const selected: string[] = [];
-             if (data.House) {
-                 Object.entries(data.House).forEach(([key, value]) => {
-                     if (value) {
-                         selected.push(key.charAt(0).toUpperCase() + key.slice(1));
-                     }
-                 });
-             }
-             return selected;
+            const selected: string[] = [];
+            if (data.House) {
+                Object.entries(data.House).forEach(([key, value]) => {
+                    if (value) {
+                        selected.push(key.charAt(0).toUpperCase() + key.slice(1));
+                    }
+                });
+            }
+            return selected;
         };
 
         const Getschoolin = () => {
-             const selected: string[] = [];
-             if (data.School) {
-                 Object.entries(data.School).forEach(([key, value]) => {
-                     if (value) {
-                         selected.push(key.charAt(0).toUpperCase() + key.slice(1));
-                     }
-                 });
-             }
-             return selected;
+            const selected: string[] = [];
+            if (data.School) {
+                Object.entries(data.School).forEach(([key, value]) => {
+                    if (value) {
+                        selected.push(key.charAt(0).toUpperCase() + key.slice(1));
+                    }
+                });
+            }
+            return selected;
         };
 
         const dob = data.dob ? new Date(data.dob) : null;
         const admdate = data.admdate ? new Date(data.admdate) : null;
 
         return (
-            <div ref={ref} className="w-[210mm] min-h-[297mm] p-[20mm] bg-white text-black font-serif text-[14px] leading-relaxed relative">
+            <div ref={ref} className="w-[210mm] min-h-[297mm] p-[20mm] bg-white text-black font-serif text-[14px] leading-relaxed relative printable-content">
                 <style type="text/css" media="print">
                     {`
                         @page { size: auto; margin: 0; }

@@ -122,7 +122,7 @@ export function SchoolAssistantBot({ open, onOpenChange }: { open: boolean; onOp
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[450px] p-0 overflow-hidden border-none bg-transparent shadow-2xl">
+            <DialogContent className="sm:max-w-[450px] p-0 overflow-hidden border-none bg-transparent shadow-2xl [&>button]:hidden">
                 <div id="chatbot-widget" className="w-full h-[600px] bg-white rounded-[24px] border border-black/10 flex flex-col overflow-hidden shadow-2xl">
                     {/* Header - Purple Branding */}
                     <div id="chatbot-header" className="bg-gradient-to-r from-primary to-[#6d28d9] p-5 flex items-center justify-between text-white shrink-0 shadow-lg">

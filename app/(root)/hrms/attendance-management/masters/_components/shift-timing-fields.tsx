@@ -63,23 +63,38 @@ export function ShiftTimingFields<T extends Record<string, any>>({
     const lunchStartTime = watch(fieldNames.lunchStartTime);
     const lunchEndTime = watch(fieldNames.lunchEndTime);
 
-    // Calculate total working hours when start/end times change
+    // Helper to sum minutes from HH:mm
+    const getMinutes = (time: string) => {
+        if (!time || !time.includes(':')) return 0;
+        const [h, m] = time.split(':').map(Number);
+        return h * 60 + m;
+    };
+
+    // Helper to format minutes to HH:mm
+    const formatMinutes = (totalMinutes: number) => {
+        const h = Math.floor(totalMinutes / 60);
+        const m = totalMinutes % 60;
+        return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+    };
+
+    // Calculate total working hours when start/end times or lunch times change
     useEffect(() => {
         if (shiftStartTime && shiftEndTime) {
-            const totalHours = calculateTimeDifference(shiftStartTime, shiftEndTime);
-            setValue(fieldNames.totalWorkingHours, totalHours);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [shiftStartTime, shiftEndTime]);
+            const totalDurationMinutes = getMinutes(calculateTimeDifference(shiftStartTime, shiftEndTime));
+            let netWorkingMinutes = totalDurationMinutes;
 
-    // Calculate lunch hours when lunch start/end times change
-    useEffect(() => {
-        if (lunchStartTime && lunchEndTime) {
-            const lunchHours = calculateTimeDifference(lunchStartTime, lunchEndTime);
-            setValue(fieldNames.lunchHours, lunchHours);
+            if (lunchStartTime && lunchEndTime) {
+                const lunchDurationMinutes = getMinutes(calculateTimeDifference(lunchStartTime, lunchEndTime));
+                netWorkingMinutes = totalDurationMinutes - lunchDurationMinutes;
+                
+                // Update lunch hours field as well
+                setValue(fieldNames.lunchHours, formatMinutes(lunchDurationMinutes));
+            }
+
+            setValue(fieldNames.totalWorkingHours, formatMinutes(Math.max(0, netWorkingMinutes)));
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [lunchStartTime, lunchEndTime]);
+    }, [shiftStartTime, shiftEndTime, lunchStartTime, lunchEndTime]);
 
     return (
         <div className='space-y-4 rounded-md border border-input bg-background p-4'>
@@ -87,7 +102,7 @@ export function ShiftTimingFields<T extends Record<string, any>>({
             {/* First Row: Shift Start Time, Shift End Time, Total working hours per shift */}
             <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                 <div className='space-y-2'>
-                    <Label htmlFor={shiftStartTimeId}>Shift Start Time</Label>
+                    <Label htmlFor={shiftStartTimeId}>Shift Start Time <span className='text-red-500'>*</span></Label>
                     <Controller
                         name={fieldNames.shiftStartTime as any}
                         control={control}
@@ -104,7 +119,7 @@ export function ShiftTimingFields<T extends Record<string, any>>({
                     {errors[fieldNames.shiftStartTime] && <FormError>{(errors[fieldNames.shiftStartTime] as any)?.message}</FormError>}
                 </div>
                 <div className='space-y-2'>
-                    <Label htmlFor={shiftEndTimeId}>Shift End Time</Label>
+                    <Label htmlFor={shiftEndTimeId}>Shift End Time <span className='text-red-500'>*</span></Label>
                     <Controller
                         name={fieldNames.shiftEndTime as any}
                         control={control}
@@ -121,7 +136,7 @@ export function ShiftTimingFields<T extends Record<string, any>>({
                     {errors[fieldNames.shiftEndTime] && <FormError>{(errors[fieldNames.shiftEndTime] as any)?.message}</FormError>}
                 </div>
                 <div className='space-y-2'>
-                    <Label htmlFor={totalWorkingHoursId}>Total working hours per shift</Label>
+                    <Label htmlFor={totalWorkingHoursId}>Total working hours per shift </Label>
                     <Controller
                         name={fieldNames.totalWorkingHours as any}
                         control={control}
@@ -135,15 +150,13 @@ export function ShiftTimingFields<T extends Record<string, any>>({
                             />
                         )}
                     />
-                    {errors[fieldNames.totalWorkingHours] && (
-                        <FormError>{(errors[fieldNames.totalWorkingHours] as any)?.message}</FormError>
-                    )}
+                    
                 </div>
             </div>
             {/* Second Row: Lunch start time, Lunch End time, Lunch Hours */}
             <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                 <div className='space-y-2'>
-                    <Label htmlFor={lunchStartTimeId}>Lunch start time</Label>
+                    <Label htmlFor={lunchStartTimeId}>Lunch start time <span className='text-red-500'>*</span></Label>
                     <Controller
                         name={fieldNames.lunchStartTime as any}
                         control={control}
@@ -160,7 +173,7 @@ export function ShiftTimingFields<T extends Record<string, any>>({
                     {errors[fieldNames.lunchStartTime] && <FormError>{(errors[fieldNames.lunchStartTime] as any)?.message}</FormError>}
                 </div>
                 <div className='space-y-2'>
-                    <Label htmlFor={lunchEndTimeId}>Lunch End time</Label>
+                    <Label htmlFor={lunchEndTimeId}>Lunch End time <span className='text-red-500'>*</span></Label>
                     <Controller
                         name={fieldNames.lunchEndTime as any}
                         control={control}
@@ -177,7 +190,7 @@ export function ShiftTimingFields<T extends Record<string, any>>({
                     {errors[fieldNames.lunchEndTime] && <FormError>{(errors[fieldNames.lunchEndTime] as any)?.message}</FormError>}
                 </div>
                 <div className='space-y-2'>
-                    <Label htmlFor={lunchHoursId}>Lunch Hours</Label>
+                    <Label htmlFor={lunchHoursId}>Lunch Hours <span className='text-red-500'>*</span></Label>
                     <Controller
                         name={fieldNames.lunchHours as any}
                         control={control}
@@ -197,7 +210,7 @@ export function ShiftTimingFields<T extends Record<string, any>>({
             {/* Third Row: Early per shift, Delay per shift, Half day working hours per shift */}
             <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                 <div className='space-y-2'>
-                    <Label htmlFor={earlyPerShiftId}>Early per shift</Label>
+                    <Label htmlFor={earlyPerShiftId}>Early per shift <span className='text-red-500'>*</span></Label>
                     <Controller
                         name={fieldNames.earlyPerShift as any}
                         control={control}
@@ -214,7 +227,7 @@ export function ShiftTimingFields<T extends Record<string, any>>({
                     {errors[fieldNames.earlyPerShift] && <FormError>{(errors[fieldNames.earlyPerShift] as any)?.message}</FormError>}
                 </div>
                 <div className='space-y-2'>
-                    <Label htmlFor={delayPerShiftId}>Delay per shift</Label>
+                    <Label htmlFor={delayPerShiftId}>Delay per shift <span className='text-red-500'>*</span></Label>
                     <Controller
                         name={fieldNames.delayPerShift as any}
                         control={control}
@@ -231,7 +244,7 @@ export function ShiftTimingFields<T extends Record<string, any>>({
                     {errors[fieldNames.delayPerShift] && <FormError>{(errors[fieldNames.delayPerShift] as any)?.message}</FormError>}
                 </div>
                 <div className='space-y-2'>
-                    <Label htmlFor={halfDayWorkingHoursId}>Half day working hours per shift</Label>
+                    <Label htmlFor={halfDayWorkingHoursId}>Half day working hours per shift <span className='text-red-500'>*</span></Label>
                     <Controller
                         name={fieldNames.halfDayWorkingHours as any}
                         control={control}
