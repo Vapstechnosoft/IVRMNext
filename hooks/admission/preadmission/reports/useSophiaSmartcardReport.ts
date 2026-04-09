@@ -11,7 +11,8 @@ export const useSophiaSmartcardReport = () => {
         mutationFn: (data: {
             ASMAY_Id: number;
             ASMCL_Id: number;
-            ASMC_Id: number;
+            ASMS_Id: number;
+            SPCCMH_Id?: number;
             stdmobilenumber: string;
         }) => getSmartcardReportData(data)
     });

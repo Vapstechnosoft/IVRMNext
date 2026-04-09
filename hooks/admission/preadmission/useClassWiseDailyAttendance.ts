@@ -87,7 +87,7 @@ export const useClassWiseDailyAttendanceReport = (
  */
 export const useSendClassWiseDailyAttendanceSMS = () => {
     return useMutation({
-        mutationFn: ({ asmaY_Id, fromDate, absentList }: { asmaY_Id: number; fromDate: Date; absentList: any[] }) =>
-            sendClassWiseDailyAttendanceSMS(asmaY_Id, fromDate, absentList)
+        mutationFn: ({ asmaY_Id, fromDate, asmcL_Id, absentList }: { asmaY_Id: number; fromDate: Date; asmcL_Id: number; absentList: any[] }) =>
+            sendClassWiseDailyAttendanceSMS(asmaY_Id, fromDate, asmcL_Id, absentList)
     });
 };

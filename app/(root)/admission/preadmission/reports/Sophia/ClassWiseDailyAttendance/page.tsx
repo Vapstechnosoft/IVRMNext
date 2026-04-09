@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { DatePicker } from '@/components/ui/date-picker';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     Select,
     SelectContent,
@@ -32,12 +33,14 @@ import {
     useClassWiseDailyAttendanceReport,
     useSendClassWiseDailyAttendanceSMS
 } from '@/hooks/admission/preadmission/useClassWiseDailyAttendance';
+import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
 import { ClassWiseDailyAttendancePrint } from './_components/classwise-daily-attendance-print';
 
 export default function ClassWiseDailyAttendancePage() {
     /* ---------------- Hooks & State ---------------- */
 
     const { data: initialData, isLoading: isInitialLoading } = useClassWiseDailyAttendanceInitialDetails();
+    const { data: ayData, isLoading: isAYLoading } = useAcademicYearDropdown();
     const [reportPayload, setReportPayload] = useState<{ asmaY_Id: number; fromDate: Date; asmcL_Id: number; asmS_Id: number } | null>(null);
     const [showReport, setShowReport] = useState(false);
     const [selectedStudents, setSelectedStudents] = useState<any[]>([]);
@@ -81,21 +84,45 @@ export default function ClassWiseDailyAttendancePage() {
 
     /* ---------------- Memoized Data ---------------- */
 
-    const years = initialData?.data?.yearList || [];
-    const classes = classData?.data?.classList || initialData?.data?.classList || [];
-    const sections = sectionData?.data?.sectionList || [];
-    const reportData = (reportResponse?.data as any)?.searchstudentDetails || [];
-    const logoUrl = initialData?.data?.imgname;
-    const username = initialData?.data?.usrname;
-    const disclaimer = initialData?.data?.coptyright;
+    const years = initialData?.data?.data?.yearList || initialData?.data?.yearList || 
+                  initialData?.data?.data?.academicList || initialData?.data?.academicList || 
+                  initialData?.data?.data?.academicYearList || initialData?.data?.academicYearList || 
+                  ayData?.data || [];
+                  
+    const classes = classData?.data?.data?.classList || classData?.data?.classList || 
+                    initialData?.data?.data?.classList || initialData?.data?.classList || [];
+                    
+    const sections = sectionData?.data?.data?.sectionList || sectionData?.data?.sectionList || 
+                     initialData?.data?.data?.sectionList || initialData?.data?.sectionList || [];
+                     
+    const reportData = useMemo(() => {
+        const rawData = reportResponse?.data?.data || reportResponse?.data;
+        if (!rawData) return [];
+        if (Array.isArray(rawData)) return rawData;
+        if (Array.isArray(rawData.studentList)) return rawData.studentList;
+        if (Array.isArray(rawData.searchstudentDetails)) return rawData.searchstudentDetails;
+        return [];
+    }, [reportResponse]);
+
+    const reportLogoUrl = useMemo(() => {
+        const masterCompany = reportResponse?.data?.data?.masterCompany || reportResponse?.data?.masterCompany;
+        if (Array.isArray(masterCompany) && masterCompany.length > 0) {
+            return masterCompany[0].companyname;
+        }
+        return initialData?.data?.data?.imgname || initialData?.data?.imgname;
+    }, [reportResponse, initialData]);
+
+    const logoUrl = initialData?.data?.data?.imgname || initialData?.data?.imgname;
+    const username = initialData?.data?.data?.usrname || initialData?.data?.usrname;
+    const disclaimer = initialData?.data?.data?.coptyright || initialData?.data?.coptyright;
 
     const summary = useMemo(() => {
-        if (!reportData.length) return null;
+        if (!reportData || !reportData.length) return null;
         return {
             total: reportData.length,
-            present: reportData.filter((r: any) => r.ASA_Class_Attended === 1).length,
-            absent: reportData.filter((r: any) => r.ASA_Class_Attended === 0).length,
-            halfDay: reportData.filter((r: any) => r.ASA_Class_Attended === 0.5).length
+            present: reportData.filter((r: any) => r.asa_class_attended === 1 || r.ASA_Class_Attended === 1).length,
+            absent: reportData.filter((r: any) => r.asa_class_attended === 0 || r.ASA_Class_Attended === 0).length,
+            halfDay: reportData.filter((r: any) => r.asa_class_attended === 0.5 || r.ASA_Class_Attended === 0.5).length
         };
     }, [reportData]);
 
@@ -118,10 +145,7 @@ export default function ClassWiseDailyAttendancePage() {
     };
 
     const handleClear = () => {
-        reset();
-        setShowReport(false);
-        setReportPayload(null);
-        setSelectedStudents([]);
+        window.location.reload();
     };
 
     const handleSendSMS = async () => {
@@ -132,31 +156,45 @@ export default function ClassWiseDailyAttendancePage() {
 
         toast.loading('Sending SMS...', { id: 'sms-send' });
         try {
+            const absentOnlyList = selectedStudents.filter((s) => s.asa_class_attended === 0 || s.ASA_Class_Attended === 0);
+
+            if (absentOnlyList.length === 0) {
+                toast.warning('No absent students selected.', { id: 'sms-send' });
+                return;
+            }
+
             const res = await sendSMSMutation.mutateAsync({
                 asmaY_Id: watchedYear,
                 fromDate: watchedDate,
-                absentList: selectedStudents
+                asmcL_Id: watchedClass,
+                absentList: absentOnlyList
             });
-            if (res.success) {
+
+            // The backend might return success: false even for success messages
+            const isSuccess = res.success || res.message === 'SMS Sent Successfully';
+
+            if (isSuccess) {
                 toast.success(res.message || 'SMS sent successfully!', { id: 'sms-send' });
             } else {
                 toast.error(res.message || 'Failed to send SMS.', { id: 'sms-send' });
             }
-        } catch (error) {
-            toast.error('An error occurred while sending SMS.', { id: 'sms-send' });
+        } catch (error: any) {
+            toast.error(error?.message || 'An error occurred while sending SMS.', { id: 'sms-send' });
         }
     };
+
 
     const exportToExcel = () => {
         if (!reportData.length) return;
         const ws = XLSX.utils.json_to_sheet(reportData.map((row: any, idx: number) => ({
             'SL. No.': idx + 1,
-            'Student Name': row.AMST_FirstName,
-            'Roll No.': row.AMAY_RollNo,
-            'Admission No.': row.AMST_AdmNo,
+            'Student Name': row.studentname || row.AMST_FirstName,
+            'Roll No.': row.amay_rollno || row.AMAY_RollNo,
+            'Admission No.': row.amst_admno || row.AMST_AdmNo,
             'Class': row.asmcl_classname,
             'Section': row.asmc_sectionname,
-            'Status': row.ASA_Class_Attended === 1 ? 'Present' : row.ASA_Class_Attended === 0.5 ? 'Half Day' : 'Absent'
+            'Status': (row.asa_class_attended === 1 || row.ASA_Class_Attended === 1) ? 'Present' : 
+                      (row.asa_class_attended === 0.5 || row.ASA_Class_Attended === 0.5) ? 'Half Day' : 'Absent'
         })));
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, 'Attendance_Report');
@@ -179,48 +217,20 @@ export default function ClassWiseDailyAttendancePage() {
 
     /* ---------------- Table Config ---------------- */
 
-    const columns: any[] = [
-        {
-            header: 'SL. No.',
-            cell: (info: any) => info.row.index + 1,
-            size: 70
-        },
-        {
-            header: 'Student Name',
-            accessorKey: 'AMST_FirstName',
-            cell: (info: any) => info.getValue()
-        },
-        {
-            header: 'Roll No.',
-            accessorKey: 'AMAY_RollNo',
-            size: 100
-        },
-        {
-            header: 'Admission No.',
-            accessorKey: 'AMST_AdmNo',
-            size: 140
-        },
-        {
-            header: 'Class',
-            accessorKey: 'asmcl_classname',
-            size: 120
-        },
-        {
-            header: 'Section',
-            accessorKey: 'asmc_sectionname',
-            size: 100
-        },
-        {
-            header: 'Status',
-            accessorKey: 'ASA_Class_Attended',
-            size: 130,
-            cell: (info: any) => {
-                const val = info.getValue();
-                if (val === 1) return <Badge variant='outline' className='text-blue-600 border-blue-200'>Present</Badge>;
-                if (val === 0.5) return <Badge variant='outline' className='text-yellow-600 border-yellow-200'>Half Day</Badge>;
-                return <Badge variant='outline' className='text-red-600 border-red-200'>Absent</Badge>;
-            }
-        }
+    const classColumns: any[] = [
+        { header: 'SL. No.', cell: (info: any) => info.row.index + 1, size: 70 },
+        { header: 'Class Name', accessorKey: 'asmcL_ClassName' },
+        { header: 'Class Code', accessorKey: 'asmcL_ClassCode' },
+        { header: 'Max Capacity', accessorKey: 'asmcL_MaxCapacity' },
+        { header: 'Order', accessorKey: 'asmcL_Order' }
+    ];
+
+    const sectionColumns: any[] = [
+        { header: 'SL. No.', cell: (info: any) => info.row.index + 1, size: 70 },
+        { header: 'Section Name', accessorKey: 'asmC_SectionName' },
+        { header: 'Section Code', accessorKey: 'asmC_SectionCode' },
+        { header: 'Max Capacity', accessorKey: 'asmC_MaxCapacity' },
+        { header: 'Order', accessorKey: 'asmC_Order' }
     ];
 
     /* ---------------- Render ---------------- */
@@ -287,7 +297,7 @@ export default function ClassWiseDailyAttendancePage() {
                                             setValue('asmS_Id', 0);
                                         }}
                                         value={field.value ? field.value.toString() : ''}
-                                        disabled={!watchedYear || isClassesLoading}
+                                        disabled={(!watchedYear && classes.length === 0) || isClassesLoading}
                                     >
                                         <SelectTrigger>
                                             <SelectValue placeholder={isClassesLoading ? 'Loading...' : '--Select--'} />
@@ -315,7 +325,7 @@ export default function ClassWiseDailyAttendancePage() {
                                     <Select
                                         onValueChange={(val) => field.onChange(Number(val))}
                                         value={field.value !== undefined ? field.value.toString() : ''}
-                                        disabled={!watchedClass || isSectionsLoading}
+                                        disabled={(!watchedClass && sections.length === 0) || isSectionsLoading}
                                     >
                                         <SelectTrigger>
                                             <SelectValue placeholder={isSectionsLoading ? 'Loading...' : '--Select--'} />
@@ -342,7 +352,7 @@ export default function ClassWiseDailyAttendancePage() {
                         </Button>
                         <Button variant='outline' type='button' onClick={handleClear}>
                             <RotateCcw className='mr-2 h-4 w-4' />
-                            Reset
+                            Cancel
                         </Button>
                         <Button
                             variant='outline'
@@ -398,7 +408,76 @@ export default function ClassWiseDailyAttendancePage() {
 
                         <GenericDataTable
                             data={reportData}
-                            columns={columns}
+                            columns={[
+                                {
+                                    id: 'select',
+                                    header: ({ table }: any) => (
+                                        <Checkbox
+                                            checked={table.getIsAllRowsSelected()}
+                                            onCheckedChange={(value) => table.toggleAllRowsSelected(!!value)}
+                                            aria-label='Select all'
+                                        />
+                                    ),
+                                    cell: ({ row }: any) => (
+                                        <Checkbox
+                                            checked={row.getIsSelected()}
+                                            onCheckedChange={(value) => row.toggleSelected(!!value)}
+                                            aria-label='Select row'
+                                        />
+                                    ),
+                                    enableSorting: false,
+                                    enableHiding: false,
+                                    size: 40
+                                },
+                                {
+                                    header: 'SL. No.',
+                                    cell: (info: any) => info.row.index + 1,
+                                    size: 70
+                                },
+                                {
+                                    header: 'Student Name',
+                                    accessorKey: 'studentname',
+                                    cell: (info: any) => info.getValue() || info.row.original.AMST_FirstName
+                                },
+                                {
+                                    header: 'Roll No.',
+                                    accessorKey: 'amay_rollno',
+                                    cell: (info: any) => info.getValue() || info.row.original.AMAY_RollNo,
+                                    size: 100
+                                },
+                                {
+                                    header: 'Admission No.',
+                                    accessorKey: 'amst_admno',
+                                    cell: (info: any) => info.getValue() || info.row.original.AMST_AdmNo,
+                                    size: 140
+                                },
+                                {
+                                    header: 'Class',
+                                    accessorKey: 'asmcl_classname',
+                                    size: 120
+                                },
+                                {
+                                    header: 'Mobile No',
+                                    accessorKey: 'amst_mobileno',
+                                    size: 120
+                                },
+                                {
+                                    header: 'Section',
+                                    accessorKey: 'asmc_sectionname',
+                                    size: 100
+                                },
+                                {
+                                    header: 'Status',
+                                    accessorKey: 'asa_class_attended',
+                                    size: 130,
+                                    cell: (info: any) => {
+                                        const val = info.getValue() ?? info.row.original.ASA_Class_Attended;
+                                        if (val === 1) return <Badge variant='outline' className='text-blue-600 border-blue-200'>Present</Badge>;
+                                        if (val === 0.5) return <Badge variant='outline' className='text-yellow-600 border-yellow-200'>Half Day</Badge>;
+                                        return <Badge variant='outline' className='text-red-600 border-red-200'>Absent</Badge>;
+                                    }
+                                }
+                            ]}
                             isLoading={isReportLoading}
                             maxSelectableRows={9999}
                             onRowSelectionChange={setSelectedStudents}
@@ -410,8 +489,10 @@ export default function ClassWiseDailyAttendancePage() {
                 </CollapsibleSection>
             )}
 
+
+
             {/* Hidden Print Content */}
-            <div style={{ display: 'none' }}>
+            <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', width: '210mm' }}>
                 <ClassWiseDailyAttendancePrint
                     ref={printRef}
                     data={selectedStudents}
@@ -419,7 +500,7 @@ export default function ClassWiseDailyAttendancePage() {
                     className={classes.find((c: any) => c.asmcL_Id === reportPayload?.asmcL_Id)?.asmcL_ClassName}
                     sectionName={reportPayload?.asmS_Id === 0 ? 'All' : sections.find((s: any) => s.asmS_Id === reportPayload?.asmS_Id)?.asmC_SectionName}
                     date={reportPayload?.fromDate}
-                    logoUrl={logoUrl}
+                    logoUrl={reportLogoUrl || logoUrl}
                     username={username}
                     disclaimer={disclaimer}
                 />

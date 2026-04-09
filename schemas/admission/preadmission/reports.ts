@@ -132,7 +132,7 @@ export const StudentTcDetailsSchema = z.object({
 
 export const CategoryWiseAttendanceSchema = z.object({
     asmaY_Id: z.coerce.number().min(1, 'Academic Year is required'),
-    categoryList: z.array(z.number()).min(1, 'Please select at least one category'),
+    categoryList: z.array(z.number()).optional().default([]),
     date: z.date({
         required_error: 'Date is required',
         invalid_type_error: "That's not a date!"
