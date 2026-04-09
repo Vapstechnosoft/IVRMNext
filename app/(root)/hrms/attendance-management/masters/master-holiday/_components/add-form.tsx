@@ -326,6 +326,7 @@ export default function AddMasterHolidayForm({ onSuccess, className = '' }: AddM
                                         />
                                     )}
                                 />
+                                {errors.selectedDays && <FormError>{errors.selectedDays.message}</FormError>}
                             </div>
                         )}
                     </div>
@@ -338,11 +339,12 @@ export default function AddMasterHolidayForm({ onSuccess, className = '' }: AddM
                                     <Controller
                                         name='fO_Start_Date'
                                         control={control}
+                                        
                                         render={({ field, fieldState }) => (
                                             <DateField field={field} fieldState={fieldState} label='' />
                                         )}
                                     />
-                                    {errors.fO_Start_Date && <FormError>{errors.fO_Start_Date.message}</FormError>}
+                                   
                                 </div>
                                 <div className='space-y-2'>
                                     <Label htmlFor={endDateId}>End Date <span className='text-red-500'>*</span></Label>
@@ -353,7 +355,7 @@ export default function AddMasterHolidayForm({ onSuccess, className = '' }: AddM
                                             <DateField field={field} fieldState={fieldState} label='' />
                                         )}
                                     />
-                                    {errors.fomhwdD_ToDate && <FormError>{errors.fomhwdD_ToDate.message}</FormError>}
+                                    
                                 </div>
                             </div>
 
@@ -434,6 +436,7 @@ export default function AddMasterHolidayForm({ onSuccess, className = '' }: AddM
                                         </TableBody>
                                     </Table>
                                 </div>
+                                
 
                                 {/* Pagination Footer */}
                                 <div className='flex items-center justify-between px-2 py-1 bg-muted/20 rounded-md border text-xs'>
@@ -498,6 +501,7 @@ export default function AddMasterHolidayForm({ onSuccess, className = '' }: AddM
                                 </div>
                             </div>
                         )}
+                        {errors.selectedDaysDate && <FormError>{errors.selectedDaysDate.message}</FormError>}
                     </div>
                 )}
 

@@ -1,8 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DataTable } from '@/components/ui/data-table/data-table';
+import { CardContent } from '@/components/ui/card';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
@@ -10,16 +9,78 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useStudentAgeCalculation } from '@/hooks/sports/useStudentAgeCalculation';
 import { type StudentAgeCalculationFormData, studentAgeCalculationSchema } from '@/schemas/sports/transactions/student-age-calculation';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Loader2, Search } from 'lucide-react';
+import { useEffect, useState, use, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 
-export default function StudentAgeCalculationPage() {
-    const { initialData, studentsData, saveData, gridData } = useStudentAgeCalculation();
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+const createColumns = () => [
+    { 
+        id: 'SPCCAC_Id', 
+        accessorKey: 'id', 
+        header: ({ column }: any) => <DataTableColumnHeader column={column} title='SL. No.' />,
+        cell: ({ row, table }: any) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            return <div>{pageIndex * pageSize + row.index + 1}</div>;
+        }
+    },
+    { 
+        id: 'ASMAY_Year', 
+        accessorKey: 'asmaY_Year', 
+        header: ({ column }: any) => <DataTableColumnHeader column={column} title='Academic Year' />,
+        enableSorting: true 
+    },
+    { 
+        id: 'studentName', 
+        accessorKey: 'studentName', 
+        header: ({ column }: any) => <DataTableColumnHeader column={column} title='Student Name' />,
+        enableSorting: true 
+    },
+    { 
+        id: 'ASMCL_ClassName', 
+        accessorKey: 'asmcL_ClassName', 
+        header: ({ column }: any) => <DataTableColumnHeader column={column} title='Class' />,
+        enableSorting: true 
+    },
+    { 
+        id: 'ASMC_SectionName', 
+        accessorKey: 'asmC_SectionName', 
+        header: ({ column }: any) => <DataTableColumnHeader column={column} title='Section' />,
+        enableSorting: true 
+    },
+    { 
+        id: 'Age_Years', 
+        accessorKey: 'age_Years', 
+        header: ({ column }: any) => <DataTableColumnHeader column={column} title='Age Year' />,
+        enableSorting: true 
+    },
+    { 
+        id: 'Age_Months', 
+        accessorKey: 'age_Months', 
+        header: ({ column }: any) => <DataTableColumnHeader column={column} title='Month' />,
+        enableSorting: true 
+    },
+    { 
+        id: 'Age_Days', 
+        accessorKey: 'age_Days', 
+        header: ({ column }: any) => <DataTableColumnHeader column={column} title="Day's" />,
+        enableSorting: true 
+    }
+];
+
+export default function StudentAgeCalculationPage(props: { searchParams: SearchParams }) {
+    const searchParams = use(props.searchParams);
+    const { initialData, studentsData, saveData } = useStudentAgeCalculation(searchParams);
     const [studentOptions, setStudentOptions] = useState<{ label: string; value: string }[]>([]);
     const [resetKey, setResetKey] = useState(0);
-    const [showGrid, setShowGrid] = useState(true);
+
+    const columns = useMemo(() => createColumns(), []);
 
     const {
         control,
@@ -53,9 +114,9 @@ export default function StudentAgeCalculationPage() {
                     ASMS_Id: watchSection
                 },
                 {
-                    onSuccess: (res) => {
+                    onSuccess: (res: any) => {
                         if (res.success && res.data) {
-                            setStudentOptions(res.data.map((s) => ({ label: s.label, value: s.id.toString() })));
+                            setStudentOptions(res.data.map((s: any) => ({ label: s.label, value: s.id.toString() })));
                         } else {
                             setStudentOptions([]);
                         }
@@ -69,8 +130,10 @@ export default function StudentAgeCalculationPage() {
 
     const onSubmit = (data: StudentAgeCalculationFormData) => {
         saveData.mutate(data, {
-            onSuccess: (res) => {
-                if (res.success) setShowGrid(true);
+            onSuccess: (res: any) => {
+                if (res.success) {
+                    initialData.refetch();
+                }
             }
         });
     };
@@ -78,12 +141,11 @@ export default function StudentAgeCalculationPage() {
     const onCancel = () => {
         reset();
         setStudentOptions([]);
-        setResetKey((prev) => prev + 1);
-        setShowGrid(false);
+        setResetKey((prev: number) => prev + 1);
     };
 
     const handlePrint = () => {
-        const data = gridData.data?.data || initialData.data?.data?.records || [];
+        const data = initialData.data?.data?.records || [];
         if (data.length === 0) {
             toast.error('No data found to print');
             return;
@@ -146,30 +208,16 @@ export default function StudentAgeCalculationPage() {
 
         printWindow.document.close();
 
-        // Give images/styles some time to load before printing
         setTimeout(() => {
             printWindow.print();
         }, 500);
     };
 
-    const columns = [
-        { accessorKey: 'id', header: 'SL. No.', cell: ({ row }: any) => <div>{row.index + 1}</div> },
-        { accessorKey: 'asmaY_Year', header: 'Academic Year' },
-        { accessorKey: 'studentName', header: 'Student Name' },
-        { accessorKey: 'asmcL_ClassName', header: 'Class' },
-        { accessorKey: 'asmC_SectionName', header: 'Section' },
-        { accessorKey: 'age_Years', header: 'Age Year' },
-        { accessorKey: 'age_Months', header: 'Month' },
-        { accessorKey: 'age_Days', header: "Day's" }
-    ];
-
-    if (initialData.isLoading) {
-        return (
-            <div className='flex h-full items-center justify-center'>
-                <Loader2 className='animate-spin' />
-            </div>
-        );
-    }
+    const tableProps = {
+        ...useDataTableProps(initialData.data?.data, { dataKey: 'records', totalKey: 'total' }),
+        success: initialData.data?.success,
+        errorMessage: initialData.data?.message
+    };
 
     const academicYears = initialData.data?.data?.academicYears || [];
     const classes = initialData.data?.data?.classes || [];
@@ -177,12 +225,9 @@ export default function StudentAgeCalculationPage() {
 
     return (
         <div className='space-y-6'>
-            <Card>
-                <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                    <CardTitle>Age Calculation</CardTitle>
-                </CardHeader>
+            <CollapsibleSection title="Age Calculation Entry" defaultOpen={true}>
                 <CardContent key={resetKey}>
-                    <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
+                    <form onSubmit={handleSubmit(onSubmit)} className='space-y-4 pt-4'>
                         <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                             <div className='space-y-2'>
                                 <Label>
@@ -197,7 +242,7 @@ export default function StudentAgeCalculationPage() {
                                                 <SelectValue placeholder='Select Academic Year' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {academicYears.map((year) => (
+                                                {academicYears.map((year: any) => (
                                                     <SelectItem key={year.id} value={year.id.toString()}>
                                                         {year.label}
                                                     </SelectItem>
@@ -222,7 +267,7 @@ export default function StudentAgeCalculationPage() {
                                                 <SelectValue placeholder='Select Class' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {classes.map((cls) => (
+                                                {classes.map((cls: any) => (
                                                     <SelectItem key={cls.id} value={cls.id.toString()}>
                                                         {cls.label}
                                                     </SelectItem>
@@ -247,7 +292,7 @@ export default function StudentAgeCalculationPage() {
                                                 <SelectValue placeholder='Select Section' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {sections.map((sec) => (
+                                                {sections.map((sec: any) => (
                                                     <SelectItem key={sec.id} value={sec.id.toString()}>
                                                         {sec.label}
                                                     </SelectItem>
@@ -312,21 +357,21 @@ export default function StudentAgeCalculationPage() {
                         </div>
                     </form>
                 </CardContent>
-            </Card>
+            </CollapsibleSection>
 
-            <Card>
-                <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                    <CardTitle>Age Calculated Record</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <DataTable
-                        columns={columns}
-                        data={showGrid ? (gridData.data?.data || initialData.data?.data?.records || []) : []}
-                        totalItems={showGrid ? (gridData.data?.data?.length || initialData.data?.data?.records?.length || 0) : 0}
-                    //manualPagination={false}
-                    />
-                </CardContent>
-            </Card>
+            <CollapsibleSection title="Age Calculated Records" defaultOpen={true} size="lg">
+                <GenericDataTable<any>
+                    {...tableProps}
+                    columns={columns}
+                    isLoading={initialData.isLoading}
+                    error={initialData.error}
+                    manualPagination={true}
+                    manualSorting={true}
+                    manualFiltering={true}
+                    showSearchColumns={true}
+                    loadingMessage='Loading age calculations...'
+                />
+            </CollapsibleSection>
         </div>
     );
 }

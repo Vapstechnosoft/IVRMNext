@@ -457,7 +457,7 @@ export const payrollStandardSchema = z.object({
     HRC_Id: z.number().optional(),
     // Provident Fund
     HRC_PFAccPrefix: z.string().min(1, 'Account Prefix is required'),
-    HRC_PFMaxAmt: z.number({required_error: 'PF Max Amount is required'}).min(0, 'Cannot be negative'),
+    HRC_PFMaxAmt: z.number({ required_error: 'PF Max Amount is required' }).min(0, 'Cannot be negative'),
     HRC_FPFPer: z.number().min(0).max(100).refine(val => !val || Number.isInteger(val * 100), 'Max 2 decimal places allowed').optional().or(z.literal(undefined)),
     HRC_EPFPer: z.number().min(0).max(100).refine(val => !val || Number.isInteger(val * 100), 'Max 2 decimal places allowed').optional().or(z.literal(undefined)),
     HRC_EPFPerAfterRetirement: z.number().min(0).max(100).optional(),
@@ -479,7 +479,7 @@ export const payrollStandardSchema = z.object({
     HRC_ESIMaxAmount: z.number().min(0).optional().or(z.literal(undefined)),
     HRC_ESIEmplrCont: z.number().min(0).max(100).optional().or(z.literal(undefined)),
     // Arrear Details
-    HRC_ArrearSalaryReport: z.enum(['Separate', 'OnlyArrearHead'], {required_error: 'Arrear Salary Report is required'}),
+    HRC_ArrearSalaryReport: z.enum(['Separate', 'OnlyArrearHead'], { required_error: 'Arrear Salary Report is required' }),
     HRC_ArrearRequired: z.enum(['Cumulative', 'Monthwise']).optional(),
     // Approval Process
     HRC_SalaryApproval: z.boolean().optional(),
@@ -489,17 +489,17 @@ export const payrollStandardSchema = z.object({
     HRC_Increment: z.boolean().optional(),
     HRC_Probation: z.boolean().optional(),
     // Payment Method
-    HRC_PaymentMethod: z.number({required_error: 'Payment Method is required'}).min(1).max(6),
+    HRC_PaymentMethod: z.number({ required_error: 'Payment Method is required' }).min(1).max(6),
     // Increment Process
     HRC_OptionalHolidays: z.number().min(0).optional(),
     HRC_ApplicableFlag: z.boolean().optional(),
     HRC_MinimumPeriods: z.number().min(0).optional(),
-    HRC_IncrementMonth: z.string({message: 'Increment Month is required'}).min(1, 'Increment Month is required'),
+    HRC_IncrementMonth: z.string({ message: 'Increment Month is required' }).min(1, 'Increment Month is required'),
     HRC_IncrementOnceInMonths: z.number().min(0).optional(),
     HRC_AlertDays: z.number().min(0).optional(),
     // Salary Days
-    HRC_SalaryFromDay: z.coerce.number({required_error: 'Salary From Day is required'}).min(1, 'Salary From Day is required').max(31),
-    HRC_SalaryToDay: z.coerce.number({required_error: 'Salary To Day is required'}).min(1, 'Salary To Day is required').max(31),
+    HRC_SalaryFromDay: z.coerce.number({ required_error: 'Salary From Day is required' }).min(1, 'Salary From Day is required').max(31),
+    HRC_SalaryToDay: z.coerce.number({ required_error: 'Salary To Day is required' }).min(1, 'Salary To Day is required').max(31),
     HRC_ActiveFlag: z.boolean()
 });
 
@@ -612,6 +612,57 @@ export const hrmsMasterSchemas = {
             // UI fields for form tracking
             calendarYear: z.string().optional(),
             selectedDays: z.array(z.string()).optional()
+        }).superRefine((data, ctx) => {
+            if (data.day_flag) {
+                if (!data.selectedDays || data.selectedDays.length === 0) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: "Please select at least one day",
+                        path: ["selectedDays"],
+                    });
+                }
+                
+                // Only validate selectedDaysDate if days are selected to avoid duplicate errors
+                if (data.selectedDays && data.selectedDays.length > 0) {
+                    if (!data.selectedDaysDate || data.selectedDaysDate.length === 0) {
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            message: "Please select at least one date from the list below",
+                            path: ["selectedDaysDate"],
+                        });
+                    }
+                }
+            } else {
+                if (!data.fO_Start_Date) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: "Start Date is required",
+                        path: ["fO_Start_Date"],
+                    });
+                }
+
+                if (!data.fomhwdD_ToDate) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: "End Date is required",
+                        path: ["fomhwdD_ToDate"],
+                    });
+                }
+                if (!data.fomhwD_HolidayWDName) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: "Holiday Name is required",
+                        path: ["fomhwD_HolidayWDName"],
+                    });
+                }
+                if (!data.fO_Remark) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: "Remark is required",
+                        path: ["fO_Remark"],
+                    });
+                }
+            }
         }),
         update: z.object({
             fomhwD_Id: z.number(),
@@ -631,29 +682,29 @@ export const hrmsMasterSchemas = {
     shiftSettingMaster: {
         add: z.object({
             foms_ShiftName: z.string().min(1, 'Shift Name is required').max(100),
-            fomsT_IHalfLoginTime: z.string().optional(), // Shift Start Time
-            fomsT_IIHalfLogoutTime: z.string().optional(), // Shift End Time
-            fomsT_IHalfLogoutTime: z.string().optional(), // Lunch start time
-            fomsT_IIHalfLoginTime: z.string().optional(), // Lunch End time
-            fomsT_FDWHrMin: z.string().optional(), // Total working hours per shift
-            fomsT_HDWHrMin: z.string().optional(), // Half day working hours per shift
-            fomsT_LunchHoursDuration: z.string().optional(), // Lunch Hours
-            fomsT_DelayPerShiftHrMin: z.string().optional(), // Delay per shift
-            fomsT_EarlyPerShiftHrMin: z.string().optional() // Early per shift
+            fomsT_IHalfLoginTime: z.string({ required_error: 'Shift Start Time is required' }).min(1, 'Shift Start Time is required').refine((val) => val !== '00:00', { message: 'Shift Start Time is required' }),
+            fomsT_IIHalfLogoutTime: z.string({ required_error: 'Shift End Time is required' }).min(1, 'Shift End Time is required').refine((val) => val !== '00:00', { message: 'Shift End Time is required' }),
+            fomsT_IHalfLogoutTime: z.string({ required_error: 'Lunch Start Time is required' }).min(1, 'Lunch Start Time is required').refine((val) => val !== '00:00', { message: 'Lunch Start Time is required' }),
+            fomsT_IIHalfLoginTime: z.string({ required_error: 'Lunch End Time is required' }).min(1, 'Lunch End Time is required').refine((val) => val !== '00:00', { message: 'Lunch End Time is required' }),
+            fomsT_FDWHrMin: z.string({ required_error: 'Total Working Hours is required' }).min(1, 'Total Working Hours is required').refine((val) => val !== '00:00', { message: 'Total Working Hours is required' }),
+            fomsT_HDWHrMin: z.string({ required_error: 'Half Day Working Hours is required' }).min(1, 'Half Day Working Hours is required').refine((val) => val !== '00:00', { message: 'Half Day Working Hours is required' }),
+            fomsT_LunchHoursDuration: z.string({ required_error: 'Lunch Hours is required' }).min(1, 'Lunch Hours is required').refine((val) => val !== '00:00', { message: 'Lunch Hours is required' }),
+            fomsT_DelayPerShiftHrMin: z.string({ required_error: 'Delay Per Shift is required' }).min(1, 'Delay Per Shift is required').refine((val) => val !== '00:00', { message: 'Delay Per Shift is required' }),
+            fomsT_EarlyPerShiftHrMin: z.string({ required_error: 'Early Per Shift is required' }).min(1, 'Early Per Shift is required').refine((val) => val !== '00:00', { message: 'Early Per Shift is required' })
         }),
         update: z.object({
             fomsT_Id: z.number().optional(),
             fomS_Id: z.number().optional(),
             foms_ShiftName: z.string().min(1, 'Shift Name is required').max(100),
-            fomsT_IHalfLoginTime: z.string().optional(), // Shift Start Time
-            fomsT_IIHalfLogoutTime: z.string().optional(), // Shift End Time
-            fomsT_IHalfLogoutTime: z.string().optional(), // Lunch start time
-            fomsT_IIHalfLoginTime: z.string().optional(), // Lunch End time
-            fomsT_FDWHrMin: z.string().optional(), // Total working hours per shift
-            fomsT_HDWHrMin: z.string().optional(), // Half day working hours per shift
-            fomsT_LunchHoursDuration: z.string().optional(), // Lunch Hours
-            fomsT_DelayPerShiftHrMin: z.string().optional(), // Delay per shift
-            fomsT_EarlyPerShiftHrMin: z.string().optional() // Early per shift
+            fomsT_IHalfLoginTime: z.string({ required_error: 'Shift Start Time is required' }).min(1, 'Shift Start Time is required').refine((val) => val !== '00:00', { message: 'Shift Start Time is required' }),
+            fomsT_IIHalfLogoutTime: z.string({ required_error: 'Shift End Time is required' }).min(1, 'Shift End Time is required').refine((val) => val !== '00:00', { message: 'Shift End Time is required' }),
+            fomsT_IHalfLogoutTime: z.string({ required_error: 'Lunch Start Time is required' }).min(1, 'Lunch Start Time is required').refine((val) => val !== '00:00', { message: 'Lunch Start Time is required' }),
+            fomsT_IIHalfLoginTime: z.string({ required_error: 'Lunch End Time is required' }).min(1, 'Lunch End Time is required').refine((val) => val !== '00:00', { message: 'Lunch End Time is required' }),
+            fomsT_FDWHrMin: z.string({ required_error: 'Total Working Hours is required' }).min(1, 'Total Working Hours is required').refine((val) => val !== '00:00', { message: 'Total Working Hours is required' }),
+            fomsT_HDWHrMin: z.string({ required_error: 'Half Day Working Hours is required' }).min(1, 'Half Day Working Hours is required').refine((val) => val !== '00:00', { message: 'Half Day Working Hours is required' }),
+            fomsT_LunchHoursDuration: z.string({ required_error: 'Lunch Hours is required' }).min(1, 'Lunch Hours is required').refine((val) => val !== '00:00', { message: 'Lunch Hours is required' }),
+            fomsT_DelayPerShiftHrMin: z.string({ required_error: 'Delay Per Shift is required' }).min(1, 'Delay Per Shift is required'),
+            fomsT_EarlyPerShiftHrMin: z.string({ required_error: 'Early Per Shift is required' }).min(1, 'Early Per Shift is required')
         }),
         delete: z.object({
             fomsT_Id: z.coerce.number().int({ message: 'fomsT_Id is required' }).min(1, { message: 'fomsT_Id must be greater than 0' })
@@ -661,41 +712,41 @@ export const hrmsMasterSchemas = {
     },
     employeeShiftMapping: {
         add: z.object({
-            foest_ShiftName: z.string().min(1, 'Shift Name is required'),
-            foest_Department: z.string().optional(),
-            foest_Designation: z.string().optional(),
-            foest_Employee: z.string().optional(),
-            foest_HolidayType: z.string().optional(),
-            foest_ApplicableDate: z.string().optional(),
-            foest_GroupType: z.string().optional(),
+            foest_ShiftName: z.string({ required_error: 'Shift Name is required' }).min(1, 'Shift Name is required'),
+            foest_Department: z.string({ required_error: 'Department is required' }).min(1, 'Department is required'),
+            foest_Designation: z.string({ required_error: 'Designation is required' }).min(1, 'Designation is required'),
+            foest_Employee: z.string({ required_error: 'Employee is required' }).min(1, 'Employee is required'),
+            foest_HolidayType: z.string({ required_error: 'Day Type is required' }).min(1, 'Day Type is required'),
+            foest_ApplicableDate: z.string({ required_error: 'Applicable Date is required' }).min(1, 'Applicable Date is required'),
+            foest_GroupType: z.string({ required_error: 'Group Type is required' }).min(1, 'Group Type is required'),
             foest_TotalWork: z.string().optional(),
-            foest_HalfDayWork: z.string().optional(),
-            foest_MorningLogin: z.string().optional(),
-            foest_MorningLogout: z.string().optional(),
-            foest_AfternoonLogin: z.string().optional(),
-            foest_AfternoonLogout: z.string().optional(),
-            foest_DelayShift: z.string().optional(),
-            foest_EarlyShift: z.string().optional(),
-            foest_LunchHour: z.string().optional()
+            foest_HalfDayWork: z.string({ required_error: 'Half Day Working Hours is required' }).min(1, 'Half Day Working Hours is required'),
+            foest_MorningLogin: z.string({ required_error: 'Shift Start Time is required' }).min(1, 'Shift Start Time is required'),
+            foest_MorningLogout: z.string({ required_error: 'Lunch Start Time is required' }).min(1, 'Lunch Start Time is required'),
+            foest_AfternoonLogin: z.string({ required_error: 'Lunch End Time is required' }).min(1, 'Lunch End Time is required'),
+            foest_AfternoonLogout: z.string({ required_error: 'Shift End Time is required' }).min(1, 'Shift End Time is required'),
+            foest_DelayShift: z.string({ required_error: 'Delay Per Shift is required' }).min(1, 'Delay Per Shift is required'),
+            foest_EarlyShift: z.string({ required_error: 'Early Per Shift is required' }).min(1, 'Early Per Shift is required'),
+            foest_LunchHour: z.string({ required_error: 'Lunch Hours is required' }).min(1, 'Lunch Hours is required')
         }),
         update: z.object({
             foest_Id: z.number(),
-            foest_ShiftName: z.string().min(1, 'Shift Name is required'),
-            foest_Department: z.string().optional(),
-            foest_Designation: z.string().optional(),
-            foest_Employee: z.string().optional(),
-            foest_HolidayType: z.string().optional(),
-            foest_ApplicableDate: z.string().optional(),
-            foest_GroupType: z.string().optional(),
+            foest_ShiftName: z.string({ required_error: 'Shift Name is required' }).min(1, 'Shift Name is required'),
+            foest_Department: z.string({ required_error: 'Department is required' }).min(1, 'Department is required'),
+            foest_Designation: z.string({ required_error: 'Designation is required' }).min(1, 'Designation is required'),
+            foest_Employee: z.string({ required_error: 'Employee is required' }).min(1, 'Employee is required'),
+            foest_HolidayType: z.string({ required_error: 'Day Type is required' }).min(1, 'Day Type is required'),
+            foest_ApplicableDate: z.string({ required_error: 'Applicable Date is required' }).min(1, 'Applicable Date is required'),
+            foest_GroupType: z.string({ required_error: 'Group Type is required' }).min(1, 'Group Type is required'),
             foest_TotalWork: z.string().optional(),
-            foest_HalfDayWork: z.string().optional(),
-            foest_MorningLogin: z.string().optional(),
-            foest_MorningLogout: z.string().optional(),
-            foest_AfternoonLogin: z.string().optional(),
-            foest_AfternoonLogout: z.string().optional(),
-            foest_DelayShift: z.string().optional(),
-            foest_EarlyShift: z.string().optional(),
-            foest_LunchHour: z.string().optional()
+            foest_HalfDayWork: z.string({ required_error: 'Half Day Working Hours is required' }).min(1, 'Half Day Working Hours is required'),
+            foest_MorningLogin: z.string({ required_error: 'Shift Start Time is required' }).min(1, 'Shift Start Time is required'),
+            foest_MorningLogout: z.string({ required_error: 'Lunch Start Time is required' }).min(1, 'Lunch Start Time is required'),
+            foest_AfternoonLogin: z.string({ required_error: 'Lunch End Time is required' }).min(1, 'Lunch End Time is required'),
+            foest_AfternoonLogout: z.string({ required_error: 'Shift End Time is required' }).min(1, 'Shift End Time is required'),
+            foest_DelayShift: z.string({ required_error: 'Delay Per Shift is required' }).min(1, 'Delay Per Shift is required'),
+            foest_EarlyShift: z.string({ required_error: 'Early Per Shift is required' }).min(1, 'Early Per Shift is required'),
+            foest_LunchHour: z.string({ required_error: 'Lunch Hours is required' }).min(1, 'Lunch Hours is required')
         }),
         delete: z.object({
             foest_Id: z.coerce.number().int({ message: 'foest_Id is required' }).min(1, { message: 'foest_Id must be greater than 0' })

@@ -2,7 +2,7 @@
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
-import type { IadmissionStudentApplicationList } from '@/types/admission/admission';
+import type { IadmissionFormDetails, IadmissionStudentApplicationList } from '@/types/admission/admission';
 
 export async function saveFirstTabApi(data: any) {
     const url = '/StudentAdmissionFacade/savefirsttab';
@@ -104,4 +104,18 @@ export async function getStudentAdmissionFormById(id: number) {
 export async function deleteAdmissionForm(id: number) {
     const url = `/StudentAdmissionFacade/delete-admission/${id}`;
     return await api.delete('admission', url);
+}
+export async function getAdmissionFormDetails() {
+    const url = '/StudentAdmissionFacade/Getdetails';
+    return await api.get<IadmissionFormDetails>('admission', url);
+}
+
+export async function onchangeclassApi(data: { ASMCL_Id: number; ASMAY_Id: number }) {
+    const url = '/StudentAdmissionFacade/onchangeclass';
+    return await api.post<any>('admission', url, data);
+}
+
+export async function onchangestreamApi(data: { ASMST_Id: number }) {
+    const url = '/StudentAdmissionFacade/onchangestream';
+    return await api.post<any>('admission', url, data);
 }
