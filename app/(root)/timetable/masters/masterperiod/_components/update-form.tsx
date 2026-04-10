@@ -90,9 +90,7 @@ export default function MasterPeriodForm({ onSuccess, selectedRow }: MasterPerio
     const { data: MasterPerioddata, isLoading: masterPerioddataloading } = useCategoryDropDownMasterPeriod();
     const categories = extractList(MasterPerioddata);
 
-    const filteredPeriodIds = categories.filter((d: any) =>
-        (d.amC_Name || '').toLowerCase().includes(PeriodSearch.toLowerCase())
-    );
+    const filteredPeriodIds = categories.filter((d: any) => (d.amC_Name || '').toLowerCase().includes(PeriodSearch.toLowerCase()));
 
     const getCategoryId = (obj: any) => {
         if (!obj) return '';
@@ -143,9 +141,7 @@ export default function MasterPeriodForm({ onSuccess, selectedRow }: MasterPerio
 
                     // Extract all unique category IDs from the edit list
                     const sourceForCategories = filteredEditData.length > 0 ? filteredEditData : editDataList;
-                    const allCategoryIds = Array.from(
-                        new Set(sourceForCategories.map((item: any) => getCategoryId(item)).filter(Boolean))
-                    );
+                    const allCategoryIds = Array.from(new Set(sourceForCategories.map((item: any) => getCategoryId(item)).filter(Boolean)));
 
                     reset({
                         imP_Id: targetImpId,
@@ -192,12 +188,14 @@ export default function MasterPeriodForm({ onSuccess, selectedRow }: MasterPerio
     const onSubmit = async (data: FormFields) => {
         try {
             const payload = {
-                IMP_Id: data.imP_Id || selectedRow?.imP_Id || 0,
-                IMPCM_Id: data.impcM_Id || selectedRow?.impcM_Id || 0,
-                IMP_PeriodName: data.periodname,
-                IMP_PeriodOrder: data.periodorder,
-                Half: data.half,
-                selectedCategoryDetails: Category_ids.map((id) => ({ amC_Id: Number(id) }))
+                selectedCategoryDetails: Category_ids.map((id) => ({ amC_Id: Number(id) })),
+                imP_PeriodName: data.periodname,
+                imP_PeriodOrder: data.periodorder,
+                half: data.half,
+                ...(selectedRow && {
+                    imP_Id: data.imP_Id || selectedRow?.imP_Id || 0,
+                    impcM_Id: data.impcM_Id || selectedRow?.impcM_Id || 0
+                })
             };
 
             const response = await ADDORUPDATEMasterPeriod(payload);
@@ -234,7 +232,7 @@ export default function MasterPeriodForm({ onSuccess, selectedRow }: MasterPerio
                                     key={field.value || 'empty'}
                                     value={field.value?.toString() || undefined}
                                     onValueChange={(val) => field.onChange(Number(val))}>
-                                    <SelectTrigger>
+                                    <SelectTrigger className={cn(!field.value ? 'text-gray-400' : 'text-black')}>
                                         <SelectValue placeholder='Select Period Name' />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -262,7 +260,7 @@ export default function MasterPeriodForm({ onSuccess, selectedRow }: MasterPerio
                                     key={field.value || 'empty'}
                                     value={field.value?.toString() || undefined}
                                     onValueChange={(val) => field.onChange(Number(val))}>
-                                    <SelectTrigger>
+                                    <SelectTrigger className={cn(!field.value ? 'text-gray-400' : 'text-black')}>
                                         <SelectValue placeholder='Select Period Order' />
                                     </SelectTrigger>
                                     <SelectContent>

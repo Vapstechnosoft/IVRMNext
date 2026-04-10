@@ -131,6 +131,7 @@ export default function NoticeBoardPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStartDate, setFilterStartDate] = useState<Date | undefined>();
   const [filterEndDate, setFilterEndDate] = useState<Date | undefined>();
+  const [editingNoticeId, setEditingNoticeId] = useState<number | null>(null);
 
   // Selection states
   const [selectedClasses, setSelectedClasses] = useState<number[]>([]);
@@ -312,27 +313,20 @@ export default function NoticeBoardPage() {
     try {
       setIsSaving(true);
       
-      // Mock API call - replace with actual implementation
+      const noticeId = editingNoticeId || 0;
+      
       const noticeData = {
-        INTB_Id: 0,
-        INTB_Title: noticeTitle,
-        INTB_Description: noticeDescription,
-        INTB_StartDate: format(startDate!, 'yyyy-MM-dd'),
-        INTB_EndDate: format(endDate!, 'yyyy-MM-dd'),
-        INTB_DisplayDate: useDisplayDate ? format(displayDate!, 'yyyy-MM-dd') : null,
-        INTB_Attachment: mainAttachment,
-        NTB_TTSylabusFlg: noticeType,
-        INTB_DispalyDisableFlg: useDisplayDate,
-        INTB_ToStudentFlg: checkStudent,
-        INTB_ToStaffFlg: checkStaff,
-        ASMAY_Id: selectedAcademicYear,
-        classlsttwo: selectedClasses.map(id => ({ ASMCL_Id: id })),
-        sectionlistarray: selectedSections.map(id => ({ ASMS_Id: id })),
-        studentarray: selectedStudents.map(id => ({ AMST_Id: id })),
-        departmentlist: selectedDepartments.map(id => ({ HRMDC_ID: id })),
-        designationlist: selectedDesignations.map(id => ({ HRMDES_Id: id })),
-        employeearraylist: selectedEmployees.map(id => ({ HRME_Id: id })),
-        FilePath_Array: [...documentFiles, ...urlDocuments].filter(doc => doc.INTBFL_FilePath)
+        intB_Id: noticeId,
+        intB_Title: noticeTitle,
+        intB_Description: noticeDescription,
+        intB_StartDate: format(startDate!, 'yyyy-MM-dd'),
+        intB_EndDate: format(endDate!, 'yyyy-MM-dd'),
+        intB_DisplayDate: useDisplayDate ? format(displayDate!, 'yyyy-MM-dd') : undefined,
+        intB_ActiveFlag: editingNoticeId ? notices.find(n => n.intB_Id === editingNoticeId)?.intB_ActiveFlag ?? true : true,
+        intB_ToStudentFlg: checkStudent,
+        intB_ToStaffFlg: checkStaff,
+        ntB_TTSylabusFlg: noticeType,
+        intB_Attachment: mainAttachment,
       };
 
       console.log('Saving notice:', noticeData);
@@ -340,7 +334,15 @@ export default function NoticeBoardPage() {
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      alert('Notice saved successfully!');
+      if (editingNoticeId) {
+        setNotices(prev => prev.map(n => n.intB_Id === editingNoticeId ? { ...n, ...noticeData } : n));
+        alert('Notice updated successfully!');
+      } else {
+        const newId = notices.length > 0 ? Math.max(...notices.map(n => n.intB_Id)) + 1 : 1;
+        setNotices(prev => [...prev, { ...noticeData, intB_Id: newId }]);
+        alert('Notice saved successfully!');
+      }
+
       clearForm();
       setIsSaving(false);
     } catch (error) {
@@ -371,6 +373,7 @@ export default function NoticeBoardPage() {
     setSelectedDepartments([]);
     setSelectedDesignations([]);
     setSelectedEmployees([]);
+    setEditingNoticeId(null);
     setClasses(prev => prev.map(cls => ({ ...cls, selected: false })));
     setSections(prev => prev.map(sec => ({ ...sec, selected: false })));
     setStudents(prev => prev.map(stu => ({ ...stu, selected: false })));
@@ -390,6 +393,45 @@ export default function NoticeBoardPage() {
     ];
     setSelectedAttachments(mockAttachments);
     setShowAttachmentModal(true);
+  };
+
+  const handleEditNotice = (notice: Notice) => {
+    setEditingNoticeId(notice.intB_Id);
+    setNoticeTitle(notice.intB_Title);
+    setNoticeDescription(notice.intB_Description);
+    setStartDate(new Date(notice.intB_StartDate));
+    setEndDate(new Date(notice.intB_EndDate));
+    setNoticeType(notice.ntB_TTSylabusFlg);
+    
+    if (notice.intB_DisplayDate) {
+      setDisplayDate(new Date(notice.intB_DisplayDate));
+      setUseDisplayDate(true);
+    } else {
+      setDisplayDate(undefined);
+      setUseDisplayDate(false);
+    }
+    
+    setCheckStudent(notice.intB_ToStudentFlg);
+    setCheckStaff(notice.intB_ToStaffFlg);
+    setMainAttachment(notice.intB_Attachment || '');
+    
+    // Scroll to form
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDeleteNotice = (notice: Notice) => {
+    if (confirm(`Are you sure you want to delete "${notice.intB_Title}"?`)) {
+      setNotices(prev => prev.filter(n => n.intB_Id !== notice.intB_Id));
+      alert('Notice deleted successfully!');
+    }
+  };
+
+  const handleToggleActiveNotice = (notice: Notice) => {
+    setNotices(prev => prev.map(n => 
+      n.intB_Id === notice.intB_Id 
+        ? { ...n, intB_ActiveFlag: !n.intB_ActiveFlag } 
+        : n
+    ));
   };
 
   const filteredClasses = classes.filter(cls =>
@@ -927,6 +969,9 @@ export default function NoticeBoardPage() {
         onFilterStartDateChange={setFilterStartDate}
         onFilterEndDateChange={setFilterEndDate}
         onViewAttachments={viewAttachments}
+        onEdit={handleEditNotice}
+        onDelete={handleDeleteNotice}
+        onToggleActive={handleToggleActiveNotice}
       />
 
       {/* Modals */}

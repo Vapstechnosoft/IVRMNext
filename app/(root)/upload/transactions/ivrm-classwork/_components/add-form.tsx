@@ -15,15 +15,13 @@ import { cn } from '@/lib/utils';
 import { classWorkSchema } from '@/schemas/upload/transactions/ivrm-classwork.schema';
 import {
     getClassDropDownByAcademicYearlist,
-    getSectionsDropDownByAcademicYearandClasslist
-} from '@/server/exam/exam-module/reports/cumulative-report';
-import {
+    getSectionsDropDownByAcademicYearandClasslist,
     getSubjectsDropDownByAcademicYearandClassandSectionlist,
     uploadClassWork
 } from '@/server/upload/transactions/ivrm-classwork/server-action';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { CalendarIcon, Eye, Loader2, Minus, Plus, Save, Upload, X } from 'lucide-react';
+import { CalendarIcon, Eye, Loader2, Minus, Plus, Save, Search, Upload, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { uploadDocument } from '@/server/fees/trasactions/waived_off';
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
@@ -33,13 +31,15 @@ import type { z } from 'zod';
 interface AddClassWorkFormProps {
     onSuccess: () => void;
     classList: any[];
+    selectedYear: number;
 }
 
 type FormFields = z.infer<typeof classWorkSchema.addOrUpdate>;
 
-export default function AddClassWorkForm({ onSuccess, classList }: AddClassWorkFormProps) {
+export default function AddClassWorkForm({ onSuccess, classList, selectedYear }: AddClassWorkFormProps) {
     const [sections, setSections] = useState<any[]>([]);
     const [subjects, setSubjects] = useState<{ ismS_Id: number }[]>([]);
+    const [sectionSearch, setSectionSearch] = useState('');
     const [showUrlSection, setShowUrlSection] = useState(false);
 
     const {
@@ -53,6 +53,8 @@ export default function AddClassWorkForm({ onSuccess, classList }: AddClassWorkF
         resolver: zodResolver(classWorkSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
+            asmaY_Id: selectedYear,
+            hm_section_list: [],
             icW_FilePath_Array: [{ icW_FilePath: '', fileName: '' }],
             icW_Attachment_Array: [{ icW_FilePath: '', fileName: '' }]
         }
@@ -67,10 +69,16 @@ export default function AddClassWorkForm({ onSuccess, classList }: AddClassWorkF
         control,
         name: 'hm_section_list'
     });
-    const selectedYear = useWatch({ control, name: 'asmaY_Id' });
+    const selectedYearField = useWatch({ control, name: 'asmaY_Id' });
 
     useEffect(() => {
-        if (!selectedYear || selectedYear === 0) {
+        if (selectedYear) {
+            setValue('asmaY_Id', selectedYear);
+        }
+    }, [selectedYear, setValue]);
+
+    useEffect(() => {
+        if (!selectedYearField || selectedYearField === 0) {
             setClasses([]);
             setSections([]);
             return;
@@ -78,7 +86,7 @@ export default function AddClassWorkForm({ onSuccess, classList }: AddClassWorkF
         setIsClassesLoading(true);
         (async () => {
             try {
-                const { data } = await getClassDropDownByAcademicYearlist(selectedYear);
+                const { data } = await getClassDropDownByAcademicYearlist(selectedYearField);
                 setClasses(Array.isArray(data) ? data : []);
             } catch {
                 toast.error('Failed to load classes');
@@ -86,31 +94,31 @@ export default function AddClassWorkForm({ onSuccess, classList }: AddClassWorkF
             }
         })();
         setIsClassesLoading(false);
-    }, [selectedYear, setValue]);
+    }, [selectedYearField, setValue]);
 
     useEffect(() => {
-        if (!selectedYear || !selectedClass || selectedClass === 0) {
+        if (!selectedYearField || !selectedClass || selectedClass === 0) {
             setSections([]);
             return;
         }
         (async () => {
             try {
-                const { data } = await getSectionsDropDownByAcademicYearandClasslist(selectedYear, selectedClass);
-                setSections(Array.isArray(data) ? data : []);
+                const { data } = await getSectionsDropDownByAcademicYearandClasslist(selectedYearField, selectedClass);
+                setSections(Array.isArray(data?.sectionlist) ? data.sectionlist : []);
             } catch {
                 toast.error('Failed to load sections');
                 setSections([]);
             }
         })();
-    }, [selectedYear, selectedClass, setValue]);
+    }, [selectedYearField, selectedClass, setValue]);
 
     useEffect(() => {
-        if (!selectedYear || !selectedClass || !selectedSections?.length) return;
+        if (!selectedYearField || !selectedClass || !selectedSections?.length) return;
         let mounted = true;
         (async () => {
             try {
                 const payload = {
-                    asmaY_Id: selectedYear,
+                    asmaY_Id: selectedYearField,
                     asmcL_Id: selectedClass,
                     hm_section_list: selectedSections
                 };
@@ -126,7 +134,7 @@ export default function AddClassWorkForm({ onSuccess, classList }: AddClassWorkF
         return () => {
             mounted = false;
         };
-    }, [selectedYear, selectedClass, selectedSections, setValue]);
+    }, [selectedYearField, selectedClass, selectedSections, setValue]);
 
     const fileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({});
     const [isViewing, setIsViewing] = useState(false);
@@ -385,40 +393,62 @@ export default function AddClassWorkForm({ onSuccess, classList }: AddClassWorkF
                         name='hm_section_list'
                         control={control}
                         render={({ field, fieldState }) => (
-                            <div className='flex flex-col gap-3 sm:flex-row'>
-                                <Label className='w-32 font-medium'>
+                            <div className='flex flex-col gap-2'>
+                                <Label className='font-semibold'>
                                     Section <span className='text-red-500'>*</span>
                                 </Label>
 
-                                <div className='flex-1'>
-                                    <div className='grid grid-cols-1 gap-2 sm:grid-cols-2'>
-                                        {sections.map((s) => {
-                                            const checked = field.value?.some((x: any) => x.asmS_Id === s.asmS_Id) ?? false;
-
-                                            return (
-                                                <label key={s.asmS_Id} className='flex cursor-pointer items-center gap-2'>
-                                                    <input
-                                                        type='checkbox'
-                                                        disabled={!selectedClass || selectedClass === 0}
-                                                        checked={checked}
-                                                        onChange={(e) => {
-                                                            const current = field.value || [];
-
-                                                            if (e.target.checked) {
-                                                                field.onChange([...current, { asmS_Id: s.asmS_Id }]);
-                                                            } else {
-                                                                field.onChange(current.filter((x: any) => x.asmS_Id !== s.asmS_Id));
-                                                            }
-                                                        }}
-                                                    />
-                                                    <span>{s.asmC_SectionName}</span>
-                                                </label>
-                                            );
-                                        })}
+                                <div className='flex flex-col gap-2 rounded-md border border-primary/20 p-3 shadow-sm'>
+                                    <div className='relative'>
+                                        <Search className='absolute top-2.5 left-3 h-4 w-4 text-muted-foreground' />
+                                        <Input
+                                            placeholder='search here...'
+                                            className='h-9 pl-9 text-sm'
+                                            value={sectionSearch}
+                                            onChange={(e) => setSectionSearch(e.target.value)}
+                                        />
                                     </div>
 
-                                    {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                    <div className='max-h-[160px] space-y-2 overflow-y-auto px-1 py-1'>
+                                        {sections
+                                            .filter((s) => s.asmC_SectionName?.toLowerCase().includes(sectionSearch.toLowerCase()))
+                                            .map((s) => {
+                                                const checked = field.value?.some((x: any) => x.asmS_Id === s.asmS_Id) ?? false;
+
+                                                return (
+                                                    <label
+                                                        key={s.asmS_Id}
+                                                        className='flex cursor-pointer items-center gap-2 rounded p-1 transition-colors hover:bg-muted/50'>
+                                                        <Checkbox
+                                                            checked={checked}
+                                                            onCheckedChange={(checked) => {
+                                                                const current = field.value || [];
+                                                                if (checked) {
+                                                                    field.onChange([...current, { asmS_Id: s.asmS_Id }]);
+                                                                } else {
+                                                                    field.onChange(current.filter((x: any) => x.asmS_Id !== s.asmS_Id));
+                                                                }
+                                                            }}
+                                                        />
+                                                        <span className='text-sm'>{s.asmC_SectionName}</span>
+                                                    </label>
+                                                );
+                                            })}
+
+                                        {sections.length === 0 && (
+                                            <div className='py-4 text-center text-muted-foreground text-sm uppercase'>
+                                                Select a class first
+                                            </div>
+                                        )}
+                                        {sections.length > 0 &&
+                                            sections.filter((s) => s.asmC_SectionName?.toLowerCase().includes(sectionSearch.toLowerCase()))
+                                                .length === 0 && (
+                                                <div className='py-4 text-center text-muted-foreground text-sm'>No sections found</div>
+                                            )}
+                                    </div>
                                 </div>
+
+                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                             </div>
                         )}
                     />

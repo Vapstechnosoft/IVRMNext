@@ -55,6 +55,7 @@ export const MasterVenueColumns: ColumnDef<IMasterEventVenue>[] = [
     },
     {
         id: 'actions',
+        header: 'Actions',
         cell: ActionsCell
     }
 ];

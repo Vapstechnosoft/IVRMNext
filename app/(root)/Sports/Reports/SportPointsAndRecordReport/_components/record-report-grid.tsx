@@ -16,7 +16,7 @@ export const ReportGrid = ({ data }: ReportGridProps) => {
 
     const handlePrint = useReactToPrint({
         contentRef: componentRef,
-        documentTitle: 'Sport_Point_And_Record_Report',
+        documentTitle: 'Sport_Points_And_Record_Report',
         pageStyle: `
           @page { size: portrait; margin: 20mm; }
           @media print {
@@ -31,7 +31,7 @@ export const ReportGrid = ({ data }: ReportGridProps) => {
         const worksheet = XLSX.utils.json_to_sheet(data);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
-        XLSX.writeFile(workbook, "SportPointAndRecordReport.xlsx");
+        XLSX.writeFile(workbook, "SportPointsAndRecordReport.xlsx");
     };
 
     if (!data || data.length === 0) return null;
@@ -39,7 +39,7 @@ export const ReportGrid = ({ data }: ReportGridProps) => {
     return (
         <div className="bg-white rounded-lg shadow-sm border p-4 space-y-4">
             <div className="flex justify-between items-center border-b pb-4">
-                <h3 className="text-xl font-semibold">Sport Point And Record Report</h3>
+                <h3 className="text-xl font-semibold">Sport Points And Record Report</h3>
                 <div className="flex space-x-2">
                     <Button variant="outline" size="sm" onClick={() => handlePrint()} className="flex items-center gap-2 border-2">
                         <Printer size={16} className="text-primary" /> Print

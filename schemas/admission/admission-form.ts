@@ -535,10 +535,23 @@ export const studentAdmissionFormSchema = {
         amsT_VaccinatedFlg: z.boolean().optional(),
         // Final flags for hostel and transport requirement
         hostelRequired: z.boolean().optional().default(false),
-        transportRequired: z.boolean().optional().default(false)
+        transportRequired: z.boolean().optional().default(false),
 
-        // Final
+        // Added missing fields
+        imCC_Id: z.preprocess((val) => (val === '' || val === null ? 0 : Number(val)), z.number().int().optional()),
+        amsT_PENNo: createOptionalAlphaNumericSchema('PEN Number', 1, 50).optional(),
+        amsT_Tribe: createOptionalAlphaNumericSchema('Tribe', 1, 100).optional(),
+        amsT_GovtAdmno: createOptionalAlphaNumericSchema('Govt Admission No', 1, 50).optional(),
+        amsT_Income: z.preprocess((val) => (val === '' || val === null ? 0 : Number(val)), z.number().optional().nullable()),
+        amsT_ration: createOptionalAlphaNumericSchema('Ration Card No', 1, 50).optional(),
+        amsT_StudentPANNo: createOptionalAlphaNumericSchema('Student PAN', 1, 50).optional(),
+        amsT_Stream: z.string().optional().nullable(),
+        asmsT_Id: z.preprocess((val) => (val === '' || val === null ? 0 : Number(val)), z.number().int().optional()),
+        ASMCE_Id: z.preprocess((val) => (val === '' || val === null ? 0 : Number(val)), z.number().int().optional()),
+        electivelist_Groups: z.array(z.number()).optional(),
+        amsT_Remarks: createOptionalStringSchema('Remarks', 0, 500).optional()
     }),
+
 
     delete: z.object({
         pasr_id: deleteIdSchema('pasr_id')

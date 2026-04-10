@@ -15,16 +15,14 @@ import { cn } from '@/lib/utils';
 import { classWorkSchema } from '@/schemas/upload/transactions/ivrm-classwork.schema';
 import {
     getClassDropDownByAcademicYearlist,
-    getSectionsDropDownByAcademicYearandClasslist
-} from '@/server/exam/exam-module/reports/cumulative-report';
-import {
+    getSectionsDropDownByAcademicYearandClasslist,
     getSubjectsDropDownByAcademicYearandClassandSectionlist,
     uploadClassWork
 } from '@/server/upload/transactions/ivrm-classwork/server-action';
 import type { IClassWorkDetails } from '@/types/upload/reports/classwork-upload-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { CalendarIcon, Eye, Loader2, Minus, Plus, Save, Upload, X } from 'lucide-react';
+import { CalendarIcon, Eye, Loader2, Minus, Plus, Save, Search, Upload, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { uploadDocument } from '@/server/fees/trasactions/waived_off';
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
@@ -42,6 +40,7 @@ type FormFields = z.infer<typeof classWorkSchema.addOrUpdate>;
 export default function UpdateClassWorkForm({ onSuccess, selectedRow }: UpdateClassWorkFormProps) {
     const [sections, setSections] = useState<any[]>([]);
     const [subjects, setSubjects] = useState<{ ismS_Id: number }[]>([]);
+    const [sectionSearch, setSectionSearch] = useState('');
     const [showUrlSection, setShowUrlSection] = useState(false);
 
     const {
@@ -127,7 +126,7 @@ export default function UpdateClassWorkForm({ onSuccess, selectedRow }: UpdateCl
         (async () => {
             try {
                 const { data } = await getSectionsDropDownByAcademicYearandClasslist(selectedYear, selectedClass);
-                setSections(Array.isArray(data) ? data : []);
+                setSections(Array.isArray(data?.sectionlist) ? data.sectionlist : []);
             } catch {
                 toast.error('Failed to load sections');
                 setSections([]);
@@ -398,40 +397,62 @@ export default function UpdateClassWorkForm({ onSuccess, selectedRow }: UpdateCl
                         name='hm_section_list'
                         control={control}
                         render={({ field, fieldState }) => (
-                            <div className='flex flex-col gap-3 sm:flex-row'>
-                                <Label className='w-32 font-medium'>
+                            <div className='flex flex-col gap-2'>
+                                <Label className='font-semibold'>
                                     Section <span className='text-red-500'>*</span>
                                 </Label>
 
-                                <div className='flex-1'>
-                                    <div className='grid grid-cols-1 gap-2 sm:grid-cols-2'>
-                                        {sections.map((s) => {
-                                            const checked = field.value?.some((x: any) => x.asmS_Id === s.asmS_Id) ?? false;
-
-                                            return (
-                                                <label key={s.asmS_Id} className='flex cursor-pointer items-center gap-2'>
-                                                    <input
-                                                        type='checkbox'
-                                                        disabled={!selectedClass || selectedClass === 0}
-                                                        checked={checked}
-                                                        onChange={(e) => {
-                                                            const current = field.value || [];
-
-                                                            if (e.target.checked) {
-                                                                field.onChange([...current, { asmS_Id: s.asmS_Id }]);
-                                                            } else {
-                                                                field.onChange(current.filter((x: any) => x.asmS_Id !== s.asmS_Id));
-                                                            }
-                                                        }}
-                                                    />
-                                                    <span>{s.asmC_SectionName}</span>
-                                                </label>
-                                            );
-                                        })}
+                                <div className='flex flex-col gap-2 rounded-md border border-primary/20 p-3 shadow-sm'>
+                                    <div className='relative'>
+                                        <Search className='absolute top-2.5 left-3 h-4 w-4 text-muted-foreground' />
+                                        <Input
+                                            placeholder='search here...'
+                                            className='h-9 pl-9 text-sm'
+                                            value={sectionSearch}
+                                            onChange={(e) => setSectionSearch(e.target.value)}
+                                        />
                                     </div>
 
-                                    {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                    <div className='max-h-[160px] space-y-2 overflow-y-auto px-1 py-1'>
+                                        {sections
+                                            .filter((s) => s.asmC_SectionName?.toLowerCase().includes(sectionSearch.toLowerCase()))
+                                            .map((s) => {
+                                                const checked = field.value?.some((x: any) => x.asmS_Id === s.asmS_Id) ?? false;
+
+                                                return (
+                                                    <label
+                                                        key={s.asmS_Id}
+                                                        className='flex cursor-pointer items-center gap-2 rounded p-1 transition-colors hover:bg-muted/50'>
+                                                        <Checkbox
+                                                            checked={checked}
+                                                            onCheckedChange={(checked) => {
+                                                                const current = field.value || [];
+                                                                if (checked) {
+                                                                    field.onChange([...current, { asmS_Id: s.asmS_Id }]);
+                                                                } else {
+                                                                    field.onChange(current.filter((x: any) => x.asmS_Id !== s.asmS_Id));
+                                                                }
+                                                            }}
+                                                        />
+                                                        <span className='text-sm'>{s.asmC_SectionName}</span>
+                                                    </label>
+                                                );
+                                            })}
+
+                                        {sections.length === 0 && (
+                                            <div className='py-4 text-center text-muted-foreground text-sm uppercase'>
+                                                Select a class first
+                                            </div>
+                                        )}
+                                        {sections.length > 0 &&
+                                            sections.filter((s) => s.asmC_SectionName?.toLowerCase().includes(sectionSearch.toLowerCase()))
+                                                .length === 0 && (
+                                                <div className='py-4 text-center text-muted-foreground text-sm'>No sections found</div>
+                                            )}
+                                    </div>
                                 </div>
+
+                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                             </div>
                         )}
                     />

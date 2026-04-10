@@ -30,6 +30,10 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
     const [subStaffList, setSubStaffList] = useState<any[]>([]);
     const [isClassLoading, setIsClassLoading] = useState(false);
 
+    const [masterClasses, setMasterClasses] = useState<any[]>([]);
+    const [masterSections, setMasterSections] = useState<any[]>([]);
+    const [masterStaffs, setMasterStaffs] = useState<any[]>([]);
+
     const [selectedClass, setSelectedClass] = useState<number | undefined>();
     const [selectedSection, setSelectedSection] = useState<number | undefined>();
     const [selectedStaff, setSelectedStaff] = useState<number | undefined>();
@@ -47,78 +51,106 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
         }
     });
 
-    const { setValue, watch, handleSubmit, formState: { isSubmitting }, control, reset } = form;
+    const { setValue, watch, handleSubmit, formState: { isSubmitting }, control, reset, } = form;
     const asmaY_Id = watch('asmaY_Id');
     const ttfdsU_SUbSelcFlag = watch('ttfdsU_SUbSelcFlag');
 
-    const { fields, append, remove } = useFieldArray({
+    const { fields, append, remove, replace } = useFieldArray({
         control,
         name: 'tempararyArrayList'
     });
 
     useEffect(() => {
         const loadEditData = async () => {
+            if (!selectedRow) return;
+
             try {
-                let d = selectedRow;
-                const id = d?.ttfdsU_Id || d?.TTFDSU_Id || d?.ttfdS_Id || d?.TTFDS_Id;
-                let fullRes = null;
-                if (id) {
-                    fullRes = await getFixingDaySubjectDetails(id);
-                    const editData = fullRes?.data?.fix_day_subject_edit || fullRes?.fix_day_subject_edit || (Array.isArray(fullRes?.data) ? fullRes.data : undefined) || fullRes?.data;
-                    if (editData && Array.isArray(editData) && editData.length > 0) {
-                        d = editData[0];
-                    } else if (editData && !Array.isArray(editData)) {
-                        d = editData;
-                    }
+                const id = selectedRow?.ttfdsU_Id;
+                if (!id) return;
+
+                const res = await getFixingDaySubjectDetails(id);
+
+                const responseData = res?.data || res;
+
+                const editData = responseData?.fixing_day_subject ||
+                    responseData?.fix_day_subject_edit ||
+                    responseData?.data?.fix_day_subject_edit ||
+                    (Array.isArray(responseData) ? responseData : undefined) || responseData?.data;
+
+                const subDetails = responseData?.fixing_day_subject_class_edit ||
+                    responseData?.fix_day_subject__classecedit ||
+                    responseData?.data?.fix_day_subject__classecedit || [];
+
+                if (!editData || !Array.isArray(editData) || editData.length === 0) return;
+
+                const main = editData[0];
+
+                reset({
+                    ttfdsU_Id: main.ttfdsU_Id || main.TTFDSU_Id || main.ttfdsU_Id,
+                    asmaY_Id: main.asmaY_Id || main.ASMAY_Id,
+                    ttmD_Id: main.ttmD_Id || main.TTMD_Id,
+                    ismS_Id: main.ismS_Id || main.ISMS_Id,
+                    ttfdsU_SUbSelcFlag: !!main.ttfdsU_SUbSelcFlag || !!main.ttfdsU_SubSelcFlag,
+                    tempararyArrayList: []
+                });
+
+                let masterData = { classes: [] as any[], sections: [] as any[], staff: [] as any[] };
+                if (main.ismS_Id || main.ISMS_Id) {
+                    masterData = await handleSubjectChange(main.ismS_Id || main.ISMS_Id, main.asmaY_Id || main.ASMAY_Id);
                 }
 
-                if (d) {
-                    const normalizedData = {
-                        ttfdsU_Id: d.ttfdsU_Id ?? d.TTFDSU_Id ?? 0,
-                        asmaY_Id: d.asmaY_Id ?? d.ASMAY_Id,
-                        ttmD_Id: d.ttmD_Id ?? d.TTMD_Id,
-                        ismS_Id: d.ismS_Id ?? d.ISMS_Id,
-                        ttfdsU_SUbSelcFlag: d.ttfdsU_SUbSelcFlag ?? d.TTFDSU_SUbSelcFlag ?? false
-                    };
+                if (subDetails && Array.isArray(subDetails)) {
+                    replace(
+                        subDetails.map((sub: any) => {
+                            const cid = sub.asmcL_Id || sub.ASMCL_Id;
+                            const sid = sub.asmS_Id || sub.ASMS_Id;
+                            const hid = sub.hrmE_Id || sub.HRME_Id;
 
-                    if (normalizedData.ismS_Id) {
-                        await handleSubjectChange(normalizedData.ismS_Id, normalizedData.asmaY_Id);
-                    }
+                            // Lookup names if missing from sub object
+                            const clsName = sub.asmcL_ClassName || sub.ASMCL_ClassName ||
+                                masterData.classes.find(c => Number(c.asmcL_Id || c.ASMCL_Id) === Number(cid))?.asmcL_ClassName || '';
 
-                    reset({
-                        ttfdsU_Id: normalizedData.ttfdsU_Id,
-                        asmaY_Id: normalizedData.asmaY_Id,
-                        ttmD_Id: normalizedData.ttmD_Id,
-                        ismS_Id: normalizedData.ismS_Id,
-                        ttfdsU_SUbSelcFlag: normalizedData.ttfdsU_SUbSelcFlag,
-                        tempararyArrayList: []
-                    });
+                            const sectName = sub.asmC_SectionName || sub.ASMC_SectionName || sub.asmS_SectionName ||
+                                masterData.sections.find(s => Number(s.asmS_Id || s.ASMS_Id) === Number(sid))?.asmC_SectionName || '';
 
-                    const subDetails = fullRes?.data?.fix_day_subject__classecedit || fullRes?.fix_day_subject__classecedit || selectedRow?.data?.fix_day_subject__classecedit || selectedRow?.fix_day_subject__classecedit;
+                            const staffName = sub.staffName || sub.hrmE_EmployeeFirstName ||
+                                masterData.staff.find(s => Number(s.hrmE_Id || s.HRME_Id) === Number(hid))?.staffName || '';
 
-                    if (normalizedData.ttfdsU_SUbSelcFlag && subDetails && Array.isArray(subDetails)) {
-                        subDetails.forEach((sub: any) => {
-                            append({
-                                asmcL_Id: sub.asmcL_Id ?? sub.ASMCL_Id,
-                                asmS_Id: sub.asmS_Id ?? sub.ASMS_Id ?? sub.asmC_Id ?? sub.ASMC_Id,
-                                hrmE_Id: sub.hrmE_Id ?? sub.HRME_Id,
-                                nop: sub.ttfdsucC_Periods ?? sub.ttscC_Periods ?? sub.nop ?? sub.TTFDSUCC_Periods,
-                                clsDisplay: sub.asmcL_ClassName ?? sub.ASMCL_ClassName,
-                                sectDisplay: sub.asmC_SectionName ?? sub.ASMC_SectionName ?? sub.asmS_SectionName ?? sub.ASMS_SectionName,
-                                staffDisplay: sub.staffName ?? sub.staffname ?? sub.HRME_EmployeeFirstName
-                            });
-                        });
-                    }
+                            console.log("Sub object from API:", sub);
+                            const nopKey = Object.keys(sub).find(k =>
+                                k.toLowerCase().includes('period') ||
+                                k.toLowerCase() === 'nop' ||
+                                k.toLowerCase() === 'ttfdscc_noofperiods'
+                            );
+                            const nopValue = nopKey ? sub[nopKey] : 0;
+                            console.log("Resolved NOP property key:", nopKey, "value:", nopValue);
+
+                            return {
+                                ttfdscC_Id: sub.ttfdscC_Id || sub.TTFDSCC_Id,
+                                asmcL_Id: cid,
+                                asmS_Id: sid,
+                                hrmE_Id: hid,
+                                nop: Number(nopValue ?? sub.ttfdscC_Periods ?? sub.ttfdsc_Periods ?? 0),
+                                clsDisplay: clsName,
+                                sectDisplay: sectName,
+                                staffDisplay: staffName
+                            };
+                        })
+                    );
                 }
+
             } catch (error) {
                 console.error('Error processing edit data:', error);
                 toast.error('Failed to load edit details');
             }
         };
+        loadEditData();
+    }, [selectedRow, reset, replace]);
 
-        if (selectedRow) loadEditData();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedRow]);
+
+
+
+
 
     const handleAcademicYearChange = (yearId: number) => {
         setValue('asmaY_Id', yearId);
@@ -156,11 +188,14 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
                 setClassList(classes);
                 setSectionList(sections);
                 setSubStaffList(staff);
+
+                return { classes, sections, staff };
             } catch (error) {
                 console.error('Error fetching subject detail bindings:', error);
                 toast.error('Failed to load subject configurations.');
             }
         }
+        return { classes: [], sections: [], staff: [] };
     };
 
     const addToGrid = () => {
@@ -185,7 +220,7 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
             asmcL_Id: selectedClass,
             asmS_Id: selectedSection,
             hrmE_Id: selectedStaff,
-            nop: Number(nop),
+            nop: Number(nop) || 0,
             clsDisplay: clsObj?.asmcL_ClassName || clsObj?.asmcL_Classname,
             sectDisplay: secObj?.asmC_SectionName || secObj?.asmC_Sectionname || secObj?.asmS_SectionName,
             staffDisplay: staffObj?.staffName
@@ -223,15 +258,14 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
             }
             const res = await saveFixingDaySubject(data);
             if (res?.returnval === true || res?.success === true) {
-                toast.success(res?.message || 'Record Updated Successfully');
+                toast.success(res.message);
                 reset();
                 onSuccess();
             } else {
-                toast.error(res?.message || 'Failed to update');
+                toast.error(res.message);
             }
-        } catch (e) {
-            console.error(e);
-            toast.error('An error occurred');
+        } catch (error: any) {
+            toast.error(error.message);
         }
     };
 
@@ -252,7 +286,10 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
                                 <FormLabel>Academic Year</FormLabel>
                                 <Select
                                     key={field.value?.toString() || 'empty'}
-                                    onValueChange={(v) => handleAcademicYearChange(Number(v))}
+                                    onValueChange={(v) => {
+                                        field.onChange(Number(v));
+                                        handleAcademicYearChange(Number(v))
+                                    }}
                                     value={field.value?.toString()}>
                                     <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
                                     <SelectContent>
@@ -274,7 +311,7 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Day</FormLabel>
-                                <Select key={field.value?.toString() || 'empty'} onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
+                                <Select key={field.value?.toString()} onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
                                     <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
                                     <SelectContent>
                                         {dayList.map((item: any) => {
@@ -299,8 +336,11 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
                             <FormItem>
                                 <FormLabel>Subject</FormLabel>
                                 <Select
-                                    key={field.value?.toString() || 'empty'}
-                                    onValueChange={(v) => handleSubjectChange(Number(v))}
+                                    key={field.value?.toString()}
+                                    onValueChange={(v) => {
+                                        field.onChange(Number(v));
+                                        handleSubjectChange(Number(v))
+                                    }}
                                     value={field.value?.toString()}>
                                     <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
                                     <SelectContent>
@@ -346,7 +386,7 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
                             <div className='space-y-2'>
                                 <FormLabel>Class</FormLabel>
                                 <Select
-                                    key={selectedClass?.toString() || 'empty'}
+                                    key={selectedClass?.toString()}
                                     onValueChange={(v) => handleClassChange(Number(v))}
                                     value={selectedClass?.toString()}>
                                     <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
@@ -369,7 +409,7 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
                             <div className='space-y-2'>
                                 <FormLabel>Section</FormLabel>
                                 <Select
-                                    key={selectedSection?.toString() || 'empty'}
+                                    key={selectedSection?.toString()}
                                     onValueChange={(v) => handleSectionChange(Number(v))}
                                     value={selectedSection?.toString()}>
                                     <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
@@ -388,7 +428,7 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
                             <div className='space-y-2'>
                                 <FormLabel>Staff</FormLabel>
                                 <Select
-                                    key={selectedStaff?.toString() || 'empty'}
+                                    key={selectedStaff?.toString()}
                                     onValueChange={(v) => setSelectedStaff(Number(v))}
                                     value={selectedStaff?.toString()}>
                                     <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
@@ -406,14 +446,21 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
                             </div>
                             <div className='space-y-2'>
                                 <FormLabel>Periods</FormLabel>
-                                <Input type='number' value={nop} onChange={(e) => setNop(e.target.value)} />
+                                <Input
+                                    type='number'
+                                    value={nop}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        setNop(val === '' ? '' : String(Number(val)));
+                                    }}
+                                />
                             </div>
                         </div>
-                        <Button type='button' onClick={addToGrid}>
-                            Add
-                        </Button>
+                        <Button type='button' onClick={addToGrid}>Add</Button>
+
                         {fields.length > 0 && <DataTable data={fields} columns={subColumns} totalItems={fields.length} />}
                     </div>
+
                 )}
 
                 <div className='flex justify-center gap-4 pt-4'>

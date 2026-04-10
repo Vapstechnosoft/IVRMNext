@@ -67,7 +67,9 @@ function PeriodStaffTabContent({ initialData, searchParams }: PeriodStaffTabProp
         selectedRow,
         isDetailsViewOpen,
         selectedRow: viewRow,
-        closeDetailsView
+        closeDetailsView,
+        addFormRef,
+        editFormRef
     } = useFormContext();
 
     const { data: academicData } = usebifurcationAcademicYear();
@@ -114,13 +116,14 @@ function PeriodStaffTabContent({ initialData, searchParams }: PeriodStaffTabProp
                     if (!id) return;
 
                     const res = await getFixingPeriodStaffDetails(id);
+                    // biome-ignore lint/complexity/useOptionalChain: <explanation>
                     const subDetails = res?.fix_period_staff__classecedit || (res?.data && res.data[0]?.tempararyArrayList);
                     if (subDetails && Array.isArray(subDetails)) {
                         const details = subDetails.map((sub: any) => ({
                             clsDisplay: sub.asmcL_ClassName,
                             sectDisplay: sub.asmC_SectionName,
                             subDisplay: sub.ismS_SubjectName,
-                            nod: sub.ttfpscC_Days || sub.nod
+                            nop: sub.ttfpscC_Days || sub.nop || sub.nod
                         }));
                         setViewDetails(details);
                     }
@@ -139,7 +142,7 @@ function PeriodStaffTabContent({ initialData, searchParams }: PeriodStaffTabProp
             { accessorKey: 'clsDisplay', header: 'Class' },
             { accessorKey: 'sectDisplay', header: 'Section' },
             { accessorKey: 'subDisplay', header: 'Subject' },
-            { accessorKey: 'nod', header: 'No Of Days' }
+            { accessorKey: 'nop', header: 'No Of Days' }
         ],
         []
     );
@@ -173,8 +176,9 @@ function PeriodStaffTabContent({ initialData, searchParams }: PeriodStaffTabProp
             {isToggleFormOpen && selectedRow && <PeriodStaffToggle rowData={selectedRow} onClose={closeToggleForm} />}
 
             {(isAddFormOpen || isEditFormOpen) && (
-                <CollapsibleSection
-                    title={isEditFormOpen ? 'Edit Period Staff Constraint' : 'Add New Period Staff Constraint'}
+                <div ref={isAddFormOpen ? addFormRef : editFormRef}>
+                    <CollapsibleSection
+                        title={isEditFormOpen ? 'Edit Period Staff Constraint' : 'Add New Period Staff Constraint'}
                     defaultOpen={true}
                     variant='outline'
                     size='md'
@@ -211,6 +215,7 @@ function PeriodStaffTabContent({ initialData, searchParams }: PeriodStaffTabProp
                         )}
                     </div>
                 </CollapsibleSection>
+                </div>
             )}
 
             <FixingViewModal

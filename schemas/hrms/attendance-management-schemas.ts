@@ -524,7 +524,7 @@ export const employeeMonthlyReportFilterSchema = z
         allOrIndividual: z.enum(['All', 'Individual'], {
             required_error: 'All/Individual selection is required'
         }),
-        employeeName: z.string().optional(),
+        employeeIds: z.array(z.string()).optional(),
         fromDate: z.string().min(1, 'From Date is required'),
         toDate: z.string().min(1, 'To Date is required'),
         reportOptions: z.array(z.enum(['Total Working Days', 'Show Holiday Punch', 'Format One', 'Date Of Joining', 'Total Absent Days'])).optional()
@@ -532,13 +532,13 @@ export const employeeMonthlyReportFilterSchema = z
     .refine(
         (data) => {
             if (data.allOrIndividual === 'Individual') {
-                return !!data.employeeName;
+                return data.employeeIds && data.employeeIds.length > 0;
             }
             return true;
         },
         {
-            message: 'Employee Name is required when Individual is selected',
-            path: ['employeeName']
+            message: 'At least one employee must be selected when Individual is selected',
+            path: ['employeeIds']
         }
     )
     .refine(
@@ -617,20 +617,20 @@ export const employeeAbsentReportFilterSchema = z
         allOrIndividual: z.enum(['All', 'Individual'], {
             required_error: 'All/Individual selection is required'
         }),
-        employee: z.string().optional(),
+        employeeIds: z.array(z.string()).optional(),
         fromDate: z.string().min(1, 'From Date is required'),
         toDate: z.string().min(1, 'To Date is required')
     })
     .refine(
         (data) => {
             if (data.allOrIndividual === 'Individual') {
-                return !!data.employee;
+                return data.employeeIds && data.employeeIds.length > 0;
             }
             return true;
         },
         {
-            message: 'Employee is required when Individual is selected',
-            path: ['employee']
+            message: 'At least one employee must be selected when Individual is selected',
+            path: ['employeeIds']
         }
     )
     .refine(

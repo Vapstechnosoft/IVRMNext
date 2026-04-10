@@ -3,11 +3,23 @@
 import { ColumnDef, Row } from '@tanstack/react-table';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { IEventsStudentMappingData } from '@/types/sports/events-student-mapping';
-import { Badge } from '@/components/ui/badge';
 import { useEventsStudentMapping } from '@/hooks/sports/useEventsStudentMapping';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 
 // Simple columns for the display grid (the "Saved" list)
 export const eventsStudentMappingColumns: ColumnDef<IEventsStudentMappingData>[] = [
+    {
+        accessorKey: 'spccestR_Id',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            const continuousIndex = pageIndex * pageSize + row.index + 1;
+            return <div className='pl-6'>{continuousIndex}</div>;
+        },
+        enableSorting: true,
+        enableHiding: false
+    },
     {
         accessorKey: 'studentName',
         header: 'Student Name',
@@ -39,18 +51,6 @@ export const eventsStudentMappingColumns: ColumnDef<IEventsStudentMappingData>[]
     {
         accessorKey: 'spccestR_Rank',
         header: 'Rank',
-    },
-    {
-        accessorKey: 'spccestR_ActiveFlag',
-        header: 'Status',
-        cell: ({ row }) => {
-            const isActive = row.getValue('spccestR_ActiveFlag');
-            return (
-                <Badge variant={isActive ? 'success' : 'destructive'} className='font-semibold'>
-                    {isActive ? 'Active' : 'Deactivated'}
-                </Badge>
-            );
-        }
     },
     {
         id: 'actions',

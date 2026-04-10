@@ -62,7 +62,7 @@ const StudyCertificate = React.forwardRef<HTMLDivElement, CertificateProps>(
         const mI_Id = data.masterCompany?.[0]?.mI_Id;
 
         return (
-            <div ref={ref} className='bg-white text-black w-full'>
+            <div ref={ref} className='bg-white text-black w-full printable-content'>
                 <style
                     dangerouslySetInnerHTML={{
                         __html: `

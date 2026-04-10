@@ -55,6 +55,7 @@ export const MasterEventColumns: ColumnDef<IMasterEvent>[] = [
     },
     {
         id: 'actions',
+        header: 'Actions',
         cell: ActionsCell
     }
 ];

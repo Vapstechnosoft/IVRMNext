@@ -1,160 +1,95 @@
 import { PORTAL_QUERY_KEYS } from '@/constants/query-keys';
 import {
-    fetchInitialData,
-    getBusRoutingforNoticeBoard,
-    getDepartmentforNoticeBoard,
-    getDesignationforNoticeBoard,
-    getEmployeesforNoticeBoard,
-    getGroupforNoticeBoard,
-    getTermforNoticeBoard
+    fetchNoticeBoardInitialData,
+    getBusRoutingForNoticeBoard,
+    getNoticeBoardDepartments,
+    getNoticeBoardDesignations,
+    getNoticeBoardEmployees,
+    getFeeGroupsForNoticeBoard,
+    getFeeTermsForNoticeBoard,
+    getNoticeBoardSections,
+    getNoticeBoardStudents
 } from '@/server/upload/transactions/notice-board/server-action';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useEffect, useState } from 'react';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 export const useNoticeBoard = () => {
-    const [data, setData] = useState<{
-        yearlist: any[];
-        noticeList: any[];
-        classlist: any[];
-        sectionlist: any[];
-        departmentList: any[];
-        designationList: any[];
-        staffList: any[];
-        studentList: any[];
-        feeTerms: any[];
-        feeGroups: any[];
-        routes: any[];
-    } | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<any>(null);
-
-    const loadData = useCallback(async () => {
-        setIsLoading(true);
-        try {
-            const result = await fetchInitialData();
-            // setData(result);
-        } catch (err) {
-            setError(err);
-            toast.error('Failed to load notice board data');
-        } finally {
-            setIsLoading(false);
-        }
-    }, []);
-
-    useEffect(() => {
-        loadData();
-    }, [loadData]);
-
-    return {
-        data,
-        isLoading,
-        error,
-        refetchAll: loadData
-    };
+    return useQuery({
+        queryKey: [PORTAL_QUERY_KEYS.HOME_WORK_UPLOADED, 'notice-board-details'], // Reusing a similar key prefix or custom
+        queryFn: async () => {
+            const result = await fetchNoticeBoardInitialData();
+            if (result.success === false) {
+                toast.error(result.message || 'Failed to load notice board data');
+                throw new Error(result.message);
+            }
+            return result;
+        },
+        staleTime: 5 * 60 * 1000, // 5 minutes
+    });
 };
 
-export const useDepartmentsForNoticeBoard = () => {
-    const queryClient = useQueryClient();
-
-    return {
-        ...useQuery({
-            queryKey: [PORTAL_QUERY_KEYS.GET_DEPARTMENT_FOR_NOTICE_BOARD],
-            queryFn: async () => getDepartmentforNoticeBoard(),
-            staleTime: 0
-        }),
-
-        refetchAll: () => {
-            return queryClient.invalidateQueries({
-                queryKey: [PORTAL_QUERY_KEYS.GET_DEPARTMENT_FOR_NOTICE_BOARD]
-            });
-        }
-    };
+export const useNoticeBoardSections = () => {
+    return useMutation({
+        mutationFn: (payload: any) => getNoticeBoardSections(payload),
+    });
 };
 
-export const useDesignationForNoticeBoard = () => {
-    const queryClient = useQueryClient();
+export const useNoticeBoardStudents = () => {
+    return useMutation({
+        mutationFn: (payload: any) => getNoticeBoardStudents(payload),
+    });
+};
 
-    return {
-        ...useQuery({
-            queryKey: [PORTAL_QUERY_KEYS.GET_DESIGNATION_FOR_NOTICE_BOARD],
-            queryFn: async () => getDesignationforNoticeBoard(),
-            staleTime: 0
-        }),
+export const useNoticeBoardDepartments = () => {
+    return useQuery({
+        queryKey: [PORTAL_QUERY_KEYS.GET_DEPARTMENT_FOR_NOTICE_BOARD],
+        queryFn: async () => getNoticeBoardDepartments({}),
+        staleTime: 30 * 60 * 1000,
+    });
+};
 
-        refetchAll: () => {
-            return queryClient.invalidateQueries({
-                queryKey: [PORTAL_QUERY_KEYS.GET_DESIGNATION_FOR_NOTICE_BOARD]
-            });
-        }
-    };
+export const useNoticeBoardDesignations = () => {
+    return useQuery({
+        queryKey: [PORTAL_QUERY_KEYS.GET_DESIGNATION_FOR_NOTICE_BOARD],
+        queryFn: async () => getNoticeBoardDesignations({}),
+        staleTime: 30 * 60 * 1000,
+    });
+};
+
+export const useNoticeBoardEmployees = () => {
+    return useMutation({
+        mutationFn: (payload: any) => getNoticeBoardEmployees(payload),
+    });
 };
 
 export const useEmployeesForNoticeBoard = () => {
-    const queryClient = useQueryClient();
-
-    return {
-        ...useQuery({
-            queryKey: [PORTAL_QUERY_KEYS.GET_EMPLOYEES_FOR_NOTICE_BOARD],
-            queryFn: async () => getEmployeesforNoticeBoard(),
-            staleTime: 0
-        }),
-
-        refetchAll: () => {
-            return queryClient.invalidateQueries({
-                queryKey: [PORTAL_QUERY_KEYS.GET_EMPLOYEES_FOR_NOTICE_BOARD]
-            });
-        }
-    };
+    return useQuery({
+        queryKey: [PORTAL_QUERY_KEYS.GET_EMPLOYEES_FOR_NOTICE_BOARD],
+        queryFn: async () => getNoticeBoardEmployees({}),
+        staleTime: 30 * 60 * 1000,
+    });
 };
 
-export const useBusRoutingForNoticeBoard = () => {
-    const queryClient = useQueryClient();
-
-    return {
-        ...useQuery({
-            queryKey: [PORTAL_QUERY_KEYS.GET_ROUTES_FOR_NOTICE_BOARD],
-            queryFn: async () => getBusRoutingforNoticeBoard(),
-            staleTime: 0
-        }),
-        refetchAll: () => {
-            return queryClient.invalidateQueries({
-                queryKey: [PORTAL_QUERY_KEYS.GET_ROUTES_FOR_NOTICE_BOARD]
-            });
-        }
-    };
+export const useBusRoutingForNoticeBoardQuery = () => {
+    return useQuery({
+        queryKey: [PORTAL_QUERY_KEYS.GET_ROUTES_FOR_NOTICE_BOARD],
+        queryFn: async () => getBusRoutingForNoticeBoard(),
+        staleTime: 30 * 60 * 1000,
+    });
 };
 
-export const useGroupForNoticeBoard = () => {
-    const queryClient = useQueryClient();
-
-    return {
-        ...useQuery({
-            queryKey: [PORTAL_QUERY_KEYS.GET_GROUPS_FOR_NOTICE_BOARD],
-            queryFn: async () => getGroupforNoticeBoard(),
-            staleTime: 0
-        }),
-        refetchAll: () => {
-            return queryClient.invalidateQueries({
-                queryKey: [PORTAL_QUERY_KEYS.GET_GROUPS_FOR_NOTICE_BOARD]
-            });
-        }
-    };
+export const useFeeGroupsForNoticeBoardQuery = () => {
+    return useQuery({
+        queryKey: [PORTAL_QUERY_KEYS.GET_GROUPS_FOR_NOTICE_BOARD],
+        queryFn: async () => getFeeGroupsForNoticeBoard(),
+        staleTime: 30 * 60 * 1000,
+    });
 };
 
-export const useTermForNoticeBoard = () => {
-    const queryClient = useQueryClient();
-
-    return {
-        ...useQuery({
-            queryKey: [PORTAL_QUERY_KEYS.GET_TERMS_FOR_NOTICE_BOARD],
-            queryFn: async () => getTermforNoticeBoard(),
-            staleTime: 0
-        }),
-        refetchAll: () => {
-            return queryClient.invalidateQueries({
-                queryKey: [PORTAL_QUERY_KEYS.GET_TERMS_FOR_NOTICE_BOARD]
-            });
-        }
-    };
+export const useFeeTermsForNoticeBoardQuery = () => {
+    return useQuery({
+        queryKey: [PORTAL_QUERY_KEYS.GET_TERMS_FOR_NOTICE_BOARD],
+        queryFn: async () => getFeeTermsForNoticeBoard(),
+        staleTime: 30 * 60 * 1000,
+    });
 };

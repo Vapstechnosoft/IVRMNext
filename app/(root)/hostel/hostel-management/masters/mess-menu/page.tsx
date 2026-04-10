@@ -54,7 +54,7 @@ function PageContent({
     // GenericDataTable expects an object with 'list' or we pass 'data' directly in tableProps if we use useDataTableProps differently?
     // usage: useDataTableProps({ data: list, total: total }) OR usage: useDataTableProps(response) if response follows standard { list, total }
     // Here response structure is custom.
-    const messMenuList = response?.griddata || [];
+    const messMenuList = response?.data || [];
 
     // We can manually create tableProps
     const tableProps = {
@@ -97,8 +97,6 @@ function PageContent({
                 {/* Forms */}
                 <FormSections
                     onSuccess={refetchAll}
-                    messList={response?.get_messlist || []}
-                    categoryList={response?.get_messCategorylist || []}
                 />
             </div>
         </div>
@@ -110,12 +108,8 @@ function PageContent({
 // -------------------------
 function FormSections({
     onSuccess,
-    messList,
-    categoryList
 }: {
     onSuccess: () => void;
-    messList: { hlmM_Id: number; hlmM_Name: string }[];
-    categoryList: { hlmmC_Id: number; hlmmC_Name: string }[];
 }) {
     const {
         isAddFormOpen,
@@ -152,8 +146,6 @@ function FormSections({
                             </Button>
                             <AddForm
                                 onSuccess={() => { closeAddForm(); onSuccess(); }}
-                                messList={messList}
-                                categoryList={categoryList}
                             />
                         </div>
                     </CollapsibleSection>
@@ -182,8 +174,6 @@ function FormSections({
                             <UpdateMessMenuForm
                                 rowData={selectedRow}
                                 onSuccess={() => { closeEditForm(); onSuccess(); }}
-                                messList={messList}
-                                categoryList={categoryList}
                             />
                         </div>
                     </CollapsibleSection>

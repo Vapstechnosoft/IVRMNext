@@ -115,6 +115,7 @@ export const columns = (
         },
         {
             id: 'actions',
+            header: 'Actions',
             cell: ({ row }) => (
                 <ActionButtons
                     rowData={row.original}

@@ -39,7 +39,9 @@ function DayPeriodTabContent({ initialData, searchParams }: DayPeriodTabProps) {
         closeAllForms,
         isToggleFormOpen,
         closeToggleForm,
-        selectedRow
+        selectedRow,
+        addFormRef,
+        editFormRef
     } = useFormContext();
 
     const { data: academicData } = usebifurcationAcademicYear();
@@ -96,7 +98,10 @@ function DayPeriodTabContent({ initialData, searchParams }: DayPeriodTabProps) {
             <div className='flex gap-4 sm:flex-row sm:items-center sm:justify-self-end'>
                 <Button
                     type='button'
-                    onClick={openAddForm}
+                    onClick={() => {
+                        console.log("clicked");
+                        openAddForm();
+                    }}
                     className='w-fit bg-orange-500 shadow-md transition-all duration-200 hover:scale-105 hover:bg-orange-600 hover:shadow-lg'>
                     <Plus className='mr-2 h-4 w-4' />
                     Add Day Period Constraint
@@ -110,8 +115,9 @@ function DayPeriodTabContent({ initialData, searchParams }: DayPeriodTabProps) {
             {isToggleFormOpen && selectedRow && <DayPeriodToggle rowData={selectedRow} onClose={closeToggleForm} />}
 
             {(isAddFormOpen || isEditFormOpen) && (
-                <CollapsibleSection
-                    title={isEditFormOpen ? 'Edit Day Period Constraint' : 'Add New Day Period Constraint'}
+                <div ref={isAddFormOpen ? addFormRef : editFormRef}>
+                    <CollapsibleSection
+                        title={isEditFormOpen ? 'Edit Day Period Constraint' : 'Add New Day Period Constraint'}
                     defaultOpen={true}
                     variant='outline'
                     size='md'
@@ -150,6 +156,7 @@ function DayPeriodTabContent({ initialData, searchParams }: DayPeriodTabProps) {
                         )}
                     </div>
                 </CollapsibleSection>
+                </div>
             )}
         </div>
     );

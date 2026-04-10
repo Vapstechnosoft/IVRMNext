@@ -88,5 +88,9 @@ export const TIMETABLE_QUERY_KEYS = {
     CONSECUTIVE_CONSTRAINTS: 'consecutive_constraints',
     STAFF_DROPDOWN_MASTERDAYCLASSWISE: 'staff_dropdown_masterdayclasswise',
     STAFF_REPLACEMENT_IN_UNALLOCATED_PERIOD_REPORT: 'staff_replacement_in_unallocated_period_report',
-    MASTER_PERIOD_ALLOCATION_MASTERPERIOD: 'master_period_allocation_masterperiod'
+    MASTER_PERIOD_ALLOCATION_MASTERPERIOD: 'master_period_allocation_masterperiod',
+
+    STAFF_WISE_WORKING_HOURS_REPORT: 'staff_wise_working_hours_report',
+    STAFF_WISE_WORKING_HOURS_ACADEMIC_YEAR: 'staff_wise_working_hours_academic_year',
+    LAB_CONSTRAINTS_DETAILS: 'lab_constraints_details'
 };

@@ -3,9 +3,10 @@
 import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { deleteLabConstraintsDetail, getLabConstraintsDetails } from '@/server/timetable/constraints/labconstraints';
+import { useLabConstraintsDetails } from '@/hooks/timetable/constraints/labconstraints';
+import { deleteLabConstraintsDetail } from '@/server/timetable/constraints/labconstraints';
 import { Plus, X } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import LabConstraintsForm from './lab-constraints-form';
 import LabConstraintsList from './lab-constraints-list';
 import LabConstraintsToggleForm from './lab-constraints-toggle-form';
@@ -15,16 +16,15 @@ interface LabConstraintsProps {
 }
 
 export default function LabConstraints({ initialData }: LabConstraintsProps) {
-    const [data, setData] = useState(initialData);
+    const { data: gridData, refetchAll } = useLabConstraintsDetails();
 
     const handleSuccess = useCallback(async () => {
         try {
-            const newData = await getLabConstraintsDetails();
-            setData(newData);
+            await refetchAll();
         } catch (error) {
             console.error('Failed to refresh data', error);
         }
-    }, []);
+    }, [refetchAll]);
 
     const handleToggle = async (formData: any) => {
         const res = await deleteLabConstraintsDetail(formData.ttlaB_Id);
@@ -38,7 +38,7 @@ export default function LabConstraints({ initialData }: LabConstraintsProps) {
 
     return (
         <FormProvider>
-            <LabConstraintsContent initialData={data} onSuccess={handleSuccess} onToggle={handleToggle} />
+            <LabConstraintsContent initialData={gridData || initialData} onSuccess={handleSuccess} onToggle={handleToggle} />
         </FormProvider>
     );
 }

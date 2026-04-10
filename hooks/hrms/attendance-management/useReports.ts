@@ -3,7 +3,7 @@ import { getEmployeeAbsentReport } from '@/server/hrms/hrmsConfig/reports/employ
 import { getEmployeeInOutReport } from '@/server/hrms/hrmsConfig/reports/employee-inout-report';
 import { getEmployeeLateInEarlyOutReport } from '@/server/hrms/hrmsConfig/reports/employee-latein-earlyout-report';
 import { getEmployeeLogReport } from '@/server/hrms/hrmsConfig/reports/employee-log-report';
-import { getEmployeeMonthlyReport } from '@/server/hrms/hrmsConfig/reports/employee-monthly-report';
+import { getEmployeeMonthlyReport, getEmployeeMonthlyReportOnload } from '@/server/hrms/hrmsConfig/reports/employee-monthly-report';
 import { getEmployeeMonthEndReport } from '@/server/hrms/hrmsConfig/reports/employee-month-report';
 import { getEmployeeYearlyReport } from '@/server/hrms/hrmsConfig/reports/employee-yearly-report';
 import { getFOMonthEndReport } from '@/server/hrms/hrmsConfig/reports/fo-monthend-report';
@@ -63,8 +63,17 @@ export function useEmployeeAbsentReport(searchParams?: ApiSearchparams) {
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_ABSENT_REPORT, searchParams ?? {}],
-            queryFn: async () => getEmployeeAbsentReport({}, searchParams),
-            staleTime: 0
+            queryFn: async () => {
+                const payload = {
+                    from_date: searchParams?.fromDate ? String(searchParams.fromDate).split('T')[0] : '',
+                    to_date: searchParams?.toDate ? String(searchParams.toDate).split('T')[0] : '',
+                    hrme_ids: (searchParams?.employee as string) || '0',
+                    type: 'absent'
+                };
+                return getEmployeeMonthlyReport(payload, searchParams);
+            },
+            staleTime: 0,
+            enabled: !!searchParams?.fromDate && !!searchParams?.toDate
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
@@ -98,14 +107,30 @@ export function useEmployeeLateInEarlyOutReport(searchParams?: ApiSearchparams) 
 // ============================================================================
 // EMPLOYEE MONTHLY REPORT
 // ============================================================================
+export function useEmployeeMonthlyReportOnload() {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_MONTHLY_REPORT, 'onload'],
+        queryFn: () => getEmployeeMonthlyReportOnload()
+    });
+}
+
 export function useEmployeeMonthlyReport(searchParams?: ApiSearchparams) {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_MONTHLY_REPORT, searchParams ?? {}],
-            queryFn: async () => getEmployeeMonthlyReport({}, searchParams),
-            staleTime: 0
+            queryFn: async () => {
+                const payload = {
+                    from_date: searchParams?.fromDate ? String(searchParams.fromDate).split('T')[0] : '',
+                    to_date: searchParams?.toDate ? String(searchParams.toDate).split('T')[0] : '',
+                    hrme_ids: (searchParams?.employee as string) || '0',
+                    type: 'monthly'
+                };
+                return getEmployeeMonthlyReport(payload, searchParams);
+            },
+            staleTime: 0,
+            enabled: !!searchParams?.fromDate && !!searchParams?.toDate
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({

@@ -280,9 +280,8 @@ export default function BifurcationConstraintsForm({ onSuccess }: BifurcationCon
             } else {
                 toast.error(response.message);
             }
-        } catch (error) {
-            console.error(error);
-            toast.error('An error occurred');
+        } catch (error : any) {
+            toast.error(error.message);
         }
     };
 
