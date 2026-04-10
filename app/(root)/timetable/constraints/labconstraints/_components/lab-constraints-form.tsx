@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
     useAcademicYearDropDownMasterDayClasswise,
-    useCategtoryDropDownMasterDayClasswise,
+    useCategoryDropDownMasterDayClasswise,
     useClassDropDownMasterDayClasswise,
     useSectionDropDownMasterDayClasswise
 } from '@/hooks/timetable/constraints/labconstraints';
@@ -62,14 +62,8 @@ export default function LabConstraintsForm({ initialData, editData, onSuccess, o
     const { data: academicData, isLoading: academicLoading } = useAcademicYearDropDownMasterDayClasswise();
     const academicList = extractList(academicData, 'yearlist');
 
-    const { data: categoryData, isLoading: categoryLoading } = useCategtoryDropDownMasterDayClasswise();
+    const { data: categoryData, isLoading: categoryLoading } = useCategoryDropDownMasterDayClasswise();
     const categoryList = extractList(categoryData, 'categorylist');
-
-    const { data: classData, isLoading: classLoading } = useClassDropDownMasterDayClasswise();
-    const classList = extractList(classData, 'classlist');
-
-    const { data: sectionData, isLoading: sectionLoading } = useSectionDropDownMasterDayClasswise();
-    const sectionList = extractList(sectionData, 'sectionlist');
 
     const [labList, setLabList] = useState<any[]>(extractList(initialData, 'lablist'));
 
@@ -101,6 +95,13 @@ export default function LabConstraintsForm({ initialData, editData, onSuccess, o
     const watchedClass = watch('ASMCL_Id');
     const watchedSection = watch('ASMS_Id');
 
+    // Dropdown Hooks (independent, no cascading fetch params)
+    const { data: classData, isLoading: classLoading } = useClassDropDownMasterDayClasswise();
+    const classList = extractList(classData, 'classlist');
+
+    const { data: sectionData, isLoading: sectionLoading } = useSectionDropDownMasterDayClasswise();
+    const sectionList = extractList(sectionData, 'sectionlist');
+
     // Fetch Edit Details
     useEffect(() => {
         const fetchEditDetails = async () => {
@@ -131,25 +132,34 @@ export default function LabConstraintsForm({ initialData, editData, onSuccess, o
         }
     }, [editData, reset]);
 
-    // Lab Details (Lab Name) cascading on Class/Section
+    // Cascading reset logic
+    useEffect(() => {
+        const subscription = watch((value, { name }) => {
+            if (name === 'ASMAY_Id' || name === 'TTMC_Id') {
+                setValue('ASMCL_Id', undefined as any);
+                setValue('ASMS_Id', undefined as any);
+                setValue('TTLAB_LABLibId', undefined as any);
+            } else if (name === 'ASMCL_Id') {
+                setValue('ASMS_Id', undefined as any);
+                setValue('TTLAB_LABLibId', undefined as any);
+            } else if (name === 'ASMS_Id') {
+                setValue('TTLAB_LABLibId', undefined as any);
+            }
+        });
+        return () => subscription.unsubscribe();
+    }, [watch, setValue]);
+
     useEffect(() => {
         const fetchLabs = async () => {
-            if (watchedAcademicYear && watchedCategory && watchedClass && watchedSection) {
-                try {
-                    const res = await getLabDetails({
-                        ASMAY_Id: watchedAcademicYear,
-                        TTMC_Id: watchedCategory,
-                        ASMCL_Id: watchedClass,
-                        ASMS_Id: watchedSection
-                    });
-                    setLabList(extractList(res, 'lablist'));
-                } catch (error) {
-                    console.error(error);
-                }
+            try {
+                const res = await getLabDetails();
+                setLabList(extractList(res, 'lablist'));
+            } catch (error) {
+                console.error(error);
             }
         };
         fetchLabs();
-    }, [watchedAcademicYear, watchedCategory, watchedClass, watchedSection]);
+    }, []);
 
     const onSubmit: SubmitHandler<LabConstraintsSchema> = async (data) => {
         try {

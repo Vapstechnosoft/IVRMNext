@@ -51,10 +51,10 @@ export async function getSectionDropdown() {
 }
 
 export async function getStaffReplacementGridData(searchParams?: ApiSearchparams) {
-    console.log('searchParams', searchParams);
+    // console.log('searchParams', searchParams);
     const urlParams = getSearchParamsUrl(
         searchParams ?? {},
-        'ttmD_DayName,ttmD_DayCode,ismS_SubjectName,asmcL_ClassName,asmC_SectionName,staffName,ttmP_PeriodName'
+        'ttmC_Id,ttmD_DayName,ttmD_DayCode,ismS_SubjectName,asmcL_ClassName,asmC_SectionName,staffName,ttmP_PeriodName'
     );
     const url = `/StaffReplacementForClassSectionFacade/GetstaffreplacementfromexistingtonewGrid?${urlParams}`;
     return await api.get<StaffReplacementGridData[]>('timetable', url);
@@ -75,7 +75,6 @@ export async function saveStaffReplacementExistingToNew(payload: any) {
     try {
         const url = '/StaffReplacementFromExistingToNewFacade/savedetail';
         const data = {
-            asmaY_Id: Number(payload.asmaY_Id || 0),
             ttmC_Id: Number(payload.ttmC_Id),
             asmcL_Id: Number(payload.asmcL_Id || 0),
             asmS_Id: Number(payload.asms_Id || 0),

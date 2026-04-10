@@ -539,3 +539,33 @@ export interface IFeeStudentHeadWiseReport {
     totalTobePaid: number;
     paid: number;
 }
+
+export interface IFeeTrailAuditReport {
+    amst_Id: number;
+    amsT_FirstName: string;
+    amsT_MiddleName: string;
+    amsT_LastName: string;
+    fyP_Receipt_No: string;
+    fyP_Bank_Or_Cash: string;
+    fyP_Tot_Amount: number;
+    classname: string;
+    sectionname: string;
+    fyP_Id: number;
+    amsT_AdmNo: string;
+    fyP_Date: string;
+    userid: number;
+}
+
+export interface IFeeTrailAuditReportforExcel {
+    id: number;
+    amount: number;
+    amsT_SOL: string;
+    amsT_Id: number;
+    amsT_FirstName: string;
+    asmcL_ClassName: string;
+    asmC_SectionName: string;
+    amsT_RegistrationNo: string;
+    amsT_AdmNo: string;
+    fmG_GroupName: string;
+    amaY_RollNo: string;
+}
