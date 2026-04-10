@@ -8,17 +8,16 @@ import { useMasterParticulars } from '@/hooks/pettycash/useMasters';
 import type { IMasterParticulars } from '@/types/pettycash/masters';
 import { Plus, X } from 'lucide-react';
 import { use, useEffect } from 'react';
-import AddMasterClassForm from './_components/add-form';
+import AddMasterParticularsForm from './_components/add-form';
 import { masterParticularsColumns } from './_components/columns';
+import ToggleMasterParticularsForm from './_components/toggle-form';
+import UpdateMasterParticularsForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function MasterParticularsPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error, refetch } = useMasterParticulars(searchParams);
-
-    // biome-ignore lint/suspicious/noEmptyBlockStatements: <explanation>
-    useEffect(() => {}, [response]);
 
     return (
         <FormProvider<IMasterParticulars>>
@@ -46,14 +45,15 @@ function MasterParticularsPageContent({
             <div className='container space-y-4 p-1'>
                 {/* Header */}
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>{/* <Heading title='Fee Head' description='' /> */}</div>
+                    <div className='space-y-1'>
+                    </div>
 
                     <Button
                         type='button'
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                        <Plus className='h-4 w-4' />
-                        Add Yearly Category
+                        <Plus className='mr-2 h-4 w-4' />
+                        Add Particular
                     </Button>
                 </div>
 
@@ -69,9 +69,9 @@ function MasterParticularsPageContent({
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading yearly class categories...'
-                        noDataTitle='No Records Found'
-                        noDataDescription='Start by adding a new  Yearly Category'
+                        loadingMessage='Loading master particulars...'
+                        noDataTitle='No Particulars Found'
+                        noDataDescription='Start by adding a new particular.'
                         errorTitle='Error Loading Data'
                     />
                 </CollapsibleSection>
@@ -87,20 +87,14 @@ function FormSections({ refetch }: { refetch: () => void }) {
     const {
         isAddFormOpen,
         isEditFormOpen,
-        isDeleteFormOpen,
+        isToggleFormOpen,
         selectedRow,
         closeAddForm,
-        closeDeleteForm,
         closeEditForm,
+        closeToggleForm,
         addFormRef,
         editFormRef
     } = useFormContext<IMasterParticulars>();
-
-    useEffect(() => {
-        if (isEditFormOpen && !selectedRow) {
-            console.error('FormSections: Edit form open but selectedRow is undefined');
-        }
-    }, [isEditFormOpen, selectedRow]);
 
     // Success handler that refetches data
     const handleSuccess = () => {
@@ -113,8 +107,8 @@ function FormSections({ refetch }: { refetch: () => void }) {
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title='Add New Yearly Class Category'
-                        description='Fill in the details below to create a new mapping'
+                        title='Add New Master Particular'
+                        description='Fill in the details below to create a new particular'
                         defaultOpen
                         variant='outline'
                         size='md'
@@ -126,9 +120,9 @@ function FormSections({ refetch }: { refetch: () => void }) {
                                 variant='ghost'
                                 size='sm'
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                <X className='h-4 w-4 text-destructive' /> Close
+                                <X className='mr-2 h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddMasterClassForm
+                            <AddMasterParticularsForm
                                 onSuccess={() => {
                                     handleSuccess();
                                     closeAddForm();
@@ -139,34 +133,24 @@ function FormSections({ refetch }: { refetch: () => void }) {
                 </div>
             )}
 
-            {/* Delete Form */}
-            {/* {isDeleteFormOpen && selectedRow && (
-                <DeleteMasterClassForm
+            {/* Toggle Form */}
+            {isToggleFormOpen && selectedRow && (
+                <ToggleMasterParticularsForm
                     rowData={selectedRow}
-                    onClose={closeDeleteForm}
+                    onClose={closeToggleForm}
                     onSuccess={() => {
                         handleSuccess();
-                        closeDeleteForm();
+                        closeToggleForm();
                     }}
                 />
-            )} */}
+            )}
 
             {/* Edit Form */}
-            {/* {isEditFormOpen && selectedRow && (
-                <UpdateMasterClassForm
-                    rowData={selectedRow}
-                    onClose={closeDeleteForm}
-                    onSuccess={() => {
-                        handleSuccess();
-                        closeDeleteForm();
-                    }}
-                />
-            )} */}
-
-            {/* {isEditFormOpen && selectedRow && (
+            {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Yearly Class Category'
+                        title='Edit Master Particular'
+                        description='Update the details of the selected particular'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -178,13 +162,19 @@ function FormSections({ refetch }: { refetch: () => void }) {
                                 variant='ghost'
                                 size='sm'
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                <X className='h-4 w-4 text-destructive' /> Close
+                                <X className='mr-2 h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateMasterClassForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                            <UpdateMasterParticularsForm
+                                selectedRow={selectedRow}
+                                onSuccess={() => {
+                                    handleSuccess();
+                                    closeEditForm();
+                                }}
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>
-            )} */}
+            )}
         </>
     );
 }

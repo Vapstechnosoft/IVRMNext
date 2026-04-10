@@ -9,7 +9,7 @@ import { useCallback } from 'react';
 
 export const masterParticularsColumns: ColumnDef<IMasterParticulars>[] = [
     {
-        accessorKey: 'fyccC_Id',
+        accessorKey: 'pcmparT_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl. No' className='w-full pl-6' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
@@ -21,18 +21,18 @@ export const masterParticularsColumns: ColumnDef<IMasterParticulars>[] = [
         enableHiding: false
     },
     {
-        accessorKey: 'particularName',
+        accessorKey: 'pcmparT_ParticularName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Particular Name' />,
-        cell: ({ row }) => <div>{row.getValue('particularName')}</div>
+        cell: ({ row }) => <div>{row.getValue('pcmparT_ParticularName')}</div>
     },
     {
-        accessorKey: 'particularDesc',
+        accessorKey: 'pcmparT_ParticularDesc',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Particular Description' />,
-        cell: ({ row }) => <div>{row.getValue('particularDesc')}</div>
+        cell: ({ row }) => <div>{row.getValue('pcmparT_ParticularDesc')}</div>
     },
 
     {
-        id: 'actions',
+        id: 'pcmparT_ActiveFlg',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start' />,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />,
         enableSorting: false
@@ -40,17 +40,20 @@ export const masterParticularsColumns: ColumnDef<IMasterParticulars>[] = [
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IMasterParticulars }) {
-    const { openDeleteForm, openEditForm } = useFormContext<IMasterParticulars>();
+    const { openDeleteForm, openEditForm, openToggleForm } = useFormContext<IMasterParticulars>();
 
     const handleDelete = useCallback((data: IMasterParticulars) => openDeleteForm(data), [openDeleteForm]);
     const handleEdit = useCallback((data: IMasterParticulars) => openEditForm(data), [openEditForm]);
+    const handleToggle = useCallback((data: IMasterParticulars) => openToggleForm(data), [openToggleForm]);
 
     return (
         <ActionButtons
             rowData={rowData}
-            buttons={{ edit: false, toggle: false, delete: true }}
+            buttons={{ edit: true, toggle: true, delete: false }}
+            toggleConditionKey='pcmparT_ActiveFlg'
             onDelete={handleDelete}
-            //  onEdit={handleEdit}
+            onToggle={handleToggle}
+            onEdit={handleEdit}
         />
     );
 }

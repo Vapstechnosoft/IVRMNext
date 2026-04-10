@@ -12,11 +12,12 @@ export async function getMasterParticularsGrid(searchParams?: ApiSearchparams) {
 }
 
 export async function addOrUpdateMasterParticulars(data: any) {
-    const url = '/FeeMasterConfigFacade';
+    const url = '/PC_Master_ParticularsFacade/saverecord';
+    // /PC_Master_ParticularsFacade/saverecord
     return await api.post<any>('pettycashandassettracking', url, data);
 }
 
 export async function toggleMasterParticulars(id: number) {
-    const url = `/FeeMasterConfigFacade/deactivate/${id}`;
+    const url = `/PC_Master_ParticularsFacade/deactiveY/${id}`;
     return await api.put('pettycashandassettracking', url);
 }

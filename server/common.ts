@@ -6092,6 +6092,52 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Master Particulars Details'
                                         }
                                     ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Transaction',
+                                    icon: 'BadgeIndianRupee',
+                                    pages: [
+                                        {
+                                            id: 603,
+                                            name: 'PC Indent',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/pettycash/Transaction/pcIndent',
+                                            title: 'PC Indent',
+                                            description: 'Manage PC Indent Details'
+                                        },
+                                        {
+                                            id: 604,
+                                            name: 'PC INDENT APPROVAL',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/pettycash/Transaction/pcIndentApproval',
+                                            title: 'PC Indent Approval',
+                                            description: 'Manage PC Indent Approval Details'
+                                        },
+                                        {
+                                            id: 61105,
+                                            name: 'PC PARTICULARS REQUISITION',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/pettycash/Transaction/pcREQUISITION',
+                                            title: 'PC Particulars Requisition',
+                                            description: 'Manage PC Particulars Requisition Details'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 3,
+                                    name: 'Reports',
+                                    icon: 'BadgeIndianRupee',
+                                    pages: [
+                                        {
+                                            id: 60321230,
+                                            name: 'Pc Requisition Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/pettycash/PcRequisitionReport',
+                                            title: 'Pc Requisition Report',
+                                            description: 'View Pc Requisition Reports'
+                                        }
+                                    ]
                                 }
 
                                 // {
