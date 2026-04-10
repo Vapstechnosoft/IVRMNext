@@ -412,7 +412,7 @@ export function StudentInfoSection({
                                 <SelectContent>
                                     {religion.map((item: any) => (
                                         <SelectItem key={item.ivrmmR_Id} value={item.ivrmmR_Id.toString()}>
-                                            {item.ivrmmR_Name}
+                                            {item.ivrmmR_ReligionName || item.ivrmmR_Name}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -439,6 +439,31 @@ export function StudentInfoSection({
                                     {filteredCaste.map((item: any) => (
                                         <SelectItem key={item.imC_Id} value={item.imC_Id.toString()}>
                                             {item.imC_CasteName}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                    <Label>Caste Category <span className="ml-1 text-red-500">*</span></Label>
+                    <Controller
+                        name="imCC_Id"
+                        control={control}
+                        render={({ field }) => (
+                            <Select
+                                value={field.value?.toString() || ''}
+                                onValueChange={(val) => field.onChange(Number(val))}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select Category" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {casteCategory.map((item: any) => (
+                                        <SelectItem key={item.imcC_Id || item.imCC_Id} value={(item.imcC_Id || item.imCC_Id).toString()}>
+                                            {item.imcC_CategoryName || item.imCC_CategoryName}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>

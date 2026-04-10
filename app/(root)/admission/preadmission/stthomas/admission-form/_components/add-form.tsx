@@ -290,10 +290,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         }
     }, [admissionDetails, setValue]);
 
-    const religion = useMemo(() => ({ data: (admissionDetails as any)?.allReligion || [] }), [admissionDetails]);
-    const country = useMemo(() => ({ data: (admissionDetails as any)?.allCountry || [] }), [admissionDetails]);
-    const casteCategoryData = useMemo(() => ({ data: (admissionDetails as any)?.allCasteCategory || [] }), [admissionDetails]);
-    const admissionClass = useMemo(() => ({ data: (admissionDetails as any)?.allClass || [] }), [admissionDetails]);
+    const religion = useMemo(() => ({ data: (admissionDetails as any)?.allReligion || (admissionDetails as any)?.allReligionList || (admissionDetails as any)?.AllReligion || [] }), [admissionDetails]);
+    const country = useMemo(() => ({ data: (admissionDetails as any)?.allCountry || (admissionDetails as any)?.allCountryList || (admissionDetails as any)?.AllCountry || [] }), [admissionDetails]);
+    const casteCategoryData = useMemo(() => ({ data: (admissionDetails as any)?.allCasteCategory || (admissionDetails as any)?.vpre_allCasteCategory || (admissionDetails as any)?.allCasteCategoryList || (admissionDetails as any)?.AllCasteCategory || [] }), [admissionDetails]);
+    const admissionClass = useMemo(() => ({ data: (admissionDetails as any)?.allClass || (admissionDetails as any)?.allClassList || (admissionDetails as any)?.AllClass || [] }), [admissionDetails]);
     const source = useMemo(() => ({ data: (admissionDetails as any)?.allSources || [] }), [admissionDetails]);
     const reference = useMemo(() => ({ data: (admissionDetails as any)?.allReference || [] }), [admissionDetails]);
     const academicYears = useMemo(() => ({ data: (admissionDetails as any)?.allAcademicYear || [] }), [admissionDetails]);
@@ -307,8 +307,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             { id: 'Other', name: 'Other' }
         ];
 
-    const allCaste = (admissionDetails as any)?.allCaste || [];
-    const allState = (admissionDetails as any)?.allState || [];
+    const allCaste = (admissionDetails as any)?.allCaste || (admissionDetails as any)?.allCasteList || (admissionDetails as any)?.AllCaste || [];
+    const allState = (admissionDetails as any)?.allState || (admissionDetails as any)?.allStateList || (admissionDetails as any)?.AllState || [];
     const concession = useMemo(() => ({ data: (admissionDetails as any)?.admissionConfiguration?.allConcession || [] }), [admissionDetails]);
 
     // Compatibility aliases for loading states
@@ -3306,8 +3306,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     </SelectTrigger>
                                                                     <SelectContent>
                                                                         {(casteCategoryData as any)?.data?.map((item: any) => (
-                                                                            <SelectItem key={item.imCC_Id} value={item.imCC_Id.toString()}>
-                                                                                {item.imCC_CategoryName}
+                                                                            <SelectItem key={item.imcC_Id || item.imCC_Id} value={(item.imcC_Id || item.imCC_Id).toString()}>
+                                                                                {item.imcC_CategoryName || item.imCC_CategoryName}
                                                                             </SelectItem>
                                                                         ))}
                                                                     </SelectContent>
@@ -3654,7 +3654,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     <SelectContent>
                                                                         {religion?.data?.map((item: any) => (
                                                                             <SelectItem key={item.ivrmmR_Id} value={item.ivrmmR_Id.toString()}>
-                                                                                {item.ivrmmR_Name}
+                                                                                {item.ivrmmR_ReligionName || item.ivrmmR_Name}
                                                                             </SelectItem>
                                                                         ))}
                                                                     </SelectContent>

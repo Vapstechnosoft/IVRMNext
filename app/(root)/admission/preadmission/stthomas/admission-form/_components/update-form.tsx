@@ -147,14 +147,15 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
 
     const { data: admissionDetails, refetch: refetchAdmissionDetails, isLoading: detailsLoading, error: detailsError } = useAdmissionFormDetails();
 
-    const admissionClass = useMemo(() => ({ data: admissionDetails?.allClass || [] }), [admissionDetails]);
-    const religion = useMemo(() => ({ data: admissionDetails?.allReligion || [] }), [admissionDetails]);
-    const country = useMemo(() => ({ data: admissionDetails?.allCountry || [] }), [admissionDetails]);
-    const allState = useMemo(() => admissionDetails?.allState || [], [admissionDetails]);
-    const source = useMemo(() => ({ data: admissionDetails?.allSources || [] }), [admissionDetails]);
-    const reference = useMemo(() => ({ data: admissionDetails?.allReference || [] }), [admissionDetails]);
+    const admissionClass = useMemo(() => ({ data: (admissionDetails as any)?.allClass || (admissionDetails as any)?.allClassList || (admissionDetails as any)?.AllClass || [] }), [admissionDetails]);
+    const religion = useMemo(() => ({ data: (admissionDetails as any)?.allReligion || (admissionDetails as any)?.allReligionList || (admissionDetails as any)?.AllReligion || [] }), [admissionDetails]);
+    const country = useMemo(() => ({ data: (admissionDetails as any)?.allCountry || (admissionDetails as any)?.allCountryList || (admissionDetails as any)?.AllCountry || [] }), [admissionDetails]);
+    const allState = useMemo(() => (admissionDetails as any)?.allState || (admissionDetails as any)?.allStateList || (admissionDetails as any)?.AllState || [], [admissionDetails]);
+    const casteCategoryData = useMemo(() => ({ data: (admissionDetails as any)?.allCasteCategory || (admissionDetails as any)?.vpre_allCasteCategory || (admissionDetails as any)?.allCasteCategoryList || (admissionDetails as any)?.AllCasteCategory || [] }), [admissionDetails]);
+    const source = useMemo(() => ({ data: (admissionDetails as any)?.allSources || (admissionDetails as any)?.allSourcesList || [] }), [admissionDetails]);
+    const reference = useMemo(() => ({ data: (admissionDetails as any)?.allReference || (admissionDetails as any)?.allReferenceList || [] }), [admissionDetails]);
     const concession = useMemo(() => ({ data: (admissionDetails as any)?.admissionConfiguration?.allConcession || [] }), [admissionDetails]);
-    const academicYears = useMemo(() => ({ data: (admissionDetails as any)?.academicYearOnLoad || (admissionDetails as any)?.allAcademicYear || [] }), [admissionDetails]);
+    const academicYears = useMemo(() => ({ data: (admissionDetails as any)?.academicYearOnLoad || (admissionDetails as any)?.allAcademicYear || (admissionDetails as any)?.allAcademicYearList || [] }), [admissionDetails]);
 
     // Missing variables for state and loading aliases
     const [conStateId, setConStateId] = useState<number | string>('');
@@ -191,7 +192,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
     const categoryError = detailsError;
     const studentStateError = detailsError;
 
-    const allCaste = useMemo(() => admissionDetails?.allCaste || [], [admissionDetails]);
+    const allCaste = useMemo(() => (admissionDetails as any)?.allCaste || (admissionDetails as any)?.allCasteList || (admissionDetails as any)?.AllCaste || [], [admissionDetails]);
 
     const studentCaste = useMemo(() => {
         const religionId = watch('amsT_ReligionId');
@@ -4746,7 +4747,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                 ) : (
                                                                     religion?.data?.map((item: any) => (
                                                                         <SelectItem key={item.ivrmmR_Id} value={item.ivrmmR_Id.toString()}>
-                                                                            {item.ivrmmR_Name}
+                                                                            {item.ivrmmR_ReligionName || item.ivrmmR_Name}
                                                                         </SelectItem>
                                                                     ))
                                                                 )}
@@ -4801,6 +4802,49 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                     )}
                                                 />
                                                 {(errors as any).imC_Id && <FormError>{(errors as any).imC_Id.message}</FormError>}
+                                            </div>
+
+                                            <div className='flex flex-col gap-1.5'>
+                                                <Label htmlFor='imCC_Id'>
+                                                    Caste Category <span className='ml-1 text-red-500'>*</span>
+                                                </Label>
+                                                <Controller
+                                                    name='imCC_Id'
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <Select
+                                                            key={`category_${field.value || 'empty'}_${(casteCategoryData as any)?.data?.length || 0}`}
+                                                            onValueChange={(value) => field.onChange(Number(value))}
+                                                            value={field.value?.toString() || ''}>
+                                                            <SelectTrigger
+                                                                className={cn((errors as any).imCC_Id && 'border-red-500')}>
+                                                                <SelectValue
+                                                                    placeholder={
+                                                                        categoryLoading ? 'Loading categories...' : 'Select category'
+                                                                    }
+                                                                />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {categoryLoading ? (
+                                                                    <SelectItem value='0' disabled>
+                                                                        Loading categories...
+                                                                    </SelectItem>
+                                                                ) : (
+                                                                    (casteCategoryData as any)?.data?.map((item: any) => (
+                                                                        <SelectItem
+                                                                            key={item.imcC_Id || item.imCC_Id}
+                                                                            value={(item.imcC_Id || item.imCC_Id).toString()}>
+                                                                            {item.imcC_CategoryName || item.imCC_CategoryName}
+                                                                        </SelectItem>
+                                                                    ))
+                                                                )}
+                                                            </SelectContent>
+                                                        </Select>
+                                                    )}
+                                                />
+                                                {(errors as any).imCC_Id && (
+                                                    <FormError>{(errors as any).imCC_Id.message}</FormError>
+                                                )}
                                             </div>
                                             {/* <InputText
                                                 label='Caste '
