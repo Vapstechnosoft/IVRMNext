@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { getBMIReportLoadData, getClassesForBMI, getSectionsForBMI, getBMIReport } from '@/server/sports/reports/bmi-report';
 import { IBMIReportRequest } from '@/types/sports/reports/bmi-report';
+import type { ApiSearchparams } from '@/types';
 
 export const useBMIReport = () => {
     const loadData = useQuery({
@@ -17,7 +18,8 @@ export const useBMIReport = () => {
     });
 
     const generateReport = useMutation({
-        mutationFn: (data: IBMIReportRequest) => getBMIReport(data),
+        mutationFn: ({ data, searchParams }: { data: IBMIReportRequest; searchParams?: ApiSearchparams }) => 
+            getBMIReport(data, searchParams),
     });
 
     return {

@@ -6,51 +6,72 @@ import { format } from 'date-fns';
 
 import * as XLSX from 'xlsx';
 
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+
 export const columns: ColumnDef<IStudentEligibleReportDetail>[] = [
     {
-        accessorKey: 'serialNo',
-        header: 'SL. No.',
-        cell: ({ row }) => row.index + 1,
+        id: 'serialNo',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='SL. No.' />,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            return pageIndex * pageSize + row.index + 1;
+        },
+        enableSorting: false,
     },
     {
         accessorKey: 'adm_no',
-        header: 'Adm. No.',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Adm. No.' />,
+        enableSorting: true,
     },
     {
         accessorKey: 'studentname',
-        header: 'Student Name',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
+        enableSorting: true,
     },
     {
         accessorKey: 'classname',
-        header: 'Class',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Class' />,
+        enableSorting: true,
     },
     {
         accessorKey: 'sectionname',
-        header: 'Section',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Section' />,
+        enableSorting: true,
     },
     {
+        id: 'SPCCE_StartDate',
         accessorKey: 'spccE_StartDate',
-        header: 'DOB',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='DOB' />,
         cell: ({ row }) => {
             const date = row.original.spccE_StartDate;
             return date ? format(new Date(date), 'dd/MM/yyyy') : '-';
-        }
+        },
+        enableSorting: true,
     },
     {
+        id: 'PASR_Age',
         accessorKey: 'pasR_Age',
-        header: 'Age',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Age' />,
+        enableSorting: true,
     },
     {
+        id: 'AMST_FatherName',
         accessorKey: 'amsT_FatherName',
-        header: 'Father Name',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Father Name' />,
+        enableSorting: true,
     },
     {
+        id: 'AMST_MotherName',
         accessorKey: 'amsT_MotherName',
-        header: 'Mother Name',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Mother Name' />,
+        enableSorting: true,
     },
     {
+        id: 'Address',
         accessorKey: 'address',
-        header: 'Address',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Address' />,
+        enableSorting: true,
     }
 ];
 

@@ -12,6 +12,7 @@ import {
     mastersettinglist
 } from '@/server/fees/reports/fee_DefaulterReport';
 import { getFeesconcessionOnLoadReport } from '@/server/fees/reports/fee_concession_report';
+import { getCategoryDropDown } from '@/server/fees/reports/fee_group_wise_student_report';
 import {
     getFeeInstallmentReportBusRouteDropdown,
     getFeeInstallmentReportCategoryDropdown,
@@ -450,6 +451,23 @@ export const useFeeConCessionOnLoadreport = () => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_ON_LOAD]
+            });
+        }
+    };
+};
+
+export const useCategoryDropDown = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CATEGORY_DROPDOWNS],
+            queryFn: async () => getCategoryDropDown(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CATEGORY_DROPDOWNS]
             });
         }
     };

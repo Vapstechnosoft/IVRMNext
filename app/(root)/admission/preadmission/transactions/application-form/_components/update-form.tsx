@@ -13,6 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import 'react-phone-input-2/lib/style.css';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useAcademicYearMasterConfiguration } from '@/hooks/admission/preadmission/useConfigurations';
 import {
     useActivePreadmissionDetails,
@@ -88,7 +89,14 @@ const steps = [
 export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, className = '' }: UpdateStudentApplicationFormProps) {
     const [currentStep, setCurrentStep] = useState(1);
     const [phoneValues, setPhoneValues] = useState<Record<string, string>>({});
-    const [phoneExpectedInfo, setPhoneExpectedInfo] = useState<Record<string, { expected?: number; name?: string; dial?: string }>>({});
+    const [phoneExpectedInfo, setPhoneExpectedInfo] = useState<Record<string, { expected?: number; dial?: string; name?: string }>>({});
+    const [previewImage, setPreviewImage] = useState<string | null>(null);
+    const [isImagePreviewOpen, setIsImagePreviewOpen] = useState(false);
+
+    const handleImagePreview = (url: string) => {
+        setPreviewImage(url);
+        setIsImagePreviewOpen(true);
+    };
 
     const {
         watch,
@@ -175,7 +183,10 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                     normalized = String(normalized);
                 }
 
-                if (['pasR_Nationality', 'pasR_FatherNationality', 'pasR_MotherNationality'].includes(key) && normalized !== undefined) {
+                if (
+                    ['pasR_Nationality', 'pasR_FatherNationality', 'pasR_MotherNationality', 'pasR_Sex'].includes(key) &&
+                    normalized !== undefined
+                ) {
                     normalized = typeof normalized === 'number' ? String(normalized) : normalized;
                 }
 
@@ -1426,16 +1437,26 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                             </p>
                                         </div>
 
-                                        <div className='flex justify-between'>
-                                            <InputText
-                                                label='Academic Year'
-                                                required
-                                                id='academic_year'
-                                                placeholder='Academic Year'
-                                                defaultValue={activePreadmission?.data?.asmaY_Year}
-                                                className='w-fit font-semibold'
-                                                disabled
-                                            />
+                                        <div className='flex items-center justify-between gap-4'>
+                                            <div className='flex items-center gap-4'>
+                                                <InputText
+                                                    label='Academic Year'
+                                                    required
+                                                    id='academic_year'
+                                                    placeholder='Academic Year'
+                                                    defaultValue={activePreadmission?.data?.asmaY_Year}
+                                                    className='w-fit font-semibold'
+                                                    disabled
+                                                />
+                                                <InputText
+                                                    label='Application No.'
+                                                    id='pasR_RegistrationNo'
+                                                    placeholder='Application No.'
+                                                    {...register('pasR_RegistrationNo')}
+                                                    className='w-fit font-semibold'
+                                                    disabled
+                                                />
+                                            </div>
 
                                             {/* Student Photo Upload */}
                                             <div className='col-span-full w-fit'>
@@ -1565,7 +1586,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     variant='outline'
                                                                     size='sm'
                                                                     onClick={() =>
-                                                                        window.open(studentPhoto.pasR_Student_Pic_Path, '_blank')
+                                                                        handleImagePreview(studentPhoto.pasR_Student_Pic_Path)
                                                                     }>
                                                                     <Eye className='h-4 w-4' />
                                                                 </Button>
@@ -1776,7 +1797,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
-                                                            key={`${field.value}-${watch('religion_Id')}`}
+                                                            key={watch('religion_Id')}
                                                             onValueChange={(value) => field.onChange(Number(value))}
                                                             value={field.value?.toString() || undefined}
                                                             disabled={!watch('religion_Id')}>
@@ -2561,7 +2582,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                             variant='outline'
                                                                             size='sm'
                                                                             onClick={() =>
-                                                                                window.open(fatherPhoto.pasR_FatherPhoto, '_blank')
+                                                                                handleImagePreview(fatherPhoto.pasR_FatherPhoto)
                                                                             }>
                                                                             <Eye className='h-4 w-4' />
                                                                         </Button>
@@ -2908,7 +2929,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                             variant='outline'
                                                                             size='sm'
                                                                             onClick={() =>
-                                                                                window.open(motherPhoto.pasR_MotherPhoto, '_blank')
+                                                                                handleImagePreview(motherPhoto.pasR_MotherPhoto)
                                                                             }>
                                                                             <Eye className='h-4 w-4' />
                                                                         </Button>
@@ -3405,9 +3426,16 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                                 <Button
                                                                                     type='button'
                                                                                     className='w-fit'
-                                                                                    onClick={() =>
-                                                                                        window.open(uploadedDoc.document_Path, '_blank')
-                                                                                    }>
+                                                                                    onClick={() => {
+                                                                                        const path = uploadedDoc.document_Path;
+                                                                                        if (
+                                                                                            path.match(/\.(jpg|jpeg|png|gif|webp)$/i)
+                                                                                        ) {
+                                                                                            handleImagePreview(path);
+                                                                                        } else {
+                                                                                            window.open(path, '_blank');
+                                                                                        }
+                                                                                    }}>
                                                                                     <Eye className='h-4 w-4' />
                                                                                 </Button>
                                                                                 <Button
@@ -3942,6 +3970,24 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                     </div>
                 </div>
             </div>
+            <Dialog open={isImagePreviewOpen} onOpenChange={setIsImagePreviewOpen}>
+                <DialogContent className='max-w-3xl'>
+                    <DialogHeader>
+                        <DialogTitle>Image Preview</DialogTitle>
+                    </DialogHeader>
+                    <div className='flex items-center justify-center p-4'>
+                        {previewImage && (
+                            <img
+                                src={previewImage}
+                                alt='Preview'
+                                className='max-h-[70vh] w-auto rounded-lg shadow-lg'
+                            />
+                        )}
+                    </div>
+                </DialogContent>
+            </Dialog>
         </>
     );
 }
+
+

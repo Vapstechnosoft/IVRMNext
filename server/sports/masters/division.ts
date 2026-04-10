@@ -6,7 +6,7 @@ import type { IMasterDivision } from '@/types/sports/masters/division';
 
 export async function getMasterDivisions(searchParams?: ApiSearchparams) {
     // Following Pattern from Events page: URL parameters with api.post and empty body.
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'SPCCMD_DivisionName');
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'SPCCMD_DivisionName,SPCCMD_DivisionDescription');
     const url = `/SportMasterDivision/Getdetails?${urlParams}`;
     return await api.post<IMasterDivision[]>('sports', url, {});
 }

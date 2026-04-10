@@ -13,7 +13,7 @@ export async function changeStjamesTcYear(data: {
     report_type: string;
 }) {
     const url = `/StudenttcCustomReport/changeyear?tctemporper=${data.tctemporper}&ASMAY_Id=${data.ASMAY_Id}&report_type=${data.report_type}`;
-    return await api.post<any>('admission', url, {});
+    return await api.get<any>('admission', url);
 }
 
 export async function changeStjamesTcClass(data: {
@@ -21,7 +21,7 @@ export async function changeStjamesTcClass(data: {
     ASMCL_Id: number;
 }) {
     const url = `/StudenttcCustomReport/changeclass?ASMAY_Id=${data.ASMAY_Id}&ASMCL_Id=${data.ASMCL_Id}`;
-    return await api.post<any>('admission', url, {});
+    return await api.get<any>('admission', url);
 }
 
 export async function changeStjamesTcSection(data: {
@@ -31,7 +31,7 @@ export async function changeStjamesTcSection(data: {
     tctemporper: string;
 }) {
     const url = `/StudenttcCustomReport/changesection?tctemporper=${data.tctemporper}&ASMAY_Id=${data.ASMAY_Id}&ASMCL_Id=${data.ASMCL_Id}&ASMS_Id=${data.ASMS_Id}`;
-    return await api.post<any>('admission', url, {});
+    return await api.get<any>('admission', url);
 }
 
 export async function getStjamesTcDetails(data: {
@@ -42,5 +42,5 @@ export async function getStjamesTcDetails(data: {
     tctemporper: string;
 }) {
     const url = `/StudenttcCustomReport/getTCdata?tctemporper=${data.tctemporper}&ASMAY_Id=${data.ASMAY_Id}&ASMCL_Id=${data.ASMCL_Id}&ASMS_Id=${data.ASMS_Id}&AMST_Id=${data.AMST_Id}`;
-    return await api.post<any>('admission', url, {});
+    return await api.get<any>('admission', url);
 }

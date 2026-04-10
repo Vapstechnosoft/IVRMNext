@@ -2,21 +2,22 @@ import { TIMETABLE_QUERY_KEYS } from '@/constants/Timetable-query-keys';
 import {
     getAcademicYear,
     getClassDetails,
+    getLabConstraintsDetails,
     getSectionDetails,
     getTimeTableCategoryDropDownDetails
 } from '@/server/timetable/constraints/labconstraints';
-import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 //academic Year
-export const useAcademicYearDropDownMasterDayClasswise = (searchParams?: ApiSearchparams) => {
+export const useAcademicYearDropDownMasterDayClasswise = () => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [TIMETABLE_QUERY_KEYS.ACADEMIC_YEAR_DROPDOWN_MASTERDAYCLASSWISE, searchParams ?? {}],
-            queryFn: async () => getAcademicYear(searchParams),
-            staleTime: 0
+            queryKey: [TIMETABLE_QUERY_KEYS.ACADEMIC_YEAR_DROPDOWN_MASTERDAYCLASSWISE],
+            queryFn: async () => getAcademicYear(),
+            staleTime: 0,
+            retry: 1
         }),
 
         refetchAll: () => {
@@ -28,14 +29,15 @@ export const useAcademicYearDropDownMasterDayClasswise = (searchParams?: ApiSear
 };
 
 //category
-export const useCategtoryDropDownMasterDayClasswise = (searchParams?: ApiSearchparams) => {
+export const useCategoryDropDownMasterDayClasswise = () => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [TIMETABLE_QUERY_KEYS.CATEGORY_DROPDOWN_MASTERDAYCLASSWISE, searchParams ?? {}],
-            queryFn: async () => getTimeTableCategoryDropDownDetails(searchParams),
-            staleTime: 0
+            queryKey: [TIMETABLE_QUERY_KEYS.CATEGORY_DROPDOWN_MASTERDAYCLASSWISE],
+            queryFn: async () => getTimeTableCategoryDropDownDetails(),
+            staleTime: 0,
+            retry: 1
         }),
 
         refetchAll: () => {
@@ -47,14 +49,15 @@ export const useCategtoryDropDownMasterDayClasswise = (searchParams?: ApiSearchp
 };
 
 //section
-export const useSectionDropDownMasterDayClasswise = (searchParams?: ApiSearchparams) => {
+export const useSectionDropDownMasterDayClasswise = () => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [TIMETABLE_QUERY_KEYS.SECTION_DROPDOWN_MASTERDAYCLASSWISE, searchParams ?? {}],
+            queryKey: [TIMETABLE_QUERY_KEYS.SECTION_DROPDOWN_MASTERDAYCLASSWISE],
             queryFn: async () => getSectionDetails(),
-            staleTime: 0
+            staleTime: 0,
+            retry: 1
         }),
 
         refetchAll: () => {
@@ -66,19 +69,39 @@ export const useSectionDropDownMasterDayClasswise = (searchParams?: ApiSearchpar
 };
 
 //class
-export const useClassDropDownMasterDayClasswise = (searchParams?: ApiSearchparams) => {
+export const useClassDropDownMasterDayClasswise = () => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [TIMETABLE_QUERY_KEYS.CLASS_DROPDOWN_MASTERDAYCLASSWISE, searchParams ?? {}],
+            queryKey: [TIMETABLE_QUERY_KEYS.CLASS_DROPDOWN_MASTERDAYCLASSWISE],
             queryFn: async () => getClassDetails(),
-            staleTime: 0
+            staleTime: 0,
+            retry: 1
         }),
 
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [TIMETABLE_QUERY_KEYS.CLASS_DROPDOWN_MASTERDAYCLASSWISE]
+            });
+        }
+    };
+};
+
+export const useLabConstraintsDetails = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.LAB_CONSTRAINTS_DETAILS],
+            queryFn: async () => getLabConstraintsDetails(),
+            staleTime: 0,
+            retry: 1 // limit retries on 404
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.LAB_CONSTRAINTS_DETAILS]
             });
         }
     };

@@ -11,8 +11,13 @@ import AddEventsMappingForm from './_components/add-form';
 import { eventsMappingColumns } from './_components/columns';
 import UpdateEventsMappingForm from './_components/update-form';
 
-export default function EventsMappingPage() {
-    const { loadGrid } = useEventMapping();
+import { use } from 'react';
+
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+export default function EventsMappingPage(props: { searchParams: SearchParams }) {
+    const searchParams = use(props.searchParams);
+    const { loadGrid } = useEventMapping(searchParams);
     const { data: response, isLoading, error } = loadGrid;
 
     // We pass the full response to the content component to handle pagination metadata
@@ -35,8 +40,11 @@ function EventsMappingPageContent({
     const { openAddForm, isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
         useFormContext<IEventsMappingData>();
 
-    const gridData = response?.data?.eventmappingList || [];
-    const tableProps = useDataTableProps({ ...response, data: gridData });
+    const tableProps = {
+        ...useDataTableProps(response?.data, { dataKey: 'records', totalKey: 'total' }), 
+        success: response?.success,
+        errorMessage: response?.message
+    };
 
     return (
         <div className='min-h-screen'>
@@ -64,6 +72,10 @@ function EventsMappingPageContent({
                         columns={eventsMappingColumns}
                         isLoading={isLoading}
                         error={error}
+                        manualPagination={true}
+                        manualSorting={true}
+                        manualFiltering={true}
+                        showSearchColumns={true}
                         showViewOptions={false}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading mapping details...'

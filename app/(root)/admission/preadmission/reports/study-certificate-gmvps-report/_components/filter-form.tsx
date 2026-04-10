@@ -13,8 +13,7 @@ import { Loader2, Search, X, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { useStudyCertificateLoadData, useStudyCertificateStudentList } from '@/hooks/admission/preadmission/useReports';
-import { useStudentSearchFilter } from '@/hooks/admission/preadmission/useStudentTc';
+import { useStudyCertificateLoadData, useStudyCertificateStudentList, useStudyCertificateSearchFilterMutation, useStudyCertificateAcademicYearChange } from '@/hooks/admission/preadmission/useReports';
 import { DatePickerWithYear } from '@/components/ui/date-picker-year';
 import { format } from 'date-fns';
 
@@ -70,7 +69,7 @@ export function FilterForm({ onSubmit, onReset, isMIId6 = false }: FilterFormPro
     const studentStatus = watch('studentStatus');
     const amstId = watch('amst_Id');
 
-    const searchMutation = useStudentSearchFilter();
+    const searchMutation = useStudyCertificateSearchFilterMutation();
 
     // Fetch student list when filters change
     const { data: studentListData, isLoading: isStudentLoading } = useStudyCertificateStudentList({
@@ -80,9 +79,16 @@ export function FilterForm({ onSubmit, onReset, isMIId6 = false }: FilterFormPro
         AMST_Id: 0,
         AMST_SOL: studentStatus
     }, !!asmayId);
+    
+    // Fetch all students of year when "All" is selected
+    const { data: academicYearChangeData } = useStudyCertificateAcademicYearChange({
+        ASMAY_Id: asmayId,
+        AMST_SOL: studentStatus
+    }, !!asmayId && allorindid === 'A');
 
     const rawStudents = (studentListData as any)?.data?.studentList || 
                        (studentListData as any)?.data?.fillstudlist || 
+                       (academicYearChangeData as any)?.data?.fillstudlist ||
                        (Array.isArray(studentListData) ? studentListData : []);
 
     const students = (() => {
@@ -112,13 +118,15 @@ export function FilterForm({ onSubmit, onReset, isMIId6 = false }: FilterFormPro
 
         const timer = setTimeout(() => {
             searchMutation.mutate({
-                asmayId: Number(asmayId),
-                amstSol: studentStatus,
+                ASMAY_Id: Number(asmayId),
+                AMST_SOL: studentStatus,
+                ASMCL_Id: allorindid === 'A' ? 0 : asmclId,
+                ASMC_Id: allorindid === 'A' ? 0 : asmsId,
                 searchfilter: searchQuery,
-                flag: 'N'
+                allorindid: allorindid
             }, {
                 onSuccess: (response: any) => {
-                    const list = response?.data || response?.studentList || response || [];
+                    const list = response?.data?.fillstudlist || response?.data || response?.studentList || response || [];
                     setStudentListFromSearch(Array.isArray(list) ? list : []);
                 }
             });

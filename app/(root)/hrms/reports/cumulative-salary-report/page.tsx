@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useLeaveYearDropdown } from '@/hooks/hrms/useMasters';
 import { useCumulativeSalaryReport, useReportDepartments, useReportDesignations, useReportGroupTypes } from '@/hooks/hrms/useReports';
 import { exportToExcel } from '@/lib/export-to-file';
-import { Download, Loader2, Printer, Search } from 'lucide-react';
+import { Download, Loader2, Printer, Search, X } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -54,7 +54,7 @@ export default function CumulativeSalaryReportPage() {
 
 function CumulativeSalaryReportContent() {
     const [reportData, setReportData] = useState<any>(null);
-    const { control, handleSubmit, watch } = useForm<FilterFormValues>({
+    const { control, handleSubmit, watch, reset } = useForm<FilterFormValues>({
         defaultValues: {
             year: '',
             month: '',
@@ -63,6 +63,11 @@ function CumulativeSalaryReportContent() {
             designation: []
         }
     });
+
+    const handleCancel = () => {
+        reset();
+        setReportData(null);
+    };
 
     const componentRef = useRef<HTMLDivElement>(null);
     const watchedGroupType = watch('groupType');
@@ -471,8 +476,17 @@ function CumulativeSalaryReportContent() {
                         </div>
                     </div>
 
-                    <div className='flex justify-end'>
-                        <Button type='submit' disabled={isPending} className='w-32'>
+                    <div className='flex justify-end gap-2'>
+                        <Button
+                            type='button'
+                            variant='outline'
+                            onClick={handleCancel}
+                            disabled={isPending}
+                            className='w-32 border-orange-500 text-orange-600 hover:bg-orange-50 transition-all rounded-xl'>
+                            <X className='mr-2 h-4 w-4' />
+                            CANCEL
+                        </Button>
+                        <Button type='submit' disabled={isPending} className='w-32 transition-all rounded-xl'>
                             {isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Search className='mr-2 h-4 w-4' />}
                             Generate
                         </Button>

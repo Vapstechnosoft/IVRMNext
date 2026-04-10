@@ -26,6 +26,7 @@ export const homeWorkColumns: ColumnDef<IHomeWorkDetails>[] = [
         header: ({ column }) => <DataTableColumnHeader column={column} title='Subject' className='text-bold text-black' />,
         cell: ({ row }) => <div className='text-xs'>{row.getValue('ismS_SubjectName')}</div>
     },
+
     {
         accessorKey: 'asmcL_ClassName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Class' className='text-center text-bold text-black' />,
@@ -56,9 +57,19 @@ export const homeWorkColumns: ColumnDef<IHomeWorkDetails>[] = [
     },
     {
         accessorKey: 'ihW_Assignment',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Assignment' className='text-bold text-black' />,
-        cell: ({ row }) => <div className='text-xs'>{row.getValue('ihW_Assignment')}</div>
+        header: ({ column }) => (
+            <DataTableColumnHeader column={column} title='Assignment' className='text-bold text-black' />
+        ),
+        cell: ({ row }) => (
+            <div
+                className='w-[200px] whitespace-normal break-all line-clamp-2 md:w-[300px] lg:w-[400px]'
+                title={row.getValue('ihW_Assignment')}
+            >
+                {row.getValue('ihW_Assignment')}
+            </div>
+        )
     },
+
     {
         accessorKey: 'ihW_Date',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Homework Date' className='text-center text-bold text-black' />,

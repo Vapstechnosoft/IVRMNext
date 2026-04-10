@@ -37,15 +37,17 @@ import {
     Pie,
     Cell
 } from 'recharts';
+import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
 
 // --- Data & Constants ---
 
 const statsData = [
-    { title: 'Applications', value: '1,528', icon: FileText, gradient: 'from-blue-600 to-indigo-600', badgeIcon: Briefcase },
-    { title: 'Students', value: '6,302', icon: Users, gradient: 'from-orange-500 to-amber-600', badgeIcon: UserCircle },
-    { title: 'Teachers', value: '208', icon: GraduationCap, gradient: 'from-teal-500 to-emerald-600', badgeIcon: Building2 },
-    { title: 'Fee Collection', value: '₹4,35,500', icon: Wallet, gradient: 'from-purple-600 to-violet-600', badgeIcon: CreditCard },
+    { title: 'Applications', value: '1,528', icon: FileText, gradient: 'from-blue-600 to-indigo-600', badgeIcon: Briefcase, url: '/admission/preadmission/reports/admission-register' },
+    { title: 'Students', value: '6,302', icon: Users, gradient: 'from-orange-500 to-amber-600', badgeIcon: UserCircle, url: '/admission/preadmission/reports/class-wise-student-details' },
+    { title: 'Teachers', value: '208', icon: GraduationCap, gradient: 'from-teal-500 to-emerald-600', badgeIcon: Building2, url: '/hrms/employee' },
+    { title: 'Fee Collection', value: '₹4,35,500', icon: Wallet, gradient: 'from-purple-600 to-violet-600', badgeIcon: CreditCard, url: '/fees/feereports/feeconsolidatedreport' },
 ];
 
 const performanceData = [
@@ -95,24 +97,36 @@ const events = [
 
 // --- Sub-Components ---
 
-const StatCard = ({ item }: { item: typeof statsData[0] }) => (
-    <Card className="border-none shadow-lg rounded-2xl overflow-hidden group cursor-pointer hover:scale-[1.01] transition-all duration-500 card-premium">
-        <CardContent className="p-0 flex h-full">
-            <div className={cn("w-14 flex items-center justify-center bg-gradient-to-b text-white", item.gradient)}>
-                <item.icon size={22} strokeWidth={2.5} />
-            </div>
-            <div className="flex-1 p-4 flex items-center justify-between">
-                <div>
-                    <p className="text-slate-500 font-bold text-[10px] uppercase tracking-widest">{item.title}</p>
-                    <h3 className="text-xl font-black text-slate-900 mt-0.5">{item.value}</h3>
+const StatCard = ({ item }: { item: typeof statsData[0] }) => {
+    const CardContentUI = (
+        <Card className="border-none shadow-lg rounded-2xl overflow-hidden group cursor-pointer hover:scale-[1.01] transition-all duration-500 card-premium">
+            <CardContent className="p-0 flex h-full">
+                <div className={cn("w-14 flex items-center justify-center bg-gradient-to-b text-white", item.gradient)}>
+                    <item.icon size={22} strokeWidth={2.5} />
                 </div>
-                <div className="bg-slate-50 p-2 rounded-xl group-hover:bg-slate-100 transition-colors">
-                    <item.badgeIcon size={16} className="text-slate-400 group-hover:text-slate-600" />
+                <div className="flex-1 p-4 flex items-center justify-between">
+                    <div>
+                        <p className="text-slate-500 font-bold text-[10px] uppercase tracking-widest">{item.title}</p>
+                        <h3 className="text-xl font-black text-slate-900 mt-0.5">{item.value}</h3>
+                    </div>
+                    <div className="bg-slate-50 p-2 rounded-xl group-hover:bg-slate-100 transition-colors text-slate-400 group-hover:text-slate-600">
+                        <item.badgeIcon size={16} />
+                    </div>
                 </div>
-            </div>
-        </CardContent>
-    </Card>
-);
+            </CardContent>
+        </Card>
+    );
+
+    if (item.url) {
+        return (
+            <Link href={item.url} className="block no-underline">
+                {CardContentUI}
+            </Link>
+        );
+    }
+
+    return CardContentUI;
+};
 
 const SectionHeader = ({ title, showViewAll = true }: { title: string, showViewAll?: boolean }) => (
     <div className="flex items-center justify-between mb-4">
@@ -223,7 +237,13 @@ export default function AdminDashboardPage() {
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center justify-between gap-2">
                                         <p className="font-black text-slate-900 text-[11px] leading-tight truncate">{item.title}</p>
-                                        <Badge variant="outline" className="text-[8px] h-4 px-1 font-black uppercase tracking-tighter border-slate-100 shrink-0">{item.status}</Badge>
+                                        <Badge
+                                            variant="outline"
+                                            className="text-[8px] h-4 px-1 font-black uppercase tracking-tighter border-slate-100 shrink-0"
+                                            toolTip={`Action required: ${item.status === 'New' ? 'Review this circular immediately.' : 'Already released to public.'}`}
+                                        >
+                                            {item.status}
+                                        </Badge>
                                     </div>
                                     <p className="text-slate-400 text-[9px] font-bold mt-0.5">{item.date}</p>
                                 </div>
@@ -257,7 +277,10 @@ export default function AdminDashboardPage() {
                                         </td>
                                         <td className="py-3 text-xs font-bold text-slate-600">{app.class}</td>
                                         <td className="py-3 text-center">
-                                            <Badge className="bg-orange-50 text-orange-600 border-none font-black text-[9px] rounded-md px-2 py-0.5">
+                                            <Badge
+                                                className="bg-orange-50 text-orange-600 border-none font-black text-[9px] rounded-md px-2 py-0.5"
+                                                toolTip="Verification in progress. Awaiting principal's final approval."
+                                            >
                                                 {app.status}
                                             </Badge>
                                         </td>

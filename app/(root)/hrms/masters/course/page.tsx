@@ -73,6 +73,7 @@ function MasterCoursePageContent({
                     <GenericDataTable<IMasterCourseList>
                         {...tableProps}
                         columns={columns}
+                        getRowId={(row) => row.hrmC_Id.toString()}
                         isLoading={isLoading}
                         error={error}
                         showViewOptions={false}

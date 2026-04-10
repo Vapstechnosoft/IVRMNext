@@ -7,7 +7,7 @@ import {
 } from "@/server/sports/events-mapping";
 import { EventsMappingFormSchema } from "@/types/sports/events-mapping";
 
-export const useEventsMapping = () => {
+export const useEventsMapping = (searchParams?: any) => {
     const queryClient = useQueryClient();
 
     const dropdowns = useQuery({
@@ -16,8 +16,8 @@ export const useEventsMapping = () => {
     });
 
     const gridData = useQuery({
-        queryKey: ['eventsMappingList'],
-        queryFn: () => getEventsMappingList(),
+        queryKey: ['eventsMappingList', searchParams],
+        queryFn: () => getEventsMappingList(searchParams),
     });
 
     const saveData = useMutation({

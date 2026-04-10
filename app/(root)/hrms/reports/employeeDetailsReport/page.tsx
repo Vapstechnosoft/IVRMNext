@@ -782,9 +782,15 @@ function EmployeeDetailsReportContent() {
                             data={processedGridData}
                             columns={columns}
                             totalItems={processedGridData.length}
-                            isPaginationRequired={false}
-                            isSearchRequired={true}
                             isLoading={false}
+                            showViewOptions={false}
+                            showSearchColumns={false}
+                            showExportOptions={false}
+                            maxSelectableRows={0}
+                            manualPagination={false}
+                            manualSorting={false}
+                            manualFiltering={false}
+                            scrollable
                         />
                     </div>
                 </CollapsibleSection>

@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, keepPreviousData } from '@tanstack/react-query';
 import {
     getStudentEligibleReportLoadData,
     getClassesForStudentEligible,
@@ -8,7 +8,7 @@ import {
 } from '@/server/sports/reports/student-eligible-report';
 import { IStudentEligibleReportRequest } from '@/types/sports/reports/student-eligible-report';
 
-export const useStudentEligibleReport = () => {
+export const useStudentEligibleReport = (payload?: IStudentEligibleReportRequest, searchParams?: any) => {
     const loadGrid = useQuery({
         queryKey: ['student-eligible-report-load'],
         queryFn: getStudentEligibleReportLoadData,
@@ -27,7 +27,16 @@ export const useStudentEligibleReport = () => {
     });
 
     const showDetails = useMutation({
-        mutationFn: (data: IStudentEligibleReportRequest) => getStudentEligibleReport(data),
+        mutationFn: (data: { payload: IStudentEligibleReportRequest; searchParams?: any }) => getStudentEligibleReport(data.payload, data.searchParams),
+    });
+
+    // Added query for report data to support search/sort/pagination without infinite loops
+    const reportQuery = useQuery({
+        queryKey: ['student-eligible-report-data', payload, searchParams],
+        queryFn: () => payload ? getStudentEligibleReport(payload, searchParams) : null,
+        enabled: !!payload,
+        placeholderData: keepPreviousData,
+        staleTime: 0
     });
 
     return {
@@ -35,6 +44,7 @@ export const useStudentEligibleReport = () => {
         getClasses,
         getSections,
         getStudents,
-        showDetails
+        showDetails,
+        reportQuery
     };
 };

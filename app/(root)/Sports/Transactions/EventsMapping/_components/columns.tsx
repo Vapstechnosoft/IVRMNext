@@ -1,64 +1,86 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { Button } from '@/components/ui/button';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import { useEventMapping } from '@/hooks/sports/useEventMapping';
-import { Edit, Trash2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { IEventsMappingData } from '@/types/sports/events-mapping';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 
 export const eventsMappingColumns: ColumnDef<IEventsMappingData>[] = [
     {
-        id: 'slno',
-        header: 'Sl.No.',
-        cell: ({ row }) => row.index + 1,
+        id: 'SPCCE_Id',
+        accessorKey: 'spccE_Id',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            const continuousIndex = pageIndex * pageSize + row.index + 1;
+            return <div className='pl-6'>{continuousIndex}</div>;
+        },
+        enableSorting: true,
+        enableHiding: false
     },
     {
+        id: 'ASMAY_Year',
         accessorKey: 'asmaY_Year',
-        header: 'Academic Year',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Academic Year' />,
+        enableSorting: true
     },
     {
+        id: 'SPCCME_EventName',
         accessorKey: 'spccmE_EventName',
-        header: 'Event Name',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Event Name' />,
+        enableSorting: true
     },
     {
+        id: 'SPCCMEV_EventVenue',
         accessorKey: 'spccmeV_EventVenue',
-        header: 'Venue Name',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Venue Name' />,
+        enableSorting: true
     },
     {
+        id: 'SPCCE_StartDate',
         accessorKey: 'spccE_StartDate',
-        header: 'Start Date',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Start Date' />,
         cell: ({ row }) => {
             const date = row.original.spccE_StartDate;
             return date ? new Date(date).toLocaleDateString() : '';
-        }
+        },
+        enableSorting: true
     },
     {
+        id: 'SPCCE_StartTime',
         accessorKey: 'spccE_StartTime',
-        header: 'Start Time',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Start Time' />,
         cell: ({ row }) => {
-            return <div className="lowercase">{row.getValue("spccE_StartTime")}</div>
-        }
+            return <div className="lowercase">{row.original.spccE_StartTime}</div>
+        },
+        enableSorting: true
     },
     {
+        id: 'SPCCE_EndDate',
         accessorKey: 'spccE_EndDate',
-        header: 'End Date',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='End Date' />,
         cell: ({ row }) => {
             const date = row.original.spccE_EndDate;
             return date ? new Date(date).toLocaleDateString() : '';
-        }
+        },
+        enableSorting: true
     },
     {
+        id: 'SPCCE_EndTime',
         accessorKey: 'spccE_EndTime',
-        header: 'End Time',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='End Time' />,
         cell: ({ row }) => {
-            return <div className="lowercase">{row.getValue("spccE_EndTime")}</div>
-        }
+            return <div className="lowercase">{row.original.spccE_EndTime}</div>
+        },
+        enableSorting: true
     },
     {
+        id: 'SPCCE_Remarks',
         accessorKey: 'spccE_Remarks',
-        header: 'Remarks',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Remarks' />
     },
     {
         id: 'actions',
@@ -73,27 +95,19 @@ const ActionsCell = ({ row }: { row: IEventsMappingData }) => {
     const { deactivate } = useEventMapping();
     const { openEditForm } = useFormContext<IEventsMappingData>();
 
-    const isActive = row.spccE_ActiveFlag;
-
     return (
-        <div className='flex items-center gap-3'>
-            <Button
-                variant='ghost'
-                size='sm'
-                onClick={() => openEditForm(row)}
-                className='h-8 w-8 p-0 text-primary hover:bg-primary/10'>
-                <Edit className='h-4 w-4' />
-            </Button>
-            <Button
-                variant='link'
-                size='sm'
-                onClick={() => deactivate.mutate({ ASMAY_Id: row.asmaY_Id, SPCCE_Id: row.spccE_Id })}
-                className={cn(
-                    'h-auto p-0 font-medium text-xs',
-                    isActive ? 'text-destructive hover:text-destructive/80' : 'text-green-600 hover:text-green-700'
-                )}>
-                {isActive ? 'Deactivate' : 'Activate'}
-            </Button>
-        </div>
+        <ActionButtons
+            rowData={row}
+            buttons={{
+                edit: true,
+                toggle: true,
+                delete: false
+            }}
+            onEdit={() => openEditForm(row)}
+            onToggle={(data) => {
+                deactivate.mutate({ ASMAY_Id: data.asmaY_Id, SPCCE_Id: data.spccE_Id });
+            }}
+            toggleConditionKey='spccE_ActiveFlag'
+        />
     );
 };
