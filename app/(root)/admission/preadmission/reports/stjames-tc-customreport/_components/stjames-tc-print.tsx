@@ -1,7 +1,6 @@
 'use client';
 
 import React, { forwardRef } from 'react';
-import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
 interface StJamesTcPrintProps {
@@ -11,378 +10,473 @@ interface StJamesTcPrintProps {
 export const StJamesTcPrint = forwardRef<HTMLDivElement, StJamesTcPrintProps>(({ data }, ref) => {
     if (!data) return null;
 
-    const {
-        tcno,
-        admno,
-        lblstdname,
-        lblfathername,
-        lbldoa,
-        previousschoolname,
-        lbldol,
-        lblconduct,
-        laststudiedinwords,
-        lbldob,
-        lbldobwords,
-        lblPromotion,
-        todaydate,
-        qrcode,
-        address1,
-        address2,
-        address3,
-        gender,
-        leavingreason,
-        feepaid,
-        religion,
-        caste,
-        subjectstudied,
-        daysattended,
-        schooldays,
-        tcappdate,
-        logo,
-    } = data;
+    const formatDate = (date: any) => {
+        if (!date) return "";
+        try {
+            return format(new Date(date), 'dd/MM/yyyy');
+        } catch (e) {
+            return "";
+        }
+    };
 
     return (
-        <div ref={ref} className="stjames-tc-print-container p-4 bg-white font-serif printable-content">
+        <div ref={ref} className="stjames-tc-print-container bg-white printable-content w-[297mm] min-h-[210mm] mx-auto">
             <style jsx global>{`
                 @media print {
                     .stjames-tc-print-container {
+                        width: 100% !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                    }
+                    .table {
                         width: 100%;
-                        padding: 0;
-                        margin: 0;
+                        border: 0px !important;
+                        font-weight: 600;
+                        text-align: left !important;
+                        margin-bottom: 10px;
+                        font-size: 16px !important;
+                        line-height: 1.2;
+                        font-family: 'Times New Roman', Times, serif
                     }
-                    .no-print {
-                        display: none;
+
+                    .table {
+                        border: none;
+                    }
+
+                    .border-bottom-dotted {
+                        border-bottom: 1px dotted #000 !important;
+                        text-align: left !important;
+                    }
+                    
+                    @page {
+                        size: A4 landscape;
+                        margin: 5mm;
                     }
                 }
 
-                .stjames-report-wrapper {
-                    display: flex;
+                .italic {
+                    font-size: 18px;
+                    font-style: italic;
+                    font-family: 'Times New Roman', Times, serif;
+                    font-weight: 600;
+                }
+
+                .vl {
+                    border-left: 2px solid green;
+                    height: auto !important;
+                }
+
+                .tcCss {
+                    display: block;
                     width: 100%;
-                    background-color: #fff;
-                    font-size: 14px;
-                    line-height: 1.4;
-                    font-weight: 500;
-                    color: #000;
+                    float: left;
                 }
 
-                .sidebar {
-                    width: 35%;
-                    padding-right: 15px;
-                    border-right: 2px dotted #000;
-                }
-
-                .main-cert {
-                    width: 65%;
-                    padding-left: 20px;
-                }
-
-                .border-bottom-dotted {
-                    border-bottom: 1px dotted #000;
-                    display: inline-block;
-                    min-height: 20px;
-                }
-
-                .tc-table {
+                .imgTc img {
                     width: 100%;
-                    border-collapse: collapse;
-                    margin-bottom: 15px;
-                }
-
-                .tc-table td {
-                    padding: 4px 0;
-                    vertical-align: bottom;
-                }
-
-                .header-img {
-                    width: 100%;
+                    height: 102px;
                     margin-bottom: 10px;
                 }
 
-                .header-img img {
+                .certificateCss {
+                    margin-top: 4px;
+                }
+
+                table {
+                    margin-top: 5px;
                     width: 100%;
-                    height: auto;
-                    max-height: 100px;
-                    object-fit: contain;
                 }
 
-                .signature-section {
-                    margin-top: 30px;
-                    display: flex;
-                    justify-content: flex-end;
-                    font-weight: bold;
+                .signature tr > td {
+                    float: right;
                 }
 
-                .footer-text {
-                    font-size: 11px;
+                .signature {
+                    width: 100%;
+                }
+
+                .stjamesReportCss {
+                    display: block;
+                    width: 100%;
+                    float: left;
+                    background-color: #fff;
+                    padding-top: 5px;
+                    margin-bottom: 10px;
+                    font-size: 15px !important;
+                    font-weight: bold !important;
+                }
+
+                .borderLeft {
+                    padding-right: 10px;
+                    width: 33.333%;
+                    padding-left: 10px;
+                }
+
+                .paddingLeftCss {
+                    border-left: #000 dotted;
+                    padding-left: 10px;
+                    width: 66.666%;
+                }
+
+                .borderLeft table {
                     margin-top: 20px;
-                    line-height: 1.2;
                 }
 
-                .center-text {
-                    text-align: center;
+                .marginPx {
+                    margin-top: 0px !important;
                 }
 
-                .full-width-dotted {
-                    width: 100%;
-                    border-bottom: 1px dotted #000;
-                    margin: 10px 0;
+                .imgTableCss {
+                    margin-top: 5px !important;
                 }
 
-                .english-hand {
-                    font-family: 'Times New Roman', Times, serif; /* Replacement for England Hand DB */
-                    font-size: 1.2em;
+                .postionCss {
+                    position: relative;
+                    bottom: 7px;
+                    padding-bottom: 4px;
                 }
+
+                .postionCss b {
+                    position: relative;
+                    top: 7px;
+                }
+
+                .margin-top-20 {
+                    margin-top: 10px !important;
+                }
+                
+                * {
+                    font-family: 'Times New Roman', Times, serif !important;
+                }
+                
+                .text-center { text-align: center; }
+                .text-right { text-align: right; }
+                .border-bottom-dotted { text-align: center !important; }
+                .dynamic-line { min-width: 200px; display: inline-block; width: auto; border-bottom: 1px dotted #000; text-align: center; }
+                .school-header { text-align: center; width: 100%; margin-bottom: 5px; line-height: 1.2; }
+                .school-name { font-size: 28px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; }
+                .school-address { font-size: 14px; font-weight: bold; }
+                .boxed-title-container { text-align: center; margin: 10px 0; }
+                .boxed-title { border: 1px solid #000; padding: 5px 20px; display: inline-block; font-size: 22px; font-weight: bold; font-family: 'Times New Roman', serif; border-radius: 4px; box-shadow: 2px 2px 0px #000; }
+                .w-full { width: 100%; }
+                .h-5 { height: 1.25rem; }
             `}</style>
 
-            <div className="stjames-report-wrapper">
-                {/* Sidebar Section */}
-                <div className="sidebar">
-                    <div className="header-img">
-                        <img src={logo} alt="School TC Header" />
-                    </div>
-
-                    <table className="tc-table">
-                        <tbody>
-                            <tr>
-                                <td width="15%"><b>No :</b></td>
-                                <td width="35%" className="border-bottom-dotted"><b>{tcno}</b></td>
-                                <td width="20%"><b>Roll No:</b></td>
-                                <td width="30%" className="border-bottom-dotted"><b>{admno}</b></td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <div className="header-img center-text">
-                        <img src="/images/clients/Stjames/Transfercer.png" style={{ height: '40px', width: 'auto' }} alt="Transfer Certificate" />
-                    </div>
-
-                    <table className="tc-table">
-                        <tbody>
-                            <tr>
-                                <td width="20%">Given to</td>
-                                <td className="border-bottom-dotted center-text"><b>{lblstdname}</b></td>
-                            </tr>
-                            <tr><td colSpan={2}>&nbsp;</td></tr>
-                            <tr><td colSpan={2} className="border-bottom-dotted center-text italic font-bold text-xs">{address1}</td></tr>
-                            <tr><td colSpan={2}>&nbsp;</td></tr>
-                            <tr><td colSpan={2} className="border-bottom-dotted center-text italic font-bold text-xs">{address2} {address3}</td></tr>
-                            <tr><td colSpan={2}>&nbsp;</td></tr>
-                            <tr>
-                                <td width="30%">On account of</td>
-                                <td className="border-bottom-dotted center-text"><b>{leavingreason}</b></td>
-                            </tr>
-                            <tr>
-                                <td width="15%">Left</td>
-                                <td className="border-bottom-dotted center-text">
-                                    <b>{lbldol ? format(new Date(lbldol), 'dd/MM/yyyy') : ''}</b>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td width="25%">Character</td>
-                                <td className="border-bottom-dotted center-text"><b>{lblconduct}</b></td>
-                            </tr>
-                            <tr>
-                                <td width="15%">Fees</td>
-                                <td className="border-bottom-dotted center-text"><b>{feepaid}</b></td>
-                            </tr>
-                            <tr>
-                                <td width="40%">Studying in Class</td>
-                                <td className="border-bottom-dotted center-text"><b>{laststudiedinwords}</b></td>
-                            </tr>
-                            <tr>
-                                <td width="30%">Promotion</td>
-                                <td className="border-bottom-dotted center-text"><b>{lblPromotion?.toUpperCase()}</b></td>
-                            </tr>
-                            <tr>
-                                <td width="35%">Date of Birth</td>
-                                <td className="border-bottom-dotted center-text">
-                                    <b>{lbldob ? format(new Date(lbldob), 'dd/MM/yyyy') : ''}</b>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td width="35%">Religion/Caste</td>
-                                <td className="border-bottom-dotted center-text">
-                                    <b>{religion} / {caste}</b>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td width="35%">Attendance</td>
-                                <td className="border-bottom-dotted center-text">
-                                    <b>{daysattended} / {schooldays}</b>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td width="30%"><b>Dated:</b></td>
-                                <td width="30%" className="border-bottom-dotted center-text">
-                                    <b>{todaydate ? format(new Date(todaydate), 'dd/MM/yyyy') : ''}</b>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    {qrcode && (
-                        <div className="flex justify-center my-4">
-                            <img src={qrcode} alt="Verification QR Code" className="w-24 h-24 object-contain" />
-                        </div>
-                    )}
-
-                    <div className="signature-section">
-                        Principal
-                    </div>
-
-                    <table className="tc-table">
-                        <tbody>
-                            <tr>
-                                <td width="40%">Sent to D.D.S.E. on</td>
-                                <td className="border-bottom-dotted"></td>
-                            </tr>
-                            <tr>
-                                <td width="50%">Recd. from D.D.S.E. on</td>
-                                <td className="border-bottom-dotted"></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                {/* Main Certificate Section */}
-                <div className="main-cert">
-                    <div className="header-img center-text">
-                        <img src={logo} alt="School TC Header" />
-                        {/* <img src="/images/clients/Stjames/TC.png" style={{ width: '70%' }} alt="TC Header" />
-                     */}
-                    </div>
-
-                    <table className="tc-table">
-                        <tbody>
-                            <tr>
-                                <td width="10%"><b>No :</b></td>
-                                <td width="30%" className="border-bottom-dotted"><b>{tcno}</b></td>
-                                <td width="30%"></td>
-                                <td width="15%"><b>Roll No :</b></td>
-                                <td width="15%" className="border-bottom-dotted"><b>{admno}</b></td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <div className="mt-4">
-                        <span className="english-hand">This is to certify that {gender?.title || 'master'} </span>
-                        <span className="border-bottom-dotted min-w-[300px] inline-block text-center font-bold px-2">{lblstdname}</span>
-                    </div>
-
-                    <div className="mt-2">
-                        <span>{gender?.sonOf || 'Son of'} </span>
-                        <span className="border-bottom-dotted min-w-[80%] inline-block text-center font-bold px-2">{lblfathername}</span>
-                    </div>
-
-                    <div className="mt-2">
-                        <span>was admitted into this school on the (date) </span>
-                        <span className="border-bottom-dotted min-w-[200px] inline-block text-center font-bold px-2">
-                            {lbldoa ? format(new Date(lbldoa), 'dd/MM/yyyy') : ''}
-                        </span>
-                    </div>
-
-                    <div className="mt-2 text-wrap">
-                        <span>on a transfer certificate from </span>
-                        <span className="border-bottom-dotted min-w-[70%] inline-block font-bold px-2">{previousschoolname}</span>
-                    </div>
-                    <div className="full-width-dotted"></div>
-
-                    <div className="mt-2">
-                        <span>and left on the </span>
-                        <span className="border-bottom-dotted min-w-[150px] inline-block text-center font-bold px-2">
-                            {lbldol ? format(new Date(lbldol), 'dd/MM/yyyy') : ''}
-                        </span>
-                        <span> with a </span>
-                        <span className="border-bottom-dotted min-w-[120px] inline-block text-center font-bold px-2">{lblconduct}</span>
-                        <span> character</span>
-                    </div>
-
-                    <div className="mt-2">
-                        <span>{gender?.heShe || 'He'} was then studying in the (1) </span>
-                        <span className="border-bottom-dotted min-w-[60%] inline-block text-center font-bold px-2">{laststudiedinwords}</span>
-                    </div>
-
-                    <div className="mt-2 text-wrap">
-                        <span>Subjects studied: </span>
-                        <span className="border-bottom-dotted min-w-[70%] inline-block font-bold px-2">{subjectstudied}</span>
-                    </div>
-
-                    <div className="mt-2">
-                        <span>Class of the (2) </span>
-                        <span className="border-bottom-dotted min-w-[50%] inline-block text-center font-bold">ICSE & ISC</span>
-                        <span> stream, the school year</span>
-                    </div>
-
-                    <div className="mt-2">
-                        <span>being from (3) </span>
-                        <span className="border-bottom-dotted min-w-[150px] inline-block text-center font-bold">MARCH</span>
-                        <span> to </span>
-                        <span className="border-bottom-dotted min-w-[150px] inline-block text-center font-bold">FEBRUARY</span>
-                    </div>
-
-                    <div className="mt-2">
-                        <span>All sum due (4) </span>
-                        <span className="border-bottom-dotted min-w-[200px] inline-block text-center font-bold px-2">{feepaid}</span>
-                        <span> to this school</span>
-                    </div>
-
-                    <div className="mt-1 font-semibold italic text-sm">
-                        on {gender?.hisHer || 'his'} account have been remitted or satisfactorily arrange for.
-                    </div>
-
-                    <div className="mt-4">
-                        <span>{gender?.hisHer ? (gender.hisHer.charAt(0).toUpperCase() + gender.hisHer.slice(1)) : 'His'} date of birth, according to the Admission Register is (in figures) </span>
-                        <span className="border-bottom-dotted min-w-[150px] inline-block text-center font-bold px-2">
-                            {lbldob ? format(new Date(lbldob), 'dd/MM/yyyy') : ''}
-                        </span>
-                    </div>
-
-                    <div className="mt-2">
-                        <span>(in words) </span>
-                        <span className="border-bottom-dotted min-w-[85%] inline-block text-center font-bold">{lbldobwords}</span>
-                    </div>
-
-                    <div className="mt-4 text-[13px] leading-tight">
-                        (The following additional information must be supplied if the scholar left at the end of the School year)
-                    </div>
-
-                    <div className="mt-2">
-                        <span className="inline-block w-[150px]"></span>
-                        <span>Promotion has been (5) </span>
-                        <span className="border-bottom-dotted min-w-[300px] inline-block text-center font-bold">{lblPromotion?.toUpperCase()}</span>
-                    </div>
-
-                    <table className="tc-table mt-8">
-                        <tbody>
-                            <tr>
-                                <td width="30%"><b>TC Application Date :</b></td>
-                                <td width="20%" className="border-bottom-dotted center-text font-bold">
-                                    {tcappdate ? format(new Date(tcappdate), 'dd/MM/yyyy') : ''}
-                                </td>
-                                <td width="10%"><b>Date :</b></td>
-                                <td width="20%" className="border-bottom-dotted center-text font-bold">
-                                    {todaydate ? format(new Date(todaydate), 'dd/MM/yyyy') : ''}
-                                </td>
-                                <td width="20%"></td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <div className="mt-8 flex justify-between items-end border-b border-black pb-2">
-                        <div className="text-center w-2/3"><b>School Rubber Stamp</b></div>
-                        <div className="text-right w-1/3">
-                            <div className="border-t border-black border-dotted pt-1 text-center font-bold">
-                                Head of the School
+            <div id="Stjames" className="stjamesReportCss" style={{ fontSize: '15px', fontWeight: 'bold' }}>
+                <div className="flex flex-row w-full">
+                    {/* LEFT STUB (col-sm-4 borderLeft) */}
+                    <div className="borderLeft border-r-0">
+                        <div className="tcCss">
+                            <div>
+                                <img src={data.logo} style={{ width: '100%', height: '100%' }} alt="TC Logo" />
                             </div>
+                            <table>
+                                <tbody>
+                                    <tr>
+                                        <td className="headerCss" width="60"><b>No : </b></td>
+                                        <td className="text-center"><b>{data.tcno}</b></td>
+                                        <td width="20"></td>
+                                        <td className="headerCss" width="244"><b>School Roll No : </b></td>
+                                        <td className="text-center"><b>{data.admno}</b></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div className="boxed-title-container">
+                                <div className="boxed-title">Transfer Certificate</div>
+                            </div>
+                            <table className="certificateCss imgTableCss">
+                                <tbody>
+                                    <tr>
+                                        <td width="100">Given to</td>
+                                        <td className="text-center"><span className="dynamic-line"><b>{data.lblstdname}</b></span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table>
+                                <tbody><tr>
+                                    <td width="100">Joined in Class</td>
+                                    <td className="h-5 text-center"><span className="dynamic-line flex items-end text-sm">{data.joiningclass}</span></td></tr></tbody>
+                            </table>
+                            <table className="certificateCss">
+                                <tbody>
+                                    <tr>
+                                        <td width="130">On account of</td>
+                                        <td className="text-center"><span className="dynamic-line"><b>{data.lblreasonleaving}</b></span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table className="certificateCss">
+                                <tbody>
+                                    <tr>
+                                        <td width="40">Left</td>
+                                        <td className="text-center"><span className="dynamic-line"><b>{formatDate(data.lbldol)}</b></span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table className="certificateCss">
+                                <tbody>
+                                    <tr>
+                                        <td width="40">Character</td>
+                                        <td className="text-center"><span className="dynamic-line"><b>{data.lblconduct}</b></span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table className="certificateCss">
+                                <tbody>
+                                    <tr>
+                                        <td width="40">Fees</td>
+                                        <td className="text-center"><span className="dynamic-line"><b></b></span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table className="certificateCss">
+                                <tbody>
+                                    <tr>
+                                        <td width="200">Studying in Class</td>
+                                        <td className="text-center"><span className="dynamic-line"><b>{data.laststudiedinwords}</b></span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table className="certificateCss">
+                                <tbody>
+                                    <tr>
+                                        <td width="40">Promotion</td>
+                                        <td className="text-center"><span className="dynamic-line"><b>{data.lblPromotion?.toUpperCase()}</b></span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table className="certificateCss">
+                                <tbody>
+                                    <tr>
+                                        <td width="160">Date of Birth</td>
+                                        <td className="text-center"><span className="dynamic-line"><b>{formatDate(data.lbldob)}</b></span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table className="certificateCss">
+                                <tbody>
+                                    <tr>
+                                        <td className="headerCss" width="100"><b>Dated :</b></td>
+                                        <td className="text-center"><span className="dynamic-line"><b>{formatDate(data.todaydate)}</b></span></td>
+                                        <td width="50"></td>
+                                        <td width="200"><b></b></td>
+                                        <td width="200"><b></b></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table className="signature mt-4">
+                                <tbody>
+                                    <tr>
+                                        <td></td>
+                                        <td className="text-right pr-4"><b>Principal</b></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table className="certificateCss">
+                                <tbody>
+                                    <tr>
+                                        <td width="150">Sent to D.D.S.E. on</td>
+                                        <td className="text-center"><span className="dynamic-line"><b>{data.ddse_date}</b></span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table className="certificateCss">
+                                <tbody>
+                                    <tr>
+                                        <td width="300">Recd. from D.D.S.E. on</td>
+                                        <td className="text-center"><span className="dynamic-line"><b>{data.ddse_recd_date}</b></span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
 
-                    <div className="footer-text font-bold">
-                        <div>1. To be given in words.</div>
-                        <div>2. Mention whether ICSE/MADHAYAMIK /Any other examination stream.</div>
-                        <div>3. Insert month.</div>
-                        <div>4. Sums due to the School include payments for which provision was admitted into the school.</div>
-                        <div>5. Granted / Granted on Trail / Refused.</div>
+                    {/* RIGHT MAIN TC (col-sm-7 paddingLeftCss) */}
+                    <div className="paddingLeftCss">
+                        <div className="tcCss">
+                            <div>
+                                <img src={data.logo} style={{ width: '76%' }} alt="TC Logo" />
+                            </div>
+                            <div className="boxed-title-container" style={{ marginTop: '5px' }}>
+                                <div className="boxed-title" style={{ fontSize: '32px', padding: '10px 40px' }}>Transfer Certificate</div>
+                            </div>
+                            <table>
+                                <tbody>
+                                    <tr>
+                                        <td className="headerCss" width="60"><b>No : </b></td>
+                                        <td className="text-center"><span className="dynamic-line"><b>{data.tcno}</b></span></td>
+                                        <td width="400"></td>
+                                        <td className="headerCss" width="200"><b>School Roll No : </b></td>
+                                        <td className="text-center"><span className="dynamic-line"><b>{data.admno}</b></span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table className="certificateCss margin-top-20">
+                                <tbody>
+                                    <tr>
+                                        <td width="220" style={{ fontSize: '18px', fontWeight: 'bold', fontFamily: 'serif' }}>
+                                            This is to certify that {data.gender?.title || 'master'}
+                                        </td>
+                                        <td className="text-center postionCss">
+                                            <span className="dynamic-line"><b className="relative top-[7px]">{data.lblstdname}</b></span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table className="certificateCss">
+                                <tbody>
+                                    <tr>
+                                        <td width="100">{data.gender?.sonOf || 'Son of'}</td>
+                                        <td className="text-center"><span className="dynamic-line"><b>{data.lblfathername}</b></span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table className="certificateCss">
+                                <tbody>
+                                    <tr>
+                                        <td width="390">was admitted into this school on the (date)</td>
+                                        <td className="text-center"><span className="dynamic-line"><b>{formatDate(data.lbldoa)}</b></span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table className="certificateCss">
+                                <tbody>
+                                    <tr>
+                                        <td width="220">on a transfer certificate from</td>
+                                        <td className="text-center"><span className="dynamic-line">{data.previousschoolname}</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table className="certificateCss">
+                                <tbody>
+                                    <tr>
+                                        <td width="250">and left on the</td>
+                                        <td className="text-center"><span className="dynamic-line"><b>{formatDate(data.lbldol)}</b></span></td>
+                                        <td width="100" className="px-1 text-center">with a</td>
+                                        <td className="text-center"><span className="dynamic-line"><b>{data.lblconduct}</b></span></td>
+                                        <td width="80" className="pl-1">character</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table className="certificateCss">
+                                <tbody>
+                                    <tr>
+                                        <td width="20"></td>
+                                        <td width="260">{data.gender?.heShe || 'He'} was then studying in the (1)</td>
+                                        <td className="text-center"><span className="dynamic-line"><b>{data.laststudiedinwords}</b></span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table className="certificateCss">
+                                <tbody>
+                                    <tr>
+                                        <td width="240">Class of the (2)</td>
+                                        <td className="text-center"><span className="dynamic-line"><b>{data.streamname || 'ICSE & ISC'}</b></span></td>
+                                        <td width="290" className="pl-1">stream, the school year</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table className="certificateCss">
+                                <tbody>
+                                    <tr>
+                                        <td width="250">being from (3)</td>
+                                        <td className="text-center"><span className="dynamic-line"><b>{data.frommonth1 || 'MARCH'}</b></span></td>
+                                        <td width="30" className="px-1 text-center">to</td>
+                                        <td className="text-center"><span className="dynamic-line"><b>{data.tomonth1 || 'FEBRUARY'}</b></span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table className="certificateCss">
+                                <tbody>
+                                    <tr>
+                                        <td width="20"></td>
+                                        <td width="160">All sum due (4)</td>
+                                        <td className="text-center"><span className="dynamic-line"><b>{data.feeconcession}</b></span></td>
+                                        <td width="120" className="pl-1 text-center">to this school</td>
+                                    </tr>
+                                    <tr>
+                                        <td colSpan={4}>on {data.gender?.hisHer || 'his'} account have been remitted or satisfactorily arrange for.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table className="certificateCss mt-1">
+                                <tbody>
+                                    <tr>
+                                        <td width="20"></td>
+                                        <td width="1000">
+                                            {data.gender?.hisHer ? (data.gender.hisHer.charAt(0).toUpperCase() + data.gender.hisHer.slice(1)) : 'His'} date of birth, according to the Admission Register is (in figures)
+                                        </td>
+                                        <td className="text-center"><span className="dynamic-line"><b>{formatDate(data.lbldob)}</b></span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table className="certificateCss">
+                                <tbody>
+                                    <tr>
+                                        <td width="80">(in words)</td>
+                                        <td className="text-center"><span className="dynamic-line"><b>{data.lbldobwords}</b></span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table className="certificateCss">
+                                <tbody>
+                                    <tr>
+                                        <td width="140"></td>
+                                        <td width="1000" className="italic text-sm">
+                                            (The following additional information must be supplied if the scholar left at the end of the School year)
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table className="certificateCss" style={{ marginTop: '0px' }}>
+                                <tbody>
+                                    <tr>
+                                        <td width="150"></td>
+                                        <td width="220">Promotion has been (5)</td>
+                                        <td className="text-center"><span className="dynamic-line"><b>{data.lblPromotion?.toUpperCase()}</b></span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table className="certificateCss">
+                                <tbody>
+                                    <tr>
+                                        <td className="headerCss" width="60">Date :</td>
+                                        <td className="text-center"><span className="dynamic-line"><b>{formatDate(data.todaydate)}</b></span></td>
+                                        <td width="300"></td>
+                                        <td width="200"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table className="mt-2 w-full">
+                                <tbody>
+                                    <tr>
+                                        <td width="300" className="text-center pt-8">
+                                            <b>School Rubber Stamp</b>
+                                        </td>
+                                        <td width="300" className="text-center">
+                                            {data.qrcode && (
+                                                <div className="flex justify-center">
+                                                    <img src={data.qrcode} alt="Verification QR Code" style={{ width: '70px', height: '70px', marginBottom: '2px' }} />
+                                                </div>
+                                            )}
+                                        </td>
+                                        <td width="400" className="text-center pt-8">
+                                            <div className="border-t border-dotted border-black w-full mb-1"></div>
+                                            <b>Head of the School</b>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table className="mt-1 text-[11px] font-bold">
+                                <tbody>
+                                    <tr><td>1. To be given in words.</td></tr>
+                                    <tr><td>2. Mention whether ICSE/MADHAYAMIK /Any other examination stream.</td></tr>
+                                    <tr><td>3. Insert month.</td></tr>
+                                    <tr><td>4. Sums due to the School include payments for which provision was admitted into the school.</td></tr>
+                                    <tr><td>5. Granted / Granted on Trail / Refused.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
