@@ -7094,6 +7094,14 @@ export async function getUserAccessibleModules() {
                                             url: '/StudentPortal/student-dashboard/Exam/ExamReport',
                                             title: 'Exam Report',
                                             description: 'View Exam Report Performance'
+                                        },
+                                        {
+                                            id: 40015,
+                                            name: 'Online MCQ Quiz',
+                                            icon: 'FileQuestion',
+                                            url: '/StudentPortal/student-dashboard/Exam/OnlineMcqQuiz',
+                                            title: 'Online MCQ Quiz',
+                                            description: 'Take and view results of online MCQ assessments'
                                         }
                                     ]
                                 }
