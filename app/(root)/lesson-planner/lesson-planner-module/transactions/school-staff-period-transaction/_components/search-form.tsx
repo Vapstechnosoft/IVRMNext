@@ -20,7 +20,7 @@ export default function SearchForm({
     employees: any[];
     onSearch: (data: any) => void;
 }) {
-    const { control, watch, setValue, getValues, handleSubmit } = useFormContext();
+    const { control, watch, setValue, reset, handleSubmit } = useFormContext();
     const [isPending, startTransition] = useTransition();
 
     const [classes, setClasses] = useState<any[]>([]);
@@ -31,6 +31,10 @@ export default function SearchForm({
     const selectedEmployee = watch('HRME_Id');
     const selectedClass = watch('ASMCL_Id');
     const selectedSection = watch('ASMS_Id');
+
+    const handleCancel = () => {
+        window.location.reload();
+    };
 
     // Fetch classes when year or employee change
     useEffect(() => {
@@ -215,9 +219,12 @@ export default function SearchForm({
                 />
             </div>
 
-            <div className='flex justify-center'>
+            <div className='flex justify-center gap-2'>
                 <Button type='button' onClick={handleSubmit(onSearch)} disabled={isPending}>
                     {isPending ? 'Loading...' : 'Get Details'}
+                </Button>
+                <Button type='button' variant='outline' onClick={handleCancel}>
+                    Cancel
                 </Button>
             </div>
         </div>

@@ -137,8 +137,8 @@ function AddEventsMappingFormWithValues({ initialValues, onSuccess }: { initialV
         };
 
         const result = await save.mutateAsync(payload);
-        if (result.success || result.message === 'Record Saved Successfully') {
-            toast.success('Record Updated Successfully');
+        if (result.success || result.message?.toLowerCase().includes('successfully')) {
+            toast.success(result.message || 'Record Updated Successfully');
             onSuccess?.();
         } else {
             toast.error(result.message || 'Failed to update record');

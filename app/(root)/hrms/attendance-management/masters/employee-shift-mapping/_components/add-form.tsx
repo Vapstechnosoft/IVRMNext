@@ -78,6 +78,24 @@ export default function AddEmployeeShiftMappingForm({ onSuccess, className = '' 
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(hrmsMasterSchemas.employeeShiftMapping.add),
+        defaultValues: {
+            foest_GroupType: '',
+            foest_Department: '',
+            foest_Designation: '',
+            foest_Employee: '',
+            foest_HolidayType: '',
+            foest_ShiftName: '',
+            foest_ApplicableDate: '',
+            foest_TotalWork: '',
+            foest_HalfDayWork: '04:00',
+            foest_MorningLogin: '09:30',
+            foest_MorningLogout: '13:00',
+            foest_AfternoonLogin: '13:30',
+            foest_AfternoonLogout: '17:00',
+            foest_DelayShift: '',
+            foest_EarlyShift: '',
+            foest_LunchHour: '00:30'
+        },
         mode: 'onChange'
     });
 
@@ -293,19 +311,6 @@ export default function AddEmployeeShiftMappingForm({ onSuccess, className = '' 
                 })
                 .filter((id): id is number => id !== null);
 
-            // Validate required fields
-            if (fomS_Id === 0) {
-                toast.error('Shift Name is required. Please select a shift.');
-                return;
-            }
-            if (employeeIds.length === 0) {
-                toast.error('Employee IDs are required. Please ensure employees are selected correctly.');
-                return;
-            }
-            if (dayTypeIds.length === 0) {
-                toast.error('Day Type is required. Please select at least one day type.');
-                return;
-            }
 
             // Get group type IDs from selected values (Type field - can be multiple)
             const groupTypeIds = (data.foest_GroupType ? data.foest_GroupType.split(', ') : [])
@@ -490,23 +495,29 @@ export default function AddEmployeeShiftMappingForm({ onSuccess, className = '' 
                             <Label htmlFor={shiftNameId}>
                                 Shift Name <span className='text-red-500'>*</span>
                             </Label>
-                            <Select
-                                value={watch('foest_ShiftName')}
-                                onValueChange={(value) => setValue('foest_ShiftName', value)}
-                                disabled={shiftNames.length === 0}>
-                                <SelectTrigger id={shiftNameId} className={errors.foest_ShiftName ? 'border-red-500' : ''}>
-                                    <SelectValue placeholder={shiftNames.length === 0 ? 'Loading...' : '--Select Shift Name--'} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {shiftNames
-                                        .filter((shift: { label: string; value: string; id?: number }) => shift.value && shift.value !== '')
-                                        .map((shift: { label: string; value: string; id?: number }) => (
-                                            <SelectItem key={`shift-${shift.id || shift.value}`} value={shift.value}>
-                                                {shift.label}
-                                            </SelectItem>
-                                        ))}
-                                </SelectContent>
-                            </Select>
+                            <Controller
+                                name='foest_ShiftName'
+                                control={control}
+                                render={({ field }) => (
+                                    <Select
+                                        value={field.value}
+                                        onValueChange={field.onChange}
+                                        disabled={shiftNames.length === 0}>
+                                        <SelectTrigger id={shiftNameId} className={errors.foest_ShiftName ? 'border-red-500' : ''}>
+                                            <SelectValue placeholder={shiftNames.length === 0 ? 'Loading...' : '--Select Shift Name--'} />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {shiftNames
+                                                .filter((shift: { label: string; value: string; id?: number }) => shift.value && shift.value !== '')
+                                                .map((shift: { label: string; value: string; id?: number }) => (
+                                                    <SelectItem key={`shift-${shift.id || shift.value}`} value={shift.value}>
+                                                        {shift.label}
+                                                    </SelectItem>
+                                                ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
                             {errors.foest_ShiftName && <FormError>{errors.foest_ShiftName.message}</FormError>}
                         </div>
                         <div className='space-y-2'>
@@ -514,7 +525,7 @@ export default function AddEmployeeShiftMappingForm({ onSuccess, className = '' 
                                 name='foest_ApplicableDate'
                                 control={control}
                                 render={({ field, fieldState }) => (
-                                    <DateField field={field} fieldState={fieldState} label='Applicable Date' fromDate={new Date()} />
+                                    <DateField field={field} fieldState={fieldState} label='Applicable Date' fromDate={new Date()} required />
                                 )}
                             />
                         </div>

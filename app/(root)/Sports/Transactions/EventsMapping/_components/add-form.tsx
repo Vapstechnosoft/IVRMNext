@@ -65,8 +65,8 @@ export default function AddEventsMappingForm({ onSuccess }: AddEventsMappingForm
         };
 
         const result = await save.mutateAsync(payload);
-        if (result.success || result.message === 'Record Saved Successfully') {
-            toast.success('Record Saved Successfully');
+        if (result.success || result.message?.toLowerCase().includes('successfully')) {
+            toast.success(result.message || 'Record Saved Successfully');
             onSuccess?.();
         } else {
             toast.error(result.message || 'Failed to save record');

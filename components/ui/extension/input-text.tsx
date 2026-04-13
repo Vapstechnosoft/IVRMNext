@@ -3,6 +3,7 @@
 import { FormDescription, FormError, Label } from '@/components/ui/extension/field';
 import { cn } from '@/lib/utils';
 import React from 'react';
+import { StandardTooltip } from '@/components/StandardTooltip';
 import { Input } from '../input';
 
 export interface InputTextProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -10,16 +11,21 @@ export interface InputTextProps extends React.InputHTMLAttributes<HTMLInputEleme
     description?: string;
     error?: string;
     optional?: boolean;
+    requiredTooltip?: string;
 }
 
 const InputText = React.forwardRef<HTMLInputElement, InputTextProps>(
-    ({ label, description, error, required, className, type, optional, ...props }, ref) => {
+    ({ label, description, error, required, className, type, optional, requiredTooltip, ...props }, ref) => {
         return (
             <div className={cn('group flex flex-col gap-1.5', className)}>
                 {label && (
                     <Label aria-label={label} htmlFor={props.id}>
                         {label}
-                        {required && <span className='ml-1 text-red-500'>*</span>}
+                        {required && (
+                            <StandardTooltip content={requiredTooltip || `${label} is mandatory. Please fill it.`}>
+                                <span className='ml-1 text-red-500 font-bold hover:scale-110 transition-transform'>*</span>
+                            </StandardTooltip>
+                        )}
                         {optional && <span className='text-[0.8rem] text-muted-foreground'>(optional)</span>}
                     </Label>
                 )}

@@ -658,6 +658,12 @@ export const useStudyCertificateDetails = (data: any, enabled: boolean = true) =
     };
 };
 
+export const useStudyCertificateDetailsMutation = () => {
+    return useMutation({
+        mutationFn: getStudyCertificateDetails
+    });
+};
+
 export const useStudyCertificateAcademicYearChange = (data: any, enabled: boolean = true) => {
     const queryClient = useQueryClient();
 
@@ -694,6 +700,12 @@ export const useStudyCertificateConductDetails = (data: any, enabled: boolean = 
     };
 };
 
+export const useStudyCertificateConductDetailsMutation = () => {
+    return useMutation({
+        mutationFn: getStudyCertificateConductDetails
+    });
+};
+
 export const useStudyCertificateSearchFilterSRKVS = (data: any, enabled: boolean = true) => {
     const queryClient = useQueryClient();
 
@@ -728,6 +740,12 @@ export const useStudyCertificateSearchFilter = (data: any, enabled: boolean = tr
             });
         }
     };
+};
+
+export const useStudyCertificateSearchFilterMutation = () => {
+    return useMutation({
+        mutationFn: getStudyCertificateSearchFilter
+    });
 };
 
 export const useStudyCertificateQR = (data: any, enabled: boolean = true) => {

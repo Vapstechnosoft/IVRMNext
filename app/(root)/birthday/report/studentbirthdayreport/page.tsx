@@ -244,7 +244,7 @@ function FormSections({ refetch }: { refetch?: () => void }) {
                                 </div>
 
                                 {/* Date Selection */}
-                                <div className='space-y-4'>
+                                <div className='grid grid-cols-1 gap-6 md:grid-cols-4'>
                                     {/* From Date */}
                                     <div className='space-y-2'>
                                         <Label htmlFor='fromDate' className='font-medium'>

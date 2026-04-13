@@ -2,12 +2,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { getEventMappingDetails, saveEventMapping, editEventMapping, deactivateEventMapping, getModelData } from '@/server/sports/transactions/events-mapping';
 
-export const useEventMapping = () => {
+export const useEventMapping = (searchParams?: any) => {
     const queryClient = useQueryClient();
 
     const loadGrid = useQuery({
-        queryKey: ['events-mapping-details'],
-        queryFn: () => getEventMappingDetails(),
+        queryKey: ['events-mapping-details', searchParams],
+        queryFn: () => getEventMappingDetails(searchParams),
     });
 
     const save = useMutation({

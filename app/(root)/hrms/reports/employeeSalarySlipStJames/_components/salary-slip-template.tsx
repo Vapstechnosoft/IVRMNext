@@ -162,18 +162,18 @@ export function SalarySlipTemplate({
     }
 
     return (
-        <div className='mx-auto w-full max-w-[900px] bg-white p-8 shadow-md print:p-0 print:shadow-none mb-8'>
+        <div className='mx-auto w-full  bg-white p-8 shadow-md print:p-0 print:shadow-none mb-8'>
             <div id="EmpPaySlip" className="w-full">
                 {/* Header Section */}
                 <div className="mb-6 flex items-center justify-between border-b-2 border-black pb-4">
                     <div className="flex-shrink-0">
                         {schoolLogo && (
-                            <img src="https://stjamesstorage.blob.core.windows.net/files/StJamesSmallLogo.png" alt="Institution Logo" className="h-[80px] w-auto object-contain" />
+                            <img src={schoolLogo} className="h-[80px] w-auto object-contain" />
                         )}
                     </div>
                     <div className="flex-grow text-center">
-                        <h1 className="text-3xl font-bold text-[#002c86] uppercase">St. James' School</h1>
-                        <p className="text-sm font-semibold">165,Acharya.J.C Bose ,Kolkata-700014</p>
+                        <h1 className="text-3xl font-bold text-[#002c86] uppercase">{schoolName}</h1>
+                        <p className="text-sm font-semibold">{schoolAddress}</p>
                     </div>
                     <div className="w-[80px]"></div> {/* Spacer to center the title */}
                 </div>
