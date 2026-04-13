@@ -506,3 +506,140 @@ export const feesTrailAuditReportSchema = z.object({
     statusType: z.enum(['IU', 'D']).default('D'),
     academicYearId: z.number().min(1, 'Academic Year is required')
 });
+
+export const feeItemWiseReportSophia = z
+    .object({
+        academicYearId: z.preprocess(
+            (val) => {
+                if (val === '' || val === undefined || val === null) return undefined;
+                const num = Number(val);
+                return Number.isNaN(num) ? undefined : num;
+            },
+            z
+                .number({
+                    required_error: 'Academic Year is required',
+                    invalid_type_error: 'Academic Year is required'
+                })
+                .min(1, 'Academic Year is required')
+        ),
+        classId: z.number().optional(),
+        sectionId: z.number().optional(),
+        classwise: z.boolean().optional(),
+        fromDate: z.string().min(1, 'From Date is required'),
+        toDate: z.string().min(1, 'To Date is required')
+    })
+    .superRefine((data, ctx) => {
+        // When classwise is true, classId and sectionId become required
+        if (data.classwise === true) {
+            if (!data.classId || data.classId === 0) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Class is required',
+                    path: ['classId']
+                });
+            }
+            if (!data.sectionId || data.sectionId === 0) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Section is required',
+                    path: ['sectionId']
+                });
+            }
+        }
+    });
+
+export const feeStudentandAccountWiseReportSophia = z
+    .object({
+        academicYearId: z.preprocess(
+            (val) => {
+                if (val === '' || val === undefined || val === null) return undefined;
+                const num = Number(val);
+                return Number.isNaN(num) ? undefined : num;
+            },
+            z
+                .number({
+                    required_error: 'Academic Year is required',
+                    invalid_type_error: 'Academic Year is required'
+                })
+                .min(1, 'Academic Year is required')
+        ),
+        classId: z.number().optional(),
+        sectionId: z.number().optional(),
+        dateWise: z.boolean().optional(),
+        classwise: z.boolean().optional(),
+        fromDate: z.string().min(1, 'From Date is required'),
+        toDate: z.string().min(1, 'To Date is required')
+    })
+    .superRefine((data, ctx) => {
+        if (data.classwise === true) {
+            if (!data.classId || data.classId === 0) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Class is required',
+                    path: ['classId']
+                });
+            }
+            if (!data.sectionId || data.sectionId === 0) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Section is required',
+                    path: ['sectionId']
+                });
+            }
+        }
+    });
+
+export const feeClassWiseDueListReportSophia = z
+    .object({
+        academicYearId: z.preprocess(
+            (val) => {
+                if (val === '' || val === undefined || val === null) return undefined;
+                const num = Number(val);
+                return Number.isNaN(num) ? undefined : num;
+            },
+            z
+                .number({
+                    required_error: 'Academic Year is required',
+                    invalid_type_error: 'Academic Year is required'
+                })
+                .min(1, 'Academic Year is required')
+        ),
+        classId: z.number().optional(),
+        sectionId: z.number().optional(),
+        termId: z.number().optional(),
+        dateWise: z.boolean().optional(),
+        classwise: z.boolean().optional(),
+        termWise: z.boolean().optional(),
+        active: z.boolean().optional(),
+        deactive: z.boolean().optional(),
+        left: z.boolean().optional(),
+        fromDate: z.string().min(1, 'From Date is required'),
+        toDate: z.string().min(1, 'To Date is required')
+    })
+    .superRefine((data, ctx) => {
+        if (data.classwise === true) {
+            if (!data.classId || data.classId === 0) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Class is required',
+                    path: ['classId']
+                });
+            }
+            if (!data.sectionId || data.sectionId === 0) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Section is required',
+                    path: ['sectionId']
+                });
+            }
+        }
+        if (data.termWise === true) {
+            if (!data.termId || data.termId === 0) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Term is required',
+                    path: ['termId']
+                });
+            }
+        }
+    });
