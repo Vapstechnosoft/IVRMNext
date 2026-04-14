@@ -12,9 +12,10 @@ interface NdaTcPrintProps {
 export const NdaTcPrint = forwardRef<HTMLDivElement, NdaTcPrintProps>(({ data, issuedDate }, ref) => {
     if (!data) return null;
 
-    const capitalizeEachWord = (text: string) => {
+    const capitalizeEachWord = (text: any) => {
         if (!text) return '';
-        return text
+        const str = String(text);
+        return str
             .toLowerCase()
             .split(' ')
             .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
@@ -31,11 +32,15 @@ export const NdaTcPrint = forwardRef<HTMLDivElement, NdaTcPrintProps>(({ data, i
     };
 
     return (
-        <div ref={ref} className="nda-tc-container bg-white text-black font-serif" style={{ width: '210mm', minHeight: '297mm', padding: '15mm' }}>
+        <div ref={ref} className="nda-tc-container text-black">
             <style dangerouslySetInnerHTML={{
                 __html: `
                 @media print {
-                    body, html {
+                    @page {
+                        size: A4 portrait;
+                        margin: 0;
+                    }
+                    body {
                         background: white !important;
                         -webkit-print-color-adjust: exact !important;
                         print-color-adjust: exact !important;
@@ -45,36 +50,47 @@ export const NdaTcPrint = forwardRef<HTMLDivElement, NdaTcPrintProps>(({ data, i
                         visibility: visible !important;
                         width: 210mm !important;
                         min-height: 297mm !important;
-                        padding: 15mm !important;
-                        margin: 0 !important;
+                        padding: 20mm !important;
+                        margin: 0 auto !important;
                         color: black !important;
                         background: white !important;
                         overflow: visible !important;
                         position: relative !important;
+                        z-index: 9999 !important;
                     }
                     .nda-tc-container * {
-                        color: black !important;
-                        background: transparent !important;
                         visibility: visible !important;
+                        color: black !important;
+                        -webkit-print-color-adjust: exact !important;
                     }
-                    @page {
-                        size: A4 portrait;
-                        margin: 0;
-                    }
+                    .nda-tc-container .field-row { display: flex !important; align-items: baseline !important; }
+                    .nda-tc-container .field-value { border-bottom: none !important; flex: 1 !important; }
+                    .nda-tc-container .no-print { display: none !important; }
                 }
+                .nda-tc-container { 
+                    font-family: 'Times New Roman', Times, serif; 
+                    background-color: white;
+                    padding: 10mm;
+                }
+                .nda-tc-container .field-row { display: flex; align-items: baseline; margin-bottom: 8px; width: 100%; }
+                .nda-tc-container .field-num { width: 30px; font-size: 11pt; }
+                .nda-tc-container .field-label { width: 180px; font-size: 11pt; }
+                .nda-tc-container .field-colon { width: 20px; text-align: center; font-size: 11pt; }
+                .nda-tc-container .field-value { flex: 1; border-bottom: none; font-weight: normal; font-size: 11pt; padding-left: 5px; }
+                .nda-tc-container .text-black { color: #000; }
             `}} />
 
-            <div className="mt-20 max-w-[98%] mx-auto font-serif text-black">
-                <h1 className="text-center text-xl font-bold tracking-[0.1em] underline decoration-1 underline-offset-[8px] uppercase mb-8">
+            <div className="mt-16 max-w-[95%] mx-auto font-serif text-black">
+                <h1 className="text-center text-lg font-bold underline decoration-1 underline-offset-[4px] uppercase mb-8">
                     TRANSFER CERTIFICATE
                 </h1>
 
-                <div className="flex justify-between items-end px-2 pb-1 border-b border-black mb-4 text-[13.5pt] font-bold text-black">
+                <div className="flex justify-between items-end px-1 pb-1 border-b border-gray-400 mb-6 text-[11pt] font-bold text-black uppercase">
                     <div>Admission Number: {data?.admno || ''}</div>
                     <div>Sl.No: {data?.tcno || ''}</div>
                 </div>
 
-                <div className="space-y-1.5 pl-6 text-[11.5pt]">
+                <div className="space-y-1 pl-4">
                     {[
                         { num: '1.', label: 'Name of Pupil', value: capitalizeEachWord(data?.lblstdname) },
                         { num: '2.', label: "Father's Name", value: capitalizeEachWord(data?.lblfathername) },
@@ -86,50 +102,53 @@ export const NdaTcPrint = forwardRef<HTMLDivElement, NdaTcPrintProps>(({ data, i
                         { num: '8.', label: 'Date Of Admission', value: formatDate(data?.lbldoa) },
                         { num: '9.', label: 'Conduct', value: data?.lblconduct },
                         { num: '10.', label: 'Date Of Leaving', value: formatDate(data?.last_date_attended) },
-                        { num: '11.', label: 'Studying In', value: (data?.Last_Class_Studied || '') + (data?.asmC_SectionName ? ' ' + data?.asmC_SectionName : '') },
+                        { num: '11.', label: 'Studying In', value: (data?.Last_Class_Studied ? 'Class ' + data?.Last_Class_Studied : '') + (data?.asmC_SectionName ? ' ' + data?.asmC_SectionName : '') },
                         { num: '12.', label: 'Remarks', value: data?.ASTC_Remarks },
                     ].map((item, idx) => (
-                        <div key={idx} className="grid grid-cols-[30px_230px_20px_1fr] items-baseline leading-snug text-black">
-                            <div className="text-right pr-4">{item.num}</div>
-                            <div className="">{item.label}</div>
-                            <div className="text-center">:</div>
-                            <div className="font-bold pl-1">{item.value}</div>
+                        <div key={idx} className="field-row">
+                            <span className="field-num">{item.num}</span>
+                            <span className="field-label">{item.label}</span>
+                            <span className="field-colon">:</span>
+                            <div className="field-value">{item.value}</div>
                         </div>
                     ))}
                 </div>
 
-                <div className="mt-6 px-2 space-y-4 text-black border-t border-black pt-4">
-                    <div className="flex justify-between text-[13.5pt] font-bold text-black">
+                <div className="mt-2 border-b border-gray-400 mb-6 w-full" />
+
+                <div className="px-1 space-y-4 text-[11pt] text-black">
+                    <div className="flex justify-between">
                         <div className="flex items-center gap-2">
                             <span>PEN No. :</span>
                             <span>{data?.AMST_PENNo}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-right">
+                        <div className="flex items-center gap-2">
                             <span>SATS No. :</span>
                             <span>{data?.govtno}</span>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2 text-[13.5pt] font-bold text-black">
-                        <span className="uppercase">APAAR No. :</span>
+                    <div className="flex items-center gap-2 mb-8">
+                        <span>APAAR No. :</span>
                         <span>{data?.AMST_APAAANO}</span>
                     </div>
 
-                    <p className="mt-8 text-left text-[11.5pt] font-serif leading-relaxed text-black">
+                    <p className="mt-10 text-[11pt] leading-relaxed">
                         Certified that the above-mentioned information is in accordance with the school register.
                     </p>
 
-                    <div className="mt-12 flex justify-between items-center px-2 text-[13.5pt] font-bold text-black">
+                    <div className="mt-16 flex justify-between items-center text-[11pt]">
                         <div className="flex items-center gap-2">
                             <span>Date:</span>
                             <span>{formatDate(issuedDate)}</span>
                         </div>
-                        <div className="text-right uppercase">
-                            PRINCIPAL
+                        <div className="text-right">
+                           <span className="font-bold">PRINCIPAL</span>
                         </div>
                     </div>
                 </div>
             </div>
+            <div className="no-print h-10" />
         </div>
     );
 });

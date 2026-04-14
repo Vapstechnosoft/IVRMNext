@@ -12,15 +12,18 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SubjectGroupTable } from './subject-group-table';
 import { Spinner } from '@/components/ui/spinner';
 import {
     useMasterSectionHeld,
-    useStudentCategoryByClass
+    useStudentCategoryByClass,
+    useConcessionDropdown
 } from '@/hooks/admission/preadmission/useMasters';
-import { useAdmissionFormDetails, useOnChangeClass, useOnChangeStream } from '@/hooks/admission/admissionForm';
-import { useDistrictDropdown, useActivePreadmissionDetails } from '@/hooks/admission/preadmission/useTransactions';
+import { useAdmissionFormDetails, useOnChangeClass, useOnChangeStream, useGetCasteByCasteCategory } from '@/hooks/admission/admissionForm';
+import { useDistrictDropdown, useActivePreadmissionDetails, useStateDropdown, useCountryDropdown } from '@/hooks/admission/preadmission/useTransactions';
 import { calculateAge, dateToWords, cn } from '@/lib/utils';
 import { studentAdmissionFormSchema } from '@/schemas/admission/admission-form';
 import {
@@ -129,6 +132,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             feeConcessionType: 0,
             amC_Id: 0,
             studentCategoryId: 0,
+            imCC_Id: 0,
+            asmcC_Id: 0,
             hostelRequired: false,
             transportRequired: false
         } as any
@@ -146,40 +151,154 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
     });
 
     const { data: admissionDetails, refetch: refetchAdmissionDetails, isLoading: detailsLoading, error: detailsError } = useAdmissionFormDetails();
+    
+    // Watch class and academic year for the class-based student category API
+    const classIdForCategory = watch('asmcL_Id');
+    const asmaYId = watch('asmaY_Id' as any);
+    const {
+        data: categoryByClass,
+        isLoading: categoryByClassLoading,
+        error: categoryByClassError
+    } = useStudentCategoryByClass(Number(classIdForCategory) || 0, Number(asmaYId) || 0, 'adm');
+
+    // Dynamic State Dropdowns
+    const studentCountryId = watch('amsT_Nationality');
+    const residentialCountryId = watch('amsT_ConCountry');
+    const permanentCountryId = watch('amsT_PerCountry');
+    const fatherCountryId = watch('fatherNationality');
+    const motherCountryId = watch('motherNationality');
+    const birthCountryId = watch('amsT_PlaceOfBirthCountry');
+
+    const { data: studentStates, isLoading: studentStatesLoading } = useStateDropdown(Number(studentCountryId) || 0);
+    const { data: resStates, isLoading: resStatesLoading } = useStateDropdown(Number(residentialCountryId) || 0);
+    const { data: perStates, isLoading: perStatesLoading } = useStateDropdown(Number(permanentCountryId) || 0);
+    const { data: fatherStates, isLoading: fatherStatesLoading } = useStateDropdown(Number(fatherCountryId) || 0);
+    const { data: motherStates, isLoading: motherStatesLoading } = useStateDropdown(Number(motherCountryId) || 0);
+    const { data: birthStates, isLoading: birthStatesLoading } = useStateDropdown(Number(birthCountryId) || 0);
+
 
     const admissionClass = useMemo(() => ({ data: (admissionDetails as any)?.allClass || (admissionDetails as any)?.allClassList || (admissionDetails as any)?.AllClass || [] }), [admissionDetails]);
-    const religion = useMemo(() => ({ data: (admissionDetails as any)?.allReligion || (admissionDetails as any)?.allReligionList || (admissionDetails as any)?.AllReligion || [] }), [admissionDetails]);
+    const religion = useMemo(() => ({
+        data: (admissionDetails as any)?.religions ||
+            (admissionDetails as any)?.allReligion ||
+            (admissionDetails as any)?.allReligionList ||
+            (admissionDetails as any)?.AllReligion || []
+    }), [admissionDetails]);
     const country = useMemo(() => ({ data: (admissionDetails as any)?.allCountry || (admissionDetails as any)?.allCountryList || (admissionDetails as any)?.AllCountry || [] }), [admissionDetails]);
     const allState = useMemo(() => (admissionDetails as any)?.allState || (admissionDetails as any)?.allStateList || (admissionDetails as any)?.AllState || [], [admissionDetails]);
-    const casteCategoryData = useMemo(() => ({ data: (admissionDetails as any)?.allCasteCategory || (admissionDetails as any)?.vpre_allCasteCategory || (admissionDetails as any)?.allCasteCategoryList || (admissionDetails as any)?.AllCasteCategory || [] }), [admissionDetails]);
+    const casteCategoryData = useMemo(() => ({
+        data: (categoryByClass as any)?.data?.casteCategoryes ||
+            (admissionDetails as any)?.casteCategoryes ||
+            (admissionDetails as any)?.allCasteCategory ||
+            (admissionDetails as any)?.vpre_allCasteCategory ||
+            (admissionDetails as any)?.allCasteCategoryList ||
+            (admissionDetails as any)?.AllCasteCategory || []
+    }), [admissionDetails, (categoryByClass as any)?.data?.casteCategoryes]);
     const source = useMemo(() => ({ data: (admissionDetails as any)?.allSources || (admissionDetails as any)?.allSourcesList || [] }), [admissionDetails]);
     const reference = useMemo(() => ({ data: (admissionDetails as any)?.allReference || (admissionDetails as any)?.allReferenceList || [] }), [admissionDetails]);
-    const concession = useMemo(() => ({ data: (admissionDetails as any)?.admissionConfiguration?.allConcession || [] }), [admissionDetails]);
+    const { data: concessionDropdown, isLoading: concessionHookLoading } = useConcessionDropdown();
+    const concession = useMemo(() => {
+        const fromHook = concessionDropdown?.data || [];
+        const fromDetails = (admissionDetails as any)?.admissionConfiguration?.allConcession || [];
+        return { data: fromHook.length > 0 ? fromHook : fromDetails };
+    }, [admissionDetails, concessionDropdown]);
     const academicYears = useMemo(() => ({ data: (admissionDetails as any)?.academicYearOnLoad || (admissionDetails as any)?.allAcademicYear || (admissionDetails as any)?.allAcademicYearList || [] }), [admissionDetails]);
 
     // Missing variables for state and loading aliases
     const [conStateId, setConStateId] = useState<number | string>('');
     const [perStateId, setPerStateId] = useState<number | string>('');
 
+
+
+    const electiveList = useMemo(() => {
+        // Use data from categoryByClass if stream data is missing
+        const groups = (categoryByClass as any)?.data?.studentList || [];
+        const subjectsFlat = (categoryByClass as any)?.data?.studentList1 || [];
+
+        if (groups.length > 0) {
+            return groups.map((g: any) => ({
+                asmgC_Id: g.EMG_Id,
+                asmgC_GroupName: g.EMG_GroupName,
+                asmgC_ActiveFlag: true,
+                subjects: subjectsFlat
+                    .filter((s: any) => s.EMG_Id === g.EMG_Id)
+                    .map((s: any) => ({
+                        ismS_Id: s.ISMS_Id,
+                        ismS_SubjectName: s.ISMS_SubjectName
+                    }))
+            }));
+        }
+
+        return (admissionDetails as any)?.allSubjectGroup || [];
+    }, [admissionDetails, categoryByClass]);
+
+    const electiveOptions = useMemo(() => electiveList.map((e: any) => ({ value: e.asmgC_Id?.toString() || '', label: e.asmgC_GroupName })), [electiveList]);
+
+    const allCaste = useMemo(() => (admissionDetails as any)?.castes || (admissionDetails as any)?.allCaste || (admissionDetails as any)?.allCasteList || (admissionDetails as any)?.AllCaste || [], [admissionDetails]);
+
+    const currentCategoryId = watch('imCC_Id');
+    const { 
+        data: filteredCastes, 
+        isLoading: isCastesLoading 
+    } = useGetCasteByCasteCategory(Number(currentCategoryId));
+
+    const availableCastes = useMemo(() => {
+        if (currentCategoryId) {
+            // Priority 1: Specific data from the category filter API
+            if (filteredCastes && filteredCastes.length > 0) {
+                return filteredCastes;
+            }
+            // Priority 2: Global castes list from Getdetails filtered by imcC_Id
+            if (allCaste && allCaste.length > 0) {
+                return allCaste.filter((c: any) => Number(c.imcC_Id) === Number(currentCategoryId));
+            }
+        }
+        return [];
+    }, [allCaste, filteredCastes, currentCategoryId]);
+
     // Compatibility aliases for loading states
     const referenceLoading = detailsLoading;
     const admissionClassLoading = detailsLoading;
-    const casteLoading = detailsLoading;
+    const casteLoading = detailsLoading || isCastesLoading;
     const countryLoading = detailsLoading;
-    const fatherPresentStateLoading = detailsLoading;
     const religionLoading = detailsLoading;
-    const fatherCasteLoading = detailsLoading;
-    const motherPresentStateLoading = detailsLoading;
-    const motherCasteLoading = detailsLoading;
+    const fatherCasteLoading = detailsLoading || isCastesLoading;
+    const motherCasteLoading = detailsLoading || isCastesLoading;
     const sourceLoading = detailsLoading;
     const academicLoading = detailsLoading;
-    const birthStateLoading = detailsLoading;
     const sectionLoading = detailsLoading;
-    const categoryLoading = detailsLoading;
-    const concessionLoading = detailsLoading;
-    const studentStateLoading = detailsLoading;
+    const categoryLoading = categoryByClassLoading;
+    const concessionLoading = concessionHookLoading;
 
-    // Compatibility aliases for error states
+    // Dynamic Loading Aliases
+    const studentStateLoading = studentStatesLoading;
+    const conStateLoading = resStatesLoading;
+    const perStateLoading = perStatesLoading;
+    const fatherPresentStateLoading = fatherStatesLoading;
+    const motherPresentStateLoading = motherStatesLoading;
+    const birthStateLoading = birthStatesLoading;
+
+    useEffect(() => {
+        if (currentCategoryId && filteredCastes) {
+            const studentCasteId = watch('imC_Id');
+            const fatherCasteId = watch('fatherCasteId');
+            const motherCasteId = watch('motherCasteId');
+
+            const casteIds = availableCastes.map((c: any) => c.imC_Id);
+
+            if (studentCasteId && !casteIds.includes(Number(studentCasteId))) {
+                setValue('imC_Id', 0);
+            }
+            if (fatherCasteId && !casteIds.includes(Number(fatherCasteId))) {
+                setValue('fatherCasteId', 0);
+            }
+            if (motherCasteId && !casteIds.includes(Number(motherCasteId))) {
+                setValue('motherCasteId', 0);
+            }
+        }
+    }, [currentCategoryId, filteredCastes, watch, setValue]);
+
+    // Compatibility aliases for error states - consolidated to avoid redeclaration errors
     const countryError = detailsError;
     const fatherPresentStateError = detailsError;
     const religionError = detailsError;
@@ -191,8 +310,10 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
     const sectionError = detailsError;
     const categoryError = detailsError;
     const studentStateError = detailsError;
+    const conStateError = detailsError;
+    const perStateError = detailsError;
 
-    const allCaste = useMemo(() => (admissionDetails as any)?.allCaste || (admissionDetails as any)?.allCasteList || (admissionDetails as any)?.AllCaste || [], [admissionDetails]);
+
 
     const studentCaste = useMemo(() => {
         const religionId = watch('amsT_ReligionId');
@@ -213,40 +334,53 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
     }, [allCaste, watch('motherReligionId')]);
 
     const conState = useMemo(() => {
+        const apiData = (resStates as any)?.data || [];
+        if (Array.isArray(apiData) && apiData.length > 0) return { data: apiData };
         const countryId = watch('amsT_ConCountry');
         if (!countryId) return { data: [] };
         return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(countryId)) };
-    }, [allState, watch('amsT_ConCountry')]);
+    }, [allState, resStates, watch('amsT_ConCountry')]);
 
     const perState = useMemo(() => {
+        const apiData = (perStates as any)?.data || [];
+        if (Array.isArray(apiData) && apiData.length > 0) return { data: apiData };
         const countryId = watch('amsT_PerCountry');
         if (!countryId) return { data: [] };
         return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(countryId)) };
-    }, [allState, watch('amsT_PerCountry')]);
+    }, [allState, perStates, watch('amsT_PerCountry')]);
 
     const studentState = useMemo(() => {
+        const apiData = (studentStates as any)?.data || [];
+        if (Array.isArray(apiData) && apiData.length > 0) return { data: apiData };
         const countryId = watch('amsT_Nationality');
         if (!countryId) return { data: [] };
         return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(countryId)) };
-    }, [allState, watch('amsT_Nationality')]);
+    }, [allState, studentStates, watch('amsT_Nationality')]);
 
     const fatherPresentState = useMemo(() => {
+        const apiData = (fatherStates as any)?.data || [];
+        if (Array.isArray(apiData) && apiData.length > 0) return { data: apiData };
         const countryId = watch('fatherNationality');
         if (!countryId) return { data: [] };
         return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(countryId)) };
-    }, [allState, watch('fatherNationality')]);
+    }, [allState, fatherStates, watch('fatherNationality')]);
 
     const motherPresentState = useMemo(() => {
+        const apiData = (motherStates as any)?.data || [];
+        if (Array.isArray(apiData) && apiData.length > 0) return { data: apiData };
         const countryId = watch('motherNationality');
         if (!countryId) return { data: [] };
         return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(countryId)) };
-    }, [allState, watch('motherNationality')]);
+    }, [allState, motherStates, watch('motherNationality')]);
 
     const birthState = useMemo(() => {
+        const apiData = (birthStates as any)?.data || [];
+        if (Array.isArray(apiData) && apiData.length > 0) return { data: apiData };
         const countryId = watch('amsT_PlaceOfBirthCountry');
         if (!countryId) return { data: [] };
         return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(countryId)) };
-    }, [allState, watch('amsT_PlaceOfBirthCountry')]);
+    }, [allState, birthStates, watch('amsT_PlaceOfBirthCountry')]);
+
 
     // Backward compatibility aliases for refetching
     const refetchAdmissionClass = refetchAdmissionDetails;
@@ -255,12 +389,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
     const refetchCountry = refetchAdmissionDetails;
     const refetchReference = refetchAdmissionDetails;
 
-    // Additional loading/error aliases
-    const conStateLoading = detailsLoading;
-    const conStateError = detailsError;
-    const perStateLoading = detailsLoading;
-    const perStateError = detailsError;
-    const casteError = detailsError;
 
 
     // student mobile numbers (allow multiple up to 5)
@@ -327,6 +455,103 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
     const _isInitializingRef = useRef(false);
     const _initialPincodesRef = useRef<{ con?: string; per?: string } | null>(null);
     const _siblingPopulatedRef = useRef(false);
+
+    // Watch mandatory fields for "Next" button enabling
+    const watchedStep1 = watch([
+        'asmaY_Id',
+        'amsT_FirstName',
+        'amsT_DOB',
+        'asmcL_Id',
+        'amsT_RegistrationNo',
+        'amsT_AdmissionNo',
+        'imCC_Id',
+        'imC_Id',
+        'amsT_Sex',
+        'amsT_MobileNo',
+        'amsT_emailId',
+        'amsT_Nationality',
+        'amsT_Date',
+        'asmS_Id',
+        'feeConcessionType',
+        'isEmisBpl',
+        'amsT_ECSFlag'
+    ]);
+
+    const watchedStep2 = watch([
+        'amsT_ConStreet',
+        'amsT_ConArea',
+        'amsT_ConCity',
+        'amsT_ConCountry',
+        'amsT_ConState',
+        'amsT_ConPincode'
+    ]);
+
+    const fatherAlive = watch('fatherAliveFlag');
+    const motherAlive = watch('motherAliveFlag');
+
+    const watchedStep3 = watch([
+        'fatherName',
+        'fatherNationality',
+        'motherName',
+        'motherNationality'
+    ]);
+
+    const isCurrentStepValid = useMemo(() => {
+        const checkFilled = (val: any) => {
+            if (typeof val === 'number') return val > 0;
+            if (val instanceof Date) return !isNaN(val.getTime());
+            return val != null && String(val).trim() !== '';
+        };
+
+        if (currentStep === 1) {
+            // Check all mandatory fields from watchedStep1
+            const fieldsValid = watchedStep1.every(checkFilled);
+            // Also check student photo if mandatory (usually is)
+            const photoValid = rowData?.amsT_Photoname || uploadedDocuments.some(d => d.amsmD_Id === 0); // simplistic check
+            return fieldsValid;
+        }
+        if (currentStep === 2) {
+            const resValid = [
+                watch('amsT_ConStreet'),
+                watch('amsT_ConArea'),
+                watch('amsT_ConCity'),
+                watch('amsT_ConCountry'),
+                watch('amsT_ConState'),
+                watch('amsT_ConPincode')
+            ].every(checkFilled);
+
+            if (sameAsResidential) return resValid;
+
+            const perValid = [
+                watch('amsT_PerStreet'),
+                watch('amsT_PerArea'),
+                watch('amsT_PerCity'),
+                watch('amsT_PerCountry'),
+                watch('amsT_PerState'),
+                watch('amsT_PerPincode')
+            ].every(checkFilled);
+
+            return resValid && perValid;
+        }
+        if (currentStep === 3) {
+            let fatherValid = true;
+            if (fatherAlive) {
+                fatherValid = [
+                    watch('fatherName'),
+                    watch('fatherNationality')
+                ].every(checkFilled);
+            }
+            let motherValid = true;
+            if (motherAlive) {
+                motherValid = [
+                    watch('motherName'),
+                    watch('motherNationality')
+                ].every(checkFilled);
+            }
+            return fatherValid && motherValid;
+        }
+        return true;
+    }, [currentStep, watchedStep1, watchedStep2, watchedStep3, fatherAlive, motherAlive, sameAsResidential, watch]);
 
     const getAmsTIdToUse = () => savedAmsTId ?? (Number(getValues('amsT_Id' as any) ?? 0) || 0);
 
@@ -399,13 +624,19 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
 
                     // Caste and Religion mapping
                     imC_Id:
-                        combined.iC_Id ??
                         combined.imC_Id ??
-                        combined.imcC_Id ??
+                        combined.iC_Id ??
                         combined.caste_Id ??
                         combined.casteId ??
-                        combined.amsT_CasteCategoryId ??
                         combined.imC_CasteId ??
+                        0,
+                    imCC_Id:
+                        combined.imCC_Id ??
+                        combined.imcC_Id ??
+                        combined.studentCategoryId ??
+                        combined.asmcC_Id ??
+                        combined.amsT_StudentCategory_Id ??
+                        combined.categoryId ??
                         0,
                     amsT_ReligionId:
                         combined.amsT_ReligionId ??
@@ -1304,6 +1535,20 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 if (casteIdToUse > 0) {
                     console.debug('[UpdateAdmission] Setting Caste (imC_Id):', casteIdToUse);
                     setValue('imC_Id' as any, casteIdToUse);
+                }
+
+                // Caste Category
+                const casteCategoryId = Number(
+                    data.imCC_Id ??
+                    first.imCC_Id ??
+                    data.imcC_Id ??
+                    first.imcC_Id ??
+                    data.amsT_CasteCategoryId ??
+                    payload.imCC_Id ??
+                    0
+                );
+                if (casteCategoryId > 0) {
+                    setValue('imCC_Id', casteCategoryId);
                 } else {
                     console.debug('[UpdateAdmission] No Caste ID found in data sources:', {
                         imC_Id: data.imC_Id,
@@ -1564,6 +1809,18 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
         initializeFormData(rowData);
     }, [rowData, initializeFormData]);
 
+    const watchedCasteId = watch('imC_Id' as any);
+
+    // Auto-bind Caste Category when Caste is selected
+    useEffect(() => {
+        if (Number(watchedCasteId) > 0) {
+            const selectedCaste = allCaste.find((c: any) => Number(c.imC_Id) === Number(watchedCasteId));
+            if (selectedCaste?.imcC_Id || selectedCaste?.imCC_Id) {
+                setValue('imCC_Id' as any, selectedCaste.imcC_Id || selectedCaste.imCC_Id);
+            }
+        }
+    }, [watchedCasteId, allCaste, setValue]);
+
     const [studentPhoto, setStudentPhoto] = useState<{
         amsT_Photoname: string;
         isUploading?: boolean;
@@ -1601,13 +1858,14 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
 
     const { data: activePreadmission } = useActivePreadmissionDetails(); // For Step 1 Year persistence logic
 
-    // Ensure the academic year from active preadmission is present in react-hook-form state
+    // Ensure the academic year from Getdetails is present in react-hook-form state
     useEffect(() => {
-        const year = activePreadmission?.data?.asmaY_Year ?? '';
-        const id = Number(activePreadmission?.data?.asmaY_Id ?? 0) || 0;
-        setValue('asmaY_Year' as any, year);
-        setValue('asmaY_Id' as any, id);
-    }, [activePreadmission, setValue]);
+        const activeYear = (admissionDetails as any)?.allAcademicYear?.[0] || (admissionDetails as any)?.academicYearOnLoad?.find((y: any) => y.asmaY_ActiveFlag === 1);
+        if (activeYear) {
+            setValue('asmaY_Year' as any, activeYear.asmaY_Year);
+            setValue('asmaY_Id' as any, activeYear.asmaY_Id);
+        }
+    }, [admissionDetails, setValue]);
 
     // Watch residential pincode and sync to permanent when sameAsResidential is true
     const conPincode = watch('amsT_ConPincode');
@@ -1629,8 +1887,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             if (!perState) setValue('amsT_PerState', getValues('amsT_ConState'));
         }
     }, [conPincode, sameAsResidential, setValue, getValues]);
-    // Watch all country fields
-    const studentCountryId = watch('amsT_Nationality');
+    // Watch all country fields (already watched at top)
     const conCountryId = watch('amsT_ConCountry');
     const perCountryId = watch('amsT_PerCountry');
 
@@ -1691,22 +1948,13 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
     // Use the nationality fields used in the Step 3 UI so state dropdowns refetch correctly
     const fatherPresentCountryId = watch('fatherNationality');
     const motherPresentCountryId = watch('motherNationality');
-    const birthCountryId = watch('amsT_PlaceOfBirthCountry');
-
-    const fatherAlive = watch('fatherAliveFlag');
-    // Support multiple possible keys for mother-alive checkbox coming from different places
-    const motherAlive = watch('motherAliveFlag') || watch('MotherAliveFlag') || false;
+    // birthCountryId, fatherAlive, motherAlive are already watched at the top.
 
     const classId = watch('asmcL_Id' as any);
     const {
         data: sectionData,
         refetchAll: refetchSection
     } = useMasterSectionHeld(Number(classId));
-
-    const {
-        data: category,
-        refetchAll: refetchCategory
-    } = useStudentCategoryByClass(Number(classId), Number(watch('asmaY_Id' as any)));
 
     const _refetchDropdowns = () => {
         refetchAdmissionDetails();
@@ -1971,6 +2219,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 ivrmmR_Id: Number(formData.ivrmmR_Id ?? formData.amsT_ReligionId ?? 0),
                 iC_Id: Number(formData.imC_Id ?? 0),
                 asmcC_Id: Number(formData.asmcC_Id ?? formData.studentCategoryId ?? 0),
+                imCC_Id: Number(formData.imCC_Id ?? 0),
                 amsT_SubCasteIMC_Id: (formData.amsT_SubCasteIMC_Id ?? '')?.toString() ?? '',
 
                 amsT_CasteCertiNo: formData.amsT_CasteCertiNo ?? '',
@@ -2211,7 +2460,24 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             let fieldsToValidate: any[] = [];
 
             if (currentStep === 1) {
-                fieldsToValidate = ['asmaY_Year', 'amsT_FirstName', 'amsT_RegistrationNo', 'asmcL_Id', 'amsT_Sex'];
+                fieldsToValidate = [
+                    'asmaY_Year',
+                    'amsT_FirstName',
+                    'amsT_RegistrationNo',
+                    'amsT_AdmissionNo',
+                    'asmcL_Id',
+                    'asmS_Id',
+                    'amsT_Date',
+                    'amsT_DOB',
+                    'amsT_Sex',
+                    'amsT_ReligionId',
+                    'imCC_Id',
+                    'imC_Id',
+                    'amsT_Nationality',
+                    'feeConcessionType',
+                    'amsT_emailId',
+                    'amsT_MobileNo'
+                ];
                 // If EMIS checkbox is set, ensure the EMIS field is validated
                 if (Number(getValues('isEmisBpl') ?? 0) === 1) {
                     fieldsToValidate.push('amsT_BPLCardNo');
@@ -2364,12 +2630,11 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 // Count total errors to show in toast
                 const errorCount = Object.keys(errors).length;
                 const firstErrorKey = Object.keys(errors)[0];
-                const errorMessage =
-                    errorCount > 1
-                        ? `Please fix ${errorCount} validation errors before proceeding`
-                        : `Please fix the validation error (${firstErrorKey}) before proceeding`;
+                const firstError = (errors as any)[firstErrorKey];
+                const errorMessage = firstError?.message || `VALIDATION FAILED: Missing mandatory data for ${firstErrorKey}`;
 
                 toast.error(errorMessage);
+                console.log('=== VALIDATION FAILED ===', errors);
 
                 // Scroll to first error field if possible
                 if (firstErrorKey) {
@@ -4287,15 +4552,17 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                             </p>
                                         </div>
                                         <div className='flex justify-between'>
-                                            <InputText
-                                                label='Academic Year'
-                                                required
-                                                id='academic_year'
-                                                placeholder='Academic Year'
-                                                defaultValue={activePreadmission?.data?.asmaY_Year}
-                                                className='w-fit font-semibold'
-                                                disabled
-                                            />
+                                            <div className='flex flex-col gap-1.5'>
+                                                <Label>Academic Year <span className='ml-1 text-red-500'>*</span></Label>
+                                                <InputText
+                                                    required
+                                                    id='academic_year'
+                                                    placeholder='Academic Year'
+                                                    value={watch('asmaY_Id' as any) || ''}
+                                                    className='w-fit font-semibold'
+                                                    disabled
+                                                />
+                                            </div>
                                             {/* Student Photo Upload - Mandatory */}
                                             <div className='col-span-full w-fit'>
                                                 <div className='rounded-lg border-2 border-blue-200 bg-blue-50 p-2'>
@@ -4385,7 +4652,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                         <div className='flex w-fit flex-col items-start justify-between gap-2 rounded-lg border border-green-200 bg-green-50 p-4'>
                                                             <div className='flex items-center gap-4'>
                                                                 <img
-                                                                    src={studentPhoto.amsT_Photoname}
+                                                                    src={rowData?.amsT_Photoname || studentPhoto.amsT_Photoname}
                                                                     alt='Student'
                                                                     className='h-20 w-20 rounded-lg border-2 border-green-300 object-cover'
                                                                 />
@@ -4768,37 +5035,34 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                     name='imC_Id'
                                                     control={control}
                                                     render={({ field }) => (
-                                                        <Select
-                                                            key={`caste_${field.value || 'empty'}_${studentCaste?.data?.length || 0}`}
-                                                            onValueChange={(value) => field.onChange(Number(value))}
-                                                            value={field.value?.toString() || ''}>
-                                                            <SelectTrigger className={cn((errors as any).imC_Id && 'border-red-500')}>
-                                                                <SelectValue
-                                                                    placeholder={casteLoading ? 'Loading castes...' : 'Select caste'}
-                                                                />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                {casteLoading ? (
-                                                                    <SelectItem value='0' disabled>
-                                                                        Loading castes...
-                                                                    </SelectItem>
-                                                                ) : casteError ? (
-                                                                    <SelectItem value='error' disabled>
-                                                                        Error loading castes
-                                                                    </SelectItem>
-                                                                ) : studentCaste?.data && studentCaste.data.length > 0 ? (
-                                                                    studentCaste.data.map((item: any) => (
-                                                                        <SelectItem key={item.imC_Id} value={item.imC_Id.toString()}>
-                                                                            {item.imC_CasteName}
-                                                                        </SelectItem>
-                                                                    ))
-                                                                ) : (
-                                                                    <SelectItem value='0' disabled>
-                                                                        No castes found
-                                                                    </SelectItem>
-                                                                )}
-                                                            </SelectContent>
-                                                        </Select>
+                                                                        <Select
+                                                                            key={`caste_${field.value || 'empty'}_${availableCastes?.length || 0}`}
+                                                                            onValueChange={(value) => field.onChange(Number(value))}
+                                                                            value={field.value?.toString() || ''}
+                                                                            disabled={!currentCategoryId}>
+                                                                            <SelectTrigger className={cn((errors as any).imC_Id && 'border-red-500')}>
+                                                                                <SelectValue
+                                                                                    placeholder={!currentCategoryId ? 'Select category first' : (isCastesLoading && availableCastes.length === 0) ? 'Loading...' : 'Select caste'}
+                                                                                />
+                                                                            </SelectTrigger>
+                                                                            <SelectContent>
+                                                                                {isCastesLoading && availableCastes.length === 0 ? (
+                                                                                    <SelectItem value='0' disabled>
+                                                                                        Loading castes...
+                                                                                    </SelectItem>
+                                                                                ) : (availableCastes || []).length === 0 ? (
+                                                                                    <SelectItem value='0' disabled>
+                                                                                        No castes found
+                                                                                    </SelectItem>
+                                                                                ) : (
+                                                                                    availableCastes?.map((item: any) => (
+                                                                                        <SelectItem key={item.imC_Id} value={item.imC_Id.toString()}>
+                                                                                            {item.imC_CasteName}
+                                                                                        </SelectItem>
+                                                                                    ))
+                                                                                )}
+                                                                            </SelectContent>
+                                                                        </Select>
                                                     )}
                                                 />
                                                 {(errors as any).imC_Id && <FormError>{(errors as any).imC_Id.message}</FormError>}
@@ -4977,7 +5241,9 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                             </div>
 
                                             <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='amsT_State'>State</Label>
+                                                <Label htmlFor='amsT_State'>
+                                                    State <span className='ml-1 text-red-500'>*</span>
+                                                </Label>
                                                 <Controller
                                                     name='amsT_State'
                                                     control={control}
@@ -5084,10 +5350,15 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                         <div key={field.id} className='flex w-full flex-col gap-1'>
                                                             <div className='flex items-center gap-2'>
                                                                 <div className='flex-1'>
-                                                                    {idx === 0 && <Label htmlFor={String(field.id)}>Email</Label>}
+                                                                    {idx === 0 && (
+                                                                        <Label htmlFor={String(field.id)}>
+                                                                            Email <span className='ml-1 text-red-500'>*</span>
+                                                                        </Label>
+                                                                    )}
                                                                     <InputText
                                                                         {...register(fieldName)}
                                                                         id={String(field.id)}
+                                                                        label={idx === 0 ? undefined : ''}
                                                                         placeholder='Enter email'
                                                                         error={itemError}
                                                                         required
@@ -5206,7 +5477,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
-                                                            key={`cat_${field.value || 'empty'}_${category?.data?.length || 0}`}
+                                                            key={`cat_${field.value || 'empty'}_${(categoryByClass as any)?.data?.studentCategory?.length || 0}`}
                                                             onValueChange={(value) => {
                                                                 const val = Number(value);
                                                                 field.onChange(val);
@@ -5232,8 +5503,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                     </SelectItem>
                                                                 ) : (
                                                                     (() => {
-                                                                        const items =
-                                                                            category?.data || (Array.isArray(category) ? category : []);
+                                                                        const items = (categoryByClass as any)?.data?.studentCategory || [];
                                                                         if (!items || items.length === 0) {
                                                                             return (
                                                                                 <SelectItem value='0' disabled>
@@ -5241,26 +5511,11 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                 </SelectItem>
                                                                             );
                                                                         }
-                                                                        return (Array.isArray(items) ? items : []).map((item: any) => (
+                                                                        return items.map((item: any) => (
                                                                             <SelectItem
-                                                                                key={
-                                                                                    item.asmcC_Id ||
-                                                                                    item.amC_Id ||
-                                                                                    item.studentCategoryId ||
-                                                                                    item.imC_Id
-                                                                                }
-                                                                                value={String(
-                                                                                    item.asmcC_Id ||
-                                                                                    item.amC_Id ||
-                                                                                    item.studentCategoryId ||
-                                                                                    item.imC_Id
-                                                                                )}>
-                                                                                {item.asmcC_CategoryName ||
-                                                                                    item.amC_Name ||
-                                                                                    item.asmcC_Name ||
-                                                                                    item.categoryName ||
-                                                                                    item.studentCategoryName ||
-                                                                                    'No Name'}
+                                                                                key={item.asmcC_Id}
+                                                                                value={String(item.asmcC_Id)}>
+                                                                                {item.amC_Name}
                                                                             </SelectItem>
                                                                         ));
                                                                     })()
@@ -5492,6 +5747,32 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                 {...register('amsT_MediumOfInstruction')}
                                                 error={errors.amsT_MediumOfInstruction?.message}
                                             />
+
+                                            {/* Subject Group Multi-Select */}
+                                            <div className='flex flex-col gap-1.5'>
+                                                <Label>Elective Subject Groups</Label>
+                                                <Controller
+                                                    name='electivelist_Groups'
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <CustomMultiSelectBox
+                                                            options={electiveOptions}
+                                                            placeholder='Select Groups'
+                                                            value={((field.value as any) || []).map(String)}
+                                                            onChange={field.onChange}
+                                                            height='150px'
+                                                            isSearchRequired
+                                                        />
+                                                    )}
+                                                />
+                                            </div>
+
+                                            <SubjectGroupTable
+                                                control={control}
+                                                electiveList={electiveList.filter((e: any) =>
+                                                    (watch('electivelist_Groups') || []).includes(e.asmgC_Id.toString())
+                                                )}
+                                            />
                                         </div>
                                     </div>
                                 )}
@@ -5511,6 +5792,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                                     <InputText
                                                         label='Street'
+                                                        required
                                                         id='amsT_ConStreet'
                                                         placeholder='Enter street'
                                                         {...register('amsT_ConStreet')}
@@ -5518,6 +5800,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                     />
                                                     <InputText
                                                         label='Area'
+                                                        required
                                                         id='amsT_ConArea'
                                                         placeholder='Enter area'
                                                         {...register('amsT_ConArea')}
@@ -5609,6 +5892,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
 
                                                     <InputText
                                                         label='City'
+                                                        required
                                                         id='amsT_ConCity'
                                                         placeholder='Enter city'
                                                         {...register('amsT_ConCity')}
@@ -5695,22 +5979,32 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                             <div className='space-y-4'>
                                                 <h3 className='font-semibold text-gray-800 text-lg'>Permanent Address</h3>
                                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
-                                                    <InputText
-                                                        label='Street'
-                                                        id='amsT_PerStreet'
-                                                        placeholder='Enter street'
-                                                        {...register('amsT_PerStreet')}
-                                                        error={errors.amsT_PerStreet?.message}
-                                                        disabled={sameAsResidential}
-                                                    />
-                                                    <InputText
-                                                        label='Area'
-                                                        id='amsT_PerArea'
-                                                        placeholder='Enter area'
-                                                        {...register('amsT_PerArea')}
-                                                        error={errors.amsT_PerArea?.message}
-                                                        disabled={sameAsResidential}
-                                                    />
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Label htmlFor='amsT_PerStreet'>
+                                                            Street {!sameAsResidential && <span className='ml-1 text-red-500'>*</span>}
+                                                        </Label>
+                                                        <InputText
+                                                            label=''
+                                                            id='amsT_PerStreet'
+                                                            placeholder='Enter street'
+                                                            {...register('amsT_PerStreet')}
+                                                            error={errors.amsT_PerStreet?.message}
+                                                            disabled={sameAsResidential}
+                                                        />
+                                                    </div>
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Label htmlFor='amsT_PerArea'>
+                                                            Area {!sameAsResidential && <span className='ml-1 text-red-500'>*</span>}
+                                                        </Label>
+                                                        <InputText
+                                                            label=''
+                                                            id='amsT_PerArea'
+                                                            placeholder='Enter area'
+                                                            {...register('amsT_PerArea')}
+                                                            error={errors.amsT_PerArea?.message}
+                                                            disabled={sameAsResidential}
+                                                        />
+                                                    </div>
                                                     <div className='flex flex-col gap-1.5'>
                                                         <Label htmlFor='amsT_PerCountry'>
                                                             Country <span className='ml-1 text-red-500'>*</span>
@@ -5993,7 +6287,9 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <div>
-                                                                    <Label htmlFor='fatherMobileNumbers'>Mobile No.</Label>
+                                                                    <Label htmlFor='fatherMobileNumbers'>
+                                                                        Mobile No. <span className='ml-1 text-red-500'>*</span>
+                                                                    </Label>
                                                                     <PhoneInput
                                                                         country='in'
                                                                         value={
@@ -6042,13 +6338,15 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                         )}
                                                     </div>
 
-                                                    <InputText
-                                                        label='Email-ID'
-                                                        id='fatherEmailIds'
-                                                        placeholder='Enter Email-ID'
-                                                        {...register('fatherEmailIds')}
-                                                        error={errors.fatherEmailIds?.message}
-                                                    />
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Label>Email-ID <span className='ml-1 text-red-500'>*</span></Label>
+                                                        <InputText
+                                                            id='fatherEmailIds'
+                                                            placeholder='Enter Email-ID'
+                                                            {...register('fatherEmailIds')}
+                                                            error={errors.fatherEmailIds?.message}
+                                                        />
+                                                    </div>
 
                                                     <InputText
                                                         label='Home Phone No'
@@ -6653,29 +6951,30 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                             </div>
 
                                                             <div className='flex flex-col gap-1.5'>
-                                                                <Label htmlFor='fatherCasteId'>Caste Category</Label>
+                                                                <Label htmlFor='fatherCasteId'>Father Caste</Label>
                                                                 <Controller
                                                                     name='fatherCasteId'
                                                                     control={control}
                                                                     render={({ field }) => (
                                                                         <Select
-                                                                            key={field.value || 'empty'}
+                                                                            key={`father_caste_${field.value || 'empty'}_${availableCastes?.length || 0}`}
                                                                             onValueChange={(value) => field.onChange(Number(value))}
-                                                                            value={field.value?.toString() || ''}>
+                                                                            value={field.value?.toString() || ''}
+                                                                            disabled={!currentCategoryId}>
                                                                             <SelectTrigger>
-                                                                                <SelectValue placeholder='Select caste Category' />
+                                                                                <SelectValue placeholder={!currentCategoryId ? 'Select category first' : (isCastesLoading && availableCastes.length === 0) ? 'Loading...' : 'Select caste'} />
                                                                             </SelectTrigger>
                                                                             <SelectContent>
-                                                                                {fatherCasteLoading ? (
+                                                                                {isCastesLoading && availableCastes.length === 0 ? (
                                                                                     <SelectItem value='loading' disabled>
                                                                                         Loading...
                                                                                     </SelectItem>
-                                                                                ) : fatherCasteError ? (
-                                                                                    <SelectItem value='error' disabled>
-                                                                                        Error loading
+                                                                                ) : (availableCastes || []).length === 0 ? (
+                                                                                    <SelectItem value='none' disabled>
+                                                                                        No castes found
                                                                                     </SelectItem>
                                                                                 ) : (
-                                                                                    fatherCaste?.data?.map((item: any) => (
+                                                                                    availableCastes?.map((item: any) => (
                                                                                         <SelectItem
                                                                                             key={item.imC_Id}
                                                                                             value={item.imC_Id.toString()}>
@@ -6865,7 +7164,9 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <div>
-                                                                    <Label htmlFor='motherMobileNumbers'>Mobile No.</Label>
+                                                                    <Label htmlFor='motherMobileNumbers'>
+                                                                        Mobile No. <span className='ml-1 text-red-500'>*</span>
+                                                                    </Label>
                                                                     <PhoneInput
                                                                         country='in'
                                                                         value={
@@ -6914,13 +7215,15 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                         )}
                                                     </div>
 
-                                                    <InputText
-                                                        label='Email-ID'
-                                                        id='motherEmailIds'
-                                                        placeholder='Enter Email-ID'
-                                                        {...register('motherEmailIds')}
-                                                        error={errors.motherEmailIds?.message}
-                                                    />
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Label>Email-ID <span className='ml-1 text-red-500'>*</span></Label>
+                                                        <InputText
+                                                            id='motherEmailIds'
+                                                            placeholder='Enter Email-ID'
+                                                            {...register('motherEmailIds')}
+                                                            error={errors.motherEmailIds?.message}
+                                                        />
+                                                    </div>
 
                                                     <InputText
                                                         label='Home Phone No'
@@ -7538,29 +7841,30 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                             </div>
 
                                                             <div className='flex flex-col gap-1.5'>
-                                                                <Label htmlFor='motherCasteId'>Caste Category</Label>
+                                                                <Label htmlFor='motherCasteId'>Mother Caste</Label>
                                                                 <Controller
                                                                     name='motherCasteId'
                                                                     control={control}
                                                                     render={({ field }) => (
                                                                         <Select
-                                                                            key={field.value || 'empty'}
+                                                                            key={`mother_caste_${field.value || 'empty'}_${availableCastes?.length || 0}`}
                                                                             onValueChange={(value) => field.onChange(Number(value))}
-                                                                            value={field.value?.toString() || ''}>
+                                                                            value={field.value?.toString() || ''}
+                                                                            disabled={!currentCategoryId}>
                                                                             <SelectTrigger>
-                                                                                <SelectValue placeholder='Select caste Category' />
+                                                                                <SelectValue placeholder={!currentCategoryId ? 'Select category first' : (isCastesLoading && availableCastes.length === 0) ? 'Loading...' : 'Select caste'} />
                                                                             </SelectTrigger>
                                                                             <SelectContent>
-                                                                                {motherCasteLoading ? (
+                                                                                {isCastesLoading && availableCastes.length === 0 ? (
                                                                                     <SelectItem value='loading' disabled>
                                                                                         Loading...
                                                                                     </SelectItem>
-                                                                                ) : motherCasteError ? (
-                                                                                    <SelectItem value='error' disabled>
-                                                                                        Error loading
+                                                                                ) : (availableCastes || []).length === 0 ? (
+                                                                                    <SelectItem value='none' disabled>
+                                                                                        No castes found
                                                                                     </SelectItem>
                                                                                 ) : (
-                                                                                    motherCaste?.data?.map((item: any) => (
+                                                                                    availableCastes?.map((item: any) => (
                                                                                         <SelectItem
                                                                                             key={item.imC_Id}
                                                                                             value={item.imC_Id.toString()}>
@@ -9601,7 +9905,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                 <Button
                                     type='button'
                                     variant='outline'
-                                    onClick={handleReset}
+                                    onClick={() => window.location.reload()}
                                     disabled={isSubmitting}
                                     className='w-fit transition-all duration-200 hover:scale-105'>
                                     Reset Form
@@ -9625,7 +9929,10 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                 <ChevronRight className='ml-2 h-4 w-4' />
                                             </Button>
                                         ) : (
-                                            <Button type='button' onClick={nextStep} disabled={isSavingStep || isSubmitting}>
+                                            <Button
+                                                type='button'
+                                                onClick={nextStep}
+                                                disabled={isSavingStep || isSubmitting || !isCurrentStepValid}>
                                                 {isSavingStep ? (
                                                     <>
                                                         <Spinner className='mr-2 h-4 w-4' size='sm' />

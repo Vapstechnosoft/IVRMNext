@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import Swal from 'sweetalert2';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -18,12 +18,10 @@ import {
 } from '@/schemas/admission/nda-student-profile-update';
 import { 
     useNdaStudentProfileDetails, 
-    useNdaSaveRequest, 
-    useNdaSiblingDetails 
+    useNdaSaveRequest
 } from '@/hooks/admission/preadmission/useNdaStudentProfileUpdate';
 import { AddressFields } from './AddressFields';
 import { ImageUploadSection } from './ImageUploadSection';
-import { cn } from '@/lib/utils';
 import { Save, X, User, Phone, Mail, Droplets } from 'lucide-react';
 
 export const StudentProfileUpdateForm = () => {
@@ -154,13 +152,13 @@ export const StudentProfileUpdateForm = () => {
         );
     }
 
-    const studentInfo = initialData?.data?.updatestudetailslist?.[0] || {};
-    const countries = initialData?.data?.countryDrpDown || [];
-    const states = initialData?.data?.stateDrpDown || [];
+    const studentInfo = (initialData as any)?.data?.updatestudetailslist?.[0] || {};
+    const countries = (initialData as any)?.data?.countryDrpDown || [];
+    const states = (initialData as any)?.data?.stateDrpDown || [];
     
     // Fee & Attendance Stats from legacy loaddata
-    const feeStats = initialData?.data?.studentfeedetails?.[0] || {};
-    const attendanceStats = initialData?.data?.yearattdetails || [];
+    const feeStats = (initialData as any)?.data?.studentfeedetails?.[0] || {};
+    const attendanceStats = (initialData as any)?.data?.yearattdetails || [];
     
     const totalHeld = attendanceStats.reduce((acc: number, curr: any) => acc + (parseInt(curr.CLASS_HELD) || 0), 0);
     const totalPresent = attendanceStats.reduce((acc: number, curr: any) => acc + (curr.TOTAL_PRESENT || 0), 0);

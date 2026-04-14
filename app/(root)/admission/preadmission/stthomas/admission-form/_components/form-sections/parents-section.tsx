@@ -1,7 +1,8 @@
 'use client';
 
 import { Controller, useFormContext } from 'react-hook-form';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
+import { useGetCasteByCasteCategory } from '@/hooks/admission/admissionForm';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label, FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
@@ -49,6 +50,9 @@ export function ParentsSection({
 
     const fatherRelId = watch('fatherReligionId');
     const motherRelId = watch('motherReligionId');
+    const studentCategoryId = watch('imCC_Id');
+
+    const { data: casteByCategory, isLoading: casteLoading } = useGetCasteByCasteCategory(studentCategoryId);
 
     // Phone helper states local to section for validation feedback
     const [phoneExpectedInfo, setPhoneExpectedInfo] = useState<Record<string, { expected?: number; name?: string; dial?: string }>>({});
@@ -116,14 +120,31 @@ export function ParentsSection({
     }, [allState, motherCountryId]);
 
     const fatherCastes = useMemo(() => {
-        if (!fatherRelId) return allCaste;
-        return allCaste.filter((c: any) => Number(c.ivrmmR_Id) === Number(fatherRelId));
-    }, [allCaste, fatherRelId]);
+        if (!studentCategoryId) return [];
+        return (casteByCategory as any) || [];
+    }, [casteByCategory, studentCategoryId]);
 
     const motherCastes = useMemo(() => {
-        if (!motherRelId) return allCaste;
-        return allCaste.filter((c: any) => Number(c.ivrmmR_Id) === Number(motherRelId));
-    }, [allCaste, motherRelId]);
+        if (!studentCategoryId) return [];
+        return (casteByCategory as any) || [];
+    }, [casteByCategory, studentCategoryId]);
+
+    // Clear father/mother caste if no longer valid for the selected category
+    useEffect(() => {
+        if (!studentCategoryId) return;
+
+        const currentFatherCasteId = watch('fatherCasteId');
+        if (currentFatherCasteId && Number(currentFatherCasteId) > 0) {
+            const isValid = fatherCastes.some((c: any) => Number(c.imC_Id) === Number(currentFatherCasteId));
+            if (!isValid) setValue('fatherCasteId', 0);
+        }
+
+        const currentMotherCasteId = watch('motherCasteId');
+        if (currentMotherCasteId && Number(currentMotherCasteId) > 0) {
+            const isValid = motherCastes.some((c: any) => Number(c.imC_Id) === Number(currentMotherCasteId));
+            if (!isValid) setValue('motherCasteId', 0);
+        }
+    }, [studentCategoryId, fatherCastes, motherCastes, setValue, watch]);
 
     return (
         <div className="space-y-12">
@@ -255,11 +276,15 @@ export function ParentsSection({
                                         <Select
                                             value={field.value?.toString() || ''}
                                             onValueChange={(val) => field.onChange(Number(val))}
+                                            disabled={!studentCategoryId}
                                         >
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select Caste" />
+                                                <SelectValue placeholder={casteLoading ? "Loading Castes..." : "Select Caste"} />
                                             </SelectTrigger>
                                             <SelectContent>
+                                                {!casteLoading && fatherCastes.length === 0 && (
+                                                    <div className="p-2 text-sm text-muted-foreground italic">No castes found</div>
+                                                )}
                                                 {fatherCastes.map((item: any) => (
                                                     <SelectItem key={item.imC_Id} value={item.imC_Id.toString()}>
                                                         {item.imC_CasteName}
@@ -485,11 +510,15 @@ export function ParentsSection({
                                         <Select
                                             value={field.value?.toString() || ''}
                                             onValueChange={(val) => field.onChange(Number(val))}
+                                            disabled={!studentCategoryId}
                                         >
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select Caste" />
+                                                <SelectValue placeholder={casteLoading ? "Loading Castes..." : "Select Caste"} />
                                             </SelectTrigger>
                                             <SelectContent>
+                                                {!casteLoading && motherCastes.length === 0 && (
+                                                    <div className="p-2 text-sm text-muted-foreground italic">No castes found</div>
+                                                )}
                                                 {motherCastes.map((item: any) => (
                                                     <SelectItem key={item.imC_Id} value={item.imC_Id.toString()}>
                                                         {item.imC_CasteName}

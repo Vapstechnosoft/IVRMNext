@@ -6,7 +6,7 @@ import { api } from '@/lib/apiService';
  * Fetches initial data for NDA TC report (Years, Classes, etc.)
  */
 export async function getNdaTcInitialData() {
-    const url = `/BBKVCustomReport/getdetails`;
+    const url = '/BBKVCustomReport/getdetails';
     return await api.get<any>('admission', url);
 }
 
@@ -21,7 +21,7 @@ export async function getNdaTcStudentList(data: {
     tctemporper: string;
 }) {
     const url = `/BBKVCustomReport/getnameregno?tctemporper=${data.tctemporper}&admnoorname=${data.admnoorname}&ASMAY_Id=${data.ASMAY_Id}&ASMCL_Id=${data.ASMCL_Id || 0}&ASMS_Id=${data.ASMS_Id || 0}`;
-    return await api.get<any>('admission', url);
+    return await api.post<any>('admission', url);
 }
 
 /**
@@ -46,7 +46,7 @@ export async function onNdaTcTempPerChange(data: {
     tctemporper: string;
 }) {
     const url = `/BBKVCustomReport/onclicktcperortemo?tctemporper=${data.tctemporper}&admnoorname=${data.admnoorname}&ASMAY_Id=${data.ASMAY_Id}`;
-    return await api.get<any>('admission', url);
+    return await api.post<any>('admission', url);
 }
 
 /**
@@ -59,5 +59,5 @@ export async function getNdaTcDetails(data: {
     tctemporper: string;
 }) {
     const url = `/BBKVCustomReport/getTcdetails?tctemporper=${data.tctemporper}&ASMAY_Id=${data.ASMAY_Id}&AMST_Id=${data.AMST_Id}`;
-    return await api.get<any>('admission', url);
+    return await api.post<any>('admission', url);
 }
