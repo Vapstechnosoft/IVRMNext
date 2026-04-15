@@ -25,10 +25,24 @@ export const StJamesTcPrint = forwardRef<HTMLDivElement, StJamesTcPrintProps>(({
         lbldobwords,
         lblPromotion,
         todaydate,
+        qrcode,
+        address1,
+        address2,
+        address3,
+        gender,
+        leavingreason,
+        feepaid,
+        religion,
+        caste,
+        subjectstudied,
+        daysattended,
+        schooldays,
+        tcappdate,
+        logo,
     } = data;
 
     return (
-        <div ref={ref} className="stjames-tc-print-container p-4 bg-white font-serif">
+        <div ref={ref} className="stjames-tc-print-container p-4 bg-white font-serif printable-content">
             <style jsx global>{`
                 @media print {
                     .stjames-tc-print-container {
@@ -124,9 +138,9 @@ export const StJamesTcPrint = forwardRef<HTMLDivElement, StJamesTcPrintProps>(({
                 {/* Sidebar Section */}
                 <div className="sidebar">
                     <div className="header-img">
-                        <img src="/images/clients/Stjames/schoolTC.png" alt="School TC Header" />
+                        <img src={logo} alt="School TC Header" />
                     </div>
-                    
+
                     <table className="tc-table">
                         <tbody>
                             <tr>
@@ -146,19 +160,22 @@ export const StJamesTcPrint = forwardRef<HTMLDivElement, StJamesTcPrintProps>(({
                         <tbody>
                             <tr>
                                 <td width="20%">Given to</td>
-                                <td className="border-bottom-dotted"></td>
+                                <td className="border-bottom-dotted center-text"><b>{lblstdname}</b></td>
                             </tr>
                             <tr><td colSpan={2}>&nbsp;</td></tr>
-                            <tr><td colSpan={2} className="border-bottom-dotted"></td></tr>
+                            <tr><td colSpan={2} className="border-bottom-dotted center-text italic font-bold text-xs">{address1}</td></tr>
                             <tr><td colSpan={2}>&nbsp;</td></tr>
-                            <tr><td colSpan={2} className="border-bottom-dotted"></td></tr>
+                            <tr><td colSpan={2} className="border-bottom-dotted center-text italic font-bold text-xs">{address2} {address3}</td></tr>
+                            <tr><td colSpan={2}>&nbsp;</td></tr>
                             <tr>
                                 <td width="30%">On account of</td>
-                                <td className="border-bottom-dotted"></td>
+                                <td className="border-bottom-dotted center-text"><b>{leavingreason}</b></td>
                             </tr>
                             <tr>
                                 <td width="15%">Left</td>
-                                <td className="border-bottom-dotted"></td>
+                                <td className="border-bottom-dotted center-text">
+                                    <b>{lbldol ? format(new Date(lbldol), 'dd/MM/yyyy') : ''}</b>
+                                </td>
                             </tr>
                             <tr>
                                 <td width="25%">Character</td>
@@ -166,7 +183,7 @@ export const StJamesTcPrint = forwardRef<HTMLDivElement, StJamesTcPrintProps>(({
                             </tr>
                             <tr>
                                 <td width="15%">Fees</td>
-                                <td className="border-bottom-dotted"></td>
+                                <td className="border-bottom-dotted center-text"><b>{feepaid}</b></td>
                             </tr>
                             <tr>
                                 <td width="40%">Studying in Class</td>
@@ -183,13 +200,31 @@ export const StJamesTcPrint = forwardRef<HTMLDivElement, StJamesTcPrintProps>(({
                                 </td>
                             </tr>
                             <tr>
-                                <td width="20%"><b>Dated:</b></td>
+                                <td width="35%">Religion/Caste</td>
+                                <td className="border-bottom-dotted center-text">
+                                    <b>{religion} / {caste}</b>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td width="35%">Attendance</td>
+                                <td className="border-bottom-dotted center-text">
+                                    <b>{daysattended} / {schooldays}</b>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td width="30%"><b>Dated:</b></td>
                                 <td width="30%" className="border-bottom-dotted center-text">
                                     <b>{todaydate ? format(new Date(todaydate), 'dd/MM/yyyy') : ''}</b>
                                 </td>
                             </tr>
                         </tbody>
                     </table>
+
+                    {qrcode && (
+                        <div className="flex justify-center my-4">
+                            <img src={qrcode} alt="Verification QR Code" className="w-24 h-24 object-contain" />
+                        </div>
+                    )}
 
                     <div className="signature-section">
                         Principal
@@ -212,7 +247,9 @@ export const StJamesTcPrint = forwardRef<HTMLDivElement, StJamesTcPrintProps>(({
                 {/* Main Certificate Section */}
                 <div className="main-cert">
                     <div className="header-img center-text">
-                        <img src="/images/clients/Stjames/TC.png" style={{ width: '70%' }} alt="TC Header" />
+                        <img src={logo} alt="School TC Header" />
+                        {/* <img src="/images/clients/Stjames/TC.png" style={{ width: '70%' }} alt="TC Header" />
+                     */}
                     </div>
 
                     <table className="tc-table">
@@ -228,41 +265,46 @@ export const StJamesTcPrint = forwardRef<HTMLDivElement, StJamesTcPrintProps>(({
                     </table>
 
                     <div className="mt-4">
-                        <span className="english-hand">This is to certify that master </span>
-                        <span className="border-bottom-dotted min-w-[300px] inline-block text-center font-bold">{lblstdname}</span>
+                        <span className="english-hand">This is to certify that {gender?.title || 'master'} </span>
+                        <span className="border-bottom-dotted min-w-[300px] inline-block text-center font-bold px-2">{lblstdname}</span>
                     </div>
 
                     <div className="mt-2">
-                        <span>Son of </span>
-                        <span className="border-bottom-dotted min-w-[80%] inline-block text-center font-bold">{lblfathername}</span>
+                        <span>{gender?.sonOf || 'Son of'} </span>
+                        <span className="border-bottom-dotted min-w-[80%] inline-block text-center font-bold px-2">{lblfathername}</span>
                     </div>
 
                     <div className="mt-2">
                         <span>was admitted into this school on the (date) </span>
-                        <span className="border-bottom-dotted min-w-[200px] inline-block text-center font-bold">
+                        <span className="border-bottom-dotted min-w-[200px] inline-block text-center font-bold px-2">
                             {lbldoa ? format(new Date(lbldoa), 'dd/MM/yyyy') : ''}
                         </span>
                     </div>
 
-                    <div className="mt-2">
+                    <div className="mt-2 text-wrap">
                         <span>on a transfer certificate from </span>
-                        <span className="border-bottom-dotted min-w-[70%] inline-block font-bold">{previousschoolname}</span>
+                        <span className="border-bottom-dotted min-w-[70%] inline-block font-bold px-2">{previousschoolname}</span>
                     </div>
                     <div className="full-width-dotted"></div>
 
                     <div className="mt-2">
                         <span>and left on the </span>
-                        <span className="border-bottom-dotted min-w-[150px] inline-block text-center font-bold">
+                        <span className="border-bottom-dotted min-w-[150px] inline-block text-center font-bold px-2">
                             {lbldol ? format(new Date(lbldol), 'dd/MM/yyyy') : ''}
                         </span>
                         <span> with a </span>
-                        <span className="border-bottom-dotted min-w-[120px] inline-block text-center font-bold">{lblconduct}</span>
+                        <span className="border-bottom-dotted min-w-[120px] inline-block text-center font-bold px-2">{lblconduct}</span>
                         <span> character</span>
                     </div>
 
                     <div className="mt-2">
-                        <span>He was then studying in the (1) </span>
-                        <span className="border-bottom-dotted min-w-[60%] inline-block text-center font-bold">{laststudiedinwords}</span>
+                        <span>{gender?.heShe || 'He'} was then studying in the (1) </span>
+                        <span className="border-bottom-dotted min-w-[60%] inline-block text-center font-bold px-2">{laststudiedinwords}</span>
+                    </div>
+
+                    <div className="mt-2 text-wrap">
+                        <span>Subjects studied: </span>
+                        <span className="border-bottom-dotted min-w-[70%] inline-block font-bold px-2">{subjectstudied}</span>
                     </div>
 
                     <div className="mt-2">
@@ -280,17 +322,17 @@ export const StJamesTcPrint = forwardRef<HTMLDivElement, StJamesTcPrintProps>(({
 
                     <div className="mt-2">
                         <span>All sum due (4) </span>
-                        <span className="border-bottom-dotted min-w-[200px] inline-block text-center font-bold">Paid</span>
+                        <span className="border-bottom-dotted min-w-[200px] inline-block text-center font-bold px-2">{feepaid}</span>
                         <span> to this school</span>
                     </div>
 
                     <div className="mt-1 font-semibold italic text-sm">
-                        on his account have been remitted or satisfactorily arrange for.
+                        on {gender?.hisHer || 'his'} account have been remitted or satisfactorily arrange for.
                     </div>
 
                     <div className="mt-4">
-                        <span>His date of birth, according to the Admission Register is (in figures) </span>
-                        <span className="border-bottom-dotted min-w-[150px] inline-block text-center font-bold">
+                        <span>{gender?.hisHer ? (gender.hisHer.charAt(0).toUpperCase() + gender.hisHer.slice(1)) : 'His'} date of birth, according to the Admission Register is (in figures) </span>
+                        <span className="border-bottom-dotted min-w-[150px] inline-block text-center font-bold px-2">
                             {lbldob ? format(new Date(lbldob), 'dd/MM/yyyy') : ''}
                         </span>
                     </div>
@@ -313,11 +355,15 @@ export const StJamesTcPrint = forwardRef<HTMLDivElement, StJamesTcPrintProps>(({
                     <table className="tc-table mt-8">
                         <tbody>
                             <tr>
+                                <td width="30%"><b>TC Application Date :</b></td>
+                                <td width="20%" className="border-bottom-dotted center-text font-bold">
+                                    {tcappdate ? format(new Date(tcappdate), 'dd/MM/yyyy') : ''}
+                                </td>
                                 <td width="10%"><b>Date :</b></td>
-                                <td width="30%" className="border-bottom-dotted center-text font-bold">
+                                <td width="20%" className="border-bottom-dotted center-text font-bold">
                                     {todaydate ? format(new Date(todaydate), 'dd/MM/yyyy') : ''}
                                 </td>
-                                <td width="60%"></td>
+                                <td width="20%"></td>
                             </tr>
                         </tbody>
                     </table>

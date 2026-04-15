@@ -40,8 +40,13 @@ export default function SubjectWiseReportPage() {
             processReportData(data, payload.subarray);
             setIsReportVisible(true);
             toast.success('Report generated successfully');
+        } else if (data?.gridweeks?.length > 0 || data?.allperiods?.length > 0) {
+            processReportData(data, payload.subarray);
+            setIsReportVisible(true);
+            toast.success('Report generated successfully (No Timetable Entries)');
         } else {
-            const msg = response.message || 'TimeTable is Not Generated For Selected Details !!!!';
+            const msg =
+                response.success === false && response.message ? response.message : 'TimeTable is Not Generated For Selected Details !!!!';
             toast.error(msg);
             setReportData([]);
             setIsReportVisible(false);
@@ -59,12 +64,12 @@ export default function SubjectWiseReportPage() {
         // Helper to find the object containing TimeTable data (following classwise-report logic)
         const findRoot = (obj: any): any => {
             if (!obj) return null;
-            const hasData = (o: any) => o && (
-                (o.tt && Array.isArray(o.tt)) ||
-                (o.TT && Array.isArray(o.TT)) ||
-                (o.timetable && Array.isArray(o.timetable)) ||
-                (o.Table4 && Array.isArray(o.Table4))
-            );
+            const hasData = (o: any) =>
+                o &&
+                ((o.tt && Array.isArray(o.tt)) ||
+                    (o.TT && Array.isArray(o.TT)) ||
+                    (o.timetable && Array.isArray(o.timetable)) ||
+                    (o.Table4 && Array.isArray(o.Table4)));
             if (hasData(obj)) return obj;
             if (obj.data) return findRoot(obj.data);
             return obj;
@@ -78,7 +83,7 @@ export default function SubjectWiseReportPage() {
             for (const k of keys) {
                 if (obj[k] && Array.isArray(obj[k])) return obj[k];
                 const lowerK = k.toLowerCase();
-                const foundKey = Object.keys(obj).find(key => key.toLowerCase() === lowerK);
+                const foundKey = Object.keys(obj).find((key) => key.toLowerCase() === lowerK);
                 if (foundKey && Array.isArray(obj[foundKey])) return obj[foundKey];
             }
             return [];
@@ -146,18 +151,22 @@ export default function SubjectWiseReportPage() {
                             const tDayId = t.ttmD_Id || t.TTMD_Id || t.day_id;
                             const tSubId = t.ismS_Id || t.ISM_Id || t.isms_Id;
 
-                            return Number(tPedId) === Number(periodCol.ped_id) &&
+                            return (
+                                Number(tPedId) === Number(periodCol.ped_id) &&
                                 Number(tDayId) === Number(dayId) &&
-                                Number(tSubId) === Number(subId);
+                                Number(tSubId) === Number(subId)
+                            );
                         });
 
                         if (entries.length > 0) {
-                            cellContent = entries.map((t: any) => {
-                                const cls = t.asmcL_ClassName || t.className || t.asmcl_classname || '';
-                                const sec = t.asmC_SectionName || t.sectionName || t.asmc_sectionname || '';
-                                const stf = t.staffName || t.empName || t.hrmE_EmployeeName || '';
-                                return `${cls} : ${sec} : ${stf}`;
-                            }).join(' && ');
+                            cellContent = entries
+                                .map((t: any) => {
+                                    const cls = t.asmcL_ClassName || t.className || t.asmcl_classname || '';
+                                    const sec = t.asmC_SectionName || t.sectionName || t.asmc_sectionname || '';
+                                    const stf = t.staffName || t.empName || t.hrmE_EmployeeName || '';
+                                    return `${cls} : ${sec} : ${stf}`;
+                                })
+                                .join(' && ');
                         }
                     } else {
                         cellContent = periodCol.brk_name || 'Break';
@@ -191,11 +200,7 @@ export default function SubjectWiseReportPage() {
     return (
         <div className='container mx-auto space-y-6 p-4'>
             <CollapsibleSection title='Subject Wise TimeTable Report' defaultOpen={true} className='shadow-lg'>
-                <SubjectWiseForm
-                    initialData={initialData}
-                    onReportGenerated={handleReportGenerated}
-                    onCancel={handleCancel}
-                />
+                <SubjectWiseForm initialData={initialData} onReportGenerated={handleReportGenerated} onCancel={handleCancel} />
             </CollapsibleSection>
 
             {isReportVisible && (

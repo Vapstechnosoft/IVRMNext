@@ -12,10 +12,12 @@ import { Printer, FileText, Loader2 } from 'lucide-react';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 
 interface StjamesTcReportResponse {
-    studentTCList: any[];
+    result: any[];
+    masterCompany?: any[];
     academicList1?: any[];
     previousschool?: any[];
     studenttcdetails?: any[];
+    ascisS_QRCode?: string;
 }
 
 export default function StjamesTcCustomReportPage() {
@@ -40,31 +42,56 @@ export default function StjamesTcCustomReportPage() {
             const response = await tcReportMutation.mutateAsync(payload) as any;
             const data = response.data as StjamesTcReportResponse;
 
-            if (data && data.studentTCList && data.studentTCList.length > 0) {
-                const tcData = data.studentTCList[0];
-                const academicInfo = data.academicList1?.[0] || {};
+            if (data && data.result && data.result.length > 0) {
+                const resultData = data.result[0];
+                const tcDetail = data.studenttcdetails?.[0] || {};
                 
-                // Process data mapping as per AngularJS logic
+                // Gender logic
+                const isFemale = resultData.amst_sex?.toLowerCase() === 'female';
+                const gender = {
+                    title: isFemale ? 'miss' : 'master',
+                    sonOf: isFemale ? 'Daughter of' : 'Son of',
+                    hisHer: isFemale ? 'her' : 'his',
+                    heShe: isFemale ? 'She' : 'He'
+                };
+
+                // Process data mapping as per backend response fields
                 const mappedData = {
-                    tcno: tcData.astC_TCNO,
-                    admno: tcData.amsT_RegistrationNo,
-                    lblstdname: tcData.studentname,
-                    lblfathername: tcData.amsT_FatherName,
-                    lblmothername: tcData.amsT_MotherName,
-                    lbldob: tcData.amsT_DOB,
-                    lbldobwords: tcData.amsT_DOB_Words,
-                    lbldoa: tcData.amsT_Date,
-                    lbldol: data.studenttcdetails?.[0]?.astC_TCDate || tcData.astC_LastAttendedDate,
-                    lblconduct: tcData.astC_Conduct,
-                    lblPromotion: tcData.qualificlass,
-                    previousschoolname: data.previousschool?.[0]?.amstpS_PrvSchoolName || '',
-                    laststudiedinwords: tcData.Last_Class_Studied || '', // This might need SwitchFuction mapping if not already in words
-                    todaydate: tcData.astC_TCIssueDate || new Date().toISOString(),
+                    tcno: tcDetail.astC_TCNO || resultData.astc_tcno,
+                    admno: resultData.amst_registrationno,
+                    lblstdname: resultData.studentname,
+                    lblfathername: resultData.amst_fathername,
+                    lblmothername: resultData.amst_mothername,
+                    lbldob: resultData.amst_dob,
+                    lbldobwords: resultData.amst_dob_words,
+                    lbldoa: resultData.amst_date,
+                    lbldol: tcDetail.astC_LastAttendedDate || resultData.astc_lastattendeddate,
+                    lblconduct: tcDetail.astC_Conduct || resultData.astc_conduct,
+                    lblPromotion: resultData.qualificlass || '',
+                    previousschoolname: resultData.institutionname || data.previousschool?.[0]?.amstpS_PrvSchoolName || '',
+                    laststudiedinwords: resultData.last_class_studied || '',
+                    todaydate: tcDetail.astC_TCIssueDate || resultData.astc_tcissuedate || new Date().toISOString(),
+                    qrcode: data.ascisS_QRCode,
+                    address1: resultData.amst_perstreet || '',
+                    address2: resultData.amst_perarea || '',
+                    address3: resultData.amst_percity || '',
+                    leavingreason: tcDetail.astC_LeavingReason || resultData.astc_leavingreason || '',
+                    feepaid: tcDetail.astC_FeePaid || resultData.astc_feepaid || 'Paid',
+                    gender,
+                    religion: resultData.religion || '',
+                    caste: resultData.caste || '',
+                    subjectstudied: resultData.subjectstudied || '',
+                    daysattended: resultData.noof_daysattended || 0,
+                    schooldays: resultData.noof_schooldays || 0,
+                    tcappdate: resultData.astc_tcapplicationdate || '',
+                    district: resultData.district || '',
+                    statename: resultData.statename || '',
+                    logo: resultData.logo || data.masterCompany?.[0]?.logo || ''
                 };
 
                 // Helper to mimic SwitchFuction from AngularJS if needed
-                if (!mappedData.laststudiedinwords && tcData.Last_Class_Studied) {
-                    mappedData.laststudiedinwords = mapClassToWords(tcData.Last_Class_Studied);
+                if (!mappedData.laststudiedinwords && resultData.last_class_studied) {
+                    mappedData.laststudiedinwords = mapClassToWords(resultData.last_class_studied);
                 }
 
                 setReportData(mappedData);

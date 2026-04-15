@@ -9,6 +9,7 @@ import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 
 export const eventsMappingColumns: ColumnDef<IEventsMappingData>[] = [
     {
+        id: 'SPCCE_Id',
         accessorKey: 'spccE_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
         cell: ({ row, table }) => {
@@ -21,50 +22,65 @@ export const eventsMappingColumns: ColumnDef<IEventsMappingData>[] = [
         enableHiding: false
     },
     {
+        id: 'ASMAY_Year',
         accessorKey: 'asmaY_Year',
-        header: 'Academic Year',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Academic Year' />,
+        enableSorting: true
     },
     {
+        id: 'SPCCME_EventName',
         accessorKey: 'spccmE_EventName',
-        header: 'Event Name',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Event Name' />,
+        enableSorting: true
     },
     {
+        id: 'SPCCMEV_EventVenue',
         accessorKey: 'spccmeV_EventVenue',
-        header: 'Venue Name',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Venue Name' />,
+        enableSorting: true
     },
     {
+        id: 'SPCCE_StartDate',
         accessorKey: 'spccE_StartDate',
-        header: 'Start Date',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Start Date' />,
         cell: ({ row }) => {
             const date = row.original.spccE_StartDate;
             return date ? new Date(date).toLocaleDateString() : '';
-        }
+        },
+        enableSorting: true
     },
     {
+        id: 'SPCCE_StartTime',
         accessorKey: 'spccE_StartTime',
-        header: 'Start Time',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Start Time' />,
         cell: ({ row }) => {
-            return <div className="lowercase">{row.getValue("spccE_StartTime")}</div>
-        }
+            return <div className="lowercase">{row.original.spccE_StartTime}</div>
+        },
+        enableSorting: true
     },
     {
+        id: 'SPCCE_EndDate',
         accessorKey: 'spccE_EndDate',
-        header: 'End Date',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='End Date' />,
         cell: ({ row }) => {
             const date = row.original.spccE_EndDate;
             return date ? new Date(date).toLocaleDateString() : '';
-        }
+        },
+        enableSorting: true
     },
     {
+        id: 'SPCCE_EndTime',
         accessorKey: 'spccE_EndTime',
-        header: 'End Time',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='End Time' />,
         cell: ({ row }) => {
-            return <div className="lowercase">{row.getValue("spccE_EndTime")}</div>
-        }
+            return <div className="lowercase">{row.original.spccE_EndTime}</div>
+        },
+        enableSorting: true
     },
     {
+        id: 'SPCCE_Remarks',
         accessorKey: 'spccE_Remarks',
-        header: 'Remarks',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Remarks' />
     },
     {
         id: 'actions',

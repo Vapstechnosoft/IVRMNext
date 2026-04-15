@@ -19,6 +19,7 @@ export const SUPER_ADMIN_QUERY_KEYS = {
 };
 
 export const ADMISSION_QUERY_KEYS = {
+    REPORTS: 'reports',
     MASTER_CLASS: 'master_class',
     MASTER_CATEGORY: 'master_category',
     MASTER_SECTION: 'master_section',
@@ -78,7 +79,10 @@ export const ADMISSION_QUERY_KEYS = {
     STUDENT_ATTENDANCE_REPORT: 'student_attendance_report',
     DATE_OF_BIRTH_REPORT: 'date_of_birth_report',
     STUDENT_ATTENDANCE_SEARCH: 'student_attendance_search',
-    STUDENT_CATEGORY_BY_CLASS: 'student_category_by_class'
+    STUDENT_CATEGORY_BY_CLASS: 'student_category_by_class',
+    ADMISSION_FORM_DETAILS: 'admission_form_details',
+    ADMISSION_FORM_ONCHANGE_CLASS: 'admission_form_onchange_class',
+    ADMISSION_FORM_ONCHANGE_STREAM: 'admission_form_onchange_stream'
 };
 
 export const PREADMISSION_QUERY_KEYS = {

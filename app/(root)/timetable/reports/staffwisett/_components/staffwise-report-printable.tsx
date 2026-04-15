@@ -8,16 +8,20 @@ interface StaffWiseReportPrintableProps {
 
 const StaffWiseReportPrintable = forwardRef<HTMLDivElement, StaffWiseReportPrintableProps>(({ reportData }, ref) => {
     return (
-        <div ref={ref} className='print-only'>
+        <div ref={ref} className='printable-content'>
             <style jsx global>{`
                 @media screen {
-                    .print-only {
+                    .printable-content {
                         display: none;
                     }
                 }
                 @media print {
-                    .print-only {
-                        display: block;
+                    .printable-content {
+                        display: block !important;
+                        visibility: visible !important;
+                    }
+                    .printable-content * {
+                        visibility: visible !important;
                     }
                     .page-break {
                         page-break-after: always;

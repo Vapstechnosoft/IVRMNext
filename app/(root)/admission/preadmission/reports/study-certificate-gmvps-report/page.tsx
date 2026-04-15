@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, Printer, QrCode } from 'lucide-react';
 import { toast } from 'sonner';
-import { useStudyCertificateDetails, useStudyCertificateConductDetails, useStudyCertificateQRMutation, useStudyCertificateLoadData } from '@/hooks/admission/preadmission/useReports';
+import { useStudyCertificateDetailsMutation, useStudyCertificateConductDetailsMutation, useStudyCertificateQRMutation, useStudyCertificateLoadData } from '@/hooks/admission/preadmission/useReports';
 
 export default function StudyCertificateGMVPSPage() {
     const [filterData, setFilterData] = useState<any>(null);
@@ -22,25 +22,8 @@ export default function StudyCertificateGMVPSPage() {
 
     const qrMutation = useStudyCertificateQRMutation();
 
-    const fetchStudyDetails = useStudyCertificateDetails(
-        {
-            ASMAY_Id: filterData?.asmaY_Id,
-            ASMCL_Id: filterData?.allorindid === 'A' ? 0 : filterData?.asmcL_Id,
-            ASMC_Id: filterData?.allorindid === 'A' ? 0 : filterData?.asmS_Id,
-            AMST_Id: filterData?.amst_Id,
-        },
-        false
-    );
-
-    const fetchCharacterDetails = useStudyCertificateConductDetails(
-        {
-            ASMAY_Id: filterData?.asmaY_Id,
-            ASMCL_Id: filterData?.allorindid === 'A' ? 0 : filterData?.asmcL_Id,
-            ASMC_Id: filterData?.allorindid === 'A' ? 0 : filterData?.asmS_Id,
-            AMST_Id: filterData?.amst_Id,
-        },
-        false
-    );
+    const fetchStudyDetails = useStudyCertificateDetailsMutation();
+    const fetchCharacterDetails = useStudyCertificateConductDetailsMutation();
 
     const handleReport = async (data: any) => {
         setFilterData(data);
@@ -48,18 +31,45 @@ export default function StudyCertificateGMVPSPage() {
         setReportResult(null);
 
         try {
-            const fetcher = data.certificateType === '0' ? fetchStudyDetails : fetchCharacterDetails;
-            const result = await fetcher.refetch();
+            const mutation = data.certificateType === '0' ? fetchStudyDetails : fetchCharacterDetails;
+            const result = await mutation.mutateAsync({
+                ASMAY_Id: data.asmaY_Id,
+                ASMCL_Id: data.allorindid === 'A' ? 0 : data.asmcL_Id,
+                ASMC_Id: data.allorindid === 'A' ? 0 : data.asmS_Id,
+                AMST_Id: data.amst_Id,
+            });
 
-            if (result.data?.data) {
-                const finalData = result.data.data;
+            if (result?.data || Array.isArray(result)) {
+                const finalData = result.data || result;
                 // Parity check for common backend response structures
-                const studentList = finalData.studentList || finalData.fillstudlist || (Array.isArray(finalData) ? finalData : []);
+                const studentListRaw = finalData?.studentList || finalData?.fillstudlist || (Array.isArray(finalData) ? finalData : []);
                 
-                if (studentList.length === 0) {
+                if (studentListRaw.length === 0) {
                     toast.error('No records found for the selected criteria');
                 } else {
-                    setReportResult({ ...finalData, studentList });
+                    // Standardize data mapping for GMVPS
+                    const mappedStudentList = studentListRaw.map((student: any) => {
+                        return {
+                            ...student,
+                            // Ensure common names are mapped to standard keys
+                            amsT_Id: student.amsT_Id || student.AMST_Id,
+                            studentName: (student.studentnam || student.studentName || student.amsT_FirstName || '').toUpperCase(),
+                            fatherName: student.fatherName || student.fathername || student.amsT_FatherName || '',
+                            motherName: student.motherName || student.mothername || student.amsT_MotherName || '',
+                            className: student.class || student.className || student.ASMCL_ClassName || '',
+                            sectionName: student.section || student.sectionName || student.ASMC_SectionName || '',
+                            admNo: student.admNo || student.admno || student.amsT_AdmNo || '',
+                            academicYear: student.acadamicyear || student.academicYear || student.ASMAY_Year || '',
+                            gender: student.AMST_Sex || student.gender || '',
+                            dob: student.dob || student.amst_dob || '',
+                            caste: student.caste_name || student.imC_CasteName || student.religion || '',
+                            motherTongue: student.stumt || student.stuMT || student.amsT_MotherTongue || '',
+                            joinedClass: student.admitedclass || student.joinedclass || '',
+                            joinedYear: student.admitedyear || student.joinedyear || '',
+                        };
+                    });
+
+                    setReportResult({ ...finalData, studentList: mappedStudentList });
                 }
             } else {
                 toast.error('Failed to fetch report data');
@@ -82,6 +92,7 @@ export default function StudyCertificateGMVPSPage() {
 
         let successCount = 0;
         let failCount = 0;
+        let lastApiResponseMessage = '';
 
         try {
             for (const student of reportResult.studentList) {
@@ -116,11 +127,13 @@ export default function StudyCertificateGMVPSPage() {
 
                 try {
                     const response = await qrMutation.mutateAsync(payload);
-                    const message = response.data?.message || 'Process completed';
+                    const apiData = response?.data || response;
+                    const message = apiData?.message || 'Process completed';
+                    lastApiResponseMessage = message;
                     
-                    if (response.data?.success) {
-                        if (response.data?.qrCodePath) {
-                            student.qrCode = response.data.qrCodePath;
+                    if (apiData?.success) {
+                        if (apiData?.qrCodePath) {
+                            student.qrCode = apiData.qrCodePath;
                         }
                         successCount++;
                     } else if (message.toLowerCase().includes('saved successfully')) {
@@ -137,10 +150,14 @@ export default function StudyCertificateGMVPSPage() {
             }
 
             if (successCount > 0) {
-                toast.success(`QR Code generation: ${successCount} successful${failCount > 0 ? `, ${failCount} failed` : ''}`);
+                const feedbackMessage = reportResult.studentList.length === 1 
+                    ? `QR Code: ${lastApiResponseMessage}` 
+                    : `QR Code generation: ${successCount} successful${failCount > 0 ? `, ${failCount} failed` : ''}`;
+                
+                toast.success(feedbackMessage);
                 setReportResult({ ...reportResult }); // Refresh to show QR codes
             } else if (failCount > 0) {
-                toast.error('Failed to generate QR Codes');
+                toast.error(`Failed to generate QR Codes: ${lastApiResponseMessage}`);
             }
         } catch (error) {
             console.error('QR Generation outer error:', error);
