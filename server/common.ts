@@ -745,6 +745,63 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/reports/custom-tc',
                                             title: 'GM Custom Tc',
                                             description: 'GM Custom Tc'
+                                        },
+
+                                        {
+                                            id: 68,
+                                            name: 'Little Anns Certificate For Appreciation',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/newsharedhost/reports/little-anns-certificate-for-appreciation',
+                                            title: 'Little Anns Certificate  For Appreciation',
+                                            description: 'Little Anns Certificate  For Appreciation'
+                                        },
+                                        {
+                                            id: 69,
+                                            name: 'Little Anns Certificate Of Promotion',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/newsharedhost/reports/little-anns-certificate-of-promotion',
+                                            title: 'Little Anns Certificate Of Promotion',
+                                            description: 'Little Anns Certificate Of Promotion'
+                                        },
+                                        {
+                                            id: 70,
+                                            name: 'St.Anns Certificate For Appreciation',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/newsharedhost/reports/st-anns-certificate-for-appreciation',
+                                            title: 'St.Anns Certificate For Appreciation',
+                                            description: 'St.Anns Certificate For Appreciation'
+                                        },
+                                        {
+                                            id: 71,
+                                            name: 'St.Anns Certificate For Merit',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/newsharedhost/reports/st-anns-certificate-for-merit',
+                                            title: 'St.Anns Certificate For Merit',
+                                            description: 'St.Anns Certificate For Merit'
+                                        },
+                                        {
+                                            id: 72,
+                                            name: 'Nagarjuna Tc custom Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/newsharedhost/reports/tc-custom-report-nagarjuna',
+                                            title: 'Nagarjuna Tc custom Report',
+                                            description: 'Nagarjuna Tc custom Report'
+                                        },
+                                        {
+                                            id: 73,
+                                            name: 'Tun Bridge Study Certificate',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/newsharedhost/reports/Tun-Bridge-Study-Certificate',
+                                            title: 'Tun Bridge Study Certificate',
+                                            description: 'Tun Bridge Study Certificate'
+                                        },
+                                        {
+                                            id: 74,
+                                            name: 'TunBridge',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/newsharedhost/reports/TunBridge',
+                                            title: 'TunBridge',
+                                            description: 'TunBridge'
                                         }
 
 
@@ -794,37 +851,45 @@ export async function getUserAccessibleModules() {
 
                                     ]
                                 },
-                                // {
-                                //     id: 10,
-                                //     name: 'NDA',
-                                //     icon: 'Settings',
-                                //     pages: [
-                                //         {
-                                //             id: 61,
-                                //             name: 'NDA Transfer Certificate',
-                                //             icon: 'Settings',
-                                //             url: '/admission/preadmission/reports/nda-transfer-certificate',
-                                //             title: 'NDA Transfer Certificate',
-                                //             description: 'NDA Transfer Certificate'
-                                //         },
-                                //         {
-                                //             id: 62,
-                                //             name: 'NDA Student TC',
-                                //             icon: 'Settings',
-                                //             url: '/admission/preadmission/reports/nda-student-tc',
-                                //             title: 'NDA Student TC',
-                                //             description: 'NDA Student TC'
-                                //         },
-                                //         {
-                                //             id: 63,
-                                //             name: 'NDA Student Profile Update',
-                                //             icon: 'Settings',
-                                //             url: '/admission/preadmission/reports/nda-student-profile-update',
-                                //             title: 'NDA Student Profile Update',
-                                //             description: 'NDA Student Profile Update'
-                                //         }
-                                //     ]
-                                // },
+                                {
+                                    id: 10,
+                                    name: 'NDA',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 61,
+                                            name: 'NDA Transfer Certificate',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/nda/reports/nda-transfer-certificate',
+                                            title: 'NDA Transfer Certificate',
+                                            description: 'NDA Transfer Certificate'
+                                        },
+                                        {
+                                            id: 62,
+                                            name: 'NDA Student TC',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/nda-student-tc',
+                                            title: 'NDA Student TC',
+                                            description: 'NDA Student TC'
+                                        },
+                                        // {
+                                        //     id: 63,
+                                        //     name: 'NDA Student Profile Update',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/reports/nda-student-profile-update',
+                                        //     title: 'NDA Student Profile Update',
+                                        //     description: 'NDA Student Profile Update'
+                                        // },
+                                        {
+                                            id: 64,
+                                            name: 'Notredame Custom TC Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/nda/reports/notredame-custom-tc-report',
+                                            title: 'Notredame Custom TC Report',
+                                            description: 'Notredame Custom TC Report'
+                                        }
+                                    ]
+                                },
                                 {
                                     id: 11,
                                     name: 'Baldwin',
@@ -1025,14 +1090,14 @@ export async function getUserAccessibleModules() {
                                     name: 'St. Thomas Church School',
                                     icon: 'Settings',
                                     pages: [
-                                        // {
-                                        //     id: 61,
-                                        //     name: 'St. Thomas Admission Form',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/stthomas/admission-form',
-                                        //     title: 'St. Thomas Admission Form',
-                                        //     description: 'St. Thomas Admission Form'
-                                        // },
+                                        {
+                                            id: 61,
+                                            name: 'St. Thomas Admission Form',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/stthomas/admission-form',
+                                            title: 'St. Thomas Admission Form',
+                                            description: 'St. Thomas Admission Form'
+                                        },
                                         {
                                             id: 62,
                                             name: 'Total Strength',
@@ -7197,6 +7262,14 @@ export async function getUserAccessibleModules() {
                                             url: '/StudentPortal/student-dashboard/Exam/ExamReport',
                                             title: 'Exam Report',
                                             description: 'View Exam Report Performance'
+                                        },
+                                        {
+                                            id: 40015,
+                                            name: 'Online MCQ Quiz',
+                                            icon: 'FileQuestion',
+                                            url: '/StudentPortal/student-dashboard/Exam/OnlineMcqQuiz',
+                                            title: 'Online MCQ Quiz',
+                                            description: 'Take and view results of online MCQ assessments'
                                         }
                                     ]
                                 }

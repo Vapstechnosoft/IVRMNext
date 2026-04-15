@@ -32,7 +32,7 @@ export function FilterForm({ onSearch, onReset }: FilterFormProps) {
     const academicYear = watch('academic_year');
     const className = watch('classname');
 
-    const { data: initialData, isLoading } = useNdaStudentTcInitialData(Number(academicYear) || undefined);
+    const { data: initialData, isLoading } = useNdaStudentTcInitialData();
     const sectionMutation = useNdaStudentTcSections();
     const [sections, setSections] = useState<any[]>([]);
 

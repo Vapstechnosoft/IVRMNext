@@ -32,7 +32,7 @@ export default function NdaTransferCertificatePage() {
             
             const payload = {
                 ASMAY_Id: Number(formData.asmaY_Id),
-                AMST_Id: formData.amsT_Id.amsT_Id,
+                AMST_Id: formData.amsT_Id?.amsT_Id || (formData.amsT_Id as any),
                 tctemporper: formData.tctemporper
             };
 

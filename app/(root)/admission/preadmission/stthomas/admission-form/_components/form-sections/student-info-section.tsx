@@ -3,6 +3,7 @@
 
 import { Controller, useFormContext } from 'react-hook-form';
 import { useMemo, useEffect } from 'react';
+import { useGetCasteByCasteCategory } from '@/hooks/admission/admissionForm';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label, FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
@@ -40,6 +41,7 @@ interface StudentInfoSectionProps {
     sectionData: any[];
     sectionLoading: boolean;
     streamLoading?: boolean;
+    concessionList?: any[];
 }
 
 export function StudentInfoSection({
@@ -61,7 +63,8 @@ export function StudentInfoSection({
     electiveList,
     sectionData,
     sectionLoading,
-    streamLoading
+    streamLoading,
+    concessionList = []
 }: StudentInfoSectionProps) {
     const {
         register,
@@ -73,10 +76,25 @@ export function StudentInfoSection({
     } = useFormContext();
 
     const religionId = watch('amsT_ReligionId');
+    const categoryId = watch('imCC_Id');
+
+    const { data: casteByCategory, isLoading: casteLoading } = useGetCasteByCasteCategory(categoryId);
+
     const filteredCaste = useMemo(() => {
-        if (!religionId) return [];
-        return allCaste.filter((c: any) => Number(c.ivrmmR_Id) === Number(religionId));
-    }, [allCaste, religionId]);
+        if (!categoryId) return [];
+        return (casteByCategory as any) || [];
+    }, [categoryId, casteByCategory]);
+
+    // Clear caste selection if it's no longer valid for the selected category
+    useEffect(() => {
+        const currentCasteId = getValues('imC_Id');
+        if (currentCasteId && Number(currentCasteId) > 0) {
+            const isValid = filteredCaste.some((c: any) => Number(c.imC_Id) === Number(currentCasteId));
+            if (!isValid) {
+                setValue('imC_Id', 0);
+            }
+        }
+    }, [categoryId, filteredCaste, setValue, getValues]);
 
     const dob = watch('amsT_DOB');
     const admDate = watch('amsT_Date');
@@ -88,6 +106,18 @@ export function StudentInfoSection({
             setValue('amsT_DOB_Words', dateToWords(dob));
         }
     }, [dob, admDate, setValue]);
+
+    const casteId = watch('imC_Id');
+
+    // Auto-bind Caste Category when Caste is selected
+    useEffect(() => {
+        if (Number(casteId) > 0) {
+            const selectedCaste = allCaste.find((c: any) => Number(c.imC_Id) === Number(casteId));
+            if (selectedCaste?.imcC_Id || selectedCaste?.imCC_Id) {
+                setValue('imCC_Id', selectedCaste.imcC_Id || selectedCaste.imCC_Id);
+            }
+        }
+    }, [casteId, allCaste, setValue]);
 
     const isEmisBpl = watch('isEmisBpl');
     const isEcs = watch('amsT_ECSFlag');
@@ -430,12 +460,22 @@ export function StudentInfoSection({
                             <Select
                                 value={field.value?.toString() || ''}
                                 onValueChange={(val) => field.onChange(Number(val))}
-                                disabled={!religionId}
+                                disabled={!categoryId}
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select Caste" />
                                 </SelectTrigger>
                                 <SelectContent>
+                                    {casteLoading && (
+                                        <div className="flex items-center justify-center p-2 text-sm text-muted-foreground italic">
+                                            Loading castes...
+                                        </div>
+                                    )}
+                                    {!casteLoading && filteredCaste.length === 0 && (
+                                        <div className="flex items-center justify-center p-2 text-sm text-muted-foreground italic">
+                                            No castes found
+                                        </div>
+                                    )}
                                     {filteredCaste.map((item: any) => (
                                         <SelectItem key={item.imC_Id} value={item.imC_Id.toString()}>
                                             {item.imC_CasteName}
@@ -456,6 +496,7 @@ export function StudentInfoSection({
                             <Select
                                 value={field.value?.toString() || ''}
                                 onValueChange={(val) => field.onChange(Number(val))}
+                                searchable={true}
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select Category" />
@@ -464,6 +505,57 @@ export function StudentInfoSection({
                                     {casteCategory.map((item: any) => (
                                         <SelectItem key={item.imcC_Id || item.imCC_Id} value={(item.imcC_Id || item.imCC_Id).toString()}>
                                             {item.imcC_CategoryName || item.imCC_CategoryName}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                    <Label>Student Category <span className="ml-1 text-red-500">*</span></Label>
+                    <Controller
+                        name="asmcC_Id"
+                        control={control}
+                        render={({ field }) => (
+                            <Select
+                                value={field.value?.toString() || ''}
+                                onValueChange={(val) => field.onChange(Number(val))}
+                                disabled={!categoryByClass || categoryByClass.length === 0}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder={!categoryByClass || categoryByClass.length === 0 ? "No category found" : "Select Category"} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {categoryByClass?.map((item: any) => (
+                                        <SelectItem key={item.asmcC_Id} value={item.asmcC_Id.toString()}>
+                                            {item.amC_Name || item.asmcC_CategoryName}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                    <Label>Fee Concession Type <span className="ml-1 text-red-500">*</span></Label>
+                    <Controller
+                        name="feeConcessionType"
+                        control={control}
+                        render={({ field }) => (
+                            <Select
+                                value={field.value?.toString() || ''}
+                                onValueChange={(val) => field.onChange(val)}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select Concession" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {concessionList?.map((item: any) => (
+                                        <SelectItem key={item.fmcC_Id} value={item.fmcC_Id.toString()}>
+                                            {item.fmcC_ConcessionName}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>

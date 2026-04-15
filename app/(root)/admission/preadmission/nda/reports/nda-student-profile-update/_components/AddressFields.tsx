@@ -21,7 +21,6 @@ export const AddressFields: React.FC<AddressFieldsProps> = ({
     onCountryChange 
 }) => {
     const isResidential = type === 'Res';
-    const prefix = isResidential ? 'Res' : 'Per';
     const streetKey = isResidential ? 'Resstreet' : 'Perstreett';
     const areaKey = isResidential ? 'ResArea' : 'PerArea';
     const cityKey = isResidential ? 'Rescity' : 'Percity';

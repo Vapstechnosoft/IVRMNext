@@ -16,11 +16,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Spinner } from '@/components/ui/spinner';
 import {
     useMasterSectionHeld,
-    useStudentCategoryByClass
+    useStudentCategoryByClass,
+    useConcessionDropdown
 } from '@/hooks/admission/preadmission/useMasters';
 
-import { useAdmissionFormDetails, useOnChangeClass, useOnChangeStream } from '@/hooks/admission/admissionForm';
-import { useDistrictDropdown } from '@/hooks/admission/preadmission/useTransactions';
+import { useAdmissionFormDetails, useOnChangeClass, useOnChangeStream, useGetCasteByCasteCategory } from '@/hooks/admission/admissionForm';
+import { useDistrictDropdown, useCountryDropdown, useStateDropdown } from '@/hooks/admission/preadmission/useTransactions';
 import { calculateAge, dateToWords, cn } from '@/lib/utils';
 import { studentAdmissionFormSchema } from '@/schemas/admission/admission-form';
 import {
@@ -158,6 +159,12 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             amsT_Nationality: 0,
             amsT_CasteCertiNo: '',
             amsT_SubCasteIMC_Id: '',
+            imCC_Id: 0,
+            asmcC_Id: 0,
+            amsT_ReligionId: 0,
+            imC_Id: 0,
+            amsL_Id: 0,
+            asmS_Id: 0,
             amsT_Village: '',
             amsT_Town: '',
             amsT_Taluk: '',
@@ -282,6 +289,15 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
     // Ensure the academic year from Getdetails is present in react-hook-form state
     const { data: admissionDetails, refetch: refetchAdmissionDetails, isLoading: detailsLoading, error: detailsError } = useAdmissionFormDetails();
 
+    // Watch class and academic year for the class-based student category API
+    const classIdForCategory = watch('asmcL_Id');
+    const asmaYId = watch('asmaY_Id' as any);
+    const { data: categoryByClass } = useStudentCategoryByClass(
+        Number(classIdForCategory) || 0,
+        Number(asmaYId) || 0,
+        'adm'
+    );
+
     useEffect(() => {
         const activeYear = (admissionDetails as any)?.allAcademicYear?.[0] || (admissionDetails as any)?.academicYearOnLoad?.find((y: any) => y.asmaY_ActiveFlag === 1);
         if (activeYear) {
@@ -290,9 +306,21 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         }
     }, [admissionDetails, setValue]);
 
-    const religion = useMemo(() => ({ data: (admissionDetails as any)?.allReligion || (admissionDetails as any)?.allReligionList || (admissionDetails as any)?.AllReligion || [] }), [admissionDetails]);
+    const religion = useMemo(() => ({
+        data: (admissionDetails as any)?.religions ||
+            (admissionDetails as any)?.allReligion ||
+            (admissionDetails as any)?.allReligionList ||
+            (admissionDetails as any)?.AllReligion || []
+    }), [admissionDetails]);
     const country = useMemo(() => ({ data: (admissionDetails as any)?.allCountry || (admissionDetails as any)?.allCountryList || (admissionDetails as any)?.AllCountry || [] }), [admissionDetails]);
-    const casteCategoryData = useMemo(() => ({ data: (admissionDetails as any)?.allCasteCategory || (admissionDetails as any)?.vpre_allCasteCategory || (admissionDetails as any)?.allCasteCategoryList || (admissionDetails as any)?.AllCasteCategory || [] }), [admissionDetails]);
+    const casteCategoryData = useMemo(() => ({
+        data: (categoryByClass as any)?.data?.casteCategoryes ||
+            (admissionDetails as any)?.casteCategoryes ||
+            (admissionDetails as any)?.allCasteCategory ||
+            (admissionDetails as any)?.vpre_allCasteCategory ||
+            (admissionDetails as any)?.allCasteCategoryList ||
+            (admissionDetails as any)?.AllCasteCategory || []
+    }), [admissionDetails, (categoryByClass as any)?.data?.casteCategoryes]);
     const admissionClass = useMemo(() => ({ data: (admissionDetails as any)?.allClass || (admissionDetails as any)?.allClassList || (admissionDetails as any)?.AllClass || [] }), [admissionDetails]);
     const source = useMemo(() => ({ data: (admissionDetails as any)?.allSources || [] }), [admissionDetails]);
     const reference = useMemo(() => ({ data: (admissionDetails as any)?.allReference || [] }), [admissionDetails]);
@@ -307,24 +335,47 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             { id: 'Other', name: 'Other' }
         ];
 
-    const allCaste = (admissionDetails as any)?.allCaste || (admissionDetails as any)?.allCasteList || (admissionDetails as any)?.AllCaste || [];
+    const allCaste = (admissionDetails as any)?.castes || (admissionDetails as any)?.allCaste || (admissionDetails as any)?.allCasteList || (admissionDetails as any)?.AllCaste || [];
     const allState = (admissionDetails as any)?.allState || (admissionDetails as any)?.allStateList || (admissionDetails as any)?.AllState || [];
-    const concession = useMemo(() => ({ data: (admissionDetails as any)?.admissionConfiguration?.allConcession || [] }), [admissionDetails]);
+    const { data: concessionDropdown } = useConcessionDropdown();
+    const concession = useMemo(() => ({ data: concessionDropdown?.data || (admissionDetails as any)?.admissionConfiguration?.allConcession || [] }), [concessionDropdown, admissionDetails]);
+
+    // Caste Filtering by Caste Category
+    const currentCategoryId = watch('imCC_Id');
+    const { data: casteByCategory, isLoading: casteByCategoryLoading } = useGetCasteByCasteCategory(Number(currentCategoryId));
+
+    // Compatibility aliases for refetching
+    const refetchReference = refetchAdmissionDetails;
+
+    const conCountryId = watch('amsT_ConCountry');
+    const perCountryId = watch('amsT_PerCountry');
+    const fatherPresentCountryId = watch('fatherNationality');
+    const motherPresentCountryId = watch('motherNationality');
+    const studentNationalityId = watch('amsT_Nationality');
+
+    // Dynamic State Fetching Hooks
+    const { data: resStates, isLoading: resStatesLoading } = useStateDropdown(Number(conCountryId));
+    const { data: perStates, isLoading: perStatesLoading } = useStateDropdown(Number(perCountryId));
+    const { data: nationalityStates, isLoading: nationalityStatesLoading } = useStateDropdown(Number(studentNationalityId));
+    const { data: fatherStates, isLoading: fatherStatesLoading } = useStateDropdown(Number(fatherPresentCountryId));
+    const { data: motherStates, isLoading: motherStatesLoading } = useStateDropdown(Number(motherPresentCountryId));
 
     // Compatibility aliases for loading states
     const referenceLoading = detailsLoading;
     const admissionClassLoading = detailsLoading;
-    const casteLoading = detailsLoading;
+    const casteLoading = detailsLoading || casteByCategoryLoading;
     const sectionLoading = detailsLoading;
     const countryLoading = detailsLoading;
-    const fatherPresentStateLoading = detailsLoading;
+    const fatherPresentStateLoading = detailsLoading || fatherStatesLoading;
     const religionLoading = detailsLoading;
-    const fatherCasteLoading = detailsLoading;
-    const motherPresentStateLoading = detailsLoading;
-    const motherCasteLoading = detailsLoading;
+    const fatherCasteLoading = detailsLoading || casteByCategoryLoading;
+    const motherPresentStateLoading = detailsLoading || motherStatesLoading;
+    const motherCasteLoading = detailsLoading || casteByCategoryLoading;
     const sourceLoading = detailsLoading;
     const academicLoading = detailsLoading;
-    const birthStateLoading = detailsLoading;
+    const birthStateLoading = detailsLoading || nationalityStatesLoading;
+    const resStateLoading = detailsLoading || resStatesLoading;
+    const perStateLoading = detailsLoading || perStatesLoading;
 
     // Compatibility aliases for error states
     const countryError = detailsError;
@@ -336,62 +387,81 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
     const admissionClassError = detailsError;
     const birthStateError = detailsError;
 
-    // Compatibility aliases for refetching
-    const refetchReference = refetchAdmissionDetails;
-
-    // Missing watches for dependent logic
-    const conCountryId = watch('amsT_ConCountry');
-    const perCountryId = watch('amsT_PerCountry');
-    const fatherPresentCountryId = watch('fatherNationality');
-    const motherPresentCountryId = watch('motherNationality');
-
     const caste = useMemo(() => {
-        const religionId = watch('amsT_ReligionId');
-        if (!religionId) return { data: [] };
-        return { data: allCaste.filter((c: any) => Number(c.ivrmmR_Id) === Number(religionId)) };
-    }, [allCaste, watch('amsT_ReligionId')]);
+        if (currentCategoryId) {
+            // Priority 1: Specific data from the category filter API
+            if (casteByCategory && casteByCategory.length > 0) {
+                return { data: casteByCategory };
+            }
+            // Priority 2: Global castes list from Getdetails filtered by imcC_Id
+            if (allCaste && allCaste.length > 0) {
+                const filtered = allCaste.filter((c: any) => Number(c.imcC_Id) === Number(currentCategoryId));
+                return { data: filtered };
+            }
+        }
+        return { data: [] };
+    }, [allCaste, casteByCategory, currentCategoryId]);
 
     const fatherCaste = useMemo(() => {
-        const religionId = watch('fatherReligionId');
-        if (!religionId) return { data: [] };
-        return { data: allCaste.filter((c: any) => Number(c.ivrmmR_Id) === Number(religionId)) };
-    }, [allCaste, watch('fatherReligionId')]);
+        if (currentCategoryId) {
+            if (casteByCategory && casteByCategory.length > 0) {
+                return { data: casteByCategory };
+            }
+            if (allCaste && allCaste.length > 0) {
+                const filtered = allCaste.filter((c: any) => Number(c.imcC_Id) === Number(currentCategoryId));
+                return { data: filtered };
+            }
+        }
+        return { data: [] };
+    }, [allCaste, casteByCategory, currentCategoryId]);
 
     const motherCaste = useMemo(() => {
-        const religionId = watch('motherReligionId');
-        if (!religionId) return { data: [] };
-        return { data: allCaste.filter((c: any) => Number(c.ivrmmR_Id) === Number(religionId)) };
-    }, [allCaste, watch('motherReligionId')]);
+        if (currentCategoryId) {
+            if (casteByCategory && casteByCategory.length > 0) {
+                return { data: casteByCategory };
+            }
+            if (allCaste && allCaste.length > 0) {
+                const filtered = allCaste.filter((c: any) => Number(c.imcC_Id) === Number(currentCategoryId));
+                return { data: filtered };
+            }
+        }
+        return { data: [] };
+    }, [allCaste, casteByCategory, currentCategoryId]);
 
     const conState = useMemo(() => {
-        const countryId = watch('amsT_ConCountry');
-        if (!countryId) return { data: [] };
-        return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(countryId)) };
-    }, [allState, watch('amsT_ConCountry')]);
+        const states = (resStates as any)?.data as any[];
+        if (Array.isArray(states) && states.length > 0) return { data: states };
+        if (!conCountryId) return { data: [] };
+        return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(conCountryId)) };
+    }, [allState, conCountryId, resStates]);
 
     const perState = useMemo(() => {
-        const countryId = watch('amsT_PerCountry');
-        if (!countryId) return { data: [] };
-        return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(countryId)) };
-    }, [allState, watch('amsT_PerCountry')]);
+        const states = (perStates as any)?.data as any[];
+        if (Array.isArray(states) && states.length > 0) return { data: states };
+        if (!perCountryId) return { data: [] };
+        return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(perCountryId)) };
+    }, [allState, perCountryId, perStates]);
 
     const studentState = useMemo(() => {
-        const countryId = watch('amsT_Nationality');
-        if (!countryId) return { data: [] };
-        return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(countryId)) };
-    }, [allState, watch('amsT_Nationality')]);
+        const states = (nationalityStates as any)?.data as any[];
+        if (Array.isArray(states) && states.length > 0) return { data: states };
+        if (!studentNationalityId) return { data: [] };
+        return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(studentNationalityId)) };
+    }, [allState, studentNationalityId, nationalityStates]);
 
     const fatherPresentState = useMemo(() => {
-        const countryId = watch('fatherNationality');
-        if (!countryId) return { data: [] };
-        return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(countryId)) };
-    }, [allState, watch('fatherNationality')]);
+        const states = (fatherStates as any)?.data as any[];
+        if (Array.isArray(states) && states.length > 0) return { data: states };
+        if (!fatherPresentCountryId) return { data: [] };
+        return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(fatherPresentCountryId)) };
+    }, [allState, fatherPresentCountryId, fatherStates]);
 
     const motherPresentState = useMemo(() => {
-        const countryId = watch('motherNationality');
-        if (!countryId) return { data: [] };
-        return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(countryId)) };
-    }, [allState, watch('motherNationality')]);
+        const states = (motherStates as any)?.data as any[];
+        if (Array.isArray(states) && states.length > 0) return { data: states };
+        if (!motherPresentCountryId) return { data: [] };
+        return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(motherPresentCountryId)) };
+    }, [allState, motherPresentCountryId, motherStates]);
 
     const birthState = useMemo(() => {
         const countryId = watch('amsT_PlaceOfBirthCountry');
@@ -404,24 +474,40 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
     };
 
 
-    // Student category is now fetched class-wise via useStudentCategoryByClass below
-    // Watch class and academic year for the class-based student category API
-    const classIdForCategory = watch('asmcL_Id');
-    const asmaYId = watch('asmaY_Id' as any);
-    const { data: categoryByClass } = useStudentCategoryByClass(
-        Number(classIdForCategory) || 0,
-        Number(asmaYId) || 0
-    );
+
 
     // Auto-set student category when class changes (picks first item from array)
     useEffect(() => {
-        const items: any[] = (categoryByClass as any)?.data;
+        const items: any[] = (categoryByClass as any)?.data?.studentCategory;
         if (Array.isArray(items) && items.length > 0 && items[0]?.asmcC_Id) {
-            setValue('asmcC_Id' as any, items[0].asmcC_Id);
-            setValue('studentCategoryId' as any, items[0].asmcC_Id);
+            const catId = Number(items[0].asmcC_Id || items[0].imcC_Id || items[0].imCC_Id);
+            setValue('asmcC_Id' as any, catId);
+            setValue('studentCategoryId' as any, catId);
+            setValue('imCC_Id' as any, catId);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [(categoryByClass as any)?.data]);
+
+    // Reset caste selections when category changes if they are invalid
+    useEffect(() => {
+        if (currentCategoryId) {
+            const currentCasteId = watch('imC_Id');
+            const currentFatherCasteId = watch('fatherCasteId');
+            const currentMotherCasteId = watch('motherCasteId');
+
+            const validCastes = casteByCategory || [];
+            
+            if (currentCasteId && !validCastes.some((c: any) => Number(c.imC_Id) === Number(currentCasteId))) {
+                setValue('imC_Id' as any, 0);
+            }
+            if (currentFatherCasteId && !validCastes.some((c: any) => Number(c.imC_Id) === Number(currentFatherCasteId))) {
+                setValue('fatherCasteId' as any, 0);
+            }
+            if (currentMotherCasteId && !validCastes.some((c: any) => Number(c.imC_Id) === Number(currentMotherCasteId))) {
+                setValue('motherCasteId' as any, 0);
+            }
+        }
+    }, [currentCategoryId, casteByCategory, setValue, watch]);
 
     // helper: check if any of the common guardian fields has content
     const guardianHasContent = (g: any) => {
@@ -509,8 +595,28 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
     const electiveList = useMemo(() => {
         const dynamic = (streamChangeData as any)?.data?.electivelist;
-        return (dynamic && dynamic.length > 0) ? dynamic : ((admissionDetails as any)?.allSubjectGroup || []);
-    }, [streamChangeData, admissionDetails]);
+        if (dynamic && dynamic.length > 0) return dynamic;
+
+        // Use data from categoryByClass if stream data is missing
+        const groups = (categoryByClass as any)?.data?.studentList || [];
+        const subjectsFlat = (categoryByClass as any)?.data?.studentList1 || [];
+
+        if (groups.length > 0) {
+            return groups.map((g: any) => ({
+                asmgC_Id: g.EMG_Id,
+                asmgC_GroupName: g.EMG_GroupName,
+                asmgC_ActiveFlag: true,
+                subjects: subjectsFlat
+                    .filter((s: any) => s.EMG_Id === g.EMG_Id)
+                    .map((s: any) => ({
+                        ismS_Id: s.ISMS_Id,
+                        ismS_SubjectName: s.ISMS_SubjectName
+                    }))
+            }));
+        }
+
+        return (admissionDetails as any)?.allSubjectGroup || [];
+    }, [streamChangeData, admissionDetails, categoryByClass]);
 
     const electiveOptions = useMemo(() => {
         return electiveList.map((e: any) => ({
@@ -518,6 +624,66 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             value: e.asmgC_Id.toString()
         }));
     }, [electiveList]);
+
+    const formValues = watch();
+    const isCurrentStepValid = useMemo(() => {
+        const v = formValues;
+        const checkFilled = (val: any) => {
+            if (val === undefined || val === null) return false;
+            if (typeof val === 'number') return val > 0;
+            if (typeof val === 'string') return val.trim().length > 0;
+            return !!val;
+        };
+
+        if (currentStep === 1) {
+            const step1Fields = [
+                v.amsT_FirstName,
+                v.amsT_RegistrationNo,
+                v.amsT_AdmissionNo,
+                v.asmcL_Id,
+                v.asmS_Id,
+                v.amsT_Nationality,
+                v.amsT_Date,
+                v.amsT_DOB,
+                v.amsT_ReligionId,
+                v.amsT_Sex,
+                v.amsT_MobileNo,
+                v.amsT_emailId,
+                v.imCC_Id,
+                v.imC_Id,
+                v.feeConcessionType
+            ];
+            const basicValid = step1Fields.every(checkFilled);
+            const photoValid = !!studentPhoto?.amsT_Photoname;
+
+            let conditionalValid = true;
+            if (Number(v.isEmisBpl || 0) === 1 && !checkFilled(v.amsT_BPLCardNo)) conditionalValid = false;
+            if (Number(v.amsT_ECSFlag || 0) === 1 && (!checkFilled(v.asecS_AccountNo) || !checkFilled(v.asecS_AccountHolderName) || !checkFilled(v.asecS_BankName))) conditionalValid = false;
+
+            return basicValid && photoValid && conditionalValid;
+        }
+
+        if (currentStep === 2) {
+            const resValid = checkFilled(v.amsT_ConCountry) && checkFilled(v.amsT_ConState);
+            if (sameAsResidential) return resValid;
+            const perValid = checkFilled(v.amsT_PerCountry) && checkFilled(v.amsT_PerState);
+            return resValid && perValid;
+        }
+
+        if (currentStep === 3) {
+            let fatherValid = true;
+            if (v.fatherAliveFlag) {
+                fatherValid = checkFilled(v.fatherName) && checkFilled(v.fatherNationality);
+            }
+            let motherValid = true;
+            if (v.motherAliveFlag || v.MotherAliveFlag) {
+                motherValid = checkFilled(v.motherName) && checkFilled(v.motherNationality);
+            }
+            return fatherValid && motherValid;
+        }
+
+        return true;
+    }, [formValues, currentStep, studentPhoto, sameAsResidential]);
 
     const handleCheckDuplicateRegNo = async (regNo: string): Promise<boolean> => {
         if (!regNo || regNo.trim() === '') return false;
@@ -697,6 +863,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 ivrmmR_Id: Number(formData.ivrmmR_Id ?? formData.amsT_ReligionId ?? 0),
                 iC_Id: Number(formData.imC_Id ?? 0),
                 asmcC_Id: Number(formData.asmcC_Id ?? formData.studentCategoryId ?? 0),
+                imCC_Id: Number(formData.imCC_Id ?? 0),
                 amsT_SubCasteIMC_Id: (formData.amsT_SubCasteIMC_Id ?? '')?.toString() ?? '',
                 amsT_CasteCertiNo: formData.amsT_CasteCertiNo ?? '',
                 studentPhotoUrl: '',
@@ -954,10 +1121,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
     const nextStep = async () => {
         // Prevent multiple simultaneous calls
         if (isSavingStep) return;
-
-        // Block progression if there are unsaved guardian edits on Step 4
+        setIsSavingStep(true);
         try {
-            // Immediate check using current form values to avoid stale memo
+            // Block progression if there are unsaved guardian edits on Step 4
             if (currentStep === 4) {
                 const currentGuardians = (getValues('guardian') || []) as any[];
                 for (let i = 0; i < currentGuardians.length; i++) {
@@ -1001,8 +1167,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                     'amsT_ReligionId',
                     'amsT_Sex',
                     'amsT_MobileNo',
+                    'amsT_emailId',
                     'asmcC_Id',
-                    'studentCategoryId',
+                    'imCC_Id',
                     'feeConcessionType',
                     'imC_Id'
                 ];
@@ -1129,7 +1296,11 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             // Check if there are any validation errors on the current form state
             if (!isValid) {
                 console.debug('[Admission] Validation errors detected, aborting API call', { isValid, errors: Object.keys(errors) });
-                toast.error('Please fix all errors before proceeding');
+                const firstKey = Object.keys(errors)[0];
+                const firstMsg = firstKey
+                    ? ((errors as any)[firstKey]?.message ?? 'Please fix all errors before proceeding')
+                    : 'Please fix all errors before proceeding';
+                toast.error(firstMsg);
                 return;
             }
 
@@ -1887,105 +2058,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
     };
 
     const handleReset = () => {
-        // Preserve academic year values
-        const currentAsmaYId = getValues('asmaY_Id' as any) ?? getValues('asmaY_Year' as any) ?? undefined;
-        const currentAsmaYYear = getValues('asmaY_Year' as any) ?? '';
-
-        // Build a reset object that clears all known form keys except academic year
-        const currentValues = getValues();
-        const resetObj: Record<string, any> = {};
-        const cv: any = currentValues as any;
-        Object.keys(currentValues).forEach((k) => {
-            if (k === 'asmaY_Id' || k === 'asmaY_Year') {
-                // preserve
-                return;
-            }
-            const val = cv[k];
-            if (val instanceof Date) {
-                resetObj[k] = undefined;
-            } else if (Array.isArray(val)) {
-                resetObj[k] = [];
-            } else if (val === null || val === undefined) {
-                resetObj[k] = val;
-            } else if (typeof val === 'boolean') {
-                resetObj[k] = false;
-            } else if (typeof val === 'number') {
-                resetObj[k] = 0;
-            } else if (typeof val === 'object') {
-                resetObj[k] = {};
-            } else {
-                resetObj[k] = '';
-            }
-        });
-
-        // Ensure specific list/object fields are set to sensible empty values
-        resetObj.asmaY_Id = currentAsmaYId;
-        resetObj.asmaY_Year = currentAsmaYYear;
-        resetObj.previousSchools = [];
-        resetObj.siblings = [];
-        resetObj.guardian = [];
-        resetObj.amsT_ECSFlag = 0;
-        resetObj.isEmisBpl = 0;
-        resetObj.feeConcessionType = 0;
-        resetObj.hostelRequired = false;
-        resetObj.transportRequired = false;
-        resetObj.amsT_MobileNo = '';
-        resetObj.mobileNos = [];
-        resetObj.adm_M_Student_EmailIdDTO = [{ amsT_emailId: '' }];
-        resetObj.amsT_ConDistrict = 0;
-        resetObj.amsT_PerDistrict = 0;
-
-        // Apply reset to react-hook-form
-        reset(resetObj as any);
-
-        // Reset UI step and popovers
-        setCurrentStep(1);
-        setOpenPopover(null);
-
-        // Clear selection state
-        setSelectedSourceItems([]);
-        setSelectedReferenceItems([]);
-        setSelectedActivityItems([]);
-        setSameAsResidential(false);
-
-        // Clear phone helper state
-        setPhoneExpectedInfo({});
-        setPhoneValues({});
-
-        // Clear uploaded files / documents / photos / signatures
-        setUploadedDocuments([]);
-        setStudentPhoto(null);
-        setStudentPhotoFile(null);
-        setStudentPhotoError(null);
-
-        setFatherPhoto(null);
-        setFatherPhotoFile(null);
-        setFatherPhotoError(null);
-
-        setMotherPhoto(null);
-        setMotherPhotoFile(null);
-        setMotherPhotoError(null);
-
-        setFatherSignature(null);
-        setFatherSignatureFile(null);
-        setFatherSignatureError(null);
-
-        setMotherSignature(null);
-        setMotherSignatureFile(null);
-        setMotherSignatureError(null);
-
-        setGuardianPhotos({});
-        setGuardianSignatures({});
-
-        // Reset guardian saved-state tracking
-        setSavedGuardianSnapshot({});
-        setSavedGuardianSaved({});
-
-        // Misc UI flags/errors
-        setDocumentErrors({});
-        setShowStep3Errors(false);
-        setHandledStep3(false);
-        setSubmittingFinal(false);
+        window.location.reload();
     };
 
     const handleSourceSelection = (selectedValues: string[]) => {
@@ -3110,8 +3183,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                     />
                                                 </div>
 
-                                                {/* Row 2: PEN No & Academic Year */}
-                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                {/* Row 2: PEN No, Academic Year & Registration No */}
+                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                                                     <InputText
                                                         label='PEN No.'
                                                         id='amsT_PENNo'
@@ -3124,9 +3197,21 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         required
                                                         id='academic_year'
                                                         placeholder='Academic Year'
-                                                        value={(admissionDetails as any)?.AllAcademicYear?.[0]?.asmaY_Year || ''}
+                                                        value={(admissionDetails as any)?.allAcademicYear?.[0]?.asmaY_Year || (admissionDetails as any)?.academicYearOnLoad?.[0]?.asmaY_Year || ''}
                                                         className='font-semibold'
                                                         disabled
+                                                    />
+                                                    <InputText
+                                                        label='Registration No'
+                                                        required
+                                                        id='amsT_RegistrationNo'
+                                                        placeholder='Enter registration number'
+                                                        {...register('amsT_RegistrationNo')}
+                                                        onBlur={(e) => {
+                                                            register('amsT_RegistrationNo').onBlur(e);
+                                                            handleCheckDuplicateRegNo(e.target.value);
+                                                        }}
+                                                        error={errors.amsT_RegistrationNo?.message}
                                                     />
                                                 </div>
 
@@ -3314,7 +3399,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 </Select>
                                                             )}
                                                         />
-
+                                                        {errors.imCC_Id && <FormError>{errors.imCC_Id.message}</FormError>}
                                                     </div>
                                                     <div className='flex flex-col gap-1.5'>
                                                         <Label htmlFor='imC_Id'>
@@ -3345,6 +3430,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
                                                             )}
                                                         />
+                                                        {errors.imC_Id && <FormError>{errors.imC_Id.message}</FormError>}
                                                     </div>
                                                 </div>
 
@@ -3430,7 +3516,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                 </div>
 
                                                 {/* Row 12: Stream & Biometric Id */}
-                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                {/* <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                                                     <div className='flex flex-col gap-1.5'>
                                                         <Label htmlFor='amsT_Stream'>Stream</Label>
                                                         <Controller
@@ -3462,7 +3548,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         {...register('amsT_BiometricId')}
                                                         error={errors.amsT_BiometricId?.message}
                                                     />
-                                                </div>
+                                                </div> */}
 
                                                 {/* Row 13: RF Card No & Section */}
                                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
@@ -3498,6 +3584,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 </Select>
                                                             )}
                                                         />
+                                                        {errors.asmS_Id && <FormError>{errors.asmS_Id.message}</FormError>}
                                                     </div>
                                                 </div>
                                             </div>
@@ -3618,6 +3705,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 </Select>
                                                             )}
                                                         />
+                                                        {errors.amsT_Sex && <FormError>{errors.amsT_Sex.message}</FormError>}
                                                     </div>
 
                                                     {/* Row 2: Mother Tongue & Languages Spoken */}
@@ -3661,6 +3749,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 </Select>
                                                             )}
                                                         />
+                                                        {errors.amsT_ReligionId && <FormError>{errors.amsT_ReligionId.message}</FormError>}
                                                     </div>
                                                     <div className='flex flex-col gap-1.5'>
                                                         <Label htmlFor='amsT_Nationality'>
@@ -3686,6 +3775,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 </Select>
                                                             )}
                                                         />
+                                                        {errors.amsT_Nationality && <FormError>{errors.amsT_Nationality.message}</FormError>}
                                                     </div>
                                                 </div>
 
@@ -3761,7 +3851,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     <SelectValue placeholder='Select category' />
                                                                 </SelectTrigger>
                                                                 <SelectContent>
-                                                                    {(categoryByClass as any)?.data?.map((item: any) => (
+                                                                    {(categoryByClass as any)?.data?.studentCategory?.map((item: any) => (
                                                                         <SelectItem key={item.asmcC_Id} value={item.asmcC_Id.toString()}>
                                                                             {item.amC_Name}
                                                                         </SelectItem>
@@ -3773,17 +3863,28 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                 </div>
 
                                                 {/* Row 7: Mobile & Email */}
-                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                                                    <InputText
-                                                        label='Mobile No.'
-                                                        id='amsT_MobileNo'
-                                                        placeholder='Enter number'
-                                                        {...register('amsT_MobileNo')}
-                                                        error={errors.amsT_MobileNo?.message}
-                                                    />
+                                                <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                                                     <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='amsT_emailId'>Email Id</Label>
+                                                        <Label htmlFor='amsT_MobileNo'>
+                                                            Mobile No. <span className='ml-1 text-red-500'>*</span>
+                                                        </Label>
                                                         <InputText
+                                                            label=''
+                                                            required
+                                                            id='amsT_MobileNo'
+                                                            placeholder='Enter number'
+                                                            {...register('amsT_MobileNo')}
+                                                            error={errors.amsT_MobileNo?.message}
+                                                        />
+                                                    </div>
+
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Label htmlFor='amsT_emailId'>
+                                                            Email Id <span className='ml-1 text-red-500'>*</span>
+                                                        </Label>
+                                                        <InputText
+                                                            label=''
+                                                            required
                                                             id='amsT_emailId'
                                                             placeholder='Enter email'
                                                             {...register('amsT_emailId')}
@@ -3879,11 +3980,12 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         <SelectItem key={item.fmcC_Id} value={item.fmcC_Id.toString()}>
                                                                             {item.fmcC_ConcessionName}
                                                                         </SelectItem>
-                                                                    )) || <SelectItem value='none' disabled>No items</SelectItem>}
+                                                                    )) || <SelectItem value='none' disabled>No items available</SelectItem>}
                                                                 </SelectContent>
                                                             </Select>
                                                         )}
                                                     />
+                                                    {errors.feeConcessionType && <FormError>{errors.feeConcessionType.message}</FormError>}
                                                 </div>
 
                                                 {/* Row 13: TPIN & GPS */}
@@ -4947,7 +5049,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                             </div>
 
                                                             <div className='flex flex-col gap-1.5'>
-                                                                <Label htmlFor='fatherCasteId'>Caste Category</Label>
+                                                                <Label htmlFor='fatherCasteId'>Caste</Label>
                                                                 <Controller
                                                                     name='fatherCasteId'
                                                                     control={control}
@@ -5862,7 +5964,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                             </div>
 
                                                             <div className='flex flex-col gap-1.5'>
-                                                                <Label htmlFor='motherCasteId'>Caste Category</Label>
+                                                                <Label htmlFor='motherCasteId'>Caste</Label>
                                                                 <Controller
                                                                     name='motherCasteId'
                                                                     control={control}
@@ -7937,15 +8039,20 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                     {currentStep < steps.length ? (
                                         <Button
                                             type='button'
-                                            onClick={() => {
-                                                if (hasUnsavedGuardian) {
-                                                    toast.error('Please save guardian details before proceeding.');
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                if (!isCurrentStepValid) {
+                                                    toast.error('Please fill all mandatory fields before proceeding');
                                                     return;
                                                 }
                                                 nextStep();
                                             }}
-                                            disabled={isSavingStep || isSubmitting}
-                                            className={hasUnsavedGuardian ? 'opacity-60' : ''}>
+                                            disabled={!isCurrentStepValid || isSavingStep || isSubmitting}
+                                            className={cn(
+                                                'min-w-[120px] transition-all duration-200',
+                                                !isCurrentStepValid ? 'opacity-50 grayscale cursor-not-allowed' : 'hover:scale-105 shadow-md hover:shadow-lg',
+                                                hasUnsavedGuardian ? 'opacity-60' : ''
+                                            )}>
                                             {isSavingStep ? (
                                                 <>
                                                     <Spinner className='mr-2 h-4 w-4' size='sm' />

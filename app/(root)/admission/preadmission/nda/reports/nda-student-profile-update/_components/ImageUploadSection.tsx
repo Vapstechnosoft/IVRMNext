@@ -5,7 +5,6 @@ import { toast } from 'sonner';
 import { useNdaUploadProfilePic } from '@/hooks/admission/preadmission/useNdaStudentProfileUpdate';
 import { cn } from '@/lib/utils';
 import { Spinner } from '@/components/ui/spinner';
-import { Label } from '@/components/ui/extension/field';
 
 interface ImageUploadSectionProps {
     label: string;
@@ -95,6 +94,7 @@ export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
                         className="rounded-full h-10 w-10"
                         onClick={() => fileInputRef.current?.click()}
                         disabled={isUploading}
+                        type="button"
                     >
                         <Upload className="h-5 w-5" />
                     </Button>
@@ -108,6 +108,7 @@ export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
                                 onChange("");
                             }}
                             disabled={isUploading}
+                            type="button"
                         >
                             <Trash2 className="h-5 w-5" />
                         </Button>
@@ -129,6 +130,7 @@ export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
                 className="w-full rounded-full border-dashed border-2 hover:border-solid hover:bg-primary hover:text-primary-foreground transition-all duration-300"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading}
+                type="button"
             >
                 <Camera className="mr-2 h-4 w-4" />
                 {previewUrl ? 'Change Photo' : 'Upload Photo'}
