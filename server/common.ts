@@ -1051,6 +1051,109 @@ export async function getUserAccessibleModules() {
                                         }
 
                                     ]
+                                },
+
+                                {
+                                    id: 12,
+                                    name: 'Samartha',
+                                    icon: 'Settings',
+                                    pages: [
+
+                                        {
+                                            id: 71,
+                                            name: 'SamarthaBonafideCertificate',
+                                            icon: 'Settings',
+                                            url: '/admission/samartha/reports/SamarthaBonafideCertificate',
+                                            title: 'Samartha Bonafide Certificate',
+                                            description: 'Samartha Bonafide Certificate'
+                                        },
+                                        {
+                                            id: 72,
+                                            name: 'SamarthaTC',
+                                            icon: 'Settings',
+                                            url: '/admission/samartha/reports/SamarthaTC',
+                                            title: 'SamarthaTC',
+                                            description: 'SamarthaTC'
+                                        },
+                                        {
+                                            id: 73,
+                                            name: 'OverAllViewReportt',
+                                            icon: 'Settings',
+                                            url: '/admission/samartha/reports/OverAllViewReportt',
+                                            title: 'OverAllViewReportt',
+                                            description: 'OverAllViewReportt'
+                                        }
+                                    ]
+                                },
+
+
+                                {
+                                    id: 13,
+                                    name: 'Danvantari Phisiotheraphy',
+                                    icon: 'Settings',
+                                    pages: [
+
+                                        {
+                                            id: 71,
+                                            name: 'DCPS_BonifiedCertificate',
+                                            icon: 'Settings',
+                                            url: '/admission/danvantari/reports/DCPS_BonifiedCertificate',
+                                            title: 'DCPS_BonifiedCertificate',
+                                            description: 'DCPS_BonifiedCertificate'
+                                        },
+                                        {
+                                            id: 72,
+                                            name: 'DCPS_TransferCertificate',
+                                            icon: 'Settings',
+                                            url: '/admission/danvantari/reports/DCPS_TransferCertificate',
+                                            title: 'DCPS_TransferCertificate',
+                                            description: 'DCPS_TransferCertificate'
+                                        }
+
+                                    ]
+                                },
+                                {
+                                    id: 14,
+                                    name: 'SRKVS',
+                                    icon: 'Settings',
+                                    pages: [
+
+
+                                        {
+                                            id: 74,
+                                            name: 'SRKVS Student Address Book',
+                                            icon: 'Settings',
+                                            url: '/admission/srkvs/reports/SRKVSStudentAddressBook',
+                                            title: 'SRKVSStudentAddressBook',
+                                            description: 'SRKVSStudentAddressBook'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 15,
+                                    name: 'St. Peters School Durgapur',
+                                    icon: 'Settings',
+                                    pages: [
+
+
+                                        {
+                                            id: 74,
+                                            name: 'Employee IDcard Report STpeter',
+                                            icon: 'Settings',
+                                            url: '/admission/stpeter/reports/EmployeeIDcardReportSTpeter',
+                                            title: 'EmployeeIDcardReportSTpeter',
+                                            description: 'EmployeeIDcardReportSTpeter'
+                                        },
+
+                                        {
+                                            id: 75,
+                                            name: 'Student IDcard Report STPeter',
+                                            icon: 'Settings',
+                                            url: '/admission/stpeter/reports/StudentIDcardReportSTPeter',
+                                            title: 'StudentIDcardReportSTPeter',
+                                            description: 'StudentIDcardReportSTPeter'
+                                        }
+                                    ]
                                 }
 
                             ]
