@@ -1,3 +1,5 @@
+export const runtime = 'nodejs';
+
 import { loginSchema } from '@/schemas/admission/preadmission/masters';
 import { getUserByEmail } from '@/server/user-service';
 import NextAuth, { AuthError, type NextAuthConfig } from 'next-auth';

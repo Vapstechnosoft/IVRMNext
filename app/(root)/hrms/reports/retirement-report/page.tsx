@@ -1,845 +1,842 @@
-'use client';
-import { Button } from '@/components/ui/button';
-import { CalendarYear } from '@/components/ui/calendar_year';
-import { Checkbox } from '@/components/ui/checkbox';
-import { FormError } from '@/components/ui/extension/field';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Label } from '@/components/ui/label';
-import { MultiSelect } from '@/components/ui/multi-select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useMasterDepartments, useMasterDesignations, useMasterEmployeeTypes, useMasterGroupTypes } from '@/hooks/hrms/useReports';
-import { cn } from '@/lib/utils';
-import { EmployeeDetailSchema } from '@/schemas/hrms/employee-category-schemas';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { format } from 'date-fns';
-import { CalendarIcon, RefreshCw, Search } from 'lucide-react';
-import { useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
-import { toast } from 'sonner';
-import type { z } from 'zod';
+"use client";
 
-type FormFields = z.infer<typeof EmployeeDetailSchema>;
-const mockletter = [
-    { key: '1', value: 'Date of Birth' },
-    { key: '2', value: 'Date of Joining' },
-    { key: '3', value: 'Date of Leaving' }
+import { Button } from "@/components/ui/button";
+import { GenericDataTable } from "@/components/ui/data-table/generic-data-table";
+import { Label } from "@/components/ui/extension/field";
+import { CollapsibleSection } from "@/components/ui/form/collapsible-section";
+import { FormProvider } from "@/components/ui/form/form-provider";
+import { MultiSelect } from "@/components/ui/multi-select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { DatePicker } from "@/components/ui/date-picker";
+import {
+  useMasterGroupTypes,
+  useEmployeeAndEmployeeType,
+  useLoginBasedDepartmentsByGroupType,
+  useReportDesignations,
+  useSearchEmployeeDetailsReport,
+  EmployeeDetailsReportRequest,
+} from "@/hooks/hrms/useReports";
+import { exportToExcel } from "@/lib/export-to-file";
+import { Download, Loader2, Search as SearchIcon, X } from "lucide-react";
+import { useMemo, useState, useEffect, useRef } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { format } from "date-fns";
+
+const HEADER_LIST = [
+  { id: "HRME_EmployeeCode", value: "Employee Code" },
+  { id: "HRME_EmployeeFirstName", value: "Employee Name" },
+  { id: "HRME_FatherName", value: "Father Name" },
+  { id: "HRME_EmailId", value: "Email Id" },
+  { id: "HRME_MobileNo", value: "Mobile No." },
+  { id: "HRME_DOB", value: "Date Of Birth" },
+  { id: "HRMET_Id", value: "Employee Type" },
+  { id: "HRMGT_Id", value: "Group Type" },
+  { id: "HRMD_Id", value: "Department" },
+  { id: "HRMDES_Id", value: "Designation" },
+  { id: "HRMG_Id", value: "Grade" },
+  { id: "HRME_BiometricCode", value: "Biometric" },
+  { id: "HRME_Photo", value: "Photo" },
+  { id: "HRME_DOJ", value: "Date Of Join" },
+  { id: "HRME_DOL", value: "Date Of Left" },
+  { id: "DateofConfromation", value: "Date Of Confirmation" },
+  { id: "HRME_ExpectedRetirementDate", value: "Expected Retirement Date" },
+  { id: "HRME_BloodGroup", value: "Blood Group" },
+  { id: "HRME_PANCardNo", value: "PAN Card No." },
+  { id: "HRME_AadharCardNo", value: "Aadhar Card No" },
 ];
-const formated = [
-    { key: 'format1', value: 'Format 1' },
-    { key: 'format2', value: 'Format 2' }
-];
-const status = [
-    { key: 'all', value: 'All' },
-    { key: 'individual', value: 'Individual' }
-];
-const typeOrEmployee = [
-    { key: 'type', value: 'Type' },
-    { key: 'employee', value: 'Employee' }
-];
+
 const mockEmployees = [
-    { key: '1208', value: 'ANUSHA T' },
-    { key: 'EMP002', value: 'KIRAN KUMAR' },
-    { key: 'EMP003', value: 'PALLAVI C' },
-    { key: 'EMP004', value: 'RAFIQ' },
-    { key: 'EMP005', value: 'NATARAJA' }
+  { key: "1208", value: "ANUSHA T" },
+  { key: "EMP002", value: "KIRAN KUMAR" },
+  { key: "EMP003", value: "PALLAVI C" },
+  { key: "EMP004", value: "RAFIQ" },
+  { key: "EMP005", value: "NATARAJA" },
 ];
-const availableHeaders = [
-    'Employee Code',
-    'Employee Name',
-    'Father Name,	Mobile No.',
-    'Email Id',
-    'Date Of Birth',
-    'Employee Type',
-    'Group Type',
-    'Department',
-    'Designation	Grade',
-    'Biometric',
-    'Code',
-    'Photo',
-    'Date Of Join',
-    'Date Of Left',
-    'Date Of Confirmation',
-    'Expected Retirement Date',
-    'Blood Group',
-    'PAN Card No.',
-    'Aadhar Card No'
-];
+
 const mockApiResponse = {
-    employeeSalaryslipDetails: [
-        {
-            hrmD_Id: 80,
-            hrmD_code: 'EMP001',
-            hrmD_Name: 'John Doe',
-            hrmD_FatherName: 'Father Name 1',
-            hrmD_MobileNo: '9876543210',
-            hrmD_EmailId: 'john@example.com',
-            hrmD_DateOfBirth: '1990-01-01',
-            hrmD_EmergencyContact: '9876543211',
-            hrmD_DateOfConfirmation: '2023-01-01',
-            hrmD_EmployeeType: 'Permanent',
-            hrmD_GroupType: 'Teaching Staff',
-            hrmD_DepartmentName: 'Teaching',
-            hrmD_Designation: 'Senior Teacher',
-            hrmD_Status: 'Active',
-            hrmD_DateOfJoining: '2022-01-01',
-            hrmD_DateOfLeaving: '',
-            hrmD_ReasonForLeaving: '',
-            hrmD_Remarks: 'Good performance',
-            hrmD_Address: '123 Main St',
-            hrmD_Qualification: 'M.Ed',
-            hrmD_Experience: '5 years',
-            hrmD_WorkingDays: 22,
-            hrmD_Lop: 0
-        },
-        {
-            hrmD_Id: 84,
-            hrmD_code: 'EMP002',
-            hrmD_Name: 'John Smith',
-            hrmD_FatherName: 'Father Name 2',
-            hrmD_MobileNo: '9876543220',
-            hrmD_EmailId: 'smith@example.com',
-            hrmD_DateOfBirth: '1985-05-15',
-            hrmD_EmergencyContact: '9876543221',
-            hrmD_DateOfConfirmation: '2023-06-01',
-            hrmD_EmployeeType: 'Contract',
-            hrmD_GroupType: 'Non Teaching Staff',
-            hrmD_DepartmentName: 'Non Teaching',
-            hrmD_Designation: 'Admin',
-            hrmD_Status: 'Active',
-            hrmD_DateOfJoining: '2023-01-01',
-            hrmD_DateOfLeaving: '',
-            hrmD_ReasonForLeaving: '',
-            hrmD_Remarks: '',
-            hrmD_Address: '456 Oak Ave',
-            hrmD_Qualification: 'B.Com',
-            hrmD_Experience: '3 years',
-            hrmD_WorkingDays: 31,
-            hrmD_Lop: 5
-        },
-        {
-            hrmD_Id: 84,
-            hrmD_code: 'EMP002',
-            hrmD_Name: 'John Smith',
-            hrmD_FatherName: 'Father Name 2',
-            hrmD_MobileNo: '9876543220',
-            hrmD_EmailId: 'smith@example.com',
-            hrmD_DateOfBirth: '1985-05-15',
-            hrmD_EmergencyContact: '9876543221',
-            hrmD_DateOfConfirmation: '2023-06-01',
-            hrmD_EmployeeType: 'Contract',
-            hrmD_GroupType: 'Non Teaching Staff',
-            hrmD_DepartmentName: 'Non Teaching',
-            hrmD_Designation: 'Admin',
-            hrmD_Status: 'Active',
-            hrmD_DateOfJoining: '2023-01-01',
-            hrmD_DateOfLeaving: '',
-            hrmD_ReasonForLeaving: '',
-            hrmD_Remarks: '',
-            hrmD_Address: '456 Oak Ave',
-            hrmD_Qualification: 'B.Com',
-            hrmD_Experience: '3 years',
-            hrmD_WorkingDays: 31,
-            hrmD_Lop: 5
-        },
-        {
-            hrmD_Id: 84,
-            hrmD_code: 'EMP002',
-            hrmD_Name: 'John Smith',
-            hrmD_FatherName: 'Father Name 2',
-            hrmD_MobileNo: '9876543220',
-            hrmD_EmailId: 'smith@example.com',
-            hrmD_DateOfBirth: '1985-05-15',
-            hrmD_EmergencyContact: '9876543221',
-            hrmD_DateOfConfirmation: '2023-06-01',
-            hrmD_EmployeeType: 'Contract',
-            hrmD_GroupType: 'Non Teaching Staff',
-            hrmD_DepartmentName: 'Non Teaching',
-            hrmD_Designation: 'Admin',
-            hrmD_Status: 'Active',
-            hrmD_DateOfJoining: '2023-01-01',
-            hrmD_DateOfLeaving: '',
-            hrmD_ReasonForLeaving: '',
-            hrmD_Remarks: '',
-            hrmD_Address: '456 Oak Ave',
-            hrmD_Qualification: 'B.Com',
-            hrmD_Experience: '3 years',
-            hrmD_WorkingDays: 31,
-            hrmD_Lop: 5
-        }
-    ]
+  employeeSalaryslipDetails: [
+    {
+      hrmD_Id: 80,
+      hrmD_code: "EMP001",
+      hrmD_Name: "John Doe",
+      hrmD_FatherName: "Father Name 1",
+      hrmD_MobileNo: "9876543210",
+      hrmD_EmailId: "john@example.com",
+      hrmD_DateOfBirth: "1990-01-01",
+      hrmD_EmergencyContact: "9876543211",
+      hrmD_DateOfConfirmation: "2023-01-01",
+      hrmD_EmployeeType: "Permanent",
+      hrmD_GroupType: "Teaching Staff",
+      hrmD_DepartmentName: "Teaching",
+      hrmD_Designation: "Senior Teacher",
+      hrmD_Status: "Active",
+      hrmD_DateOfJoining: "2022-01-01",
+      hrmD_DateOfLeaving: "",
+      hrmD_ReasonForLeaving: "",
+      hrmD_Remarks: "Good performance",
+      hrmD_Address: "123 Main St",
+      hrmD_Qualification: "M.Ed",
+      hrmD_Experience: "5 years",
+      hrmD_WorkingDays: 22,
+      hrmD_Lop: 0,
+    },
+    {
+      hrmD_Id: 84,
+      hrmD_code: "EMP002",
+      hrmD_Name: "John Smith",
+      hrmD_FatherName: "Father Name 2",
+      hrmD_MobileNo: "9876543220",
+      hrmD_EmailId: "smith@example.com",
+      hrmD_DateOfBirth: "1985-05-15",
+      hrmD_EmergencyContact: "9876543221",
+      hrmD_DateOfConfirmation: "2023-06-01",
+      hrmD_EmployeeType: "Contract",
+      hrmD_GroupType: "Non Teaching Staff",
+      hrmD_DepartmentName: "Non Teaching",
+      hrmD_Designation: "Admin",
+      hrmD_Status: "Active",
+      hrmD_DateOfJoining: "2023-01-01",
+      hrmD_DateOfLeaving: "",
+      hrmD_ReasonForLeaving: "",
+      hrmD_Remarks: "",
+      hrmD_Address: "456 Oak Ave",
+      hrmD_Qualification: "B.Com",
+      hrmD_Experience: "3 years",
+      hrmD_WorkingDays: 31,
+      hrmD_Lop: 5,
+    },
+  ],
 };
 
-export default function DepartmentSalaryReportPage() {
-    const [isSearching, setIsSearching] = useState(false);
-    const [reportData, setReportData] = useState<any[]>([]);
-    const [fromDate, setFromDate] = useState<string>('');
-    const [toDate, setToDate] = useState<string>('');
-    const [selectedRangeTypes, setSelectedRangeTypes] = useState<string[]>([]);
+interface FilterFormValues {
+  formatType: "Format1" | "Format2";
+  headers: string[];
+  dateCriteria: "DOB" | "DOJ" | "DOL";
+  fromDate: Date | undefined;
+  toDate: Date | undefined;
+  working: boolean;
+  left: boolean;
+  allOrIndividual: "All" | "Individual";
+  typeOrEmployee: "Type" | "Employee";
+  selectedEmployeeType: string;
+  selectedEmployee: string;
+  groupType: string[];
+  department: string[];
+  designation: string[];
+}
 
-    const { data: masterGroupTypes, isLoading: masterGroupTypesLoading, isError: masterGroupTypesError } = useMasterGroupTypes();
+export default function RetirementReportPage() {
+  return (
+    <FormProvider>
+      <RetirementReportContent />
+    </FormProvider>
+  );
+}
 
-    const { data: masterDepartments, isLoading: masterDepartmentsLoading, isError: masterDepartmentsError } = useMasterDepartments();
+function RetirementReportContent() {
+  const [reportData, setReportData] = useState<any>(null);
+  //   const [isSearching, setIsSearching] = useState(false);
+  const tableRef = useRef<HTMLTableElement>(null);
+  const [filteredEmployeeDropdown, setFilteredEmployeeDropdown] = useState<
+    any[]
+  >([]);
+  const [filteredEmployeeTypeDropdown, setFilteredEmployeeTypeDropdown] =
+    useState<any[]>([]);
 
-    const { data: masterDesignations, isLoading: masterDesignationsLoading, isError: masterDesignationsError } = useMasterDesignations();
-    const { data: masterEmployeeTypes, isLoading: masterEmployeeTypeLoading, isError: masterEmployeeTypeError } = useMasterEmployeeTypes();
+  const { control, handleSubmit, watch, reset } = useForm<FilterFormValues>({
+    defaultValues: {
+      formatType: "Format1",
+      headers: HEADER_LIST.map((h) => h.id), // Default Select All
+      dateCriteria: "DOB",
+      fromDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+      toDate: new Date(),
+      working: false,
+      left: false,
+      allOrIndividual: "All",
+      typeOrEmployee: "Type",
+      selectedEmployeeType: "",
+      selectedEmployee: "",
+      groupType: [],
+      department: [],
+      designation: [],
+    },
+  });
 
-    const groupTypeOptions =
-        masterGroupTypes?.data?.map((item: any) => ({
-            value: item.key,
-            label: item.value
-        })) || [];
+  const watchedFormatType = watch("formatType");
+  const watchedAllOrIndividual = watch("allOrIndividual");
+  const watchedTypeOrEmployee = watch("typeOrEmployee");
+  const watchedHeaders = watch("headers");
+  const watchedDateCriteria = watch("dateCriteria");
+  const watchedFromDate = watch("fromDate");
+  const watchedToDate = watch("toDate");
+  const watchedWorking = watch("working");
+  const watchedLeft = watch("left");
+  const watchSelectedEmployee = watch("selectedEmployee");
+  const watchSelectedEmployeeType = watch("selectedEmployeeType");
+  const watchGroupType = watch("groupType");
+  const watchDepartment = watch("department");
+  const watchDesignation = watch("designation");
 
-    const DeaparmentsOptions =
-        masterDepartments?.data?.map((item: any) => ({
-            value: item.key,
-            label: item.value
-        })) || [];
-    const employeeTypeOptions =
-        masterEmployeeTypes?.data?.map((item: any) => ({
-            value: item.key,
-            label: item.value
-        })) || [];
+  const { data: masterGroupTypes } = useMasterGroupTypes();
+  const types = watchGroupType.map((id) => parseInt(id));
+  const { data: masterDepartments } = useLoginBasedDepartmentsByGroupType(types);
 
-    const DesignationOptions =
-        masterDesignations?.data?.map((item: any) => ({
-            value: item.key,
-            label: item.value
-        })) || [];
+  const groupTypeIds = watchGroupType?.join(",");
+  const deptIds = watchDepartment?.join(",") || "";
+  const { data: masterDesignations } = useReportDesignations(groupTypeIds, deptIds);
 
-    const MockLetterOptions =
-        mockletter?.map((emp) => ({
-            value: emp.key,
-            label: emp.value
-        })) || [];
+  const { mutate: getEmployeeAndType } = useEmployeeAndEmployeeType();
 
-    const formatedOptions =
-        formated?.map((emp) => ({
-            value: emp.key,
-            label: emp.value
-        })) || [];
-    const statusOptions =
-        status?.map((emp) => ({
-            value: emp.key,
-            label: emp.value
-        })) || [];
-    const typeOrEmployeeOptions =
-        typeOrEmployee?.map((emp) => ({
-            value: emp.key,
-            label: emp.value
-        })) || [];
-    const EmployeeOptions = mockEmployees.map((emp) => ({
-        value: emp.key,
-        label: emp.value
-    }));
+  const { mutate: searchReport, isPending: isSearching } = useSearchEmployeeDetailsReport();
 
-    const {
-        control,
-        handleSubmit,
-        reset,
-        watch,
-        formState: { errors, isSubmitting }
-    } = useForm<FormFields>({
-        resolver: zodResolver(EmployeeDetailSchema),
-        defaultValues: {
-            groupType: [],
-            department: [],
-            designation: [],
-            fromdate: '',
-            status: 'all',
-            mockLetter: '1',
-            todate: '',
-            formated: 'format1',
-            typeOrEmployee: 'type',
-            type: '',
-            employee: '',
-            selectedHeaders: []
+  const groupTypeOptions =
+    masterGroupTypes?.data?.map((item: any) => ({
+      label: item.value || item.hrmgT_EmployeeGroupType,
+      value: (item.key ?? item.hrmgT_Id)?.toString() ?? "",
+    })) || [];
+
+  const departmentsOptions =
+    masterDepartments?.data?.map((item: any) => ({
+      label: item.hrmD_DepartmentName || item.value,
+      value: (item.hrmD_Id ?? item.key)?.toString() ?? "",
+    })) || [];
+
+  const designationsOptions =
+    masterDesignations?.data?.map((item: any) => ({
+      label: item.value || item.hrmdeS_DesignationName,
+      value: (item.key ?? item.hrmdeS_Id)?.toString() ?? "",
+    })) || [];
+
+  useEffect(() => {
+    const fetchEmployeeData = () => {
+      const payload = {
+        fromDate: watchedFromDate ? new Date(watchedFromDate).toISOString() : null,
+        toDate: watchedToDate ? new Date(watchedToDate).toISOString() : null,
+        formatType: watchedFormatType,
+        dobjl: watchedDateCriteria,
+        allOrIndividual: watchedAllOrIndividual,
+        typeOrEmployee: "Type", // Hardcode to 'Type' because backend returns BOTH employeeTypedropdown and employeeDetails lists for this value
+        hrmeT_Id: 0,
+        hrmE_Id: 0,
+        left: watchedLeft,
+        working: watchedWorking,
+      };
+
+      getEmployeeAndType(payload, {
+        onSuccess: (res) => {
+          if (res.data) {
+            console.log("Emp API Response:", res);
+
+            if (res.data.employeeTypedropdown) {
+              setFilteredEmployeeTypeDropdown(res.data.employeeTypedropdown);
+            }
+
+            if (res.data.employeeDetails) {
+              setFilteredEmployeeDropdown(res.data.employeeDetails);
+            }
+          }
         },
-        mode: 'onChange'
+      });
+    };
+
+    // Trigger on relevant changes
+    // Using a timeout or simple effect is fine.
+    if (
+      watchedFormatType === "Format1" &&
+      watchedAllOrIndividual === "Individual"
+    ) {
+      fetchEmployeeData();
+    }
+  }, [
+    watchedFormatType,
+    watchedDateCriteria,
+    watchedFromDate,
+    watchedToDate,
+    watchedAllOrIndividual,
+    watchedWorking,
+    watchedLeft,
+    watchedTypeOrEmployee,
+    watchSelectedEmployee,
+    watchSelectedEmployeeType,
+    getEmployeeAndType,
+  ]);
+
+  // Scroll smoothly
+  useEffect(() => {
+    if (reportData && tableRef.current) {
+      tableRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [reportData]);
+
+  const onSubmit = (data: FilterFormValues) => {
+    if (data.headers.length === 0) {
+      toast.error('Kindly select Headers To display');
+      return;
+    }
+    console.log('data', data);
+
+    const payload: EmployeeDetailsReportRequest = {
+      mI_Id: 0,
+      roleId: 0,
+      formatType: data.formatType,
+      dobjl: data.dateCriteria,
+      allOrIndividual: data.allOrIndividual,
+      fromDate: data.fromDate ? new Date(data.fromDate).toISOString() : new Date().toISOString(),
+      toDate: data.toDate ? new Date(data.toDate).toISOString() : new Date().toISOString(),
+      hrmeT_Id: data.selectedEmployeeType ? Number(data.selectedEmployeeType) : 0,
+      hrmE_Id: data.selectedEmployee ? Number(data.selectedEmployee) : 0,
+      typeOrEmployee: data.allOrIndividual === 'Individual' ? data.typeOrEmployee : 'string',
+      coloumns: 'string',
+      working: data.working,
+      left: data.left,
+      headerselected: data.headers,
+      groupTypeselected: data.groupType.length > 0 ? data.groupType.map(Number) : [0],
+      departmentselected: data.department.length > 0 ? data.department.map(Number) : [0],
+      designationselected: data.designation.length > 0 ? data.designation.map(Number) : [0],
+      empIds: 'string',
+      hrmD_IdList: [0],
+      hrmD_Id: 0
+    };
+
+    console.log("FINAL SEARCH PAYLOAD:", JSON.stringify(payload, null, 2));
+    if (data.formatType === 'Format1' && data.allOrIndividual === 'Individual') {
+      if (data.typeOrEmployee === 'Type' && !data.selectedEmployeeType) {
+        toast.error('Select Employee Type');
+        return;
+      }
+      if (data.typeOrEmployee === 'Employee' && !data.selectedEmployee) {
+        toast.error('Select Employee');
+        return;
+      }
+    }
+
+    // Validation for Format 2
+    if (data.formatType === 'Format2') {
+      if (data.groupType.length === 0 && data.department.length === 0 && data.designation.length === 0) {
+        toast.error('Kindly select atleast one record (Group, Dept or Desig)');
+        return;
+      }
+    }
+
+    console.log("Search Payload:", JSON.stringify(payload, null, 2));
+
+    searchReport(payload, {
+      onSuccess: (res: any) => {
+        console.log("🔥 Raw API Response:", res);
+
+        // Check if API returned success: false
+        if (!res.success) {
+          setReportData(null);
+          toast.error(res.message || 'Failed to fetch report');
+          return;
+        }
+        console.log("API Response:", res);
+        // API success: true, check data
+        if (res.data && res.data.employeeDetails && res.data.employeeDetails.length > 0) {
+          setReportData(res.data);
+          console.log("Report Data:", res.data);
+          toast.success('Report generated successfully');
+        } else {
+          setReportData(null);
+          console.log("Report Data:", res.data);
+          toast.error('No Record found to display .. !');
+        }
+      }
+    });
+  };
+
+  const handleCancel = () => {
+    reset();
+    setReportData(null);
+  };
+
+  const handleExport = () => {
+    if (!reportData || !reportData.employeeDetails) {
+      toast.error("No data to export");
+      return;
+    }
+
+    const columns = watchedHeaders.map((id) => {
+      const header = HEADER_LIST.find((h) => h.id === id);
+      return { label: header?.value || id, value: id };
+    });
+    columns.unshift({ label: "Sl.No", value: "index" });
+
+    const content = reportData.employeeDetails.map(
+      (row: any, index: number) => ({
+        ...row,
+        index: index + 1,
+      }),
+    );
+
+    exportToExcel(
+      "RetirementReport",
+      JSON.stringify(columns),
+      JSON.stringify(content),
+    );
+  };
+
+  const columns = useMemo(() => {
+    const cols: any[] = [
+      {
+        id: "serialNumber",
+        header: "Sl.No",
+        cell: ({ row }: any) => row.index + 1,
+      },
+    ];
+
+    watchedHeaders.forEach((headerId) => {
+      const headerDef = HEADER_LIST.find((h) => h.id === headerId);
+      if (headerDef) {
+        cols.push({
+          accessorKey: headerId,
+          header: headerDef.value,
+          cell: ({ row }: any) => {
+            const val = row.original[headerId];
+            if (headerId === "HRME_Photo") {
+              return val ? (
+                <img
+                  src={val}
+                  alt="Profile"
+                  className="h-10 w-10 rounded-md object-cover"
+                />
+              ) : (
+                "-"
+              );
+            }
+            if (headerId.includes("Date")) {
+              if (val) {
+                const date = new Date(val);
+                if (!isNaN(date.getTime())) {
+                  return format(date, "dd/MM/yyyy");
+                }
+              }
+            }
+            return val || "-";
+          },
+        });
+      }
     });
 
-    const selectedFormat = watch('formated') as string;
-    const selectedstatus = watch('status') as string;
-    const selectedtypeOrEmployee = watch('typeOrEmployee') as string;
-    const selectedHeaders = (watch('selectedHeaders') as string[]) || [];
+    return cols;
+  }, [watchedHeaders]);
 
-    // Mapping of header names to data field keys
-    const headerFieldMap: { [key: string]: string } = {
-        'Employee Code': 'hrmD_code',
-        'Employee Name': 'hrmD_Name',
-        'Father Name': 'hrmD_FatherName',
-        'Mobile No.': 'hrmD_MobileNo',
-        'Email Id': 'hrmD_EmailId',
-        'Date Of Birth': 'hrmD_DateOfBirth',
-        'Emergency Contact Number': 'hrmD_EmergencyContact',
-        'Date Of confirmation': 'hrmD_DateOfConfirmation',
-        'Employee Type': 'hrmD_EmployeeType',
-        'Group Type': 'hrmD_GroupType',
-        Department: 'hrmD_DepartmentName',
-        Designation: 'hrmD_Designation',
-        Status: 'hrmD_Status',
-        'Date Of Joining': 'hrmD_DateOfJoining',
-        'Date Of Leaving': 'hrmD_DateOfLeaving',
-        'Reason For Leaving': 'hrmD_ReasonForLeaving',
-        Remarks: 'hrmD_Remarks',
-        Address: 'hrmD_Address',
-        Qualification: 'hrmD_Qualification',
-        Experience: 'hrmD_Experience'
-    };
+  const processedGridData = useMemo(() => {
+    return reportData?.employeeDetails || [];
+  }, [reportData]);
 
-    const onSearch = async () => {
-        setIsSearching(true);
-        try {
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-
-            toast.success('Report generated successfully!');
-            setReportData(mockApiResponse.employeeSalaryslipDetails);
-        } catch (error: any) {
-            toast.error(error.message || 'Failed to generate report');
-        } finally {
-            setIsSearching(false);
-        }
-    };
-
-    const handleReset = () => {
-        reset({
-            groupType: [],
-            department: [],
-            designation: [],
-            fromdate: '',
-            todate: '',
-            formated: '',
-            typeOrEmployee: 'type'
-        });
-        setReportData([]);
-        toast.info('Form has been reset');
-    };
-
-    return (
-        <div className='min-h-screen p-8'>
-            <div className='container space-y-4 p-1'>
-                <CollapsibleSection
-                    title='Employee Details'
-                    defaultOpen={true}
-                    variant='outline'
-                    size='md'
-                    className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                    <div className=''>
-                        <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
-                            {/* Header Selection */}
-                            <div className='space-y-3'>
-                                <Label className='font-semibold'>
-                                    Header: <span className='text-red-500'>*</span>
-                                </Label>
-                                <Controller
-                                    name='selectedHeaders'
-                                    control={control}
-                                    render={({ field }) => (
-                                        <MultiSelect
-                                            options={availableHeaders.map((header) => ({
-                                                label: header,
-                                                value: header
-                                            }))}
-                                            onValueChange={field.onChange}
-                                            defaultValue={field.value}
-                                            placeholder='Select headers to include in report'
-                                            className='w-full'
-                                            maxHeight={240}
-                                        />
-                                    )}
-                                />
-                            </div>
-                            <div className='space-y-3'>
-                                <div className='flex justify-center'>
-                                    <div className='space-y-3'>
-                                        <div className=''>
-                                            <Controller
-                                                name='formated'
-                                                control={control}
-                                                render={({ field }) => (
-                                                    <RadioGroup
-                                                        onValueChange={field.onChange}
-                                                        value={field.value as string}
-                                                        className='flex justify-center gap-4 rounded-md p-3 shadow-md '>
-                                                        {formatedOptions.map((option) => (
-                                                            <div
-                                                                key={option.value}
-                                                                className='flex cursor-pointer items-center space-x-3 transition-colors hover:bg-accent/50'>
-                                                                <RadioGroupItem value={option.value} id={`format-${option.value}`} />
-                                                                <Label
-                                                                    htmlFor={`format-${option.value}`}
-                                                                    className='flex-1 cursor-pointer font-normal text-sm'>
-                                                                    {option.label}
-                                                                </Label>
-                                                            </div>
-                                                        ))}
-                                                    </RadioGroup>
-                                                )}
-                                            />
-                                        </div>
-                                        {selectedFormat !== 'format2' && (
-                                            <div className=''>
-                                                <Controller
-                                                    name='mockLetter'
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <RadioGroup
-                                                            onValueChange={field.onChange}
-                                                            value={field.value}
-                                                            className='flex justify-center gap-4 rounded-md p-3 shadow-md '>
-                                                            {MockLetterOptions.map((option) => (
-                                                                <div
-                                                                    key={option.value}
-                                                                    className='flex cursor-pointer items-center space-x-3 transition-colors hover:bg-accent/50'>
-                                                                    <RadioGroupItem value={option.value} id={`letter-${option.value}`} />
-                                                                    <Label
-                                                                        htmlFor={`letter-${option.value}`}
-                                                                        className='flex-1 cursor-pointer font-normal text-sm'>
-                                                                        {option.label}
-                                                                    </Label>
-                                                                </div>
-                                                            ))}
-                                                        </RadioGroup>
-                                                    )}
-                                                />
-                                            </div>
-                                        )}
-                                        {selectedFormat !== 'format2' && (
-                                            <div className='flex justify-center gap-2 '>
-                                                <div>
-                                                    <Label className='font-medium text-sm text-white-900'>
-                                                        From Date<span className='text-red-600'>*</span>
-                                                    </Label>
-
-                                                    <Popover>
-                                                        <PopoverTrigger asChild>
-                                                            <Button
-                                                                type='button'
-                                                                variant='outline'
-                                                                className={cn(
-                                                                    'w-full justify-start text-left font-normal',
-                                                                    !fromDate && 'text-muted-foreground'
-                                                                )}>
-                                                                <CalendarIcon className='mr-2 h-4 w-4' />
-                                                                {fromDate ? format(new Date(fromDate), 'dd/MM/yyyy') : 'From date'}
-                                                            </Button>
-                                                        </PopoverTrigger>
-                                                        <PopoverContent className='w-auto p-0' align='start'>
-                                                            <CalendarYear
-                                                                mode='single'
-                                                                selected={fromDate ? new Date(fromDate) : undefined}
-                                                                onSelect={(date: Date | undefined) =>
-                                                                    setFromDate(date?.toISOString() ?? '')
-                                                                }
-                                                                captionLayout='dropdown'
-                                                                fromYear={2000}
-                                                                toYear={2050}
-                                                            />
-                                                        </PopoverContent>
-                                                    </Popover>
-                                                </div>
-                                                <div>
-                                                    <Label className='font-medium text-sm text-white-900'>
-                                                        To Date<span className='text-red-600'>*</span>
-                                                    </Label>
-                                                    <Popover>
-                                                        <PopoverTrigger asChild>
-                                                            <Button
-                                                                type='button'
-                                                                variant='outline'
-                                                                className={cn(
-                                                                    'w-full justify-start text-left font-normal',
-                                                                    !toDate && 'text-muted-foreground'
-                                                                )}>
-                                                                <CalendarIcon className='mr-2 h-4 w-4' />
-                                                                {toDate ? format(new Date(toDate), 'dd/MM/yyyy') : 'To date'}
-                                                            </Button>
-                                                        </PopoverTrigger>
-                                                        <PopoverContent className='w-auto p-0' align='start'>
-                                                            <CalendarYear
-                                                                mode='single'
-                                                                selected={toDate ? new Date(toDate) : undefined}
-                                                                onSelect={(date: Date | undefined) => setToDate(date?.toISOString() ?? '')}
-                                                                captionLayout='dropdown'
-                                                                fromYear={2000}
-                                                                toYear={2050}
-                                                            />
-                                                        </PopoverContent>
-                                                    </Popover>
-                                                </div>
-                                            </div>
-                                        )}
-                                        <div className='mt-2 flex items-center justify-center gap-6 rounded-md p-2 shadow-md'>
-                                            <div className='flex items-center space-x-2'>
-                                                <Checkbox
-                                                    checked={selectedRangeTypes.includes('working')}
-                                                    onCheckedChange={(checked) => {
-                                                        setSelectedRangeTypes((prev) =>
-                                                            checked ? [...prev, 'working'] : prev.filter((x) => x !== 'working')
-                                                        );
-                                                    }}
-                                                />
-                                                <Label htmlFor='working' className='cursor-pointer font-normal'>
-                                                    Working
-                                                </Label>
-                                            </div>
-
-                                            <div className='flex items-center space-x-2'>
-                                                <Checkbox
-                                                    checked={selectedRangeTypes.includes('left')}
-                                                    onCheckedChange={(checked) =>
-                                                        setSelectedRangeTypes((prev) =>
-                                                            checked ? [...prev, 'left'] : prev.filter((x) => x !== 'left')
-                                                        )
-                                                    }
-                                                />
-                                                <Label htmlFor='left' className='cursor-pointer font-normal'>
-                                                    Left
-                                                </Label>
-                                            </div>
-                                        </div>
-                                        {selectedFormat !== 'format2' && (
-                                            <div className=''>
-                                                <Controller
-                                                    name='status'
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <RadioGroup
-                                                            onValueChange={field.onChange}
-                                                            value={field.value as string}
-                                                            className='flex justify-center gap-4 rounded-md p-3 shadow-md '>
-                                                            {statusOptions.map((option) => (
-                                                                <div
-                                                                    key={option.value}
-                                                                    className='flex cursor-pointer items-center space-x-3 transition-colors hover:bg-accent/50'>
-                                                                    <RadioGroupItem value={option.value} id={`status-${option.value}`} />
-                                                                    <Label
-                                                                        htmlFor={`status-${option.value}`}
-                                                                        className='flex-1 cursor-pointer font-normal text-sm'>
-                                                                        {option.label}
-                                                                    </Label>
-                                                                </div>
-                                                            ))}
-                                                        </RadioGroup>
-                                                    )}
-                                                />
-                                            </div>
-                                        )}
-                                        {selectedFormat !== 'format2' && selectedstatus !== 'all' && (
-                                            <div className=''>
-                                                <Controller
-                                                    name='typeOrEmployee'
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <RadioGroup
-                                                            onValueChange={field.onChange}
-                                                            value={field.value as string}
-                                                            className='flex justify-center gap-4 rounded-md p-3 shadow-md '>
-                                                            {typeOrEmployeeOptions.map((option) => (
-                                                                <div
-                                                                    key={option.value}
-                                                                    className='flex cursor-pointer items-center space-x-3 transition-colors hover:bg-accent/50'>
-                                                                    <RadioGroupItem value={option.value} id={`type-emp-${option.value}`} />
-                                                                    <Label
-                                                                        htmlFor={`type-emp-${option.value}`}
-                                                                        className='flex-1 cursor-pointer font-normal text-sm'>
-                                                                        {option.label}
-                                                                    </Label>
-                                                                </div>
-                                                            ))}
-                                                        </RadioGroup>
-                                                    )}
-                                                />
-                                            </div>
-                                        )}
-                                        {selectedFormat !== 'format2' && selectedstatus !== 'all' && (
-                                            <div>
-                                                {selectedtypeOrEmployee === 'type' && (
-                                                    <div className='space-y-2'>
-                                                        <Label htmlFor='type' className='font-medium text-sm text-white-900'>
-                                                            Type: <span className='text-red-500'>*</span>
-                                                        </Label>
-                                                        <Controller
-                                                            name='type'
-                                                            control={control}
-                                                            render={({ field }) => (
-                                                                <Select onValueChange={field.onChange} value={field.value as string}>
-                                                                    <SelectTrigger className='w-full'>
-                                                                        <SelectValue placeholder='Select Employee Type' />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>
-                                                                        {masterEmployeeTypeError ? (
-                                                                            <SelectItem value='loading' disabled>
-                                                                                Loading...
-                                                                            </SelectItem>
-                                                                        ) : masterEmployeeTypeLoading ? (
-                                                                            <SelectItem value='error' disabled>
-                                                                                Error loading data
-                                                                            </SelectItem>
-                                                                        ) : (
-                                                                            employeeTypeOptions?.map((opt: any) => (
-                                                                                <SelectItem key={opt.value} value={opt.value}>
-                                                                                    {opt.label}
-                                                                                </SelectItem>
-                                                                            ))
-                                                                        )}
-                                                                    </SelectContent>
-                                                                </Select>
-                                                            )}
-                                                        />
-                                                        {errors.type && <FormError>{errors.type.message}</FormError>}
-                                                    </div>
-                                                )}
-                                                {selectedtypeOrEmployee === 'employee' && (
-                                                    <div className=' mt-3 space-y-2'>
-                                                        <Label htmlFor='employee' className='font-medium text-sm text-white-900'>
-                                                            Employee: <span className='text-red-500'>*</span>
-                                                        </Label>
-                                                        <Controller
-                                                            name='employee'
-                                                            control={control}
-                                                            render={({ field }) => (
-                                                                <Select onValueChange={field.onChange} value={field.value as string}>
-                                                                    <SelectTrigger className='w-full'>
-                                                                        <SelectValue placeholder='Select Employee' />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>
-                                                                        {EmployeeOptions.map((opt: any) => (
-                                                                            <SelectItem key={opt.value} value={opt.value}>
-                                                                                {opt.label}
-                                                                            </SelectItem>
-                                                                        ))}
-                                                                    </SelectContent>
-                                                                    {/* <SelectContent>
-                                                                    {masterEmployeeLoading ? (
-                                                                        <SelectItem value='loading' disabled>
-                                                                            Loading...
-                                                                        </SelectItem>
-                                                                    ) : masterEmployeeError ? (
-                                                                        <SelectItem value='error' disabled>
-                                                                            Error loading data
-                                                                        </SelectItem>
-                                                                    ) : (
-                                                                        EmployeeOptions?.map((opt: any) => (
-                                                                            <SelectItem key={opt.value} value={opt.value}>
-                                                                                {opt.label}
-                                                                            </SelectItem>
-                                                                        ))
-                                                                    )}
-                                                                </SelectContent> */}
-                                                                </Select>
-                                                            )}
-                                                        />
-                                                        {errors.employee && <FormError>{errors.employee.message}</FormError>}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className='mb-5 grid grid-cols-1 gap-6 lg:grid-cols-3'>
-                            {selectedFormat !== 'format1' && (
-                                <div className='space-y-2'>
-                                    <Label htmlFor='group-type' className='font-medium text-sm text-white-900'>
-                                        Group Type: <span className='text-red-500'>*</span>
-                                    </Label>
-                                    {masterGroupTypesLoading ? (
-                                        <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
-                                    ) : groupTypeOptions.length === 0 ? (
-                                        <div className='text-sm text-white-500'>No group types available</div>
-                                    ) : masterGroupTypesError ? (
-                                        <SelectItem value='error' disabled>
-                                            Error loading data
-                                        </SelectItem>
-                                    ) : (
-                                        <div>
-                                            <Controller
-                                                name='groupType'
-                                                control={control}
-                                                render={({ field }) => (
-                                                    <MultiSelect
-                                                        options={groupTypeOptions}
-                                                        defaultValue={field.value}
-                                                        onValueChange={field.onChange}
-                                                        placeholder='Select Group Types'
-                                                        className='w-full'
-                                                        maxHeight={240}
-                                                    />
-                                                )}
-                                            />
-                                            {errors.groupType && <FormError>{errors.groupType.message}</FormError>}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            {selectedFormat !== 'format1' && (
-                                <div className='space-y-2'>
-                                    <Label htmlFor='department' className='font-medium text-sm text-white-900'>
-                                        Department: <span className='text-red-500'>*</span>
-                                    </Label>
-                                    {masterDepartmentsLoading ? (
-                                        <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
-                                    ) : DeaparmentsOptions.length === 0 ? (
-                                        <div className='text-sm text-white-500'>No departments available</div>
-                                    ) : masterDepartmentsError ? (
-                                        <SelectItem value='error' disabled>
-                                            Error loading data
-                                        </SelectItem>
-                                    ) : (
-                                        <div>
-                                            <Controller
-                                                name='department'
-                                                control={control}
-                                                render={({ field }) => (
-                                                    <MultiSelect
-                                                        options={DeaparmentsOptions}
-                                                        defaultValue={field.value}
-                                                        onValueChange={field.onChange}
-                                                        placeholder='Select Departments'
-                                                        className='w-full'
-                                                        maxHeight={240}
-                                                    />
-                                                )}
-                                            />
-                                            {errors.department && <FormError>{errors.department.message}</FormError>}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            {selectedFormat !== 'format1' && (
-                                <div className='space-y-2'>
-                                    <Label htmlFor='designation' className='font-medium text-sm text-white-900'>
-                                        Designation: <span className='text-red-500'>*</span>
-                                    </Label>
-                                    {masterDesignationsLoading ? (
-                                        <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
-                                    ) : DesignationOptions.length === 0 ? (
-                                        <div className='text-sm text-white-500'>No designations available</div>
-                                    ) : masterDesignationsError ? (
-                                        <SelectItem value='error' disabled>
-                                            Error loading data
-                                        </SelectItem>
-                                    ) : (
-                                        <div>
-                                            <Controller
-                                                name='designation'
-                                                control={control}
-                                                render={({ field }) => (
-                                                    <MultiSelect
-                                                        options={DesignationOptions}
-                                                        defaultValue={field.value}
-                                                        onValueChange={field.onChange}
-                                                        placeholder='Select Designations'
-                                                        className='w-full'
-                                                        maxHeight={240}
-                                                    />
-                                                )}
-                                            />
-                                            {errors.designation && <FormError>{errors.designation.message}</FormError>}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                        <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-center'>
-                            <Button
-                                type='button'
-                                variant='outline'
-                                onClick={handleReset}
-                                disabled={isSearching || isSubmitting}
-                                className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                                Reset
-                            </Button>
-                            <Button
-                                type='button'
-                                onClick={handleSubmit(onSearch)}
-                                disabled={isSearching || isSubmitting}
-                                className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
-                                {isSearching ? (
-                                    <div>
-                                        <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
-                                        Searching...
-                                    </div>
-                                ) : (
-                                    <div className='flex items-center'>
-                                        <Search className='mr-2 h-4 w-4' />
-                                        Search
-                                    </div>
-                                )}
-                            </Button>
-                        </div>
+  return (
+    <div className="container min-h-screen space-y-4 p-2">
+      <CollapsibleSection
+        title="Configuration"
+        defaultOpen={true}
+        variant="outline"
+      >
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {/* Header Selection */}
+          <div className="rounded-md border p-4">
+            <Label className="mb-2 block font-semibold">
+              Select Headers <span className="text-destructive">*</span>
+            </Label>
+            <Controller
+              name="headers"
+              control={control}
+              render={({ field }) => (
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-5">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      checked={field.value.length === HEADER_LIST.length}
+                      onCheckedChange={(checked) => {
+                        field.onChange(
+                          checked ? HEADER_LIST.map((h) => h.id) : [],
+                        );
+                      }}
+                    />
+                    <span className="font-semibold">All</span>
+                  </div>
+                  {HEADER_LIST.map((header) => (
+                    <div
+                      key={header.id}
+                      className="flex items-center space-x-2"
+                    >
+                      <Checkbox
+                        checked={field.value.includes(header.id)}
+                        onCheckedChange={(checked) => {
+                          const newValue = checked
+                            ? [...field.value, header.id]
+                            : field.value.filter((val) => val !== header.id);
+                          field.onChange(newValue);
+                        }}
+                      />
+                      <span className="text-sm">{header.value}</span>
                     </div>
-                </CollapsibleSection>
+                  ))}
+                </div>
+              )}
+            />
+          </div>
 
-                {reportData.length > 0 && (
-                    <CollapsibleSection
-                        title='Employee Details'
-                        defaultOpen={true}
-                        variant='outline'
-                        size='md'
-                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                        <div className='mt-2 space-x-4'>
-                            <div className='mb-4 text-center'>
-                                <h4 className='font-semibold'>Vidya Vikasa Vidya Samsthe (R)</h4>
-                                <p className='text-sm'>Basaveshwara Talkies rd,Gayatri circle,karantaka</p>
-                                <p className='text-sm'>Chitradurga - 577501.</p>
-                                <h5 className='font-semibold'>Employee Details Report</h5>
-                            </div>
-                            <div className='overflow-x-auto rounded-lg border'>
-                                <table className='w-full border-collapse'>
-                                    <thead>
-                                        <tr className='border-white-300 border-b-2 bg-white-100'>
-                                            <th className='border border-white-300 px-3 py-3 text-center font-semibold text-sm'>S.No</th>
-                                            {selectedHeaders && selectedHeaders.length > 0 ? (
-                                                selectedHeaders.map((header: string) => (
-                                                    <th
-                                                        key={header}
-                                                        className='border border-white-300 px-3 py-3 text-center font-semibold text-sm'>
-                                                        {header}
-                                                    </th>
-                                                ))
-                                            ) : (
-                                                <th className='border border-white-300 px-3 py-3 text-center font-semibold text-sm'>
-                                                    No headers selected
-                                                </th>
-                                            )}
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {reportData.map((row: any, index: number) => (
-                                            <tr key={index} className='hover:bg-white-50'>
-                                                <td className='border border-white-300 px-3 py-2 text-center text-sm'>{index + 1}</td>
-                                                {selectedHeaders && selectedHeaders.length > 0 ? (
-                                                    selectedHeaders.map((header: string) => {
-                                                        const fieldKey = headerFieldMap[header];
-                                                        const cellValue = fieldKey ? row[fieldKey] : '';
-                                                        return (
-                                                            <td
-                                                                key={`${index}-${header}`}
-                                                                className='border border-white-300 px-3 py-2 text-left text-sm'>
-                                                                {cellValue || '-'}
-                                                            </td>
-                                                        );
-                                                    })
-                                                ) : (
-                                                    <td className='border border-white-300 px-3 py-2 text-left text-sm'>
-                                                        No headers selected
-                                                    </td>
-                                                )}
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </CollapsibleSection>
+          {/* Format Type */}
+          <div className="flex justify-center">
+            <Controller
+              name="formatType"
+              control={control}
+              render={({ field }) => (
+                <RadioGroup
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  className="flex space-x-6"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="Format1" id="f1" />
+                    <Label htmlFor="f1">Format 1</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="Format2" id="f2" />
+                    <Label htmlFor="f2">Format 2</Label>
+                  </div>
+                </RadioGroup>
+              )}
+            />
+          </div>
+
+          {/* Working / Left (Always visible for both Formats) */}
+          <div className="flex justify-center space-x-6 rounded-md border bg-slate-50 p-4 dark:bg-slate-900/50">
+            <div className="flex items-center space-x-2">
+              <Controller
+                name="working"
+                control={control}
+                render={({ field }) => (
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
                 )}
+              />
+              <Label>Working</Label>
             </div>
-        </div>
-    );
+            <div className="flex items-center space-x-2">
+              <Controller
+                name="left"
+                control={control}
+                render={({ field }) => (
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                )}
+              />
+              <Label>Left</Label>
+            </div>
+          </div>
+
+          {/* Format 1 Controls */}
+          {watchedFormatType === "Format1" && (
+            <div className="space-y-6 rounded-md border bg-slate-50 p-4 dark:bg-slate-900/50">
+              {/* Date Criteria */}
+              <div className="flex justify-center">
+                <Controller
+                  name="dateCriteria"
+                  control={control}
+                  render={({ field }) => (
+                    <RadioGroup
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      className="flex space-x-6"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="DOB" id="dob" />
+                        <Label htmlFor="dob">Date of Birth</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="DOJ" id="doj" />
+                        <Label htmlFor="doj">Date of Joining</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="DOL" id="dol" />
+                        <Label htmlFor="dol">Date of Leaving</Label>
+                      </div>
+                    </RadioGroup>
+                  )}
+                />
+              </div>
+
+              {/* Dates */}
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>
+                    From Date <span className="text-destructive">*</span>
+                  </Label>
+                  <Controller
+                    name="fromDate"
+                    control={control}
+                    render={({ field }) => (
+                      <DatePicker date={field.value} setDate={field.onChange} />
+                    )}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>
+                    To Date <span className="text-destructive">*</span>
+                  </Label>
+                  <Controller
+                    name="toDate"
+                    control={control}
+                    render={({ field }) => (
+                      <DatePicker date={field.value} setDate={field.onChange} />
+                    )}
+                  />
+                </div>
+              </div>
+
+              {/* All / Individual */}
+              <div className="flex justify-center">
+                <Controller
+                  name="allOrIndividual"
+                  control={control}
+                  render={({ field }) => (
+                    <RadioGroup
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      className="flex space-x-6"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="All" id="all" />
+                        <Label htmlFor="all">All</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="Individual" id="individual" />
+                        <Label htmlFor="individual">Individual</Label>
+                      </div>
+                    </RadioGroup>
+                  )}
+                />
+              </div>
+
+              {/* Individual Specifics */}
+              {watchedAllOrIndividual === "Individual" && (
+                <div className="space-y-4 rounded-md border p-4">
+                  <div className="flex justify-center">
+                    <Controller
+                      name="typeOrEmployee"
+                      control={control}
+                      render={({ field }) => (
+                        <RadioGroup
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          className="flex space-x-6"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Type" id="type" />
+                            <Label htmlFor="type">Type</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Employee" id="emp" />
+                            <Label htmlFor="emp">Employee</Label>
+                          </div>
+                        </RadioGroup>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                    {watchedTypeOrEmployee === "Type" && (
+                      <div className="space-y-2">
+                        <Label>
+                          Employee Type{" "}
+                          <span className="text-destructive">*</span>
+                        </Label>
+                        <Controller
+                          name="selectedEmployeeType"
+                          control={control}
+                          render={({ field }) => (
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select Type" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {filteredEmployeeTypeDropdown.map(
+                                  (item: any) => (
+                                    <SelectItem
+                                      key={item.hrmeT_Id}
+                                      value={item.hrmeT_Id?.toString() ?? ""}
+                                    >
+                                      {item.hrmeT_EmployeeType}
+                                    </SelectItem>
+                                  ),
+                                )}
+                              </SelectContent>
+                            </Select>
+                          )}
+                        />
+                      </div>
+                    )}
+                    {watchedTypeOrEmployee === "Employee" && (
+                      <div className="space-y-2">
+                        <Label>
+                          Employee <span className="text-destructive">*</span>
+                        </Label>
+                        <Controller
+                          name="selectedEmployee"
+                          control={control}
+                          render={({ field }) => (
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select Employee" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {filteredEmployeeDropdown.length === 0 && (
+                                  <SelectItem value="not-found">No Employee Found</SelectItem>
+                                )}
+                                {filteredEmployeeDropdown.map((item: any) => (
+                                  <SelectItem
+                                    key={item.hrmE_Id}
+                                    value={item.hrmE_Id?.toString() ?? ""}
+                                  >
+                                    {item.employeeFullName}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Format 2 Controls */}
+          {watchedFormatType === "Format2" && (
+            <div className="grid grid-cols-1 gap-6 rounded-md border bg-slate-50 p-4 lg:grid-cols-3 dark:bg-slate-900/50">
+              <div className="space-y-2">
+                <Label>
+                  Group Type <span className="text-destructive">*</span>
+                </Label>
+                <Controller
+                  name="groupType"
+                  control={control}
+                  render={({ field }) => (
+                    <MultiSelect
+                      options={groupTypeOptions}
+                      defaultValue={field.value}
+                      onValueChange={field.onChange}
+                      placeholder="Select Group Types"
+                    />
+                  )}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>
+                  Department <span className="text-destructive">*</span>
+                </Label>
+                <Controller
+                  name="department"
+                  control={control}
+                  render={({ field }) => (
+                    <MultiSelect
+                      options={departmentsOptions}
+                      defaultValue={field.value}
+                      onValueChange={field.onChange}
+                      placeholder="Select Departments"
+                    />
+                  )}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>
+                  Designation <span className="text-destructive">*</span>
+                </Label>
+                <Controller
+                  name="designation"
+                  control={control}
+                  render={({ field }) => (
+                    <MultiSelect
+                      options={designationsOptions}
+                      defaultValue={field.value}
+                      onValueChange={field.onChange}
+                      placeholder="Select Designations"
+                    />
+                  )}
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-center gap-4">
+            <Button type="submit" disabled={isSearching} className="w-32">
+              {isSearching ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <SearchIcon className="mr-2 h-4 w-4" />
+              )}
+              Search
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleCancel}
+              className="w-32"
+            >
+              <X className="mr-2 h-4 w-4" />
+              Cancel
+            </Button>
+          </div>
+        </form>
+      </CollapsibleSection>
+
+      {reportData && (
+        <CollapsibleSection
+          title="Report Details"
+          defaultOpen={true}
+          className="border shadow-md"
+          rightElement={
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExport}
+              className="gap-2"
+            >
+              <Download className="h-4 w-4" />
+              Export to Excel
+            </Button>
+          }
+        >
+          <div ref={tableRef} className="h-[500px] overflow-y-auto">
+            <GenericDataTable
+              data={processedGridData}
+              columns={columns}
+              totalItems={processedGridData.length}
+              isLoading={false}
+              showViewOptions={false}
+              showSearchColumns={false}
+              showExportOptions={false}
+              maxSelectableRows={0}
+              manualPagination={false}
+              manualSorting={false}
+              manualFiltering={false}
+              scrollable
+            />
+          </div>
+        </CollapsibleSection>
+      )}
+    </div>
+  );
 }
