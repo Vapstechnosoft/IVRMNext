@@ -134,8 +134,8 @@ export default function ChairmanDashboard() {
         const fetchData = async () => {
             console.log('fetching preadmission data');
             const { data } = await getDashboardCounts();
-            console.log('preadmission data', data?.data)
-            setDashboardData(data?.data);
+            console.log('preadmission data', data)
+            setDashboardData(data);
         };
 
         fetchData();
