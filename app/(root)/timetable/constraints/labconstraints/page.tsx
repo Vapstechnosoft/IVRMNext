@@ -1,4 +1,4 @@
-import { getLabConstraintsDetails } from '@/server/timetable/constraints/labconstraints';
+import { useLabConstraintsDetails } from '@/hooks/timetable/constraints/labconstraints';
 import LabConstraints from './_components/lab-constraints';
 
 export const dynamic = 'force-dynamic';
@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 export default async function LabConstraintsPage() {
     let initialData = null;
     try {
-        initialData = await getLabConstraintsDetails();
+        initialData = await useLabConstraintsDetails();
     } catch (error: any) {
         initialData = {
             success: false,

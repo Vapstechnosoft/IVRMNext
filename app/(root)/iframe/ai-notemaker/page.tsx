@@ -208,7 +208,9 @@ export default function AINotemaker() {
                                     </CardHeader>
                                     <CardContent className='space-y-4'>
                                         <div className='grid w-full items-center gap-1.5 font-semibold text-muted-foreground text-xs uppercase tracking-wider'>
-                                            <Label htmlFor='file-upload'>Document (PDF/TXT)</Label>
+                                            <Label htmlFor='file-upload'>
+                                                Document (PDF/TXT) <span className='text-destructive'>*</span>
+                                            </Label>
                                             <Input
                                                 id='file-upload'
                                                 type='file'
@@ -224,7 +226,7 @@ export default function AINotemaker() {
                                             </Label>
                                             <Input
                                                 id='chapter'
-                                                placeholder="e.g. Chapter 5, Newton's Laws"
+                                                placeholder="e.g. 1"
                                                 value={chapter}
                                                 onChange={(e) => setChapter(e.target.value)}
                                                 className='h-10'

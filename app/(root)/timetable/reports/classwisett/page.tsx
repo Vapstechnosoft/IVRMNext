@@ -12,16 +12,24 @@ export default function ClassWiseReportPage() {
     const [isReportVisible, setIsReportVisible] = useState(false);
     const printRef = useRef<HTMLDivElement>(null);
 
-
-
     const handleReportGenerated = (response: any, payload: any) => {
         const data = response.data || response;
-        if (data?.tt?.length > 0) {
+        // Robust check: as long as we have periods and days, we can show the structure
+        const hasData =
+            data &&
+            ((data.tt && data.tt.length > 0) ||
+                (data.TT && data.TT.length > 0) ||
+                (data.timetable && data.timetable.length > 0) ||
+                (data.allperiods && data.allperiods.length > 0) ||
+                (data.gridweeks && data.gridweeks.length > 0) ||
+                (data.Table4 && data.Table4.length > 0));
+
+        if (hasData) {
             processReportData(data, payload.classarray, payload.sectionarray);
             setIsReportVisible(true);
             toast.success('Report generated successfully');
         } else {
-            const msg = response.message || 'TimeTable is Not Generated For Selected Details !!!!';
+            const msg = response.message || 'TimeTable data is not available for selected details!!!!';
             toast.error(msg);
             setReportData([]);
             setIsReportVisible(false);
@@ -40,12 +48,14 @@ export default function ClassWiseReportPage() {
         const findRoot = (obj: any): any => {
             if (!obj) return null;
             // Check for core keys at this level
-            const hasData = (o: any) => o && (
-                (o.tt && Array.isArray(o.tt)) ||
-                (o.TT && Array.isArray(o.TT)) ||
-                (o.timetable && Array.isArray(o.timetable)) ||
-                (o.Table4 && Array.isArray(o.Table4))
-            );
+            const hasData = (o: any) =>
+                o &&
+                ((o.tt && Array.isArray(o.tt)) ||
+                    (o.TT && Array.isArray(o.TT)) ||
+                    (o.timetable && Array.isArray(o.timetable)) ||
+                    (o.allperiods && Array.isArray(o.allperiods)) ||
+                    (o.gridweeks && Array.isArray(o.gridweeks)) ||
+                    (o.Table4 && Array.isArray(o.Table4)));
 
             if (hasData(obj)) return obj;
             if (obj.data) return findRoot(obj.data);
@@ -61,24 +71,26 @@ export default function ClassWiseReportPage() {
                 if (obj[k] && Array.isArray(obj[k])) return obj[k];
                 // Case-insensitive search
                 const lowerK = k.toLowerCase();
-                const foundKey = Object.keys(obj).find(key => key.toLowerCase() === lowerK);
+                const foundKey = Object.keys(obj).find((key) => key.toLowerCase() === lowerK);
                 if (foundKey && Array.isArray(obj[foundKey])) return obj[foundKey];
             }
             return [];
         };
 
         const timetable = getList(root, 'tt', 'TT', 'timetable', 'Table4', 'Table');
-        const periodList = getList(root, 'periodslst', 'periodList', 'periodsLst', 'periodsList', 'allperiods', 'Table1');
+        const periodList = getList(root, 'periodslst', 'periodList', 'allperiods', 'periodsLst', 'periodsList', 'Table1');
         const gridWeeks = getList(root, 'gridweeks', 'gridWeeks', 'day_list', 'day_List', 'Table', 'grid_Weeks');
-        const breakList = getList(root, 'tT_Break_list', 'breakList', 'Table2', 'tt_break_list', 'tT_Break_list');
-        const allBreakList = getList(root, 'tT_Break_list_all', 'allBreakList', 'Table3', 'tt_break_list_all', 'tT_Break_list_all');
+        const breakList = getList(root, 'tT_Break_list', 'breakList', 'Table2', 'tt_break_list', 'tt_Break_list');
+        const allBreakList = getList(root, 'tT_Break_list_all', 'allBreakList', 'Table3', 'tt_break_list_all', 'tt_Break_list_all');
 
         console.log('ClassWise Report Deep Analysis:', {
             rootKeys: root ? Object.keys(root) : 'none',
             counts: {
                 periods: periodList.length,
                 days: gridWeeks.length,
-                tt: timetable.length
+                tt: timetable.length,
+                breaks: breakList.length,
+                allBreaks: allBreakList.length
             }
         });
 
@@ -99,7 +111,7 @@ export default function ClassWiseReportPage() {
 
                 // 1. Reconstruct logical timeline for this specific class (Periods + Breaks)
                 periodList.forEach((period: any) => {
-                    const pedId = period.ttmP_Id || period.TTMP_Id || period.ped_id;
+                    const pedId = period.ttmP_Id || period.TTMP_Id || period.ped_id || period.ttmp_id;
                     const pedName = period.ttmP_PeriodName || period.periodName || period.ped_name;
 
                     classPeriodSequence.push({
@@ -112,8 +124,7 @@ export default function ClassWiseReportPage() {
                     const breakItem = breakList.find((b: any) => {
                         const bClsId = b.asmcL_Id || b.ASMC_Id || b.asmcl_Id;
                         const bAfter = b.ttmB_AfterPeriod || b.afterPeriod || b.ttmb_afterperiod;
-                        return Number(bClsId) === Number(clsId) &&
-                            Number.parseFloat(String(pedName)) === Number.parseFloat(String(bAfter));
+                        return Number(bClsId) === Number(clsId) && Number.parseFloat(String(pedName)) === Number.parseFloat(String(bAfter));
                     });
 
                     if (breakItem) {
@@ -139,23 +150,27 @@ export default function ClassWiseReportPage() {
 
                         if (!periodCol.is_break) {
                             const entries = timetable.filter((t: any) => {
-                                const tPedId = t.ttmP_Id || t.TTMP_Id || t.ped_id;
-                                const tDayId = t.ttmD_Id || t.TTMD_Id || t.day_id;
+                                const tPedId = t.ttmP_Id || t.TTMP_Id || t.ped_id || t.ttmp_id;
+                                const tDayId = t.ttmD_Id || t.TTMD_Id || t.day_id || t.ttmd_id;
                                 const tClsId = t.asmcL_Id || t.ASMC_Id || t.asmcl_Id;
                                 const tSecId = t.asmS_Id || t.ASMS_Id || t.asms_Id;
 
-                                return Number(tPedId) === Number(periodCol.ped_id) &&
+                                return (
+                                    Number(tPedId) === Number(periodCol.ped_id) &&
                                     Number(tDayId) === Number(dayId) &&
                                     Number(tClsId) === Number(clsId) &&
-                                    Number(tSecId) === Number(secId);
+                                    Number(tSecId) === Number(secId)
+                                );
                             });
 
                             if (entries.length > 0) {
-                                cellContent = entries.map((t: any) => {
-                                    const sub = t.ismS_SubjectName || t.subjectName || t.subject || '';
-                                    const stf = t.staffName || t.empName || t.staff || t.hrmE_EmployeeName || '';
-                                    return `${sub} : ${stf}`;
-                                }).join(' && ');
+                                cellContent = entries
+                                    .map((t: any) => {
+                                        const sub = t.ismS_SubjectName || t.subjectName || t.subject || t.isms_subjectname || '';
+                                        const stf = t.staffName || t.empName || t.staff || t.hrmE_EmployeeName || t.hrme_employeename || '';
+                                        return `${sub} : ${stf}`;
+                                    })
+                                    .join(' && ');
                             }
                         } else {
                             // Priority: Day-Specific Break from Table3 (allBreakList)
@@ -163,9 +178,11 @@ export default function ClassWiseReportPage() {
                                 const bDayId = b.ttmD_Id || b.TTMD_Id || b.day_id || b.ttmd_id;
                                 const bClsId = b.asmcL_Id || b.ASMC_Id || b.asmcl_Id;
                                 const bAfter = b.ttmB_AfterPeriod || b.afterPeriod || b.ttmb_afterperiod;
-                                return Number(bDayId) === Number(dayId) &&
+                                return (
+                                    Number(bDayId) === Number(dayId) &&
                                     Number(bClsId) === Number(clsId) &&
-                                    Number.parseFloat(String(periodCol.after_ped_name)) === Number.parseFloat(String(bAfter));
+                                    Number.parseFloat(String(periodCol.after_ped_name)) === Number.parseFloat(String(bAfter))
+                                );
                             });
 
                             if (daySpecificBreak) {
@@ -206,10 +223,7 @@ export default function ClassWiseReportPage() {
     return (
         <div className='container mx-auto space-y-6 p-4'>
             <CollapsibleSection title='Class Wise TimeTable Report' defaultOpen={true}>
-                <ClassWiseForm
-                    onReportGenerated={handleReportGenerated}
-                    onCancel={handleCancel}
-                />
+                <ClassWiseForm onReportGenerated={handleReportGenerated} onCancel={handleCancel} />
             </CollapsibleSection>
 
             {isReportVisible && (

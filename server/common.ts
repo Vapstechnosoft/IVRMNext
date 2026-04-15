@@ -794,37 +794,37 @@ export async function getUserAccessibleModules() {
 
                                     ]
                                 },
-                                {
-                                    id: 10,
-                                    name: 'NDA',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 61,
-                                            name: 'NDA Transfer Certificate',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/nda-transfer-certificate',
-                                            title: 'NDA Transfer Certificate',
-                                            description: 'NDA Transfer Certificate'
-                                        },
-                                        {
-                                            id: 62,
-                                            name: 'NDA Student TC',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/nda-student-tc',
-                                            title: 'NDA Student TC',
-                                            description: 'NDA Student TC'
-                                        },
-                                        {
-                                            id: 63,
-                                            name: 'NDA Student Profile Update',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/nda-student-profile-update',
-                                            title: 'NDA Student Profile Update',
-                                            description: 'NDA Student Profile Update'
-                                        }
-                                    ]
-                                },
+                                // {
+                                //     id: 10,
+                                //     name: 'NDA',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         {
+                                //             id: 61,
+                                //             name: 'NDA Transfer Certificate',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/reports/nda-transfer-certificate',
+                                //             title: 'NDA Transfer Certificate',
+                                //             description: 'NDA Transfer Certificate'
+                                //         },
+                                //         {
+                                //             id: 62,
+                                //             name: 'NDA Student TC',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/reports/nda-student-tc',
+                                //             title: 'NDA Student TC',
+                                //             description: 'NDA Student TC'
+                                //         },
+                                //         {
+                                //             id: 63,
+                                //             name: 'NDA Student Profile Update',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/reports/nda-student-profile-update',
+                                //             title: 'NDA Student Profile Update',
+                                //             description: 'NDA Student Profile Update'
+                                //         }
+                                //     ]
+                                // },
                                 {
                                     id: 11,
                                     name: 'Baldwin',
@@ -854,14 +854,14 @@ export async function getUserAccessibleModules() {
                                             title: 'BCEH Study Certificate',
                                             description: 'BCEH Study Certificate'
                                         },
-                                        {
-                                            id: 64,
-                                            name: 'BBHS Student Application Form',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/bbhs-student-application',
-                                            title: 'BBHS Student Application Form',
-                                            description: 'BBHS Student Application Form'
-                                        },
+                                        // {
+                                        //     id: 64,
+                                        //     name: 'BBHS Student Application Form',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/bbhs-student-application',
+                                        //     title: 'BBHS Student Application Form',
+                                        //     description: 'BBHS Student Application Form'
+                                        // },
                                         {
                                             id: 65,
                                             name: 'Student tc custom report',
@@ -903,14 +903,7 @@ export async function getUserAccessibleModules() {
                                             title: 'Master Activities',
                                             description: 'Master Activities'
                                         },
-                                        {
-                                            id: 593,
-                                            name: 'Section Allotment',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/Sophia/SectionAllotment',
-                                            title: 'Section Allotment',
-                                            description: 'Section Allotment'
-                                        },
+
                                         {
                                             id: 594,
                                             name: 'CategoryWise Attendance',
@@ -927,102 +920,102 @@ export async function getUserAccessibleModules() {
                                             title: 'ClassWise Daily Attendance',
                                             description: 'ClassWise Daily Attendance'
                                         },
-                                        {
-                                            id: 596,
-                                            name: 'Student Search',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/Sophia/StudentSearch',
-                                            title: 'Student Search',
-                                            description: 'Student Search'
-                                        },
-                                        {
-                                            id: 597,
-                                            name: 'Students Search Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/Sophia/StudentsSearchReport',
-                                            title: 'Students Search Report',
-                                            description: 'Students Search Report'
-                                        },
-                                        {
-                                            id: 598,
-                                            name: 'Date Of Birth Certificate',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/Sophia/DateOfBirthCertificate',
-                                            title: 'Date Of Birth Certificate',
-                                            description: 'Date Of Birth Certificate'
-                                        },
-                                        {
-                                            id: 599,
-                                            name: 'Sophia study certificate',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/sophia/reports/SophiaStudyCertificate',
-                                            title: 'Sophia study certificate',
-                                            description: 'Sophia study certificate'
-                                        },
-                                        {
-                                            id: 600,
-                                            name: 'SophiaRegistrationXI',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/Sophia/reports/SophiaRegistrationXI',
-                                            title: 'SophiaRegistrationXI',
-                                            description: 'SophiaRegistrationXI'
-                                        },
-                                        {
-                                            id: 600,
-                                            name: 'SophiaRegistration',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/Sophia/reports/SophiaRegistration',
-                                            title: 'SophiaRegistration',
-                                            description: 'SophiaRegistration'
-                                        },
-                                        {
-                                            id: 601,
-                                            name: 'OverallDailyAttendanceReport',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/Sophia/reports/OverallDailyAttendanceReport',
-                                            title: 'OverallDailyAttendanceReport',
-                                            description: 'OverallDailyAttendanceReport'
-                                        },
-                                        {
-                                            id: 602,
-                                            name: 'Studenttcapply',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/Sophia/reports/Studenttcapply',
-                                            title: 'Studenttcapply',
-                                            description: 'Studenttcapply'
-                                        },
-                                        {
-                                            id: 603,
-                                            name: 'StudentTcApproval',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/Sophia/reports/StudentTcApproval',
-                                            title: 'StudentTcApproval',
-                                            description: 'StudentTcApproval'
-                                        },
-                                        {
-                                            id: 604,
-                                            name: 'SophiaMultiTransferCertificate',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/Sophia/reports/SophiaMultiTransferCertificate',
-                                            title: 'SophiaMultiTransferCertificate',
-                                            description: 'SophiaMultiTransferCertificate'
-                                        },
-                                        {
-                                            id: 605,
-                                            name: 'Attendanceentry',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/Sophia/reports/Attendanceentry',
-                                            title: 'Attendanceentry',
-                                            description: 'Attendanceentry'
-                                        },
-                                        {
-                                            id: 606,
-                                            name: 'SophiaStudentParticulars',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/Sophia/reports/SophiaStudentParticulars',
-                                            title: 'SophiaStudentParticulars',
-                                            description: 'SophiaStudentParticulars'
-                                        }
+                                        // {
+                                        //     id: 596,
+                                        //     name: 'Student Search',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/reports/Sophia/StudentSearch',
+                                        //     title: 'Student Search',
+                                        //     description: 'Student Search'
+                                        // },
+                                        // {
+                                        //     id: 597,
+                                        //     name: 'Students Search Report',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/reports/Sophia/StudentsSearchReport',
+                                        //     title: 'Students Search Report',
+                                        //     description: 'Students Search Report'
+                                        // },
+                                        // {
+                                        //     id: 598,
+                                        //     name: 'Date Of Birth Certificate',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/reports/Sophia/DateOfBirthCertificate',
+                                        //     title: 'Date Of Birth Certificate',
+                                        //     description: 'Date Of Birth Certificate'
+                                        // },
+                                        // {
+                                        //     id: 599,
+                                        //     name: 'Sophia study certificate',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/sophia/reports/SophiaStudyCertificate',
+                                        //     title: 'Sophia study certificate',
+                                        //     description: 'Sophia study certificate'
+                                        // },
+                                        // {
+                                        //     id: 600,
+                                        //     name: 'SophiaRegistrationXI',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/Sophia/reports/SophiaRegistrationXI',
+                                        //     title: 'SophiaRegistrationXI',
+                                        //     description: 'SophiaRegistrationXI'
+                                        // },
+                                        // {
+                                        //     id: 600,
+                                        //     name: 'SophiaRegistration',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/Sophia/reports/SophiaRegistration',
+                                        //     title: 'SophiaRegistration',
+                                        //     description: 'SophiaRegistration'
+                                        // },
+                                        // {
+                                        //     id: 601,
+                                        //     name: 'OverallDailyAttendanceReport',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/Sophia/reports/OverallDailyAttendanceReport',
+                                        //     title: 'OverallDailyAttendanceReport',
+                                        //     description: 'OverallDailyAttendanceReport'
+                                        // },
+                                        // {
+                                        //     id: 602,
+                                        //     name: 'Studenttcapply',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/Sophia/reports/Studenttcapply',
+                                        //     title: 'Studenttcapply',
+                                        //     description: 'Studenttcapply'
+                                        // },
+                                        // {
+                                        //     id: 603,
+                                        //     name: 'StudentTcApproval',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/Sophia/reports/StudentTcApproval',
+                                        //     title: 'StudentTcApproval',
+                                        //     description: 'StudentTcApproval'
+                                        // },
+                                        // {
+                                        //     id: 604,
+                                        //     name: 'SophiaMultiTransferCertificate',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/Sophia/reports/SophiaMultiTransferCertificate',
+                                        //     title: 'SophiaMultiTransferCertificate',
+                                        //     description: 'SophiaMultiTransferCertificate'
+                                        // },
+                                        // {
+                                        //     id: 605,
+                                        //     name: 'Attendanceentry',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/Sophia/reports/Attendanceentry',
+                                        //     title: 'Attendanceentry',
+                                        //     description: 'Attendanceentry'
+                                        // },
+                                        // {
+                                        //     id: 606,
+                                        //     name: 'SophiaStudentParticulars',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/Sophia/reports/SophiaStudentParticulars',
+                                        //     title: 'SophiaStudentParticulars',
+                                        //     description: 'SophiaStudentParticulars'
+                                        // }
 
                                     ]
                                 }
@@ -1032,14 +1025,14 @@ export async function getUserAccessibleModules() {
                                     name: 'St. Thomas Church School',
                                     icon: 'Settings',
                                     pages: [
-                                        {
-                                            id: 61,
-                                            name: 'St. Thomas Admission Form',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/stthomas/admission-form',
-                                            title: 'St. Thomas Admission Form',
-                                            description: 'St. Thomas Admission Form'
-                                        },
+                                        // {
+                                        //     id: 61,
+                                        //     name: 'St. Thomas Admission Form',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/stthomas/admission-form',
+                                        //     title: 'St. Thomas Admission Form',
+                                        //     description: 'St. Thomas Admission Form'
+                                        // },
                                         {
                                             id: 62,
                                             name: 'Total Strength',
@@ -7101,6 +7094,14 @@ export async function getUserAccessibleModules() {
                                             url: '/StudentPortal/student-dashboard/Exam/ExamReport',
                                             title: 'Exam Report',
                                             description: 'View Exam Report Performance'
+                                        },
+                                        {
+                                            id: 40015,
+                                            name: 'Online MCQ Quiz',
+                                            icon: 'FileQuestion',
+                                            url: '/StudentPortal/student-dashboard/Exam/OnlineMcqQuiz',
+                                            title: 'Online MCQ Quiz',
+                                            description: 'Take and view results of online MCQ assessments'
                                         }
                                     ]
                                 }

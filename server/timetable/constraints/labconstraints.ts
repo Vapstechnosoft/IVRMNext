@@ -1,7 +1,6 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import type { ApiSearchparams } from '@/types';
 import type { labConstraints } from '@/types/timetable/constraints/labconstraints';
 
 // Load initial data (Grid and Dropdowns)
@@ -10,22 +9,10 @@ export async function getLabConstraintsDetails() {
     return await api.get<any>('timetable', url);
 }
 
-// Get Class details based on Academic Year and Category
-// export async function getClassDetails(data: { ASMAY_Id: number; TTMC_Id: number }) {
-//     const url = '/Lab/getClassdetails';
-//     return await api.post<any>('timetable', url, data);
-// }
-
-// // Get Section details based on Class
-// export async function getSectionDetails(data: { ASMAY_Id: number; ASMCL_Id: number; TTMC_Id: number }) {
-//     const url = '/Lab/getSectiondetails';
-//     return await api.post<any>('timetable', url, data);
-// }
-
 // Get Lab (Subject?) details based on Class/Section
-export async function getLabDetails(data: { ASMAY_Id: number; ASMCL_Id: number; ASMS_Id: number; TTMC_Id: number }) {
+export async function getLabDetails() {
     const url = '/Lab/getLabdetails';
-    return await api.post<any>('timetable', url, data);
+    return await api.post<any>('timetable', url);
 }
 
 // Save Lab Constraints
@@ -48,13 +35,15 @@ export async function deleteLabConstraintsDetail(id: number) {
 
 //form pages
 
-export async function getTimeTableCategoryDropDownDetails(searchParams: ApiSearchparams | undefined) {
+//category
+export async function getTimeTableCategoryDropDownDetails() {
     const url = '/TimeTableCommon/GetCategoryDetails';
     console.info('LabConstraints', url);
     return await api.get<labConstraints[]>('timetable', url);
 }
 
-export async function getAcademicYear(searchParams: ApiSearchparams | undefined) {
+//academic year
+export async function getAcademicYear() {
     const url = '/TimeTableCommon/GetAcademicYearData';
     console.info('BifurcationConstratins-AcademicYear', url);
     return await api.get<labConstraints[]>('timetable', url);
@@ -63,13 +52,11 @@ export async function getAcademicYear(searchParams: ApiSearchparams | undefined)
 //class
 export async function getClassDetails() {
     const url = '/TimeTableCommon/GetClassData';
-    const response = await api.get<any[]>('timetable', url);
-    return response.data;
+    return await api.get<any[]>('timetable', url);
 }
 
 //section
 export async function getSectionDetails() {
-    const url = '/TimeTableCommon/section-details';
-    const response = await api.get<any[]>('timetable', url);
-    return response.data;
+    const url = '/TimeTableCommon/GetSectionData';
+    return await api.get<any[]>('timetable', url);
 }

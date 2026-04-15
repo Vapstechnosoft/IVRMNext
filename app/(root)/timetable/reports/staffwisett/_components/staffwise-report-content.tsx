@@ -1,9 +1,9 @@
-import { useRef, useState } from 'react';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { useRef, useState } from 'react';
+import { toast } from 'sonner';
 import StaffWiseForm from './staffwise-form';
 import StaffWiseReportGrid from './staffwise-report-grid';
 import StaffWiseReportPrintable from './staffwise-report-printable';
-import { toast } from 'sonner';
 
 export default function StaffWiseReportContent() {
     const [reportData, setReportData] = useState<any[]>([]);
@@ -14,10 +14,7 @@ export default function StaffWiseReportContent() {
         const data = response.data || response;
         // Check for tt or timetable or TT as requested by user
         const hasData =
-            data &&
-            ((data.tt && data.tt.length > 0) ||
-                (data.timetable && data.timetable.length > 0) ||
-                (data.TT && data.TT.length > 0));
+            data && ((data.tt && data.tt.length > 0) || (data.timetable && data.timetable.length > 0) || (data.TT && data.TT.length > 0));
 
         if (hasData) {
             processReportData(data, payload.staffarray, payload.rpttyp);
@@ -38,6 +35,7 @@ export default function StaffWiseReportContent() {
                 ((o.tt && Array.isArray(o.tt)) ||
                     (o.TT && Array.isArray(o.TT)) ||
                     (o.timetable && Array.isArray(o.timetable)) ||
+                    (o.Table4 && Array.isArray(o.Table4)) ||
                     (o.periodslst && Array.isArray(o.periodslst)) ||
                     (o.gridweeks && Array.isArray(o.gridweeks)));
 
@@ -60,15 +58,25 @@ export default function StaffWiseReportContent() {
         };
 
         const processedList: any[] = [];
-        const timetable = getList(root, 'timetable', 'tt', 'TT', 'Table4');
+        const timetable = getList(root, 'timetable', 'tt', 'TT', 'Table4', 'Table');
         const periodList = getList(root, 'periodslst', 'periodList', 'periodsLst', 'allperiods', 'Table1');
-        const gridWeeks = getList(root, 'gridweeks', 'gridWeeks', 'day_list', 'Table');
-        const subjectNames = getList(root, 'subjectNames', 'nameswithclas', 'namesWithClas', 'nameswithclas_');
-        const staffNames = getList(root, 'staffNames', 'staffnameswithclas', 'staffNamesWithClas', 'staffnameswithclas_');
+        const gridWeeks = getList(root, 'gridweeks', 'gridWeeks', 'day_list', 'day_List', 'Table');
+        const subjectNames = getList(root, 'subjectNames', 'nameswithclas', 'namesWithClas', 'nameswithclas_', 'Table5');
+        const staffNames = getList(root, 'staffNames', 'staffnameswithclas', 'staffNamesWithClas', 'staffnameswithclas_', 'Table6');
 
-        // Similar to ClassWiseTT, check for breaks if the API returns them
-        const breakList = getList(root, 'tT_Break_list', 'breakList', 'Table2', 'tt_break_list');
-        const allBreakList = getList(root, 'tT_Break_list_all', 'allBreakList', 'Table3', 'tt_break_list_all');
+        const breakList = getList(root, 'tT_Break_list', 'breakList', 'Table2', 'tt_break_list', 'tt_Break_list');
+        const allBreakList = getList(root, 'tT_Break_list_all', 'allBreakList', 'Table3', 'tt_break_list_all', 'tt_Break_list_all');
+
+        console.log('StaffWise Report Deep Analysis:', {
+            rootKeys: root ? Object.keys(root) : 'none',
+            counts: {
+                periods: periodList.length,
+                days: gridWeeks.length,
+                tt: timetable.length,
+                breaks: breakList.length,
+                allBreaks: allBreakList.length
+            }
+        });
 
         selectedStaff.forEach((staff: any) => {
             const hrmE_Id = staff.hrmE_Id || staff.HRME_Id;
@@ -87,9 +95,7 @@ export default function StaffWiseReportContent() {
                     is_break: false
                 });
 
-                // Check for breaks after this period (logic similar to ClassWise)
-                // Note: In StaffWise, breaks might be linked to classes, but often we just 
-                // check if ANY break is defined after this period if clsId is not specific
+                // Check for breaks after this period
                 const breakItem = breakList.find((b: any) => {
                     const bAfter = b.ttmB_AfterPeriod || b.afterPeriod || b.ttmb_afterperiod;
                     return Number.parseFloat(String(pedName)) === Number.parseFloat(String(bAfter));
@@ -107,11 +113,8 @@ export default function StaffWiseReportContent() {
             });
 
             // Find complementary names for header
-            const subNameEntry = subjectNames.find((s: any) => (s.hrmE_Id || s.HRME_Id) === hrmE_Id);
-            const stfNameEntry = staffNames.find((s: any) => (s.hrmE_Id || s.HRME_Id) === hrmE_Id);
-
-            const displaySubNames = subNameEntry?.names || '';
-            const displayStfNames = stfNameEntry?.names || '';
+            const subNameEntry = subjectNames.find((s: any) => (s.hrmE_Id || s.HRME_Id || s.hrme_id) === hrmE_Id);
+            const stfNameEntry = staffNames.find((s: any) => (s.hrmE_Id || s.HRME_Id || s.hrme_id) === hrmE_Id);
 
             // 2. Map TimeTable entries to the constructed Matrix
             gridWeeks.forEach((day: any) => {
@@ -125,8 +128,8 @@ export default function StaffWiseReportContent() {
 
                     if (!periodCol.is_break) {
                         const entries = timetable.filter((t: any) => {
-                            const tPedId = t.ttmP_Id || t.TTMP_Id || t.ped_id;
-                            const tDayId = t.ttmD_Id || t.TTMD_Id || t.day_id;
+                            const tPedId = t.ttmP_Id || t.TTMP_Id || t.ped_id || t.ttmp_id;
+                            const tDayId = t.ttmD_Id || t.TTMD_Id || t.day_id || t.ttmd_id;
                             const tStfId = t.hrmE_Id || t.HRME_Id || t.hrme_id;
                             return (
                                 Number(tPedId) === Number(periodCol.ped_id) &&
@@ -139,23 +142,27 @@ export default function StaffWiseReportContent() {
                             if (rptTyp === 'SAWC') {
                                 cellContent = entries
                                     .map((t: any) => {
-                                        const cls = t.asmcL_ClassName || t.className || '';
-                                        const sec = t.asmC_SectionName || t.sectionName || '';
-                                        const sub = t.ismS_SubjectName || t.subjectName || '';
+                                        const cls = t.asmcL_ClassName || t.className || t.asmcl_classname || '';
+                                        const sec = t.asmC_SectionName || t.sectionName || t.asmc_sectionname || '';
+                                        const sub = t.ismS_SubjectName || t.subjectName || t.isms_subjectname || '';
                                         return `${sub} : ${cls} : ${sec}`;
                                     })
                                     .join(' && ');
                             } else {
-                                cellContent = entries.map((t: any) => t.ismS_SubjectName || t.subjectName || '').join(' && ');
+                                cellContent = entries
+                                    .map((t: any) => t.ismS_SubjectName || t.subjectName || t.isms_subjectname || '')
+                                    .join(' && ');
                             }
                         }
                     } else {
-                        // Handle Breaks logic similar to ClassWise
+                        // Handle Breaks logic
                         const daySpecificBreak = allBreakList.find((b: any) => {
                             const bDayId = b.ttmD_Id || b.TTMD_Id || b.day_id || b.ttmd_id;
                             const bAfter = b.ttmB_AfterPeriod || b.afterPeriod || b.ttmb_afterperiod;
-                            return Number(bDayId) === Number(dayId) &&
-                                Number.parseFloat(String(periodCol.after_ped_name)) === Number.parseFloat(String(bAfter));
+                            return (
+                                Number(bDayId) === Number(dayId) &&
+                                Number.parseFloat(String(periodCol.after_ped_name)) === Number.parseFloat(String(bAfter))
+                            );
                         });
 
                         if (daySpecificBreak) {
@@ -198,10 +205,7 @@ export default function StaffWiseReportContent() {
     return (
         <div className='container mx-auto space-y-6 p-4'>
             <CollapsibleSection title='Staff Wise TimeTable Report' defaultOpen={true}>
-                <StaffWiseForm
-                    onReportGenerated={handleReportGenerated}
-                    onCancel={handleCancel}
-                />
+                <StaffWiseForm onReportGenerated={handleReportGenerated} onCancel={handleCancel} />
             </CollapsibleSection>
 
             {isReportVisible && reportData.length > 0 && (

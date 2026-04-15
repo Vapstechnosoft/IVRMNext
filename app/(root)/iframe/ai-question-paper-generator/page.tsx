@@ -122,7 +122,8 @@ export default function AIQuestionPaperGenerator() {
         }
 
         if (!chapters) {
-            toast.warning("Generating for entire textbook (no specific chapters selected)");
+            toast.error("Please enter specific chapter names or numbers");
+            return;
         }
 
         setIsLoading(true);
@@ -310,7 +311,7 @@ export default function AIQuestionPaperGenerator() {
                                     </CardHeader>
                                     <CardContent className="space-y-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                         <div className="grid w-full items-center gap-1.5">
-                                            <Label htmlFor="pdf-upload">Textbook (PDF)</Label>
+                                            <Label htmlFor="pdf-upload" className="after:content-['*'] after:ml-0.5 after:text-red-500">Textbook (PDF)</Label>
                                             <Input
                                                 id="pdf-upload"
                                                 type="file"
@@ -321,7 +322,7 @@ export default function AIQuestionPaperGenerator() {
                                         </div>
 
                                         <div className="grid w-full items-center gap-1.5 pt-2">
-                                            <Label htmlFor="chapters">Chapter Numbers</Label>
+                                            <Label htmlFor="chapters" className="after:content-['*'] after:ml-0.5 after:text-red-500">Chapter Numbers</Label>
                                             <Input
                                                 id="chapters"
                                                 placeholder="e.g. 1, 2, 5.1"
