@@ -28,9 +28,7 @@ import { useMemo, useState, useEffect, useRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { z } from 'zod'; // If needed for validation, but strictly using manual validation for now to match legacy flexibility
-import { report } from 'node:process';
-import { table } from 'node:console';
+
 
 // Fixed Header List from Legacy
 const HEADER_LIST = [
@@ -133,6 +131,8 @@ function EmployeeDetailsReportContent() {
     const watchedGroupType = watch('groupType');
     const watchedDepartment = watch('department');
     const watchedHeaders = watch('headers');
+    const watchSelectedEmployeeType = watch('selectedEmployeeType');
+    const watchSelectedEmployee = watch('selectedEmployee');
 
     // Queries
     const { data: onloadData, isLoading: isLoadingOnload } = useEmployeeDetailsReportOnload();
@@ -156,16 +156,15 @@ function EmployeeDetailsReportContent() {
             // or generally fetch if criteria changes?
             // User said "if i will pass 'typeOrEmployee': 'Type', this list 'employeeTypedropdown' should come..."
             // This implies we should fetch whenever the relevant criteria for this API changes.
-
             const payload = {
                 fromDate: watchedFromDate ? format(watchedFromDate, 'yyyy-MM-dd') : null,
                 toDate: watchedToDate ? format(watchedToDate, 'yyyy-MM-dd') : null,
                 formatType: watchedFormatType,
                 dobjl: watchedDateCriteria,
                 allOrIndividual: watchedAllOrIndividual,
-                typeOrEmployee: watchedTypeOrEmployee,
-                hrmeT_Id: watchedTypeOrEmployee === 'Type' ? 0 : (Number(watch('selectedEmployeeType')) || 0), // Use watch direct to avoid stale closure if any
-                hrmE_Id: 0, // Request says hrmE_Id: 0 in example. Assuming it's for filtering list, not getting single employee.
+                typeOrEmployee: 'Type', // Hardcode to 'Type' because backend returns BOTH employeeTypedropdown and employeeDetails lists for this value
+                hrmeT_Id: 0,
+                hrmE_Id: 0, 
                 left: watchedLeft,
                 working: watchedWorking
             };
@@ -173,25 +172,14 @@ function EmployeeDetailsReportContent() {
             getEmployeeAndType(payload, {
                 onSuccess: (res) => {
                     if (res.data) {
-                        // If fetching for "Type", populate Type dropdown
-                        if (watchedTypeOrEmployee === 'Type') {
-                            setFilteredEmployeeTypeDropdown(res.data.employeeTypedropdown || []);
-                        }
-                        // If fetching for "Employee", populate Employee dropdown
-                        if (watchedTypeOrEmployee === 'Employee') {
-                            setFilteredEmployeeDropdown(res.data.employeeDetails || []);
-                        }
-                        // If initializing or switching modes, maybe both?
-                        // The existing legacy logic populated both on load.
-                        // The user request shows separate payloads for Type vs Employee list fetching.
-                        // But we might want to populate both initially?
-                        // For now, reactive to `typeOrEmployee` seems strictly what was asked.
-                        // But let's handle the initial load or "All" case if needed.
-                        // Actually, let's just update states based on what's returned.
-                        if (res.data.employeeTypedropdown?.length > 0 && watchedTypeOrEmployee === 'Type') {
+
+                        console.log("Emp API Response:", res);
+                        
+                        if (res.data.employeeTypedropdown) {
                             setFilteredEmployeeTypeDropdown(res.data.employeeTypedropdown);
                         }
-                        if (res.data.employeeDetails?.length > 0 && watchedTypeOrEmployee === 'Employee') {
+                        
+                        if (res.data.employeeDetails) {
                             setFilteredEmployeeDropdown(res.data.employeeDetails);
                         }
                     }
@@ -211,10 +199,11 @@ function EmployeeDetailsReportContent() {
         watchedFromDate,
         watchedToDate,
         watchedAllOrIndividual,
-        watchedTypeOrEmployee,
         watchedWorking,
         watchedLeft,
-        // watch('selectedEmployeeType') // Add this if changing type should re-fetch employee list (cascading)
+        watchedTypeOrEmployee,
+        watchSelectedEmployee,
+        watchSelectedEmployeeType,
         getEmployeeAndType
     ]);
 

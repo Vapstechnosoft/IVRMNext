@@ -2355,7 +2355,7 @@ export async function getUserAccessibleModules() {
                                         //     id: 1289,
                                         //     name: 'Salary Certificate',
                                         //     icon: 'Award',
-                                        //     url: '/hrms/reports/salary-certificate',
+                                        //     url: '/hrms/reports/employeeSalaryCertificateBGHS',
                                         //     title: 'Salary Certificate',
                                         //     description: 'Generate Salary Certificates'
                                         // },
@@ -2415,7 +2415,7 @@ export async function getUserAccessibleModules() {
                                         //     url: '/hrms/reports/retirement-report',
                                         //     title: 'Retirement Report',
                                         //     description: 'Employee Retirement Report'
-                                        // }
+                                        // },
                                         {
                                             id: 20,
                                             name: 'Department Salary Report',
@@ -2461,7 +2461,7 @@ export async function getUserAccessibleModules() {
                                             id: 25,
                                             name: 'Salary Increment Report',
                                             icon: 'FileSearch',
-                                            url: '/hrms/reports/salary-increment-report',
+                                            url: '/hrms/reports/SalaryIncreementReport',
                                             title: 'Salary Increment Report',
                                             description: 'Salary Increment Report'
 
@@ -2489,7 +2489,40 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/reports/CBSSalarySlip',
                                             title: 'Employee Salary Slip Calcutta Boys Report',
                                             description: 'Employee Salary Slips'
-                                        }
+                                        },
+                                        // {
+                                        //     id: 29,
+                                        //     name: 'Employee Contribution Report',
+                                        //     icon: 'Clock',
+                                        //     url: '/hrms/reports/contribution-report',
+                                        //     title: 'Employee Contribution Report',
+                                        //     description: 'Manage Employee Contribution Report'
+                                        // },
+                                        // {
+                                        //     id: 30,
+                                        //     name: 'PS7 Form Report',
+                                        //     icon: 'Clock',
+                                        //     url: '/hrms/reports/PS7FromReportStJames',
+                                        //     title: 'PS7 Form Report',
+                                        //     description: 'Manage PS7 Form Report'
+                                        // },
+                                        // {
+                                        //     id: 31, 
+                                        //     name: "MONTH WISE REPORT(st.james)" ,
+                                        //     icon: 'Clock',
+                                        //     url: '/hrms/reports/PS8_MonthWiseReportStjames',
+                                        //     title: 'PS8 Month Wise Report',
+                                        //     description: 'Manage Month Wise Report (st.james)'
+                                        // },
+                                        // {
+                                        //     id: 32,
+                                        //     name: "PS8 Form Report(st.james)" ,
+                                        //     icon: 'Clock',
+                                        //     url: '/hrms/reports/PS8_ReportStjames',
+                                        //     title: 'PS8 Form Report',
+                                        //     description: 'Manage PS8 Form Report (st.james)'
+                                        // },
+                                        
                                     ]
                                 }
                             ]
@@ -2739,6 +2772,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Front Office Addlogs',
                                             description: 'Front Office Addlogs'
                                         },
+                                        {
+                                            id: 10,
+                                            name : "Employee Log Insertion",
+                                            icon : "ClipboardList",
+                                            url : "/hrms/attendance-management/masters/FrontOfficeAddlogsCBS",
+                                            title : "Employee Log Insertion",
+                                            description : "Manage Employee Log Insertion"
+                                        }
 
                                     ]
                                 },
@@ -3122,6 +3163,14 @@ export async function getUserAccessibleModules() {
                                         //     title: 'Leave  Details',
                                         //     description: 'View Leave Credit Details'
                                         // },
+                                        {
+                                            id: 4,
+                                            name: 'Leave Credit Details',
+                                            icon: 'Info',
+                                            url: '/hrms/leave-management/transaction/leave-details',
+                                            title: 'Leave  Details',
+                                            description: 'View Leave Credit Details'
+                                        },
                                         {
                                             id: 5,
                                             name: 'Leave Transaction',

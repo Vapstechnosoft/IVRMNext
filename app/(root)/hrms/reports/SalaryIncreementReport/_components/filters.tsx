@@ -34,6 +34,7 @@ interface SalaryIncrementFiltersProps {
     months: any[];
     years: any[];
     isLoadingEmployees: boolean;
+    isLoadingYears: boolean;
     isGenerating: boolean;
     hasResults: boolean;
     onFilterChange: (filters: SalaryIncrementFilters) => void;
@@ -50,6 +51,7 @@ export function SalaryIncrementFilters({
     months,
     years,
     isLoadingEmployees,
+    isLoadingYears,
     isGenerating,
     hasResults,
     onFilterChange,
@@ -93,6 +95,8 @@ export function SalaryIncrementFilters({
                                     <Select
                                         value={filters.hrmE_Id}
                                         onValueChange={(value) => onFilterChange({ ...filters, hrmE_Id: value })}
+                                        disabled={isLoadingEmployees}
+
                                     >
                                         <SelectTrigger>
                                             <SelectValue placeholder={isLoadingEmployees ? "Loading employees..." : "Choose an employee"} />
@@ -157,9 +161,10 @@ export function SalaryIncrementFilters({
                                             <Select
                                                 value={filters.yearid}
                                                 onValueChange={(value) => onFilterChange({ ...filters, yearid: value })}
+                                                disabled={isLoadingYears || years.length === 0}
                                             >
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Select Year" />
+                                                    {isLoadingYears ? <SelectValue placeholder="Loading years..."  /> : <SelectValue placeholder="Select Year" />}
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {years?.map((y) => (

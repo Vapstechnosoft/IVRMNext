@@ -46,7 +46,7 @@ export default function SalaryIncrementReportPage() {
     const [reportData, setReportData] = useState<any[]>([]);
 
     const { data: employeesData, isLoading: isLoadingEmployees } = useEmployeesForNoticeBoard();
-    const { data: yearsData } = useLeaveYearDropdown();
+    const { data: yearsData, isLoading: isLoadingYears } = useLeaveYearDropdown();
 
     console.log("employeesData", employeesData)
     console.log("yearsData", yearsData)
@@ -110,7 +110,7 @@ export default function SalaryIncrementReportPage() {
 
         if (hasErrors) {
             setErrors(newErrors);
-            toast.error('Please fix the errors in the form');
+            // toast.error('Please fix the errors in the form');
             return;
         }
 
@@ -186,6 +186,7 @@ export default function SalaryIncrementReportPage() {
                 months={MONTH_LIST}
                 years={yearsData?.data || []}
                 isLoadingEmployees={isLoadingEmployees}
+                isLoadingYears={isLoadingYears}
                 isGenerating={isGenerating}
                 hasResults={reportData.length > 0}
                 onFilterChange={handleFilterChange}
@@ -239,6 +240,7 @@ export default function SalaryIncrementReportPage() {
                                     totalItems={reportData.length}
                                     isSearchRequired={true}
                                     isPaginationRequired={true}
+                                    showViewOptions={false}
                                 />
                             </div>
 
