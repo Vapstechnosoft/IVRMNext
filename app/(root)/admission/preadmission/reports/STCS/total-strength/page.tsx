@@ -156,6 +156,9 @@ export default function TotalStrengthPage() {
         return Array.isArray(list) ? list : [];
     }, [reportResponse]);
 
+    console.log("Elective", Array.isArray(reportResponse?.data?.electiveSum));
+
+
     const groupedData = useMemo(() => {
         const grouped: Record<string, any[]> = {};
         studentList.forEach((item: any) => {

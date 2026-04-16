@@ -501,8 +501,8 @@ export default function SamarthaBonafideCertificatePage() {
                                         <p className="indent-20">
                                             Certified that {student.gen} <span className="font-black text-xl px-1 uppercase">{student.studentname}</span> {student.gender3} of Sri
                                             <span className="font-black px-1 uppercase"> {student.fathername} </span>was / has been a bonafide student of this institution from / since
-                                            <span className="font-bold px-1">{student.joinedyear}</span> to <span className="font-bold px-1">{student.presentYear}</span> and in classes from
-                                            <span className="font-bold px-1">{student.joinedClass}</span> to <span className="font-bold px-1">{student.presentClass}</span>.
+                                            <span className="font-bold px-1">{student.joinedyear}</span> to <span className="font-bold px-1">{student.presentyear}</span> and in classes from
+                                            <span className="font-bold px-1">{student.joinedclass}</span> to <span className="font-bold px-1">{student.presentclass}</span>.
                                             <span className="font-bold px-1 ml-1">{student.gender1}</span> possessed / possesses <span className="font-black px-1">Good</span> conduct during
                                             <span className="font-bold px-1"> {student.gender2} </span> stay in the institution.
                                         </p>

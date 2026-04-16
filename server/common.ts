@@ -1219,6 +1219,48 @@ export async function getUserAccessibleModules() {
                                             description: 'StudentIDcardReportSTPeter'
                                         }
                                     ]
+                                },
+                                {
+                                    id: 16,
+                                    name: 'GNANA DEEPA ACADEMY RESIDENTIAL SCHOOL',
+                                    icon: 'Settings',
+                                    pages: [
+
+
+                                        {
+                                            id: 74,
+                                            name: 'GDARSStudyCertificate',
+                                            icon: 'Settings',
+                                            url: '/admission/gnanadeepa/reports/GDARSStudyCertificate',
+                                            title: 'GDARSStudyCertificate',
+                                            description: 'GDARSStudyCertificate'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 17,
+                                    name: 'SMS degree college',
+                                    icon: 'Settings',
+                                    pages: [
+                                        //Need to create UI 
+                                        // {
+                                        //     id: 74,
+                                        //     name: 'SMSCollegeStudentTc',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/sms/transaction/SMSCollegeStudentTc',
+                                        //     title: 'SMSCollegeStudentTc',
+                                        //     description: 'SMSCollegeStudentTc'
+                                        // },
+
+                                        {
+                                            id: 75,
+                                            name: 'SMSCConductCertificate',
+                                            icon: 'Settings',
+                                            url: '/admission/sms/reports/SMSCConductCertificate',
+                                            title: 'SMSCConductCertificate',
+                                            description: 'SMSCConductCertificate'
+                                        }
+                                    ]
                                 }
 
                             ]
