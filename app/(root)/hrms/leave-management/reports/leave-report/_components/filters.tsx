@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { X } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
 export interface LeaveReportFilters {
     selectedTypes: number[];
     selectedDepartments: number[];
@@ -31,6 +31,8 @@ interface LeaveReportFiltersProps {
     isLoadingDepartments?: boolean;
     isLoadingDesignations?: boolean;
     isLoadingEmployees?: boolean;
+    errors?: Record<string, string>;
+    isGenerating?: boolean;
     onFilterChange: (key: keyof LeaveReportFilters, value: any) => void;
     onReport: () => void;
     onCancel: () => void;
@@ -46,6 +48,8 @@ export function LeaveReportFilters({
     isLoadingDepartments = false,
     isLoadingDesignations = false,
     isLoadingEmployees = false,
+    errors = {},
+    isGenerating = false,
     onFilterChange,
     onReport,
     onCancel
@@ -88,6 +92,7 @@ export function LeaveReportFilters({
                                 placeholder='Select group types'
                             />
                         )}
+                        {errors.selectedTypes && <p className='text-xs text-red-500'>{errors.selectedTypes}</p>}
                     </div>
                     {/* Department */}
                     <div className='space-y-2'>
@@ -114,6 +119,7 @@ export function LeaveReportFilters({
                                 placeholder='Select departments'
                             />
                         )}
+                        {errors.selectedDepartments && <p className='text-xs text-red-500'>{errors.selectedDepartments}</p>}
                     </div>
                     {/* Designation */}
                     <div className='space-y-2'>
@@ -140,6 +146,7 @@ export function LeaveReportFilters({
                                 placeholder='Select designations'
                             />
                         )}
+                        {errors.selectedDesignations && <p className='text-xs text-red-500'>{errors.selectedDesignations}</p>}
                     </div>
                 </div>
                 {/* Employee Section - Hide when Employee Leave Balance is checked */}
@@ -205,13 +212,14 @@ export function LeaveReportFilters({
                                         </SelectContent>
                                     </Select>
                                 )}
+                                {errors.selectedEmployeeId && <p className='text-xs text-red-500'>{errors.selectedEmployeeId}</p>}
                             </div>
                         )}
                     </>
                 )}
                 {/* Filter Fields */}
-                <div className='grid grid-cols-1 items-end gap-4 md:grid-cols-3'>
-                    <div>
+                <div className='grid grid-cols-1 items-start gap-4 md:grid-cols-3'>
+                    <div className='space-y-2'>
                         <Label htmlFor='leave-select' className='font-medium text-sm'>
                             Leave <span className='text-red-500'>*</span>
                         </Label>
@@ -228,9 +236,10 @@ export function LeaveReportFilters({
                                 ))}
                             </SelectContent>
                         </Select>
+                        {errors.leave && <p className='text-xs text-red-500'>{errors.leave}</p>}
                     </div>
                     <div className='grid grid-cols-1 gap-2 md:col-span-1 md:grid-cols-2'>
-                        <div>
+                        <div className='space-y-2'>
                             <Label htmlFor='from-date-input' className='font-medium text-sm'>
                                 From Date <span className='text-red-500'>*</span>
                             </Label>
@@ -239,8 +248,9 @@ export function LeaveReportFilters({
                                 setDate={(date) => onFilterChange('fromDate', date ? date.toISOString().split('T')[0] : '')}
                                 placeholder='Select from date'
                             />
+                            {errors.fromDate && <p className='text-xs text-red-500'>{errors.fromDate}</p>}
                         </div>
-                        <div>
+                        <div className='space-y-2'>
                             <Label htmlFor='to-date-input' className='font-medium text-sm'>
                                 To Date <span className='text-red-500'>*</span>
                             </Label>
@@ -249,6 +259,7 @@ export function LeaveReportFilters({
                                 setDate={(date) => onFilterChange('toDate', date ? date.toISOString().split('T')[0] : '')}
                                 placeholder='Select to date'
                             />
+                            {errors.toDate && <p className='text-xs text-red-500'>{errors.toDate}</p>}
                         </div>
                     </div>
                     {/* Employee Leave Balance Checkbox */}
@@ -264,10 +275,11 @@ export function LeaveReportFilters({
                     </div>
                     {/* Action Buttons */}
                     <div className='flex gap-2 md:col-span-3'>
-                        <Button onClick={onReport} variant='default'>
+                        <Button onClick={onReport} variant='default' disabled={isGenerating}>
+                            {isGenerating && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
                             Report
                         </Button>
-                        <Button variant='outline' onClick={onCancel}>
+                        <Button variant='outline' onClick={onCancel} disabled={isGenerating}>
                             <X className='mr-2 h-4 w-4' />
                             Clear
                         </Button>
