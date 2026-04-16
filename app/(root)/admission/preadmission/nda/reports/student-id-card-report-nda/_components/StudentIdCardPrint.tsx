@@ -50,7 +50,8 @@ export const StudentIdCardPrint = forwardRef<HTMLDivElement, StudentIdCardPrintP
 
     return (
       <div ref={ref} className="id-card-print-container">
-        <style dangerouslySetInnerHTML={{ __html: `
+        <style dangerouslySetInnerHTML={{
+          __html: `
           @media print {
             @page {
               size: 85.5mm 53.6mm;
@@ -65,10 +66,24 @@ export const StudentIdCardPrint = forwardRef<HTMLDivElement, StudentIdCardPrintP
           }
 
           .nd-card-wrapper {
-            width: 85.5mm;
-            height: auto;
-            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10mm;
+            justify-content: center;
+            padding: 10mm;
             font-family: 'Calibri', 'Poppins', sans-serif;
+          }
+
+          @media print {
+            .nd-card-wrapper {
+              display: block !important;
+              visibility: visible !important;
+              padding: 0;
+            }
+            .nd-card-wrapper * {
+              visibility: visible !important;
+            }
           }
 
           .nd-id-card {
@@ -79,7 +94,19 @@ export const StudentIdCardPrint = forwardRef<HTMLDivElement, StudentIdCardPrintP
             overflow: hidden;
             page-break-after: always;
             box-sizing: border-box;
-            border: 0.1px solid #eee;
+            border: 0.1px solid #ddd;
+            margin-bottom: 5mm;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+          }
+
+          @media print {
+            .nd-id-card {
+               display: block !important;
+               visibility: visible !important;
+               margin-bottom: 0;
+               box-shadow: none;
+               page-break-after: always !important;
+            }
           }
 
           .curved-triangle-top {
@@ -94,11 +121,11 @@ export const StudentIdCardPrint = forwardRef<HTMLDivElement, StudentIdCardPrintP
 
           .curved-triangle-top:before {
             content: "";
-            width: 239%;
-            height: 157%;
+            width: 300%;
+            height: 200%;
             position: absolute;
-            border-radius: 39%;
-            box-shadow: -104px -15px 0 0 ${styles.shadow === 'white' ? '#ddd' : styles.shadow};
+            border-radius: 45%;
+            box-shadow: -120px -20px 0 0 ${styles.shadow === 'white' ? '#ddd' : styles.shadow};
             top: 0;
             left: 0;
           }
@@ -115,11 +142,11 @@ export const StudentIdCardPrint = forwardRef<HTMLDivElement, StudentIdCardPrintP
 
           .curved-triangle-bottom:before {
             content: "";
-            width: 248%;
-            height: 220%;
+            width: 300%;
+            height: 250%;
             position: absolute;
-            border-radius: 39%;
-            box-shadow: 103px 19px 0 0 ${styles.shadow === 'white' ? '#ddd' : styles.shadow};
+            border-radius: 45%;
+            box-shadow: 120px 25px 0 0 ${styles.shadow === 'white' ? '#ddd' : styles.shadow};
             bottom: 0;
             right: 0;
           }
@@ -148,12 +175,13 @@ export const StudentIdCardPrint = forwardRef<HTMLDivElement, StudentIdCardPrintP
           }
 
           .nd-photo-frame {
-            width: 19mm;
-            height: 23mm;
-            border: 0.3px solid #000;
-            border-radius: 4px;
+            width: 21mm;
+            height: 25mm;
+            border: 0.5px solid #000;
+            border-radius: 2px;
             overflow: hidden;
             flex-shrink: 0;
+            background: #f8fafc;
           }
 
           .nd-photo-frame img {
@@ -164,14 +192,14 @@ export const StudentIdCardPrint = forwardRef<HTMLDivElement, StudentIdCardPrintP
 
           .nd-details {
             flex-grow: 1;
-            font-size: 8.5pt;
-            line-height: 1.4;
-            color: #333;
+            font-size: 8pt;
+            line-height: 1.6;
+            color: #000;
           }
 
           .nd-details b {
-            font-size: 9pt;
-            font-weight: 900;
+            font-size: 8pt;
+            font-weight: bold;
           }
 
           .nd-blood-group-wrap {
@@ -191,8 +219,9 @@ export const StudentIdCardPrint = forwardRef<HTMLDivElement, StudentIdCardPrintP
 
           .nd-blood-text {
             font-size: 8pt;
-            font-weight: 900;
-            color: #333;
+            font-weight: bold;
+            color: #000;
+            margin-left: 2px;
           }
 
           .nd-principal-wrap {
@@ -206,12 +235,14 @@ export const StudentIdCardPrint = forwardRef<HTMLDivElement, StudentIdCardPrintP
           .nd-sig-img {
             height: 10mm;
             width: auto;
-            margin-bottom: 0;
+            margin-bottom: -20px;
           }
 
           .nd-principal-title {
-            font-size: 7.5pt;
-            font-weight: 900;
+            font-size: 7pt;
+            font-weight: bold;
+            color: #000;
+            text-transform: capitalize;
           }
 
           /* Back Side Specifics */
@@ -312,37 +343,37 @@ export const StudentIdCardPrint = forwardRef<HTMLDivElement, StudentIdCardPrintP
               {/* Front Side */}
               <div className="nd-id-card">
                 <div className="curved-triangle-top" />
-                
+
                 <div className="nd-header">
                   <img src={styles.headerImg} alt="NDA Header" className="nd-header-img" />
                 </div>
 
                 <div className="nd-content">
                   <div className="nd-photo-frame">
-                    {dd.AMST_Photoname ? (
-                      <img src={dd.AMST_Photoname} alt={dd.studentname} />
+                    {(dd.AMST_Photoname || dd.amsT_Photoname || dd.amst_photoname) ? (
+                      <img src={dd.AMST_Photoname || dd.amsT_Photoname || dd.amst_photoname} alt={dd.studentName} />
                     ) : (
                       <div className="w-full h-full bg-slate-100" />
                     )}
                   </div>
 
                   <div className="nd-details">
-                    <p className="mb-2"><b>Name:</b> {dd.studentname}</p>
-                    <p className="mb-2"><b>DOB:</b> {dd.AMST_DOB ? format(new Date(dd.AMST_DOB), 'dd/MM/yyyy') : ''}</p>
-                    <p><b>Phone:</b> {dd.studentmobile}</p>
+                    <p className="mb-2"><b>Name: </b> {dd.studentName}</p>
+                    <p className="mb-2"><b>DOB : </b> {dd.AMST_DOB ? format(new Date(dd.AMST_DOB), 'dd/MM/yyyy') : ''}</p>
+                    <p><b>Phone : </b> {dd.studentMobile || dd.studentmobile || dd.studentmobileNo || '-'}</p>
                   </div>
                 </div>
 
                 <div className="nd-blood-group-wrap">
                   <svg viewBox="0 0 64 64" className="nd-blood-drop">
-                    <path d="M32 2C32 2 10 26 10 40C10 52.15 20.85 62 33 62C45.15 62 56 52.15 56 40C56 26 32 2 32 2Z" fill="white" stroke="#ff4444" strokeWidth="2" />
+                    <path d="M32 2C32 2 10 26 10 40C10 52.15 20.85 62 33 62C45.15 62 56 52.15 56 40C56 26 32 2 32 2Z" fill="#ff4444" />
                   </svg>
-                  <span className="nd-blood-text">{dd.AMST_BloodGroup}</span>
+                  <span className="nd-blood-text">{dd.AMST_BloodGroup && dd.AMST_BloodGroup.trim() !== '' && dd.AMST_BloodGroup !== 'Not Available' ? dd.AMST_BloodGroup : '-'}</span>
                 </div>
 
                 <div className="nd-principal-wrap">
-                   <img src="https://dcampusstrg.blob.core.windows.net/files/17/ISM_Attachments/7a923e6a-8d84-43b2-a70b-692550db3992.png" alt="Sig" className="nd-sig-img" />
-                   <p className="nd-principal-title">Principal</p>
+                  <img src="https://dcampusstrg.blob.core.windows.net/files/17/ISM_Attachments/7a923e6a-8d84-43b2-a70b-692550db3992.png" alt="Sig" className="nd-sig-img" />
+                  <p className="nd-principal-title">Principal</p>
                 </div>
 
                 <div className="curved-triangle-bottom" />
@@ -350,47 +381,62 @@ export const StudentIdCardPrint = forwardRef<HTMLDivElement, StudentIdCardPrintP
 
               {/* Back Side (Rotated) */}
               <div className="nd-id-card nd-back-rotated">
-                 <div className="curved-triangle-top" />
+                <div className="curved-triangle-top" />
 
-                 <div className="nd-back-content">
-                    <div className="nd-guardian-grid">
-                       <div className="nd-guardian-col">
-                          <span className="nd-guardian-label">Mother</span>
-                          <div className="nd-guardian-photo">
-                             <img src={dd.ANST_MotherPhoto || '/placeholder.png'} alt="M" />
-                          </div>
-                          <div className="nd-guardian-info">
-                             {dd.mothername}<br/>{dd.AMST_MotherMobileNo}
-                          </div>
-                       </div>
-                       <div className="nd-guardian-col">
-                          <span className="nd-guardian-label">Father</span>
-                          <div className="nd-guardian-photo">
-                             <img src={dd.ANST_FatherPhoto || '/placeholder.png'} alt="F" />
-                          </div>
-                          <div className="nd-guardian-info">
-                             {dd.fatherName}<br/>{dd.AMST_FatherMobleNo}
-                          </div>
-                       </div>
-                       <div className="nd-guardian-col">
-                          <span className="nd-guardian-label">Guardian</span>
-                          <div className="nd-guardian-photo">
-                             <img src={dd.AMSTG_GuardianPhoto || '/placeholder.png'} alt="G" />
-                          </div>
-                          <div className="nd-guardian-info">
-                             {dd.gaurdianname}<br/>{dd.AMSTG_GuardianPhoneNo}
-                          </div>
-                       </div>
+                <div className="nd-back-content">
+                  <div className="nd-guardian-grid">
+                    <div className="nd-guardian-col">
+                      <span className="nd-guardian-label">MOTHER</span>
+                      <div className="nd-guardian-photo">
+                        {dd.ANST_MotherPhoto ? (
+                          <img src={dd.ANST_MotherPhoto} alt="M" />
+                        ) : (
+                          <div className="w-full h-full bg-slate-100 flex items-center justify-center text-[5pt] text-slate-400">NO PHOTO</div>
+                        )}
+                      </div>
+                      <div className="nd-guardian-info">
+                        {dd.motherName || dd.mothername}<br />{dd.AMST_MotherMobileNo && dd.AMST_MotherMobileNo !== '0' ? dd.AMST_MotherMobileNo : '-'}
+                      </div>
                     </div>
-
-                    <div className="nd-divider" />
-
-                    <div className="nd-address-text">
-                       {dd.AMST_PerStreet}, {dd.AMST_PerArea}, BANGALORE, {dd.AMST_PerState} - {dd.AMST_PerPincode}
+                    <div className="nd-guardian-col">
+                      <span className="nd-guardian-label">FATHER</span>
+                      <div className="nd-guardian-photo">
+                        {dd.ANST_FatherPhoto ? (
+                          <img src={dd.ANST_FatherPhoto} alt="F" />
+                        ) : (
+                          <div className="w-full h-full bg-slate-100 flex items-center justify-center text-[5pt] text-slate-400">NO PHOTO</div>
+                        )}
+                      </div>
+                      <div className="nd-guardian-info">
+                        {dd.fatherName || dd.fathername}<br />{dd.AMST_FatherMobleNo && dd.AMST_FatherMobleNo !== '0' ? dd.AMST_FatherMobleNo : '-'}
+                      </div>
                     </div>
-                 </div>
+                    <div className="nd-guardian-col">
+                      <span className="nd-guardian-label">GUARDIAN</span>
+                      <div className="nd-guardian-photo">
+                        {dd.AMSTG_GuardianPhoto ? (
+                          <img src={dd.AMSTG_GuardianPhoto} alt="G" />
+                        ) : (
+                          <div className="w-full h-full bg-slate-100 flex items-center justify-center text-[5pt] text-slate-400">NO PHOTO</div>
+                        )}
+                      </div>
+                      <div className="nd-guardian-info">
+                        {dd.guardianName || dd.gaurdianname || '-'}<br />{dd.AMSTG_GuardianPhoneNo && dd.AMSTG_GuardianPhoneNo !== '0' ? dd.AMSTG_GuardianPhoneNo : '-'}
+                      </div>
+                    </div>
+                  </div>
 
-                 <div className="nd-back-triangle-bottom" />
+                  <div className="nd-divider" />
+
+                  <div className="nd-address-text">
+                    {dd.AMST_PerStreet ? `${dd.AMST_PerStreet}, ` : ''}
+                    {dd.AMST_PerArea ? `${dd.AMST_PerArea}, ` : ''}
+                    {dd.AMST_PerCity},
+                    {dd.AMST_PerState} - {dd.AMST_PerPincode || ''}
+                  </div>
+                </div>
+
+                <div className="nd-back-triangle-bottom" />
               </div>
             </div>
           ))}

@@ -46,10 +46,49 @@ export default function NdaStudentTcPage() {
         ASMS_Id: Number(formData.sectionname),
       })) as any;
 
-      if (res?.ndastudentlistsearch && res.ndastudentlistsearch.length > 0) {
-        setSearchResults(res.ndastudentlistsearch);
+      // API returns flat array (or nested under $values)
+      const studentList = Array.isArray(res)
+        ? res
+        : res?.$values ?? res?.ndastudentlistsearch ?? [];
+
+      if (studentList.length > 0) {
+        // Map lowercase API keys to PascalCase keys expected by NdaStudentTcList
+        // and initialize all TC application fields with defaults
+        const mapped = studentList.map((s: any) => ({
+          AMST_Id: s.amst_id ?? s.AMST_Id,
+          StudentName: s.studentname ?? s.StudentName,
+          AMST_AdmNo: s.amst_admno ?? s.AMST_AdmNo,
+          ASMCL_ClassName: s.asmcl_classname ?? s.ASMCL_ClassName,
+          ASMC_SectionName: s.asmc_sectionname ?? s.ASMC_SectionName,
+          ASMAY_Id: s.asmay_id ?? s.ASMAY_Id,
+          ASMS_Id: s.asms_id ?? s.ASMS_Id,
+          ASMCL_Id: s.asmcl_id ?? s.ASMCL_Id,
+          // TC Fields initialization
+          astc_Remarks: '',
+          astc_LeavingReason: '',
+          astc_SubjectsStudied: '',
+          astc_MediumOfINStruction: 'English',
+          astc_LanguageStudied: '',
+          astc_ElectivesStudied: '',
+          astc_Scholarship: 'No',
+          astc_MedicallyExam: 'Fit',
+          astc_NCCDetails: 'N/A',
+          astc_ExtraActivities: '',
+          astc_Conduct: 'Good',
+          astc_FeePaid: 0,
+          astc_FeeConcession: 'No',
+          astc_LastExamDetails: '',
+          astc_Result: '',
+          astc_ResultDetails: '',
+          astc_Qual_Class: '',
+          astc_Qual_PromotionFlag: 'No',
+          astc_WorkingDays: 0,
+          astc_AttendedDays: 0,
+          astc_TemporaryFlag: 0,
+        }));
+        setSearchResults(mapped);
         setShowResults(true);
-        toast.success(`Found ${res.ndastudentlistsearch.length} students`);
+        toast.success(`Found ${mapped.length} students`);
       } else {
         setSearchResults([]);
         setShowResults(false);
@@ -68,21 +107,55 @@ export default function NdaStudentTcPage() {
       );
 
       const payload = {
-        studentTCdata: selectedStudents,
-        transnumconfigsettings: transNumConfig,
-        tcflagexists: 'tcno',
+        studentTCdata: selectedStudents.map((s: any) => ({
+          amst_Id: s.AMST_Id,
+          asmay_Id: s.ASMAY_Id,
+          asmcl_Id: s.ASMCL_Id,
+          asms_Id: s.ASMS_Id,
+          astc_Remarks: s.astc_Remarks,
+          astc_LeavingReason: s.astc_LeavingReason,
+          astc_SubjectsStudied: s.astc_SubjectsStudied,
+          astc_MediumOfINStruction: s.astc_MediumOfINStruction,
+          astc_LanguageStudied: s.astc_LanguageStudied,
+          astc_ElectivesStudied: s.astc_ElectivesStudied,
+          astc_Scholarship: s.astc_Scholarship,
+          astc_MedicallyExam: s.astc_MedicallyExam,
+          astc_NCCDetails: s.astc_NCCDetails,
+          astc_ExtraActivities: s.astc_ExtraActivities,
+          astc_Conduct: s.astc_Conduct,
+          astc_FeePaid: String(s.astc_FeePaid),
+          astc_FeeConcession: s.astc_FeeConcession,
+          astc_LastExamDetails: s.astc_LastExamDetails,
+          astc_Result: s.astc_Result,
+          astc_ResultDetails: s.astc_ResultDetails,
+          astc_Qual_Class: s.astc_Qual_Class,
+          astc_Qual_PromotionFlag: s.astc_Qual_PromotionFlag,
+          astc_WorkingDays: Number(s.astc_WorkingDays),
+          astc_AttendedDays: Number(s.astc_AttendedDays),
+          astc_TemporaryFlag: Number(s.astc_TemporaryFlag),
+        })),
+        tcflagexists: '',
+        transnumconfigsettings: {
+          mI_Id: transNumConfig?.mI_Id ?? 0,
+          imN_AutoManualFlag: transNumConfig?.imN_AutoManualFlag ?? 'Auto',
+          imN_StartingNo: transNumConfig?.imN_StartingNo ?? '1',
+          imN_WidthNumeric: transNumConfig?.imN_WidthNumeric ?? '5',
+          imN_ZeroPrefixFlag: transNumConfig?.imN_ZeroPrefixFlag ?? 'true',
+          imN_PrefixAcadYearCode: transNumConfig?.imN_PrefixAcadYearCode ?? false,
+          imN_SuffixAcadYearCode: transNumConfig?.imN_SuffixAcadYearCode ?? false,
+        },
       };
 
-      const res = await saveMutation.mutateAsync(payload);
+      const res = (await saveMutation.mutateAsync(payload)) as any;
 
-      if (res?.returnval) {
-        toast.success('TC applications submitted successfully');
+      if (res?.success || res?.returnval) {
+        toast.success(res?.message || 'TC applications submitted successfully');
         setShowResults(false);
         setSearchResults([]);
         // Refresh summary list
         queryClient.invalidateQueries({ queryKey: ndaStudentTcKeys.all });
       } else {
-        toast.error('Failed to submit applications');
+        toast.error(res?.message || 'Failed to submit applications');
       }
     } catch (error) {
       console.error('Save error:', error);
@@ -93,7 +166,7 @@ export default function NdaStudentTcPage() {
   const handleViewPdf = async (student: any) => {
     try {
       setPrintModal({ isOpen: true, data: null });
-      const res = (await pdfMutation.mutateAsync({ AMST_Id: student.AMST_Id })) as any;
+      const res = (await pdfMutation.mutateAsync({ AMST_Id: student.AMST_Id ?? student.amst_id })) as any;
       
       const tcList = res?.studenttcpdf;
       if (tcList && tcList.length > 0) {
@@ -137,7 +210,7 @@ export default function NdaStudentTcPage() {
   const handleViewStatus = async (student: any) => {
     try {
       setStatusModal({ isOpen: true, list: [] });
-      const res = (await statusMutation.mutateAsync({ AMST_Id: student.AMST_Id })) as any;
+      const res = (await statusMutation.mutateAsync({ AMST_Id: student.AMST_Id ?? student.amst_id, ASMAY_Id: student.ASMAY_Id ?? student.asmay_id })) as any;
       if (res?.studentapprovedpendingdetails) {
         setStatusModal({ isOpen: true, list: res.studentapprovedpendingdetails as never[] });
       } else {

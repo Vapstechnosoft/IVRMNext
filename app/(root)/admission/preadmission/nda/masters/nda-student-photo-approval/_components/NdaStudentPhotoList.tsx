@@ -44,6 +44,8 @@ export function NdaStudentPhotoList({
       ASTUREQ_ConformFlgF: s.ASTUREQ_ConformFlgF?.toString() || '1',
       ASTUREQ_ConformFlgM: s.ASTUREQ_ConformFlgM?.toString() || '1',
       ASTUREQ_ConformFlgG: s.ASTUREQ_ConformFlgG?.toString() || '1',
+      ASTUREQ_ConformFlgPickupOne: s.ASTUREQ_ConformFlgPickupOne?.toString() || '1',
+      ASTUREQ_ConformFlgPickupTwo: s.ASTUREQ_ConformFlgPickupTwo?.toString() || '1',
     }))
   );
   const [searchValue, setSearchValue] = useState('');
@@ -126,6 +128,8 @@ export function NdaStudentPhotoList({
               <TableHead className="text-center font-bold text-slate-500 uppercase text-[10px] tracking-widest">Father Photo</TableHead>
               <TableHead className="text-center font-bold text-slate-500 uppercase text-[10px] tracking-widest">Mother Photo</TableHead>
               <TableHead className="text-center font-bold text-slate-500 uppercase text-[10px] tracking-widest">Guardian Photo</TableHead>
+              <TableHead className="text-center font-bold text-slate-500 uppercase text-[10px] tracking-widest">Pickup 1 Photo</TableHead>
+              <TableHead className="text-center font-bold text-slate-500 uppercase text-[10px] tracking-widest">Pickup 2 Photo</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -148,10 +152,12 @@ export function NdaStudentPhotoList({
                   </div>
                 </TableCell>
                 {[
-                  { img: student.ASTUREQ_StudentPhoto, flag: 'ASTUREQ_ConformFlg', label: 'STATUS' },
+                  { img: student.ASTUREQ_StudentPhoto, flag: 'ASTUREQ_ConformFlg', label: 'STUDENT' },
                   { img: student.ASTUREQ_FatherPhoto, flag: 'ASTUREQ_ConformFlgF', label: 'FATHER' },
                   { img: student.ASTUREQ_MotherPhoto, flag: 'ASTUREQ_ConformFlgM', label: 'MOTHER' },
                   { img: student.ASTUREQ_GuardianPhoto, flag: 'ASTUREQ_ConformFlgG', label: 'GUARDIAN' },
+                  { img: student.ASTUREQ_PickupOnePhoto, flag: 'ASTUREQ_ConformFlgPickupOne', label: 'PICKUP 1' },
+                  { img: student.ASTUREQ_PickupTwoPhoto, flag: 'ASTUREQ_ConformFlgPickupTwo', label: 'PICKUP 2' },
                 ].map((item, i) => (
                   <TableCell key={i} className="p-4">
                     <div className="flex flex-col items-center gap-4">

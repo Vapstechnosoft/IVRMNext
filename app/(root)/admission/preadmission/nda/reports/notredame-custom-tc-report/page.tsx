@@ -11,7 +11,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList } from '@/components/ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 
 import {
@@ -28,7 +28,7 @@ export default function NotredameCustomTcReportPage() {
 
     // Initial Data
     const { data: detailsData } = useGetBbkvCustomReportDetails();
-    
+
     // Mutations
     const searchMutation = useGetBbkvCustomReportNameRegNo();
     const tcDetailsMutation = useGetBbkvCustomReportTcDetails();
@@ -139,7 +139,7 @@ export default function NotredameCustomTcReportPage() {
     });
 
     const students = useMemo(() => {
-        return studentDropdown.map((s: any) => {
+        const list = studentDropdown.map((s: any) => {
             const rawName = s.studentname || `${s.amsT_FirstName || ''} ${s.amsT_LastName || ''}`.trim();
             let displayName = rawName;
             if (rawName.includes(':')) {
@@ -152,7 +152,13 @@ export default function NotredameCustomTcReportPage() {
                 amsT_Id: s.amsT_Id || s.amst_Id
             };
         });
-    }, [studentDropdown]);
+
+        if (!searchQuery || selectedStudent) return list;
+
+        return list.filter((s: any) =>
+            s.displayName.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    }, [studentDropdown, searchQuery, selectedStudent]);
 
     return (
         <div className="p-4 space-y-6">
@@ -230,56 +236,66 @@ export default function NotredameCustomTcReportPage() {
                             <div className="flex items-center space-x-4">
                                 <Label className="text-sm font-bold w-32">Student Name:<span className="text-red-500">*</span></Label>
                                 <Popover open={studentOpen} onOpenChange={setStudentOpen}>
-                                    <PopoverTrigger asChild>
-                                        <div className="relative w-full">
+                                    <div className="relative w-full">
+                                        <PopoverAnchor asChild>
                                             <input
                                                 value={selectedStudent ? selectedStudent.displayName : searchQuery}
                                                 onChange={(e) => {
                                                     setSearchQuery(e.target.value);
                                                     setSelectedStudent(null);
-                                                    setStudentOpen(true);
+                                                    if (!studentOpen) setStudentOpen(true);
                                                 }}
-                                                onFocus={() => setStudentOpen(true)}
-                                                className="flex h-10 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                                onFocus={() => {
+                                                    if (!selectedStudent) setStudentOpen(true);
+                                                }}
+                                                className="flex h-10 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                                                 placeholder="Select or search Student in the list"
                                                 disabled={!academicYearId}
                                             />
-                                            {searchMutation.isPending && (
-                                                <div className="absolute right-2 top-2">
-                                                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                                        </PopoverAnchor>
+                                        {searchMutation.isPending && (
+                                            <div className="absolute right-2 top-2">
+                                                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                                            </div>
+                                        )}
+                                    </div>
+                                    <PopoverContent
+                                        className="w-[450px] p-0 shadow-2xl border-indigo-100"
+                                        align="start"
+                                        onOpenAutoFocus={(e) => e.preventDefault()} // Don't steal focus from input
+                                    >
+                                        <div className="max-h-[300px] overflow-y-auto overflow-x-hidden py-1">
+                                            {students.length === 0 && (
+                                                <div className="p-4 text-sm text-slate-500 text-center">
+                                                    No students found.
                                                 </div>
                                             )}
+                                            {students.map((student: any, idx: number) => (
+                                                <div
+                                                    key={`${student.amsT_Id}-${idx}`}
+                                                    onPointerDown={(e) => {
+                                                        // use onPointerDown to trigger before blur/focus shifts
+                                                        e.preventDefault();
+                                                        setSelectedStudent(student);
+                                                        setSearchQuery(student.displayName);
+                                                        setStudentOpen(false);
+                                                    }}
+                                                    className={cn(
+                                                        "flex items-center px-3 py-2.5 cursor-pointer text-sm transition-colors",
+                                                        "hover:bg-indigo-50 active:bg-indigo-100",
+                                                        selectedStudent?.amsT_Id === student.amsT_Id ? "bg-indigo-50/50 text-indigo-700 font-semibold" : "text-slate-700"
+                                                    )}
+                                                >
+                                                    <Check
+                                                        className={cn(
+                                                            "mr-3 h-4 w-4 shrink-0 transition-opacity",
+                                                            selectedStudent?.amsT_Id === student.amsT_Id ? "opacity-100" : "opacity-0"
+                                                        )}
+                                                    />
+                                                    <span className="truncate">{student.displayName}</span>
+                                                </div>
+                                            ))}
                                         </div>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-[450px] p-0" align="start">
-                                        <Command>
-                                            <CommandList className="max-h-[300px]">
-                                                <CommandEmpty>No students found.</CommandEmpty>
-                                                <CommandGroup>
-                                                    {students.map((student: any) => (
-                                                        <CommandItem
-                                                            key={student.amsT_Id}
-                                                            onSelect={() => {
-                                                                setSelectedStudent(student);
-                                                                setSearchQuery(student.displayName);
-                                                                setStudentOpen(false);
-                                                            }}
-                                                            className="hover:bg-indigo-50 cursor-pointer py-2"
-                                                        >
-                                                            <Check
-                                                                className={cn(
-                                                                    "mr-2 h-4 w-4 text-indigo-600",
-                                                                    selectedStudent?.amsT_Id === student.amsT_Id ? "opacity-100" : "opacity-0"
-                                                                )}
-                                                            />
-                                                            <div className="flex flex-col">
-                                                                <span className="font-medium">{student.displayName}</span>
-                                                            </div>
-                                                        </CommandItem>
-                                                    ))}
-                                                </CommandGroup>
-                                            </CommandList>
-                                        </Command>
                                     </PopoverContent>
                                 </Popover>
                             </div>

@@ -27,15 +27,17 @@ export function StaffStatusGrid({ data }: StaffStatusGridProps) {
         )
     );
 
-    const getStatusIcon = (status: number | null) => {
-        if (status === 1) return '✅';
-        if (status === 0) return '❌';
+    const getStatusIcon = (status: any) => {
+        const s = String(status).toLowerCase();
+        if (status === 1 || s === '1' || status === true || s === 'true') return '✅';
+        if (status === 0 || s === '0' || status === false || s === 'false') return '❌';
         return '⏳';
     };
 
-    const getStatusText = (status: number | null) => {
-        if (status === 1) return 'Approved';
-        if (status === 0) return 'Rejected';
+    const getStatusText = (status: any) => {
+        const s = String(status).toLowerCase();
+        if (status === 1 || s === '1' || status === true || s === 'true') return 'Approved';
+        if (status === 0 || s === '0' || status === false || s === 'false') return 'Rejected';
         return 'Pending';
     };
 
@@ -87,7 +89,7 @@ export function StaffStatusGrid({ data }: StaffStatusGridProps) {
                             {filteredData.map((row, index) => (
                                 <TableRow key={index} className="border-b border-slate-50 hover:bg-indigo-50/30 transition-colors">
                                     <TableCell className="text-center font-bold text-slate-500">{index + 1}</TableCell>
-                                    <TableCell className="font-black text-slate-800 tracking-tight text-lg">{row.name}</TableCell>
+                                    <TableCell className="font-black text-slate-800 tracking-tight text-lg">{row.EmployeeName || row.name}</TableCell>
                                     <TableCell className="font-bold text-slate-600 uppercase">{row.HRMD_DepartmentName}</TableCell>
                                     <TableCell className="font-bold text-slate-600 uppercase">{row.HRMDES_DesignationName}</TableCell>
                                     <TableCell className="text-center">

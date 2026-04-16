@@ -6,9 +6,9 @@ import { api } from '@/lib/apiService';
  * Fetches initial data (Academic Years, Classes, etc.) for NDA Student TC
  */
 export async function getNdaStudentTcLoadData() {
-    const url = '/StudentTc/NDATCloaddata';
-    const res = await api.post<any>('admission', url, { TCData: 1 });
-    return res?.data || res;
+  const url = '/StudentTc/NDATCloaddata';
+  const res = await api.post<any>('admission', url, { TCData: 1 });
+  return res?.data || res;
 }
 
 /**
@@ -28,8 +28,8 @@ export async function getNdaStudentTcSearchList(data: {
   ASMCL_Id: number;
   ASMS_Id: number;
 }) {
-  const url = '/StudentTc/NDAStudentlistdata';
-  const res = await api.post<any>('admission', url, data);
+  const url = `/StudentTc/NDAStudentlistdata?ASMAY_Id=${data.ASMAY_Id}&ASMCL_Id=${data.ASMCL_Id}&ASMS_Id=${data.ASMS_Id}`;
+  const res = await api.post<any>('admission', url);
   return res?.data || res;
 }
 
@@ -38,8 +38,8 @@ export async function getNdaStudentTcSearchList(data: {
  */
 export async function saveNdaStudentTcData(data: {
   studentTCdata: any[];
+  tcflagexists: string;
   transnumconfigsettings: any;
-  tcflagexists?: string;
 }) {
   const url = '/StudentTc/NDASavestudentTCdata';
   const res = await api.post<any>('admission', url, data);
@@ -58,9 +58,9 @@ export async function getNdaStudentTcPdfData(data: { AMST_Id: number }) {
 /**
  * Fetches approval status view details
  */
-export async function getNdaStudentTcApprovalStatus(data: { AMST_Id: number }) {
-  const url = '/StudentTc/viewstatus';
-  const res = await api.post<any>('admission', url, data);
+export async function getNdaStudentTcApprovalStatus(data: { AMST_Id: number; ASMAY_Id: number }) {
+  const url = `/StudentTc/viewstatus?AMST_Id=${data.AMST_Id}&ASMAY_Id=${data.ASMAY_Id}`;
+  const res = await api.get<any>('admission', url);
   return res?.data || res;
 }
 

@@ -30,25 +30,15 @@ export default function NdaStudentProfileReportPage() {
             };
 
             const res = (await reportMutation.mutateAsync(payload)) as any;
+            const records = Array.isArray(res) ? res : (res?.studentList || res?.studentList1 || res?.studentreportdata || res?.headernamelist || res?.data?.studentList || res?.data || []);
 
-            if (formData.type === 'Student') {
-                if (res?.studentreportdata && res.studentreportdata.length > 0) {
-                    setReportData(res.studentreportdata);
-                    setReportType('Student');
-                    setShowResults(true);
-                    toast.success(`Generated report with ${res.studentreportdata.length} student records`);
-                } else {
-                    toast.error('No student records found for the selected criteria');
-                }
+            if (records.length > 0) {
+                setReportData(records);
+                setReportType(formData.type);
+                setShowResults(true);
+                toast.success(`Generated report with ${records.length} records`);
             } else {
-                if (res?.headernamelist && res.headernamelist.length > 0) {
-                    setReportData(res.headernamelist);
-                    setReportType('Staff');
-                    setShowResults(true);
-                    toast.success(`Generated report with ${res.headernamelist.length} employee records`);
-                } else {
-                    toast.error('No employee records found');
-                }
+                toast.error(`No ${formData.type.toLowerCase()} records found for the selected criteria`);
             }
         } catch (error) {
             console.error('Report generation error:', error);

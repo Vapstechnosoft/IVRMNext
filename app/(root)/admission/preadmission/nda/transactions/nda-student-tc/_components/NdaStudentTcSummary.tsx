@@ -30,10 +30,12 @@ export function NdaStudentTcSummary({
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 
-  const filteredList = summaryList.filter(s =>
-    s.StudentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    s.AMST_AdmNo.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredList = summaryList.filter(s => {
+    const name = (s.StudentName ?? s.studentname ?? '').toLowerCase();
+    const admNo = (s.AMST_AdmNo ?? s.amst_admno ?? '').toString().toLowerCase();
+    const term = searchTerm.toLowerCase();
+    return name.includes(term) || admNo.includes(term);
+  });
 
   const totalPages = Math.ceil(filteredList.length / itemsPerPage);
   const startIdx = (currentPage - 1) * itemsPerPage;
@@ -78,21 +80,21 @@ export function NdaStudentTcSummary({
             <TableBody>
               {currentItems.length > 0 ? (
                 currentItems.map((student, idx) => (
-                  <TableRow key={student.AMST_Id} className="h-16 hover:bg-indigo-50/30 transition-colors border-b border-slate-50">
+                  <TableRow key={`${student.AMST_Id ?? student.amst_id}-${startIdx + idx}`} className="h-16 hover:bg-indigo-50/30 transition-colors border-b border-slate-50">
                     <TableCell className="text-center font-medium text-slate-400">
                       {startIdx + idx + 1}
                     </TableCell>
                     <TableCell className="font-bold text-slate-800">
-                      {student.StudentName}
+                      {student.StudentName ?? student.studentname}
                     </TableCell>
                     <TableCell className="font-black text-indigo-600/80 tracking-wide">
-                      {student.AMST_AdmNo}
+                      {student.AMST_AdmNo ?? student.amst_admno}
                     </TableCell>
                     <TableCell className="text-slate-600 font-medium">
-                      {student.ASMCL_ClassName}
+                      {student.ASMCL_ClassName ?? student.asmcl_classname}
                     </TableCell>
                     <TableCell className="text-slate-600 font-medium">
-                      {student.ASMC_SectionName}
+                      {student.ASMC_SectionName ?? student.asmc_sectionname}
                     </TableCell>
                     <TableCell className="text-center">
                       <div className="flex justify-center gap-2">

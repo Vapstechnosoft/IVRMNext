@@ -44,7 +44,7 @@ export function useNdaPhotoApprovalList() {
 export function useNdaPhotoSave() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { SelectedImageslist: any[]; dup: string }) =>
+    mutationFn: (data: { selectedImageslist: any[]; dup: string }) =>
       saveNdaPhotoApproval(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ndaPhotoKeys.all });

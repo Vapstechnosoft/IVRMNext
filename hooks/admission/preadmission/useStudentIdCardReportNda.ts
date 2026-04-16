@@ -11,16 +11,16 @@ import {
 
 export const idCardKeys = {
   all: ['student-id-card-report-nda'] as const,
-  initial: (pageId: number) => [...idCardKeys.all, 'initial', pageId] as const,
+  initial: () => [...idCardKeys.all, 'initial'] as const,
 };
 
 /**
  * Hook to fetch initial data for Student ID Cards
  */
-export function useIdCardInitialData(pageId: number) {
+export function useIdCardInitialData() {
   return useQuery({
-    queryKey: idCardKeys.initial(pageId),
-    queryFn: () => onLoadIdCardDetails(pageId),
+    queryKey: idCardKeys.initial(),
+    queryFn: () => onLoadIdCardDetails(),
     staleTime: 5 * 60 * 1000,
   });
 }

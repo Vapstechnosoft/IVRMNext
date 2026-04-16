@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Search, RotateCcw, Loader2, Users } from 'lucide-react';
+import { Search, RotateCcw, Loader2, Users, Printer } from 'lucide-react';
 import {
   ndaIdCardFilterSchema,
   type NdaIdCardFilterFields,
@@ -35,18 +35,24 @@ import { Input } from '@/components/ui/input';
 
 interface StudentIdCardSearchProps {
   academicList: any[];
+  initialClassList: any[];
   onSubmit: (data: any, selectedStudents: any[]) => void;
   onReset: () => void;
+  onPrint: () => void;
+  showPrint: boolean;
   isLoading: boolean;
 }
 
 export function StudentIdCardSearch({
   academicList,
+  initialClassList,
   onSubmit,
   onReset,
+  onPrint,
+  showPrint,
   isLoading,
 }: StudentIdCardSearchProps) {
-  const [classList, setClassList] = useState<any[]>([]);
+  const [classList, setClassList] = useState<any[]>(initialClassList || []);
   const [sectionList, setSectionList] = useState<any[]>([]);
   const [studentList, setStudentList] = useState<any[]>([]);
   const [studentSearch, setStudentSearch] = useState('');
@@ -76,7 +82,8 @@ export function StudentIdCardSearch({
       if (selectedYear) {
         try {
           const res = (await classMutation.mutateAsync({ ASMAY_Id: Number(selectedYear) })) as any;
-          setClassList(res?.getClassList || []);
+          const records = res?.getClassList || (Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []));
+          setClassList(records);
           setValue('classname', '');
           setValue('sectionname', '');
           setSectionList([]);
@@ -98,7 +105,8 @@ export function StudentIdCardSearch({
             ASMAY_Id: Number(selectedYear),
             ASMCL_Id: Number(selectedClass),
           })) as any;
-          setSectionList(res?.getSectionList || []);
+          const records = res?.getSectionList || (Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []));
+          setSectionList(records);
           setValue('sectionname', '');
           setStudentList([]);
         } catch (error) {
@@ -119,8 +127,8 @@ export function StudentIdCardSearch({
             ASMCL_Id: Number(selectedClass),
             ASMS_Id: Number(selectedSection),
           })) as any;
-          const students = res?.getStudentList || [];
-          setStudentList(students.map((s: any) => ({ ...s, selected: true })));
+          const records = res?.getStudentList || (Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []));
+          setStudentList(records.map((s: any) => ({ ...s, selected: true })));
         } catch (error) {
           toast.error('Failed to load students');
         }
@@ -154,7 +162,7 @@ export function StudentIdCardSearch({
 
   const handleFormReset = () => {
     form.reset();
-    setClassList([]);
+    setClassList(initialClassList || []);
     setSectionList([]);
     setStudentList([]);
     onReset();
@@ -180,7 +188,7 @@ export function StudentIdCardSearch({
                     </FormControl>
                     <SelectContent className="rounded-2xl border-slate-200 shadow-2xl">
                       {academicList?.map((year) => (
-                        <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()} className="focus:bg-indigo-50 focus:text-indigo-700 font-bold py-3 px-4 rounded-xl mx-1 my-1">
+                        <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()} className="focus:bg-indigo-50 focus:text-indigo-700 py-3 px-4 rounded-xl mx-1 my-1">
                           {year.asmaY_Year}
                         </SelectItem>
                       ))}
@@ -205,7 +213,7 @@ export function StudentIdCardSearch({
                     </FormControl>
                     <SelectContent className="rounded-2xl border-slate-200 shadow-2xl">
                       {classList.map((cls) => (
-                        <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()} className="focus:bg-indigo-50 focus:text-indigo-700 font-bold py-3 px-4 rounded-xl mx-1 my-1">
+                        <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()} className="focus:bg-indigo-50 focus:text-indigo-700 py-3 px-4 rounded-xl mx-1 my-1">
                           {cls.asmcL_ClassName}
                         </SelectItem>
                       ))}
@@ -230,7 +238,7 @@ export function StudentIdCardSearch({
                     </FormControl>
                     <SelectContent className="rounded-2xl border-slate-200 shadow-2xl">
                       {sectionList.map((sec) => (
-                        <SelectItem key={sec.asmS_Id} value={sec.asmS_Id.toString()} className="focus:bg-indigo-50 focus:text-indigo-700 font-bold py-3 px-4 rounded-xl mx-1 my-1">
+                        <SelectItem key={sec.asmS_Id} value={sec.asmS_Id.toString()} className="focus:bg-indigo-50 focus:text-indigo-700 py-3 px-4 rounded-xl mx-1 my-1">
                           {sec.asmC_SectionName}
                         </SelectItem>
                       ))}
@@ -254,11 +262,11 @@ export function StudentIdCardSearch({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent className="rounded-2xl border-slate-200 shadow-2xl">
-                        <SelectItem value="WHITE" className="focus:bg-slate-50 py-3 font-bold">WHITE</SelectItem>
-                        <SelectItem value="YELLOW" className="focus:bg-yellow-50 focus:text-yellow-700 py-3 font-bold">JULIE (YELLOW)</SelectItem>
-                        <SelectItem value="BLUE" className="focus:bg-blue-50 focus:text-blue-700 py-3 font-bold">PROVIDENCE (BLUE)</SelectItem>
-                        <SelectItem value="RED" className="focus:bg-red-50 focus:text-red-700 py-3 font-bold">ELTING (RED)</SelectItem>
-                        <SelectItem value="GREEN" className="focus:bg-emerald-50 focus:text-emerald-700 py-3 font-bold">LISETTE (GREEN)</SelectItem>
+                      <SelectItem value="WHITE" className="focus:bg-slate-50 py-3">WHITE</SelectItem>
+                      <SelectItem value="YELLOW" className="focus:bg-yellow-50 focus:text-yellow-700 py-3">JULIE (YELLOW)</SelectItem>
+                      <SelectItem value="BLUE" className="focus:bg-blue-50 focus:text-blue-700 py-3">PROVIDENCE (BLUE)</SelectItem>
+                      <SelectItem value="RED" className="focus:bg-red-50 focus:text-red-700 py-3">ELTING (RED)</SelectItem>
+                      <SelectItem value="GREEN" className="focus:bg-emerald-50 focus:text-emerald-700 py-3">LISETTE (GREEN)</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -269,90 +277,101 @@ export function StudentIdCardSearch({
 
           {/* Student Picker Column */}
           <div className="bg-slate-50/50 rounded-[2rem] p-8 space-y-4 ring-1 ring-slate-200 shadow-inner">
-             <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                   <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center">
-                      <Users className="w-5 h-5" />
-                   </div>
-                   <h3 className="font-black text-slate-800 tracking-tight">STUDENT SELECTOR</h3>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center">
+                  <Users className="w-5 h-5" />
                 </div>
-                <div className="flex items-center gap-2">
-                   <Checkbox
-                     id="all-students"
-                     checked={studentList.length > 0 && studentList.every(s => s.selected)}
-                     onCheckedChange={toggleAllStudents}
-                     className="rounded-md border-slate-300"
-                   />
-                   <label htmlFor="all-students" className="text-xs font-black text-slate-500 uppercase tracking-tighter cursor-pointer">
-                      Select All
-                   </label>
-                </div>
-             </div>
-
-             <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <Input
-                  placeholder="Filter student name..."
-                  value={studentSearch}
-                  onChange={(e) => setStudentSearch(e.target.value)}
-                  className="pl-12 h-12 rounded-xl border-slate-200 bg-white/80 focus:bg-white transition-all font-medium"
+                <h3 className="font-black text-slate-800 tracking-tight">STUDENT SELECTOR</h3>
+              </div>
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="all-students"
+                  checked={studentList.length > 0 && studentList.every(s => s.selected)}
+                  onCheckedChange={toggleAllStudents}
+                  className="rounded-md border-slate-300"
                 />
-             </div>
+                <label htmlFor="all-students" className="text-xs font-black text-slate-500 uppercase tracking-tighter cursor-pointer">
+                  Select All
+                </label>
+              </div>
+            </div>
 
-             <div className="h-64 overflow-y-auto pr-2 custom-scrollbar space-y-2">
-                {filteredStudents.length > 0 ? (
-                  filteredStudents.map((student) => (
-                    <div
-                      key={student.amsT_Id}
-                      className={`flex items-center justify-between p-4 rounded-xl transition-all cursor-pointer ${
-                        student.selected
-                          ? 'bg-indigo-50 border-indigo-200 ring-1 ring-indigo-200 shadow-sm'
-                          : 'bg-white border-slate-100 hover:border-slate-300'
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Input
+                placeholder="Filter student name..."
+                value={studentSearch}
+                onChange={(e) => setStudentSearch(e.target.value)}
+                className="pl-12 h-12 rounded-xl border-slate-200 bg-white/80 focus:bg-white transition-all font-medium"
+              />
+            </div>
+
+            <div className="h-64 overflow-y-auto pr-2 custom-scrollbar space-y-2">
+              {filteredStudents.length > 0 ? (
+                filteredStudents.map((student) => (
+                  <div
+                    key={student.amsT_Id}
+                    className={`flex items-center justify-between p-4 rounded-xl transition-all cursor-pointer ${student.selected
+                      ? 'bg-indigo-50 border-indigo-200 ring-1 ring-indigo-200 shadow-sm'
+                      : 'bg-white border-slate-100 hover:border-slate-300'
                       } border`}
-                      onClick={() => toggleStudent(student.amsT_Id, !student.selected)}
-                    >
-                       <span className={`font-bold transition-colors ${student.selected ? 'text-indigo-700' : 'text-slate-600'}`}>
-                          {student.studentName}
-                       </span>
-                       <Checkbox
-                         checked={student.selected}
-                         onCheckedChange={(checked) => toggleStudent(student.amsT_Id, !!checked)}
-                         className="rounded-md"
-                       />
-                    </div>
-                  ))
-                ) : (
-                  <div className="h-full flex flex-col items-center justify-center text-slate-300 gap-2">
-                     <Users className="w-12 h-12 opacity-20" />
-                     <p className="font-bold text-xs uppercase tracking-widest text-slate-400">No students found</p>
+                    onClick={() => toggleStudent(student.amsT_Id, !student.selected)}
+                  >
+                    <span className={`font-bold transition-colors ${student.selected ? 'text-indigo-700' : 'text-slate-600'}`}>
+                      {student.studentName}
+                    </span>
+                    <Checkbox
+                      checked={student.selected}
+                      onCheckedChange={(checked) => toggleStudent(student.amsT_Id, !!checked)}
+                      className="rounded-md"
+                    />
                   </div>
-                )}
-             </div>
+                ))
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-slate-300 gap-2">
+                  <Users className="w-12 h-12 opacity-20" />
+                  <p className="font-bold text-xs uppercase tracking-widest text-slate-400">No students found</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
-        <div className="flex justify-center gap-6 pt-6 translate-y-2">
+        <div className="flex justify-center flex-wrap gap-6 pt-6 translate-y-2">
           <Button
             type="submit"
             disabled={isLoading || studentMutation.isPending}
-            className="h-16 px-16 rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 text-white font-black tracking-tighter shadow-2xl shadow-indigo-200 transform hover:scale-105 active:scale-95 transition-all text-lg"
+            className="h-16 px-12 rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 text-white font-black tracking-tighter shadow-2xl shadow-indigo-200 transform hover:scale-105 active:scale-95 transition-all text-lg"
           >
             {isLoading ? (
               <Loader2 className="mr-4 h-6 w-6 animate-spin" />
             ) : (
               <Search className="mr-4 h-6 w-6" />
             )}
-            GENERATE REPORT
+            REPORT
           </Button>
+
           <Button
             type="button"
             variant="outline"
             onClick={handleFormReset}
-            className="h-16 px-16 rounded-[2rem] border-2 border-slate-200 hover:bg-slate-50 text-slate-600 font-black tracking-tighter transform hover:scale-105 active:scale-95 transition-all text-lg bg-white"
+            className="h-16 px-12 rounded-[2rem] border-2 border-orange-100 hover:bg-orange-50 text-orange-600 font-black tracking-tighter transform hover:scale-105 active:scale-95 transition-all text-lg bg-white"
           >
             <RotateCcw className="mr-4 h-6 w-6" />
-            RESET
+            CANCEL
           </Button>
+
+          {showPrint && (
+            <Button
+              type="button"
+              onClick={onPrint}
+              className="h-16 px-12 rounded-[2rem] bg-orange-500 hover:bg-orange-600 text-white font-black tracking-tighter shadow-2xl shadow-orange-200 transform hover:scale-105 active:scale-95 transition-all text-lg"
+            >
+              <Printer className="mr-4 h-6 w-6" />
+              PRINT
+            </Button>
+          )}
         </div>
       </form>
     </Form>

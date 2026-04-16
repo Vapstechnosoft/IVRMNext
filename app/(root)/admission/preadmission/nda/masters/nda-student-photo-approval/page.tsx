@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Loader2, Camera, UserSquare2, ChevronRight } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -25,6 +25,14 @@ export default function NdaStudentPhotoApprovalPage() {
   const listMutation = useNdaPhotoApprovalList();
   const saveMutation = useNdaPhotoSave();
 
+  // Sync initial results if returned by Getdata
+  useEffect(() => {
+    if (initialData?.studentList?.length > 0) {
+      setResults(initialData.studentList);
+      setShowResults(true);
+    }
+  }, [initialData]);
+
   const handleSearch = async (formData: any) => {
     try {
       setSelectionType(formData.type);
@@ -37,7 +45,7 @@ export default function NdaStudentPhotoApprovalPage() {
 
       const res = (await listMutation.mutateAsync(payload)) as any;
       
-      const records = res?.ndA_Studentphotodata || [];
+      const records = Array.isArray(res) ? res : (res?.studentList || res?.ndA_Studentphotodata || res?.data || []);
       if (records.length > 0) {
         setResults(records);
         setShowResults(true);
@@ -55,19 +63,38 @@ export default function NdaStudentPhotoApprovalPage() {
 
   const handleSave = async (selectedRecords: any[]) => {
     try {
+      // Map records to the exact field names and structure required by the latest API payload
+      const mappedRecords = selectedRecords.map((r: any) => ({
+        astureQ_Id: r.ASTUREQ_Id,
+        amsT_Id: r.AMST_Id,
+        astureQ_ConformFlg: Number(r.ASTUREQ_ConformFlg || 0),
+        astureQ_ConformFlgM: Number(r.ASTUREQ_ConformFlgM || 0),
+        astureQ_ConformFlgF: Number(r.ASTUREQ_ConformFlgF || 0),
+        astureQ_ConformFlgG: Number(r.ASTUREQ_ConformFlgG || 0),
+        studentName: r.StudentName,
+        astureQ_AdmNo: r.ASTUREQ_AdmNo,
+        astureQ_StudentPhoto: r.ASTUREQ_StudentPhoto,
+        astureQ_FatherPhoto: r.ASTUREQ_FatherPhoto,
+        astureQ_MotherPhoto: r.ASTUREQ_MotherPhoto,
+        astureQ_GuardianPhoto: r.ASTUREQ_GuardianPhoto,
+        astureQ_PickupOnePhoto: r.ASTUREQ_PickupOnePhoto,
+        astureQ_PickupTwoPhoto: r.ASTUREQ_PickupTwoPhoto,
+        astureQ_ConformFlgPickupOne: Number(r.ASTUREQ_ConformFlgPickupOne || 0),
+        astureQ_ConformFlgPickupTwo: Number(r.ASTUREQ_ConformFlgPickupTwo || 0),
+      }));
+
       const payload = {
-        SelectedImageslist: selectedRecords,
-        dup: selectionType,
+        selectedImageslist: mappedRecords,
+        dup: '',
       };
 
       const res = (await saveMutation.mutateAsync(payload)) as any;
 
-      if (res?.returnval) {
-        toast.success('Approval status updated successfully');
+      if (res?.success) {
+        toast.success(res?.message || 'Approval status updated successfully');
         setShowResults(false);
-        setResults([]);
       } else {
-        toast.error('Failed to save updates');
+        toast.error(res?.message || 'Failed to update approval status');
       }
     } catch (error) {
       console.error('Save error:', error);
@@ -151,6 +178,7 @@ export default function NdaStudentPhotoApprovalPage() {
                 <CardContent className="p-10">
                    {selectionType === 'Student' ? (
                      <NdaStudentPhotoList
+                        key={`student-${results.length}-${new Date().getTime()}`}
                         students={results}
                         onSave={handleSave}
                         isSaving={saveMutation.isPending}
@@ -158,6 +186,7 @@ export default function NdaStudentPhotoApprovalPage() {
                      />
                    ) : (
                      <NdaStaffPhotoList
+                        key={`staff-${results.length}-${new Date().getTime()}`}
                         staff={results}
                         onSave={handleSave}
                         isSaving={saveMutation.isPending}
