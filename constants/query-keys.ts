@@ -282,7 +282,8 @@ export const FEES_QUERY_KEYS = {
     FEE_STUDENT_TERM_WISE_PAID_TERM_LIST: 'fee_student_term_wise_paid_term_list',
     FEE_FEE_RECEIPT_REPORT_LOGO: 'fee_fee_receipt_report_logo',
     FEE_CATEGORY_DROPDOWNS: 'fee_category_dropdown',
-    FEE_STUDENT_DROPDOWNS: 'fee_student_dropdown'
+    FEE_STUDENT_DROPDOWNS: 'fee_student_dropdown',
+    FEE_HEAD_DROPDOWNS: 'fee_head_dropdown'
 };
 
 export const EXAM_QUERY_KEYS = {

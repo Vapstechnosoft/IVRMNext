@@ -23,6 +23,7 @@ import {
 import { getStudentDropDown } from '@/server/fees/reports/fee_it_report_ukschool';
 import { getfeeMonths } from '@/server/fees/reports/fee_monthendReport';
 import { getFeeReceiptLogo } from '@/server/fees/reports/fee_receipt_report';
+import { getFeeHeadDropDown } from '@/server/fees/reports/fee_refund_report_gmvps';
 import { getFeesInstallmentDropDown, getFeesTranasctionInstallmentDropDown } from '@/server/fees/reports/fee_yearlyCollectionReport';
 import {
     getFeesTermDropDownforStudentTermWiseReport,
@@ -486,6 +487,23 @@ export const useStudentDropDown = () => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.FEE_STUDENT_DROPDOWNS]
+            });
+        }
+    };
+};
+
+export const useFeeHeadDropDown = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_HEAD_DROPDOWNS],
+            queryFn: async () => getFeeHeadDropDown(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_HEAD_DROPDOWNS]
             });
         }
     };

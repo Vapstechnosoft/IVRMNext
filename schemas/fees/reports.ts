@@ -678,3 +678,34 @@ export const feeItReportUKSchool = z.object({
     mothername: z.boolean().optional(),
     className: z.boolean().optional()
 });
+
+export const feeRefundReportGmvps = z
+    .object({
+        academicYearId: z.string().min(1, 'Academic Year is required'),
+        feeHead: z.string().min(1, 'Fee Head is required'),
+        classId: z.string().optional(),
+        sectionId: z.string().optional(),
+        // classId: z.string().min(1, 'Class is required'),
+        // sectionId: z.string().min(1, 'Section is required'),
+        reportType: z.enum(['All', 'Individual']).default('All'),
+        fromDate: z.string().min(1, 'From Date is required'),
+        toDate: z.string().min(1, 'To Date is required')
+    })
+    .superRefine((data, ctx) => {
+        if (data.reportType === 'Individual') {
+            if (!data.classId) {
+                ctx.addIssue({
+                    path: ['classId'],
+                    message: 'Class Name is required',
+                    code: z.ZodIssueCode.custom
+                });
+            }
+            if (!data.sectionId) {
+                ctx.addIssue({
+                    path: ['sectionId'],
+                    message: 'Section Name is required',
+                    code: z.ZodIssueCode.custom
+                });
+            }
+        }
+    });
