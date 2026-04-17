@@ -88,7 +88,7 @@ export default function UserDetails({
                     <Label className='flex items-center justify-between font-semibold text-sm'>
                         Select Category:
                         <span onClick={onSelectAllCategories} className='cursor-pointer text-[10px] text-primary hover:underline'>
-                            Select All
+                            Select All/Unselect All
                         </span>
                     </Label>
                     <div className='rounded-md border bg-gray-50 p-2'>
@@ -114,7 +114,7 @@ export default function UserDetails({
                     <Label className='flex items-center justify-between font-semibold text-sm'>
                         Select Module:
                         <span onClick={onSelectAllModules} className='cursor-pointer text-[10px] text-primary hover:underline'>
-                            Select All
+                            Select All/Unselect All
                         </span>
                     </Label>
                     <div className='rounded-md border bg-gray-50 p-2'>

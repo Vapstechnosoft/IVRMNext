@@ -10,19 +10,20 @@ import {
 
 export const ndaStudentTcKeys = {
   all: ['nda-student-tc'] as const,
-  initial: (asmayId?: number) => [...ndaStudentTcKeys.all, 'initial', asmayId] as const,
+  initial: () => [...ndaStudentTcKeys.all, 'initial'] as const,
 };
 
 /**
  * Hook to fetch initial data for NDA Student TC (Academic Years, Classes, Approved list)
  */
-export const useNdaStudentTcInitialData = (asmayId?: number) => {
+export const useNdaStudentTcInitialData = () => {
   return useQuery({
-    queryKey: ndaStudentTcKeys.initial(asmayId),
-    queryFn: () => getNdaStudentTcLoadData(asmayId),
+    queryKey: ndaStudentTcKeys.initial(),
+    queryFn: () => getNdaStudentTcLoadData(),
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 };
+
 
 /**
  * Hook for class selection change

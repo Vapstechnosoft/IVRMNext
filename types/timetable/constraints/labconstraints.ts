@@ -16,4 +16,10 @@ export interface labConstraints {
 
     ismS_Id: number; //subject
     ismS_SubjectName: string; //subject
+
+    categoryName: string;
+    asmayYear: string;
+    ttlaB_LABLIBName: string;
+    ttlaB_ActiveFlag: boolean;
+    ttlaB_Id: number;
 }

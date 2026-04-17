@@ -82,7 +82,7 @@ function StudentApplicationPageContent({
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                         <Plus className='h-4 w-4' />
-                        Admission Application
+                        Add New Admission Form
                     </Button>
                 </div>
                 {isSuccessOpen && (
@@ -149,7 +149,7 @@ function FormSections({
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title='Admission Application'
+                        title='Add New Admission Form'
                         description='Fill in the details below to create a new admission application'
                         defaultOpen={true}
                         variant='outline'
