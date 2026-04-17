@@ -10,9 +10,11 @@ import { createPeriodDistributionColumns } from './_components/columns';
 import { Button } from '@/components/ui/button';
 import { Plus, X } from 'lucide-react';
 
+import { getConsolidatedReportDetails } from '@/server/timetable/reports/consolidated';
+import { useEffect, useState } from 'react';
 import PeriodDistributionForm from './_components/period-distribution-form';
-import UpdatePeriodDistributionForm from './_components/updateForms';
 import TogglePeriodDistributionForm from './_components/toggle-form';
+import UpdatePeriodDistributionForm from './_components/updateForms';
 import PeriodDistributionViewModal from './_components/view-modal';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -40,6 +42,22 @@ function MasterPeriodPageContent({
     error: any;
     refetchAll: any;
 }) {
+    const [initialData, setInitialData] = useState<any>({});
+
+    useEffect(() => {
+        const fetchDetails = async () => {
+            try {
+                const res = await getConsolidatedReportDetails({});
+                if (res?.success && res.data) {
+                    setInitialData(res.data);
+                }
+            } catch (error) {
+                console.error('Error fetching initial data:', error);
+            }
+        };
+        fetchDetails();
+    }, []);
+
     // The API returns periodlist in the response object
     const tableProps = useDataTableProps(response);
     const { openAddForm } = useFormContext<PeriodDistributionColumn>();
@@ -76,13 +94,13 @@ function MasterPeriodPageContent({
                         errorTitle='Error Loading Data'
                     />
                 </CollapsibleSection>
-                <FormSections onSuccess={refetchAll} />
+                <FormSections onSuccess={refetchAll} initialData={initialData} />
             </div>
         </div>
     );
 }
 
-function FormSections({ onSuccess }: { onSuccess: () => void }) {
+function FormSections({ onSuccess, initialData }: { onSuccess: () => void; initialData: any }) {
     const {
         isToggleFormOpen,
         selectedRow,
@@ -117,7 +135,7 @@ function FormSections({ onSuccess }: { onSuccess: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <PeriodDistributionForm onSuccess={closeAddForm} />
+                            <PeriodDistributionForm onSuccess={closeAddForm} initialData={initialData} />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -141,7 +159,7 @@ function FormSections({ onSuccess }: { onSuccess: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdatePeriodDistributionForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                            <UpdatePeriodDistributionForm selectedRow={selectedRow} onSuccess={closeEditForm} initialData={initialData} />
                         </div>
                     </CollapsibleSection>
                 </div>

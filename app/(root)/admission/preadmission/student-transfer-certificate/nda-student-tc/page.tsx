@@ -7,10 +7,10 @@ import { FilterForm } from './_components/FilterForm';
 import { NdaStudentTcApplicationGrid } from './_components/NdaStudentTcApplicationGrid';
 import { NdaStudentTcDetailsTable } from './_components/NdaStudentTcDetailsTable';
 import { NdaStudentTcPdfDialog } from './_components/NdaStudentTcPdfDialog';
-import { 
-    useNdaStudentTcInitialData, 
-    useNdaStudentTcSearch, 
-    useNdaStudentTcSave, 
+import {
+    useNdaStudentTcInitialData,
+    useNdaStudentTcSearch,
+    useNdaStudentTcSave,
     useNdaStudentTcPdf,
     useNdaStudentTcApprovalStatus
 } from '@/hooks/admission/preadmission/useNdaStudentTc';
@@ -73,7 +73,7 @@ export default function NdaStudentTcPage() {
 
         try {
             toast.loading('Submitting requests...', { id: 'save-tc' });
-            
+
             // Map settings to lowercase 'imn_' prefix as requested
             const rawSettings = (initialData as any)?.data?.admTransNumSetting?.[0] || (initialData as any)?.admTransNumSetting?.[0] || {};
             const transformedSettings: any = {};
@@ -134,7 +134,7 @@ export default function NdaStudentTcPage() {
         setIsStatusOpen(true);
         setStatusData([]);
         try {
-            const response = await statusMutation.mutateAsync({ AMST_Id: student.AMST_Id }) as any;
+            const response = await statusMutation.mutateAsync({ AMST_Id: student.AMST_Id, ASMAY_Id: searchPayload?.ASMAY_Id }) as any;
             const data = response?.data || response;
             const statusList = Array.isArray(data) ? data : (data.studentapprovedpendingdetails || []);
             setStatusData(statusList);
@@ -179,18 +179,18 @@ export default function NdaStudentTcPage() {
             {searchResults.length > 0 && (
                 <div className="space-y-6 animate-in slide-in-from-bottom-20 duration-1000">
                     <div className="flex items-center gap-4 px-6 py-4 bg-indigo-50/50 border border-indigo-100 rounded-[2rem] backdrop-blur-md shadow-sm">
-                         <div className="w-10 h-10 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-100">
+                        <div className="w-10 h-10 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-100">
                             <ClipboardList className="w-5 h-5" />
                         </div>
                         <div>
-                             <h3 className="text-xl font-black text-indigo-950 uppercase italic tracking-tighter">New Application Batch</h3>
-                             <p className="text-sm font-bold text-indigo-600 opacity-60">Ready to process {searchResults.length} student records.</p>
+                            <h3 className="text-xl font-black text-indigo-950 uppercase italic tracking-tighter">New Application Batch</h3>
+                            <p className="text-sm font-bold text-indigo-600 opacity-60">Ready to process {searchResults.length} student records.</p>
                         </div>
                     </div>
-                    <NdaStudentTcApplicationGrid 
-                        students={searchResults} 
-                        onSave={handleSave} 
-                        isSaving={saveMutation.isPending} 
+                    <NdaStudentTcApplicationGrid
+                        students={searchResults}
+                        onSave={handleSave}
+                        isSaving={saveMutation.isPending}
                     />
                 </div>
             )}
@@ -199,8 +199,8 @@ export default function NdaStudentTcPage() {
             <Card className="border-none shadow-2xl rounded-[3rem] bg-white ring-1 ring-slate-100 overflow-hidden relative group">
                 <div className="absolute top-0 left-0 w-1 h-full bg-indigo-600" />
                 <CardContent className="p-0">
-                    <NdaStudentTcDetailsTable 
-                        data={(initialData as any)?.data?.studenttcapprovedlist || (initialData as any)?.studenttcapprovedlist || []} 
+                    <NdaStudentTcDetailsTable
+                        data={(initialData as any)?.data?.studenttcapprovedlist || (initialData as any)?.studenttcapprovedlist || []}
                         onViewPdf={handleViewPdf}
                         onViewStatus={handleViewStatus}
                     />
@@ -208,25 +208,25 @@ export default function NdaStudentTcPage() {
             </Card>
 
             {/* PDF Modal */}
-            <NdaStudentTcPdfDialog 
-                open={isPdfOpen} 
-                onOpenChange={setIsPdfOpen} 
-                pdfData={pdfData} 
+            <NdaStudentTcPdfDialog
+                open={isPdfOpen}
+                onOpenChange={setIsPdfOpen}
+                pdfData={pdfData}
                 isLoading={pdfMutation.isPending}
             />
 
             {/* Approval Status Modal */}
             <Dialog open={isStatusOpen} onOpenChange={setIsStatusOpen}>
                 <DialogContent className="max-w-2xl rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden animate-in zoom-in-95">
-                     <DialogHeader className="p-8 bg-slate-900 text-white relative">
+                    <DialogHeader className="p-8 bg-slate-900 text-white relative">
                         <DialogTitle className="text-2xl font-black uppercase italic tracking-tight">Staff Approval Status</DialogTitle>
                         <DialogClose asChild>
-                             <Button variant="ghost" size="icon" className="top-8 right-8 absolute text-white/50 hover:text-white rounded-full">
+                            <Button variant="ghost" size="icon" className="top-8 right-8 absolute text-white/50 hover:text-white rounded-full">
                                 <X className="h-6 w-6" />
-                             </Button>
+                            </Button>
                         </DialogClose>
-                     </DialogHeader>
-                     <div className="p-8 bg-slate-50">
+                    </DialogHeader>
+                    <div className="p-8 bg-slate-50">
                         {statusMutation.isPending ? (
                             <div className="flex flex-col items-center justify-center p-12 space-y-4">
                                 <Loader2 className="h-12 w-12 animate-spin text-indigo-600" />
@@ -243,9 +243,8 @@ export default function NdaStudentTcPage() {
                                             <span className="font-bold text-slate-700">{s.empname}</span>
                                         </div>
                                         <div className="flex items-center gap-3">
-                                            <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                                                s.ASCAP_Status === 'Approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-                                            }`}>
+                                            <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${s.ASCAP_Status === 'Approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                                                }`}>
                                                 {s.ASCAP_Status}
                                             </span>
                                             {s.ASCAP_Status === 'Approved' && <CheckCircle2 className="h-5 w-5 text-emerald-500" />}
@@ -259,7 +258,7 @@ export default function NdaStudentTcPage() {
                                 <p className="font-bold">No approval workflow detected for this student.</p>
                             </div>
                         )}
-                     </div>
+                    </div>
                 </DialogContent>
             </Dialog>
         </div>
@@ -267,21 +266,21 @@ export default function NdaStudentTcPage() {
 }
 
 function X(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M18 6 6 18" />
-      <path d="m6 6 12 12" />
-    </svg>
-  )
+    return (
+        <svg
+            {...props}
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <path d="M18 6 6 18" />
+            <path d="m6 6 12 12" />
+        </svg>
+    )
 }
