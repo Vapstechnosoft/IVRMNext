@@ -643,3 +643,38 @@ export const feeClassWiseDueListReportSophia = z
             }
         }
     });
+
+export const feeItReportUKSchool = z.object({
+    studentId: z.preprocess(
+        (val) => {
+            if (val === '' || val === undefined || val === null) return undefined;
+            const num = Number(val);
+            return Number.isNaN(num) ? undefined : num;
+        },
+        z
+            .number({
+                required_error: 'Student Name is required',
+                invalid_type_error: 'Student Name is required'
+            })
+            .min(1, 'Student Name is required')
+    ),
+    academicYearId: z.preprocess(
+        (val) => {
+            if (val === '' || val === undefined || val === null) return undefined;
+            const num = Number(val);
+            return Number.isNaN(num) ? undefined : num;
+        },
+        z
+            .number({
+                required_error: 'Academic Year is required',
+                invalid_type_error: 'Academic Year is required'
+            })
+            .min(1, 'Academic Year is required')
+    ),
+    regno_name: z.string().optional(),
+    name_regno: z.string().optional(),
+    Date: z.string().min(1, 'Date is required'),
+    fathername: z.boolean().optional(),
+    mothername: z.boolean().optional(),
+    className: z.boolean().optional()
+});

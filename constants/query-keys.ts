@@ -281,7 +281,8 @@ export const FEES_QUERY_KEYS = {
     FEE_STUDENT_TERM_WISE_PAID_SECTION_YEAR_DROP: 'fee_student_term_wise_paid_section_drop',
     FEE_STUDENT_TERM_WISE_PAID_TERM_LIST: 'fee_student_term_wise_paid_term_list',
     FEE_FEE_RECEIPT_REPORT_LOGO: 'fee_fee_receipt_report_logo',
-    FEE_CATEGORY_DROPDOWNS: 'fee_category_dropdown'
+    FEE_CATEGORY_DROPDOWNS: 'fee_category_dropdown',
+    FEE_STUDENT_DROPDOWNS: 'fee_student_dropdown'
 };
 
 export const EXAM_QUERY_KEYS = {
@@ -518,7 +519,7 @@ export const HOSTEL_QUERY_KEYS = {
     MESS_MENU_GRID_LIST: 'MESS_MENU_DATA',
     MATER_ROOM_GRID_LIST: 'master-room-list',
     MASTER_ROOM_DROPDOWN_LIST: 'master-room-dropdown-list',
-    HOSTEL_GUEST_ALLOTMENT_LIST: 'hostel_guest_allotment_list_',
+    HOSTEL_GUEST_ALLOTMENT_LIST: 'hostel_guest_allotment_list_'
 };
 export const LIBRARY_QUERY_KEYS = {
     MASTER_LIBRARY_LIST_DATA: 'master_library_list_data',
