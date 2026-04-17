@@ -22,7 +22,7 @@ export default function Page() {
             // router.push(
             //     `${ROUTES.ADMISSION.ADMISSION}${ROUTES.ADMISSION.ADMISSION_SUB_MENUS.PREADMISSION}${ROUTES.ADMISSION.ADMISSION_SUB_MENUS.PREADMISSION_SUB_MENUS.TRANSACTIONS}${ROUTES.ADMISSION.ADMISSION_SUB_MENUS.PREADMISSION_SUB_MENUS.TRANSACTIONS_SUB_MENUS.APPLICATION_FORM}`
             // );
-            router.push('/chairman');
+            router.push('/school-admin');
         } else if (role === ROLES.STUDENT) {
             router.push('/StudentPortal/student-dashboard');
         } else if (role === ROLES.CHAIRMAN) {
