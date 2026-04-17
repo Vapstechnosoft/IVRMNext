@@ -25,6 +25,8 @@ export default function LeaveReportPage() {
         toDate: '',
         showEmployeeLeaveBalance: false
     });
+    const [errors, setErrors] = useState<Record<string, string>>({});
+    const [isGenerating, setIsGenerating] = useState(false);
 
     // Fetch cascading dropdown data using the same hooks as salary calculation
     const { data: groupTypesData } = useReportGroupTypes();
@@ -134,20 +136,58 @@ export default function LeaveReportPage() {
     };
 
     const handleReport = () => {
+        const newErrors: Record<string, string> = {};
+
+        if (!filters.selectedTypes || filters.selectedTypes.length === 0) {
+            newErrors.selectedTypes = 'Please select at least one group type';
+        }
+        if (!filters.selectedDepartments || filters.selectedDepartments.length === 0) {
+            newErrors.selectedDepartments = 'Please select at least one department';
+        }
+        if (!filters.selectedDesignations || filters.selectedDesignations.length === 0) {
+            newErrors.selectedDesignations = 'Please select at least one designation';
+        }
+        if (!filters.showEmployeeLeaveBalance && filters.isIndividual && !filters.selectedEmployeeId) {
+            newErrors.selectedEmployeeId = 'Please select an employee';
+        }
+        if (!filters.leave) {
+            newErrors.leave = 'Please select a leave type';
+        }
+        if (!filters.fromDate) {
+            newErrors.fromDate = 'Please select a from date';
+        }
+        if (!filters.toDate) {
+            newErrors.toDate = 'Please select a to date';
+        }
+        if (filters.fromDate && filters.toDate && new Date(filters.fromDate) > new Date(filters.toDate)) {
+            newErrors.toDate = 'To date cannot be earlier than from date';
+        }
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            return;
+        }
+
+        setErrors({});
+        setIsGenerating(true);
+
         // TODO: Implement actual report generation with API call
-        setRows(
-            Array.from({ length: 12 }).map((_, i) => ({
-                slNo: i + 1,
-                employeeCode: '69',
-                employeeName: 'R Siddesh Kumar',
-                leaveName: 'Casual Leave',
-                fromDate: '2025-01-01',
-                toDate: '2025-01-02',
-                appliedDays: 8,
-                leaveStatus: 'Approved' as const,
-                leaveBalance: 8
-            }))
-        );
+        setTimeout(() => {
+            setRows(
+                Array.from({ length: 12 }).map((_, i) => ({
+                    slNo: i + 1,
+                    employeeCode: '69',
+                    employeeName: 'R Siddesh Kumar',
+                    leaveName: 'Casual Leave',
+                    fromDate: '2025-01-01',
+                    toDate: '2025-01-02',
+                    appliedDays: 8,
+                    leaveStatus: 'Approved' as const,
+                    leaveBalance: 8
+                }))
+            );
+            setIsGenerating(false);
+        }, 1000);
     };
 
     const handleClear = () => {
@@ -162,6 +202,7 @@ export default function LeaveReportPage() {
             toDate: '',
             showEmployeeLeaveBalance: false
         });
+        setErrors({});
         setRows([]);
     };
 
@@ -179,6 +220,8 @@ export default function LeaveReportPage() {
                     isLoadingDepartments={false}
                     isLoadingDesignations={false}
                     isLoadingEmployees={isLoadingEmployees}
+                    errors={errors}
+                    isGenerating={isGenerating}
                     onFilterChange={handleFilterChange}
                     onReport={handleReport}
                     onCancel={handleClear}

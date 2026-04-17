@@ -7,7 +7,11 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type FixingPeriodSubjectSchema, fixingPeriodSubjectSchema } from '@/schemas/timetable/constraints/fixing';
-import { getFixingClassSectionStaffsBySubject, saveFixingPeriodSubject, getFixingPeriodSubjectDetails } from '@/server/timetable/constraints/fixing';
+import {
+    getFixingClassSectionStaffsBySubject,
+    getFixingPeriodSubjectDetails,
+    saveFixingPeriodSubject
+} from '@/server/timetable/constraints/fixing';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Save } from 'lucide-react';
@@ -37,9 +41,23 @@ const extractList = (data: any, preferredKey?: string) => {
     }
 
     const keys = [
-        'academiclist', 'catelist', 'categorylist', 'classlist', 'clsbysubject', 'clssbysub',
-        'sectionlist', 'sectbysubject', 'secsbysub', 'stafflist', 'staffbysubject', 'staffbysub',
-        'staffbyall', 'subjectlist', 'classbycategory', 'sectionbyclass', 'subjectbystaff'
+        'academiclist',
+        'catelist',
+        'categorylist',
+        'classlist',
+        'clsbysubject',
+        'clssbysub',
+        'sectionlist',
+        'sectbysubject',
+        'secsbysub',
+        'stafflist',
+        'staffbysubject',
+        'staffbysub',
+        'staffbyall',
+        'subjectlist',
+        'classbycategory',
+        'sectionbyclass',
+        'subjectbystaff'
     ];
     for (const key of keys) {
         const foundKey = Object.keys(target).find((k) => k.toLowerCase() === key.toLowerCase());
@@ -63,7 +81,14 @@ const uniqueById = (list: any[], idKey: string) => {
     });
 };
 
-export default function PeriodSubjectUpdate({ academicList, periodList, subjectList, selectedRow, onSuccess, onCancel }: PeriodSubjectUpdateProps) {
+export default function PeriodSubjectUpdate({
+    academicList,
+    periodList,
+    subjectList,
+    selectedRow,
+    onSuccess,
+    onCancel
+}: PeriodSubjectUpdateProps) {
     const [classList, setClassList] = useState<any[]>([]);
     const [sectionList, setSectionList] = useState<any[]>([]);
     const [subStaffList, setSubStaffList] = useState<any[]>([]);
@@ -90,11 +115,18 @@ export default function PeriodSubjectUpdate({ academicList, periodList, subjectL
         }
     });
 
-    const { setValue, watch, handleSubmit, formState: { isSubmitting }, control, reset } = form;
+    const {
+        setValue,
+        watch,
+        handleSubmit,
+        formState: { isSubmitting },
+        control,
+        reset
+    } = form;
     const asmaY_Id = watch('asmaY_Id');
     const ttfpsU_SUbSelcFlag = watch('ttfpsU_SUbSelcFlag');
 
-    const { fields, append, remove, replace } = useFieldArray({
+    const { fields, append, remove, replace, update } = useFieldArray({
         control,
         name: 'tempararyArrayList'
     });
@@ -102,7 +134,7 @@ export default function PeriodSubjectUpdate({ academicList, periodList, subjectL
     // --- Helper for Case-Insensitive Field Lookup ---
     const getVal = (obj: any, fieldName: string) => {
         if (!obj) return undefined;
-        const key = Object.keys(obj).find(k => k.toLowerCase() === fieldName.toLowerCase());
+        const key = Object.keys(obj).find((k) => k.toLowerCase() === fieldName.toLowerCase());
         return key ? obj[key] : undefined;
     };
 
@@ -112,7 +144,7 @@ export default function PeriodSubjectUpdate({ academicList, periodList, subjectL
         for (const key of Object.keys(payload)) {
             const val = payload[key];
             if (Array.isArray(val) && val.length > 0 && val !== excludeArray) {
-                const hasField = Object.keys(val[0]).some(k => k.toLowerCase() === fieldName.toLowerCase());
+                const hasField = Object.keys(val[0]).some((k) => k.toLowerCase() === fieldName.toLowerCase());
                 if (hasField) return val;
             }
         }
@@ -131,19 +163,22 @@ export default function PeriodSubjectUpdate({ academicList, periodList, subjectL
                 const responseData = res?.data || res;
 
                 // 1. Greedily find main record
-                const editData = findArrayWithField(responseData, 'asmaY_Id') ||
+                const editData =
+                    findArrayWithField(responseData, 'asmaY_Id') ||
                     responseData?.fixing_period_subject_edit ||
                     responseData?.fixing_period_subject ||
                     (Array.isArray(responseData) ? responseData : undefined);
 
-                const main = (editData && Array.isArray(editData)) ? editData[0] : null;
+                const main = editData && Array.isArray(editData) ? editData[0] : null;
                 if (!main) return;
 
                 // 2. Greedily find sub-details (contains asmcL_Id or asms_Id and is NOT the main array)
-                const subDetails: any[] = findArrayWithField(responseData, 'asmcL_Id', editData) ||
+                const subDetails: any[] =
+                    findArrayWithField(responseData, 'asmcL_Id', editData) ||
                     findArrayWithField(responseData, 'asmcl_id', editData) ||
                     responseData?.fixing_period_subject_class_edit ||
-                    responseData?.fixing_period_subject__classecedit || [];
+                    responseData?.fixing_period_subject__classecedit ||
+                    [];
 
                 // Resolve IDs for form reset
                 const subjectId = getVal(main, 'ismS_Id') || selectedRow?.ismS_Id;
@@ -151,11 +186,20 @@ export default function PeriodSubjectUpdate({ academicList, periodList, subjectL
                 const periodId = getVal(main, 'ttmP_Id') || selectedRow?.ttmP_Id;
 
                 // Optional: pre-fill inputs with the first sub-detail if present
-                const firstSub = (subDetails && subDetails.length > 0) ? subDetails[0] : null;
-                const pCid = firstSub ? (firstSub.asmcL_Id || firstSub.ASMCL_Id || firstSub.asmcl_id) : undefined;
-                const pSid = firstSub ? (firstSub.asmS_Id || firstSub.ASMS_Id || firstSub.asms_id) : undefined;
-                const pHrmid = firstSub ? (firstSub.hrmE_Id || firstSub.HRME_Id || firstSub.hrme_id) : undefined;
-                const pNop = firstSub ? (firstSub.ttfpsucC_Days ?? firstSub.nop ?? firstSub.TTFPSUCC_Days ?? firstSub.ttfpsucC_Periods ?? firstSub.TTFPSUCC_Periods ?? firstSub.TTRPSUCC_Periods ?? firstSub.ttrpsucC_Periods ?? 0) : '';
+                const firstSub = subDetails && subDetails.length > 0 ? subDetails[0] : null;
+                const pCid = firstSub ? firstSub.asmcL_Id || firstSub.ASMCL_Id || firstSub.asmcl_id : undefined;
+                const pSid = firstSub ? firstSub.asmS_Id || firstSub.ASMS_Id || firstSub.asms_id : undefined;
+                const pHrmid = firstSub ? firstSub.hrmE_Id || firstSub.HRME_Id || firstSub.hrme_id : undefined;
+                const pNop = firstSub
+                    ? (firstSub.ttfpsucC_Days ??
+                      firstSub.nop ??
+                      firstSub.TTFPSUCC_Days ??
+                      firstSub.ttfpsucC_Periods ??
+                      firstSub.TTFPSUCC_Periods ??
+                      firstSub.TTRPSUCC_Periods ??
+                      firstSub.ttrpsucC_Periods ??
+                      0)
+                    : '';
 
                 reset({
                     ttrpsU_Id: getVal(main, 'ttrpsU_Id') ?? getVal(main, 'ttfpsU_Id') ?? selectedRow?.ttrpsU_Id ?? 0,
@@ -163,7 +207,11 @@ export default function PeriodSubjectUpdate({ academicList, periodList, subjectL
                     asmaY_Id: yearId,
                     ttmP_Id: periodId,
                     ismS_Id: subjectId,
-                    ttfpsU_SUbSelcFlag: !!(getVal(main, 'ttfpsU_SUbSelcFlag') ?? getVal(main, 'ttrpsU_SUbSelcFlag') ?? selectedRow?.ttfpsU_SUbSelcFlag),
+                    ttfpsU_SUbSelcFlag: !!(
+                        getVal(main, 'ttfpsU_SUbSelcFlag') ??
+                        getVal(main, 'ttrpsU_SUbSelcFlag') ??
+                        selectedRow?.ttfpsU_SUbSelcFlag
+                    ),
                     tempararyArrayList: []
                 });
 
@@ -186,27 +234,45 @@ export default function PeriodSubjectUpdate({ academicList, periodList, subjectL
                             const hrmid = sub.hrmE_Id || sub.HRME_Id || sub.hrme_id;
 
                             const clsName =
-                                sub.asmcL_ClassName || sub.ASMCL_ClassName ||
-                                masterData.classes.find(c => Number(c.asmcL_Id || c.ASMCL_Id) === Number(cid))?.asmcL_ClassName ||
-                                masterData.classes.find(c => Number(c.asmcL_Id || c.ASMCL_Id) === Number(cid))?.className || '';
+                                sub.asmcL_ClassName ||
+                                sub.ASMCL_ClassName ||
+                                masterData.classes.find((c) => Number(c.asmcL_Id || c.ASMCL_Id) === Number(cid))?.asmcL_ClassName ||
+                                masterData.classes.find((c) => Number(c.asmcL_Id || c.ASMCL_Id) === Number(cid))?.className ||
+                                '';
 
                             const sectName =
-                                sub.asmC_SectionName || sub.ASMC_SectionName || sub.asmS_SectionName ||
-                                masterData.sections.find(s => Number(s.asmS_Id || s.ASMS_Id) === Number(sid))?.asmC_SectionName ||
-                                masterData.sections.find(s => Number(s.asmS_Id || s.ASMS_Id) === Number(sid))?.asmS_SectionName ||
-                                masterData.sections.find(s => Number(s.asmS_Id || s.ASMS_Id) === Number(sid))?.sectionName || '';
+                                sub.asmC_SectionName ||
+                                sub.ASMC_SectionName ||
+                                sub.asmS_SectionName ||
+                                masterData.sections.find((s) => Number(s.asmS_Id || s.ASMS_Id) === Number(sid))?.asmC_SectionName ||
+                                masterData.sections.find((s) => Number(s.asmS_Id || s.ASMS_Id) === Number(sid))?.asmS_SectionName ||
+                                masterData.sections.find((s) => Number(s.asmS_Id || s.ASMS_Id) === Number(sid))?.sectionName ||
+                                '';
 
                             const staffName =
-                                sub.staffName || sub.staffname || sub.hrmE_EmployeeFirstName || sub.HRME_EmployeeFirstName ||
-                                masterData.staff.find(s => Number(s.hrmE_Id || s.HRME_Id) === Number(hrmid))?.staffName ||
-                                masterData.staff.find(s => Number(s.hrmE_Id || s.HRME_Id) === Number(hrmid))?.hrmE_EmployeeFirstName || '';
+                                sub.staffName ||
+                                sub.staffname ||
+                                sub.hrmE_EmployeeFirstName ||
+                                sub.HRME_EmployeeFirstName ||
+                                masterData.staff.find((s) => Number(s.hrmE_Id || s.HRME_Id) === Number(hrmid))?.staffName ||
+                                masterData.staff.find((s) => Number(s.hrmE_Id || s.HRME_Id) === Number(hrmid))?.hrmE_EmployeeFirstName ||
+                                '';
 
                             return {
                                 ttfpsucC_Id: sub.ttfpsucC_Id || sub.TTFPSUCC_Id || sub.ttrpsucC_Id || sub.TTRPSUCC_Id,
                                 asmcL_Id: cid,
                                 asmS_Id: sid,
                                 hrmE_Id: hrmid,
-                                nop: Number(sub.ttfpsucC_Days ?? sub.nop ?? sub.TTFPSUCC_Days ?? sub.ttfpsucC_Periods ?? sub.TTFPSUCC_Periods ?? sub.TTRPSUCC_Periods ?? sub.ttrpsucC_Periods ?? 0),
+                                nop: Number(
+                                    sub.ttfpsucC_Days ??
+                                        sub.nop ??
+                                        sub.TTFPSUCC_Days ??
+                                        sub.ttfpsucC_Periods ??
+                                        sub.TTFPSUCC_Periods ??
+                                        sub.TTRPSUCC_Periods ??
+                                        sub.ttrpsucC_Periods ??
+                                        0
+                                ),
                                 clsDisplay: clsName,
                                 sectDisplay: sectName,
                                 staffDisplay: staffName
@@ -216,7 +282,7 @@ export default function PeriodSubjectUpdate({ academicList, periodList, subjectL
                 }
             } catch (e) {
                 console.error(e);
-                toast.error("Failed to load edit data");
+                toast.error('Failed to load edit data');
             }
         };
 
@@ -268,22 +334,31 @@ export default function PeriodSubjectUpdate({ academicList, periodList, subjectL
 
                 if (res) {
                     const classes =
-                        extractList(res, 'clssbysub').length > 0 ? extractList(res, 'clssbysub') :
-                            extractList(res, 'clsbysubject').length > 0 ? extractList(res, 'clsbysubject') :
-                                extractList(res, 'classlist').length > 0 ? extractList(res, 'classlist') :
-                                    findArrayWithField(payload, 'asmcL_Id');
+                        extractList(res, 'clssbysub').length > 0
+                            ? extractList(res, 'clssbysub')
+                            : extractList(res, 'clsbysubject').length > 0
+                              ? extractList(res, 'clsbysubject')
+                              : extractList(res, 'classlist').length > 0
+                                ? extractList(res, 'classlist')
+                                : findArrayWithField(payload, 'asmcL_Id');
 
                     const sections =
-                        extractList(res, 'secsbysub').length > 0 ? extractList(res, 'secsbysub') :
-                            extractList(res, 'secsbysubject').length > 0 ? extractList(res, 'secsbysubject') :
-                                extractList(res, 'sectionlist').length > 0 ? extractList(res, 'sectionlist') :
-                                    findArrayWithField(payload, 'asmS_Id');
+                        extractList(res, 'secsbysub').length > 0
+                            ? extractList(res, 'secsbysub')
+                            : extractList(res, 'secsbysubject').length > 0
+                              ? extractList(res, 'secsbysubject')
+                              : extractList(res, 'sectionlist').length > 0
+                                ? extractList(res, 'sectionlist')
+                                : findArrayWithField(payload, 'asmS_Id');
 
                     const staff =
-                        extractList(res, 'staffbysub').length > 0 ? extractList(res, 'staffbysub') :
-                            extractList(res, 'staffbysubject').length > 0 ? extractList(res, 'staffbysubject') :
-                                extractList(res, 'stafflist').length > 0 ? extractList(res, 'stafflist') :
-                                    findArrayWithField(payload, 'hrmE_Id');
+                        extractList(res, 'staffbysub').length > 0
+                            ? extractList(res, 'staffbysub')
+                            : extractList(res, 'staffbysubject').length > 0
+                              ? extractList(res, 'staffbysubject')
+                              : extractList(res, 'stafflist').length > 0
+                                ? extractList(res, 'stafflist')
+                                : findArrayWithField(payload, 'hrmE_Id');
 
                     setMasterClasses(classes || []);
                     setMasterSections(sections || []);
@@ -317,23 +392,30 @@ export default function PeriodSubjectUpdate({ academicList, periodList, subjectL
         const secObj = sectionList.find((s) => s.asmS_Id === selectedSection);
         const staffObj = subStaffList.find((s) => s.hrmE_Id === selectedStaff);
 
-        const exists = fields.some(
-            (f: any) => f.asmcL_Id === selectedClass && f.asmS_Id === selectedSection && f.hrmE_Id === selectedStaff
+        const existingIndex = fields.findIndex(
+            (f: any) =>
+                Number(f.asmcL_Id) === Number(selectedClass) &&
+                Number(f.asmS_Id) === Number(selectedSection) &&
+                Number(f.hrmE_Id) === Number(selectedStaff)
         );
-        if (exists) {
-            toast.warning('Already Exists');
-            return;
-        }
 
-        append({
-            asmcL_Id: selectedClass,
-            asmS_Id: selectedSection,
-            hrmE_Id: selectedStaff,
-            nop: Number(nop),
-            clsDisplay: clsObj?.asmcL_ClassName,
-            sectDisplay: secObj?.asmC_SectionName,
-            staffDisplay: staffObj?.hrmE_EmployeeFirstName || staffObj?.staffName
-        });
+        if (existingIndex > -1) {
+            update(existingIndex, {
+                ...fields[existingIndex],
+                nop: Number(nop)
+            });
+            toast.success('Updated existing entry');
+        } else {
+            append({
+                asmcL_Id: selectedClass,
+                asmS_Id: selectedSection,
+                hrmE_Id: selectedStaff,
+                nop: Number(nop),
+                clsDisplay: clsObj?.asmcL_ClassName,
+                sectDisplay: secObj?.asmC_SectionName,
+                staffDisplay: staffObj?.hrmE_EmployeeFirstName || staffObj?.staffName
+            });
+        }
     };
 
     const subColumns: ColumnDef<any>[] = useMemo(
@@ -400,7 +482,11 @@ export default function PeriodSubjectUpdate({ academicList, periodList, subjectL
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => handleAcademicYearChange(Number(v))}
                                     value={field.value?.toString()}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select' />
+                                        </SelectTrigger>
+                                    </FormControl>
                                     <SelectContent>
                                         {academicList?.map((item: any) => (
                                             <SelectItem key={item.asmaY_Id} value={item.asmaY_Id?.toString()}>
@@ -420,8 +506,15 @@ export default function PeriodSubjectUpdate({ academicList, periodList, subjectL
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Period</FormLabel>
-                                <Select key={field.value?.toString() || 'empty'} onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
+                                <Select
+                                    key={field.value?.toString() || 'empty'}
+                                    onValueChange={(v) => field.onChange(Number(v))}
+                                    value={field.value?.toString()}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select' />
+                                        </SelectTrigger>
+                                    </FormControl>
                                     <SelectContent>
                                         {periodList.map((item: any) => {
                                             const id = item.ttmP_Id ?? item.ttmp_id ?? item.TTMP_Id;
@@ -448,7 +541,11 @@ export default function PeriodSubjectUpdate({ academicList, periodList, subjectL
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => handleSubjectChange(Number(v))}
                                     value={field.value?.toString()}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select' />
+                                        </SelectTrigger>
+                                    </FormControl>
                                     <SelectContent>
                                         {subjectList
                                             .filter((item: any) => item.ismS_Id || item.isms_id)
@@ -495,7 +592,9 @@ export default function PeriodSubjectUpdate({ academicList, periodList, subjectL
                                     key={selectedClass?.toString() || 'empty'}
                                     onValueChange={(v) => handleClassChange(Number(v))}
                                     value={selectedClass?.toString()}>
-                                    <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select' />
+                                    </SelectTrigger>
                                     <SelectContent>
                                         {isClassLoading ? (
                                             <SelectItem value='loading'>Loading...</SelectItem>
@@ -518,7 +617,9 @@ export default function PeriodSubjectUpdate({ academicList, periodList, subjectL
                                     key={selectedSection?.toString() || 'empty'}
                                     onValueChange={(v) => handleSectionChange(Number(v))}
                                     value={selectedSection?.toString()}>
-                                    <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select' />
+                                    </SelectTrigger>
                                     <SelectContent>
                                         {sectionList.map((item: any) => {
                                             const id = item.asmS_Id ?? item.asms_id ?? item.ASMS_Id;
@@ -537,7 +638,9 @@ export default function PeriodSubjectUpdate({ academicList, periodList, subjectL
                                     key={selectedStaff?.toString() || 'empty'}
                                     onValueChange={(v) => setSelectedStaff(Number(v))}
                                     value={selectedStaff?.toString()}>
-                                    <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select' />
+                                    </SelectTrigger>
                                     <SelectContent>
                                         {subStaffList.map((item: any) => {
                                             const id = item.hrmE_Id ?? item.hrme_id ?? item.HRME_Id;

@@ -1,5 +1,6 @@
 'use client';
 
+import { getFeeOnlinePaymentLoadData } from '@/app/(root)/StudentPortal/fees/fee-online-payment/actions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -13,7 +14,7 @@ import {
     getExamsDropDownByAcademicYearandClassandSectionlist,
     getSectionsDropDownByAcademicYearandClasslist
 } from '@/server/exam/exam-module/reports/cumulative-report';
-import { getToppersReportDetails } from '@/server/exam/exam-module/reports/toppers-list-report';
+import { getMappedSubjects, getToppersReportDetails } from '@/server/exam/exam-module/reports/toppers-list-report';
 import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
 import { getAcademicYearDropdown } from '@/server/fees/masters/class_yearly_category';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -199,6 +200,43 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
         }
     }, [watchYear, watchClass, watchSection, setValue]);
 
+    useEffect(
+        () => {
+            if (watchYear && watchClass && watchSection && watchExam) {
+                const fetchSubjects = async () => {
+                    try {
+                        //setLoadingSubjects(true);
+                        const yearId = Number.parseInt(watchYear, 10);
+                        const classId = Number.parseInt(watchClass, 10);
+                        const sectionId = Number.parseInt(watchSection, 10);
+                        const examId = Number.parseInt(watchExam, 10);
+                        const payload = {
+                            "asmaY_Id": yearId,
+                            "asmcL_Id": classId,
+                            "asmS_Id": sectionId,
+                            "emE_Id": examId
+                        }
+
+                        const { data: response } = await getMappedSubjects(payload);
+                        const res__ = Array.isArray(response) ? response : [];
+                        if (response) {
+                            setSubjects(res__);
+                        } else {
+                            setSubjects([]);
+                        }
+                    } catch (error) {
+                        console.error('Error fetching subjects:', error);
+                        toast.error('Failed to load subjects');
+                        setSubjects([]);
+                    }
+
+                };
+                fetchSubjects();
+            }
+        },
+        [watchYear, watchClass, watchSection, watchExam]
+    );
+
     // Update check types when form values change
     useEffect(() => {
         // Set exam check type based on exam selection
@@ -248,7 +286,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                 ASMS_Id: formValues.type === '1' ? 0 : Number.parseInt(formValues.ASMS_Id || '') || 0,
                 EME_Id: Number.parseInt(formValues.EME_Id) || 0,
                 ISMS_Id: formValues.subjectwise ? Number.parseInt(formValues.ISMS_Id || '') || 0 : 0,
-                report_type: formValues.type || '0',
+                report_type: formValues.type || '2',
 
                 sub_check_type: formValues.subjectwise ? '1' : '0',
 
@@ -326,10 +364,12 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                     Academic Year <span className='text-red-500'>*</span>
                                 </Label>
                                 <Controller
+
                                     control={control}
                                     name='ASMAY_Id'
                                     render={({ field }) => (
                                         <Select
+                                            key={field.value}
                                             onValueChange={(val) => {
                                                 field.onChange(val);
                                                 // Trigger validation when changed
@@ -372,6 +412,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                     name='ASMCL_Id'
                                     render={({ field }) => (
                                         <Select
+                                            key={field.value}
                                             onValueChange={(val) => {
                                                 field.onChange(val);
                                                 // Trigger validation when changed
@@ -414,6 +455,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                     name='ASMS_Id'
                                     render={({ field }) => (
                                         <Select
+                                            key={field.value}
                                             onValueChange={(val) => {
                                                 field.onChange(val);
                                                 // Trigger validation when changed
@@ -448,6 +490,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                     name='EME_Id'
                                     render={({ field }) => (
                                         <Select
+                                            key={field.value}
                                             onValueChange={(val) => {
                                                 field.onChange(val);
                                                 // Trigger validation when changed
@@ -544,6 +587,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                         name='ISMS_Id'
                                         render={({ field }) => (
                                             <Select
+                                                key={field.value}
                                                 onValueChange={(val) => {
                                                     field.onChange(val);
                                                     // Trigger validation when changed

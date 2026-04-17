@@ -40,7 +40,7 @@ export default function TotalStrengthPage() {
     // Dropdown Hooks
     const { data: initialDetails, isLoading: initialLoading } = useSTCSTotalStrengthInitialDetails();
     const { data: masterCompanyResponse } = useSTCSTotalStrengthMasterCompany();
-    console.log("masterCompanyResponse", masterCompanyResponse);
+    
     const {
         control,
         watch,
@@ -106,7 +106,6 @@ export default function TotalStrengthPage() {
     const [reportPayload, setReportPayload] = useState<any>(null);
     const { data: reportResponse, isLoading: isReportLoading } = useSTCSTotalStrengthReportDetails(reportPayload);
 
-    console.log("API response", reportResponse?.data?.MasterCompany?.[0]?.milogo);
     const handleReport = async () => {
         const isValid = await trigger();
         if (isValid) {
@@ -146,15 +145,91 @@ export default function TotalStrengthPage() {
 
     const studentList: any[] = useMemo(() => {
         const data = reportResponse?.data || reportResponse;
-        const list = data?.studentlist || (data as any)?.studentList || (data as any)?.studentList1 || (data as any)?.studentlist1;
-        return Array.isArray(list) ? list : [];
-    }, [reportResponse]);
+        
+        const getValidList = () => {
+            const possibleKeys = ['studentlist', 'studentList', 'studentList1', 'studentlist1', 'result'];
+            for (const key of possibleKeys) {
+                const val = (data as any)?.[key];
+                if (Array.isArray(val) && val.length > 0) return val;
+                if (typeof val === 'string' && val.trim().startsWith('[')) return val;
+            }
+            if (Array.isArray(data)) return data;
+            if (typeof data === 'string' && data.trim().startsWith('[')) return data;
+            return [];
+        };
+
+        let list = getValidList();
+
+        if (typeof list === 'string') {
+            try {
+                list = JSON.parse(list);
+            } catch (e) {
+                console.error('Failed to parse student list string', e);
+            }
+        }
+
+        let finalArray = Array.isArray(list) ? list : [];
+
+        // Join with class name if missing
+        if (finalArray.length > 0 && !finalArray[0].classname && resolvedClassList.length > 0) {
+            finalArray = finalArray.map((item: any) => {
+                const cls = resolvedClassList.find((c: any) => (c.asmcL_Id || c.ASMCL_Id) === (item.ASMCL_Id || item.asmcL_Id));
+                return {
+                    ...item,
+                    classname: cls?.asmcL_ClassName || item.classname || 'Total'
+                };
+            });
+        }
+
+        return finalArray;
+    }, [reportResponse, resolvedClassList]);
 
     const dynamicElectives: any[] = useMemo(() => {
         const data = reportResponse?.data || reportResponse;
-        const list = data?.ElectiveSum || (data as any)?.electiveSum || data?.studentElectivelist || (data as any)?.studentElectiveList || data?.electivelist;
-        return Array.isArray(list) ? list : [];
-    }, [reportResponse]);
+
+        const getValidElectiveList = () => {
+            const keys = ['ElectiveSum', 'electiveSum', 'studentElectivelist', 'studentElectiveList', 'electivelist'];
+            for (const key of keys) {
+                const val = (data as any)?.[key];
+                if (Array.isArray(val) && val.length > 0) return val;
+            }
+            return null;
+        };
+
+        let list = getValidElectiveList();
+
+        // If found an explicit list of electives, use it
+        if (Array.isArray(list) && list.length > 0 && (list[0].ISMS_SubjectName || list[0].ismS_SubjectName)) {
+            return list;
+        }
+
+        // If no explicit elective list, discover from studentList keys
+        if (studentList.length > 0) {
+            const firstRow = studentList[0];
+            const excludeKeys = [
+                'ASMCL_Id', 'asmay_id', 'ASMAY_Id', 'classname', 'sectionname', 'boys', 'girls', 'totalstudents', 
+                'newAdmission', 'Sl.No', 'RowNumber', 'AMST_Id', 'result', 
+                'ASMCL_Order', 'ASMC_Order', 'asmcL_Order', 'asmC_Order', 'ASMS_Order'
+            ];
+            const subjectKeys = Object.keys(firstRow).filter(k =>
+                !excludeKeys.includes(k) &&
+                !excludeKeys.some(ek => ek.toLowerCase() === k.toLowerCase())
+            );
+
+            if (subjectKeys.length > 0) {
+                return subjectKeys.map(k => ({ ISMS_SubjectName: k }));
+            }
+        }
+
+        // Fallback to selected subjects from form state
+        if (watchElectives.length > 0) {
+            return resolvedElectiveList
+                .filter((e: any) => watchElectives.includes(e.ismS_Id))
+                .map((e: any) => ({ ISMS_SubjectName: e.ismS_SubjectName }));
+        }
+
+        return [];
+    }, [reportResponse, studentList, watchElectives, resolvedElectiveList]);
 
     const groupedData = useMemo(() => {
         const grouped: Record<string, any[]> = {};
@@ -166,7 +241,6 @@ export default function TotalStrengthPage() {
         return grouped;
     }, [studentList]);
 
-    console.log(groupedData);
     const calculateClassTotalByGroup = (groupKey: string, field: string) => {
         const items = groupedData[groupKey] || [];
         return items.reduce((sum, item) => sum + (item[field] || 0), 0);
@@ -489,16 +563,16 @@ export default function TotalStrengthPage() {
                         <div className='overflow-x-auto p-4'>
                             <table className='w-full border-collapse border border-gray-300 text-sm'>
                                 <thead>
-                                    <tr className='bg-gray-100 uppercase'>
-                                        <th className='border border-gray-300 p-2'>Sl.No</th>
+                                    <tr className='bg-[#005cb9] text-white uppercase text-[12px]'>
+                                        <th className='border border-gray-300 p-2'>SL. No.</th>
                                         <th className='border border-gray-300 p-2 text-left'>Class</th>
                                         <th className='border border-gray-300 p-2 text-left'>Section</th>
                                         <th className='border border-gray-300 p-2'>Boys</th>
                                         <th className='border border-gray-300 p-2'>Girls</th>
                                         <th className='border border-gray-300 p-2 text-right'>Total</th>
                                         <th className='border border-gray-300 p-2'>New Admission</th>
-                                        {dynamicElectives.map((e: any) => (
-                                            <th key={e.ISMS_Id || (e as any).ismS_Id} className='border border-gray-300 p-2'>{e.ISMS_SubjectName || (e as any).ismS_SubjectName}</th>
+                                        {dynamicElectives.map((e: any, i: number) => (
+                                            <th key={e.ISMS_Id || (e as any).ismS_Id || i} className='border border-gray-300 p-2 text-center whitespace-nowrap'>{e.ISMS_SubjectName || (e as any).ismS_SubjectName}</th>
                                         ))}
                                     </tr>
                                 </thead>
@@ -515,8 +589,8 @@ export default function TotalStrengthPage() {
                                                         <td className='border border-gray-300 p-2 text-center'>{item.girls}</td>
                                                         <td className='border border-gray-300 p-2 text-right font-medium'>{item.totalstudents}</td>
                                                         <td className='border border-gray-300 p-2 text-center'>{item.newAdmission || 0}</td>
-                                                        {dynamicElectives.map((e: any) => (
-                                                            <td key={e.ISMS_Id || (e as any).ismS_Id} className='border border-gray-300 p-2 text-center'>{item[e.ISMS_SubjectName || (e as any).ismS_SubjectName] || 0}</td>
+                                                        {dynamicElectives.map((e: any, i: number) => (
+                                                            <td key={e.ISMS_Id || (e as any).ismS_Id || i} className='border border-gray-300 p-2 text-center'>{item[e.ISMS_SubjectName || (e as any).ismS_SubjectName] || 0}</td>
                                                         ))}
                                                     </tr>
                                                 ))}
@@ -528,8 +602,8 @@ export default function TotalStrengthPage() {
                                                     <td className='border border-gray-300 p-2 text-center'>{calculateClassTotalByGroup(groupKey, 'girls')}</td>
                                                     <td className='border border-gray-300 p-2 text-right'>{calculateClassTotalByGroup(groupKey, 'totalstudents')}</td>
                                                     <td className='border border-gray-300 p-2 text-center'>{calculateClassTotalByGroup(groupKey, 'newAdmission')}</td>
-                                                    {dynamicElectives.map((e: any) => (
-                                                        <td key={e.ISMS_Id || (e as any).ismS_Id} className='border border-gray-300 p-2 text-center'>{calculateClassTotalByGroup(groupKey, e.ISMS_SubjectName || (e as any).ismS_SubjectName)}</td>
+                                                    {dynamicElectives.map((e: any, i: number) => (
+                                                        <td key={e.ISMS_Id || (e as any).ismS_Id || i} className='border border-gray-300 p-2 text-center'>{calculateClassTotalByGroup(groupKey, e.ISMS_SubjectName || (e as any).ismS_SubjectName)}</td>
                                                     ))}
                                                 </tr>
                                             </Fragment>
@@ -542,8 +616,8 @@ export default function TotalStrengthPage() {
                                         <td className='border border-gray-300 p-2 text-center'>{calculateGrandTotal('girls')}</td>
                                         <td className='border border-gray-300 p-2 text-right'>{calculateGrandTotal('totalstudents')}</td>
                                         <td className='border border-gray-300 p-2 text-center'>{calculateGrandTotal('newAdmission')}</td>
-                                        {dynamicElectives.map((e: any) => (
-                                            <td key={e.ISMS_Id || (e as any).ismS_Id} className='border border-gray-300 p-2 text-center'>{calculateGrandTotal(e.ISMS_SubjectName || (e as any).ismS_SubjectName)}</td>
+                                        {dynamicElectives.map((e: any, i: number) => (
+                                            <td key={e.ISMS_Id || (e as any).ismS_Id || i} className='border border-gray-300 p-2 text-center'>{calculateGrandTotal(e.ISMS_SubjectName || (e as any).ismS_SubjectName)}</td>
                                         ))}
                                     </tr>
                                 </tbody>
