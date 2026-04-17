@@ -13,7 +13,7 @@ import {
     Legend,
     ArcElement
 } from 'chart.js';
-import { Pie } from 'react-chartjs-2';
+import { Bar } from 'react-chartjs-2';
 
 ChartJS.register(
     CategoryScale,
@@ -161,19 +161,39 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                 {/* Header with logo */}
                                 {showLogo && (
                                     <div className='mb-4 flex flex-row items-center justify-between'>
-                                        <div className="flex-1 text-center">
-                                            <img src={institution?.mI_Logo} className='mx-auto h-auto w-auto object-contain' alt="Header Logo" />
+                                        <div className='w-32'>
+                                            <img
+                                                src='https://dcampusstrg.blob.core.windows.net/files/17/Trnsportdocuments/7115f492-3955-47e6-97d9-187413d0f3a5.jpg'
+                                                className='h-[100px] w-[100px] object-cover'
+                                                alt='Transport Logo'
+                                            />
                                         </div>
-                                        <div className="w-24">&nbsp;</div>
+                                        <div className='flex-1 text-center'>
+                                            <img
+                                                src='https://sthomashowrah.blob.core.windows.net/files/Logo Header stt.jpg'
+                                                className='mx-auto h-[70px] w-auto object-contain'
+                                                alt='Header Logo'
+                                            />
+                                            <div className='mt-1 space-y-1 text-center text-[9px] leading-tight'>
+                                                <p>(Diocese of Calcutta, CNI)</p>
+                                                <p>
+                                                    A Christian Minority Co-Educational English Medium School under Article 30 of the Indian
+                                                    Constitution)
+                                                </p>
+                                                <p>3, Church Road, Howrah-711101 West Bengal, India</p>
+                                                <p>Phone No: +91 33 2641 2138,+91 33 2641 3590 Email ID: stesh1860@gmail.com</p>
+                                            </div>
+                                        </div>
+                                        <div className='w-32'>&nbsp;</div>
                                     </div>
                                 )}
                                 {!showLogo && <div className="mt-[130px]">&nbsp;</div>}
 
                                 <div className="relative">
                                     {/* Watermark */}
-                                    {/* <div className='pointer-events-none absolute inset-0 z-0 flex items-center justify-center opacity-20 print:opacity-20'>
-                                        <img src={institution?.mI_BackgroundImage} className='h-[417px] w-[420px] object-contain' alt="Watermark" />
-                                    </div> */}
+                                    <div className='pointer-events-none absolute inset-0 z-0 flex items-center justify-center opacity-20 print:opacity-20'>
+                                        <img src='https://sthomashowrah.blob.core.windows.net/files/4/stthomos.jpeg' className='h-[417px] w-[420px] object-contain' alt="Watermark" />
+                                    </div>
 
                                     <div className="relative z-10">
                                         {/* Exam Title */}
@@ -198,7 +218,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                         </div>
                                                         <div className="flex gap-2">
                                                             <span className="font-bold">CLASS :</span>
-                                                            <span className="font-bold">{report.classname || params.classs}-{report.sectionname || params.clasection}</span>
+                                                            <span className="font-bold">{report.classname || params.classs}-{report.sectionname || params.clasection}{params.brngroup || ''}</span>
                                                         </div>
                                                     </td>
                                                     <td className='w-1/4 border-none p-2 text-center align-middle'>
@@ -458,22 +478,29 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                         <tr>
                                                             <td className="pt-4 flex justify-center h-[252px]">
                                                                 <div className="relative w-[250px] h-[250px]">
-                                                                    {/* Placeholder Pie Chart – replace with actual data */}
-                                                                    <Pie
+                                                                    {/* Bar Chart representing Performance Analysis */}
+                                                                    <Bar
+                                                                        key={index}
                                                                         data={{
-                                                                            labels: ['English', 'Maths', 'Science', 'Social', 'Hindi'],
-                                                                            datasets: [{
-                                                                                data: [80, 75, 90, 85, 88],
-                                                                                backgroundColor: [
-                                                                                    'rgba(255, 99, 132, 0.6)',
-                                                                                    'rgba(54, 162, 235, 0.6)',
-                                                                                    'rgba(255, 206, 86, 0.6)',
-                                                                                    'rgba(75, 192, 192, 0.6)',
-                                                                                    'rgba(153, 102, 255, 0.6)',
-                                                                                ]
-                                                                            }]
+                                                                            labels: allSubjects.filter((s: any) => s.ismS_Id < 1000).map((s: any) => s.ismS_SubjectName),
+                                                                            datasets: [
+                                                                                {
+                                                                                    label: 'Marks Obtained',
+                                                                                    data: allSubjects.filter((s: any) => s.ismS_Id < 1000).map((s: any) => s.estmppsG_GroupObtMarks),
+                                                                                    backgroundColor: 'rgb(63,81,181)',
+                                                                                    borderColor: 'black',
+                                                                                    borderWidth: 1
+                                                                                },
+                                                                                {
+                                                                                    label: 'Average Marks',
+                                                                                    data: allSubjects.filter((s: any) => s.ismS_Id < 1000).map((s: any) => s.groupAVGMarks),
+                                                                                    backgroundColor: 'rgb(255,87,34)',
+                                                                                    borderColor: 'black',
+                                                                                    borderWidth: 0
+                                                                                }
+                                                                            ]
                                                                         }}
-                                                                        options={{ responsive: true, maintainAspectRatio: false }}
+                                                                        options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } } }}
                                                                     />
                                                                 </div>
                                                             </td>

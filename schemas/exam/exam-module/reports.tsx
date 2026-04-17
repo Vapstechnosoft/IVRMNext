@@ -292,6 +292,8 @@ export const juniorsProgressCardReportSchemaForPrint = z.object({
     selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
 });
 
+export type JuniorsProgressCardReportSchemaForPrint = z.infer<typeof juniorsProgressCardReportSchemaForPrint>;
+
 export const marksEntryReportSchema = z.object({
     ASMAY_Id: z.string().min(1, 'Academic Year is required'),
     ASMCL_Id: z.string().min(1, 'Class is required'),

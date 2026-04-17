@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { type ReportCardIXSchema, reportCardIXSchema } from '@/schemas/exam/exam-module/reports';
-import { getReportDetails } from '@/server/exam/exam-module/reports/Report_Card_IX';
+import { getReportDetails } from '@/server/exam/exam-module/reports/StThomos/Report_Card_IX';
 import {
     getClassDropDownByAcademicYearlist,
     getSectionsDropDownByAcademicYearandClasslist,

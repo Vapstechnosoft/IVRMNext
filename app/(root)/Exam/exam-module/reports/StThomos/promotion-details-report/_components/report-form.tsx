@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { type PromotionDetailsReportSchema, promotionDetailsReportSchema } from '@/schemas/exam/exam-module/reports';
 import { getClassDropDownByAcademicYearlist, getSectionsDropDownByAcademicYearandClasslist, getStudentsDropDownByAcademicYearandClassandSectionlist } from '@/server/exam/exam-module/reports/cumulative-report';
-import { getClasses, getReportDetails, getSections, getTermsAndStudents } from '@/server/exam/exam-module/reports/promotion-details-report';
+import { getClasses, getReportDetails, getSections, getTermsAndStudents } from '@/server/exam/exam-module/reports/StThomos/promotion-details-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';

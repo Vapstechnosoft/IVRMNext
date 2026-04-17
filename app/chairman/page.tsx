@@ -33,7 +33,7 @@ const StudentStrengthChart = dynamic(() => import('./_components/dashboard-chart
 const EmployeeStrengthChart = dynamic(() => import('./_components/dashboard-charts').then(mod => mod.EmployeeStrengthChart), { ssr: false });
 const FeeDetailsChart = dynamic(() => import('./_components/dashboard-charts').then(mod => mod.FeeDetailsChart), { ssr: false });
 import { cn } from '@/lib/utils';
-import { getDashboardCounts } from '@/server/dashboards/chairman-dashboard';
+import { GetChairmanDashBoardFeesdata, getDashboardCounts } from '@/server/dashboards/chairman-dashboard';
 // --- Data from Reference Images ---
 
 const studentStrengthData = [
@@ -59,14 +59,7 @@ const employeeStrengthData = [
     { name: 'Attender', value: 10, color: '#ef4444' },
 ];
 
-const feeDetailsData = [
-    { name: 'PCMB', Collected: 32000000, Receivable: 36000000, Balance: 4000000 },
-    { name: 'PCMC', Collected: 34000000, Receivable: 38000000, Balance: 4000000 },
-    { name: 'CEBA', Collected: 28000000, Receivable: 31000000, Balance: 3000000 },
-    { name: 'SEBA', Collected: 26000000, Receivable: 29000000, Balance: 3000000 },
-    { name: 'HEBA', Collected: 18000000, Receivable: 20000000, Balance: 2000000 },
-    { name: 'SBAC', Collected: 15000000, Receivable: 17000000, Balance: 2000000 },
-];
+
 
 const eventDetails = [
     { id: 1, event: 'Annual Sports Meet', month: 'February', start: '2026-02-24', end: '2026-02-26' },
@@ -129,13 +122,38 @@ const ChartCard = ({ title, children, className }: { title: string, children: Re
 
 export default function ChairmanDashboard() {
     const [dashboardData, setDashboardData] = useState<any>(null);
+    const [feeDetailsData, setFeeDetailsData] = useState<any[]>([]);
 
     useEffect(() => {
         const fetchData = async () => {
             console.log('fetching preadmission data');
-            const { data } = await getDashboardCounts();
-            console.log('preadmission data', data)
-            setDashboardData(data);
+            try {
+                const response = await getDashboardCounts();
+                const feesResponse = await GetChairmanDashBoardFeesdata(231);
+                console.log('preadmission data raw response', response);
+
+                // If the response has a data property (nested wrapper), use it, otherwise use the response itself
+                const finalData = response?.data ? response.data : response;
+
+                console.log('preadmission final data', finalData);
+                setDashboardData(finalData);
+
+                // Format fees data specifically for the FeeDetailsChart
+                const feesDataArray = feesResponse?.data || [];
+                if (Array.isArray(feesDataArray)) {
+                    console.log('feesDataArray', feesDataArray);
+                    const mappedFees = feesDataArray.map((item: any) => ({
+                        name: item.classname || 'Unknown',
+                        Collected: item.callected || 0,
+                        Receivable: item.receivable || 0,
+                        Balance: item.ballance || 0
+                    }));
+                    setFeeDetailsData(mappedFees);
+                    console.log('mappedFees', mappedFees);
+                }
+            } catch (error) {
+                console.error('Error fetching dashboard counts:', error);
+            }
         };
 
         fetchData();
