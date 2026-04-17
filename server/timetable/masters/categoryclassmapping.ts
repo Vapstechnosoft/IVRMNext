@@ -33,13 +33,13 @@ export async function getTimeTableAcademicYearDetails() {
 }
 
 export async function getTimeTableCategoryDropDownDetails() {
-    const url = '/TimeTableCommon/GetCategoryDetails';
+    const url = '/TTMasterCategoryFacade/GetCategoryDetails';
     console.info('MasterDayFacade', url);
     return await api.get<ITimeTableCategoryDropDownData[]>('timetable', url);
 }
 
 export async function getuseTimeTableClassDropdownDataDetails() {
-    const url = '/TimeTableCommon/GetClassData';
+    const url = '/TTMasterCategoryFacade/GetClassData';
     console.info('MasterDayFacade', url);
     return await api.get<ITimeTableClassDropDownData[]>('timetable', url);
 }

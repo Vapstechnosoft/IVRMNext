@@ -1,107 +1,135 @@
 import { TIMETABLE_QUERY_KEYS } from '@/constants/Timetable-query-keys';
 import {
-    getAcademicYear,
-    getClassDetails,
-    getLabConstraintsDetails,
-    getSectionDetails,
-    getTimeTableCategoryDropDownDetails
+    LabConstraintsGrid,
+    getAcademicYearDropDownClasswise,
+    getCategoryDropDown,
+    getClassDropdown,
+    getLabDropDown,
+    getSectionDropDown,
+    getSubjectDropDown
 } from '@/server/timetable/constraints/labconstraints';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
-//academic Year
-export const useAcademicYearDropDownMasterDayClasswise = () => {
+export const useAcademicYearDropDown = () => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [TIMETABLE_QUERY_KEYS.ACADEMIC_YEAR_DROPDOWN_MASTERDAYCLASSWISE],
-            queryFn: async () => getAcademicYear(),
-            staleTime: 0,
-            retry: 1
+            queryKey: [TIMETABLE_QUERY_KEYS.BIFURCATION_CONSTRAINTS ?? {}],
+            queryFn: async () => getAcademicYearDropDownClasswise(),
+            staleTime: 0
         }),
 
         refetchAll: () => {
             return queryClient.invalidateQueries({
-                queryKey: [TIMETABLE_QUERY_KEYS.ACADEMIC_YEAR_DROPDOWN_MASTERDAYCLASSWISE]
+                queryKey: [TIMETABLE_QUERY_KEYS.BIFURCATION_CONSTRAINTS]
             });
         }
     };
 };
 
-//category
-export const useCategoryDropDownMasterDayClasswise = () => {
+export const useCategoryDropDownDropDown = () => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [TIMETABLE_QUERY_KEYS.CATEGORY_DROPDOWN_MASTERDAYCLASSWISE],
-            queryFn: async () => getTimeTableCategoryDropDownDetails(),
-            staleTime: 0,
-            retry: 1
+            queryKey: [TIMETABLE_QUERY_KEYS.BIFURCATION_CONSTRAINTS ?? {}],
+            queryFn: async () => getCategoryDropDown(),
+            staleTime: 0
         }),
 
         refetchAll: () => {
             return queryClient.invalidateQueries({
-                queryKey: [TIMETABLE_QUERY_KEYS.CATEGORY_DROPDOWN_MASTERDAYCLASSWISE]
+                queryKey: [TIMETABLE_QUERY_KEYS.BIFURCATION_CONSTRAINTS]
             });
         }
     };
 };
 
-//section
-export const useSectionDropDownMasterDayClasswise = () => {
+export const useClassDropDown = () => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [TIMETABLE_QUERY_KEYS.SECTION_DROPDOWN_MASTERDAYCLASSWISE],
-            queryFn: async () => getSectionDetails(),
-            staleTime: 0,
-            retry: 1
+            queryKey: [TIMETABLE_QUERY_KEYS.BIFURCATION_CONSTRAINTS ?? {}],
+            queryFn: async () => getClassDropdown(),
+            staleTime: 0
         }),
 
         refetchAll: () => {
             return queryClient.invalidateQueries({
-                queryKey: [TIMETABLE_QUERY_KEYS.SECTION_DROPDOWN_MASTERDAYCLASSWISE]
+                queryKey: [TIMETABLE_QUERY_KEYS.BIFURCATION_CONSTRAINTS]
             });
         }
     };
 };
 
-//class
-export const useClassDropDownMasterDayClasswise = () => {
+export const useSectionDropDown = () => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [TIMETABLE_QUERY_KEYS.CLASS_DROPDOWN_MASTERDAYCLASSWISE],
-            queryFn: async () => getClassDetails(),
-            staleTime: 0,
-            retry: 1
+            queryKey: [TIMETABLE_QUERY_KEYS.BIFURCATION_CONSTRAINTS ?? {}],
+            queryFn: async () => getSectionDropDown(),
+            staleTime: 0
         }),
 
         refetchAll: () => {
             return queryClient.invalidateQueries({
-                queryKey: [TIMETABLE_QUERY_KEYS.CLASS_DROPDOWN_MASTERDAYCLASSWISE]
+                queryKey: [TIMETABLE_QUERY_KEYS.BIFURCATION_CONSTRAINTS]
             });
         }
     };
 };
 
-export const useLabConstraintsDetails = () => {
+export const useSubjectDropDown = () => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [TIMETABLE_QUERY_KEYS.LAB_CONSTRAINTS_DETAILS],
-            queryFn: async () => getLabConstraintsDetails(),
-            staleTime: 0,
-            retry: 1 // limit retries on 404
+            queryKey: [TIMETABLE_QUERY_KEYS.BIFURCATION_CONSTRAINTS ?? {}],
+            queryFn: async () => getSubjectDropDown(),
+            staleTime: 0
         }),
 
         refetchAll: () => {
             return queryClient.invalidateQueries({
-                queryKey: [TIMETABLE_QUERY_KEYS.LAB_CONSTRAINTS_DETAILS]
+                queryKey: [TIMETABLE_QUERY_KEYS.BIFURCATION_CONSTRAINTS]
+            });
+        }
+    };
+};
+
+export const useLabDropDown = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.BIFURCATION_CONSTRAINTS ?? {}],
+            queryFn: async () => getLabDropDown(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.BIFURCATION_CONSTRAINTS]
+            });
+        }
+    };
+};
+
+export const useLabConstraintsGrid = (searchParams?: any) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.FIXING_DAY_STAFF_GRID, 'grid', searchParams],
+            queryFn: async () => LabConstraintsGrid(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.FIXING_DAY_STAFF_GRID]
             });
         }
     };
