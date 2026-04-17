@@ -643,3 +643,76 @@ export const feeClassWiseDueListReportSophia = z
             }
         }
     });
+
+export const feeItReportUKSchool = z.object({
+    studentId: z.preprocess(
+        (val) => {
+            if (val === '' || val === undefined || val === null) return undefined;
+            const num = Number(val);
+            return Number.isNaN(num) ? undefined : num;
+        },
+        z
+            .number({
+                required_error: 'Student Name is required',
+                invalid_type_error: 'Student Name is required'
+            })
+            .min(1, 'Student Name is required')
+    ),
+    academicYearId: z.preprocess(
+        (val) => {
+            if (val === '' || val === undefined || val === null) return undefined;
+            const num = Number(val);
+            return Number.isNaN(num) ? undefined : num;
+        },
+        z
+            .number({
+                required_error: 'Academic Year is required',
+                invalid_type_error: 'Academic Year is required'
+            })
+            .min(1, 'Academic Year is required')
+    ),
+    regno_name: z.string().optional(),
+    name_regno: z.string().optional(),
+    Date: z.string().min(1, 'Date is required'),
+    fathername: z.boolean().optional(),
+    mothername: z.boolean().optional(),
+    className: z.boolean().optional()
+});
+
+export const feeRefundReportGmvps = z
+    .object({
+        academicYearId: z.string().min(1, 'Academic Year is required'),
+        feeHead: z.string().min(1, 'Fee Head is required'),
+        classId: z.string().optional(),
+        sectionId: z.string().optional(),
+        // classId: z.string().min(1, 'Class is required'),
+        // sectionId: z.string().min(1, 'Section is required'),
+        reportType: z.enum(['All', 'Individual']).default('All'),
+        fromDate: z.string().min(1, 'From Date is required'),
+        toDate: z.string().min(1, 'To Date is required')
+    })
+    .superRefine((data, ctx) => {
+        if (data.reportType === 'Individual') {
+            if (!data.classId) {
+                ctx.addIssue({
+                    path: ['classId'],
+                    message: 'Class Name is required',
+                    code: z.ZodIssueCode.custom
+                });
+            }
+            if (!data.sectionId) {
+                ctx.addIssue({
+                    path: ['sectionId'],
+                    message: 'Section Name is required',
+                    code: z.ZodIssueCode.custom
+                });
+            }
+        }
+    });
+
+export const feeCollectionReportVVVS = z.object({
+    academicYearId: z.string().min(1, 'Academic Year is required'),
+    reportType: z.enum(['All', 'Cash', 'Cheque/DD', 'Online Paid', 'ECS', 'Card', 'RTGS', 'Trans&Bank']).default('All'),
+    fromDate: z.string().min(1, 'From Date is required'),
+    toDate: z.string().min(1, 'To Date is required')
+});
