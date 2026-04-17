@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Upload, FileCheck, ClipboardCheck, PlayCircle, Eye, Download, FileText, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { evaluateOmr } from '@/server/omr-evaluation';
+import { evaluateOmr, validateOmrMarkings } from '@/server/omr-evaluation';
 
 // Helper to convert images and PDFs to JPEG for backend OCR compatibility
 const convertToJpeg = async (file: File): Promise<{ file: File; width: number; height: number }> => {
@@ -126,6 +126,14 @@ export default function OmrMarkSheetEvaluationPage() {
                 toast.error('The Student Sheet and Answer Key appear to be the same image. Please provide different sheets.');
                 setIsEvaluating(false);
                 return;
+            }
+
+            // AI Pre-check for marking styles (ticks, crosses, etc.)
+            const validation = await validateOmrMarkings(studentInfo.file);
+            if (!validation.isValidStyle) {
+                toast.error('The answered format has varied items (e.g., tick marks detected). These will be considered invalid during processing.', {
+                    duration: 10000,
+                });
             }
 
             toast.info('Processing OMR evaluation... this may take a moment.');
