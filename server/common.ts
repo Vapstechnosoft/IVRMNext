@@ -1527,7 +1527,6 @@ export async function getUserAccessibleModules() {
                                     name: 'Transactions',
                                     icon: 'BadgeIndianRupee',
                                     pages: [
-                                        
                                         {
                                             id: 40,
                                             name: 'Fee Amount Entry',
@@ -1649,7 +1648,6 @@ export async function getUserAccessibleModules() {
                                             title: 'Fee Staff Other Transaction',
                                             description: 'Fee Staff Other Transaction'
                                         }
-                                        
                                     ]
                                 },
                                 {
@@ -1878,7 +1876,7 @@ export async function getUserAccessibleModules() {
                                             title: 'Fee Transaction STTHOMAS',
                                             description: 'Fee Transaction STTHOMAS'
                                         },
-                                          {
+                                        {
                                             id: 55555,
                                             name: 'Fee Amount Entry STTHOMAS',
                                             icon: 'BadgeIndianRupee',
@@ -1893,8 +1891,7 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/feereports/headwisereport',
                                             title: 'Fee Head Wise Report Calcaltta',
                                             description: 'Fee Head Wise Report Calcaltta'
-                                        },
-                                        
+                                        }
                                     ]
                                 }
                             ]
@@ -2397,79 +2394,80 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/Stella/stella_prograss_report',
                                             title: 'Stella Progress Report',
                                             description: 'Manage Stella Progress Card Report Details'
-                                        },
-                                        {
-                                            id: 91,
-                                            name: 'Stella Marks Entry Report',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/Stella/stella_marks_entry_report',
-                                            title: 'Stella Marks Entry Report',
-                                            description: 'Manage Stella Marks Entry Report Details'
-                                        },
-                                        {
-                                            id: 92,
-                                            name: 'Vidyaniketan Performance Ananlysis Report',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/GMVPS/vidyaniketan-performance-analysis-report',
-                                            title: 'Vidyaniketan Performance Ananlysis Report',
-                                            description: 'Manage Vidyaniketan Performance Ananlysis Report Details'
-                                        },
-                                        {
-                                            id: 93,
-                                            name: 'Vidyaniketan Progress Card Report',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/GMVPS/vidyaniketan-progress-card-report',
-                                            title: 'Vidyaniketan Progress Card Report',
-                                            description: 'Manage Vidyaniketan Progress Card Report Details'
-                                        },
-                                        {
-                                            id: 94,
-                                            name: 'Vidyaniketan I-VIII Card Report',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/GMVPS/vidyaniketan-report-card-I-VIII',
-                                            title: 'Vidyaniketan I-VIII Card Report',
-                                            description: 'Manage Vidyaniketan I-VIII Card Report Details'
-                                        },
-                                        {
-                                            id: 95,
-                                            name: 'Sophia IX-X Card Report',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/Sophia/sophia-report-card-IX-X',
-                                            title: 'Sophia IX-X Card Report',
-                                            description: 'Manage Sophia IX-X Card Report Details'
-                                        },
-                                        {
-                                            id: 96,
-                                            name: 'Sophia Pre-II Card Report',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/Sophia/sophia-report-card-pre-II',
-                                            title: 'Sophia Pre-II Card Report',
-                                            description: 'Manage Sophia Pre-II Card Report Details'
-                                        },
-                                        {
-                                            id: 97,
-                                            name: 'Sophia Topper List Report',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/Sophia/sophia-topper-list-report',
-                                            title: 'Sophia Topper List Report',
-                                            description: 'Manage Sophia Topper List Report Details'
-                                        },
-                                        {
-                                            id: 98,
-                                            name: 'St.James Consolidation Report',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/StJames/st-james-consolidation-report',
-                                            title: 'St.James Consolidation Report',
-                                            description: 'Manage St.James Consolidation Report Details'
-                                        },
-                                        {
-                                            id: 99,
-                                            name: 'St.James IX_X Report',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/StJames/st-james-ix-x-report',
-                                            title: 'St.James IX_X Report',
-                                            description: 'Manage St.James IX_X Report Details'
                                         }
+                                        // ,
+                                        // {
+                                        //     id: 91,
+                                        //     name: 'Stella Marks Entry Report',
+                                        //     icon: 'BookOpen',
+                                        //     url: '/Exam/exam-module/reports/Stella/stella_marks_entry_report',
+                                        //     title: 'Stella Marks Entry Report',
+                                        //     description: 'Manage Stella Marks Entry Report Details'
+                                        // },
+                                        // {
+                                        //     id: 92,
+                                        //     name: 'Vidyaniketan Performance Ananlysis Report',
+                                        //     icon: 'BookOpen',
+                                        //     url: '/Exam/exam-module/reports/GMVPS/vidyaniketan-performance-analysis-report',
+                                        //     title: 'Vidyaniketan Performance Ananlysis Report',
+                                        //     description: 'Manage Vidyaniketan Performance Ananlysis Report Details'
+                                        // },
+                                        // {
+                                        //     id: 93,
+                                        //     name: 'Vidyaniketan Progress Card Report',
+                                        //     icon: 'BookOpen',
+                                        //     url: '/Exam/exam-module/reports/GMVPS/vidyaniketan-progress-card-report',
+                                        //     title: 'Vidyaniketan Progress Card Report',
+                                        //     description: 'Manage Vidyaniketan Progress Card Report Details'
+                                        // },
+                                        // {
+                                        //     id: 94,
+                                        //     name: 'Vidyaniketan I-VIII Card Report',
+                                        //     icon: 'BookOpen',
+                                        //     url: '/Exam/exam-module/reports/GMVPS/vidyaniketan-report-card-I-VIII',
+                                        //     title: 'Vidyaniketan I-VIII Card Report',
+                                        //     description: 'Manage Vidyaniketan I-VIII Card Report Details'
+                                        // },
+                                        // {
+                                        //     id: 95,
+                                        //     name: 'Sophia IX-X Card Report',
+                                        //     icon: 'BookOpen',
+                                        //     url: '/Exam/exam-module/reports/Sophia/sophia-report-card-IX-X',
+                                        //     title: 'Sophia IX-X Card Report',
+                                        //     description: 'Manage Sophia IX-X Card Report Details'
+                                        // },
+                                        // {
+                                        //     id: 96,
+                                        //     name: 'Sophia Pre-II Card Report',
+                                        //     icon: 'BookOpen',
+                                        //     url: '/Exam/exam-module/reports/Sophia/sophia-report-card-pre-II',
+                                        //     title: 'Sophia Pre-II Card Report',
+                                        //     description: 'Manage Sophia Pre-II Card Report Details'
+                                        // },
+                                        // {
+                                        //     id: 97,
+                                        //     name: 'Sophia Topper List Report',
+                                        //     icon: 'BookOpen',
+                                        //     url: '/Exam/exam-module/reports/Sophia/sophia-topper-list-report',
+                                        //     title: 'Sophia Topper List Report',
+                                        //     description: 'Manage Sophia Topper List Report Details'
+                                        // },
+                                        // {
+                                        //     id: 98,
+                                        //     name: 'St.James Consolidation Report',
+                                        //     icon: 'BookOpen',
+                                        //     url: '/Exam/exam-module/reports/StJames/st-james-consolidation-report',
+                                        //     title: 'St.James Consolidation Report',
+                                        //     description: 'Manage St.James Consolidation Report Details'
+                                        // },
+                                        // {
+                                        //     id: 99,
+                                        //     name: 'St.James IX_X Report',
+                                        //     icon: 'BookOpen',
+                                        //     url: '/Exam/exam-module/reports/StJames/st-james-ix-x-report',
+                                        //     title: 'St.James IX_X Report',
+                                        //     description: 'Manage St.James IX_X Report Details'
+                                        // }
                                     ]
                                 }
                             ]
