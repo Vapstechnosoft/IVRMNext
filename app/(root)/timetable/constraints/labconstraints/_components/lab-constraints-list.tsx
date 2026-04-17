@@ -3,7 +3,7 @@
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { type ILabConstraintList, columns } from './columns';
+import { type ILabConstraintList, labConstraintsColumns as columns } from './columns';
 
 interface LabConstraintsListProps {
     data: ILabConstraintList[];
@@ -21,8 +21,7 @@ export default function LabConstraintsList({ data }: LabConstraintsListProps) {
             variant='default'
             size='lg'
             className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
-            title='Lab Constraints List' // Added title prop if supported, or wrapped in content? CollapsibleSection usually wraps content.
-        >
+            title='Lab Constraints List'>
             <GenericDataTable<ILabConstraintList>
                 {...tableProps}
                 columns={columns}

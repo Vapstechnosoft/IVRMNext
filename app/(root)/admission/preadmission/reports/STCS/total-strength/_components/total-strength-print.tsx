@@ -18,6 +18,31 @@ export const TotalStrengthPrint = React.forwardRef<HTMLDivElement, TotalStrength
     ({ groupedData, totalGrand, dynamicElectives = [], schoolName, schoolAddress, schoolPhone, logoUrl, yearString }, ref) => {
         const currentDate = format(new Date(), 'dd/MM/yyyy');
 
+        const studentList = useMemo(() => {
+            return Object.values(groupedData).flat();
+        }, [groupedData]);
+
+        const resolvedDynamicElectives = useMemo(() => {
+            if (dynamicElectives && dynamicElectives.length > 0) return dynamicElectives;
+            const list = studentList;
+            if (list.length > 0) {
+                const firstRow = list[0];
+                const excludeKeys = [
+                    'ASMCL_Id', 'asmay_id', 'ASMAY_Id', 'classname', 'sectionname', 'boys', 'girls', 'totalstudents', 
+                    'newAdmission', 'Sl.No', 'RowNumber', 'AMST_Id', 'result',
+                    'ASMCL_Order', 'ASMC_Order', 'asmcL_Order', 'asmC_Order', 'ASMS_Order'
+                ];
+                const subjectKeys = Object.keys(firstRow).filter(k =>
+                    !excludeKeys.includes(k) && !excludeKeys.some(ek => ek.toLowerCase() === k.toLowerCase())
+                );
+                if (subjectKeys.length > 0) {
+                    return subjectKeys.map(k => ({ ISMS_SubjectName: k }));
+                }
+            }
+            return [];
+        }, [studentList, dynamicElectives]);
+
+        console.log("resolvedDynamicElectives", resolvedDynamicElectives);
         const calculateClassTotalByGroup = (groupKey: string, field: string) => {
             const items = groupedData[groupKey] || [];
             return items.reduce((sum: number, item: any) => sum + (item[field] || 0), 0);
@@ -75,22 +100,21 @@ export const TotalStrengthPrint = React.forwardRef<HTMLDivElement, TotalStrength
 
                 <div className='p-4'>
                     {/* Header */}
-                    <div className='flex items-start gap-6 mb-4 mt-4'>
+                    <div className='flex items-start gap-6 mb-4 mt-2'>
                         {logoUrl && (
-                            <img src={logoUrl} alt='Logo' className='h-60 w-auto max-w-[1000px] object-contain' />
+                            <img src={logoUrl} alt='Logo' className='h-20 w-20 object-contain' />
                         )}
-                        {/* <div className='flex-1 text-center'>
-                            <h1 className='text-5xl italic mb-1' style={{ fontFamily: 'Georgia, serif', color: '#102d7d' }}>{schoolName}</h1>
-                            <div className='border-t-2 border-orange-400 w-full mb-3'></div>
-                            <div className='text-[14px] leading-relaxed text-gray-800 font-medium'>
-                                <p className='whitespace-pre-line'>{schoolAddress}</p>
-                                {schoolPhone && <p className='mt-2'>Phone No : {schoolPhone}</p>}
+                        <div className='flex-1 text-center'>
+                            <h1 className='text-2xl font-bold uppercase mb-1' style={{ color: '#102d7d' }}>{schoolName}</h1>
+                            <div className='text-[12px] leading-relaxed text-gray-800 font-medium'>
+                                <p className='whitespace-pre-line text-sm'>{schoolAddress}</p>
+                                {schoolPhone && <p className='mt-1'>Phone No : {schoolPhone}</p>}
                             </div>
-                        </div> */}
+                        </div>
                     </div>
 
                     <div className='text-center mb-4'>
-                        <h2 className='text-xl font-bold border-b-2 border-black inline-block px-4 pb-0.5'>
+                        <h2 className='text-lg font-bold border-b border-black inline-block px-4 pb-0.5'>
                             Total Strength Report For Year {yearString}
                         </h2>
                     </div>
@@ -106,8 +130,8 @@ export const TotalStrengthPrint = React.forwardRef<HTMLDivElement, TotalStrength
                                 <th style={{ width: '45px' }}>Girls</th>
                                 <th className='text-right' style={{ width: '60px' }}>Total</th>
                                 <th style={{ width: '50px' }}>New Admission</th>
-                                {dynamicElectives.map((e: any) => (
-                                    <th key={e.ISMS_Id || (e as any).ismS_Id}>{e.ISMS_SubjectName || (e as any).ismS_SubjectName}</th>
+                                {resolvedDynamicElectives.map((e: any, i: number) => (
+                                    <th key={e.ISMS_Id || (e as any).ismS_Id || i}>{e.ISMS_SubjectName || (e as any).ismS_SubjectName}</th>
                                 ))}
                             </tr>
                         </thead>
@@ -118,15 +142,14 @@ export const TotalStrengthPrint = React.forwardRef<HTMLDivElement, TotalStrength
                                         {sections.map((item: any, sectionIndex) => (
                                             <tr key={`${groupKey}-${sectionIndex}`}>
                                                 <td>{sectionIndex + 1}</td>
-                                                {/* <td className='text-left'>{sectionIndex === 0 ? item.classname : ''}</td> */}
                                                 <td>{item.classname}</td>
                                                 <td className='text-left'>{item.sectionname}</td>
                                                 <td>{item.boys}</td>
                                                 <td>{item.girls}</td>
                                                 <td className='text-right font-bold'>{item.totalstudents}</td>
                                                 <td>{item.newAdmission || 0}</td>
-                                                {dynamicElectives.map((e: any) => (
-                                                    <td key={e.ISMS_Id || (e as any).ismS_Id}>{item[e.ISMS_SubjectName || (e as any).ismS_SubjectName] || 0}</td>
+                                                {resolvedDynamicElectives.map((e: any, i: number) => (
+                                                    <td key={e.ISMS_Id || (e as any).ismS_Id || i}>{item[e.ISMS_SubjectName || (e as any).ismS_SubjectName] || 0}</td>
                                                 ))}
                                             </tr>
                                         ))}
@@ -138,22 +161,22 @@ export const TotalStrengthPrint = React.forwardRef<HTMLDivElement, TotalStrength
                                             <td>{calculateClassTotalByGroup(groupKey, 'girls')}</td>
                                             <td className='text-right'>{calculateClassTotalByGroup(groupKey, 'totalstudents')}</td>
                                             <td>{calculateClassTotalByGroup(groupKey, 'newAdmission')}</td>
-                                            {dynamicElectives.map((e: any) => (
-                                                <td key={e.ISMS_Id || (e as any).ismS_Id}>{calculateClassTotalByGroup(groupKey, e.ISMS_SubjectName || (e as any).ismS_SubjectName)}</td>
+                                            {resolvedDynamicElectives.map((e: any, i: number) => (
+                                                <td key={e.ISMS_Id || (e as any).ismS_Id || i}>{calculateClassTotalByGroup(groupKey, e.ISMS_SubjectName || (e as any).ismS_SubjectName)}</td>
                                             ))}
                                         </tr>
                                     </Fragment>
                                 ))}
                             <tr className='bg-gray-200 font-bold uppercase'>
                                 <td></td>
-                                <td className='text-left'>Grand Total</td>
+                                <td className='text-left font-black'>Grand Total</td>
                                 <td></td>
                                 <td>{calculateGrandTotal('boys')}</td>
                                 <td>{calculateGrandTotal('girls')}</td>
-                                <td className='text-right'>{totalGrand}</td>
+                                <td className='text-right font-black'>{totalGrand}</td>
                                 <td>{calculateGrandTotal('newAdmission')}</td>
-                                {dynamicElectives.map((e: any) => (
-                                    <td key={e.ISMS_Id || (e as any).ismS_Id}>{calculateGrandTotal(e.ISMS_SubjectName || (e as any).ismS_SubjectName)}</td>
+                                {resolvedDynamicElectives.map((e: any, i: number) => (
+                                    <td key={e.ISMS_Id || (e as any).ismS_Id || i}>{calculateGrandTotal(e.ISMS_SubjectName || (e as any).ismS_SubjectName)}</td>
                                 ))}
                             </tr>
                         </tbody>
@@ -161,7 +184,6 @@ export const TotalStrengthPrint = React.forwardRef<HTMLDivElement, TotalStrength
 
                     <div className='mt-8 flex justify-between text-xs opacity-50 italic'>
                         <div>Printed on: {currentDate}</div>
-
                     </div>
                 </div>
             </div>

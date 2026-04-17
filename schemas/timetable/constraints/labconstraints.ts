@@ -1,12 +1,19 @@
 import { z } from 'zod';
 
 export const labConstraintsSchema = z.object({
-    TTLAB_Id: z.number().optional(),
-    ASMAY_Id: z.number().min(1, 'Academic Year is required'),
-    TTMC_Id: z.number().min(1, 'Category is required'),
-    ASMCL_Id: z.number().min(1, 'Class is required'),
-    ASMS_Id: z.number().min(1, 'Section is required'),
-    TTLAB_LABLibId: z.number().min(1, 'Lab is required')
+    ttlaB_Id: z.number().optional(),
+    asmaY_Id: z.number().min(1, 'Academic Year is required'),
+    ttmC_Id: z.number().min(1, 'Category is required'),
+    ttlaB_LABLIBName: z.string().min(1, 'Lab Name is required').max(100, 'Lab Name too long'),
+    tempararyArrayList: z
+        .array(
+            z.object({
+                asmcL_Id: z.number().min(1, 'Class is required'),
+                asmS_Id: z.number().min(1, 'Section is required'),
+                ismS_Id: z.number().min(1, 'Subject is required')
+            })
+        )
+        .min(1, 'At least one lab detail is required')
 });
 
 export type LabConstraintsSchema = z.infer<typeof labConstraintsSchema>;
