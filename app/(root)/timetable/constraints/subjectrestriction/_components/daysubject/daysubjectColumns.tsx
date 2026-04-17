@@ -89,7 +89,7 @@ function ActionButtonsCell({ rowData }: { rowData: IDaySubjectList }) {
     return (
         <ActionButtons
             rowData={rowData}
-            buttons={{ edit: true, toggle: true, delete: true }}
+            buttons={{ edit: true, toggle: true, delete: false }}
             onEdit={handleEdit}
             onToggle={handleToggle}
             onDelete={handleDelete}

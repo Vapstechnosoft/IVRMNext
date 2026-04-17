@@ -15,11 +15,12 @@ import {
     useSubjectPeriodDistrubution
 } from '@/hooks/timetable/useMasters';
 import { periodDistributionSchema } from '@/schemas/timetable/masters';
+import { getClassDropDownMasterDayClasswiseOnchnageofCatandyr } from '@/server/timetable/masters/masterdayclasswise';
 import { saveperioddistribution } from '@/server/timetable/masters/perioddistribution';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowRight, Loader2, Save, Trash2 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -29,9 +30,10 @@ type FormFields = z.infer<typeof periodDistributionSchema.save>;
 interface UpdatePeriodDistributionFormProps {
     onSuccess?: () => void;
     selectedRow: any; // row from the data table (PeriodDistributionColumn)
+    initialData?: any;
 }
 
-export default function UpdatePeriodDistributionForm({ onSuccess, selectedRow }: UpdatePeriodDistributionFormProps) {
+export default function UpdatePeriodDistributionForm({ onSuccess, selectedRow, initialData }: UpdatePeriodDistributionFormProps) {
     const { refetchAll } = usePeriodDistributionDetails();
     const { data: academicData } = useAcademicYearPeriodDistrubution();
     const { data: categoryData } = useCategtoryPeriodDistrubution();
@@ -41,11 +43,21 @@ export default function UpdatePeriodDistributionForm({ onSuccess, selectedRow }:
     const { data: classData } = useClassPeriodDistrubution();
 
     const academicList = (academicData as any) || [];
-    const categoryList = (categoryData as any) || [];
     const staffList = (staffData as any) || [];
     // Handle nested classarray if present
     const classDataAny = classData as any;
-    const classList = Array.isArray(classDataAny) ? classDataAny : classDataAny?.classarray || [];
+
+    const categoryList = useMemo(() => {
+        const raw = initialData?.cateoglst || initialData?.catelist || initialData?.categorylist || (categoryData as any);
+        return Array.isArray(raw) ? raw : [];
+    }, [initialData, categoryData]);
+
+    const allClassList = useMemo(() => {
+        const raw = initialData?.classlists || initialData?.classlist || (classData as any);
+        const list = Array.isArray(raw) ? raw : [];
+        // Support nested classarray from hook if needed
+        return list.length > 0 ? list : classDataAny?.classarray || [];
+    }, [initialData, classData, classDataAny]);
 
     // Handle nested sectionarray if present
     const sectionDataAny = sectionData as any;
@@ -59,6 +71,8 @@ export default function UpdatePeriodDistributionForm({ onSuccess, selectedRow }:
     const [tempList, setTempList] = useState<any[]>([]);
     const [availablePeriods, setAvailablePeriods] = useState<number>(0);
     const [editLoaded, setEditLoaded] = useState(false);
+    const [classList, setClassList] = useState<any[]>([]);
+    const [isLoadingClasses, setIsLoadingClasses] = useState(false);
 
     const {
         register,
@@ -78,6 +92,8 @@ export default function UpdatePeriodDistributionForm({ onSuccess, selectedRow }:
     });
 
     const watchedTotalWeeklyPeriods = watch('nop1');
+    const watchedAcademicYear = watch('asmaY_Id');
+    const watchedCategory = watch('ttmC_Id');
 
     // Fetch edit data via new GET facade endpoint
     const { data: editData, isLoading: isLoadingEdit } = useEditPeriodDistribution({
@@ -178,6 +194,49 @@ export default function UpdatePeriodDistributionForm({ onSuccess, selectedRow }:
         const used = tempList.reduce((acc, curr) => acc + Number(curr.pedDisplay), 0);
         setAvailablePeriods(Math.max(0, total - used));
     }, [watchedTotalWeeklyPeriods, tempList]);
+
+    // Fetch classes when category or academic year changes
+    useEffect(() => {
+        if (allClassList.length > 0 && watchedCategory) {
+            // Filter classes in frontend like the report page does
+            const filtered = allClassList.filter((c: any) => !c.ttmC_Id || c.ttmC_Id === watchedCategory);
+            setClassList(filtered);
+            setIsLoadingClasses(false);
+        } else if (watchedAcademicYear && watchedCategory) {
+            const fetchClasses = async () => {
+                setIsLoadingClasses(true);
+                try {
+                    const res = await getClassDropDownMasterDayClasswiseOnchnageofCatandyr(
+                        Number(watchedAcademicYear),
+                        Number(watchedCategory)
+                    );
+                    if (res?.success) {
+                        setClassList(res.data || []);
+                    } else {
+                        setClassList([]);
+                    }
+                } catch (error) {
+                    console.error('Error fetching classes:', error);
+                    setClassList([]);
+                } finally {
+                    setIsLoadingClasses(false);
+                }
+            };
+            fetchClasses();
+        } else {
+            if (editLoaded) {
+                setClassList([]);
+            }
+        }
+
+        // Only reset selections if both are changed by user after initial load
+        if (editLoaded && (watchedCategory || watchedAcademicYear)) {
+            setValue('asmcL_Id', undefined as any);
+            setValue('asmS_Id', undefined as any);
+            setValue('ismS_Id', undefined as any);
+            setValue('nop2', 0);
+        }
+    }, [watchedAcademicYear, watchedCategory, setValue, allClassList, editLoaded]);
 
     const addToTempList = () => {
         const data = watch();

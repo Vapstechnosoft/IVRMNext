@@ -118,6 +118,10 @@ import {
 } from '@/server/hrms/master-dropdown';
 
 import { getEmployeesLoanReport, type LoanReportRequest } from '@/server/hrms/reports/loan-report';
+import { getContributionReport, getContributionEmployees, type ContributionReportRequest, type ContributionEmployeesRequest } from '@/server/hrms/reports/contribution-report';
+import { getSalaryCertificateReport,getSalaryCertificateEmployees, type salaryCertificateRequest, type salaryCertificateEmployeesRequest } from '@/server/hrms/reports/salary-certificate';
+import { getPS7ReportData, getPS7ReportEmployees, type PS7ReportDataRequest } from '@/server/hrms/reports/PS7FromReportStJames';
+import { getPS8MonthWiseReportData, type PS8MonthWiseReportDataRequest } from '@/server/hrms/reports/PS8_MonthWiseReportStjames';
 
 
 export function useCumulativeSalaryReport() {
@@ -166,15 +170,15 @@ export function useReportEmployeesByDeptAndDesignation(deptIds: string, desigIds
 
 // Get EMployees by Group Type, Department and Designation
 
-export function useReportEmployeesByGroupTypeDeptAndDesignation( groupTypeIds: number[],
+export function useReportEmployeesByGroupTypeDeptAndDesignation(groupTypeIds: number[],
     deptIds: number[],
     desigIds: number[]) {
     return useQuery({
         queryKey: ['report-employees', groupTypeIds, deptIds, desigIds],
         queryFn: () => getEmployeesByGroupTypeDeptAndDesignation(groupTypeIds, deptIds, desigIds),
-        enabled: Array.isArray(groupTypeIds) && groupTypeIds.length > 0 && 
-                 Array.isArray(deptIds) && deptIds.length > 0 && 
-                 Array.isArray(desigIds) && desigIds.length > 0,
+        enabled: Array.isArray(groupTypeIds) && groupTypeIds.length > 0 &&
+            Array.isArray(deptIds) && deptIds.length > 0 &&
+            Array.isArray(desigIds) && desigIds.length > 0,
         staleTime: 1000 * 60 * 5
     });
 }
@@ -665,6 +669,114 @@ export function useLoanReport() {
         mutationFn: (data: LoanReportRequest) => getEmployeesLoanReport(data),
         onError: (error: Error) => {
             toast.error(error.message || 'Failed to fetch Loan Report');
+        }
+    });
+}
+
+
+/**
+ * Hook for Contribution Report
+ */
+export function useContributionReport() {
+    return useMutation({
+        mutationFn: (data: ContributionReportRequest) => getContributionReport(data),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to fetch Contribution Report');
+        }
+    });
+}
+
+/**
+ * Hook for Contribution Employees Report
+ */
+export function useContributionEmployees() {
+    return useMutation({
+        mutationFn: (data: ContributionEmployeesRequest) => getContributionEmployees(data),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to fetch Contribution Employees Report');
+        }
+    });
+}
+
+
+
+/**
+ * Hook for Salary Certificate Report
+ */
+export function useSalaryCertificateReport() {
+    return useMutation({
+        mutationFn: (data: salaryCertificateRequest) => getSalaryCertificateReport(data),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to fetch Salary Certificate Report');
+        }
+    });
+}
+
+/**
+ * Hook for Salary Certificate Report Employees
+ */
+
+export function useSalaryCertificateEmployees() {
+    return useMutation({
+        mutationFn: (data: salaryCertificateEmployeesRequest) => getSalaryCertificateEmployees(data),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to fetch the employess');
+        }
+    }
+    );
+}
+
+
+/** 
+ * Hook for get the Departements based on login (Group Type) EmployeeRetirementReport
+ */
+
+export function useLoginBasedDepartmentsByGroupType(groupTypeIds: number[]) {
+    return useQuery({
+        queryKey: ['login-based-departments', groupTypeIds],
+        queryFn: () => getLoginBasedDepartmentsByGroupType(groupTypeIds),
+        enabled: !!groupTypeIds && groupTypeIds.length > 0,
+        staleTime: 1000 * 60 * 5
+    });
+}
+
+/**
+ * Hook for get the PS7 Report Employees
+ */
+
+export function usePS7ReportEmployees() {
+    return useMutation({
+        mutationFn: () => getPS7ReportEmployees(),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to fetch the employess');
+        }
+    }
+    );
+}
+
+/**
+ * Hook for get the PS7 Report Data
+ */
+
+export function usePS7ReportData() {
+    return useMutation({
+        mutationFn: (data: PS7ReportDataRequest) => getPS7ReportData(data),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to fetch the PS7 Report Data');
+        }
+    }
+    );
+}
+
+/**
+ * Hook for PS8 Month Wise Report (st.james)
+ */
+
+export function usePS8MonthWiseReportStJames() {
+    return useMutation({
+        mutationFn: (data: PS8MonthWiseReportDataRequest) => getPS8MonthWiseReportData(data),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to fetch the PS8 Month Wise Report');
         }
     });
 }

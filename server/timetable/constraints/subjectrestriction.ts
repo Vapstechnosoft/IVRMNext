@@ -8,7 +8,7 @@ import { api, getSearchParamsUrl } from '@/lib/apiService';
 // `Restriction/getpagedetails1`, `Restriction/getpagedetails2`, etc.
 
 export async function getSubjectRestrictionDetails() {
-    const url = '/Restriction/Getdetails'; // Assuming generic load
+    const url = '/RestrictionFacade/getdetailsRestrictions'; // Assuming generic load
     return await api.get<any>('timetable', url);
 }
 
@@ -17,15 +17,15 @@ export async function getSubjectRestrictionDetailsRestrictions() {
     return await api.get<any>('timetable', url);
 }
 
-
-
 // --- Tab 1: Day Period ---
-
 
 //day period grid
 
 export async function getSubjectRestrictionDayPeriodGridData(searchParams?: any) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'asmaY_Year,ttmC_CategoryName,asmcL_ClassName,asmC_SectionName,staffName,ismS_SubjectName,ttmD_DayName,ttmP_PeriodName,ttfdP_Id,ttfdP_ActiveFlag');
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'asmaY_Year,ttmC_CategoryName,asmcL_ClassName,asmC_SectionName,staffName,ismS_SubjectName,ttmD_DayName,ttmP_PeriodName,ttfdP_Id,ttfdP_ActiveFlag'
+    );
     const url = `/RestrictionFacade/SubjectRestrictionDayPeriodGridData?${urlParams}`;
     return await api.get<any[]>('timetable', url);
 }
@@ -56,7 +56,7 @@ export async function getSubjectRestrictionDayPeriodDetails(id: number) {
 export async function getSubjectRestrictionDayStaffGridData(searchParams?: any) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'asmaY_Year,staffName,ttmD_DayName,ttfdS_Id,ttfdS_ActiveFlag');
     const url = `/RestrictionFacade/SubjectRestrictionDayStaffGridData?${urlParams}`;
-    console.log("day staff grid data", url);
+    console.log('day staff grid data', url);
     return await api.get<any[]>('timetable', url);
 }
 
@@ -81,11 +81,13 @@ export async function ToggleSubjectDayStaff(ttrdS_Id: number) {
 // --- Tab 3: Day Subject ---
 //subject and period subject
 
-
 // day subject grid
 
 export async function getSubjectRestrictionDaySubjectGridData(searchParams?: any) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'asmaY_Year,ismS_SubjectName,ttmD_DayName,ttfdsU_Id,ttfdsU_ActiveFlag,ttfdsU_SUbSelcFlag');
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'asmaY_Year,ismS_SubjectName,ttmD_DayName,ttfdsU_Id,ttfdsU_ActiveFlag,ttfdsU_SUbSelcFlag'
+    );
     const url = `/RestrictionFacade/SubjectRestrictionDaySubjectGridData?${urlParams}`;
     return await api.get('timetable', url);
 }
@@ -102,7 +104,6 @@ export async function getDaySubjectEditDetails(id: number) {
     return await api.get<any>('timetable', url);
 }
 
-
 //toggle
 export async function ToggleSubjectDaySubject(ttrdsU_Id: number) {
     const url = `/RestrictionFacade/SubjectRestrictionDaySubjectActivateDeactivate/${ttrdsU_Id}`;
@@ -112,11 +113,13 @@ export async function ToggleSubjectDaySubject(ttrdsU_Id: number) {
 
 //period staff grid
 export async function getSubjectRestrictionPeriodStaffGridData(searchParams?: any) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'asmaY_Year,staffName,ttmP_PeriodName,ttfpS_Id,ttfpS_ActiveFlag,ttfpS_SUbSelcFlag,ttfpscC_Id');
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'asmaY_Year,staffName,ttmP_PeriodName,ttfpS_Id,ttfpS_ActiveFlag,ttfpS_SUbSelcFlag,ttfpscC_Id'
+    );
     const url = `/RestrictionFacade/SubjectRestrictionPeriodStaffGridData?${urlParams}`;
     return await api.get('timetable', url);
 }
-
 
 // save button
 export async function savePeriodStaffDetail(data: any) {
@@ -140,7 +143,10 @@ export async function ToggleSubjectPeriodStaff(ttrpS_Id: number) {
 
 //period subject grid
 export async function getSubjectRestrictionPeriodSubjectGridData(searchParams?: any) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'asmaY_Year,ismS_SubjectName,ttmP_PeriodName,ttfpsU_Id,ttfpsU_ActiveFlag,ttfpsU_SUbSelcFlag,ttrpsU_Id,ttrpsU_SUbSelcFlag');
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'asmaY_Year,ismS_SubjectName,ttmP_PeriodName,ttfpsU_Id,ttfpsU_ActiveFlag,ttfpsU_SUbSelcFlag,ttrpsU_Id,ttrpsU_SUbSelcFlag'
+    );
     const url = `/RestrictionFacade/SubjectRestrictionPeriodSubjectGridData?${urlParams}`;
     return await api.get('timetable', url);
 }
@@ -162,7 +168,6 @@ export async function ToggleSubjectPeriodSubject(ttrpsU_Id: number) {
     const url = `/RestrictionFacade/SubjectRestrictionPeriodSubjectActivateDeactivate/${ttrpsU_Id}`;
     return await api.put<any>('timetable', url);
 }
-
 
 // --- Helper Dropdown Fetchers ---
 // Assuming standard ones exist or using specific controller endpoints
@@ -197,7 +202,6 @@ export async function getStaffDropDownDayStaff() {
     const response = await api.get<any>('timetable', url);
     return response.data;
 }
-
 
 //subject drop down
 export async function getSubjectDaySubject() {

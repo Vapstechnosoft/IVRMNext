@@ -31,7 +31,7 @@ export default function SophiaStudyCertificatePage() {
     /* -------------------- UI State -------------------- */
     const [studentScope, setStudentScope] = useState<'A' | 'indid'>('A');
     const [studentStatus, setStudentStatus] = useState<'studying' | 'left' | 'deactive'>('studying');
-    
+
     const [academicYearId, setAcademicYearId] = useState<number | null>(null);
     const [classId, setClassId] = useState<number | null>(null);
     const [sectionId, setSectionId] = useState<number | null>(null);
@@ -41,6 +41,10 @@ export default function SophiaStudyCertificatePage() {
     const [studentOpen, setStudentOpen] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
     const [dateOpen, setDateOpen] = useState(false);
+    const [certificateType, setCertificateType] = useState<'0' | '1' | '2' | '3'>('0');
+    const [visaFromDate, setVisaFromDate] = useState<Date | null>(null);
+    const [visaToDate, setVisaToDate] = useState<Date | null>(null);
+    const [vacationReason, setVacationReason] = useState('');
     const [showCertificate, setShowCertificate] = useState(false);
     const [reportData, setReportData] = useState<any>(null);
 
@@ -70,8 +74,14 @@ export default function SophiaStudyCertificatePage() {
                 allorindid: studentScope === 'A' ? 'A' : 'I'
             }, {
                 onSuccess: (response: any) => {
-                    const list = response?.data?.studentList || response?.studentList || [];
-                    setStudentListFromSearch(Array.isArray(list) ? list : []);
+                    const list = response?.data?.fillstudlist || response?.fillstudlist || [];
+                    setStudentListFromSearch(Array.isArray(list) ? list.map((s: any) => ({
+                        ...s,
+                        amst_id: s.amsT_Id || s.AMST_Id || s.amst_id || s.amst_Id || s.AMST_ID,
+                        studentname: s.amsT_FirstName || s.AMST_FirstName || s.studentname || s.amst_FirstName || s.AMST_FIRSTNAME,
+                        amst_admno: s.amsT_AdmNo || s.AMST_AdmNo || s.amst_admno || s.amst_AdmNo || s.AMST_ADMNO,
+                        asmcl_classname: s.asmcL_ClassName || s.ASMCL_ClassName || s.asmcl_classname || s.asmcl_ClassName || s.ASMCL_CLASSNAME
+                    })) : []);
                 }
             });
         }, 500);
@@ -82,9 +92,25 @@ export default function SophiaStudyCertificatePage() {
     const students = studentListFromSearch;
 
     /* -------------------- Actions -------------------- */
+    const safeDateFormat = (dateStr: any, formatStr: string) => {
+        if (!dateStr) return '';
+        try {
+            const date = new Date(dateStr);
+            if (isNaN(date.getTime())) return dateStr;
+            return format(date, formatStr);
+        } catch (e) {
+            return dateStr;
+        }
+    };
+
     const handleReport = async () => {
         if (!academicYearId || (studentScope === 'indid' && !studentId)) {
             toast.error('Please select all required fields');
+            return;
+        }
+
+        if (certificateType === '2' && (!visaFromDate || !visaToDate)) {
+            toast.error('Please select From and To dates for Visa certificate');
             return;
         }
 
@@ -106,8 +132,54 @@ export default function SophiaStudyCertificatePage() {
         try {
             const res = await detailsMutation.mutateAsync(payload);
             const data = res?.data || res;
-            if (data?.studentList?.length > 0) {
-                setReportData(data);
+
+            const studentListData = data?.studentList || data?.fillstudlist || [];
+
+            console.log(studentListData);
+            if (Array.isArray(studentListData) && studentListData.length > 0) {
+                const normalizedList = studentListData.map((s: any) => ({
+                    ...s,
+                    studentname: s.studentname || s.studentName || [s.amsT_FirstName || s.AMST_FirstName || s.amst_FirstName || s.amst_Name || s.AMST_Name || s.fullName || '', s.amsT_MiddleName || s.AMST_MiddleName || '', s.amsT_LastName || s.AMST_LastName || ''].filter(Boolean).join(' '),
+                    amst_admno: s.amst_admno || s.amsT_AdmNo || s.AMST_AdmNo || s.amst_AdmNo || s.admNo || '',
+                    classname: s.classname || s.asmcL_ClassName || s.ASMCL_ClassName || s.asmcl_ClassName || '',
+                    yearname: s.yearname || s.asmaY_Year || s.ASMAY_Year || s.asmaY_Year || '',
+                    dob: s.dob || s.amsT_DateOfBirth || s.AMST_DateOfBirth || s.amst_DateOfBirth || '',
+                    fathername: s.fathername || s.amsT_FatherName || s.AMST_FatherName || s.amst_FatherName || '',
+                    mothername: s.mothername || s.amsT_MotherName || s.AMST_MotherName || s.amst_MotherName || '',
+
+                    // Legacy field equivalents
+                    gender1: s.gender1 || (s.amsT_Sex?.toLowerCase() === 'female' || s.AMST_Sex?.toLowerCase() === 'female' || s.amsT_Sex?.toLowerCase() === 'f' || s.AMST_Sex?.toLowerCase() === 'f' ? 'She' : 'He'),
+                    gender2: s.gender2 || (s.amsT_Sex?.toLowerCase() === 'female' || s.AMST_Sex?.toLowerCase() === 'female' || s.amsT_Sex?.toLowerCase() === 'f' || s.AMST_Sex?.toLowerCase() === 'f' ? 'her' : 'his'),
+                    gender3: s.gender3 || (s.amsT_Sex?.toLowerCase() === 'female' || s.AMST_Sex?.toLowerCase() === 'female' || s.amsT_Sex?.toLowerCase() === 'f' || s.AMST_Sex?.toLowerCase() === 'f' ? 'daughter of' : 'son of'),
+                    gender4: s.gender4 || s.gender1 || (s.amsT_Sex?.toLowerCase() === 'female' || s.AMST_Sex?.toLowerCase() === 'female' || s.amsT_Sex?.toLowerCase() === 'f' || s.AMST_Sex?.toLowerCase() === 'f' ? 'She' : 'He'),
+                    gender8: s.gender8 || s.gender2 || (s.amsT_Sex?.toLowerCase() === 'female' || s.AMST_Sex?.toLowerCase() === 'female' || s.amsT_Sex?.toLowerCase() === 'f' || s.AMST_Sex?.toLowerCase() === 'f' ? 'her' : 'his'),
+                    classstudying: s.classname || s.asmcL_ClassName || s.ASMCL_ClassName || '',
+                    admNo: s.amst_admno || s.amsT_AdmNo || s.AMST_AdmNo || '',
+                    acadamicyear1: s.yearname || s.asmaY_Year || s.ASMAY_Year || '',
+                    acadamicyear: s.yearname || s.asmaY_Year || s.ASMAY_Year || '',
+                    admyear: s.admyear || s.admuear || s.joinedyear || s.yearname || '',
+                    dob12: s.dob || s.amsT_DateOfBirth || '',
+
+                    religion: s.religion || 'Christian',
+                    caste_name: s.caste_name || 'RC',
+                    stuMT: s.stuMT || 'English',
+                    joinedClass: s.joinedClass || s.classname || s.asmcL_ClassName,
+                    PresentClass: s.PresentClass || s.classname || s.asmcL_ClassName,
+                    joinedyear: s.joinedyear || s.asmaY_Year || s.yearname,
+                    presentYear: s.presentYear || s.asmaY_Year || s.yearname,
+
+                    AMST_PerStreet: (s.AMST_PerStreet || s.amst_PerStreet || '').toUpperCase(),
+                    AMST_PerArea: (s.AMST_PerArea || s.amst_PerArea || '').toUpperCase(),
+                    AMST_PerCity: (s.AMST_PerCity || s.amst_PerCity || '').toUpperCase(),
+                    ivrmms_name: (s.ivrmms_name || s.ivrmmS_Name || 'Karnataka').toUpperCase(),
+                    AMST_PerPincode: s.AMST_PerPincode || s.amst_PerPincode || '',
+
+                    Holiday: vacationReason,
+                    Summerfrom: visaFromDate,
+                    Summerto: visaToDate
+                }));
+                setReportData({ ...data, studentList: normalizedList });
+
                 setShowCertificate(true);
             } else {
                 toast.error('No records found');
@@ -127,6 +199,10 @@ export default function SophiaStudyCertificatePage() {
         setStudentScope('A');
         setStudentStatus('studying');
         setSelectedDate(new Date());
+        setCertificateType('0');
+        setVisaFromDate(null);
+        setVisaToDate(null);
+        setVacationReason('');
         setShowCertificate(false);
     };
 
@@ -144,7 +220,7 @@ export default function SophiaStudyCertificatePage() {
                 defaultOpen={true}
                 variant='outline'
                 className='shadow-lg'>
-                
+
                 <div className='space-y-6 bg-white p-6'>
                     {/* Top Filters Row */}
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
@@ -190,6 +266,31 @@ export default function SophiaStudyCertificatePage() {
                                 </div>
                             </RadioGroup>
                         </div>
+                    </div>
+
+                    <div className='flex items-center space-x-4 rounded-lg border p-4 bg-gray-50/50'>
+                        <Label className='text-sm font-bold min-w-[120px]'>Certificate Type:</Label>
+                        <RadioGroup
+                            value={certificateType}
+                            onValueChange={(v) => setCertificateType(v as any)}
+                            className='flex flex-wrap gap-4'>
+                            <div className='flex items-center space-x-2'>
+                                <RadioGroupItem value='0' id='type-study' />
+                                <Label htmlFor='type-study' className='text-sm font-medium'>Study Certificate</Label>
+                            </div>
+                            <div className='flex items-center space-x-2'>
+                                <RadioGroupItem value='1' id='type-cet' />
+                                <Label htmlFor='type-cet' className='text-sm font-medium'>Study Certificate CET</Label>
+                            </div>
+                            <div className='flex items-center space-x-2'>
+                                <RadioGroupItem value='2' id='type-visa' />
+                                <Label htmlFor='type-visa' className='text-sm font-medium'>Study Certificate Visa</Label>
+                            </div>
+                            <div className='flex items-center space-x-2'>
+                                <RadioGroupItem value='3' id='type-conduct' />
+                                <Label htmlFor='type-conduct' className='text-sm font-medium'>Conduct Certificate</Label>
+                            </div>
+                        </RadioGroup>
                     </div>
 
                     <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
@@ -283,7 +384,7 @@ export default function SophiaStudyCertificatePage() {
                                         <PopoverTrigger asChild>
                                             <div className='relative'>
                                                 <input
-                                                    disabled={studentScope === 'A'}
+                                                    disabled={!academicYearId}
                                                     value={studentId ? students.find((s: any) => s.amst_id === studentId)?.studentname || searchQuery : searchQuery}
                                                     onChange={(e) => {
                                                         setSearchQuery(e.target.value);
@@ -363,6 +464,58 @@ export default function SophiaStudyCertificatePage() {
                                     </Popover>
                                 </div>
                             </div>
+
+                            {certificateType === '2' && (
+                                <>
+                                    <div className='grid grid-cols-[100px_1fr] items-center gap-4'>
+                                        <Label className='text-sm font-bold'>From Date:<span className='text-red-500'>*</span></Label>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button variant='outline' className='h-8 w-full justify-start text-left font-normal'>
+                                                    <CalendarIcon className='mr-2 h-4 w-4' />
+                                                    {visaFromDate ? format(visaFromDate, 'dd-MM-yyyy') : 'Select Date'}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent align='start' className='p-0'>
+                                                <DatePickerWithYear
+                                                    mode='single'
+                                                    selected={visaFromDate || undefined}
+                                                    onDayClick={(date) => setVisaFromDate(date)}
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                    </div>
+
+                                    <div className='grid grid-cols-[100px_1fr] items-center gap-4'>
+                                        <Label className='text-sm font-bold'>To Date:<span className='text-red-500'>*</span></Label>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button variant='outline' className='h-8 w-full justify-start text-left font-normal'>
+                                                    <CalendarIcon className='mr-2 h-4 w-4' />
+                                                    {visaToDate ? format(visaToDate, 'dd-MM-yyyy') : 'Select Date'}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent align='start' className='p-0'>
+                                                <DatePickerWithYear
+                                                    mode='single'
+                                                    selected={visaToDate || undefined}
+                                                    onDayClick={(date) => setVisaToDate(date)}
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                    </div>
+
+                                    <div className='grid grid-cols-[100px_1fr] items-center gap-4'>
+                                        <Label className='text-sm font-bold'>Reason:</Label>
+                                        <input
+                                            value={vacationReason}
+                                            onChange={(e) => setVacationReason(e.target.value)}
+                                            className='flex h-8 w-full rounded-md border border-input bg-background px-3 py-1 text-sm'
+                                            placeholder='Vacation reason...'
+                                        />
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
 
@@ -372,14 +525,14 @@ export default function SophiaStudyCertificatePage() {
                             size='sm'
                             onClick={handleReport}
                             disabled={detailsMutation.isPending}
-                            className='min-w-[100px] bg-[#3f51b5] hover:bg-[#303f9f] text-white shadow-md'>
+                            className='w-32 bg-[#3f51b5] hover:bg-[#303f9f] text-white shadow-md rounded-full uppercase'>
                             {detailsMutation.isPending ? <Loader2 className='mr-1 h-3 w-3 animate-spin' /> : <Printer className='mr-1 h-3 w-3' />}
                             REPORT
                         </Button>
                         <Button
                             size='sm'
                             onClick={handleReset}
-                            className='min-w-[100px] bg-[#ff5722] hover:bg-[#f4511e] text-white shadow-md uppercase'>
+                            className='w-32 bg-[#ff5722] hover:bg-[#f4511e] text-white shadow-md rounded-full uppercase'>
                             <RotateCcw className='mr-1 h-3 w-3' />
                             CANCEL
                         </Button>
@@ -387,7 +540,7 @@ export default function SophiaStudyCertificatePage() {
                             size='sm'
                             onClick={handlePrint}
                             disabled={!showCertificate}
-                            className='min-w-[100px] bg-[#e0e0e0] hover:bg-[#d5d5d5] text-gray-700 shadow-md disabled:bg-gray-100 uppercase'>
+                            className='w-32 bg-[#e0e0e0] hover:bg-[#d5d5d5] text-gray-700 shadow-md disabled:bg-gray-100 rounded-full uppercase'>
                             <Printer className='mr-1 h-3 w-3' />
                             PRINT
                         </Button>
@@ -397,51 +550,139 @@ export default function SophiaStudyCertificatePage() {
 
             {/* Certificate Preview */}
             {showCertificate && reportData && (
-                <div className='mt-8 flex flex-col items-center bg-gray-100 p-8 rounded-xl border-2 border-dashed border-gray-300'>
-                    <div ref={printRef} className='bg-white p-12 shadow-2xl w-[800px] min-h-[1000px] border-8 border-double border-gray-200'>
-                        {/* Basic Template for Sophia Study Certificate */}
-                        <div className='text-center space-y-8'>
-                            <h1 className='text-4xl font-serif font-bold text-indigo-900 uppercase tracking-widest border-b-2 border-indigo-900 pb-4'>
-                                Sophia High School
-                            </h1>
-                            <h2 className='text-2xl font-serif font-semibold italic text-gray-700'>
-                                Study Certificate
-                            </h2>
-                            
-                            <div className='pt-12 text-left space-y-6 text-lg leading-relaxed font-serif'>
-                                {reportData.studentList?.map((student: any, index: number) => (
-                                    <div key={index} className='space-y-8'>
-                                        <p>
-                                            This is to certify that <span className='font-bold border-b border-dotted border-gray-400 px-4'>{student.studentname}</span> 
-                                            daughter of <span className='font-bold border-b border-dotted border-gray-400 px-4'>{student.fathername || student.mothername}</span> 
-                                            is / was a bonafide student of this school.
-                                        </p>
-                                        <p>
-                                            She is / was studying in Class <span className='font-bold border-b border-dotted border-gray-400 px-4'>{student.classname}</span> 
-                                            during the academic year <span className='font-bold border-b border-dotted border-gray-400 px-4'>{student.yearname}</span>.
-                                        </p>
-                                        <p>
-                                            According to the School Records, her date of birth is <span className='font-bold border-b border-dotted border-gray-400 px-4'>{student.dob}</span> 
-                                            (<span className='italic'>{student.dobwords}</span>).
-                                        </p>
-                                        <p>
-                                            Her Admission Number is <span className='font-bold border-b border-dotted border-gray-400 px-4'>{student.amst_admno}</span>.
-                                        </p>
-                                    </div>
-                                ))}
-                            </div>
+                <div className='mt-8 flex flex-col items-center bg-gray-100 p-8 rounded-xl border-2 border-dashed border-gray-300 overflow-auto'>
 
-                            <div className='pt-24 flex justify-between items-end'>
-                                <div className='text-left'>
-                                    <p className='font-bold'>Date: {selectedDate ? format(selectedDate, 'dd/MM/yyyy') : ''}</p>
-                                    <p className='font-bold'>Place: Bangalore</p>
-                                </div>
-                                <div className='text-center'>
-                                    <div className='h-20'></div>
-                                    <p className='font-bold uppercase pt-4 border-t-2 border-gray-800 px-8'>Principal</p>
-                                </div>
+                    <div ref={printRef} className='bg-white p-8 shadow-2xl w-full min-h-[297mm] printable-content'>
+                        {reportData.studentList?.map((student: any, index: number) => (
+                            <div key={index} className="page-break-after-always">
+                                {certificateType === '0' && (
+                                    <div style={{ marginTop: '150px', lineHeight: '2', fontSize: '20px', marginLeft: '4%', marginRight: '4%' }}>
+                                        <div className="date" style={{ textAlign: 'right' }}>
+                                            <strong>Date: {safeDateFormat(selectedDate || new Date(), 'dd/MMM/yyyy')}</strong>
+                                        </div>
+                                        <br /><br />
+                                        <h3 className="text-center" style={{ fontSize: '30px', fontWeight: 'bold', marginBottom: '40px' }}>
+                                            STUDY CERTIFICATE
+                                        </h3>
+
+                                        <div className="certificate-content" style={{ textAlign: 'justify' }}>
+                                            <p style={{ lineHeight: '2.5' }}>
+                                                This is to certify that <strong>{student.studentname}</strong> {student.gender3} of
+                                                Mr. <strong> {student.fathername} </strong> & Mrs. <strong> {student.mothername} </strong>
+                                                is a student of this school studying in Std. <b>{student.classstudying} &nbsp;</b>
+                                                With admission number <b>{student.admNo} &nbsp;</b> during the academic year {student.acadamicyear1}.
+                                            </p>
+                                            <br />
+                                            <p style={{ lineHeight: '2.5' }}>
+                                                {student.gender1} is a student in this school since <strong>{safeDateFormat(student.admyear, 'yyyy')}</strong> and {student.gender2} date of birth as per our records is <strong>{safeDateFormat(student.dob12, 'dd-MMM-yyyy')}</strong>.
+                                            </p>
+                                            <br />
+                                            <p style={{ lineHeight: '2' }}>
+                                                {student.gender2} local address :<br />
+                                                <strong>
+                                                    {student.AMST_PerStreet}<br />
+                                                    {student.AMST_PerArea}<br />
+                                                    {student.AMST_PerCity}<br />
+                                                    {student.ivrmms_name} - {student.AMST_PerPincode}
+                                                </strong>
+                                            </p>
+                                            <br /><br />
+                                            <div>
+                                                <p>Yours sincerely,</p>
+                                            </div>
+                                            <div style={{ marginTop: '40px' }}>
+                                                <p className="principal" style={{ textAlign: 'left', marginBottom: '4px', fontWeight: 'bold' }}>Sr.M.Alpana.SND</p>
+                                                <p style={{ textAlign: 'left', paddingLeft: '10px' }}>(Principal)</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {certificateType === '1' && (
+                                    <div style={{ marginTop: '80px', lineHeight: '2', fontSize: '20px', marginLeft: '4%', marginRight: '4%' }}>
+                                        <div className="date" style={{ textAlign: 'right' }}>
+                                            <strong><u>Date:{safeDateFormat(selectedDate || new Date(), 'dd/MM/yyyy')}</u></strong>
+                                        </div>
+                                        <br /><br />
+                                        <div style={{ textAlign: 'center' }}>
+                                            <h3 style={{ textDecoration: 'underline', fontWeight: 'bold', fontSize: '24px', display: 'inline-block' }}>STUDY CERTIFICATE</h3>
+                                        </div>
+                                        <br /><br />
+                                        <div className="certificate-content" style={{ textAlign: 'justify' }}>
+                                            <p style={{ lineHeight: '3' }}>
+                                                This is to certify that <strong><u>{student.studentname}</u></strong> {student.gender3} of
+                                                <u> Mr. <strong> {student.fathername} & Mrs. {student.mothername}</strong></u> has studied
+                                                <b><u> std.{student.joinedClass} to {student.PresentClass}</u></b> standard in our institution from <b><u>{student.joinedyear} to {student.presentYear}</u></b> academic years.
+                                            </p>
+                                            <br />
+                                            <p style={{ lineHeight: '3' }}>
+                                                {student.gender1} belongs to <strong><u>{student.religion}({student.caste_name})</u></strong> religion & the mother tongue of the above student is <strong><u>{student.stuMT}</u></strong> as per the admission register maintained in the institution.
+                                            </p>
+                                            <br />
+                                            <p style={{ marginTop: '40px' }}>
+                                                The above details are true and correct to the best of my knowledge.
+                                            </p>
+                                            <br /><br />
+                                            <div style={{ marginTop: '60px' }}>
+                                                <p style={{ textAlign: 'left', marginBottom: '4px' }}>Sr.M.Alpana.SND</p>
+                                                <p style={{ textAlign: 'left', marginLeft: '10px' }}>(Principal)</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {certificateType === '2' && (
+                                    <div style={{ margin: '70px 10% 50px 10%', fontSize: '18px', lineHeight: '1.8' }}>
+                                        <div style={{ textAlign: 'right', fontSize: '16px', marginBottom: '20px' }}>
+                                            Date: {safeDateFormat(selectedDate || new Date(), 'dd/MM/yyyy')}
+                                        </div>
+                                        <h3 style={{ textAlign: 'center', fontWeight: 'bold', marginBottom: '40px' }}>
+                                            STUDY CERTIFICATE
+                                        </h3>
+                                        <div className="certificate-content" style={{ textAlign: 'justify' }}>
+                                            <p>
+                                                This is to certify that <strong>{student.studentname}</strong> {student.gender3} of Mr. {student.fathername} & Mrs. {student.mothername} is a student of this school studying in Std.{student.classstudying} with admission number {student.admNo} during the academic year {student.acadamicyear}.
+                                            </p>
+                                            <p>
+                                                {student.gender4} is a student in this school since {safeDateFormat(student.joinedyear || student.admyear, 'yyyy')} and {student.gender8} date of birth as per our records is {safeDateFormat(student.dob12, 'dd-MMM-yyyy')}.
+                                            </p>
+                                            <p>
+                                                {student.Holiday} from <b>{safeDateFormat(student.Summerfrom, 'dd-MM-yyyy')}</b> to <b>{safeDateFormat(student.Summerto, 'dd-MM-yyyy')}</b>.
+                                            </p>
+                                            <p>
+                                                {student.gender4} is permitted to travel abroad during this period <b>{safeDateFormat(student.Summerfrom, 'dd-MM-yyyy')}</b> and <b>{safeDateFormat(student.Summerto, 'dd-MM-yyyy')}</b> will return to school after {student.gender8} visit.
+                                            </p>
+                                            <br /><br />
+                                            <p style={{ textAlign: 'left' }}>Yours sincerely,</p>
+                                            <div style={{ marginTop: '20px' }}>
+                                                <p style={{ textAlign: 'left', margin: '0', fontWeight: 'bold' }}>Sr. M. Alpana, S.N.D.</p>
+                                                <p style={{ textAlign: 'left', margin: '0' }}>(Principal)</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {certificateType === '3' && (
+                                    <div style={{ margin: '235px 10% 50px 10%', fontSize: '18px', lineHeight: '1.8' }}>
+                                        <h3 style={{ textAlign: 'center', textDecoration: 'underline', fontWeight: 'bold', fontSize: '30px' }}>
+                                            CONDUCT CERTIFICATE
+                                        </h3>
+                                        <div className="certificate-content" style={{ textAlign: 'center', paddingTop: '80px' }}>
+                                            <p style={{ fontFamily: "'Times New Roman', Times, serif", fontSize: '27px', fontStyle: 'italic', lineHeight: '2' }}>
+                                                This is to certify that <strong>{student.studentname}</strong> of<br />
+                                                Standard <strong>{student.classstudying}</strong> was a student of<br />
+                                                <strong>SOPHIA HIGH SCHOOL, Bangalore</strong> and was<br />
+                                                of <strong>Good</strong> Character.
+                                            </p>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '125px' }}>
+                                                <p style={{ textAlign: 'left' }}>Date: {safeDateFormat(selectedDate || new Date(), 'dd-MMM-yyyy')}</p>
+                                                <p style={{ textAlign: 'right', fontWeight: 'bold' }}>PRINCIPAL</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
-                        </div>
+                        ))}
                     </div>
                 </div>
             )}

@@ -57,6 +57,10 @@ export const studentAdmissionFormSchema = {
     // Reuse the same schema for add
     add: z.object({
         // Student Details
+        asmaY_Id: z.preprocess(
+            (val) => (val === '' || val === null ? 0 : Number(val)),
+            z.number({ required_error: 'Academic Year is required', invalid_type_error: 'Select Year' }).min(1, 'Academic Year is required')
+        ),
         amsT_FirstName: createStringOnlySchema('First Name', 1, 100),
         amsT_MiddleName: createStringOnlyOptionalSchema('Middle Name', 0, 100).optional(),
         amsT_LastName: createStringOnlyOptionalSchema('Last Name', 0, 100).optional(),
@@ -538,7 +542,10 @@ export const studentAdmissionFormSchema = {
         transportRequired: z.boolean().optional().default(false),
 
         // Added missing fields
-        imCC_Id: z.preprocess((val) => (val === '' || val === null ? 0 : Number(val)), z.number().int().optional()),
+        imCC_Id: z.preprocess(
+            (val) => (val === '' || val === null ? 0 : Number(val)),
+            z.number({ required_error: 'Category is required', invalid_type_error: 'Select Category' }).min(1, 'Category is required')
+        ),
         amsT_PENNo: createOptionalAlphaNumericSchema('PEN Number', 1, 50).optional(),
         amsT_Tribe: createOptionalAlphaNumericSchema('Tribe', 1, 100).optional(),
         amsT_GovtAdmno: createOptionalAlphaNumericSchema('Govt Admission No', 1, 50).optional(),
