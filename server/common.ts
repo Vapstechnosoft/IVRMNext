@@ -645,7 +645,6 @@ export async function getUserAccessibleModules() {
                                     name: 'Calcutta Boys School',
                                     icon: 'Settings',
                                     pages: [
-
                                         {
                                             id: 60,
                                             name: 'CBS Bonafied Certificate',
@@ -694,8 +693,6 @@ export async function getUserAccessibleModules() {
                                             title: 'CBS Study Certificate',
                                             description: 'CBS Study Certificate'
                                         }
-
-
                                     ]
                                 },
                                 {
@@ -746,9 +743,6 @@ export async function getUserAccessibleModules() {
                                             title: 'GM Custom Tc',
                                             description: 'GM Custom Tc'
                                         }
-
-
-
                                     ]
                                 },
                                 {
@@ -756,7 +750,6 @@ export async function getUserAccessibleModules() {
                                     name: 'stjames',
                                     icon: 'Settings',
                                     pages: [
-
                                         {
                                             id: 55,
                                             name: 'St.James TC Custom Report',
@@ -790,8 +783,6 @@ export async function getUserAccessibleModules() {
                                             title: 'St.James Character Report',
                                             description: 'St.James Character Report'
                                         }
-
-
                                     ]
                                 },
                                 {
@@ -871,14 +862,12 @@ export async function getUserAccessibleModules() {
                                             description: 'Student tc custom report'
                                         }
                                     ]
-                                }
-                                ,
+                                },
                                 {
                                     id: 12,
                                     name: 'Sophia',
                                     icon: 'Settings',
                                     pages: [
-
                                         {
                                             id: 590,
                                             name: 'Smart Card Details',
@@ -1023,10 +1012,8 @@ export async function getUserAccessibleModules() {
                                             title: 'SophiaStudentParticulars',
                                             description: 'SophiaStudentParticulars'
                                         }
-
                                     ]
-                                }
-                                ,
+                                },
                                 {
                                     id: 12,
                                     name: 'St. Thomas Church School',
@@ -1056,10 +1043,8 @@ export async function getUserAccessibleModules() {
                                             title: 'St. Thomas TC Custom Report',
                                             description: 'St. Thomas TC Custom Report'
                                         }
-
                                     ]
                                 }
-
                             ]
                         }
                     ]
@@ -1607,7 +1592,83 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 },
-
+                {
+                    id: 90001,
+                    name: 'Admission Client',
+                    icon: 'UserRoundPlus',
+                    menu: [
+                        {
+                            id: 51,
+                            name: 'Client Specific Fee Reports',
+                            icon: 'Settings',
+                            sub_menu: [
+                                {
+                                    id: 111,
+                                    name: 'Fee Reports',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 601,
+                                            name: 'Fee ClassWise Due List Report Sophia',
+                                            icon: 'Settings',
+                                            url: '/fees/feereports/feeclasswiseduelistreportsophia',
+                                            title: 'Fee ClassWise Due List Report Sophia',
+                                            description: 'Fee ClassWise Due List Report Sophia'
+                                        },
+                                        {
+                                            id: 602,
+                                            name: 'Fee Item Wise Report Sophia',
+                                            icon: 'Settings',
+                                            url: '/fees/feereports/feeitemwisereportsophia',
+                                            title: 'Fee Item Wise Report Sophia',
+                                            description: 'Fee Item Wise Report Sophia'
+                                        },
+                                        {
+                                            id: 603,
+                                            name: 'Fee Student and Account Wise Report Sophia',
+                                            icon: 'Settings',
+                                            url: '/fees/feereports/feestudentandaccountwisereportsophia',
+                                            title: 'Fee Student and Account Wise Report Sophia',
+                                            description: 'Fee Student and Account Wise Report Sophia'
+                                        },
+                                        {
+                                            id: 604,
+                                            name: 'Fee Collection Report VVVS',
+                                            icon: 'Settings',
+                                            url: '/fees/feereports/feecollectionreportvvvs',
+                                            title: 'Fee Collection Report VVVS',
+                                            description: 'Fee Collection Report VVVS'
+                                        },
+                                        {
+                                            id: 605,
+                                            name: 'Fee IT Report UK Public School',
+                                            icon: 'Settings',
+                                            url: '/fees/feereports/feeitreportukschool',
+                                            title: 'Fee IT Report UK Public School',
+                                            description: 'Fee IT Report UK Public School'
+                                        },
+                                        {
+                                            id: 606,
+                                            name: 'Fee Refund Report GMVPS',
+                                            icon: 'Settings',
+                                            url: '/fees/feereports/feerefundreportgmvps',
+                                            title: 'Fee Refund Report GMVPS',
+                                            description: 'Fee Refund Report GMVPS'
+                                        },
+                                        {
+                                            id: 607,
+                                            name: 'Fee Defaulter Report STTHOMAS',
+                                            icon: 'Settings',
+                                            url: '/fees/feereports/feedefaulterreportstthomas',
+                                            title: 'Fee Defaulter Report STTHOMAS',
+                                            description: 'Fee Defaulter Report STTHOMAS'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
                 {
                     id: 3,
                     name: 'Exam',
@@ -2444,10 +2505,10 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 8,
-                                            name: "Employee Salary Increment Details",
-                                            icon: "CreditCard",
-                                            url: "/hrms/transactions/employee-increment-salary",
-                                            title: "Employee Salary Increment Details",
+                                            name: 'Employee Salary Increment Details',
+                                            icon: 'CreditCard',
+                                            url: '/hrms/transactions/employee-increment-salary',
+                                            title: 'Employee Salary Increment Details',
                                             description: 'Manage Employee Salary Increment Deatails'
                                         }
                                     ]
@@ -2674,7 +2735,6 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/reports/salary-increment-report',
                                             title: 'Salary Increment Report',
                                             description: 'Salary Increment Report'
-
                                         },
                                         {
                                             id: 26,
@@ -2948,8 +3008,7 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/attendance-management/masters/front-office-addlogs',
                                             title: 'Front Office Addlogs',
                                             description: 'Front Office Addlogs'
-                                        },
-
+                                        }
                                     ]
                                 },
                                 {
@@ -6839,7 +6898,6 @@ export async function getUserAccessibleModules() {
                                     name: 'Transaction',
                                     icon: 'FileBarChart',
                                     pages: [
-
                                         {
                                             id: 4,
                                             name: 'School Staff Period Transaction',
@@ -6877,8 +6935,6 @@ export async function getUserAccessibleModules() {
                                     name: 'Sophia',
                                     icon: 'FileBarChart',
                                     pages: [
-
-
                                         {
                                             id: 80020,
                                             name: 'Sophia',
