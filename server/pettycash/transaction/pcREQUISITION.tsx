@@ -62,3 +62,9 @@ export async function getDocumentViewData(PCREQTN_Id: number) {
     return await api.get<any>('pettycashandassettracking', url);
 }
 // GET/api/PC_RequisitionFacade/ViewDocuments/{PCREQTN_Id}
+
+//upload file button
+export async function uploadDocument(data: any) {
+    const url = `/document_upload/UploadDocument`;
+    return await api.post<any>('pettycashandassettracking', url, data);
+}   

@@ -1,4 +1,8 @@
 export interface RequisitionReport {
+
+    mI_Id: number;
+    mI_Name: string;
+
     pcreqtN_Id: number;
     pcreqtN_RequisitionNo: string;
     pcreqtN_DepartmentId: number;

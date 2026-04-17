@@ -1,12 +1,11 @@
 import { z } from 'zod';
-import { masterParticularsSchema } from './masters';
 
-export const UsePcRequisitionReport = {
+export const UsePcRequisitionReportSchemas = {
     addOrUpdate: z.object({
-        pcmparT_ParticularName: z.string().min(1, 'Particular Name is required'),
-        pcmparT_ParticularDesc: z.string().optional().or(z.literal(''))
+        mI_Id: z.number({ required_error: 'Building Name is required' }).min(1, 'Building Name is required'),
     })
 };
 
-export type UsePcRequisitionReport = z.infer<typeof masterParticularsSchema.addOrUpdate>;
+export type UsePcRequisitionReport = z.infer<typeof UsePcRequisitionReportSchemas.addOrUpdate>;
+
     
