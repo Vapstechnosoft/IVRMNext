@@ -6,8 +6,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import {
     useMasterGradeDropdownList,
     useMasterLifeSkillArea,
+    useMasterLifeSkillAreaDropdown,
     useMasterLifeSkillAreaMapping,
-    useMasterLifeSkills
+    useMasterLifeSkills,
+    useMasterLifeSkillsDropdown
 } from '@/hooks/exam/exammodule/usemasters';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { lifeSkillAreaMappingSchema } from '@/schemas/exam/exam-module/exam-mapping';
@@ -28,8 +30,8 @@ export default function AddLifeSkillAreaMapping({ onSuccess }: { onSuccess?: () 
     const [lifeSkills, setLifeSkills] = useState<ILifeSkill[]>([]);
     const [lifeSkillAreas, setLifeSkillAreas] = useState<ILifeSkillArea[]>([]);
     const [grades, setGrades] = useState<IMasterGrade[]>([]);
-    const { data: lifeSkillData, error: lifeSkillError } = useMasterLifeSkills();
-    const { data: lifeSkillAreaData, error: areaError } = useMasterLifeSkillArea();
+    const { data: lifeSkillData, error: lifeSkillError } = useMasterLifeSkillsDropdown();
+    const { data: lifeSkillAreaData, error: areaError } = useMasterLifeSkillAreaDropdown();
     const { data: masterGradeData, error: masterGradeError } = useMasterGradeDropdownList();
 
     // 🔹 Form Setup

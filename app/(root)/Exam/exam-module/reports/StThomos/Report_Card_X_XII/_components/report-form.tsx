@@ -7,13 +7,13 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
-import { type ReportCardViViiiSchema, reportCardViViiiSchema } from '@/schemas/exam/exam-module/reports';
+import { type ReportCardXXiiSchema, reportCardXXiiSchema } from '@/schemas/exam/exam-module/reports';
+import { getReportDetails } from '@/server/exam/exam-module/reports/StThomos/Report_Card_X_XII';
 import {
     getClassDropDownByAcademicYearlist,
     getSectionsDropDownByAcademicYearandClasslist,
     getStudentsDropDownByAcademicYearandClassandSectionlist
 } from '@/server/exam/exam-module/reports/cumulative-report';
-import { getReportDetails } from '@/server/exam/exam-module/reports/Report_Card_VI_VIII';
 import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
@@ -50,13 +50,14 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     const [loadingSections, setLoadingSections] = useState(false);
     const [loadingStudents, setLoadingStudents] = useState(false);
 
-    const methods = useForm<ReportCardViViiiSchema>({
-        resolver: zodResolver(reportCardViViiiSchema),
+    const methods = useForm<ReportCardXXiiSchema>({
+        resolver: zodResolver(reportCardXXiiSchema),
         defaultValues: {
             superAverage: true,
             printLogo: true,
             selectedStudents: [],
-            exmname: ''
+            exmname: '',
+            brngroup: ''
         }
     });
 
@@ -133,8 +134,6 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                       )
                     : [];
 
-                // Map to consistent format if needed, but the cumulative report logic returns objects with amsT_Id and studentName/amsT_FirstName
-                // We'll map them to a structure suitable for the display
                 const mappedStudents = valid.map((s) => ({
                     amsT_Id: s.amsT_Id,
                     amsT_AdmNo: s.amsT_AdmNo,
@@ -171,26 +170,28 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
         setAllStudentsSelected(selectedValues.length === students.length && students.length > 0);
     };
 
-    const onSubmit = async (data: ReportCardViViiiSchema) => {
-        // Transform data to match the requested payload format
+    const onSubmit = async (data: ReportCardXXiiSchema) => {
         const payload = {
             asmaY_Id: Number(data.ASMAY_Id),
             asmcL_Id: Number(data.ASMCL_Id),
             asmS_Id: Number(data.ASMS_Id),
-            temp_AmstIds: data.selectedStudents.map(id => ({
-                amsT_Id: Number(id)
-            }))
+            Temp_AmstIds: data.selectedStudents.map((id) => ({
+                AMST_Id: Number(id)
+            })),
+            exmname: data.exmname,
+            brngroup: data.brngroup
         };
 
-        console.log('Report Card VI_VIII payload:', payload);
+        console.log('Report Card X_XII payload:', payload);
         try {
-            const [result, institutionRes] = await Promise.all([
-                getReportDetails(payload),
-                getMasterInstitution()
-            ]);
-            console.log('Report Card VI_VIII result:', result);
-            console.log('Report Card VI_VIII institution:', institutionRes);
-            onReportGenerated({ ...result, institution: institutionRes?.data }, data);
+            const [result, institutionRes] = await Promise.all([getReportDetails(payload), getMasterInstitution()]);
+            const enrichedParams = {
+                ...data,
+                ASMAY_Year: academicYears.find((y: any) => String(y.asmaY_Id) === data.ASMAY_Id)?.asmaY_Year,
+                ASMCL_Id_Name: classes.find((c) => c.asmcL_Id === Number(data.ASMCL_Id))?.asmcL_ClassName,
+                ASMS_Id_Name: sections.find((s) => s.asmS_Id === Number(data.ASMS_Id))?.asmC_SectionName
+            };
+            onReportGenerated({ ...result, institution: institutionRes?.data }, enrichedParams);
         } catch (error) {
             console.error('Error:', error);
             toast.error('Failed to generate report');
@@ -203,10 +204,10 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
             printLogo: true,
             selectedStudents: [],
             exmname: '',
+            brngroup: '',
             ASMAY_Id: '',
             ASMCL_Id: '',
-            ASMS_Id: '',
-            brngroup: ''
+            ASMS_Id: ''
         });
         setClasses([]);
         setSections([]);
@@ -217,7 +218,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     return (
         <div className='mx-auto w-full rounded-lg border border-gray-200 bg-white p-4 shadow-md'>
             <div className='mb-4 flex items-center justify-between border-b pb-2'>
-                <h3 className='font-semibold text-gray-800 text-lg'>Report Card VI_VIII</h3>
+                <h3 className='font-semibold text-gray-800 text-lg'>Seniors Progress Card Report</h3>
             </div>
             <FormProvider {...methods}>
                 <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
@@ -344,23 +345,28 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
 
                             {/* Group */}
                             <div className='space-y-2'>
-                                <Label>Group</Label>
+                                <Label>
+                                    Group <span className='text-red-500'>*</span>
+                                </Label>
                                 <Controller
                                     control={control}
                                     name='brngroup'
-                                    render={({ field }) => (
-                                        <Select key={field.value} onValueChange={field.onChange} value={field.value}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder='Select Group' />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {GROUPS.map((group) => (
-                                                    <SelectItem key={group.value} value={group.value}>
-                                                        {group.label}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
+                                    render={({ field, fieldState }) => (
+                                        <>
+                                            <Select key={field.value} onValueChange={field.onChange} value={field.value}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder='Select Group' />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {GROUPS.map((grp) => (
+                                                        <SelectItem key={grp.value} value={grp.value}>
+                                                            {grp.label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                        </>
                                     )}
                                 />
                             </div>

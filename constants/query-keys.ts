@@ -333,6 +333,7 @@ export const EXAM_QUERY_KEYS = {
     SUB_BOTH_MAPPED_VIEW: 'SUB_SUBJECTS_SUB_EXAMS_MAPPED_LIST',
 
     LIFE_SKILLS: 'life-skills',
+    LIFE_SkILLS_DROPDOWN: 'life-skills-dropdown',
     LIFE_SKILLS_AREA: 'life-skills-area',
     LIFE_SKILLS_MAPPING: 'life-skills-mapping',
     LIFE_SKILLS_AREA_MAPPING: 'life-skills-area-mapping',

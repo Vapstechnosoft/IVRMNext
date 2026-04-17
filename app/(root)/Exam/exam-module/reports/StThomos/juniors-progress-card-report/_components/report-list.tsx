@@ -13,7 +13,7 @@ import {
     Legend,
     ArcElement
 } from 'chart.js';
-import { Pie } from 'react-chartjs-2';
+import { Bar } from 'react-chartjs-2';
 
 ChartJS.register(
     CategoryScale,
@@ -160,20 +160,28 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
                                 {/* Header with logo */}
                                 {showLogo && (
-                                    <div className='mb-4 flex flex-row items-center justify-between'>
-                                        <div className="flex-1 text-center">
-                                            <img src={institution?.mI_Logo} className='mx-auto h-auto w-auto object-contain' alt="Header Logo" />
+                                    <div className='mb-4 flex flex-row items-center justify-center px-4'>
+                                        <div className="w-[15%] text-right">
+                                            <img src="https://dcampusstrg.blob.core.windows.net/files/17/Trnsportdocuments/7115f492-3955-47e6-97d9-187413d0f3a5.jpg" style={{ width: '100px', height: '100px' }} className="inline-block" />
                                         </div>
-                                        <div className="w-24">&nbsp;</div>
+                                        <div className="w-[70%] text-center flex flex-col items-center">
+                                            <img src="https://sthomashowrah.blob.core.windows.net/files/Logo Header stt.jpg" className="h-[70px] w-auto mx-auto object-contain" />
+                                            <div className="text-[13px] leading-tight space-y-0.5 mt-2 text-center text-black font-semibold">
+                                                <p>3, Church Road Howrah -711 101</p>
+                                                <p>(DIOCESE OF CALCUTA, CNI)</p>
+                                                <p>(Affiliated to the Council for the Indian School Certificate Examination,New Delhi WB -079)</p>
+                                            </div>
+                                        </div>
+                                        <div className="w-[15%]">&nbsp;</div>
                                     </div>
                                 )}
                                 {!showLogo && <div className="mt-[130px]">&nbsp;</div>}
 
                                 <div className="relative">
                                     {/* Watermark */}
-                                    {/* <div className='pointer-events-none absolute inset-0 z-0 flex items-center justify-center opacity-20 print:opacity-20'>
-                                        <img src={institution?.mI_BackgroundImage} className='h-[417px] w-[420px] object-contain' alt="Watermark" />
-                                    </div> */}
+                                    <div className='pointer-events-none absolute inset-0 z-0 flex items-center justify-center opacity-20 print:opacity-20'>
+                                        <img src="https://sthomashowrah.blob.core.windows.net/files/4/stthomos.jpeg" className='h-[417px] w-[420px] object-contain' alt="Watermark" />
+                                    </div>
 
                                     <div className="relative z-10">
                                         {/* Exam Title */}
@@ -248,8 +256,8 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                             )}
                                                         </th>
                                                     ))}
-                                                    <th className="border-[0.5px] border-gray-500 text-[13px] w-[70px] p-1 text-center">100/50</th>
-                                                    <th className="border-[0.5px] border-gray-500 text-[13px] w-[70px] p-1 text-center"><b>AVG</b></th>
+                                                    <th className="border-[0.5px] border-gray-500 text-[13px] w-[70px] p-1 text-center font-bold">100/50</th>
+                                                    <th className="border-[0.5px] border-gray-500 text-[13px] w-[70px] p-1 text-center font-bold">GRADE</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -275,14 +283,14 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                             );
                                                         })}
                                                         {/* Super Average Columns */}
-                                                        <td className="border-[0.5px] border-gray-500 p-1 text-center">
+                                                        <td className="border-[0.5px] border-gray-500 p-1 text-center text-[12px]">
                                                             {(subj.ismS_Id < 1000 && showSuperAverage) && (
                                                                 <span>{subj.estmppsG_GroupObtMarks}</span>
                                                             )}
                                                         </td>
-                                                        <td className="border-[0.5px] border-gray-500 p-1 text-center">
+                                                        <td className="border-[0.5px] border-gray-500 p-1 text-center text-[12px] font-bold">
                                                             {((subj.esG_Id === 0 || subj.ismS_Id > 1000) && showSuperAverage) && (
-                                                                <span className="font-semibold">{subj.groupAVGMarks}</span>
+                                                                <span>{subj.estmppsG_GroupObtGrade || subj.groupAVGMarks}</span>
                                                             )}
                                                         </td>
                                                     </tr>
@@ -311,16 +319,16 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                         );
                                                     })}
                                                     {/* Super Average Totals */}
-                                                    <td className="border-[0.5px] border-gray-500 p-1 text-center">
+                                                    <td className="border-[0.5px] border-gray-500 p-1 text-center text-[12px] font-bold">
                                                         {showSuperAverage && (
-                                                            <span className="font-bold">
+                                                            <span>
                                                                 {examWiseTotalDetails.find((t: any) => t.amsT_Id === report.amsT_Id)?.estmppsG_GroupObtMarks}
                                                             </span>
                                                         )}
                                                     </td>
-                                                    <td className="border-[0.5px] border-gray-500 p-1 text-center">
+                                                    <td className="border-[0.5px] border-gray-500 p-1 text-center text-[12px] font-bold">
                                                         {showSuperAverage && (
-                                                            <span className="font-bold">
+                                                            <span>
                                                                 {examWiseTotalDetails.find((t: any) => t.amsT_Id === report.amsT_Id)?.estmppsG_GroupAvgMarks}
                                                             </span>
                                                         )}
@@ -459,21 +467,27 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                             <td className="pt-4 flex justify-center h-[252px]">
                                                                 <div className="relative w-[250px] h-[250px]">
                                                                     {/* Placeholder Pie Chart – replace with actual data */}
-                                                                    <Pie
+                                                                    <Bar
                                                                         data={{
-                                                                            labels: ['English', 'Maths', 'Science', 'Social', 'Hindi'],
-                                                                            datasets: [{
-                                                                                data: [80, 75, 90, 85, 88],
-                                                                                backgroundColor: [
-                                                                                    'rgba(255, 99, 132, 0.6)',
-                                                                                    'rgba(54, 162, 235, 0.6)',
-                                                                                    'rgba(255, 206, 86, 0.6)',
-                                                                                    'rgba(75, 192, 192, 0.6)',
-                                                                                    'rgba(153, 102, 255, 0.6)',
-                                                                                ]
-                                                                            }]
+                                                                            labels: allSubjects.map((s: any) => s.ismS_SubjectName),
+                                                                            datasets: [
+                                                                                {
+                                                                                    label: 'Marks Obtained',
+                                                                                    data: allSubjects.map((s: any) => s.estmppsG_GroupObtMarks || 0),
+                                                                                    backgroundColor: 'rgb(63,81,181)',
+                                                                                    borderColor: 'black',
+                                                                                    borderWidth: 1
+                                                                                },
+                                                                                {
+                                                                                    label: 'Average Marks',
+                                                                                    data: allSubjects.map((s: any) => s.estmppsG_GroupObtMarks || 0),
+                                                                                    backgroundColor: 'rgb(255,87,34)',
+                                                                                    borderColor: 'black',
+                                                                                    borderWidth: 0
+                                                                                }
+                                                                            ]
                                                                         }}
-                                                                        options={{ responsive: true, maintainAspectRatio: false }}
+                                                                        options={{ responsive: true, maintainAspectRatio: false, scales: { x: { ticks: { minRotation: 70, maxRotation: 70 } }, y: { beginAtZero: true } } }}
                                                                     />
                                                                 </div>
                                                             </td>

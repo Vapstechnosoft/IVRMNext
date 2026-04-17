@@ -79,6 +79,7 @@ import {
 } from '@/server/fees/masters/student_fee_group_mapping';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { getExamAcademicYearDropdown } from '@/server/exam/exam-module/masters/exam';
 export const useMasterFeehead = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
@@ -155,7 +156,7 @@ export const useAcademicYearDropdown = () => {
     return {
         ...useQuery({
             queryKey: [ADMISSION_QUERY_KEYS.ACADEMIC_DROPDOWN],
-            queryFn: async () => getAcademicYearDropdown(),
+            queryFn: async () => getExamAcademicYearDropdown(),
             staleTime: 0
         }),
         refetchAll: () => {

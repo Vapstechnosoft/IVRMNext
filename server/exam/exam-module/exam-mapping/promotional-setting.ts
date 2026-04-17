@@ -22,7 +22,7 @@ export async function getPromotionalSettingDetails(emp_Id: number) {
 }
 
 export async function UpdateOrderedPromotionalSettingDetails(data: any) {
-    const url = 'promotion_setting/view_promotion_group_details';
+    const url = 'promotion_setting/set_promotion_subject_order_list';
     return await api.post('exam', url, data);
 }
 
