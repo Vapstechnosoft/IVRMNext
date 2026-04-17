@@ -709,3 +709,10 @@ export const feeRefundReportGmvps = z
             }
         }
     });
+
+export const feeCollectionReportVVVS = z.object({
+    academicYearId: z.string().min(1, 'Academic Year is required'),
+    reportType: z.enum(['All', 'Cash', 'Cheque/DD', 'Online Paid', 'ECS', 'Card', 'RTGS', 'Trans&Bank']).default('All'),
+    fromDate: z.string().min(1, 'From Date is required'),
+    toDate: z.string().min(1, 'To Date is required')
+});

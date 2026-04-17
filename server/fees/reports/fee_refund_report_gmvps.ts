@@ -11,3 +11,8 @@ export async function getFeeRefundReport(payload: any) {
     const url = '/FeeRefund/GetReport';
     return await api.post<any[]>('fees', url, payload);
 }
+
+export async function getFeeCollectionReportVVVS(payload: any) {
+    const url = '/FeeRefund/GetReport';
+    return await api.post<any[]>('fees', url, payload);
+}
