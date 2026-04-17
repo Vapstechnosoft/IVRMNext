@@ -20,7 +20,7 @@ export async function getPS7ReportEmployees() {
 export async function getPS7ReportData(data: PS7ReportDataRequest) {
     try {
         const { hrmE_Ids, year } = data;
-        const response = await api.post<any>('hrms', '/api/ReportPS7andPS8Form/get_ps7_form_report', { hrmE_Ids, year });
+        const response = await api.get<any>('hrms', `/api/ReportPS7andPS8Form/get_ps7_form_report/${hrmE_Ids}/${year}`);
         if (response.success) return { success: true, data: response.data, message: response.message };
         return { success: false, message: response.message };
     } catch (error: any) {

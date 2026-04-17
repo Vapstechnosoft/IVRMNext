@@ -16,9 +16,19 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { AdminOnDutyApply } from '@/types/hrms/leave-management/admin-on-duty-apply';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { Plus, X } from 'lucide-react';
+import DeleteAdminOnDutyForm from './_components/delete-form';
 
 export default function AdminOnDutyApplyPage() {
+    return (
+        <FormProvider<AdminOnDutyApply>>
+            <AdminOnDutyApplyPageContent />
+        </FormProvider>
+    );
+}
+
+function AdminOnDutyApplyPageContent() {
     const [page] = useQueryState(tableSearchVariables.page, parseAsInteger.withDefault(1));
     const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withDefault(10));
     const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withDefault(''));
@@ -38,13 +48,17 @@ export default function AdminOnDutyApplyPage() {
         sortDirection
     });
 
-
     const [viewLeaveId, setViewLeaveId] = useState<number | null>(null);
     const [isViewOpen, setIsViewOpen] = useState(false);
     const [showForm, setShowForm] = useState(false);
     const [editingRow, setEditingRow] = useState<AdminOnDutyApply | null>(null);
 
-    const { mutate: deleteLeave } = useDeleteLeaveById();
+    const {
+        isDeleteFormOpen,
+        selectedRow,
+        openDeleteForm,
+        closeDeleteForm
+    } = useFormContext<AdminOnDutyApply>();
 
     const tableProps = useDataTableProps(adminOnDutyList);
 
@@ -53,16 +67,14 @@ export default function AdminOnDutyApplyPage() {
             setViewLeaveId(id);
             setIsViewOpen(true);
         },
-        onDelete: (id) => {
-            if (confirm('Are you sure you want to delete this leave request?')) {
-                deleteLeave(id);
-            }
+        onDelete: (row) => {
+            openDeleteForm(row);
         },
         onEdit: (row) => {
             setEditingRow(row);
             setShowForm(true);
             // Scroll to form
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         }
     });
 
@@ -163,6 +175,11 @@ export default function AdminOnDutyApplyPage() {
                     open={isViewOpen}
                     onOpenChange={setIsViewOpen}
                 />
+
+                {/* Delete Form */}
+                {isDeleteFormOpen && selectedRow && (
+                    <DeleteAdminOnDutyForm rowData={selectedRow} onClose={closeDeleteForm} />
+                )}
             </div>
         </div>
     );
