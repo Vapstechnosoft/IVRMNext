@@ -42,15 +42,4 @@ export const EmployeeDetailSchema = z.object({
 
 export type EmployeeDetailFields = z.infer<typeof EmployeeDetailSchema>;
 
-// Salary Certificate Report Schema
-export const SalaryCertificateSchema = z.object({
-    groupType: z.array(z.string()).optional().default([]),
-    department: z.array(z.string()).optional().default([]),
-    designation: z.array(z.string()).optional().default([]),
-    month: z.string().min(1, { message: 'Month is required' }),
-    year: z.string().min(1, { message: 'Year is required' }),
-    employee: z.string().min(1, { message: 'Employee is required' })
-});
 
-export type SalaryCertificateFields = z.infer<typeof SalaryCertificateSchema>;
-export type FormFields = z.infer<typeof SalaryCertificateSchema>;

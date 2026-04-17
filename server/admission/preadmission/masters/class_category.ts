@@ -59,11 +59,17 @@ export async function getMasterCategoryDropdown() {
     return await api.get<IMasterCategoryList[]>('admission', url);
 }
 
-export async function getStudentCategoryByClass(asmcL_Id: number, asmaY_Id: number) {
+export async function getStudentCategoryByClass(asmcL_Id: number, asmaY_Id: number, admflag?: string) {
     const url = '/StudentAdmissionFacade/studentcategory';
-    return await api.post<{ asmcC_Id: number; amC_Name: string }[]>('admission', url, {
+    return await api.post<{
+        studentCategory: { asmcC_Id: number; amC_Name: string }[];
+        casteCategoryes: any[];
+        studentList: any[];
+        studentList1: any[];
+    }>('admission', url, {
         mI_Id: 0,
         asmcL_Id,
-        asmaY_Id
+        asmaY_Id,
+        admflag
     });
 }

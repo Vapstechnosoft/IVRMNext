@@ -71,6 +71,8 @@ function PFForm10Content() {
     const { data: yearsData } = useLeaveYearDropdown();
     const { mutate: generateReport, isPending } = usePFForm10();
 
+    console.log('Report Data:', reportData);
+
     const onSubmit = (data: FilterFormValues) => {
         if (!data.year || !data.month) {
             toast.error('Please select Year and Month');
@@ -200,7 +202,7 @@ function PFForm10Content() {
                 </form>
             </CollapsibleSection>
 
-            {reportData && (
+            {reportData && reportData?.pfreport?.length > 0 && (
                 <CollapsibleSection title="Report Details" defaultOpen={true} className='shadow-md border'
                     rightElement={
                         <div className='flex gap-2'>

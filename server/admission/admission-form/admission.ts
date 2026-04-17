@@ -119,3 +119,8 @@ export async function onchangestreamApi(data: { ASMST_Id: number }) {
     const url = '/StudentAdmissionFacade/onchangestream';
     return await api.post<any>('admission', url, data);
 }
+
+export async function getCasteByCasteCategoryApi(imccId: number) {
+    const url = `/StudentAdmissionFacade/getcastebycastecategory?IMCC_Id=${imccId}`;
+    return await api.getArray<any>('admission', url);
+}

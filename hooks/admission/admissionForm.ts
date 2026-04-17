@@ -61,7 +61,7 @@ export const useAdmissionFormDetails = (): UseQueryResult<IadmissionFormDetails>
     } as any;
 };
 
-import { onchangeclassApi, onchangestreamApi } from '@/server/admission/admission-form/admission';
+import { onchangeclassApi, onchangestreamApi, getCasteByCasteCategoryApi } from '@/server/admission/admission-form/admission';
 
 export const useOnChangeClass = (classId: number, asmayId: number) => {
     return useQuery({
@@ -77,6 +77,18 @@ export const useOnChangeStream = (streamId: number) => {
         queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_FORM_ONCHANGE_STREAM, streamId],
         queryFn: async () => onchangestreamApi({ ASMST_Id: streamId }),
         enabled: !!streamId,
+        staleTime: 0
+    });
+};
+
+export const useGetCasteByCasteCategory = (imccId: number) => {
+    return useQuery({
+        queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_FORM_CASTE_BY_CATEGORY, imccId],
+        queryFn: async () => {
+            const response = await getCasteByCasteCategoryApi(imccId);
+            return response.data;
+        },
+        enabled: !!imccId,
         staleTime: 0
     });
 };

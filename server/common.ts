@@ -745,6 +745,63 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/reports/custom-tc',
                                             title: 'GM Custom Tc',
                                             description: 'GM Custom Tc'
+                                        },
+
+                                        {
+                                            id: 68,
+                                            name: 'Little Anns Certificate For Appreciation',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/newsharedhost/reports/little-anns-certificate-for-appreciation',
+                                            title: 'Little Anns Certificate  For Appreciation',
+                                            description: 'Little Anns Certificate  For Appreciation'
+                                        },
+                                        {
+                                            id: 69,
+                                            name: 'Little Anns Certificate Of Promotion',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/newsharedhost/reports/little-anns-certificate-of-promotion',
+                                            title: 'Little Anns Certificate Of Promotion',
+                                            description: 'Little Anns Certificate Of Promotion'
+                                        },
+                                        {
+                                            id: 70,
+                                            name: 'St.Anns Certificate For Appreciation',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/newsharedhost/reports/st-anns-certificate-for-appreciation',
+                                            title: 'St.Anns Certificate For Appreciation',
+                                            description: 'St.Anns Certificate For Appreciation'
+                                        },
+                                        {
+                                            id: 71,
+                                            name: 'St.Anns Certificate For Merit',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/newsharedhost/reports/st-anns-certificate-for-merit',
+                                            title: 'St.Anns Certificate For Merit',
+                                            description: 'St.Anns Certificate For Merit'
+                                        },
+                                        {
+                                            id: 72,
+                                            name: 'Nagarjuna Tc custom Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/newsharedhost/reports/tc-custom-report-nagarjuna',
+                                            title: 'Nagarjuna Tc custom Report',
+                                            description: 'Nagarjuna Tc custom Report'
+                                        },
+                                        {
+                                            id: 73,
+                                            name: 'Tun Bridge Study Certificate',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/newsharedhost/reports/Tun-Bridge-Study-Certificate',
+                                            title: 'Tun Bridge Study Certificate',
+                                            description: 'Tun Bridge Study Certificate'
+                                        },
+                                        {
+                                            id: 74,
+                                            name: 'TunBridge',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/newsharedhost/reports/TunBridge',
+                                            title: 'TunBridge',
+                                            description: 'TunBridge'
                                         }
 
 
@@ -794,37 +851,69 @@ export async function getUserAccessibleModules() {
 
                                     ]
                                 },
-                                // {
-                                //     id: 10,
-                                //     name: 'NDA',
-                                //     icon: 'Settings',
-                                //     pages: [
-                                //         {
-                                //             id: 61,
-                                //             name: 'NDA Transfer Certificate',
-                                //             icon: 'Settings',
-                                //             url: '/admission/preadmission/reports/nda-transfer-certificate',
-                                //             title: 'NDA Transfer Certificate',
-                                //             description: 'NDA Transfer Certificate'
-                                //         },
-                                //         {
-                                //             id: 62,
-                                //             name: 'NDA Student TC',
-                                //             icon: 'Settings',
-                                //             url: '/admission/preadmission/reports/nda-student-tc',
-                                //             title: 'NDA Student TC',
-                                //             description: 'NDA Student TC'
-                                //         },
-                                //         {
-                                //             id: 63,
-                                //             name: 'NDA Student Profile Update',
-                                //             icon: 'Settings',
-                                //             url: '/admission/preadmission/reports/nda-student-profile-update',
-                                //             title: 'NDA Student Profile Update',
-                                //             description: 'NDA Student Profile Update'
-                                //         }
-                                //     ]
-                                // },
+                                {
+                                    id: 10,
+                                    name: 'NDA',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 61,
+                                            name: 'NDA Transfer Certificate',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/nda/reports/nda-transfer-certificate',
+                                            title: 'NDA Transfer Certificate',
+                                            description: 'NDA Transfer Certificate'
+                                        },
+                                        {
+                                            id: 62,
+                                            name: 'NDA Student TC',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/nda/transactions/nda-student-tc',
+                                            title: 'NDA Student TC',
+                                            description: 'NDA Student TC'
+                                        },
+                                        // {
+                                        //     id: 63,
+                                        //     name: 'NDA Student Profile Update',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/reports/nda-student-profile-update',
+                                        //     title: 'NDA Student Profile Update',
+                                        //     description: 'NDA Student Profile Update'
+                                        // },
+                                        {
+                                            id: 64,
+                                            name: 'Notredame Custom TC Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/nda/reports/notredame-custom-tc-report',
+                                            title: 'Notredame Custom TC Report',
+                                            description: 'Notredame Custom TC Report'
+                                        },
+                                        {
+                                            id: 66,
+                                            name: 'NDA Student Id Card Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/nda/reports/student-id-card-report-nda',
+                                            title: 'NDA Student Id Card Report',
+                                            description: 'NDA Student Id Card Report'
+                                        },
+                                        {
+                                            id: 65,
+                                            name: 'NDA Student Photo Approval',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/nda/masters/nda-student-photo-approval',
+                                            title: 'NDA Student Photo Approval',
+                                            description: 'NDA Student Photo Approval'
+                                        },
+                                        {
+                                            id: 67,
+                                            name: 'NDA Student Profile Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/nda/reports/nda-student-profile-report',
+                                            title: 'NDA Student Profile Report',
+                                            description: 'NDA Student Profile Report'
+                                        }
+                                    ]
+                                },
                                 {
                                     id: 11,
                                     name: 'Baldwin',
@@ -854,14 +943,14 @@ export async function getUserAccessibleModules() {
                                             title: 'BCEH Study Certificate',
                                             description: 'BCEH Study Certificate'
                                         },
-                                        // {
-                                        //     id: 64,
-                                        //     name: 'BBHS Student Application Form',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/bbhs-student-application',
-                                        //     title: 'BBHS Student Application Form',
-                                        //     description: 'BBHS Student Application Form'
-                                        // },
+                                        {
+                                            id: 64,
+                                            name: 'BBHS Student Application Form',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/baldwin/BBHS/application-form',
+                                            title: 'BBHS Student Application Form',
+                                            description: 'BBHS Student Application Form'
+                                        },
                                         {
                                             id: 65,
                                             name: 'Student tc custom report',
@@ -1052,12 +1141,157 @@ export async function getUserAccessibleModules() {
 
                                     ]
                                 }
+                                // ,
+
+                                // {
+                                //     id: 12,
+                                //     name: 'Samartha',
+                                //     icon: 'Settings',
+                                //     pages: [
+
+                                //         {
+                                //             id: 71,
+                                //             name: 'SamarthaBonafideCertificate',
+                                //             icon: 'Settings',
+                                //             url: '/admission/samartha/reports/SamarthaBonafideCertificate',
+                                //             title: 'Samartha Bonafide Certificate',
+                                //             description: 'Samartha Bonafide Certificate'
+                                //         },
+                                //         {
+                                //             id: 72,
+                                //             name: 'SamarthaTC',
+                                //             icon: 'Settings',
+                                //             url: '/admission/samartha/reports/SamarthaTC',
+                                //             title: 'SamarthaTC',
+                                //             description: 'SamarthaTC'
+                                //         },
+                                //         {
+                                //             id: 73,
+                                //             name: 'OverAllViewReportt',
+                                //             icon: 'Settings',
+                                //             url: '/admission/samartha/reports/OverAllViewReportt',
+                                //             title: 'OverAllViewReportt',
+                                //             description: 'OverAllViewReportt'
+                                //         }
+                                //     ]
+                                // },
+
+
+                                // {
+                                //     id: 13,
+                                //     name: 'Danvantari Phisiotheraphy',
+                                //     icon: 'Settings',
+                                //     pages: [
+
+                                //         {
+                                //             id: 71,
+                                //             name: 'DCPS_BonifiedCertificate',
+                                //             icon: 'Settings',
+                                //             url: '/admission/danvantari/reports/DCPS_BonifiedCertificate',
+                                //             title: 'DCPS_BonifiedCertificate',
+                                //             description: 'DCPS_BonifiedCertificate'
+                                //         },
+                                //         {
+                                //             id: 72,
+                                //             name: 'DCPS_TransferCertificate',
+                                //             icon: 'Settings',
+                                //             url: '/admission/danvantari/reports/DCPS_TransferCertificate',
+                                //             title: 'DCPS_TransferCertificate',
+                                //             description: 'DCPS_TransferCertificate'
+                                //         }
+
+                                //     ]
+                                // },
+                                // {
+                                //     id: 14,
+                                //     name: 'SRKVS',
+                                //     icon: 'Settings',
+                                //     pages: [
+
+
+                                //         {
+                                //             id: 74,
+                                //             name: 'SRKVS Student Address Book',
+                                //             icon: 'Settings',
+                                //             url: '/admission/srkvs/reports/SRKVSStudentAddressBook',
+                                //             title: 'SRKVSStudentAddressBook',
+                                //             description: 'SRKVSStudentAddressBook'
+                                //         }
+                                //     ]
+                                // },
+                                // {
+                                //     id: 15,
+                                //     name: 'St. Peters School Durgapur',
+                                //     icon: 'Settings',
+                                //     pages: [
+
+
+                                //         {
+                                //             id: 74,
+                                //             name: 'Employee IDcard Report STpeter',
+                                //             icon: 'Settings',
+                                //             url: '/admission/stpeter/reports/EmployeeIDcardReportSTpeter',
+                                //             title: 'EmployeeIDcardReportSTpeter',
+                                //             description: 'EmployeeIDcardReportSTpeter'
+                                //         },
+
+                                //         {
+                                //             id: 75,
+                                //             name: 'Student IDcard Report STPeter',
+                                //             icon: 'Settings',
+                                //             url: '/admission/stpeter/reports/StudentIDcardReportSTPeter',
+                                //             title: 'StudentIDcardReportSTPeter',
+                                //             description: 'StudentIDcardReportSTPeter'
+                                //         }
+                                //     ]
+                                // },
+                                // {
+                                //     id: 16,
+                                //     name: 'GNANA DEEPA ACADEMY RESIDENTIAL SCHOOL',
+                                //     icon: 'Settings',
+                                //     pages: [
+
+
+                                //         {
+                                //             id: 74,
+                                //             name: 'GDARSStudyCertificate',
+                                //             icon: 'Settings',
+                                //             url: '/admission/gnanadeepa/reports/GDARSStudyCertificate',
+                                //             title: 'GDARSStudyCertificate',
+                                //             description: 'GDARSStudyCertificate'
+                                //         }
+                                //     ]
+                                // },
+                                // {
+                                //     id: 17,
+                                //     name: 'SMS degree college',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         //Need to create UI 
+                                //         // {
+                                //         //     id: 74,
+                                //         //     name: 'SMSCollegeStudentTc',
+                                //         //     icon: 'Settings',
+                                //         //     url: '/admission/sms/transaction/SMSCollegeStudentTc',
+                                //         //     title: 'SMSCollegeStudentTc',
+                                //         //     description: 'SMSCollegeStudentTc'
+                                //         // },
+
+                                //         {
+                                //             id: 75,
+                                //             name: 'SMSCConductCertificate',
+                                //             icon: 'Settings',
+                                //             url: '/admission/sms/reports/SMSCConductCertificate',
+                                //             title: 'SMSCConductCertificate',
+                                //             description: 'SMSCConductCertificate'
+                                //         }
+                                //     ]
+                                // }
 
                             ]
                         }
                     ]
                 },
-
                 {
                     id: 2,
                     name: 'Fees Management',
@@ -2558,7 +2792,7 @@ export async function getUserAccessibleModules() {
                                         //     id: 1289,
                                         //     name: 'Salary Certificate',
                                         //     icon: 'Award',
-                                        //     url: '/hrms/reports/salary-certificate',
+                                        //     url: '/hrms/reports/employeeSalaryCertificateBGHS',
                                         //     title: 'Salary Certificate',
                                         //     description: 'Generate Salary Certificates'
                                         // },
@@ -2618,7 +2852,7 @@ export async function getUserAccessibleModules() {
                                         //     url: '/hrms/reports/retirement-report',
                                         //     title: 'Retirement Report',
                                         //     description: 'Employee Retirement Report'
-                                        // }
+                                        // },
                                         {
                                             id: 20,
                                             name: 'Department Salary Report',
@@ -2664,7 +2898,7 @@ export async function getUserAccessibleModules() {
                                             id: 25,
                                             name: 'Salary Increment Report',
                                             icon: 'FileSearch',
-                                            url: '/hrms/reports/salary-increment-report',
+                                            url: '/hrms/reports/SalaryIncreementReport',
                                             title: 'Salary Increment Report',
                                             description: 'Salary Increment Report'
 
@@ -2692,7 +2926,40 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/reports/CBSSalarySlip',
                                             title: 'Employee Salary Slip Calcutta Boys Report',
                                             description: 'Employee Salary Slips'
-                                        }
+                                        },
+                                        // {
+                                        //     id: 29,
+                                        //     name: 'Employee Contribution Report',
+                                        //     icon: 'Clock',
+                                        //     url: '/hrms/reports/contribution-report',
+                                        //     title: 'Employee Contribution Report',
+                                        //     description: 'Manage Employee Contribution Report'
+                                        // },
+                                        // {
+                                        //     id: 30,
+                                        //     name: 'PS7 Form Report',
+                                        //     icon: 'Clock',
+                                        //     url: '/hrms/reports/PS7FromReportStJames',
+                                        //     title: 'PS7 Form Report',
+                                        //     description: 'Manage PS7 Form Report'
+                                        // },
+                                        // {
+                                        //     id: 31, 
+                                        //     name: "MONTH WISE REPORT(st.james)" ,
+                                        //     icon: 'Clock',
+                                        //     url: '/hrms/reports/PS8_MonthWiseReportStjames',
+                                        //     title: 'PS8 Month Wise Report',
+                                        //     description: 'Manage Month Wise Report (st.james)'
+                                        // },
+                                        // {
+                                        //     id: 32,
+                                        //     name: "PS8 Form Report(st.james)" ,
+                                        //     icon: 'Clock',
+                                        //     url: '/hrms/reports/PS8_ReportStjames',
+                                        //     title: 'PS8 Form Report',
+                                        //     description: 'Manage PS8 Form Report (st.james)'
+                                        // },
+                                        
                                     ]
                                 }
                             ]
@@ -2942,6 +3209,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Front Office Addlogs',
                                             description: 'Front Office Addlogs'
                                         },
+                                        {
+                                            id: 10,
+                                            name : "Employee Log Insertion",
+                                            icon : "ClipboardList",
+                                            url : "/hrms/attendance-management/masters/FrontOfficeAddlogsCBS",
+                                            title : "Employee Log Insertion",
+                                            description : "Manage Employee Log Insertion"
+                                        }
 
                                     ]
                                 },
@@ -3325,6 +3600,14 @@ export async function getUserAccessibleModules() {
                                         //     title: 'Leave  Details',
                                         //     description: 'View Leave Credit Details'
                                         // },
+                                        {
+                                            id: 4,
+                                            name: 'Leave Credit Details',
+                                            icon: 'Info',
+                                            url: '/hrms/leave-management/transaction/leave-details',
+                                            title: 'Leave  Details',
+                                            description: 'View Leave Credit Details'
+                                        },
                                         {
                                             id: 5,
                                             name: 'Leave Transaction',

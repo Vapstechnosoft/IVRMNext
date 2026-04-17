@@ -16,7 +16,7 @@ export const TCCancelPrint = React.forwardRef<HTMLDivElement, TCCancelPrintProps
         const currentDate = format(new Date(), 'dd/MM/yyyy hh:mm a');
 
         return (
-            <div ref={ref} className="p-8 bg-white text-black min-h-full w-full font-serif">
+            <div ref={ref} className="p-8 bg-white text-black min-h-full w-full font-serif printable-content">
                 <style dangerouslySetInnerHTML={{
                     __html: `
                     @media print {

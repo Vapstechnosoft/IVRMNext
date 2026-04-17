@@ -7,7 +7,7 @@ import { api } from '@/lib/apiService';
  * @param id Institution/Module ID (Legacy uses 2)
  */
 export async function getCustomTcInitialData() {
-    const url = `/StudenttcCustomReport/getinitialdata`;
+    const url = '/StudenttcCustomReport/getinitialdata';
     return await api.get<any>('admission', url);
 }
 
