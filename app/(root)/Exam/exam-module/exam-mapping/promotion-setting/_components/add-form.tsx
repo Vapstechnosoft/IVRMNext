@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { usePromotionalSetting } from '@/hooks/exam/exammodule/exam-mapping';
 import { useMasterGradeDropdownList } from '@/hooks/exam/exammodule/usemasters';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import {
@@ -20,8 +21,6 @@ import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { ViewExamsModal } from './group-mapped-exam-model';
 import { ViewGroupsModal } from './group-mapping-model';
-import { set } from 'date-fns';
-import { usePromotionalSetting } from '@/hooks/exam/exammodule/exam-mapping';
 
 /**
  * Types
@@ -188,33 +187,33 @@ export default function AddPromotionalSettingForm({
 
             const subjectsData = Array.isArray(payload.subjectlist)
                 ? payload.subjectlist.map(
-                    (subject: any): SubjectRow => ({
-                        ismS_Id: subject.ismS_Id,
-                        ismS_SubjectName: subject.ismS_SubjectName,
-                        ismS_SubjectCode: subject.ismS_SubjectCode || null,
-                        EMPS_MaxMarks: subject.empS_MaxMarks || subject.ismS_Max_Marks || null,
-                        EMPS_MinMarks: subject.empS_MinMarks || subject.ismS_Min_Marks || null,
-                        EMPS_ConvertForMarks: subject.empS_ConvertForMarks || null,
-                        EMPS_AppToResultFlg: subject.empS_AppToResultFlg ?? true,
-                        EMGR_Id: subject.emgR_Id || null,
-                        EMPS_Id: subject.empS_Id,
-                        checkedvalue: false
-                    })
-                )
+                      (subject: any): SubjectRow => ({
+                          ismS_Id: subject.ismS_Id,
+                          ismS_SubjectName: subject.ismS_SubjectName,
+                          ismS_SubjectCode: subject.ismS_SubjectCode || null,
+                          EMPS_MaxMarks: subject.empS_MaxMarks || subject.ismS_Max_Marks || null,
+                          EMPS_MinMarks: subject.empS_MinMarks || subject.ismS_Min_Marks || null,
+                          EMPS_ConvertForMarks: subject.empS_ConvertForMarks || null,
+                          EMPS_AppToResultFlg: subject.empS_AppToResultFlg ?? true,
+                          EMGR_Id: subject.emgR_Id || null,
+                          EMPS_Id: subject.empS_Id,
+                          checkedvalue: false
+                      })
+                  )
                 : [];
 
             const examsData = Array.isArray(payload.examlist)
                 ? payload.examlist.map(
-                    (exam: any): ExamItem => ({
-                        emE_Id: exam.emE_Id,
-                        emE_ExamName: exam.emE_ExamName,
-                        emE_ExamCode: exam.emE_ExamCode,
-                        checked: false,
-                        ForMaxMarkrs: 0,
-                        ForMaxMarkrs_Temp: 0,
-                        ConvertionReqOrNot: false
-                    })
-                )
+                      (exam: any): ExamItem => ({
+                          emE_Id: exam.emE_Id,
+                          emE_ExamName: exam.emE_ExamName,
+                          emE_ExamCode: exam.emE_ExamCode,
+                          checked: false,
+                          ForMaxMarkrs: 0,
+                          ForMaxMarkrs_Temp: 0,
+                          ConvertionReqOrNot: false
+                      })
+                  )
                 : [];
 
             setSubjects(subjectsData);
@@ -392,48 +391,6 @@ export default function AddPromotionalSettingForm({
 
         const allSelected = updatedSubjects.every((s) => s.checkedvalue);
         setSelectAll(allSelected);
-    };
-
-    // Apply header values to selected subjects
-    const applyHeaderValues = () => {
-        setSubjects((prev) =>
-            prev.map((subject) => {
-                if (!subject.checkedvalue) return subject;
-
-                const updatedSubject = { ...subject };
-
-                if (headerMaxMarks !== '') {
-                    const maxMarks = Number.parseFloat(headerMaxMarks);
-                    if (!Number.isNaN(maxMarks)) {
-                        updatedSubject.EMPS_MaxMarks = maxMarks;
-                    }
-                }
-
-                if (headerMinMarks !== '') {
-                    const minMarks = Number.parseFloat(headerMinMarks);
-                    if (!Number.isNaN(minMarks)) {
-                        updatedSubject.EMPS_MinMarks = minMarks;
-                    }
-                }
-
-                if (headerConvertMarks !== '') {
-                    const convertMarks = Number.parseFloat(headerConvertMarks);
-                    if (!Number.isNaN(convertMarks)) {
-                        updatedSubject.EMPS_ConvertForMarks = convertMarks;
-                    }
-                }
-
-                if (headerGrade !== '__none') {
-                    updatedSubject.EMGR_Id = headerGrade === '__keep' ? subject.EMGR_Id : headerGrade;
-                }
-
-                updatedSubject.EMPS_AppToResultFlg = headerApplyToResult;
-
-                return updatedSubject;
-            })
-        );
-
-        toast.info('Applied header values to selected subjects');
     };
 
     // Open group modal for a subject
@@ -651,7 +608,9 @@ export default function AddPromotionalSettingForm({
                     <div className='space-y-4'>
                         {/* Academic Year */}
                         <div>
-                            <Label>Academic Year <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                Academic Year <span className='text-red-500'>*</span>
+                            </Label>
                             <Select
                                 key={selectedYear}
                                 value={selectedYear !== 0 ? String(selectedYear) : undefined}
@@ -680,7 +639,9 @@ export default function AddPromotionalSettingForm({
 
                         {/* Category */}
                         <div>
-                            <Label>Category <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                Category <span className='text-red-500'>*</span>
+                            </Label>
                             <Select
                                 key={selectedCategory}
                                 value={selectedCategory ? String(selectedCategory) : '__none'}
@@ -703,7 +664,9 @@ export default function AddPromotionalSettingForm({
 
                         {/* Grade */}
                         <div>
-                            <Label>Grade <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                Grade <span className='text-red-500'>*</span>
+                            </Label>
                             <Select
                                 key={selectedGrade}
                                 value={selectedGrade || '__none'}
@@ -729,7 +692,9 @@ export default function AddPromotionalSettingForm({
                     <div className='space-y-6'>
                         {/* Radio buttons for promotion type */}
                         <div className='rounded-lg border p-4'>
-                            <div className='mb-2 font-medium text-sm'>Promotion Type <span className='text-red-500'>*</span></div>
+                            <div className='mb-2 font-medium text-sm'>
+                                Promotion Type <span className='text-red-500'>*</span>
+                            </div>
                             <div className='flex flex-wrap gap-4'>
                                 <label className='flex items-center space-x-2'>
                                     <input
@@ -877,7 +842,22 @@ export default function AddPromotionalSettingForm({
                                                 type='number'
                                                 value={headerMaxMarks}
                                                 onChange={(e) => {
-                                                    setHeaderMaxMarks(e.target.value);
+                                                    const value = e.target.value;
+                                                    setHeaderMaxMarks(value);
+
+                                                    // Auto-apply if subjects are checked
+                                                    setSubjects((prev) =>
+                                                        prev.map((subject) => {
+                                                            if (!subject.checkedvalue) return subject;
+                                                            if (value !== '') {
+                                                                const maxMarks = Number.parseFloat(value);
+                                                                if (!Number.isNaN(maxMarks) && maxMarks <= 1000) {
+                                                                    return { ...subject, EMPS_MaxMarks: maxMarks };
+                                                                }
+                                                            }
+                                                            return subject;
+                                                        })
+                                                    );
                                                 }}
                                                 onBlur={(e) => {
                                                     const value = e.target.value;
@@ -897,7 +877,24 @@ export default function AddPromotionalSettingForm({
                                             <Input
                                                 type='number'
                                                 value={headerMinMarks}
-                                                onChange={(e) => setHeaderMinMarks(e.target.value)}
+                                                onChange={(e) => {
+                                                    const value = e.target.value;
+                                                    setHeaderMinMarks(value);
+
+                                                    // Auto-apply
+                                                    setSubjects((prev) =>
+                                                        prev.map((subject) => {
+                                                            if (!subject.checkedvalue) return subject;
+                                                            if (value !== '') {
+                                                                const minMarks = Number.parseFloat(value);
+                                                                if (!Number.isNaN(minMarks)) {
+                                                                    return { ...subject, EMPS_MinMarks: minMarks };
+                                                                }
+                                                            }
+                                                            return subject;
+                                                        })
+                                                    );
+                                                }}
                                                 placeholder='All'
                                                 className='h-8 text-sm'
                                                 disabled={!headerMaxMarks}
@@ -910,7 +907,24 @@ export default function AddPromotionalSettingForm({
                                             <Input
                                                 type='number'
                                                 value={headerConvertMarks}
-                                                onChange={(e) => setHeaderConvertMarks(e.target.value)}
+                                                onChange={(e) => {
+                                                    const value = e.target.value;
+                                                    setHeaderConvertMarks(value);
+
+                                                    // Auto-apply
+                                                    setSubjects((prev) =>
+                                                        prev.map((subject) => {
+                                                            if (!subject.checkedvalue) return subject;
+                                                            if (value !== '') {
+                                                                const convertMarks = Number.parseFloat(value);
+                                                                if (!Number.isNaN(convertMarks)) {
+                                                                    return { ...subject, EMPS_ConvertForMarks: convertMarks };
+                                                                }
+                                                            }
+                                                            return subject;
+                                                        })
+                                                    );
+                                                }}
                                                 placeholder='All'
                                                 className='h-8 text-sm'
                                                 disabled={!headerMaxMarks}
@@ -922,14 +936,38 @@ export default function AddPromotionalSettingForm({
                                             <span className='text-xs'>Apply to Result</span>
                                             <Checkbox
                                                 checked={headerApplyToResult}
-                                                onCheckedChange={(checked) => setHeaderApplyToResult(checked as boolean)}
+                                                onCheckedChange={(checked) => {
+                                                    const val = checked as boolean;
+                                                    setHeaderApplyToResult(val);
+                                                    // Auto-apply
+                                                    setSubjects((prev) =>
+                                                        prev.map((subject) => {
+                                                            if (!subject.checkedvalue) return subject;
+                                                            return { ...subject, EMPS_AppToResultFlg: val };
+                                                        })
+                                                    );
+                                                }}
                                             />
                                         </div>
                                     </th>
                                     <th className='w-40 p-3'>
                                         <div className='flex flex-col items-center'>
                                             <span className='text-xs'>Grade</span>
-                                            <Select value={headerGrade} onValueChange={setHeaderGrade}>
+                                            <Select
+                                                value={headerGrade}
+                                                onValueChange={(val) => {
+                                                    setHeaderGrade(val);
+                                                    // Auto-apply
+                                                    setSubjects((prev) =>
+                                                        prev.map((subject) => {
+                                                            if (!subject.checkedvalue) return subject;
+                                                            if (val !== '__none') {
+                                                                return { ...subject, EMGR_Id: val === '__keep' ? subject.EMGR_Id : val };
+                                                            }
+                                                            return subject;
+                                                        })
+                                                    );
+                                                }}>
                                                 <SelectTrigger className='h-8 text-sm'>
                                                     <SelectValue placeholder='All' />
                                                 </SelectTrigger>
@@ -1123,17 +1161,6 @@ export default function AddPromotionalSettingForm({
                                 })}
                             </tbody>
                         </table>
-
-                        {/* Apply Header Values Button */}
-                        <div className='border-t p-3'>
-                            <Button
-                                onClick={applyHeaderValues}
-                                variant='outline'
-                                size='sm'
-                                disabled={subjects.filter((s) => s.checkedvalue).length === 0}>
-                                Apply Header Values to Selected Rows
-                            </Button>
-                        </div>
                     </div>
                 ) : (
                     <div className='mb-6 rounded-lg border p-8 text-center text-gray-500'>
@@ -1143,7 +1170,9 @@ export default function AddPromotionalSettingForm({
 
                 {/* ACTION BUTTONS */}
                 <div className='flex justify-center space-x-4'>
-                    <Button className={isDataSaving ? 'cursor-not-allowed' : ''} onClick={handleSave}>{isDataSaving ? 'Saving...' : 'Save'}</Button>
+                    <Button className={isDataSaving ? 'cursor-not-allowed' : ''} onClick={handleSave}>
+                        {isDataSaving ? 'Saving...' : 'Save'}
+                    </Button>
                     <Button onClick={handleReset} variant='outline'>
                         Cancel
                     </Button>
@@ -1179,5 +1208,3 @@ export default function AddPromotionalSettingForm({
         </div>
     );
 }
-
-

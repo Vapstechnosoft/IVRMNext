@@ -37,13 +37,21 @@ export default function ToggleMasterDayClasswiseForm({ rowData, onClose }: Toggl
         onClose();
         reset();
     }
-
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
             const response = await ToggleMasterDayClasswise(Number(rowData.ttmdC_Id));
 
             if (response.success) {
-                toast.success(response.message);
+                const msg = response.message.toLowerCase();
+
+                if (msg.includes('deactivated')) {
+                    toast.error(response.message);
+                } else if (msg.includes('activated')) {
+                    toast.success(response.message);
+                } else {
+                    toast.success(response.message);
+                }
+
                 refetchAll();
                 closeDialog();
             } else {

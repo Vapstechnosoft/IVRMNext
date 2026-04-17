@@ -8,7 +8,7 @@ import { StJamesTcPrint } from './_components/stjames-tc-print';
 import { useStjamesTcReport } from '@/hooks/admission/preadmission/useStjamesTcCustomReport';
 import { type StjamesTcCustomReportFields } from '@/schemas/admission/preadmission/reports/stjames-tc-custom-report';
 import { Button } from '@/components/ui/button';
-import { Printer, FileText, Loader2 } from 'lucide-react';
+import { Printer, Loader2 } from 'lucide-react';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 
 interface StjamesTcReportResponse {
@@ -17,6 +17,8 @@ interface StjamesTcReportResponse {
     academicList1?: any[];
     previousschool?: any[];
     studenttcdetails?: any[];
+    getnextclass?: any[];
+    classnamejoin?: any[];
     ascisS_QRCode?: string;
 }
 
@@ -43,11 +45,24 @@ export default function StjamesTcCustomReportPage() {
             const data = response.data as StjamesTcReportResponse;
 
             if (data && data.result && data.result.length > 0) {
-                const resultData = data.result[0];
+                const student = data.result[0];
                 const tcDetail = data.studenttcdetails?.[0] || {};
+                const academic = data.academicList1?.[0] || {};
+                const prevSchool = data.previousschool?.[0] || {};
+                const nextClass = data.getnextclass?.[0] || {};
+                const joinedClass = data.classnamejoin?.[0] || {};
+
+                // Process Dates for Academic Range
+                const fromDate = academic.asmaY_From_Date ? new Date(academic.asmaY_From_Date) : null;
+                const toDate = academic.asmaY_To_Date ? new Date(academic.asmaY_To_Date) : null;
                 
+                const fromMonthStr = fromDate ? getMonthName(fromDate.getMonth()) : "MARCH";
+                const toMonthStr = toDate ? getMonthName(toDate.getMonth()) : "FEBRUARY";
+                const fromYear = fromDate ? fromDate.getFullYear() : "";
+                const toYear = toDate ? toDate.getFullYear() : "";
+
                 // Gender logic
-                const isFemale = resultData.amst_sex?.toLowerCase() === 'female';
+                const isFemale = student.amst_sex?.toLowerCase() === 'female' || student.amst_sex?.toLowerCase() === 'f';
                 const gender = {
                     title: isFemale ? 'miss' : 'master',
                     sonOf: isFemale ? 'Daughter of' : 'Son of',
@@ -55,44 +70,43 @@ export default function StjamesTcCustomReportPage() {
                     heShe: isFemale ? 'She' : 'He'
                 };
 
-                // Process data mapping as per backend response fields
+                // Full Legacy Mapping with verified keys
                 const mappedData = {
-                    tcno: tcDetail.astC_TCNO || resultData.astc_tcno,
-                    admno: resultData.amst_registrationno,
-                    lblstdname: resultData.studentname,
-                    lblfathername: resultData.amst_fathername,
-                    lblmothername: resultData.amst_mothername,
-                    lbldob: resultData.amst_dob,
-                    lbldobwords: resultData.amst_dob_words,
-                    lbldoa: resultData.amst_date,
-                    lbldol: tcDetail.astC_LastAttendedDate || resultData.astc_lastattendeddate,
-                    lblconduct: tcDetail.astC_Conduct || resultData.astc_conduct,
-                    lblPromotion: resultData.qualificlass || '',
-                    previousschoolname: resultData.institutionname || data.previousschool?.[0]?.amstpS_PrvSchoolName || '',
-                    laststudiedinwords: resultData.last_class_studied || '',
-                    todaydate: tcDetail.astC_TCIssueDate || resultData.astc_tcissuedate || new Date().toISOString(),
-                    qrcode: data.ascisS_QRCode,
-                    address1: resultData.amst_perstreet || '',
-                    address2: resultData.amst_perarea || '',
-                    address3: resultData.amst_percity || '',
-                    leavingreason: tcDetail.astC_LeavingReason || resultData.astc_leavingreason || '',
-                    feepaid: tcDetail.astC_FeePaid || resultData.astc_feepaid || 'Paid',
+                    tcno: student.astc_tcno || "",
+                    admno: student.amst_admno || "",
+                    lblstdname: student.studentname || "",
+                    lblfathername: student.amst_fathername || "",
+                    lblmothername: student.amst_mothername || "",
+                    lblreligioncaste: student.religion || "",
+                    lblnationality: student.nationality || "Indian",
+                    lbldob: student.amst_dob || "",
+                    lbldobwords: student.amst_dob_words || (student.amst_dob ? "" : ""), // Logic for conversion usually on backend or helper
+                    lbldoa: student.amst_date || "",
+                    lblconduct: student.astc_conduct || "Good",
+                    lblPromotion: nextClass.asmcL_ClassName || student.qualificlass || "GRANTED",
+                    todaydate: student.astc_tcissuedate || new Date().toISOString(),
+                    frommonth1: fromMonthStr,
+                    tomonth1: toMonthStr,
+                    fromyear: fromYear,
+                    toyear: toYear,
+                    feeconcession: student.fee_concesion || "",
+                    laststudied: student.classname || student.last_class_studied || "",
+                    laststudiedinwords: switchFunction(student.classname || student.last_class_studied),
+                    subjectsstudied: student.subjectstudied || "",
+                    streamname: student.streamname || "ICSE & ISC",
+                    previousschoolname: student.previousschoolname || prevSchool.amstpS_PrvSchoolName || "",
+                    lbldol: student.astc_lastattendeddate || student.astc_tcissuedate || "",
                     gender,
-                    religion: resultData.religion || '',
-                    caste: resultData.caste || '',
-                    subjectstudied: resultData.subjectstudied || '',
-                    daysattended: resultData.noof_daysattended || 0,
-                    schooldays: resultData.noof_schooldays || 0,
-                    tcappdate: resultData.astc_tcapplicationdate || '',
-                    district: resultData.district || '',
-                    statename: resultData.statename || '',
-                    logo: resultData.logo || data.masterCompany?.[0]?.logo || ''
+                    qrcode: data.ascisS_QRCode || "",
+                    joiningclass: joinedClass.classjoinname || "",
+                    institution: data.masterCompany?.[0]?.name || student.institutionname || "St. James' School",
+                    logo: data.masterCompany?.[0]?.logo || student.logo || "",
+                    lblreasonleaving: student.astc_leavingreason || "",
+                    remarks: student.astc_remarks || "",
+                    religion: student.religion || "",
+                    caste: student.caste || "",
+                    section: student.asmc_sectionname || ""
                 };
-
-                // Helper to mimic SwitchFuction from AngularJS if needed
-                if (!mappedData.laststudiedinwords && resultData.last_class_studied) {
-                    mappedData.laststudiedinwords = mapClassToWords(resultData.last_class_studied);
-                }
 
                 setReportData(mappedData);
                 setShowReport(true);
@@ -155,26 +169,36 @@ export default function StjamesTcCustomReportPage() {
     );
 }
 
-// Helper function to map class names to words if needed
-function mapClassToWords(className: string): string {
+// Legacy helper functions
+function getMonthName(monthId: number): string {
+    const months = [
+        "JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE",
+        "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"
+    ];
+    return months[monthId] || "";
+}
+
+function switchFunction(className: string): string {
+    if (!className) return "";
+    const cleanName = className.trim().toUpperCase();
     const map: Record<string, string> = {
-        'I': 'FIRST',
-        'II': 'SECOND',
-        'III': 'THIRD',
-        'IV': 'FOURTH',
-        'V': 'FIFTH',
-        'VI': 'SIXTH',
-        'VII': 'SEVENTH',
-        'VIII': 'EIGHTH',
-        'IX': 'NINTH',
-        'X': 'TENTH',
-        'XI': 'ELEVENTH',
-        'XII': 'TWELFTH',
-        'Nursery': 'Nursery',
-        'Transition': 'Transition',
-        'Upper Nursery': 'Upper Nursery',
-        'Lower Nursery': 'Lower Nursery',
+        'I': 'FIRST', '1ST': 'FIRST',
+        'II': 'SECOND', '2ND': 'SECOND',
+        'III': 'THIRD', '3RD': 'THIRD',
+        'IV': 'FOURTH', '4TH': 'FOURTH',
+        'V': 'FIFTH', '5TH': 'FIFTH',
+        'VI': 'SIXTH', '6TH': 'SIXTH',
+        'VII': 'SEVENTH', '7TH': 'SEVENTH',
+        'VIII': 'EIGHTH', '8TH': 'EIGHTH',
+        'IX': 'NINTH', '9TH': 'NINTH',
+        'X': 'TENTH', '10TH': 'TENTH',
+        'XI': 'Eleventh', '11TH': 'ELEVENTH',
+        'XII': 'Twelfth', '12TH': 'TWELFTH',
+        'NURSERY': 'Nursery',
+        'TRANSITION': 'Transition',
+        'UPPER NURSERY': 'Upper Nursery',
+        'LOWER NURSERY': 'Lower Nursery',
         'K G': 'K G',
     };
-    return map[className] || className;
+    return map[cleanName] || className;
 }

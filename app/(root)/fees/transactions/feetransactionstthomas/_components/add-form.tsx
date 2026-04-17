@@ -22,13 +22,8 @@ import { useStudentClassDropDown, useStudentSectionDropDown } from '@/hooks/fees
 import { useFeeDefaulterReport } from '@/hooks/fees/useReports';
 import { useFeeMasterConfiguration, useFeeTransactionListStThomas } from '@/hooks/fees/useTrasactions';
 import { feesStudentTransactionSchema } from '@/schemas/fees/trasactions';
-import {
-    getFeeHead,
-    getStudentDetails,
-    masterBank,
-    saveFeeTransaction,
-    searchStudentName
-} from '@/server/fees/trasactions/fee_student_transaction';
+import { getFeeHead, getStudentDetails, masterBank, saveFeeTransaction } from '@/server/fees/trasactions/fee_student_transaction';
+import { searchStudentNamestsstthomas } from '@/server/fees/trasactions/fee_transaction_stthomas';
 import type {
     IFeeTDetails,
     IFeeTermDetails,
@@ -229,7 +224,7 @@ export default function StudentFeeTransactionStThomas({ onSuccess, asmayId }: Fe
                     asmS_Id: section === true ? asmS_Id : 0,
                     amsT_SOL: left === true ? 'L' : deactive === true ? 'D' : 'S'
                 };
-                const studentsArray = await searchStudentName(payload);
+                const studentsArray = await searchStudentNamestsstthomas(payload);
                 const studentsData = JSON.parse(JSON.stringify(studentsArray.feeStudentSearch || []));
                 setStudents(studentsData || []);
             } catch (error) {

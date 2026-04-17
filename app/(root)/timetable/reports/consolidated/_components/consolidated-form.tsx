@@ -7,7 +7,6 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { consolidatedReportSchema } from '@/schemas/timetable/reports';
-import { getConsolidatedReportDetails } from '@/server/timetable/reports/consolidated';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, Search, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -23,8 +22,6 @@ interface ConsolidatedFormProps {
 }
 
 export default function ConsolidatedForm({ initialData, onSubmit }: ConsolidatedFormProps) {
-
-
     // We use the data directly from initialData as per user request to integrate the facade API lists
     const academicList = initialData?.acayear || initialData?.academiclist || [];
     const categoryList = initialData?.cateoglst || initialData?.catelist || initialData?.categorylist || [];
@@ -46,7 +43,7 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
         { id: 'SPC', label: 'STAFF-PERIOD CONSOLIDATED' },
         { id: 'CSPC', label: 'CLASS-SECTION PERIOD CONSOLIDATED' },
         { id: 'RMR', label: 'ROOM-WISE REPORT' },
-        { id: 'ATG', label: 'STAFF WORKLOAD AFTER TIMETABLE GENERATION' },
+        { id: 'ATG', label: 'STAFF WORKLOAD AFTER TIMETABLE GENERATION' }
     ];
 
     const form = useForm<FormFields>({
@@ -77,9 +74,7 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
         const allClassLists = initialData?.classlists || initialData?.classlist || [];
         if (watchedCategory && allClassLists.length > 0) {
             // Filter by category if the property exists, otherwise show all
-            const filtered = allClassLists.filter((c: any) =>
-                !c.ttmC_Id || c.ttmC_Id === watchedCategory
-            );
+            const filtered = allClassLists.filter((c: any) => !c.ttmC_Id || c.ttmC_Id === watchedCategory);
             setClassList(filtered);
             // Optionally clear class selection when category changes
             // setValue('classId', []);
@@ -96,35 +91,45 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
         const fullPeriodList = initialData?.periodslst || initialData?.periodlist || [];
 
         // Map selections back to full objects and set the selection flags
-        const classdss = (data.classId || []).map(id => {
-            const obj = { ...fullClassList.find((c: any) => c.asmcL_Id === id) };
-            if (obj) obj.claslis = true;
-            return obj;
-        }).filter(o => o.asmcL_Id);
+        const classdss = (data.classId || [])
+            .map((id) => {
+                const obj = { ...fullClassList.find((c: any) => c.asmcL_Id === id) };
+                if (obj) obj.claslis = true;
+                return obj;
+            })
+            .filter((o) => o.asmcL_Id);
 
-        const sectiondss = (data.sectionId || []).map(id => {
-            const obj = { ...fullSectionList.find((s: any) => s.asmS_Id === id) };
-            if (obj) obj.secs = true;
-            return obj;
-        }).filter(o => o.asmS_Id);
+        const sectiondss = (data.sectionId || [])
+            .map((id) => {
+                const obj = { ...fullSectionList.find((s: any) => s.asmS_Id === id) };
+                if (obj) obj.secs = true;
+                return obj;
+            })
+            .filter((o) => o.asmS_Id);
 
-        const stfidss = (data.staffId || []).map(id => {
-            const obj = { ...fullStaffList.find((s: any) => s.hrmE_Id === id) };
-            if (obj) obj.stf = true;
-            return obj;
-        }).filter(o => o.hrmE_Id);
+        const stfidss = (data.staffId || [])
+            .map((id) => {
+                const obj = { ...fullStaffList.find((s: any) => s.hrmE_Id === id) };
+                if (obj) obj.stf = true;
+                return obj;
+            })
+            .filter((o) => o.hrmE_Id);
 
-        const dayidss = (data.dayId || []).map(id => {
-            const obj = { ...fullDayList.find((d: any) => d.ttmD_Id === id) };
-            if (obj) obj.sayy = true;
-            return obj;
-        }).filter(o => o.ttmD_Id);
+        const dayidss = (data.dayId || [])
+            .map((id) => {
+                const obj = { ...fullDayList.find((d: any) => d.ttmD_Id === id) };
+                if (obj) obj.sayy = true;
+                return obj;
+            })
+            .filter((o) => o.ttmD_Id);
 
-        const periodidss = (data.periodId || []).map(id => {
-            const obj = { ...fullPeriodList.find((p: any) => p.ttmP_Id === id) };
-            if (obj) obj.ppr = true;
-            return obj;
-        }).filter(o => o.ttmP_Id);
+        const periodidss = (data.periodId || [])
+            .map((id) => {
+                const obj = { ...fullPeriodList.find((p: any) => p.ttmP_Id === id) };
+                if (obj) obj.ppr = true;
+                return obj;
+            })
+            .filter((o) => o.ttmP_Id);
 
         let payload: any = {
             ASMAY_Id: String(data.asmaY_Id),
@@ -139,14 +144,18 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
                 TTMD_Id: data.singleDayId,
                 TTMP_Id: data.singlePeriodId,
                 rpttypairods: data.rpttypai,
-                stfidss, dayidss, periodidss
+                stfidss,
+                dayidss,
+                periodidss
             };
         } else if (data.type === 'STFP') {
             payload = {
                 ...payload,
                 TTMD_Id: data.singleDayId,
                 rpttypairods: data.rpttypai,
-                stfidss, dayidss, periodidss
+                stfidss,
+                dayidss,
+                periodidss
             };
         } else if (data.type === 'RMR') {
             payload.rpttyp = data.rpttyp;
@@ -196,7 +205,9 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
                             {mockReportTypes.map((type) => (
                                 <div key={type.id} className='flex items-center space-x-2'>
                                     <RadioGroupItem value={type.id} id={type.id} />
-                                    <Label htmlFor={type.id} className='cursor-pointer text-sm font-medium'>{type.label}</Label>
+                                    <Label htmlFor={type.id} className='cursor-pointer font-medium text-sm'>
+                                        {type.label}
+                                    </Label>
                                 </div>
                             ))}
                         </RadioGroup>
@@ -216,8 +227,7 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
                         render={({ field }) => (
                             <Select
                                 onValueChange={(value) => field.onChange(value ? Number(value) : '')}
-                                value={field.value ? field.value.toString() : ''}
-                            >
+                                value={field.value ? field.value.toString() : ''}>
                                 <SelectTrigger className='w-full'>
                                     <SelectValue placeholder='Select Academic Year' />
                                 </SelectTrigger>
@@ -232,7 +242,7 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
                             </Select>
                         )}
                     />
-                    {errors.asmaY_Id && <span className='text-red-500 text-sm font-medium'>{errors.asmaY_Id.message}</span>}
+                    {errors.asmaY_Id && <span className='font-medium text-red-500 text-sm'>{errors.asmaY_Id.message}</span>}
                 </div>
 
                 {/* Specific for ST */}
@@ -247,7 +257,9 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
                                         <Checkbox checked={field.value} onCheckedChange={field.onChange} id='rpttypai' />
                                     )}
                                 />
-                                <Label htmlFor='rpttypai' className='font-semibold'>Teacher Master</Label>
+                                <Label htmlFor='rpttypai' className='font-semibold'>
+                                    Teacher Master
+                                </Label>
                             </div>
                         </div>
 
@@ -273,7 +285,7 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
                                     </Select>
                                 )}
                             />
-                            {errors.ttmC_Id && <span className='text-red-500 text-sm font-medium'>{errors.ttmC_Id.message}</span>}
+                            {errors.ttmC_Id && <span className='font-medium text-red-500 text-sm'>{errors.ttmC_Id.message}</span>}
                         </div>
 
                         <div className='space-y-2'>
@@ -292,7 +304,7 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
                                     />
                                 )}
                             />
-                            {errors.classId && <span className='text-red-500 text-sm font-medium'>{errors.classId.message}</span>}
+                            {errors.classId && <span className='font-medium text-red-500 text-sm'>{errors.classId.message}</span>}
                         </div>
 
                         <div className='space-y-2'>
@@ -311,7 +323,7 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
                                     />
                                 )}
                             />
-                            {errors.sectionId && <span className='text-red-500 text-sm font-medium'>{errors.sectionId.message}</span>}
+                            {errors.sectionId && <span className='font-medium text-red-500 text-sm'>{errors.sectionId.message}</span>}
                         </div>
                     </>
                 )}
@@ -336,7 +348,7 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
                                     />
                                 )}
                             />
-                            {errors.staffId && <span className='text-red-500 text-sm font-medium'>{errors.staffId.message}</span>}
+                            {errors.staffId && <span className='font-medium text-red-500 text-sm'>{errors.staffId.message}</span>}
                         </div>
                         <div className='space-y-2'>
                             <Label className='font-semibold'>
@@ -355,7 +367,7 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
                                     />
                                 )}
                             />
-                            {errors.dayId && <span className='text-red-500 text-sm font-medium'>{errors.dayId.message}</span>}
+                            {errors.dayId && <span className='font-medium text-red-500 text-sm'>{errors.dayId.message}</span>}
                         </div>
                         <div className='space-y-2'>
                             <Label className='font-semibold'>
@@ -374,7 +386,7 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
                                     />
                                 )}
                             />
-                            {errors.periodId && <span className='text-red-500 text-sm font-medium'>{errors.periodId.message}</span>}
+                            {errors.periodId && <span className='font-medium text-red-500 text-sm'>{errors.periodId.message}</span>}
                         </div>
                     </>
                 )}
@@ -403,7 +415,7 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
                                 </Select>
                             )}
                         />
-                        {errors.singleDayId && <span className='text-red-500 text-sm font-medium'>{errors.singleDayId.message}</span>}
+                        {errors.singleDayId && <span className='font-medium text-red-500 text-sm'>{errors.singleDayId.message}</span>}
                     </div>
                 )}
 
@@ -431,7 +443,7 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
                                 </Select>
                             )}
                         />
-                        {errors.singlePeriodId && <span className='text-red-500 text-sm font-medium'>{errors.singlePeriodId.message}</span>}
+                        {errors.singlePeriodId && <span className='font-medium text-red-500 text-sm'>{errors.singlePeriodId.message}</span>}
                     </div>
                 )}
 
@@ -445,16 +457,20 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
                                 <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className='flex flex-wrap gap-4'>
                                     <div className='flex items-center space-x-2'>
                                         <RadioGroupItem value='SAWC' id='SAWC' className='border-purple-600 text-purple-600' />
-                                        <Label htmlFor='SAWC' className='cursor-pointer'>Subject Along With Class Details</Label>
+                                        <Label htmlFor='SAWC' className='cursor-pointer'>
+                                            Subject Along With Class Details
+                                        </Label>
                                     </div>
                                     <div className='flex items-center space-x-2'>
                                         <RadioGroupItem value='SNWC' id='SNWC' className='border-purple-600 text-purple-600' />
-                                        <Label htmlFor='SNWC' className='cursor-pointer'>Subject Without Class Details</Label>
+                                        <Label htmlFor='SNWC' className='cursor-pointer'>
+                                            Subject Without Class Details
+                                        </Label>
                                     </div>
                                 </RadioGroup>
                             )}
                         />
-                        {errors.rpttyp && <span className='text-red-500 text-sm font-medium'>{errors.rpttyp.message}</span>}
+                        {errors.rpttyp && <span className='font-medium text-red-500 text-sm'>{errors.rpttyp.message}</span>}
                     </div>
                 )}
             </div>

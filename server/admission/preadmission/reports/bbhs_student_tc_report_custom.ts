@@ -6,7 +6,7 @@ import { api } from '@/lib/apiService';
  * Fetches initial data for BBHS Student TC Report (Years, Classes, etc.)
  */
 export async function getBbhsStudentTcInitialData() {
-    const url = `/StudenttcReportcustom/getinitialdata`;
+    const url = '/StudenttcReportcustom/getinitialdata';
     const response = await api.get<any>('admission', url);
     return response.data || response;
 }

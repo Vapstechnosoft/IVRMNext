@@ -913,7 +913,7 @@ export async function POST(req: NextRequest) {
                         },
                         ...messages
                     ],
-                    model: 'llama-3.1-70b-versatile',
+                    model: 'llama-3.3-70b-versatile',
                     temperature: 0.2, // Even lower for absolute precision
                     max_tokens: 100 // Further reduced
                 });
@@ -959,7 +959,7 @@ export async function POST(req: NextRequest) {
                 },
                 ...messages
             ],
-            model: 'llama-3.1-70b-versatile',
+            model: 'llama-3.3-70b-versatile',
             temperature: 0.2, // Slightly increased for better phrasing
             max_tokens: 250, // Increased for detailed steps
             response_format: { type: "json_object" }

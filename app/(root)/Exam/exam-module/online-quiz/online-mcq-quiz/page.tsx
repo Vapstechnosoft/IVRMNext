@@ -66,6 +66,11 @@ export default function OnlineMcqQuizPage() {
             return;
         }
 
+        if (!questionCount || Number(questionCount) <= 0) {
+            toast.error('Question count must be at least 1');
+            return;
+        }
+
         setIsGenerating(true);
         const formData = new FormData();
         formData.append('file', file);
@@ -440,7 +445,7 @@ export default function OnlineMcqQuizPage() {
                                 </CardHeader>
                                 <CardContent className="p-12 pt-0 space-y-10">
                                     <div className="space-y-4">
-                                        <Label className="text-sm font-black text-slate-400 uppercase tracking-widest ml-1">Upload Material</Label>
+                                        <Label className="text-sm font-black text-slate-400 uppercase tracking-widest ml-1 after:content-['*'] after:ml-0.5 after:text-red-500">Upload Material</Label>
                                         <div className={cn(
                                             "relative group border-4 border-dashed rounded-[2.5rem] p-12 transition-all duration-300 text-center",
                                             file ? "bg-emerald-50/50 border-emerald-200" : "bg-slate-50 border-slate-100 hover:border-orange-200 hover:bg-orange-50/30"
@@ -457,7 +462,7 @@ export default function OnlineMcqQuizPage() {
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                         <div className="space-y-4">
-                                            <Label className="text-sm font-black text-slate-400 uppercase tracking-widest ml-1">Question Count</Label>
+                                            <Label className="text-sm font-black text-slate-400 uppercase tracking-widest ml-1 after:content-['*'] after:ml-0.5 after:text-red-500">Question Count</Label>
                                             <Input type="number" value={questionCount} onChange={(e) => setQuestionCount(e.target.value)} className="h-16 rounded-2xl bg-slate-50 border-none font-black" />
                                         </div>
                                         <div className="space-y-4">
@@ -546,7 +551,7 @@ export default function OnlineMcqQuizPage() {
                                 <CardContent className="p-12 pt-0 space-y-10">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                         <div className="space-y-4">
-                                            <Label className="text-sm font-black text-slate-400 uppercase tracking-widest ml-1">Class</Label>
+                                            <Label className="text-sm font-black text-slate-400 uppercase tracking-widest ml-1 after:content-['*'] after:ml-0.5 after:text-red-500">Class</Label>
                                             <Select onValueChange={(v) => setPublishConfig({...publishConfig, targetClass: v})}>
                                                 <SelectTrigger className="h-16 rounded-2xl bg-slate-50 border-none font-black px-8">
                                                     <SelectValue placeholder="Select Class" />
@@ -559,7 +564,7 @@ export default function OnlineMcqQuizPage() {
                                             </Select>
                                         </div>
                                         <div className="space-y-4">
-                                            <Label className="text-sm font-black text-slate-400 uppercase tracking-widest ml-1">Section</Label>
+                                            <Label className="text-sm font-black text-slate-400 uppercase tracking-widest ml-1 after:content-['*'] after:ml-0.5 after:text-red-500">Section</Label>
                                             <Select onValueChange={(v) => setPublishConfig({...publishConfig, targetSection: v})}>
                                                 <SelectTrigger className="h-16 rounded-2xl bg-slate-50 border-none font-black px-8">
                                                     <SelectValue placeholder="Select Section" />
