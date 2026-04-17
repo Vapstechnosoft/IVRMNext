@@ -10,6 +10,7 @@ import { MASTER_LEAVE_VALIDATION } from '@/lib/validation/hrms-master-validation
 import { Loader2, RotateCcw, Save, X } from 'lucide-react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { MasterLeave } from './columns';
+import { useState } from 'react';
 interface AddMasterLeaveFormProps {
     onSuccess?: () => void;
     onCancel?: () => void;
@@ -25,6 +26,7 @@ const LEAVE_TYPE_OPTIONS = [
 export default function AddMasterLeaveForm({ onSuccess, onCancel, className = '' }: AddMasterLeaveFormProps) {
     const { refetchAll } = useMasterLeave();
     const { mutate: saveMasterLeave, isPending } = useSaveMasterLeave();
+    const [resetKey, setResetKey] = useState(0);
 
     const leaveTypeOptions = LEAVE_TYPE_OPTIONS;
     const {
@@ -69,6 +71,7 @@ export default function AddMasterLeaveForm({ onSuccess, onCancel, className = ''
     };
     const handleReset = () => {
         reset();
+        setResetKey((prev) => prev + 1);
     };
     const mastersLoading = isPending || isSubmitting;
     return (
@@ -95,19 +98,20 @@ export default function AddMasterLeaveForm({ onSuccess, onCancel, className = ''
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                         <Controller
+                            key={`leaveType-${resetKey}`}
                             name='hrmL_LeaveType'
                             control={control}
                             rules={MASTER_LEAVE_VALIDATION.hrmL_LeaveType}
                             render={({ field }) => (
                                 <div>
-                                    <label htmlFor='hrmL_LeaveType' className='mb-1.5 block font-medium text-sm'>
+                                    <label htmlFor='hrmL_LeaveType' className='block font-medium text-sm'>
                                         Leave Type <span className='text-destructive'>*</span>
                                     </label>
                                     <Select onValueChange={field.onChange} value={field.value}>
                                         <SelectTrigger id='hrmL_LeaveType'>
                                             <SelectValue placeholder='Select Leave Type' />
                                         </SelectTrigger>
-                                        <SelectContent side='top'>
+                                        <SelectContent >
                                             {leaveTypeOptions.map((option) => (
                                                 <SelectItem key={option.value} value={option.value}>
                                                     {option.label}
@@ -133,9 +137,10 @@ export default function AddMasterLeaveForm({ onSuccess, onCancel, className = ''
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                     </div>
-                   {/* Checkboxes for Leave Credit Flag and Late Deduct Flag */}
+                    {/* Checkboxes for Leave Credit Flag and Late Deduct Flag */}
                     <div className='flex flex-wrap gap-6 pt-1'>
                         <Controller
+                            key={`leaveCredit-${resetKey}`}
                             name='hrmL_LeaveCreditFlg'
                             control={control}
                             render={({ field }) => (
@@ -156,6 +161,7 @@ export default function AddMasterLeaveForm({ onSuccess, onCancel, className = ''
                             )}
                         />
                         <Controller
+                            key={`lateDeduct-${resetKey}`}
                             name='hrmL_LateDeductFlag'
                             control={control}
                             render={({ field }) => (
@@ -178,7 +184,7 @@ export default function AddMasterLeaveForm({ onSuccess, onCancel, className = ''
                     </div>
                 </div>
 
-                
+
                 <div className='flex justify-end gap-2'>
                     {onCancel && (
                         <Button type='button' variant='outline' onClick={onCancel} disabled={isPending || isSubmitting}>
