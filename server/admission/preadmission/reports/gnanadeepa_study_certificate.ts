@@ -6,7 +6,7 @@ import { api } from '@/lib/apiService';
  * Loads initial data for GDARS Study Certificate Report (Year, Class, Section lists)
  */
 export async function getGDARSStudyCertLoadData() {
-    const url = '/StudyCertificate/getdata/1';
+    const url = '/StudyCertificate/get_loaddata';
     return await api.get<any>('admission', url);
 }
 
@@ -23,8 +23,10 @@ export async function getGDARSStudyCertSearchFilter(data: {
     filterinitialdata?: string;
 }) {
     // Following the pattern in other migrations where searchfilter uses a POST with body
-    const url = '/StudyCertificate/searchfilter';
-    return await api.post<any>('admission', url, data);
+    // const url = '/StudyCertificate/searchfilter';
+    // return await api.post<any>('admission', url, data);
+    const url = `/StudyCertificate/searchfilter?ASMAY_Id=${data.ASMAY_Id}&AMST_SOL=${data.AMST_SOL}&ASMCL_Id=${data.ASMCL_Id}&ASMC_Id=${data.ASMC_Id}&searchfilter=${data.searchfilter}&allorindid=${data.allorindid}`;
+    return await api.post<any>('admission', url, {});
 }
 
 /**
@@ -36,6 +38,8 @@ export async function getGDARSStudyCertDetails(data: {
     ASMC_Id: number;
     AMST_Id: number;
 }) {
-    const url = '/StudyCertificate/Studdetails';
-    return await api.post<any>('admission', url, data);
+    // const url = '/StudyCertificate/Studdetails';
+    // return await api.post<any>('admission', url, data);
+    const url = `/StudyCertificate/getStudData?ASMAY_Id=${data.ASMAY_Id}&ASMCL_Id=${data.ASMCL_Id}&ASMC_Id=${data.ASMC_Id}&AMST_Id=${data.AMST_Id}`;
+    return await api.post<any>('admission', url, {});
 }

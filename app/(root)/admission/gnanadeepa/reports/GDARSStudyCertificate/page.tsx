@@ -52,9 +52,9 @@ export default function GDARSStudyCertificatePage() {
     const debouncedSearch = useDebounce(searchQuery, 500);
 
     /* -------------------- Masters Data -------------------- */
-    const yearList = loadData?.allAcademicYear || [];
-    const classList = loadData?.allclasslist || [];
-    const sectionList = loadData?.allsectionlist || [];
+    const yearList = loadData?.data?.allAcademicYear || loadData?.allAcademicYear || [];
+    const classList = loadData?.data?.allclasslist || loadData?.allclasslist || [];
+    const sectionList = loadData?.data?.allsectionlist || loadData?.allsectionlist || [];
 
     /* -------------------- Search Logic -------------------- */
     useEffect(() => {
@@ -75,7 +75,7 @@ export default function GDARSStudyCertificatePage() {
                     filterinitialdata: studentStatus
                 });
 
-                const list = res?.fillstudlist || res?.studentlist || [];
+                const list = res?.data?.fillstudlist || res?.fillstudlist || res?.data?.studentlist || res?.studentlist || [];
                 setStudentListFromSearch(Array.isArray(list) ? list : []);
             } catch (error) {
                 console.error('Search error:', error);
@@ -106,8 +106,13 @@ export default function GDARSStudyCertificatePage() {
 
         try {
             const res = await detailsMutation.mutateAsync(payload);
-            if (res && res.studentlist && Array.isArray(res.studentlist) && res.studentlist.length > 0) {
-                setReportData(res);
+            console.log("Report Response:", res);
+            const reportResult = res?.data || res;
+            const dataList = reportResult?.studentlist || reportResult?.studenttcdetails || reportResult?.fillstudlist || [];
+            if (reportResult && Array.isArray(dataList) && dataList.length > 0) {
+                // Ensure studentlist is present for the mapping in JSX
+                if (!reportResult.studentlist) reportResult.studentlist = dataList;
+                setReportData(reportResult);
                 setShowReport(true);
             } else {
                 toast.error('No records found');
@@ -362,7 +367,7 @@ export default function GDARSStudyCertificatePage() {
                                                                     <div className="flex flex-col">
                                                                         <span className="font-semibold text-slate-700 uppercase tracking-tight">{sName}</span>
                                                                         <div className="flex items-center text-[10px] text-slate-400 mt-0.5 space-x-2">
-                                                                            <span className="bg-slate-100 px-1.5 py-0.5 rounded uppercase">Adm: {s.amsT_AdmNo || s.amst_admno}</span>
+
                                                                             <span className="bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded uppercase">{s.asmcL_ClassName || s.ASMCL_ClassName}</span>
                                                                         </div>
                                                                     </div>

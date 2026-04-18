@@ -29,7 +29,7 @@ export default function SamarthaTCPage() {
 
     /* -------------------- Masters -------------------- */
     const { data: loadData, isLoading: isLoadDataLoading } = useSamarthaTCLoadData();
-
+    console.log("loadData", loadData);
     /* -------------------- UI State -------------------- */
     const [reportType, setReportType] = useState<'All' | 'indi'>('All');
     const [temporper, setTemporper] = useState<'Temp' | 'Per'>('Per');
@@ -136,7 +136,10 @@ export default function SamarthaTCPage() {
         const payload = {
             ASMAY_Id: academicYearId,
             AMST_Id: studentId,
-            tctemporper: temporper
+            ASMCL_Id: classId || 0,
+            ASMS_Id: sectionId || 0,
+            tctemporper: temporper,
+            report_type: reportType
         };
 
         try {

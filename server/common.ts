@@ -645,7 +645,6 @@ export async function getUserAccessibleModules() {
                                     name: 'Calcutta Boys School',
                                     icon: 'Settings',
                                     pages: [
-
                                         {
                                             id: 60,
                                             name: 'CBS Bonafied Certificate',
@@ -694,8 +693,6 @@ export async function getUserAccessibleModules() {
                                             title: 'CBS Study Certificate',
                                             description: 'CBS Study Certificate'
                                         }
-
-
                                     ]
                                 },
                                 {
@@ -802,25 +799,7 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/newsharedhost/reports/TunBridge',
                                             title: 'TunBridge',
                                             description: 'TunBridge'
-                                        },
-                                        {
-                                            id: 75,
-                                            name: 'Student tc custom report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/student-tc-report-custom',
-                                            title: 'Student tc custom report',
-                                            description: 'Student tc custom report'
                                         }
-                                        // ,
-                                        // {
-                                        //     id: 76,
-                                        //     name: 'Mess Attendance Entry',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/newsharedhost/transactions/mess-attendance-entry',
-                                        //     title: 'Mess Attendance Entry',
-                                        //     description: 'Mess Attendance Entry'
-                                        // }
-
                                     ]
                                 },
                                 {
@@ -828,7 +807,6 @@ export async function getUserAccessibleModules() {
                                     name: 'stjames',
                                     icon: 'Settings',
                                     pages: [
-
                                         {
                                             id: 55,
                                             name: 'St.James TC Custom Report',
@@ -862,8 +840,6 @@ export async function getUserAccessibleModules() {
                                             title: 'St.James Character Report',
                                             description: 'St.James Character Report'
                                         }
-
-
                                     ]
                                 },
                                 {
@@ -887,14 +863,14 @@ export async function getUserAccessibleModules() {
                                             title: 'NDA Student TC',
                                             description: 'NDA Student TC'
                                         },
-                                        {
-                                            id: 63,
-                                            name: 'NDA Student Profile Update',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/nda/reports/nda-student-profile-update',
-                                            title: 'NDA Student Profile Update',
-                                            description: 'NDA Student Profile Update'
-                                        },
+                                        // {
+                                        //     id: 63,
+                                        //     name: 'NDA Student Profile Update',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/reports/nda-student-profile-update',
+                                        //     title: 'NDA Student Profile Update',
+                                        //     description: 'NDA Student Profile Update'
+                                        // },
                                         {
                                             id: 64,
                                             name: 'Notredame Custom TC Report',
@@ -981,7 +957,6 @@ export async function getUserAccessibleModules() {
                                     name: 'Sophia',
                                     icon: 'Settings',
                                     pages: [
-
                                         {
                                             id: 590,
                                             name: 'Smart Card Details',
@@ -1022,7 +997,7 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/reports/Sophia/ClassWiseDailyAttendance',
                                             title: 'ClassWise Daily Attendance',
                                             description: 'ClassWise Daily Attendance'
-                                        },
+                                        }
                                         // {
                                         //     id: 596,
                                         //     name: 'Student Search',
@@ -1119,7 +1094,6 @@ export async function getUserAccessibleModules() {
                                         //     title: 'SophiaStudentParticulars',
                                         //     description: 'SophiaStudentParticulars'
                                         // }
-
                                     ]
                                 },
                                 {
@@ -1151,9 +1125,9 @@ export async function getUserAccessibleModules() {
                                             title: 'St. Thomas TC Custom Report',
                                             description: 'St. Thomas TC Custom Report'
                                         }
-
                                     ]
-                                },
+                                }
+                                ,
 
                                 {
                                     id: 12,
@@ -1189,31 +1163,31 @@ export async function getUserAccessibleModules() {
                                 },
 
 
-                                // {
-                                //     id: 13,
-                                //     name: 'Danvantari Phisiotheraphy',
-                                //     icon: 'Settings',
-                                //     pages: [
+                                {
+                                    id: 13,
+                                    name: 'Danvantari Phisiotheraphy',
+                                    icon: 'Settings',
+                                    pages: [
 
-                                //         {
-                                //             id: 71,
-                                //             name: 'DCPS_BonifiedCertificate',
-                                //             icon: 'Settings',
-                                //             url: '/admission/danvantari/reports/DCPS_BonifiedCertificate',
-                                //             title: 'DCPS_BonifiedCertificate',
-                                //             description: 'DCPS_BonifiedCertificate'
-                                //         },
-                                //         {
-                                //             id: 72,
-                                //             name: 'DCPS_TransferCertificate',
-                                //             icon: 'Settings',
-                                //             url: '/admission/danvantari/reports/DCPS_TransferCertificate',
-                                //             title: 'DCPS_TransferCertificate',
-                                //             description: 'DCPS_TransferCertificate'
-                                //         }
+                                        {
+                                            id: 71,
+                                            name: 'DCPS_BonifiedCertificate',
+                                            icon: 'Settings',
+                                            url: '/admission/danvantari/reports/DCPS_BonifiedCertificate',
+                                            title: 'DCPS_BonifiedCertificate',
+                                            description: 'DCPS_BonifiedCertificate'
+                                        },
+                                        {
+                                            id: 72,
+                                            name: 'DCPS_TransferCertificate',
+                                            icon: 'Settings',
+                                            url: '/admission/danvantari/reports/DCPS_TransferCertificate',
+                                            title: 'DCPS_TransferCertificate',
+                                            description: 'DCPS_TransferCertificate'
+                                        }
 
-                                //     ]
-                                // },
+                                    ]
+                                },
                                 {
                                     id: 14,
                                     name: 'SRKVS',
@@ -1256,39 +1230,38 @@ export async function getUserAccessibleModules() {
                                             description: 'StudentIDcardReportSTPeter'
                                         }
                                     ]
-                                }
-                                //,
-                                // {
-                                //     id: 16,
-                                //     name: 'GNANA DEEPA ACADEMY RESIDENTIAL SCHOOL',
-                                //     icon: 'Settings',
-                                //     pages: [
+                                },
+                                {
+                                    id: 16,
+                                    name: 'GNANA DEEPA ACADEMY RESIDENTIAL SCHOOL',
+                                    icon: 'Settings',
+                                    pages: [
 
 
-                                //         {
-                                //             id: 74,
-                                //             name: 'GDARSStudyCertificate',
-                                //             icon: 'Settings',
-                                //             url: '/admission/gnanadeepa/reports/GDARSStudyCertificate',
-                                //             title: 'GDARSStudyCertificate',
-                                //             description: 'GDARSStudyCertificate'
-                                //         }
-                                //     ]
-                                // },
+                                        {
+                                            id: 74,
+                                            name: 'GDARSStudyCertificate',
+                                            icon: 'Settings',
+                                            url: '/admission/gnanadeepa/reports/GDARSStudyCertificate',
+                                            title: 'GDARSStudyCertificate',
+                                            description: 'GDARSStudyCertificate'
+                                        }
+                                    ]
+                                },
                                 // {
                                 //     id: 17,
                                 //     name: 'SMS degree college',
                                 //     icon: 'Settings',
                                 //     pages: [
                                 //         //Need to create UI 
-                                //         {
-                                //             id: 74,
-                                //             name: 'SMSCollegeStudentTc',
-                                //             icon: 'Settings',
-                                //             url: '/admission/sms/transaction/SMSCollegeStudentTc',
-                                //             title: 'SMSCollegeStudentTc',
-                                //             description: 'SMSCollegeStudentTc'
-                                //         },
+                                //         // {
+                                //         //     id: 74,
+                                //         //     name: 'SMSCollegeStudentTc',
+                                //         //     icon: 'Settings',
+                                //         //     url: '/admission/sms/transaction/SMSCollegeStudentTc',
+                                //         //     title: 'SMSCollegeStudentTc',
+                                //         //     description: 'SMSCollegeStudentTc'
+                                //         // },
 
                                 //         {
                                 //             id: 75,
@@ -1299,7 +1272,23 @@ export async function getUserAccessibleModules() {
                                 //             description: 'SMSCConductCertificate'
                                 //         }
                                 //     ]
-                                // }
+                                // },
+                                {
+                                    id: 18,
+                                    name: 'GM Vidya Nikethan School',
+                                    icon: 'Settings',
+                                    pages: [
+
+                                        {
+                                            id: 75,
+                                            name: 'Smartcarddetails',
+                                            icon: 'Settings',
+                                            url: '/admission/GMVPS/reports/Smartcarddetails',
+                                            title: 'Smartcarddetails',
+                                            description: 'Smartcarddetails'
+                                        }
+                                    ]
+                                }
 
                             ]
                         }
@@ -2684,10 +2673,10 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 8,
-                                            name: "Employee Salary Increment Details",
-                                            icon: "CreditCard",
-                                            url: "/hrms/transactions/employee-increment-salary",
-                                            title: "Employee Salary Increment Details",
+                                            name: 'Employee Salary Increment Details',
+                                            icon: 'CreditCard',
+                                            url: '/hrms/transactions/employee-increment-salary',
+                                            title: 'Employee Salary Increment Details',
                                             description: 'Manage Employee Salary Increment Deatails'
                                         }
                                     ]
@@ -2914,7 +2903,6 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/reports/SalaryIncreementReport',
                                             title: 'Salary Increment Report',
                                             description: 'Salary Increment Report'
-
                                         },
                                         {
                                             id: 26,
@@ -5058,14 +5046,6 @@ export async function getUserAccessibleModules() {
                                     icon: 'Clock',
                                     pages: [
                                         {
-                                            id: 1,
-                                            name: 'Class Section Timetable Replacement',
-                                            icon: 'Clock',
-                                            url: '/timetable/transactions/class-section-report/class-section-report',
-                                            title: 'Staff Replacement For Class And Section',
-                                            description: 'View and generate class-wise timetable grids'
-                                        },
-                                        {
                                             id: 2,
                                             name: 'Deputation',
                                             icon: 'Clock',
@@ -5136,8 +5116,17 @@ export async function getUserAccessibleModules() {
                                             title: 'Consolidated Report',
                                             description: 'TimeTable Consolidated Report'
                                         },
+                                        // this is added form transaction to report
                                         {
                                             id: 2,
+                                            name: 'Class Section Timetable Replacement',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/class-section-report/',
+                                            title: 'Staff Replacement For Class And Section',
+                                            description: 'View and generate class-wise timetable grids'
+                                        },
+                                        {
+                                            id: 3,
                                             name: 'Class Wise TimeTable',
                                             icon: 'Clock',
                                             url: '/timetable/reports/classwisett',
@@ -5145,7 +5134,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Class Wise TimeTable Report'
                                         },
                                         {
-                                            id: 3,
+                                            id: 4,
                                             name: 'Subject Wise TimeTable',
                                             icon: 'Clock',
                                             url: '/timetable/reports/subjectwisett',
@@ -5153,7 +5142,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Subject Wise TimeTable Report'
                                         },
                                         {
-                                            id: 4,
+                                            id: 5,
                                             name: 'Staff Wise TimeTable',
                                             icon: 'Clock',
                                             url: '/timetable/reports/staffwisett',
@@ -5161,7 +5150,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Staff Wise TimeTable Report'
                                         },
                                         {
-                                            id: 5,
+                                            id: 6,
                                             name: 'Deputation Report',
                                             icon: 'Clock',
                                             url: '/timetable/reports/deputationreport',
@@ -5169,7 +5158,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Deputation Report'
                                         },
                                         {
-                                            id: 6,
+                                            id: 7,
                                             name: 'Staff Wise Working Hours',
                                             icon: 'Clock',
                                             url: '/timetable/reports/stafWiseWorkingHours',
@@ -7128,7 +7117,6 @@ export async function getUserAccessibleModules() {
                                     name: 'Transaction',
                                     icon: 'FileBarChart',
                                     pages: [
-
                                         {
                                             id: 4,
                                             name: 'School Staff Period Transaction',
@@ -7166,8 +7154,6 @@ export async function getUserAccessibleModules() {
                                     name: 'Sophia',
                                     icon: 'FileBarChart',
                                     pages: [
-
-
                                         {
                                             id: 80020,
                                             name: 'Sophia',

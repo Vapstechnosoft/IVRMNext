@@ -126,6 +126,23 @@ export default function AIQuestionPaperGenerator() {
             return;
         }
 
+        if (markConfigs.length === 0) {
+            toast.error("At least you should add one section to generate question paper");
+            return;
+        }
+
+        const hasInvalidMarkValue = markConfigs.some(c => c.markValue <= 0);
+        if (hasInvalidMarkValue) {
+            toast.error("Mark value must be greater than zero");
+            return;
+        }
+
+        const hasInvalidCount = markConfigs.some(c => c.count <= 0);
+        if (hasInvalidCount) {
+             toast.error("Number of questions must be at least 1 for all sections");
+             return;
+        }
+
         setIsLoading(true);
         setGeneratedPaper(null);
         setErrorLog(null);
@@ -472,7 +489,7 @@ export default function AIQuestionPaperGenerator() {
                                         <Button
                                             size="lg"
                                             onClick={handleGenerate}
-                                            disabled={isLoading || !file}
+                                            disabled={isLoading}
                                             className="min-w-[200px]"
                                         >
                                             {isLoading ? (
