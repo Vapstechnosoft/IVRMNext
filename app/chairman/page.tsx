@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     TrendingUp,
     Users,
@@ -26,29 +26,15 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import {
-    ResponsiveContainer,
-    BarChart,
-    Bar,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    Legend,
-    Cell
-} from 'recharts';
+
+import dynamic from 'next/dynamic';
+
+const StudentStrengthChart = dynamic(() => import('./_components/dashboard-charts').then(mod => mod.StudentStrengthChart), { ssr: false });
+const EmployeeStrengthChart = dynamic(() => import('./_components/dashboard-charts').then(mod => mod.EmployeeStrengthChart), { ssr: false });
+const FeeDetailsChart = dynamic(() => import('./_components/dashboard-charts').then(mod => mod.FeeDetailsChart), { ssr: false });
 import { cn } from '@/lib/utils';
-
+import { GetChairmanDashBoardFeesdata, getDashboardCounts } from '@/server/dashboards/chairman-dashboard';
 // --- Data from Reference Images ---
-
-const statsCards = [
-    { title: 'SMS SENT FROM PRINCIPAL', value: '0', icon: MessageSquare, color: 'text-cyan-600', bg: 'bg-cyan-500/10', glow: 'shadow-cyan-500/20' },
-    { title: 'EMAIL SENT FROM PRINCIPAL', value: '0', icon: Mail, color: 'text-emerald-600', bg: 'bg-emerald-500/10', glow: 'shadow-emerald-500/20' },
-    { title: 'Total Collected Fee', value: '₹ 19,54,75,970', icon: DollarSign, color: 'text-amber-600', bg: 'bg-amber-500/10', glow: 'shadow-amber-500/20' },
-    { title: 'Total Student', value: '1940', icon: Users, color: 'text-rose-600', bg: 'bg-rose-500/10', glow: 'shadow-rose-500/20' },
-    { title: 'Over All Institution Collected Fee', value: '₹ 25.4M', icon: Wallet, color: 'text-indigo-600', bg: 'bg-indigo-500/10', glow: 'shadow-indigo-500/20' },
-    { title: 'STUDENT ABSENT', subtitle: '(Feb 21, 2026)', value: '142', icon: UserMinus, color: 'text-green-700', bg: 'bg-green-600/10', glow: 'shadow-green-500/20' },
-];
 
 const studentStrengthData = [
     { name: 'PCMB', value: 280, color: '#06b6d4' },
@@ -73,14 +59,7 @@ const employeeStrengthData = [
     { name: 'Attender', value: 10, color: '#ef4444' },
 ];
 
-const feeDetailsData = [
-    { name: 'PCMB', Collected: 32000000, Receivable: 36000000, Balance: 4000000 },
-    { name: 'PCMC', Collected: 34000000, Receivable: 38000000, Balance: 4000000 },
-    { name: 'CEBA', Collected: 28000000, Receivable: 31000000, Balance: 3000000 },
-    { name: 'SEBA', Collected: 26000000, Receivable: 29000000, Balance: 3000000 },
-    { name: 'HEBA', Collected: 18000000, Receivable: 20000000, Balance: 2000000 },
-    { name: 'SBAC', Collected: 15000000, Receivable: 17000000, Balance: 2000000 },
-];
+
 
 const eventDetails = [
     { id: 1, event: 'Annual Sports Meet', month: 'February', start: '2026-02-24', end: '2026-02-26' },
@@ -89,7 +68,7 @@ const eventDetails = [
 
 // --- Sub-Components ---
 
-const StatCard = ({ item }: { item: typeof statsCards[0] }) => (
+const StatCard = ({ item }: { item: any }) => (
     <Card className={cn(
         "border-none shadow-xl rounded-3xl overflow-hidden group hover:scale-[1.02] transition-all duration-500 card-premium relative",
         item.glow
@@ -100,7 +79,8 @@ const StatCard = ({ item }: { item: typeof statsCards[0] }) => (
                     <item.icon className={item.color} size={24} />
                 </div>
                 <div className="flex flex-col items-end">
-                    <button className="text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-primary transition-colors flex items-center gap-1 group/btn">
+                    {/* biome-ignore lint/a11y/useButtonType: <explanation> */}
+                    <button className='group/btn flex items-center gap-1 font-black text-[10px] text-slate-400 uppercase tracking-widest transition-colors hover:text-primary'>
                         More info <ChevronRight size={12} className="group-hover/btn:translate-x-0.5 transition-transform" />
                     </button>
                 </div>
@@ -141,6 +121,62 @@ const ChartCard = ({ title, children, className }: { title: string, children: Re
 );
 
 export default function ChairmanDashboard() {
+    const [dashboardData, setDashboardData] = useState<any>(null);
+    const [feeDetailsData, setFeeDetailsData] = useState<any[]>([]);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            console.log('fetching preadmission data');
+            try {
+                const response = await getDashboardCounts();
+                const feesResponse = await GetChairmanDashBoardFeesdata(231);
+                console.log('preadmission data raw response', response);
+
+                // If the response has a data property (nested wrapper), use it, otherwise use the response itself
+                const finalData = response?.data ? response.data : response;
+
+                console.log('preadmission final data', finalData);
+                setDashboardData(finalData);
+
+                // Format fees data specifically for the FeeDetailsChart
+                const feesDataArray = feesResponse?.data || [];
+                if (Array.isArray(feesDataArray)) {
+                    console.log('feesDataArray', feesDataArray);
+                    const mappedFees = feesDataArray.map((item: any) => ({
+                        name: item.classname || 'Unknown',
+                        Collected: item.callected || 0,
+                        Receivable: item.receivable || 0,
+                        Balance: item.ballance || 0
+                    }));
+                    setFeeDetailsData(mappedFees);
+                    console.log('mappedFees', mappedFees);
+                }
+            } catch (error) {
+                console.error('Error fetching dashboard counts:', error);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    const statsCards = [
+        { title: 'SMS SENT FROM PRINCIPAL', value: '0', icon: MessageSquare, color: 'text-cyan-600', bg: 'bg-cyan-500/10', glow: 'shadow-cyan-500/20' },
+        { title: 'EMAIL SENT FROM PRINCIPAL', value: '0', icon: Mail, color: 'text-emerald-600', bg: 'bg-emerald-500/10', glow: 'shadow-emerald-500/20' },
+        { title: 'Total Collected Fee', value: '₹ 19,54,75,970', icon: DollarSign, color: 'text-amber-600', bg: 'bg-amber-500/10', glow: 'shadow-amber-500/20' },
+
+        {
+            title: 'Total Student',
+            value: dashboardData?.studentCount ?? '0',
+            icon: Users,
+            color: 'text-rose-600',
+            bg: 'bg-rose-500/10',
+            glow: 'shadow-rose-500/20'
+        },
+
+        { title: 'Over All Institution Collected Fee', value: '₹ 25.4M', icon: Wallet, color: 'text-indigo-600', bg: 'bg-indigo-500/10', glow: 'shadow-indigo-500/20' },
+        { title: 'STUDENT ABSENT', subtitle: '(Feb 21, 2026)', value: '142', icon: UserMinus, color: 'text-green-700', bg: 'bg-green-600/10', glow: 'shadow-green-500/20' },
+    ];
+
     return (
         <div className="space-y-10 pb-20 animate-in fade-in slide-in-from-bottom-6 duration-1000">
             {/* Header Section */}
@@ -178,62 +214,14 @@ export default function ChairmanDashboard() {
                 {/* Student Strength */}
                 <ChartCard title="Student Strength Academic Year 2025-2026">
                     <div className="h-[380px] mt-6">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={studentStrengthData} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                <XAxis
-                                    dataKey="name"
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 800 }}
-                                    angle={-45}
-                                    textAnchor="end"
-                                    interval={0}
-                                    height={60}
-                                />
-                                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 800 }} />
-                                <Tooltip
-                                    cursor={{ fill: '#f8fafc' }}
-                                    contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', fontWeight: 800 }}
-                                />
-                                <Bar dataKey="value" radius={[8, 8, 0, 0]} barSize={28}>
-                                    {studentStrengthData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.color} />
-                                    ))}
-                                </Bar>
-                            </BarChart>
-                        </ResponsiveContainer>
+                        <StudentStrengthChart data={studentStrengthData} />
                     </div>
                 </ChartCard>
 
                 {/* Employee Strength */}
                 <ChartCard title="Employee Role-wise Strength">
                     <div className="h-[380px] mt-6">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={employeeStrengthData} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                <XAxis
-                                    dataKey="name"
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 800 }}
-                                    angle={-45}
-                                    textAnchor="end"
-                                    interval={0}
-                                    height={60}
-                                />
-                                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 800 }} />
-                                <Tooltip
-                                    cursor={{ fill: '#f8fafc' }}
-                                    contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', fontWeight: 800 }}
-                                />
-                                <Bar dataKey="value" fill="#3b82f6" radius={[8, 8, 0, 0]} barSize={28}>
-                                    {employeeStrengthData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.color} />
-                                    ))}
-                                </Bar>
-                            </BarChart>
-                        </ResponsiveContainer>
+                        <EmployeeStrengthChart data={employeeStrengthData} />
                     </div>
                 </ChartCard>
             </div>
@@ -243,37 +231,7 @@ export default function ChairmanDashboard() {
                 {/* Fee Details Grouped Bar Chart */}
                 <ChartCard title="Classwise Fee Details 2025-2026" className="lg:col-span-8">
                     <div className="h-[400px] mt-8">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={feeDetailsData} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                <XAxis
-                                    dataKey="name"
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 800 }}
-                                    height={40}
-                                />
-                                <YAxis
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tick={{ fill: '#94a3b8', fontSize: 9, fontWeight: 800 }}
-                                    tickFormatter={(val) => `₹${(val / 1000000).toFixed(0)}M`}
-                                />
-                                <Tooltip
-                                    cursor={{ fill: '#f8fafc' }}
-                                    contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 25px 30px -5px rgb(0 0 0 / 0.14)', fontWeight: 800 }}
-                                />
-                                <Legend
-                                    verticalAlign="top"
-                                    align="right"
-                                    iconType="circle"
-                                    wrapperStyle={{ paddingBottom: '30px', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}
-                                />
-                                <Bar dataKey="Collected" fill="#10b981" radius={[4, 4, 0, 0]} barSize={14} />
-                                <Bar dataKey="Receivable" fill="#f59e0b" radius={[4, 4, 0, 0]} barSize={14} />
-                                <Bar dataKey="Balance" fill="#ef4444" radius={[4, 4, 0, 0]} barSize={14} />
-                            </BarChart>
-                        </ResponsiveContainer>
+                        <FeeDetailsChart data={feeDetailsData} />
                     </div>
                 </ChartCard>
 

@@ -140,6 +140,12 @@ export async function getReportDetails(data: any) {
 // biome-ignore lint/correctness/noUnusedVariables: <explanation>
 export async function getToppersReportDetails(data: any) {
     const url = '/toppers_list_report/toppers_list_report';
-    const response = await api.post('exam', url,data);
+    const response = await api.post('exam', url, data);
+    return response;
+}
+
+export async function getMappedSubjects(data: any) {
+    const url = '/toppers_list_report/GetSubjects_Based_On_Exams';
+    const response = await api.post('exam', url, data);
     return response;
 }

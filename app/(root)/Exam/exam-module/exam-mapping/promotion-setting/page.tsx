@@ -68,10 +68,11 @@ function PromotionalSettingPageContent({
 
                         const mapped = items.map((x) => ({
                             ...x,
-                            id: x.emP_Id // the row id for ordering
+                            id: x.empS_Id // the row id for ordering
                         }));
 
                         setOrderData(mapped);
+                        console.log('promotion settingh setOrderData', mapped);
                     } else {
                         toast.error(response.message || 'Failed to fetch order details');
                     }
@@ -92,11 +93,10 @@ function PromotionalSettingPageContent({
 
             const temp_Order = updated.map((item, index) => ({
                 promO_Id: item.id,
-                proM_Id: item.id,
                 promO_Order: index + 1
             }));
 
-            const res = await UpdateOrderedPromotionalSettingDetails({ temp_Order });
+            const res = await UpdateOrderedPromotionalSettingDetails(temp_Order);
 
             if (res?.success) {
                 toast.success(res.message || 'Order updated successfully');

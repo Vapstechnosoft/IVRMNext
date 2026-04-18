@@ -74,7 +74,10 @@ import {
     type PFForm10Request,
     type PFForm5Request,
     type PFChallanRequest,
-    type PFForm6ARequest
+    type PFForm6ARequest,
+    getPFSummaryReport,
+    type PFSummaryReportRequest,
+    getVPFSummaryReport
 } from '@/server/hrms/reports/esi-pf-reports';
 import {
     getPFChallanReportOnload,
@@ -114,7 +117,8 @@ import {
     getGroupTypes as getMasterDropdownGroupTypes,
     getDepartmentsByGroupType as getMasterDropdownDepartments,
     getDesignationsByDepartment as getMasterDropdownDesignations,
-    getEmployeesByDeptAndDesignation as getMasterDropdownEmployees
+    getEmployeesByDeptAndDesignation as getMasterDropdownEmployees,
+    getEmployees
 } from '@/server/hrms/master-dropdown';
 
 import { getEmployeesLoanReport, type LoanReportRequest } from '@/server/hrms/reports/loan-report';
@@ -745,13 +749,11 @@ export function useLoginBasedDepartmentsByGroupType(groupTypeIds: number[]) {
  */
 
 export function usePS7ReportEmployees() {
-    return useMutation({
-        mutationFn: () => getPS7ReportEmployees(),
-        onError: (error: Error) => {
-            toast.error(error.message || 'Failed to fetch the employess');
-        }
-    }
-    );
+    return useQuery({
+        queryKey: ['ps7-report-employees'],
+        queryFn: () => getPS7ReportEmployees(),
+        staleTime: 1000 * 60 * 10
+    });
 }
 
 /**
@@ -777,6 +779,33 @@ export function usePS8MonthWiseReportStJames() {
         mutationFn: (data: PS8MonthWiseReportDataRequest) => getPS8MonthWiseReportData(data),
         onError: (error: Error) => {
             toast.error(error.message || 'Failed to fetch the PS8 Month Wise Report');
+        }
+    });
+}
+
+
+
+/**
+ * Hook for PF Summary Report and PF Yearly Report
+ */
+export function usePFSummaryReport() {
+    return useMutation({
+        mutationFn: (data: PFSummaryReportRequest) => getPFSummaryReport(data),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to fetch the PF Summary Report');
+        }
+    });
+}
+
+/**
+ * Hook for VPF Summary Report and VPF Yearly Report
+ */
+
+export function useVPFSummaryReport() {
+    return useMutation({
+        mutationFn: (data: PFSummaryReportRequest) => getVPFSummaryReport(data),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to fetch the VPF Summary Report');
         }
     });
 }
