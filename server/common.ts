@@ -1272,6 +1272,22 @@ export async function getUserAccessibleModules() {
                                             description: 'SMSCConductCertificate'
                                         }
                                     ]
+                                },
+                                {
+                                    id: 18,
+                                    name: 'GM Vidya Nikethan School',
+                                    icon: 'Settings',
+                                    pages: [
+
+                                        {
+                                            id: 75,
+                                            name: 'Smartcarddetails',
+                                            icon: 'Settings',
+                                            url: '/admission/GMVPS/reports/Smartcarddetails',
+                                            title: 'Smartcarddetails',
+                                            description: 'Smartcarddetails'
+                                        }
+                                    ]
                                 }
 
                             ]
