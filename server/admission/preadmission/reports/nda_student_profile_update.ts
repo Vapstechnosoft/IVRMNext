@@ -4,44 +4,45 @@ import { api } from '@/lib/apiService';
 
 
 export async function getNdaStudentProfileDetails() {
-    const url = '/StudentDashboardFacade/Getdetails';
+    const url = `/StudentDashboard/Getdetails`;
     try {
-        return await api.get<any>('portal', url);
-    } catch (error) {
+        const res = await api.post<any>('admission', url, {});
+        return res;
+    } catch (error: any) {
         console.error('[Server] getNdaStudentProfileDetails error:', error);
-        throw error;
+        return { success: false, message: error?.message || String(error) };
     }
 }
 
-export async function getNdaSiblingDetails(amsIdSibbling: number) {
-    const url = '/StudentDashboardFacade/Getdetails12';
-    const data = {
-        AMST_Idsibbling: amsIdSibbling,
-    };
+export async function getNdaSiblingDetails(updateFlag: boolean) {
+    const url = `/StudentDashboard/Getdetails12?updateflag1=${updateFlag}&stdupdate=1`;
     try {
-        return await api.post<any>('portal', url, data);
-    } catch (error) {
+        const res = await api.post<any>('admission', url, {});
+        return res;
+    } catch (error: any) {
         console.error('[Server] getNdaSiblingDetails error:', error);
-        throw error;
+        return { success: false, message: error?.message || String(error) };
     }
 }
 
-export async function saveNdaProfileUpdateRequest(data: any) {
-    const url = '/StudentDashboardFacade/NDAsaverequest';
+export async function saveNdaProfileUpdateRequest(payload: any) {
+    const url = '/StudentDashboard/NDAsaverequest';
     try {
-        return await api.post<any>('portal', url, data);
-    } catch (error) {
+        const res = await api.post<any>('admission', url, payload);
+        return res;
+    } catch (error: any) {
         console.error('[Server] saveNdaProfileUpdateRequest error:', error);
-        throw error;
+        return { success: false, message: error?.message || String(error) };
     }
 }
 
-export async function uploadNdaProfilePic(formData: FormData) {
-    const url = '/ImageUploadFacade/Uploadprofilepic';
+export async function uploadNdaProfilePic(payload: { file: string[] }) {
+    const url = '/StudentDashboard/Uploadprofilepic';
     try {
-        return await api.postMultipart<string>('portal', url, formData);
-    } catch (error) {
+        const res = await api.post<any>('admission', url, payload);
+        return res;
+    } catch (error: any) {
         console.error('[Server] uploadNdaProfilePic error:', error);
-        throw error;
+        return { success: false, message: error?.message || String(error) };
     }
 }

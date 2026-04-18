@@ -802,9 +802,24 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/newsharedhost/reports/TunBridge',
                                             title: 'TunBridge',
                                             description: 'TunBridge'
+                                        },
+                                        {
+                                            id: 75,
+                                            name: 'Student tc custom report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/student-tc-report-custom',
+                                            title: 'Student tc custom report',
+                                            description: 'Student tc custom report'
                                         }
-
-
+                                        // ,
+                                        // {
+                                        //     id: 76,
+                                        //     name: 'Mess Attendance Entry',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/newsharedhost/transactions/mess-attendance-entry',
+                                        //     title: 'Mess Attendance Entry',
+                                        //     description: 'Mess Attendance Entry'
+                                        // }
 
                                     ]
                                 },
@@ -872,14 +887,14 @@ export async function getUserAccessibleModules() {
                                             title: 'NDA Student TC',
                                             description: 'NDA Student TC'
                                         },
-                                        // {
-                                        //     id: 63,
-                                        //     name: 'NDA Student Profile Update',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/reports/nda-student-profile-update',
-                                        //     title: 'NDA Student Profile Update',
-                                        //     description: 'NDA Student Profile Update'
-                                        // },
+                                        {
+                                            id: 63,
+                                            name: 'NDA Student Profile Update',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/nda/reports/nda-student-profile-update',
+                                            title: 'NDA Student Profile Update',
+                                            description: 'NDA Student Profile Update'
+                                        },
                                         {
                                             id: 64,
                                             name: 'Notredame Custom TC Report',
@@ -960,8 +975,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Student tc custom report'
                                         }
                                     ]
-                                }
-                                ,
+                                },
                                 {
                                     id: 12,
                                     name: 'Sophia',
@@ -1107,8 +1121,7 @@ export async function getUserAccessibleModules() {
                                         // }
 
                                     ]
-                                }
-                                ,
+                                },
                                 {
                                     id: 12,
                                     name: 'St. Thomas Church School',
@@ -1140,41 +1153,40 @@ export async function getUserAccessibleModules() {
                                         }
 
                                     ]
-                                }
-                                // ,
+                                },
 
-                                // {
-                                //     id: 12,
-                                //     name: 'Samartha',
-                                //     icon: 'Settings',
-                                //     pages: [
+                                {
+                                    id: 12,
+                                    name: 'Samartha',
+                                    icon: 'Settings',
+                                    pages: [
 
-                                //         {
-                                //             id: 71,
-                                //             name: 'SamarthaBonafideCertificate',
-                                //             icon: 'Settings',
-                                //             url: '/admission/samartha/reports/SamarthaBonafideCertificate',
-                                //             title: 'Samartha Bonafide Certificate',
-                                //             description: 'Samartha Bonafide Certificate'
-                                //         },
-                                //         {
-                                //             id: 72,
-                                //             name: 'SamarthaTC',
-                                //             icon: 'Settings',
-                                //             url: '/admission/samartha/reports/SamarthaTC',
-                                //             title: 'SamarthaTC',
-                                //             description: 'SamarthaTC'
-                                //         },
-                                //         {
-                                //             id: 73,
-                                //             name: 'OverAllViewReportt',
-                                //             icon: 'Settings',
-                                //             url: '/admission/samartha/reports/OverAllViewReportt',
-                                //             title: 'OverAllViewReportt',
-                                //             description: 'OverAllViewReportt'
-                                //         }
-                                //     ]
-                                // },
+                                        {
+                                            id: 71,
+                                            name: 'SamarthaBonafideCertificate',
+                                            icon: 'Settings',
+                                            url: '/admission/samartha/reports/SamarthaBonafideCertificate',
+                                            title: 'Samartha Bonafide Certificate',
+                                            description: 'Samartha Bonafide Certificate'
+                                        },
+                                        {
+                                            id: 72,
+                                            name: 'SamarthaTC',
+                                            icon: 'Settings',
+                                            url: '/admission/samartha/reports/SamarthaTC',
+                                            title: 'SamarthaTC',
+                                            description: 'SamarthaTC'
+                                        },
+                                        {
+                                            id: 73,
+                                            name: 'OverAllViewReportt',
+                                            icon: 'Settings',
+                                            url: '/admission/samartha/reports/Over-All-View-Reportt',
+                                            title: 'OverAllViewReportt',
+                                            description: 'OverAllViewReportt'
+                                        }
+                                    ]
+                                },
 
 
                                 // {
@@ -1202,49 +1214,50 @@ export async function getUserAccessibleModules() {
 
                                 //     ]
                                 // },
-                                // {
-                                //     id: 14,
-                                //     name: 'SRKVS',
-                                //     icon: 'Settings',
-                                //     pages: [
+                                {
+                                    id: 14,
+                                    name: 'SRKVS',
+                                    icon: 'Settings',
+                                    pages: [
 
 
-                                //         {
-                                //             id: 74,
-                                //             name: 'SRKVS Student Address Book',
-                                //             icon: 'Settings',
-                                //             url: '/admission/srkvs/reports/SRKVSStudentAddressBook',
-                                //             title: 'SRKVSStudentAddressBook',
-                                //             description: 'SRKVSStudentAddressBook'
-                                //         }
-                                //     ]
-                                // },
-                                // {
-                                //     id: 15,
-                                //     name: 'St. Peters School Durgapur',
-                                //     icon: 'Settings',
-                                //     pages: [
+                                        {
+                                            id: 74,
+                                            name: 'SRKVS Student Address Book',
+                                            icon: 'Settings',
+                                            url: '/admission/srkvs/reports/SRKVSStudentAddressBook',
+                                            title: 'SRKVSStudentAddressBook',
+                                            description: 'SRKVSStudentAddressBook'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 15,
+                                    name: 'St. Peters School Durgapur',
+                                    icon: 'Settings',
+                                    pages: [
 
 
-                                //         {
-                                //             id: 74,
-                                //             name: 'Employee IDcard Report STpeter',
-                                //             icon: 'Settings',
-                                //             url: '/admission/stpeter/reports/EmployeeIDcardReportSTpeter',
-                                //             title: 'EmployeeIDcardReportSTpeter',
-                                //             description: 'EmployeeIDcardReportSTpeter'
-                                //         },
+                                        // {
+                                        //     id: 74,
+                                        //     name: 'Employee IDcard Report STpeter',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/stpeter/reports/EmployeeIDcardReportSTpeter',
+                                        //     title: 'EmployeeIDcardReportSTpeter',
+                                        //     description: 'EmployeeIDcardReportSTpeter'
+                                        // },
 
-                                //         {
-                                //             id: 75,
-                                //             name: 'Student IDcard Report STPeter',
-                                //             icon: 'Settings',
-                                //             url: '/admission/stpeter/reports/StudentIDcardReportSTPeter',
-                                //             title: 'StudentIDcardReportSTPeter',
-                                //             description: 'StudentIDcardReportSTPeter'
-                                //         }
-                                //     ]
-                                // },
+                                        {
+                                            id: 75,
+                                            name: 'Student IDcard Report STPeter',
+                                            icon: 'Settings',
+                                            url: '/admission/stpeter/reports/StudentIDcardReportSTPeter',
+                                            title: 'StudentIDcardReportSTPeter',
+                                            description: 'StudentIDcardReportSTPeter'
+                                        }
+                                    ]
+                                }
+                                //,
                                 // {
                                 //     id: 16,
                                 //     name: 'GNANA DEEPA ACADEMY RESIDENTIAL SCHOOL',
@@ -1268,14 +1281,14 @@ export async function getUserAccessibleModules() {
                                 //     icon: 'Settings',
                                 //     pages: [
                                 //         //Need to create UI 
-                                //         // {
-                                //         //     id: 74,
-                                //         //     name: 'SMSCollegeStudentTc',
-                                //         //     icon: 'Settings',
-                                //         //     url: '/admission/sms/transaction/SMSCollegeStudentTc',
-                                //         //     title: 'SMSCollegeStudentTc',
-                                //         //     description: 'SMSCollegeStudentTc'
-                                //         // },
+                                //         {
+                                //             id: 74,
+                                //             name: 'SMSCollegeStudentTc',
+                                //             icon: 'Settings',
+                                //             url: '/admission/sms/transaction/SMSCollegeStudentTc',
+                                //             title: 'SMSCollegeStudentTc',
+                                //             description: 'SMSCollegeStudentTc'
+                                //         },
 
                                 //         {
                                 //             id: 75,
@@ -2959,7 +2972,7 @@ export async function getUserAccessibleModules() {
                                         //     title: 'PS8 Form Report',
                                         //     description: 'Manage PS8 Form Report (st.james)'
                                         // },
-                                        
+
                                     ]
                                 }
                             ]
@@ -3211,11 +3224,11 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 10,
-                                            name : "Employee Log Insertion",
-                                            icon : "ClipboardList",
-                                            url : "/hrms/attendance-management/masters/FrontOfficeAddlogsCBS",
-                                            title : "Employee Log Insertion",
-                                            description : "Manage Employee Log Insertion"
+                                            name: "Employee Log Insertion",
+                                            icon: "ClipboardList",
+                                            url: "/hrms/attendance-management/masters/FrontOfficeAddlogsCBS",
+                                            title: "Employee Log Insertion",
+                                            description: "Manage Employee Log Insertion"
                                         }
 
                                     ]

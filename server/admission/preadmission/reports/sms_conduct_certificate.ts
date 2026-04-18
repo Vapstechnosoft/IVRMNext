@@ -6,7 +6,7 @@ import { api } from '@/lib/apiService';
  * Loads initial data for SMS College Study Certificate Report
  */
 export async function getSMSCConductCertLoadData() {
-    const url = '/CollegeStudyCertificateReport/getdata/1';
+    const url = '/CollegeStudyCertificateReport/getdata';
     return await api.get<any>('admission', url);
 }
 
