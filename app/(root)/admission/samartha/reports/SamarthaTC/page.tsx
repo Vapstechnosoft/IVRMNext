@@ -29,7 +29,7 @@ export default function SamarthaTCPage() {
 
     /* -------------------- Masters -------------------- */
     const { data: loadData, isLoading: isLoadDataLoading } = useSamarthaTCLoadData();
-
+    console.log("loadData", loadData);
     /* -------------------- UI State -------------------- */
     const [reportType, setReportType] = useState<'All' | 'indi'>('All');
     const [temporper, setTemporper] = useState<'Temp' | 'Per'>('Per');
@@ -139,16 +139,96 @@ export default function SamarthaTCPage() {
         const payload = {
             ASMAY_Id: academicYearId,
             AMST_Id: studentId,
-            tctemporper: temporper
+            ASMCL_Id: classId || 0,
+            ASMS_Id: sectionId || 0,
+            tctemporper: temporper,
+            report_type: reportType
         };
 
         try {
             const res = await detailsMutation.mutateAsync(payload);
             const data = res?.data || res;
 
-            if (data?.studentTCList?.length > 0) {
-                setReportData(data);
-                setShowCertificate(true);
+            // Merging strategy: studenttcdetails has TC info, result likely has student details
+            const rawTcList = data?.studenttcdetails || data?.studentTCList || [];
+            const studentInfoList = data?.result || [];
+
+            // Deduplicate TC list by a combination of Student ID and TC ID
+            const uniqueTcMap = new Map();
+            rawTcList.forEach((item: any) => {
+                const sId = item.amsT_Id || item.amst_id || '0';
+                const tcId = item.astC_Id || item.astc_id || '0';
+                const key = `${sId}-${tcId}`;
+                if (!uniqueTcMap.has(key)) {
+                    uniqueTcMap.set(key, item);
+                }
+            });
+
+            let tcList = Array.from(uniqueTcMap.values());
+
+            // If a specific student is selected, we only want to show ONE certificate for them
+            if (studentId || reportType === 'indi') {
+                tcList = tcList.slice(0, 1);
+            }
+
+            if (tcList.length > 0) {
+                const normalizedList = tcList.map((s: any, idx: number) => {
+                    const info = studentInfoList.find((r: any) =>
+                        (r.amsT_Id && s.amsT_Id && r.amsT_Id === s.amsT_Id) ||
+                        (r.amst_id && s.amst_id && r.amst_id === s.amst_id) ||
+                        (r.amst_admno && s.amsT_AdmNo && r.amst_admno === s.amst_admno)
+                    ) || studentInfoList[0] || {};
+
+                    const merged = { ...info, ...s };
+                    const firstName = merged.studentname || merged.studentName || merged.amsT_FirstName || merged.amst_firstname || '';
+                    const middleName = merged.amsT_MiddleName || merged.amst_middlename || '';
+                    const lastName = merged.amsT_LastName || merged.amst_lastname || '';
+
+                    return {
+                        ...merged,
+                        amsT_FirstName: firstName,
+                        amsT_MiddleName: middleName,
+                        amsT_LastName: lastName,
+                        amsT_AdmNo: merged.amsT_AdmNo || merged.amst_admno || merged.admno || '',
+                        amsT_FatherName: merged.amsT_FatherName || merged.amst_fathername || merged.fathername || '',
+                        amsT_MotherName: merged.amsT_MotherName || merged.amst_mothername || merged.mothername || '',
+                        AMST_PENNo: merged.AMST_PENNo || merged.amst_penno || merged.penno || '',
+                        nationality: merged.nationality || merged.Nationality || '',
+                        caste: merged.caste || merged.Caste || merged.religion || '',
+                        amsT_Date: merged.amsT_Date || merged.amst_date || '',
+                        JoinedClass: merged.JoinedClass || merged.joinedclass || (data?.classnamejoin?.[0]?.classjoinname) || '',
+                        amsT_DOB: merged.amsT_DOB || merged.amst_dob || '',
+                        amsT_DOB_Words: merged.amsT_DOB_Words || merged.amst_dob_words || '',
+                        astC_TCNO: merged.astC_TCNO || merged.astc_tcno || '',
+                        astC_Conduct: merged.astC_Conduct || merged.astc_conduct || '',
+                        astC_LeavingReason: merged.astC_LeavingReason || merged.astc_leavingreason || '',
+                        astC_Remarks: merged.astC_Remarks || merged.astc_remarks || '',
+                        astC_TCIssueDate: merged.astC_TCIssueDate || merged.astc_tcissuedate || '',
+                        ASTC_TCApplicationDate: merged.astC_TCApplicationDate || merged.astc_tcapplicationdate || merged.ASTC_TCApplicationDate || '',
+                        ASTC_ExtraActivities: merged.astC_ExtraActivities || merged.astc_extraactivities || '',
+                        classname: merged.classname || merged.last_Class_Studied || merged.last_class_studied || '',
+                        details: merged.details || merged.astC_LastExamDetails || '',
+                        qualificlass: merged.qualificlass || merged.astC_Qual_Class || '',
+                        result: merged.result || merged.astC_Result || merged.astC_FeePaid || merged.astc_feepaid || '',
+                        noof_schooldays: merged.noof_schooldays || merged.astC_WorkingDays || '',
+                        noof_daysattended: merged.noof_daysattended || merged.astC_AttendedDays || '',
+                        subjectstudied: merged.subjectstudied || merged.astC_SubjectsStudied || '',
+                        langustudies: merged.langustudies || merged.astC_LanguageStudied || '',
+                    };
+                });
+
+                // Clear previous state first to avoid duplicate rendering
+                setShowCertificate(false);
+                setReportData(null);
+
+                setTimeout(() => {
+                    const finalData = { ...data };
+                    delete (finalData as any).studenttcdetails;
+                    delete (finalData as any).studentTCList;
+
+                    setReportData({ ...finalData, studenttcdetails: normalizedList });
+                    setShowCertificate(true);
+                }, 50);
             } else {
                 toast.error('No records found');
                 setShowCertificate(false);
@@ -441,186 +521,188 @@ export default function SamarthaTCPage() {
             </CollapsibleSection>
 
             {/* Certificate Preview */}
-            {showCertificate && reportData && reportData.studentTCList?.map((student: any, index: number) => {
-                const datafrom = new Date(reportData.academicList1?.[0]?.asmaY_From_Date);
-                const datato = new Date(reportData.academicList1?.[0]?.asmaY_To_Date);
-                const frommonthName = getMonthName(datafrom.getMonth());
-                const tomonthName = getMonthName(datato.getMonth());
-                const fromYear = datafrom.getFullYear();
-                const toYear = datato.getFullYear();
+            <div ref={printRef}>
+                {showCertificate && reportData && reportData.studenttcdetails?.map((student: any, index: number) => {
+                    const datafrom = new Date(reportData.academicList1?.[0]?.asmaY_From_Date);
+                    const datato = new Date(reportData.academicList1?.[0]?.asmaY_To_Date);
+                    const frommonthName = getMonthName(datafrom.getMonth());
+                    const tomonthName = getMonthName(datato.getMonth());
+                    const fromYear = datafrom.getFullYear();
+                    const toYear = datato.getFullYear();
 
-                return (
-                    <div key={index} className='mt-8 flex flex-col items-center bg-gray-50 p-4 md:p-8 rounded-2xl border-2 border-dashed border-indigo-200 overflow-auto'>
-                        <div ref={printRef} className='bg-white shadow-2xl w-[210mm] min-h-[297mm] p-0 printable-content'>
-                            <div className="certificate-page relative p-[10mm] flex flex-col" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', margin: '0 auto' }}>
-                                <div className="border-[1px] border-black p-[10px] h-full flex flex-col">
+                    return (
+                        <div key={index} className='mt-8 flex flex-col items-center bg-gray-50 p-4 md:p-8 rounded-2xl border-2 border-dashed border-indigo-200 overflow-auto'>
+                            <div className='bg-white shadow-2xl w-[210mm] min-h-[297mm] p-0 printable-content'>
+                                <div className="certificate-page relative p-[10mm] flex flex-col" style={{ width: '210mm', height: '440mm', pageBreakAfter: 'always', margin: '0 auto' }}>
+                                    <div className="border-[1px] border-black p-[10px] h-full flex flex-col">
 
-                                    {/* Header Image */}
-                                    <div className="w-full mb-4">
-                                        <img
-                                            src="https://vapsclg.blob.core.windows.net/files/76/NoticeUpload/d120170c-fbbf-48c2-b675-ef8d053a0d03.jpg"
-                                            alt="Institution Logo"
-                                            className="w-[74%] h-auto object-contain mx-auto"
-                                        />
-                                    </div>
-
-                                    {/* Title */}
-                                    <div className="text-center mb-6">
-                                        <h2 className="text-2xl font-black underline decoration-2 underline-offset-4">TRANSFER CERTIFICATE</h2>
-                                    </div>
-
-                                    {/* Stats Row */}
-                                    <div className="grid grid-cols-2 gap-y-2 px-8 text-base font-bold mb-6">
-                                        <div className="flex">CBSE Affiliation No. : <span className="ml-2 font-normal">130445</span></div>
-                                        <div className="flex justify-end">ADM NO. : <span className="ml-2 font-normal">{student.amsT_AdmNo}</span></div>
-                                        <div className="flex">School Code : <span className="ml-2 font-normal">57709</span></div>
-                                        <div className="flex justify-end">PEN No. : <span className="ml-2 font-normal">{student.AMST_PENNo}</span></div>
-                                        <div className="flex">Tc No : <span className="ml-2 font-normal">{student.astC_TCNO}</span></div>
-                                        <div className="flex justify-end">APAAR No : <span className="ml-2 font-normal border-b border-dotted min-w-[100px]" contentEditable></span></div>
-                                    </div>
-
-                                    {/* Main Table */}
-                                    <div className="px-8 flex-1">
-                                        <table className="w-full border-collapse text-base leading-relaxed">
-                                            <tbody>
-                                                <tr>
-                                                    <td className="w-[45%] py-1">1. Name of the pupil</td>
-                                                    <td className="w-[2%]">:</td>
-                                                    <td className="border-b border-dotted font-bold px-2 uppercase">{student.amsT_FirstName} {student.amsT_MiddleName} {student.amsT_LastName}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td className="py-1">2. Father's/Guardian's Name</td>
-                                                    <td>:</td>
-                                                    <td className="border-b border-dotted font-bold px-2 uppercase">{student.amsT_FatherName}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td className="py-1">3. Mother's Name</td>
-                                                    <td>:</td>
-                                                    <td className="border-b border-dotted font-bold px-2 uppercase">{student.amsT_MotherName}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td className="py-1">4. Nationality</td>
-                                                    <td>:</td>
-                                                    <td className="border-b border-dotted font-bold px-2">{student.nationality}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td className="py-1 align-top">5. Identification Mark</td>
-                                                    <td>:</td>
-                                                    <td className="border-b border-dotted px-2 whitespace-pre-line">{identificationMarks}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td className="py-1">6. Whether candidate belongs to SC/ST/OBC/GEN</td>
-                                                    <td>:</td>
-                                                    <td className="border-b border-dotted font-bold px-2">{student.caste}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td className="py-1">7. Date of First admission in school with Class</td>
-                                                    <td>:</td>
-                                                    <td className="border-b border-dotted font-bold px-2">{student.amsT_Date ? format(new Date(student.amsT_Date), 'dd/MM/yyyy') : ''}, {student.JoinedClass}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td className="py-1">8. Date of birth (in figures)</td>
-                                                    <td>:</td>
-                                                    <td className="border-b border-dotted font-bold px-2">{student.amsT_DOB ? format(new Date(student.amsT_DOB), 'dd/MM/yyyy') : ''}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td className="py-1 pl-4">(in words)</td>
-                                                    <td>:</td>
-                                                    <td className="border-b border-dotted font-bold px-2">{student.amsT_DOB_Words?.replace(/\s+/g, '-')}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td className="py-1">9. Class in which the pupil last studied</td>
-                                                    <td>:</td>
-                                                    <td className="border-b border-dotted font-bold px-2">{student.classname}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td className="py-1">10. School/Board Annual Exam last taken with result</td>
-                                                    <td>:</td>
-                                                    <td className="border-b border-dotted font-bold px-2">{student.details}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td className="py-1">11. Whether failed, if so once/twice in same class</td>
-                                                    <td>:</td>
-                                                    <td className="border-b border-dotted font-bold px-2">NA</td>
-                                                </tr>
-                                                <tr>
-                                                    <td className="py-1">12. Subjects Studied</td>
-                                                    <td>:</td>
-                                                    <td className="border-b border-dotted font-bold px-2">{student.subjectstudied} {student.langustudies}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td className="py-1">13. Qualified for promotion to higher class</td>
-                                                    <td>:</td>
-                                                    <td className="border-b border-dotted font-bold px-2">{student.qualificlass}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td className="py-1">14. Month upto which school dues paid</td>
-                                                    <td>:</td>
-                                                    <td className="border-b border-dotted font-bold px-2">{student.result}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td className="py-1">15. Total no. of working days</td>
-                                                    <td>:</td>
-                                                    <td className="border-b border-dotted font-bold px-2" contentEditable>{student.noof_schooldays}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td className="py-1">16. Total no. of working days present</td>
-                                                    <td>:</td>
-                                                    <td className="border-b border-dotted font-bold px-2" contentEditable>{student.noof_daysattended}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td className="py-1">17. Extra Curricular activities</td>
-                                                    <td>:</td>
-                                                    <td className="border-b border-dotted font-bold px-2" contentEditable>{student.ASTC_ExtraActivities}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td className="py-1">18. General Conduct</td>
-                                                    <td>:</td>
-                                                    <td className="border-b border-dotted font-bold px-2">{student.astC_Conduct}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td className="py-1">19. Date of application for certificate</td>
-                                                    <td>:</td>
-                                                    <td className="border-b border-dotted font-bold px-2">{student.ASTC_TCApplicationDate ? format(new Date(student.ASTC_TCApplicationDate), 'dd/MM/yyyy') : ''}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td className="py-1">20. Date of issue of certificate</td>
-                                                    <td>:</td>
-                                                    <td className="border-b border-dotted font-bold px-2">{student.astC_TCIssueDate ? format(new Date(student.astC_TCIssueDate), 'dd/MM/yyyy') : ''}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td className="py-1">21. Reasons for leaving the school</td>
-                                                    <td>:</td>
-                                                    <td className="border-b border-dotted font-bold px-2">{student.astC_LeavingReason}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td className="py-1">22. Any other remarks</td>
-                                                    <td>:</td>
-                                                    <td className="border-b border-dotted font-bold px-2">{student.astC_Remarks}</td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-
-                                    {/* Footer */}
-                                    <div className="mt-auto px-8 pb-10 flex justify-between items-end">
-                                        <div className="text-center">
-                                            <p className="border-t border-black pt-1">Signature of Class Teacher</p>
+                                        {/* Header Image */}
+                                        <div className="w-full mb-4">
+                                            <img
+                                                src="https://vapsclg.blob.core.windows.net/files/76/NoticeUpload/d120170c-fbbf-48c2-b675-ef8d053a0d03.jpg"
+                                                alt="Institution Logo"
+                                                className="w-[74%] h-auto object-contain mx-auto"
+                                            />
                                         </div>
-                                        <div className="text-center">
-                                            <p className="border-t border-black pt-1 px-8">Checked By</p>
+
+                                        {/* Title */}
+                                        <div className="text-center mb-6">
+                                            <h2 className="text-2xl font-black underline decoration-2 underline-offset-4">TRANSFER CERTIFICATE</h2>
                                         </div>
-                                        <div className="text-center">
-                                            <p className="text-lg font-bold mb-1">Principal</p>
-                                            <p className="border-t border-black pt-1 px-8">Signature & Seal</p>
+
+                                        {/* Stats Row */}
+                                        <div className="grid grid-cols-2 gap-y-2 px-8 text-base font-bold mb-6">
+                                            <div className="flex">CBSE Affiliation No. : <span className="ml-2 font-normal">130445</span></div>
+                                            <div className="flex justify-end">ADM NO. : <span className="ml-2 font-normal">{student.amsT_AdmNo}</span></div>
+                                            <div className="flex">School Code : <span className="ml-2 font-normal">57709</span></div>
+                                            <div className="flex justify-end">PEN No. : <span className="ml-2 font-normal">{student.AMST_PENNo}</span></div>
+                                            <div className="flex">Tc No : <span className="ml-2 font-normal">{student.astC_TCNO}</span></div>
+                                            <div className="flex justify-end">APAAR No : <span className="ml-2 font-normal border-b border-dotted min-w-[100px]" contentEditable suppressContentEditableWarning={true}></span></div>
+                                        </div>
+
+                                        {/* Main Table */}
+                                        <div className="px-8 flex-1">
+                                            <table className="w-full border-collapse text-base leading-relaxed">
+                                                <tbody>
+                                                    <tr>
+                                                        <td className="w-[45%] py-1">1. Name of the pupil</td>
+                                                        <td className="w-[2%]">:</td>
+                                                        <td className="border-b border-dotted font-bold px-2 uppercase">{student.amsT_FirstName} {student.amsT_MiddleName} {student.amsT_LastName}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="py-1">2. Father's/Guardian's Name</td>
+                                                        <td>:</td>
+                                                        <td className="border-b border-dotted font-bold px-2 uppercase">{student.amsT_FatherName}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="py-1">3. Mother's Name</td>
+                                                        <td>:</td>
+                                                        <td className="border-b border-dotted font-bold px-2 uppercase">{student.amsT_MotherName}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="py-1">4. Nationality</td>
+                                                        <td>:</td>
+                                                        <td className="border-b border-dotted font-bold px-2">{student.nationality}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="py-1 align-top">5. Identification Mark</td>
+                                                        <td>:</td>
+                                                        <td className="border-b border-dotted px-2 whitespace-pre-line">{identificationMarks}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="py-1">6. Whether candidate belongs to SC/ST/OBC/GEN</td>
+                                                        <td>:</td>
+                                                        <td className="border-b border-dotted font-bold px-2">{student.caste}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="py-1">7. Date of First admission in school with Class</td>
+                                                        <td>:</td>
+                                                        <td className="border-b border-dotted font-bold px-2">{student.amsT_Date ? format(new Date(student.amsT_Date), 'dd/MM/yyyy') : ''}, {student.JoinedClass}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="py-1">8. Date of birth (in figures)</td>
+                                                        <td>:</td>
+                                                        <td className="border-b border-dotted font-bold px-2">{student.amsT_DOB ? format(new Date(student.amsT_DOB), 'dd/MM/yyyy') : ''}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="py-1 pl-4">(in words)</td>
+                                                        <td>:</td>
+                                                        <td className="border-b border-dotted font-bold px-2">{student.amsT_DOB_Words?.replace(/\s+/g, '-')}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="py-1">9. Class in which the pupil last studied</td>
+                                                        <td>:</td>
+                                                        <td className="border-b border-dotted font-bold px-2">{student.classname}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="py-1">10. School/Board Annual Exam last taken with result</td>
+                                                        <td>:</td>
+                                                        <td className="border-b border-dotted font-bold px-2">{student.details}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="py-1">11. Whether failed, if so once/twice in same class</td>
+                                                        <td>:</td>
+                                                        <td className="border-b border-dotted font-bold px-2">NA</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="py-1">12. Subjects Studied</td>
+                                                        <td>:</td>
+                                                        <td className="border-b border-dotted font-bold px-2">{student.subjectstudied} {student.langustudies}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="py-1">13. Qualified for promotion to higher class</td>
+                                                        <td>:</td>
+                                                        <td className="border-b border-dotted font-bold px-2">{student.qualificlass}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="py-1">14. Month upto which school dues paid</td>
+                                                        <td>:</td>
+                                                        <td className="border-b border-dotted font-bold px-2">{student.result}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="py-1">15. Total no. of working days</td>
+                                                        <td>:</td>
+                                                        <td className="border-b border-dotted font-bold px-2" contentEditable suppressContentEditableWarning={true}>{student.noof_schooldays}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="py-1">16. Total no. of working days present</td>
+                                                        <td>:</td>
+                                                        <td className="border-b border-dotted font-bold px-2" contentEditable suppressContentEditableWarning={true}>{student.noof_daysattended}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="py-1">17. Extra Curricular activities</td>
+                                                        <td>:</td>
+                                                        <td className="border-b border-dotted font-bold px-2" contentEditable suppressContentEditableWarning={true}>{student.ASTC_ExtraActivities}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="py-1">18. General Conduct</td>
+                                                        <td>:</td>
+                                                        <td className="border-b border-dotted font-bold px-2">{student.astC_Conduct}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="py-1">19. Date of application for certificate</td>
+                                                        <td>:</td>
+                                                        <td className="border-b border-dotted font-bold px-2">{student.ASTC_TCApplicationDate ? format(new Date(student.ASTC_TCApplicationDate), 'dd/MM/yyyy') : ''}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="py-1">20. Date of issue of certificate</td>
+                                                        <td>:</td>
+                                                        <td className="border-b border-dotted font-bold px-2">{student.astC_TCIssueDate ? format(new Date(student.astC_TCIssueDate), 'dd/MM/yyyy') : ''}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="py-1">21. Reasons for leaving the school</td>
+                                                        <td>:</td>
+                                                        <td className="border-b border-dotted font-bold px-2">{student.astC_LeavingReason}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="py-1">22. Any other remarks</td>
+                                                        <td>:</td>
+                                                        <td className="border-b border-dotted font-bold px-2">{student.astC_Remarks}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        {/* Footer */}
+                                        <div className="mt-auto px-8 pb-10 flex justify-between items-end">
+                                            <div className="text-center">
+                                                <p className="border-t border-black pt-1">Signature of Class Teacher</p>
+                                            </div>
+                                            <div className="text-center">
+                                                <p className="border-t border-black pt-1 px-8">Checked By</p>
+                                            </div>
+                                            <div className="text-center">
+                                                <p className="text-lg font-bold mb-1">Principal</p>
+                                                <p className="border-t border-black pt-1 px-8">Signature & Seal</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                );
-            })}
+                    );
+                })}
+            </div>
 
             <style jsx global>{`
                 @media print {
@@ -633,7 +715,7 @@ export default function SamarthaTCPage() {
                     .certificate-page {
                         border: none !important;
                         width: 210mm !important;
-                        height: 297mm !important;
+                        height: 410mm !important;
                     }
                     @page {
                         size: A4;
