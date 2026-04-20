@@ -20,7 +20,6 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function ExamSubjectWizardPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error, refetchAll } = useExamSubjectWizard(searchParams);
-    console.log('grid', response);
     return (
         <FormProvider<IExamSubjectWizard>>
             <ExamSubjectWizardPageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />

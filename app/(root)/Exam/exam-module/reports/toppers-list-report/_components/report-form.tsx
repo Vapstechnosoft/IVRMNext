@@ -1,6 +1,4 @@
 'use client';
-
-import { getFeeOnlinePaymentLoadData } from '@/app/(root)/StudentPortal/fees/fee-online-payment/actions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -38,7 +36,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
 
     const [loadingYears, setLoadingYears] = useState(true);
     const [loadingClasses, setLoadingClasses] = useState(false);
-    const [loadingSections, setLoadingSections] = useState(false);
+    const [_loadingSections, setLoadingSections] = useState(false);
     const [loadingExams, setLoadingExams] = useState(false);
 
     const methods = useForm<ToppersListSchema>({
@@ -70,7 +68,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
     const watchExam = useWatch({ control, name: 'EME_Id', defaultValue: '' });
     const watchSubjectwise = useWatch({ control, name: 'subjectwise', defaultValue: false });
     const watchSubject = useWatch({ control, name: 'ISMS_Id', defaultValue: '' });
-    const watchTopper = useWatch({ control, name: 'topper', defaultValue: '10' });
+    const _watchTopper = useWatch({ control, name: 'topper', defaultValue: '10' });
 
     // Initial Data - Academic Years
     useEffect(() => {
@@ -200,42 +198,38 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
         }
     }, [watchYear, watchClass, watchSection, setValue]);
 
-    useEffect(
-        () => {
-            if (watchYear && watchClass && watchSection && watchExam) {
-                const fetchSubjects = async () => {
-                    try {
-                        //setLoadingSubjects(true);
-                        const yearId = Number.parseInt(watchYear, 10);
-                        const classId = Number.parseInt(watchClass, 10);
-                        const sectionId = Number.parseInt(watchSection, 10);
-                        const examId = Number.parseInt(watchExam, 10);
-                        const payload = {
-                            "asmaY_Id": yearId,
-                            "asmcL_Id": classId,
-                            "asmS_Id": sectionId,
-                            "emE_Id": examId
-                        }
+    useEffect(() => {
+        if (watchYear && watchClass && watchSection && watchExam) {
+            const fetchSubjects = async () => {
+                try {
+                    //setLoadingSubjects(true);
+                    const yearId = Number.parseInt(watchYear, 10);
+                    const classId = Number.parseInt(watchClass, 10);
+                    const sectionId = Number.parseInt(watchSection, 10);
+                    const examId = Number.parseInt(watchExam, 10);
+                    const payload = {
+                        asmaY_Id: yearId,
+                        asmcL_Id: classId,
+                        asmS_Id: sectionId,
+                        emE_Id: examId
+                    };
 
-                        const { data: response } = await getMappedSubjects(payload);
-                        const res__ = Array.isArray(response) ? response : [];
-                        if (response) {
-                            setSubjects(res__);
-                        } else {
-                            setSubjects([]);
-                        }
-                    } catch (error) {
-                        console.error('Error fetching subjects:', error);
-                        toast.error('Failed to load subjects');
+                    const { data: response } = await getMappedSubjects(payload);
+                    const res__ = Array.isArray(response) ? response : [];
+                    if (response) {
+                        setSubjects(res__);
+                    } else {
                         setSubjects([]);
                     }
-
-                };
-                fetchSubjects();
-            }
-        },
-        [watchYear, watchClass, watchSection, watchExam]
-    );
+                } catch (error) {
+                    console.error('Error fetching subjects:', error);
+                    toast.error('Failed to load subjects');
+                    setSubjects([]);
+                }
+            };
+            fetchSubjects();
+        }
+    }, [watchYear, watchClass, watchSection, watchExam]);
 
     // Update check types when form values change
     useEffect(() => {
@@ -295,10 +289,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                 topper: Number.parseInt(formValues.topper) || 0
             };
 
-            console.log('Toppers List Report payload:', payload);
-
             const [result, institutionRes] = await Promise.all([getToppersReportDetails(payload), getMasterInstitution()]);
-            console.log('toppers list response', result);
             if (!result?.data || (Array.isArray(result.data) && result.data.length === 0)) {
                 toast.info(result?.message || 'No records found');
                 return;
@@ -364,7 +355,6 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                     Academic Year <span className='text-red-500'>*</span>
                                 </Label>
                                 <Controller
-
                                     control={control}
                                     name='ASMAY_Id'
                                     render={({ field }) => (

@@ -65,7 +65,7 @@ export default function ElectiveReportExcel({ students, groupList, showMobile, s
     };
 
     return (
-        <Button onClick={exportToExcel}  className="hover:bg-orange-800 text-white w-fit " >
+        <Button onClick={exportToExcel} className='w-fit text-white hover:bg-orange-800 '>
             <FileSpreadsheet className=' h-4 w-4' /> Export Excel
         </Button>
     );

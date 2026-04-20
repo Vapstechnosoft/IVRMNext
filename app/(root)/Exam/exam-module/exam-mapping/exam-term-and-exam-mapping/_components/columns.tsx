@@ -78,7 +78,7 @@ export const ExamTermAndExamMappingColumns: ColumnDef<IExamTermAndExamMapping>[]
     },
     {
         accessorKey: 'emgR_GradeName',
-        header: ({ column }) => <DataTableColumnHeader column={column}  title='Grade' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Grade' />,
         cell: ({ row }) => <div>{row.getValue('emgR_GradeName')}</div>
     },
 

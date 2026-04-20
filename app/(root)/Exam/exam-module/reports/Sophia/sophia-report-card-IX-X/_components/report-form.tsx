@@ -9,9 +9,9 @@ import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { type SophiaProgressReportIXtoXSchema, sophiaProgressReportIXtoXSchema } from '@/schemas/exam/exam-module/reports';
 import {
     getClassDropDownByAcademicYearlist,
+    getExamsDropDownByAcademicYearandClassandSectionlist,
     getSectionsDropDownByAcademicYearandClasslist,
-    getStudentsDropDownByAcademicYearandClassandSectionlist,
-    getExamsDropDownByAcademicYearandClassandSectionlist
+    getStudentsDropDownByAcademicYearandClassandSectionlist
 } from '@/server/exam/exam-module/reports/cumulative-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
@@ -130,7 +130,7 @@ export default function SophiaProgressReportForm({
                 if (!data || (Array.isArray(data) && data.length === 0)) {
                     toast.info('No exams found');
                 }
-                setExams(Array.isArray(data) ? data as any : []);
+                setExams(Array.isArray(data) ? (data as any) : []);
                 setValue('emE_Id', 0);
                 setValue('studentList', []);
                 setStudents([]);
@@ -158,9 +158,11 @@ export default function SophiaProgressReportForm({
                 }
                 const formattedStudents = Array.isArray(data)
                     ? data.map((item: any) => ({
-                        amsT_Id: item.amsT_Id,
-                        studentName: item.studentName || `${item.amsT_FirstName || ''} ${item.amsT_MiddleName || ''} ${item.amsT_LastName || ''}`.trim()
-                    }))
+                          amsT_Id: item.amsT_Id,
+                          studentName:
+                              item.studentName ||
+                              `${item.amsT_FirstName || ''} ${item.amsT_MiddleName || ''} ${item.amsT_LastName || ''}`.trim()
+                      }))
                     : [];
                 setStudents(formattedStudents);
                 setValue('studentList', []);

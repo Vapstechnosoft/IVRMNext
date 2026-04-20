@@ -48,7 +48,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     // Loading States
     const [loadingClasses, setLoadingClasses] = useState(false);
     const [loadingSections, setLoadingSections] = useState(false);
-    const [loadingStudents, setLoadingStudents] = useState(false);
+    const [_loadingStudents, setLoadingStudents] = useState(false);
 
     const methods = useForm<ReportCardXiSchema>({
         resolver: zodResolver(reportCardXiSchema),
@@ -67,7 +67,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     const watchYear = useWatch({ control, name: 'ASMAY_Id' });
     const watchClass = useWatch({ control, name: 'ASMCL_Id' });
     const watchSection = useWatch({ control, name: 'ASMS_Id' });
-    const watchSelectedStudents = useWatch({ control, name: 'selectedStudents' });
+    const _watchSelectedStudents = useWatch({ control, name: 'selectedStudents' });
 
     // Load Classes
     useEffect(() => {
@@ -181,8 +181,6 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
             exmname: data.exmname,
             brngroup: data.brngroup
         };
-
-        console.log('Report Card XI payload:', payload);
         try {
             const [result, institutionRes] = await Promise.all([getReportDetails(payload), getMasterInstitution()]);
             const enrichedParams = {

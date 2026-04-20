@@ -122,9 +122,7 @@ export default function ExamMarksCalculationForm() {
 
     const onSubmit = async (data: FormFields) => {
         try {
-            console.log(data.asmS_Id, data.asmcL_Id, data.asmaY_Id, data.emE_Id);
             const response = await getExamCalculation(data.asmaY_Id, data.asmcL_Id, data.asmS_Id, data.emE_Id);
-            console.log('response', response);
 
             // Handle API response based on C# implementation
             if (response.success) {

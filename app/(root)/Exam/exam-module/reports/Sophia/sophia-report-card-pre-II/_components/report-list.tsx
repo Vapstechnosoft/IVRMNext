@@ -1,35 +1,24 @@
-import { Button } from "@/components/ui/button";
-import type {
-  IMasterInstitution,
-  Institution,
-} from "@/types/exam/exam-module/report";
-import { FileSpreadsheet, Printer } from "lucide-react";
-import React from "react";
-import {
-  dummyStudentInfo,
-  dummyScholasticAreas,
-  dummyStudyHabits,
-  dummyPersonalAndSocialHabits,
-} from "./mockData";
+import { Button } from '@/components/ui/button';
+import type { IMasterInstitution, Institution } from '@/types/exam/exam-module/report';
+import { FileSpreadsheet, Printer } from 'lucide-react';
+import React from 'react';
+import { dummyPersonalAndSocialHabits, dummyScholasticAreas, dummyStudentInfo, dummyStudyHabits } from './mockData';
 
 interface SophiaProgressReportPreIIViewProps {
-  data?: any[];
-  institution?: IMasterInstitution | Institution | null;
+    data?: any[];
+    institution?: IMasterInstitution | Institution | null;
 }
 
-const SophiaProgressReportPreIIView = ({
-  data,
-  institution,
-}: SophiaProgressReportPreIIViewProps) => {
-  const handleExport = () => {};
-  const handlePrint = () => {
-    window.print();
-  };
+const SophiaProgressReportPreIIView = ({ data, institution }: SophiaProgressReportPreIIViewProps) => {
+    const handleExport = () => {};
+    const handlePrint = () => {
+        window.print();
+    };
 
-  return (
-    <div>
-      <style>
-        {`
+    return (
+        <div>
+            <style>
+                {`
             @media print {
                 @page { margin: 10mm; }
                 body {
@@ -51,298 +40,216 @@ const SophiaProgressReportPreIIView = ({
                 }
             }
         `}
-      </style>
-      <div className="no-print mb-6 flex justify-end gap-3 px-6 py-3 border-b border-gray-200 bg-gray-50/50 rounded-t-md">
-        <Button
-          onClick={handlePrint}
-          className="flex items-center gap-2 bg-sky-800 text-white hover:bg-sky-900 transition-colors shadow-sm w-fit font-medium"
-        >
-          <Printer className="h-4 w-4" /> Print
-        </Button>
-        <Button
-          onClick={handleExport}
-          className="flex items-center gap-2 bg-sky-800 text-white hover:bg-sky-900 transition-colors shadow-sm w-fit font-medium"
-        >
-          <FileSpreadsheet className="h-4 w-4" /> Excel
-        </Button>
-      </div>
+            </style>
+            <div className='no-print mb-6 flex justify-end gap-3 rounded-t-md border-gray-200 border-b bg-gray-50/50 px-6 py-3'>
+                <Button
+                    onClick={handlePrint}
+                    className='flex w-fit items-center gap-2 bg-sky-800 font-medium text-white shadow-sm transition-colors hover:bg-sky-900'>
+                    <Printer className='h-4 w-4' /> Print
+                </Button>
+                <Button
+                    onClick={handleExport}
+                    className='flex w-fit items-center gap-2 bg-sky-800 font-medium text-white shadow-sm transition-colors hover:bg-sky-900'>
+                    <FileSpreadsheet className='h-4 w-4' /> Excel
+                </Button>
+            </div>
 
-      <div
-        id="printable-area"
-        className="min-w-[1000px] bg-white font-sans text-[12px] text-gray-800 px-6"
-      >
-        <div className="flex justify-end font-medium mb-1 ">
-          <div className="text-sm font-bold text-gray-600">2025-2026</div>
+            <div id='printable-area' className='min-w-[1000px] bg-white px-6 font-sans text-[12px] text-gray-800'>
+                <div className='mb-1 flex justify-end font-medium '>
+                    <div className='font-bold text-gray-600 text-sm'>2025-2026</div>
+                </div>
+
+                <div className='mb-6 flex justify-between border-gray-400 border-t border-b py-4 font-bold text-gray-800 text-sm'>
+                    {/* LEFT SIDE */}
+                    <div className='flex w-1/2 flex-col gap-1'>
+                        <div className='flex'>
+                            <span className='w-[150px]'>Name</span>
+                            <span>
+                                : <span className='font-bold text-gray-600 uppercase'>{dummyStudentInfo.name}</span>
+                            </span>
+                        </div>
+
+                        <div className='flex'>
+                            <span className='w-[150px]'>Class & Div</span>
+                            <span>
+                                : <span className='font-bold text-gray-600'>{dummyStudentInfo.classDiv}</span>
+                            </span>
+                        </div>
+
+                        <div className='flex'>
+                            <span className='w-[150px]'>Date of Birth</span>
+                            <span>
+                                : <span className='font-bold text-gray-600'>{dummyStudentInfo.dob}</span>
+                            </span>
+                        </div>
+
+                        <div className='flex'>
+                            <span className='w-[150px]'>Student House</span>
+                            <span>
+                                : <span className='font-bold text-gray-600'>{dummyStudentInfo.house}</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* RIGHT SIDE */}
+                    <div className='flex w-1/2 flex-col items-start gap-1 pl-8'>
+                        <div className='flex'>
+                            <span className='w-[180px]'>Standard Strength</span>
+                            <span>
+                                : <span className='font-bold text-gray-600'>{dummyStudentInfo.stdStrength}</span>
+                            </span>
+                        </div>
+
+                        <div className='flex'>
+                            <span className='w-[180px]'>Division Strength</span>
+                            <span>
+                                : <span className='font-bold text-gray-600'>{dummyStudentInfo.divStrength}</span>
+                            </span>
+                        </div>
+
+                        <div className='flex'>
+                            <span className='w-[180px]'>Attendance</span>
+                            <span>
+                                : <span className='font-bold text-gray-600'>{dummyStudentInfo.attendance}</span>
+                            </span>
+                        </div>
+
+                        <div className='flex'>
+                            <span className='w-[180px]'>Attendance %</span>
+                            <span>
+                                : <span className='font-bold text-gray-600'>{dummyStudentInfo.attendancePercentage}</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div className='my-4 text-center font-bold text-lg'>PERFORMANCE OF THE YEAR 2025 - 2026</div>
+                <table className='w-full text-center font-bold text-[13px]'>
+                    <thead>
+                        <tr>
+                            <td className='w-16 border border-gray-400 p-2 text-center'>Sl. No</td>
+                            <td className='w-[400px] border border-gray-400 p-2 text-center'>Subjects</td>
+                            <td className='w-48 border border-gray-400 p-2 text-center text-[11px]'>Term I</td>
+                            <td className='w-48 border border-gray-400 p-2 text-center text-[11px]'>Term II</td>
+                            <td className='w-48 border border-gray-400 p-2 text-center text-[11px]'>Term III</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {/* SCHOLASTIC AREAS */}
+                        <tr>
+                            <td
+                                colSpan={5}
+                                className=' border-gray-400 pt-8 pb-2 text-left font-extrabold text-[11px] text-gray-700 uppercase tracking-widest'>
+                                SCHOLASTIC AREAS
+                            </td>
+                            <td className='w-1 border-none' />
+                        </tr>
+
+                        {dummyScholasticAreas.map((area, idx) => (
+                            <React.Fragment key={idx}>
+                                <tr className=''>
+                                    <td
+                                        className={`border border-gray-400 p-2 text-center font-bold text-gray-700 ${area.subSubjects ? 'pt-2 align-top' : ''}`}>
+                                        {area.id}
+                                    </td>
+                                    <td
+                                        className={`border border-gray-400 p-2 pl-4 text-left font-extrabold text-gray-800 ${area.subSubjects ? 'pt-2 align-top' : ''}`}>
+                                        {area.subject}
+                                    </td>
+                                    <td
+                                        className={`border border-gray-400 p-2 text-center font-bold text-gray-800 ${area.subSubjects ? 'pt-2 align-top' : ''}`}>
+                                        {area.term1 || ''}
+                                    </td>
+                                    <td
+                                        className={`border border-gray-400 p-2 text-center font-bold text-gray-800 ${area.subSubjects ? 'pt-2 align-top' : ''}`}>
+                                        {area.term2 || ''}
+                                    </td>
+                                    <td
+                                        className={`border border-gray-400 p-2 text-center font-bold text-gray-800 ${area.subSubjects ? 'pt-2 align-top' : ''}`}>
+                                        {area.term3 || ''}
+                                    </td>
+                                    <td className='w-1 border-none' />
+                                </tr>
+                                {area.subSubjects?.map((sub, i) => (
+                                    <tr key={i} className=''>
+                                        <td className='border border-gray-400' />
+                                        <td className='border border-gray-400 p-2 pl-12 text-left font-semibold text-gray-600'>
+                                            {sub.name}
+                                        </td>
+                                        <td className='border border-gray-400 p-2 text-center font-bold text-gray-700'>
+                                            {sub.term1 || ''}
+                                        </td>
+                                        <td className='border border-gray-400 p-2 text-center font-bold text-gray-700'>
+                                            {sub.term2 || ''}
+                                        </td>
+                                        <td className='border border-gray-400 p-2 text-center font-bold text-gray-700'>
+                                            {sub.term3 || ''}
+                                        </td>
+                                        <td className='w-1 border-none' />
+                                    </tr>
+                                ))}
+                            </React.Fragment>
+                        ))}
+
+                        {/* STUDY HABITS */}
+                        <tr>
+                            <td colSpan={5} className='border-none pt-8 pb-2 text-left '>
+                                <span className='font-extrabold text-[12px] text-gray-800 uppercase tracking-widest '>STUDY HABITS</span>
+                            </td>
+                            <td className='w-1 border-none' />
+                        </tr>
+                        {dummyStudyHabits.map((area, idx) => (
+                            <tr key={idx} className=''>
+                                <td className='border border-gray-400 p-2 text-center font-bold text-gray-700'>{area.id}</td>
+                                <td className='border border-gray-400 p-2 pl-4 text-left font-extrabold text-gray-800'>{area.subject}</td>
+                                <td className='border border-gray-400 p-2 text-center font-bold text-gray-800'>{area.term1 || ''}</td>
+                                <td className='border border-gray-400 p-2 text-center font-bold text-gray-800'>{area.term2 || ''}</td>
+                                <td className='border border-gray-400 p-2 text-center font-bold text-gray-800'>{area.term3 || ''}</td>
+                                <td className='w-1 border-none' />
+                            </tr>
+                        ))}
+
+                        {/* PERSONAL AND SOCIAL HABITS */}
+                        <tr>
+                            <td colSpan={5} className='border-none pt-8 pb-2 text-left '>
+                                <span className='font-extrabold text-[12px] text-gray-800 uppercase tracking-widest '>
+                                    PERSONAL AND SOCIAL HABITS
+                                </span>
+                            </td>
+                            <td className='w-1 border-none' />
+                        </tr>
+                        {dummyPersonalAndSocialHabits.map((area, idx) => (
+                            <React.Fragment key={idx}>
+                                <tr className={idx === dummyPersonalAndSocialHabits.length - 1 ? 'border-gray-400 border-b' : ''}>
+                                    <td className='border border-gray-400 p-2 text-center font-bold text-gray-700'>{area.id}</td>
+                                    <td className='border border-gray-400 p-2 pl-4 text-left font-extrabold text-gray-800'>
+                                        {area.subject}
+                                    </td>
+                                    <td className='border border-gray-400 p-2 text-center font-bold text-gray-800'>{area.term1 || ''}</td>
+                                    <td className='border border-gray-400 p-2 text-center font-bold text-gray-800'>{area.term2 || ''}</td>
+                                    <td className='border border-gray-400 p-2 text-center font-bold text-gray-800'>{area.term3 || ''}</td>
+                                    <td className='w-1 border-none' />
+                                </tr>
+                            </React.Fragment>
+                        ))}
+                    </tbody>
+                </table>
+
+                {/* Remarks and Signatures inside one big border block based on the mock */}
+                <div className='mt-8 border border-gray-400 p-8 text-sm'>Teacher's Remarks :</div>
+                <div className='mr-1 flex min-h-[80px] pb-2 text-center font-bold text-[12px]'>
+                    <div className='flex flex-1 items-end justify-center pt-12 pb-2'>
+                        <span className='text-[11px] text-gray-500 uppercase tracking-widest'>CLASS TEACHER</span>
+                    </div>
+                    <div className='flex flex-1 items-end justify-center pt-12 pb-2'>
+                        <span className='text-[11px] text-gray-500 uppercase tracking-widest'>PRINCIPAL</span>
+                    </div>
+                    <div className='flex flex-1 items-end justify-center pt-12 pb-2'>
+                        <span className='text-[11px] text-gray-500 uppercase tracking-widest'>PARENT</span>
+                    </div>
+                </div>
+            </div>
         </div>
-
-        <div className="border-t border-b border-gray-400 mb-6 flex justify-between py-4 text-sm text-gray-800 font-bold">
-          {/* LEFT SIDE */}
-          <div className="w-1/2 flex flex-col gap-1">
-            <div className="flex">
-              <span className="w-[150px]">Name</span>
-              <span>
-                :{" "}
-                <span className="font-bold text-gray-600 uppercase">
-                  {dummyStudentInfo.name}
-                </span>
-              </span>
-            </div>
-
-            <div className="flex">
-              <span className="w-[150px]">Class & Div</span>
-              <span>
-                :{" "}
-                <span className="font-bold text-gray-600">
-                  {dummyStudentInfo.classDiv}
-                </span>
-              </span>
-            </div>
-
-            <div className="flex">
-              <span className="w-[150px]">Date of Birth</span>
-              <span>
-                :{" "}
-                <span className="font-bold text-gray-600">
-                  {dummyStudentInfo.dob}
-                </span>
-              </span>
-            </div>
-
-            <div className="flex">
-              <span className="w-[150px]">Student House</span>
-              <span>
-                :{" "}
-                <span className="font-bold text-gray-600">
-                  {dummyStudentInfo.house}
-                </span>
-              </span>
-            </div>
-          </div>
-
-          {/* RIGHT SIDE */}
-          <div className="w-1/2 flex flex-col gap-1 items-start pl-8">
-            <div className="flex">
-              <span className="w-[180px]">Standard Strength</span>
-              <span>
-                :{" "}
-                <span className="font-bold text-gray-600">
-                  {dummyStudentInfo.stdStrength}
-                </span>
-              </span>
-            </div>
-
-            <div className="flex">
-              <span className="w-[180px]">Division Strength</span>
-              <span>
-                :{" "}
-                <span className="font-bold text-gray-600">
-                  {dummyStudentInfo.divStrength}
-                </span>
-              </span>
-            </div>
-
-            <div className="flex">
-              <span className="w-[180px]">Attendance</span>
-              <span>
-                :{" "}
-                <span className="font-bold text-gray-600">
-                  {dummyStudentInfo.attendance}
-                </span>
-              </span>
-            </div>
-
-            <div className="flex">
-              <span className="w-[180px]">Attendance %</span>
-              <span>
-                :{" "}
-                <span className="font-bold text-gray-600">
-                  {dummyStudentInfo.attendancePercentage}
-                </span>
-              </span>
-            </div>
-          </div>
-        </div>
-        <div className="text-center my-4 text-lg font-bold">
-          PERFORMANCE OF THE YEAR 2025 - 2026
-        </div>
-        <table className="w-full  text-center text-[13px] font-bold">
-          <thead>
-            <tr>
-              <td className="border border-gray-400 p-2 w-16 text-center">
-                Sl. No
-              </td>
-              <td className="border border-gray-400 p-2 text-center w-[400px]">
-                Subjects
-              </td>
-              <td className="border border-gray-400 p-2 w-48 text-center text-[11px]">
-                Term I
-              </td>
-              <td className="border border-gray-400 p-2 w-48 text-center text-[11px]">
-                Term II
-              </td>
-              <td className="p-2 w-48 text-center border-gray-400 border text-[11px]">
-                Term III
-              </td>
-            </tr>
-          </thead>
-          <tbody>
-            {/* SCHOLASTIC AREAS */}
-            <tr>
-              <td
-                colSpan={5}
-                className=" border-gray-400 pt-8 pb-2 font-extrabold text-left  text-gray-700 uppercase tracking-widest text-[11px]"
-              >
-                SCHOLASTIC AREAS
-              </td>
-              <td className="border-none w-1"></td>
-            </tr>
-
-            {dummyScholasticAreas.map((area, idx) => (
-              <React.Fragment key={idx}>
-                <tr className="">
-                  <td
-                    className={`border border-gray-400 p-2 font-bold text-gray-700 text-center ${area.subSubjects ? "align-top pt-2" : ""}`}
-                  >
-                    {area.id}
-                  </td>
-                  <td
-                    className={`border border-gray-400 p-2 font-extrabold text-left pl-4 text-gray-800 ${area.subSubjects ? "align-top pt-2" : ""}`}
-                  >
-                    {area.subject}
-                  </td>
-                  <td
-                    className={`border border-gray-400 p-2 font-bold text-gray-800 text-center ${area.subSubjects ? "align-top pt-2" : ""}`}
-                  >
-                    {area.term1 || ""}
-                  </td>
-                  <td
-                    className={`border border-gray-400 p-2 font-bold text-gray-800 text-center ${area.subSubjects ? "align-top pt-2" : ""}`}
-                  >
-                    {area.term2 || ""}
-                  </td>
-                  <td
-                    className={`border border-gray-400 p-2 font-bold text-center text-gray-800 ${area.subSubjects ? "align-top pt-2" : ""}`}
-                  >
-                    {area.term3 || ""}
-                  </td>
-                  <td className="border-none w-1"></td>
-                </tr>
-                {area.subSubjects &&
-                  area.subSubjects.map((sub, i) => (
-                    <tr key={i} className="">
-                      <td className="border border-gray-400"></td>
-                      <td className="border border-gray-400 p-2 pl-12 text-left text-gray-600 font-semibold">
-                        {sub.name}
-                      </td>
-                      <td className="border border-gray-400 p-2 font-bold text-gray-700 text-center">
-                        {sub.term1 || ""}
-                      </td>
-                      <td className="border border-gray-400 p-2 font-bold text-gray-700 text-center">
-                        {sub.term2 || ""}
-                      </td>
-                      <td className="p-2 font-bold border border-gray-400 text-center text-gray-700">
-                        {sub.term3 || ""}
-                      </td>
-                      <td className="border-none w-1"></td>
-                    </tr>
-                  ))}
-              </React.Fragment>
-            ))}
-
-            {/* STUDY HABITS */}
-            <tr>
-              <td colSpan={5} className="border-none pt-8 pb-2 text-left ">
-                <span className="font-extrabold text-gray-800 uppercase tracking-widest text-[12px] ">
-                  STUDY HABITS
-                </span>
-              </td>
-              <td className="border-none w-1"></td>
-            </tr>
-            {dummyStudyHabits.map((area, idx) => (
-              <tr key={idx} className="">
-                <td className="border border-gray-400 p-2 font-bold text-gray-700 text-center">
-                  {area.id}
-                </td>
-                <td className="border border-gray-400 p-2 font-extrabold text-left pl-4 text-gray-800">
-                  {area.subject}
-                </td>
-                <td className="border border-gray-400 p-2 font-bold text-gray-800 text-center">
-                  {area.term1 || ""}
-                </td>
-                <td className="border border-gray-400 p-2 font-bold text-gray-800 text-center">
-                  {area.term2 || ""}
-                </td>
-                <td className="p-2 font-bold border border-gray-400 text-center text-gray-800">
-                  {area.term3 || ""}
-                </td>
-                <td className="border-none w-1"></td>
-              </tr>
-            ))}
-
-            {/* PERSONAL AND SOCIAL HABITS */}
-            <tr>
-              <td colSpan={5} className="border-none pt-8 pb-2 text-left ">
-                <span className="font-extrabold text-gray-800 uppercase tracking-widest text-[12px] ">
-                  PERSONAL AND SOCIAL HABITS
-                </span>
-              </td>
-              <td className="border-none w-1"></td>
-            </tr>
-            {dummyPersonalAndSocialHabits.map((area, idx) => (
-              <React.Fragment key={idx}>
-                <tr
-                  className={
-                    idx === dummyPersonalAndSocialHabits.length - 1
-                      ? "border-b border-gray-400"
-                      : ""
-                  }
-                >
-                  <td className="border border-gray-400 p-2 font-bold text-gray-700 text-center">
-                    {area.id}
-                  </td>
-                  <td className="border border-gray-400 p-2 font-extrabold text-left pl-4 text-gray-800">
-                    {area.subject}
-                  </td>
-                  <td className="border border-gray-400 p-2 font-bold text-gray-800 text-center">
-                    {area.term1 || ""}
-                  </td>
-                  <td className="border border-gray-400 p-2 font-bold text-gray-800 text-center">
-                    {area.term2 || ""}
-                  </td>
-                  <td className="p-2 font-bold border border-gray-400 text-center text-gray-800">
-                    {area.term3 || ""}
-                  </td>
-                  <td className="border-none w-1"></td>
-                </tr>
-              </React.Fragment>
-            ))}
-          </tbody>
-        </table>
-
-        {/* Remarks and Signatures inside one big border block based on the mock */}
-        <div className="border border-gray-400 text-sm mt-8 p-8">
-          Teacher's Remarks :
-        </div>
-        <div className="flex font-bold text-[12px] min-h-[80px] text-center pb-2 mr-1">
-          <div className="flex-1 pt-12 flex items-end justify-center pb-2">
-            <span className="text-gray-500 uppercase tracking-widest text-[11px]">
-              CLASS TEACHER
-            </span>
-          </div>
-          <div className="flex-1 pt-12 flex items-end justify-center pb-2">
-            <span className="text-gray-500 uppercase tracking-widest text-[11px]">
-              PRINCIPAL
-            </span>
-          </div>
-          <div className="flex-1 pt-12 flex items-end justify-center pb-2">
-            <span className="text-gray-500 uppercase tracking-widest text-[11px]">
-              PARENT
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+    );
 };
 
 export default SophiaProgressReportPreIIView;

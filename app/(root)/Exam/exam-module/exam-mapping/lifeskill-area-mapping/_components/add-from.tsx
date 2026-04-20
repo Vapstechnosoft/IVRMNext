@@ -5,10 +5,8 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
     useMasterGradeDropdownList,
-    useMasterLifeSkillArea,
     useMasterLifeSkillAreaDropdown,
     useMasterLifeSkillAreaMapping,
-    useMasterLifeSkills,
     useMasterLifeSkillsDropdown
 } from '@/hooks/exam/exammodule/usemasters';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
@@ -149,7 +147,9 @@ export default function AddLifeSkillAreaMapping({ onSuccess }: { onSuccess?: () 
                                     name={`mappingDTO.${index}.asmaY_Id`}
                                     render={({ field, fieldState }) => (
                                         <div>
-                                            <Label>Academic Year <span className='text-red-500'>*</span></Label>
+                                            <Label>
+                                                Academic Year <span className='text-red-500'>*</span>
+                                            </Label>
                                             <Select value={String(field.value || '')} onValueChange={(val) => field.onChange(Number(val))}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='Select Year' />
@@ -183,7 +183,9 @@ export default function AddLifeSkillAreaMapping({ onSuccess }: { onSuccess?: () 
                                     name={`mappingDTO.${index}.ecS_Id`}
                                     render={({ field, fieldState }) => (
                                         <div>
-                                            <Label>Life Skill <span className='text-red-500'>*</span></Label>
+                                            <Label>
+                                                Life Skill <span className='text-red-500'>*</span>
+                                            </Label>
                                             <Select value={String(field.value || '')} onValueChange={(val) => field.onChange(Number(val))}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='Select Life Skill' />
@@ -207,7 +209,9 @@ export default function AddLifeSkillAreaMapping({ onSuccess }: { onSuccess?: () 
                                     name={`mappingDTO.${index}.ecsA_Id`}
                                     render={({ field, fieldState }) => (
                                         <div>
-                                            <Label>Skill Area <span className='text-red-500'>*</span></Label>
+                                            <Label>
+                                                Skill Area <span className='text-red-500'>*</span>
+                                            </Label>
                                             <Select value={String(field.value || '')} onValueChange={(val) => field.onChange(Number(val))}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='Select Skill Area' />
@@ -231,7 +235,9 @@ export default function AddLifeSkillAreaMapping({ onSuccess }: { onSuccess?: () 
                                     name={`mappingDTO.${index}.emgR_Id`}
                                     render={({ field, fieldState }) => (
                                         <div>
-                                            <Label>Master Grade <span className='text-red-500'>*</span></Label>
+                                            <Label>
+                                                Master Grade <span className='text-red-500'>*</span>
+                                            </Label>
                                             <Select value={String(field.value || '')} onValueChange={(val) => field.onChange(Number(val))}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='Select Grade' />
@@ -255,7 +261,9 @@ export default function AddLifeSkillAreaMapping({ onSuccess }: { onSuccess?: () 
                                     name={`mappingDTO.${index}.ecsaM_IndicatorDescription`}
                                     render={({ field, fieldState }) => (
                                         <div className='col-span-2'>
-                                            <Label>Indicator Description <span className='text-red-500'>*</span></Label>
+                                            <Label>
+                                                Indicator Description <span className='text-red-500'>*</span>
+                                            </Label>
                                             <textarea
                                                 {...field}
                                                 value={field.value ?? ''}

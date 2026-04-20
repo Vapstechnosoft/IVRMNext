@@ -2,12 +2,12 @@
 
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
-import type {IMasterInstitution, Institution} from '@/types/exam/exam-module/report';
-import { useState, useRef, useEffect } from 'react';
+import type { IMasterInstitution, Institution } from '@/types/exam/exam-module/report';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import StellaProgressReportForm from './_components/add-form';
-import { StellaReportView } from './_components/stella-report-view';
 import { MOCK_STELLA_REPORT_DATA } from './_components/mock-data';
+import { StellaReportView } from './_components/stella-report-view';
 
 export default function StellaProgressReportPage() {
     const [reportData, setReportData] = useState<any[]>([]);
@@ -19,12 +19,10 @@ export default function StellaProgressReportPage() {
         if (isReportVisible && printRef.current) {
             printRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
-    },[isReportVisible]);
+    }, [isReportVisible]);
 
-    const handleReportSuccess = async (payload: any) => {
+    const handleReportSuccess = async (_payload: any) => {
         try {
-            console.log('Progress Card Report payload:', payload);
-
             // Bypass API for now and use MOCK DATA as requested
             // const res = await getExamReportCard(payload);
 
@@ -35,8 +33,6 @@ export default function StellaProgressReportPage() {
                 setIsReportVisible(false);
                 return;
             }
-
-            console.log('Using MOCK DATA:', data);
             setReportData(data);
             setIsReportVisible(true);
             toast.success(`${data.length} progress card(s) generated generated successfully!`);
@@ -54,7 +50,7 @@ export default function StellaProgressReportPage() {
                 const { data: institution_data } = institution_res;
                 setInstitution(institution_data);
             } catch (error) {
-                console.error("Error fetching institution:", error);
+                console.error('Error fetching institution:', error);
             }
         };
 

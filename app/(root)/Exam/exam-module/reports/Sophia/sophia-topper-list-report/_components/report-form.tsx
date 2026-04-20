@@ -8,8 +8,8 @@ import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { type SophiaTopperListReportSchema, sophiaTopperListReportSchema } from '@/schemas/exam/exam-module/reports';
 import { getCategoryDropDownByAcademicYearlist } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
 import {
-    getSectionsDropDownByAcademicYearandClasslist,
-    getExamsDropDownByAcademicYearandClassandSectionlist
+    getExamsDropDownByAcademicYearandClassandSectionlist,
+    getSectionsDropDownByAcademicYearandClasslist
 } from '@/server/exam/exam-module/reports/cumulative-report';
 import { getClassDropDownByYearCategoryList } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -99,7 +99,7 @@ export default function SophiaTopperListReportForm({
         (async () => {
             try {
                 setLoadingClasses(true);
-                const  data = await getClassDropDownByYearCategoryList(selectedYear, selectedCategory);
+                const data = await getClassDropDownByYearCategoryList(selectedYear, selectedCategory);
                 if (!data || (Array.isArray(data) && data.length === 0)) {
                     toast.info('No classes mapped to this category');
                 }
@@ -148,7 +148,7 @@ export default function SophiaTopperListReportForm({
                 if (!data || (Array.isArray(data) && data.length === 0)) {
                     toast.info('No exams found');
                 }
-                setExams(Array.isArray(data) ? data as any : []);
+                setExams(Array.isArray(data) ? (data as any) : []);
                 setValue('emE_Id', 0);
             } catch {
                 toast.error('Failed to load exams');
@@ -178,7 +178,6 @@ export default function SophiaTopperListReportForm({
                 <FormProvider {...methods}>
                     <form onSubmit={handleSubmit(onSubmit)} className='space-y-6' noValidate>
                         <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2'>
-                            
                             {/* Academic Year */}
                             <Controller
                                 control={control}
@@ -388,11 +387,7 @@ export default function SophiaTopperListReportForm({
                         <hr className='my-6 border-gray-300' />
 
                         <div className='flex justify-center gap-3'>
-                            <Button
-                                type='submit'
-                                isLoading={isSubmitting}
-                                disabled={isSubmitting}
-                                className='min-w-[140px]'>
+                            <Button type='submit' isLoading={isSubmitting} disabled={isSubmitting} className='min-w-[140px]'>
                                 {isSubmitting ? 'Generating...' : 'Report'}
                             </Button>
                             <Button

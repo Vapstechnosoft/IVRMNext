@@ -2,9 +2,9 @@
 
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { FileSpreadsheet, Printer } from 'lucide-react';
 import { useRef } from 'react';
 import * as XLSX from 'xlsx';
-import { Printer, FileSpreadsheet } from 'lucide-react';
 
 interface ReportListProps {
     data: any[];
@@ -73,31 +73,31 @@ export const ReportList = ({ data }: ReportListProps) => {
     };
 
     return (
-        <div className='space-y-4 border rounded-lg bg-white'>
-            
-            <h1 className='text-2xl font-bold text-center mt-3'>Exam Login Privileges Report</h1>
+        <div className='space-y-4 rounded-lg border bg-white'>
+            <h1 className='mt-3 text-center font-bold text-2xl'>Exam Login Privileges Report</h1>
             <div className='flex justify-end gap-2 p-2'>
-                <Button onClick={handlePrint}  className=" hover:bg-orange-800 text-white flex w-fit">
-                        <Printer className="h-4 w-4" />
-                        <span>PRINT</span>
-                    </Button>
+                <Button onClick={handlePrint} className=' flex w-fit text-white hover:bg-orange-800'>
+                    <Printer className='h-4 w-4' />
+                    <span>PRINT</span>
+                </Button>
 
-                <Button  onClick={handleExport} className=' hover:bg-orange-800 text-white w-fit'>
+                <Button onClick={handleExport} className=' w-fit text-white hover:bg-orange-800'>
                     <FileSpreadsheet className='h-4 w-4' />
                     Export to Excel
                 </Button>
             </div>
-            
 
             <div className='rounded-md '>
                 <Table ref={tableRef}>
-                    <TableHeader >
-                        <TableRow className='bg-gray-200 hover:bg-gray-200 text-black'> 
-                            <TableHead className='w-[80px] text-center border border-gray-400 font-bold text-black text-m '>Sl. No.</TableHead>
-                            <TableHead className='border border-gray-400 font-bold text-black text-md text-center'>Class</TableHead>
-                            <TableHead className='border border-gray-400 font-bold text-black text-md text-center'>Section</TableHead>
-                            <TableHead className='border border-gray-400 font-bold text-black text-md text-center'>Teacher Name</TableHead>
-                            <TableHead className='border border-gray-400 font-bold text-black text-md text-center'>Subject Name</TableHead>
+                    <TableHeader>
+                        <TableRow className='bg-gray-200 text-black hover:bg-gray-200'>
+                            <TableHead className='w-[80px] border border-gray-400 text-center font-bold text-black text-m '>
+                                Sl. No.
+                            </TableHead>
+                            <TableHead className='border border-gray-400 text-center font-bold text-black text-md'>Class</TableHead>
+                            <TableHead className='border border-gray-400 text-center font-bold text-black text-md'>Section</TableHead>
+                            <TableHead className='border border-gray-400 text-center font-bold text-black text-md'>Teacher Name</TableHead>
+                            <TableHead className='border border-gray-400 text-center font-bold text-black text-md'>Subject Name</TableHead>
                         </TableRow>
                     </TableHeader>
 
@@ -119,7 +119,7 @@ export const ReportList = ({ data }: ReportListProps) => {
                             return (
                                 <>
                                     <TableRow key={`${index}-0`} className='border border-gray-400'>
-                                        <TableCell rowSpan={subjects.length} className='text-center border border-gray-400'>
+                                        <TableCell rowSpan={subjects.length} className='border border-gray-400 text-center'>
                                             {index + 1}
                                         </TableCell>
                                         <TableCell rowSpan={subjects.length} className=' border border-gray-400'>
@@ -135,7 +135,7 @@ export const ReportList = ({ data }: ReportListProps) => {
                                     </TableRow>
 
                                     {subjects.slice(1).map((sub: any, subIndex: number) => (
-                                        <TableRow key={`${index}-${subIndex + 1}`} >
+                                        <TableRow key={`${index}-${subIndex + 1}`}>
                                             <TableCell className='border border-gray-400'>{sub.ismS_SubjectName}</TableCell>
                                         </TableRow>
                                     ))}

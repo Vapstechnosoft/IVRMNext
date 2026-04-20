@@ -26,7 +26,7 @@ interface ReportFormProps {
     onReset: () => void;
 }
 
-const GROUPS = [
+const _GROUPS = [
     { value: '(Sc)', label: '(Sc)' },
     { value: '(Com)', label: '(Com)' },
     { value: '(Sc Bio)', label: '(Sc Bio)' },
@@ -48,7 +48,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     // Loading States
     const [loadingClasses, setLoadingClasses] = useState(false);
     const [loadingSections, setLoadingSections] = useState(false);
-    const [loadingStudents, setLoadingStudents] = useState(false);
+    const [_loadingStudents, setLoadingStudents] = useState(false);
 
     const methods = useForm<ReportCardViViiiSchema>({
         resolver: zodResolver(reportCardViViiiSchema),
@@ -66,7 +66,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     const watchYear = useWatch({ control, name: 'ASMAY_Id' });
     const watchClass = useWatch({ control, name: 'ASMCL_Id' });
     const watchSection = useWatch({ control, name: 'ASMS_Id' });
-    const watchSelectedStudents = useWatch({ control, name: 'selectedStudents' });
+    const _watchSelectedStudents = useWatch({ control, name: 'selectedStudents' });
 
     // Load Classes
     useEffect(() => {
@@ -181,12 +181,8 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                 AMST_Id: Number(id)
             }))
         };
-
-        console.log('Report Card VI_VIII payload:', payload);
         try {
             const [result, institutionRes] = await Promise.all([getReportDetails(payload), getMasterInstitution()]);
-            console.log('Report Card VI_VIII result:', result);
-            console.log('Report Card VI_VIII institution:', institutionRes);
             onReportGenerated({ ...result, institution: institutionRes?.data }, data);
         } catch (error) {
             console.error('Error:', error);
@@ -338,8 +334,6 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                     )}
                                 />
                             </div>
-
-
 
                             {/* Exam Name */}
                             <div className='space-y-2'>

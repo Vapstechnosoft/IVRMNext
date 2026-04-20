@@ -379,8 +379,6 @@ export default function SubSubjectSubExamModal({
             );
             return;
         }
-        console.log(selected);
-        console.log('subject', subject);
 
         onSave(subject.ISMS_Id, selected);
         onClose();
