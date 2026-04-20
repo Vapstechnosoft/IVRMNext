@@ -18,7 +18,7 @@ interface Props {
 }
 
 export default function HallTicketGeneratedDetailsPage({ rowData, onClose }: Props) {
-    const [loading, setLoading] = useState(true);
+    const [_loading, _setLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const [selectedRows, setSelectedRows] = useState<any[]>([]);

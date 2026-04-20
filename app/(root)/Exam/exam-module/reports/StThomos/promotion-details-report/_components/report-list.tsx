@@ -2,10 +2,10 @@
 
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useRef, useState, useEffect } from 'react';
+import type { IMasterInstitution } from '@/types/exam/exam-module/report';
+import { FileSpreadsheet, Printer } from 'lucide-react';
+import { useRef } from 'react';
 import * as XLSX from 'xlsx';
-import { Printer, FileSpreadsheet } from 'lucide-react';
-import { IMasterInstitution } from '@/types/exam/exam-module/report';
 
 interface ReportListProps {
     data: any;
@@ -22,8 +22,6 @@ export const ReportList = ({ data, isSuperAverage, institution }: ReportListProp
 
     const { YearName, stream, section, empG_GroupName } = data;
 
-
-
     const handlePrint = () => {
         const printContent = tableRef.current?.outerHTML;
         if (printContent) {
@@ -38,7 +36,7 @@ export const ReportList = ({ data, isSuperAverage, institution }: ReportListProp
                 printWindow.document.write(`<h3>${institution?.mI_Name}</h3>`);
                 printWindow.document.write(`<h5>${isSuperAverage ? 'CLASS WISE AVERAGE REPORT' : 'CLASS WISE TERM REPORT'}</h5>`);
                 printWindow.document.write(
-                    `<h4>${isSuperAverage ? 'SUPER AVERAGE SHEET' : 'TABULATION SHEET'} : ${YearName} Class : ${stream}: Section : ${section} ${!isSuperAverage ? '- EXAM : ' + empG_GroupName : ''}</h4>`
+                    `<h4>${isSuperAverage ? 'SUPER AVERAGE SHEET' : 'TABULATION SHEET'} : ${YearName} Class : ${stream}: Section : ${section} ${!isSuperAverage ? `- EXAM : ${empG_GroupName}` : ''}</h4>`
                 );
                 printWindow.document.write('</div>');
                 printWindow.document.write(printContent);
@@ -150,12 +148,12 @@ export const ReportList = ({ data, isSuperAverage, institution }: ReportListProp
             </div>
 
             <div className='flex justify-end space-x-2 p-2'>
-                <Button onClick={handlePrint} className=" hover:bg-orange-800 text-white flex w-fit">
-                    <Printer className="h-4 w-4" />
+                <Button onClick={handlePrint} className=' flex w-fit text-white hover:bg-orange-800'>
+                    <Printer className='h-4 w-4' />
                     <span>PRINT</span>
                 </Button>
 
-                <Button onClick={handleExport} className=' hover:bg-orange-800 text-white w-fit'>
+                <Button onClick={handleExport} className=' w-fit text-white hover:bg-orange-800'>
                     <FileSpreadsheet className='h-4 w-4' />
                     Export to Excel
                 </Button>

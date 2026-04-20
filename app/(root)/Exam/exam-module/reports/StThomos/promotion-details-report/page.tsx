@@ -1,10 +1,9 @@
 'use client';
+import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
+import type { IMasterInstitution } from '@/types/exam/exam-module/report';
 import { useEffect, useRef, useState } from 'react';
 import { ReportForm } from './_components/report-form';
 import { ReportList } from './_components/report-list';
-import { IMasterInstitution } from '@/types/exam/exam-module/report';
-import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
-
 
 export default function PromotionDetailsReportPage() {
     const [reportData, setReportData] = useState<any>(null);
@@ -12,16 +11,15 @@ export default function PromotionDetailsReportPage() {
     const listRef = useRef<HTMLDivElement>(null);
 
     const [institution, setInstitution] = useState<IMasterInstitution | null>(null);
-    
-        useEffect(() => {
-            const fetchInstitution = async () => {
-                const inst = await getMasterInstitution();
-                console.log('inst', inst);
-                if(inst.data?.mI_Name.trim()==='') return;
-                setInstitution(inst.data);
-            };
-            fetchInstitution();
-        },[]);
+
+    useEffect(() => {
+        const fetchInstitution = async () => {
+            const inst = await getMasterInstitution();
+            if (inst.data?.mI_Name.trim() === '') return;
+            setInstitution(inst.data);
+        };
+        fetchInstitution();
+    }, []);
 
     const handleReportGenerated = (data: any, superAverage: boolean) => {
         setReportData(data);

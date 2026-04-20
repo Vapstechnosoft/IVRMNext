@@ -291,7 +291,7 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
     }, [errors]);
 
     // ---------- Small helper UI functions ----------
-    const isEmptyArray = (a: any[]) => !Array.isArray(a) || a.length === 0;
+    const _isEmptyArray = (a: any[]) => !Array.isArray(a) || a.length === 0;
 
     // ---------- Render ----------
     return (
@@ -597,7 +597,7 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
                                 setClasses([]);
                                 setExams([]);
                             }}
-                            className='min-w-[120px] w-fit'>
+                            className='w-fit min-w-[120px]'>
                             CANCEL
                         </Button>
 

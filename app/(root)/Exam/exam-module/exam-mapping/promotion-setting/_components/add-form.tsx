@@ -341,7 +341,6 @@ export default function AddPromotionalSettingForm({
                     }
 
                     setSubjects(finalSubjects);
-                    console.log('finalSubjects', finalSubjects);
                     setInitialState({
                         selectedYear: rowData.asmaY_Id,
                         selectedCategory: rowData.eyC_Id,

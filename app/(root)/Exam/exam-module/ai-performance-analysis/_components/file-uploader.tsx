@@ -40,7 +40,7 @@ export function FileUploader({ onFileSelect, isLoading }: FileUploaderProps) {
                         Select File
                     </Button>
                     {/* biome-ignore lint/nursery/useSortedClasses: <explanation> */}
-{isLoading && <p className='animate-pulse text-muted-foreground text-[10px]'>Processing...</p>}
+                    {isLoading && <p className='animate-pulse text-muted-foreground text-[10px]'>Processing...</p>}
                 </div>
             </CardContent>
         </Card>
