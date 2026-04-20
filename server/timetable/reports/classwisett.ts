@@ -1,6 +1,7 @@
 'use server';
 
 import { api } from '@/lib/apiService';
+import { ITimeTableCategoryDropDownData } from '@/types/timetable/masters/masters';
 import type { ISectionDropdown } from '@/types/timetable/TTreports';
 
 // Class Wise TimeTable Report
@@ -30,4 +31,12 @@ export async function getSectionDetailsTT() {
 export async function getClassDetails() {
     const url = '/TimeTableCommon/GetClassData';
     return await api.get<any[]>('timetable', url);
+}
+
+
+
+export async function getTimeTableCategoryDropDownDetails() {
+    const url = '/TimeTableCommon/GetCategoryDetails';
+    console.info('MasterDayFacade', url);
+    return await api.get<ITimeTableCategoryDropDownData[]>('timetable', url);
 }
