@@ -53,7 +53,7 @@ function PromotionalSettingDetailsPageContent({
                 {/* ——————— HEADER ——————— */}
                 <div className='mb-4 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center'>
                     <Heading
-                        title={`Promotional Setting Details ${rowData.emgR_GradeName ? ' - ' + rowData.emcA_CategoryName : ''}`}
+                        title={`Promotional Setting Details ${rowData.emgR_GradeName ? ` - ${rowData.emcA_CategoryName}` : ''}`}
                         description={`Subjects mapped to ${rowData?.emcA_CategoryName}`}
                     />
                     <Button

@@ -8,7 +8,7 @@ import { masterExamPaperSchema } from '@/schemas/exam/exam-module/masters';
 import { addOrUpdateMasterExamPaper } from '@/server/exam/exam-module/masters/exam-paper';
 import type { IMasterExamPaper } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Save, RefreshCw } from 'lucide-react';
+import { RefreshCw, Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -80,9 +80,9 @@ export default function UpdateMasterExamPaperForm({ onSuccess, className = '', s
         setIsLoading(true);
         const timer = setTimeout(() => {
             setIsLoading(false);
-        }, 500)
+        }, 500);
         return () => clearTimeout(timer);
-    }, [row])
+    }, [row]);
 
     if (isLoading) {
         return (

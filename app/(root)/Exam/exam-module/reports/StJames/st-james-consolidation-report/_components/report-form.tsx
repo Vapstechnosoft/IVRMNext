@@ -1,16 +1,14 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { CollapsibleContent } from '@/components/ui/collapsible';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
-import { stJamesConsolidateReportSchema, StJamesConsolidateReportSchema,  } from '@/schemas/exam/exam-module/reports';
+import { type StJamesConsolidateReportSchema, stJamesConsolidateReportSchema } from '@/schemas/exam/exam-module/reports';
 import {
     getClassDropDownByAcademicYearlist,
-    getSectionsDropDownByAcademicYearandClasslist,
-    
+    getSectionsDropDownByAcademicYearandClasslist
 } from '@/server/exam/exam-module/reports/cumulative-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
@@ -28,8 +26,7 @@ export default function StJamesConsolidateReportForm({
         defaultValues: {
             asmaY_Id: 0,
             asmcL_Id: 0,
-            asmS_Id: 0,
-            
+            asmS_Id: 0
         } as any
     });
 
@@ -44,7 +41,7 @@ export default function StJamesConsolidateReportForm({
 
     const selectedYear = useWatch({ control, name: 'asmaY_Id' });
     const selectedClass = useWatch({ control, name: 'asmcL_Id' });
-    const selectedSection = useWatch({ control, name: 'asmS_Id' });
+    const _selectedSection = useWatch({ control, name: 'asmS_Id' });
 
     const [loadingClasses, setLoadingClasses] = useState(false);
     const [loadingSections, setLoadingSections] = useState(false);
@@ -76,7 +73,6 @@ export default function StJamesConsolidateReportForm({
                 setClasses(Array.isArray(data) ? data : []);
                 setValue('asmcL_Id', 0);
                 setValue('asmS_Id', 0);
-               
             } catch {
                 toast.error('Failed to load classes');
             } finally {
@@ -97,7 +93,6 @@ export default function StJamesConsolidateReportForm({
                 }
                 setSections(Array.isArray(data) ? data : []);
                 setValue('asmS_Id', 0);
-                
             } catch {
                 toast.error('Failed to load sections');
             } finally {
@@ -107,14 +102,13 @@ export default function StJamesConsolidateReportForm({
     }, [selectedYear, selectedClass, setValue]);
 
     // set Students
-    
+
     // on submit
     const onSubmit = async (data: StJamesConsolidateReportSchema) => {
         const payload: any = {
             asmaY_Id: data.asmaY_Id,
             asmcL_Id: data.asmcL_Id,
-            asmS_Id: data.asmS_Id,
-            
+            asmS_Id: data.asmS_Id
         };
         if (onSuccess) {
             await onSuccess(payload);
@@ -207,10 +201,9 @@ export default function StJamesConsolidateReportForm({
                                         </div>
                                     )}
                                 />
-                                
                             </div>
                             <div className='space-y-6'>
-                                    <Controller
+                                <Controller
                                     control={control}
                                     name='asmcL_Id'
                                     render={({ field, fieldState }) => (
@@ -251,16 +244,11 @@ export default function StJamesConsolidateReportForm({
                                 />
                             </div>
                         </div>
-                        
 
                         <hr className='my-6 border-gray-300' />
 
                         <div className='flex justify-center gap-3'>
-                            <Button
-                                type='submit'
-                                isLoading={isSubmitting}
-                                disabled={isSubmitting }
-                                className='min-w-[140px]'>
+                            <Button type='submit' isLoading={isSubmitting} disabled={isSubmitting} className='min-w-[140px]'>
                                 {isSubmitting ? 'Generating...' : 'Report'}
                             </Button>
                             <Button

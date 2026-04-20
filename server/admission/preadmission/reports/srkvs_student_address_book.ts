@@ -3,29 +3,37 @@
 import { api } from '@/lib/apiService';
 
 export async function getSrkvsAddressBookLoadData() {
-    return await api.get<any>('admission', '/StudentAddressBook2/getinitialdata/2');
+    const res = await api.get<any>('admission', '/StudentAddressBook2/getinitialdata');
+    return res?.data || res;
 }
 
 export async function changeYearSrkvsAddressBook(data: { ASMAY_Id: number; flag: string }) {
-    return await api.post<any>('admission', '/StudentAddressBook2/yearchangenew', data);
+    const url = `/StudentAddressBook2/yearchangenew?ASMAY_Id=${data.ASMAY_Id}&flag=${data.flag}`;
+    const res = await api.post<any>('admission', url);
+    return res?.data || res;
 }
 
 export async function changeClassSrkvsAddressBook(data: { ASMAY_Id: number; flag: string; ASMCL_Id: number }) {
-    return await api.post<any>('admission', '/StudentAddressBook2/classchangenew', data);
+    const url = `/StudentAddressBook2/classchangenew?ASMAY_Id=${data.ASMAY_Id}&flag=${data.flag}&ASMCL_Id=${data.ASMCL_Id}`;
+    const res = await api.post<any>('admission', url);
+    return res?.data || res;
 }
 
-export async function changeSectionSrkvsAddressBook(data: { ASMAY_Id: number; flag: string; ASMCL_Id: number; ASMC_Id: number }) {
-    return await api.post<any>('admission', '/StudentAddressBook2/sectionchangenew', data);
+export async function changeSectionSrkvsAddressBook(data: { ASMAY_Id: number; flag: string; ASMCL_Id: number; ASMS_Id: number }) {
+    const url = `/StudentAddressBook2/sectionchangenew?ASMAY_Id=${data.ASMAY_Id}&flag=${data.flag}&ASMCL_Id=${data.ASMCL_Id}&ASMS_Id=${data.ASMS_Id}`;
+    const res = await api.post<any>('admission', url);
+    return res?.data || res;
 }
 
 export async function getSrkvsAddressBookReport(data: {
     asmaY_Id: number;
     asmcL_Id: number;
-    asmC_Id: number;
+    asmS_Id: number;
     amsT_Id?: number;
     flag: string;
     sall: string;
     studentlisttemp: any[];
 }) {
-    return await api.post<any>('admission', '/StudentAddressBook2/getdetailsnew', data);
+    const res = await api.post<any>('admission', '/StudentAddressBook2/getdetailsnew', data);
+    return res?.data || res;
 }

@@ -31,7 +31,7 @@ export const useChangeClassSrkvsAddressBook = () => {
 
 export const useChangeSectionSrkvsAddressBook = () => {
     return useMutation({
-        mutationFn: (data: { ASMAY_Id: number; flag: string; ASMCL_Id: number; ASMC_Id: number }) => changeSectionSrkvsAddressBook(data)
+        mutationFn: (data: { ASMAY_Id: number; flag: string; ASMCL_Id: number; ASMS_Id: number }) => changeSectionSrkvsAddressBook(data)
     });
 };
 

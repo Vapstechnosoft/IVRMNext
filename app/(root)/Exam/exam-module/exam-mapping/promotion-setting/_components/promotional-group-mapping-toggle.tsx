@@ -42,7 +42,7 @@ export default function PromotionalGroupMappingToggleForm({ rowData, promSubjObj
         onClose();
     };
 
-    const onSubmit = async (values: ToggleFormFields) => {
+    const onSubmit = async (_values: ToggleFormFields) => {
         try {
             const res = await togglePromotionSubjectGroups(rowData.empsG_Id);
 

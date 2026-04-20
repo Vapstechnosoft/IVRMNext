@@ -934,14 +934,14 @@ export async function getUserAccessibleModules() {
                                             title: 'BCEH Study Certificate',
                                             description: 'BCEH Study Certificate'
                                         },
-                                        {
-                                            id: 64,
-                                            name: 'BBHS Student Application Form',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/baldwin/BBHS/application-form',
-                                            title: 'BBHS Student Application Form',
-                                            description: 'BBHS Student Application Form'
-                                        },
+                                        // {
+                                        //     id: 64,
+                                        //     name: 'BBHS Student Application Form',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/baldwin/BBHS/application-form',
+                                        //     title: 'BBHS Student Application Form',
+                                        //     description: 'BBHS Student Application Form'
+                                        // },
                                         {
                                             id: 65,
                                             name: 'Student tc custom report',
@@ -1140,24 +1140,23 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/samartha/reports/SamarthaBonafideCertificate',
                                             title: 'Samartha Bonafide Certificate',
                                             description: 'Samartha Bonafide Certificate'
+                                        },
+                                        {
+                                            id: 72,
+                                            name: 'SamarthaTC',
+                                            icon: 'Settings',
+                                            url: '/admission/samartha/reports/SamarthaTC',
+                                            title: 'SamarthaTC',
+                                            description: 'SamarthaTC'
+                                        },
+                                        {
+                                            id: 73,
+                                            name: 'OverAllViewReportt',
+                                            icon: 'Settings',
+                                            url: '/admission/samartha/reports/Over-All-View-Reportt',
+                                            title: 'OverAllViewReportt',
+                                            description: 'OverAllViewReportt'
                                         }
-                                        // ,
-                                        // {
-                                        //     id: 72,
-                                        //     name: 'SamarthaTC',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/samartha/reports/SamarthaTC',
-                                        //     title: 'SamarthaTC',
-                                        //     description: 'SamarthaTC'
-                                        // },
-                                        // {
-                                        //     id: 73,
-                                        //     name: 'OverAllViewReportt',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/samartha/reports/OverAllViewReportt',
-                                        //     title: 'OverAllViewReportt',
-                                        //     description: 'OverAllViewReportt'
-                                        // }
                                     ]
                                 },
 
@@ -1186,47 +1185,45 @@ export async function getUserAccessibleModules() {
 
                                 //     ]
                                 // },
-                                // {
-                                //     id: 14,
-                                //     name: 'SRKVS',
-                                //     icon: 'Settings',
-                                //     pages: [
+                                {
+                                    id: 14,
+                                    name: 'SRKVS',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 74,
+                                            name: 'SRKVS Student Address Book',
+                                            icon: 'Settings',
+                                            url: '/admission/srkvs/reports/SRKVSStudentAddressBook',
+                                            title: 'SRKVSStudentAddressBook',
+                                            description: 'SRKVSStudentAddressBook'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 15,
+                                    name: 'St. Peters School Durgapur',
+                                    icon: 'Settings',
+                                    pages: [
+                                        // {
+                                        //     id: 74,
+                                        //     name: 'Employee IDcard Report STpeter',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/stpeter/reports/EmployeeIDcardReportSTpeter',
+                                        //     title: 'EmployeeIDcardReportSTpeter',
+                                        //     description: 'EmployeeIDcardReportSTpeter'
+                                        // },
 
-                                //         {
-                                //             id: 74,
-                                //             name: 'SRKVS Student Address Book',
-                                //             icon: 'Settings',
-                                //             url: '/admission/srkvs/reports/SRKVSStudentAddressBook',
-                                //             title: 'SRKVSStudentAddressBook',
-                                //             description: 'SRKVSStudentAddressBook'
-                                //         }
-                                //     ]
-                                // },
-                                // {
-                                //     id: 15,
-                                //     name: 'St. Peters School Durgapur',
-                                //     icon: 'Settings',
-                                //     pages: [
-
-                                //         {
-                                //             id: 74,
-                                //             name: 'Employee IDcard Report STpeter',
-                                //             icon: 'Settings',
-                                //             url: '/admission/stpeter/reports/EmployeeIDcardReportSTpeter',
-                                //             title: 'EmployeeIDcardReportSTpeter',
-                                //             description: 'EmployeeIDcardReportSTpeter'
-                                //         },
-
-                                //         {
-                                //             id: 75,
-                                //             name: 'Student IDcard Report STPeter',
-                                //             icon: 'Settings',
-                                //             url: '/admission/stpeter/reports/StudentIDcardReportSTPeter',
-                                //             title: 'StudentIDcardReportSTPeter',
-                                //             description: 'StudentIDcardReportSTPeter'
-                                //         }
-                                //     ]
-                                // },
+                                        {
+                                            id: 75,
+                                            name: 'Student IDcard Report STPeter',
+                                            icon: 'Settings',
+                                            url: '/admission/stpeter/reports/StudentIDcardReportSTPeter',
+                                            title: 'StudentIDcardReportSTPeter',
+                                            description: 'StudentIDcardReportSTPeter'
+                                        }
+                                    ]
+                                },
                                 {
                                     id: 16,
                                     name: 'GNANA DEEPA ACADEMY RESIDENTIAL SCHOOL',
@@ -1242,28 +1239,43 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 },
+                                // {
+                                //     id: 17,
+                                //     name: 'SMS degree college',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         //Need to create UI
+                                //         // {
+                                //         //     id: 74,
+                                //         //     name: 'SMSCollegeStudentTc',
+                                //         //     icon: 'Settings',
+                                //         //     url: '/admission/sms/transaction/SMSCollegeStudentTc',
+                                //         //     title: 'SMSCollegeStudentTc',
+                                //         //     description: 'SMSCollegeStudentTc'
+                                //         // },
+
+                                //         {
+                                //             id: 75,
+                                //             name: 'SMSCConductCertificate',
+                                //             icon: 'Settings',
+                                //             url: '/admission/sms/reports/SMSCConductCertificate',
+                                //             title: 'SMSCConductCertificate',
+                                //             description: 'SMSCConductCertificate'
+                                //         }
+                                //     ]
+                                // },
                                 {
-                                    id: 17,
-                                    name: 'SMS degree college',
+                                    id: 18,
+                                    name: 'GM Vidya Nikethan School',
                                     icon: 'Settings',
                                     pages: [
-                                        //Need to create UI
-                                        // {
-                                        //     id: 74,
-                                        //     name: 'SMSCollegeStudentTc',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/sms/transaction/SMSCollegeStudentTc',
-                                        //     title: 'SMSCollegeStudentTc',
-                                        //     description: 'SMSCollegeStudentTc'
-                                        // },
-
                                         {
                                             id: 75,
-                                            name: 'SMSCConductCertificate',
+                                            name: 'Smartcarddetails',
                                             icon: 'Settings',
-                                            url: '/admission/sms/reports/SMSCConductCertificate',
-                                            title: 'SMSCConductCertificate',
-                                            description: 'SMSCConductCertificate'
+                                            url: '/admission/GMVPS/reports/Smartcarddetails',
+                                            title: 'Smartcarddetails',
+                                            description: 'Smartcarddetails'
                                         }
                                     ]
                                 }
@@ -1527,6 +1539,14 @@ export async function getUserAccessibleModules() {
                                     name: 'Transactions',
                                     icon: 'BadgeIndianRupee',
                                     pages: [
+                                        //   {
+                                        //     id: 55555,
+                                        //     name: 'Fee Amount Entry',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/fees/transactions/feeamountentrystthomas',
+                                        //     title: 'Fee Amount Entry',
+                                        //     description: 'Manage Fee Amount Entry Details'
+                                        // },
                                         {
                                             id: 40,
                                             name: 'Fee Amount Entry',
@@ -1648,6 +1668,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Fee Staff Other Transaction',
                                             description: 'Fee Staff Other Transaction'
                                         }
+                                        // {
+                                        //     id: 519,
+                                        //     name: 'Fee Transaction',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/fees/transactions/feetransactionstthomas',
+                                        //     title: 'Fee Transaction',
+                                        //     description: 'Fee Transaction'
+                                        // }
                                     ]
                                 },
                                 {
@@ -1797,107 +1825,7 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 },
-                {
-                    id: 90001,
-                    name: 'Fees Client',
-                    icon: 'UserRoundPlus',
-                    menu: [
-                        {
-                            id: 51,
-                            name: 'Client Specific Fee Reports',
-                            icon: 'Settings',
-                            sub_menu: [
-                                {
-                                    id: 111,
-                                    name: 'Fee Reports',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 601,
-                                            name: 'Fee ClassWise Due List Report Sophia',
-                                            icon: 'Settings',
-                                            url: '/fees/feereports/feeclasswiseduelistreportsophia',
-                                            title: 'Fee ClassWise Due List Report Sophia',
-                                            description: 'Fee ClassWise Due List Report Sophia'
-                                        },
-                                        {
-                                            id: 602,
-                                            name: 'Fee Item Wise Report Sophia',
-                                            icon: 'Settings',
-                                            url: '/fees/feereports/feeitemwisereportsophia',
-                                            title: 'Fee Item Wise Report Sophia',
-                                            description: 'Fee Item Wise Report Sophia'
-                                        },
-                                        {
-                                            id: 603,
-                                            name: 'Fee Student and Account Wise Report Sophia',
-                                            icon: 'Settings',
-                                            url: '/fees/feereports/feestudentandaccountwisereportsophia',
-                                            title: 'Fee Student and Account Wise Report Sophia',
-                                            description: 'Fee Student and Account Wise Report Sophia'
-                                        },
-                                        {
-                                            id: 604,
-                                            name: 'Fee Collection Report VVVS',
-                                            icon: 'Settings',
-                                            url: '/fees/feereports/feecollectionreportvvvs',
-                                            title: 'Fee Collection Report VVVS',
-                                            description: 'Fee Collection Report VVVS'
-                                        },
-                                        {
-                                            id: 605,
-                                            name: 'Fee IT Report UK Public School',
-                                            icon: 'Settings',
-                                            url: '/fees/feereports/feeitreportukschool',
-                                            title: 'Fee IT Report UK Public School',
-                                            description: 'Fee IT Report UK Public School'
-                                        },
-                                        {
-                                            id: 606,
-                                            name: 'Fee Refund Report GMVPS',
-                                            icon: 'Settings',
-                                            url: '/fees/feereports/feerefundreportgmvps',
-                                            title: 'Fee Refund Report GMVPS',
-                                            description: 'Fee Refund Report GMVPS'
-                                        },
-                                        {
-                                            id: 607,
-                                            name: 'Fee Defaulter Report STTHOMAS',
-                                            icon: 'Settings',
-                                            url: '/fees/feereports/feedefaulterreportstthomas',
-                                            title: 'Fee Defaulter Report STTHOMAS',
-                                            description: 'Fee Defaulter Report STTHOMAS'
-                                        },
-                                        {
-                                            id: 519,
-                                            name: 'Fee Transaction STTHOMAS',
-                                            icon: 'BadgeIndianRupee',
-                                            url: '/fees/transactions/feetransactionstthomas',
-                                            title: 'Fee Transaction STTHOMAS',
-                                            description: 'Fee Transaction STTHOMAS'
-                                        },
-                                        {
-                                            id: 55555,
-                                            name: 'Fee Amount Entry STTHOMAS',
-                                            icon: 'BadgeIndianRupee',
-                                            url: '/fees/transactions/feeamountentrystthomas',
-                                            title: 'Fee Amount Entry STTHOMAS',
-                                            description: 'Manage Fee Amount Entry Details STTHOMAS'
-                                        },
-                                        {
-                                            id: 519,
-                                            name: 'Fee Head Wise Report Calcaltta',
-                                            icon: 'BadgeIndianRupee',
-                                            url: '/fees/feereports/headwisereport',
-                                            title: 'Fee Head Wise Report Calcaltta',
-                                            description: 'Fee Head Wise Report Calcaltta'
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                },
+
                 {
                     id: 3,
                     name: 'Exam',
@@ -2284,12 +2212,12 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Exam Category Report Details'
                                         },
                                         // {
-                                        //     id: 75,
-                                        //     name: 'TBS Report School',
-                                        //     icon: 'BookOpen',
-                                        //     url: '/Exam/exam-module/reports/tbs-report-school',
-                                        //     title: 'TBS Report School',
-                                        //     description: 'Manage TBS Report School Details'
+                                        //     id: 75,
+                                        //     name: 'TBS Report School',
+                                        //     icon: 'BookOpen',
+                                        //     url: '/Exam/exam-module/reports/tbs-report-school',
+                                        //     title: 'TBS Report School',
+                                        //     description: 'Manage TBS Report School Details'
                                         // },
                                         {
                                             id: 77,
@@ -2386,88 +2314,87 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/StThomos/Report_Card_X',
                                             title: 'Report Card_X',
                                             description: 'Report Card_X'
-                                        },
-                                        {
-                                            id: 90,
-                                            name: 'Stella Progress Report',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/Stella/stella_prograss_report',
-                                            title: 'Stella Progress Report',
-                                            description: 'Manage Stella Progress Card Report Details'
                                         }
-                                        // ,
-                                        // {
-                                        //     id: 91,
-                                        //     name: 'Stella Marks Entry Report',
-                                        //     icon: 'BookOpen',
-                                        //     url: '/Exam/exam-module/reports/Stella/stella_marks_entry_report',
-                                        //     title: 'Stella Marks Entry Report',
-                                        //     description: 'Manage Stella Marks Entry Report Details'
-                                        // },
-                                        // {
-                                        //     id: 92,
-                                        //     name: 'Vidyaniketan Performance Ananlysis Report',
-                                        //     icon: 'BookOpen',
-                                        //     url: '/Exam/exam-module/reports/GMVPS/vidyaniketan-performance-analysis-report',
-                                        //     title: 'Vidyaniketan Performance Ananlysis Report',
-                                        //     description: 'Manage Vidyaniketan Performance Ananlysis Report Details'
-                                        // },
-                                        // {
-                                        //     id: 93,
-                                        //     name: 'Vidyaniketan Progress Card Report',
-                                        //     icon: 'BookOpen',
-                                        //     url: '/Exam/exam-module/reports/GMVPS/vidyaniketan-progress-card-report',
-                                        //     title: 'Vidyaniketan Progress Card Report',
-                                        //     description: 'Manage Vidyaniketan Progress Card Report Details'
-                                        // },
-                                        // {
-                                        //     id: 94,
-                                        //     name: 'Vidyaniketan I-VIII Card Report',
-                                        //     icon: 'BookOpen',
-                                        //     url: '/Exam/exam-module/reports/GMVPS/vidyaniketan-report-card-I-VIII',
-                                        //     title: 'Vidyaniketan I-VIII Card Report',
-                                        //     description: 'Manage Vidyaniketan I-VIII Card Report Details'
-                                        // },
-                                        // {
-                                        //     id: 95,
-                                        //     name: 'Sophia IX-X Card Report',
-                                        //     icon: 'BookOpen',
-                                        //     url: '/Exam/exam-module/reports/Sophia/sophia-report-card-IX-X',
-                                        //     title: 'Sophia IX-X Card Report',
-                                        //     description: 'Manage Sophia IX-X Card Report Details'
-                                        // },
-                                        // {
-                                        //     id: 96,
-                                        //     name: 'Sophia Pre-II Card Report',
-                                        //     icon: 'BookOpen',
-                                        //     url: '/Exam/exam-module/reports/Sophia/sophia-report-card-pre-II',
-                                        //     title: 'Sophia Pre-II Card Report',
-                                        //     description: 'Manage Sophia Pre-II Card Report Details'
-                                        // },
-                                        // {
-                                        //     id: 97,
-                                        //     name: 'Sophia Topper List Report',
-                                        //     icon: 'BookOpen',
-                                        //     url: '/Exam/exam-module/reports/Sophia/sophia-topper-list-report',
-                                        //     title: 'Sophia Topper List Report',
-                                        //     description: 'Manage Sophia Topper List Report Details'
-                                        // },
-                                        // {
-                                        //     id: 98,
-                                        //     name: 'St.James Consolidation Report',
-                                        //     icon: 'BookOpen',
-                                        //     url: '/Exam/exam-module/reports/StJames/st-james-consolidation-report',
-                                        //     title: 'St.James Consolidation Report',
-                                        //     description: 'Manage St.James Consolidation Report Details'
-                                        // },
-                                        // {
-                                        //     id: 99,
-                                        //     name: 'St.James IX_X Report',
-                                        //     icon: 'BookOpen',
-                                        //     url: '/Exam/exam-module/reports/StJames/st-james-ix-x-report',
-                                        //     title: 'St.James IX_X Report',
-                                        //     description: 'Manage St.James IX_X Report Details'
-                                        // }
+                                        //                                         {
+                                        //                                             id: 90,
+                                        //                                             name: 'Stella Progress Report',
+                                        //                                             icon: 'BookOpen',
+                                        //                                             url: '/Exam/exam-module/reports/Stella/stella_prograss_report',
+                                        //                                             title: 'Stella Progress Report',
+                                        //                                             description: 'Manage Stella Progress Card Report Details'
+                                        //                                         },
+                                        //                                         {
+                                        //                                             id: 91,
+                                        //                                             name: 'Stella Marks Entry Report',
+                                        //                                             icon: 'BookOpen',
+                                        //                                             url: '/Exam/exam-module/reports/Stella/stella_marks_entry_report',
+                                        //                                             title: 'Stella Marks Entry Report',
+                                        //                                             description: 'Manage Stella Marks Entry Report Details'
+                                        //                                         },
+                                        //                                         {
+                                        //                                             id: 92,
+                                        //                                             name: 'Vidyaniketan Performance Ananlysis Report',
+                                        //                                             icon: 'BookOpen',
+                                        //                                             url: '/Exam/exam-module/reports/GMVPS/vidyaniketan-performance-analysis-report',
+                                        //                                             title: 'Vidyaniketan Performance Ananlysis Report',
+                                        //                                             description: 'Manage Vidyaniketan Performance Ananlysis Report Details'
+                                        //                                         },
+                                        //                                         {
+                                        //                                             id: 93,
+                                        //                                             name: 'Vidyaniketan Progress Card Report',
+                                        //                                             icon: 'BookOpen',
+                                        //                                             url: '/Exam/exam-module/reports/GMVPS/vidyaniketan-progress-card-report',
+                                        //                                             title: 'Vidyaniketan Progress Card Report',
+                                        //                                             description: 'Manage Vidyaniketan Progress Card Report Details'
+                                        //                                         },
+                                        //                                         {
+                                        //                                             id: 94,
+                                        //                                             name: 'Vidyaniketan I-VIII Card Report',
+                                        //                                             icon: 'BookOpen',
+                                        //                                             url: '/Exam/exam-module/reports/GMVPS/vidyaniketan-report-card-I-VIII',
+                                        //                                             title: 'Vidyaniketan I-VIII Card Report',
+                                        //                                             description: 'Manage Vidyaniketan I-VIII Card Report Details'
+                                        //                                         },
+                                        //                                         {
+                                        //                                             id: 95,
+                                        //                                             name: 'Sophia IX-X Card Report',
+                                        //                                             icon: 'BookOpen',
+                                        //                                             url: '/Exam/exam-module/reports/Sophia/sophia-report-card-IX-X',
+                                        //                                             title: 'Sophia IX-X Card Report',
+                                        //                                             description: 'Manage Sophia IX-X Card Report Details'
+                                        //                                         },
+                                        //                                         {
+                                        //                                             id: 96,
+                                        //                                             name: 'Sophia Pre-II Card Report',
+                                        //                                             icon: 'BookOpen',
+                                        //                                             url: '/Exam/exam-module/reports/Sophia/sophia-report-card-pre-II',
+                                        //                                             title: 'Sophia Pre-II Card Report',
+                                        //                                             description: 'Manage Sophia Pre-II Card Report Details'
+                                        //                                         },
+                                        //                                         {
+                                        //                                             id: 97,
+                                        //                                             name: 'Sophia Topper List Report',
+                                        //                                             icon: 'BookOpen',
+                                        //                                             url: '/Exam/exam-module/reports/Sophia/sophia-topper-list-report',
+                                        //                                             title: 'Sophia Topper List Report',
+                                        //                                             description: 'Manage Sophia Topper List Report Details'
+                                        //                                         },
+                                        //                                         {
+                                        //                                             id: 98,
+                                        //                                             name: 'St.James Consolidation Report',
+                                        //                                             icon: 'BookOpen',
+                                        //                                             url: '/Exam/exam-module/reports/StJames/st-james-consolidation-report',
+                                        //                                             title: 'St.James Consolidation Report',
+                                        //                                             description: 'Manage St.James Consolidation Report Details'
+                                        //                                         },
+                                        //                                         {
+                                        //                                             id: 99,
+                                        //                                             name: 'St.James IX_X Report',
+                                        //                                             icon: 'BookOpen',
+                                        //                                             url: '/Exam/exam-module/reports/StJames/st-james-ix-x-report',
+                                        //                                             title: 'St.James IX_X Report',
+                                        //                                             description: 'Manage St.James IX_X Report Details'
+                                        //                                         }
                                     ]
                                 }
                             ]
@@ -3022,8 +2949,8 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage PS7 Form Report'
                                         },
                                         {
-                                            id: 31, 
-                                            name: "MONTH WISE REPORT(st.james)" ,
+                                            id: 31,
+                                            name: 'MONTH WISE REPORT(st.james)',
                                             icon: 'Clock',
                                             url: '/hrms/reports/PS8_MonthWiseReportStjames',
                                             title: 'PS8 Month Wise Report',
@@ -3031,7 +2958,7 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 32,
-                                            name: "PS8 Form Report(st.james)" ,
+                                            name: 'PS8 Form Report(st.james)',
                                             icon: 'Clock',
                                             url: '/hrms/reports/PS8_ReportStjames',
                                             title: 'PS8 Form Report',
@@ -3039,7 +2966,7 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 33,
-                                            name: "VPF YEARLY REPORT",
+                                            name: 'VPF YEARLY REPORT',
                                             icon: 'Calandar',
                                             url: '/hrms/reports/VPFYearlyReport',
                                             title: 'VPF Yearly Report',
@@ -3047,7 +2974,7 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 34,
-                                            name: "VPF SUMMARY REPORT",
+                                            name: 'VPF SUMMARY REPORT',
                                             icon: 'Calandar',
                                             url: '/hrms/reports/VPFSummaryReport',
                                             title: 'VPF Summary Report',
@@ -3055,7 +2982,7 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 35,
-                                            name: "PF SUMMARY REPORT",
+                                            name: 'PF SUMMARY REPORT',
                                             icon: 'Calandar',
                                             url: '/hrms/reports/PFSummaryReport',
                                             title: 'PF Summary Report',
@@ -3063,45 +2990,12 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 36,
-                                            name: "PF YEARLY REPORT",
+                                            name: 'PF YEARLY REPORT',
                                             icon: 'Calandar',
                                             url: '/hrms/reports/PFYearlyReport',
                                             title: 'PF Yearly Report',
                                             description: 'Manage PF Yearly Report'
-                                        },
-                                        
-                                        // {
-                                        //     id: 29,
-                                        //     name: 'Employee Contribution Report',
-                                        //     icon: 'Clock',
-                                        //     url: '/hrms/reports/contribution-report',
-                                        //     title: 'Employee Contribution Report',
-                                        //     description: 'Manage Employee Contribution Report'
-                                        // },
-                                        // {
-                                        //     id: 30,
-                                        //     name: 'PS7 Form Report',
-                                        //     icon: 'Clock',
-                                        //     url: '/hrms/reports/PS7FromReportStJames',
-                                        //     title: 'PS7 Form Report',
-                                        //     description: 'Manage PS7 Form Report'
-                                        // },
-                                        // {
-                                        //     id: 31,
-                                        //     name: "MONTH WISE REPORT(st.james)" ,
-                                        //     icon: 'Clock',
-                                        //     url: '/hrms/reports/PS8_MonthWiseReportStjames',
-                                        //     title: 'PS8 Month Wise Report',
-                                        //     description: 'Manage Month Wise Report (st.james)'
-                                        // },
-                                        // {
-                                        //     id: 32,
-                                        //     name: "PS8 Form Report(st.james)" ,
-                                        //     icon: 'Clock',
-                                        //     url: '/hrms/reports/PS8_ReportStjames',
-                                        //     title: 'PS8 Form Report',
-                                        //     description: 'Manage PS8 Form Report (st.james)'
-                                        // },
+                                        }
                                     ]
                                 }
                             ]
@@ -3803,6 +3697,14 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/leave-management/reports/leave-status-report',
                                             title: 'Leave Status Report',
                                             description: 'Leave Status Report'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Late Leave Report',
+                                            icon: 'FileSearch',
+                                            url: '/hrms/leave-management/reports/LateLeave',
+                                            title: 'Late Leave Report',
+                                            description: 'Late Leave Report'
                                         }
 
                                         // {
@@ -5261,7 +5163,7 @@ export async function getUserAccessibleModules() {
                                             id: 2,
                                             name: 'Class Section Timetable Replacement',
                                             icon: 'Clock',
-                                            url: '/timetable/transactions/class-section-report/',
+                                            url: '/timetable/reports/class-section-report',
                                             title: 'Staff Replacement For Class And Section',
                                             description: 'View and generate class-wise timetable grids'
                                         },
@@ -6609,7 +6511,7 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                }
+                },
                 // {
                 //     id: 8,
                 //     name: 'Hostel Management',
@@ -6937,6 +6839,201 @@ export async function getUserAccessibleModules() {
                 //         //     },
                 //     ]
                 // }
+
+                {
+                    id: 201,
+                    name: 'Petty Cash',
+                    icon: 'BadgeIndianRupee',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Petty Cash',
+                            icon: 'BadgeIndianRupee',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Masters',
+                                    icon: 'BadgeIndianRupee',
+                                    pages: [
+                                        {
+                                            id: 600,
+                                            name: 'Master particulars',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/pettycash/masterparticulars',
+                                            title: 'Master Particulars',
+                                            description: 'Manage Master Particulars Details'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Transaction',
+                                    icon: 'BadgeIndianRupee',
+                                    pages: [
+                                        // {
+                                        //     id: 603,
+                                        //     name: 'PC Indent',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/pettycash/Transaction/pcIndent',
+                                        //     title: 'PC Indent',
+                                        //     description: 'Manage PC Indent Details'
+                                        // },
+                                        // {
+                                        //     id: 604,
+                                        //     name: 'PC INDENT APPROVAL',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/pettycash/Transaction/pcIndentApproval',
+                                        //     title: 'PC Indent Approval',
+                                        //     description: 'Manage PC Indent Approval Details'
+                                        // },
+                                        {
+                                            id: 61105,
+                                            name: 'PC PARTICULARS REQUISITION',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/pettycash/Transaction/pcREQUISITION',
+                                            title: 'PC Particulars Requisition',
+                                            description: 'Manage PC Particulars Requisition Details'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 3,
+                                    name: 'Reports',
+                                    icon: 'BadgeIndianRupee',
+                                    pages: [
+                                        {
+                                            id: 60321230,
+                                            name: 'Pc Requisition Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/pettycash/PcRequisitionReport',
+                                            title: 'Pc Requisition Report',
+                                            description: 'View Pc Requisition Reports'
+                                        }
+                                    ]
+                                }
+
+                                // {
+                                //     id: 4,
+                                //     name: 'Transactions',
+                                //     icon: 'Clock',
+                                //     pages: [
+                                //         {
+                                //             id: 1,
+                                //             name: 'Class Section Time Table Report',
+                                //             icon: 'Clock',
+                                //             url: '/timetable/transactions/class-section-report/class-section-report',
+                                //             title: 'Class Section Time Table Report',
+                                //             description: 'View and generate class-wise timetable grids'
+                                //         },
+                                //         {
+                                //             id: 2,
+                                //             name: 'Deputation',
+                                //             icon: 'Clock',
+                                //             url: '/timetable/transactions/deputation',
+                                //             title: 'Deputation',
+                                //             description: 'ABSENT STAFF ALLOTMENT DETAILS'
+                                //         },
+                                //         {
+                                //             id: 3,
+                                //             name: 'Manual Period Insertion',
+                                //             icon: 'Clock',
+                                //             url: '/timetable/transactions/manual-Period-insersion',
+                                //             title: 'Manual Period Insertion',
+                                //             description: 'ABSENT STAFF ALLOTMENT DETAILS'
+                                //         },
+                                //         {
+                                //             id: 4,
+                                //             name: 'Staff Period Transfer',
+                                //             icon: 'Clock',
+                                //             url: '/timetable/transactions/staff-Periods-Transfer',
+                                //             title: 'Staff Period Transfer',
+                                //             description: 'Transfer Staff Periods Between Classes and Sections'
+                                //         },
+                                //         {
+                                //             id: 5,
+                                //             name: 'Staff Replacement Existing To New',
+                                //             icon: 'Clock',
+                                //             url: '/timetable/transactions/staff-replacement-existing-to-new',
+                                //             title: 'Staff Replacement Existing To New',
+                                //             description: 'Replacing staff Existing To New'
+                                //         },
+                                //         {
+                                //             id: 6,
+                                //             name: 'Staff Replacement In Their TimeTable',
+                                //             icon: 'Clock',
+                                //             url: '/timetable/transactions/staff-replacement-In-their-timeTable',
+                                //             title: 'Staff Replacement In Their TimeTable',
+                                //             description: 'Staff Replacement In Their TimeTable'
+                                //         },
+                                //         {
+                                //             id: 7,
+                                //             name: 'Staff Replacement In Unallocated Period',
+                                //             icon: 'Clock',
+                                //             url: '/timetable/transactions/staff-replacement-in-unallocated-period',
+                                //             title: 'Staff Replacement In Unallocated Period',
+                                //             description: 'Staff Replacement In Unallocated Period'
+                                //         },
+                                //         {
+                                //             id: 8,
+                                //             name: 'Time Table Generation',
+                                //             icon: 'Clock',
+                                //             url: '/timetable/transactions/time-table-generation',
+                                //             title: 'Time Table Generation',
+                                //             description: 'Time Table Generation'
+                                //         }
+                                //     ]
+                                // },
+                                // {
+                                //     id: 2,
+                                //     name: 'Reports',
+                                //     icon: 'Clock',
+                                //     pages: [
+                                //         {
+                                //             id: 1,
+                                //             name: 'Consolidated Report',
+                                //             icon: 'Clock',
+                                //             url: '/timetable/reports/consolidated',
+                                //             title: 'Consolidated Report',
+                                //             description: 'TimeTable Consolidated Report'
+                                //         },
+                                //         {
+                                //             id: 2,
+                                //             name: 'Class Wise TimeTable',
+                                //             icon: 'Clock',
+                                //             url: '/timetable/reports/classwisett',
+                                //             title: 'Class Wise TimeTable',
+                                //             description: 'Class Wise TimeTable Report'
+                                //         },
+                                //         {
+                                //             id: 3,
+                                //             name: 'Subject Wise TimeTable',
+                                //             icon: 'Clock',
+                                //             url: '/timetable/reports/subjectwisett',
+                                //             title: 'Subject Wise TimeTable',
+                                //             description: 'Subject Wise TimeTable Report'
+                                //         },
+                                //         {
+                                //             id: 4,
+                                //             name: 'Staff Wise TimeTable',
+                                //             icon: 'Clock',
+                                //             url: '/timetable/reports/staffwisett',
+                                //             title: 'Staff Wise TimeTable',
+                                //             description: 'Staff Wise TimeTable Report'
+                                //         },
+                                //         {
+                                //             id: 5,
+                                //             name: 'Deputation Report',
+                                //             icon: 'Clock',
+                                //             url: '/timetable/reports/deputationreport',
+                                //             title: 'Deputation Report',
+                                //             description: 'Deputation Report'
+                                //         }
+                                //     ]
+                                // }
+                            ]
+                        }
+                    ]
+                }
             ]
         };
     } else if (session?.role.toUpperCase() === 'STAFF') {

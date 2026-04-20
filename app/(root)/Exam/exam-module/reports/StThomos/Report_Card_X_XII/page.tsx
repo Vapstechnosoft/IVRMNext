@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ReportForm } from './_components/report-form';
 import { ReportList } from './_components/report-list';
 
@@ -29,15 +29,13 @@ export default function ReportCardXXiiPage() {
     }, [reportData]);
 
     return (
-        <div className="container mx-auto py-8 space-y-8">
-            <div className="no-print">
+        <div className='container mx-auto space-y-8 py-8'>
+            <div className='no-print'>
                 <ReportForm onReportGenerated={handleReportGenerated} onReset={handleReset} />
             </div>
 
-            <div ref={listRef} className="transition-all duration-300">
-                {reportData && (
-                    <ReportList data={reportData} params={reportParams} />
-                )}
+            <div ref={listRef} className='transition-all duration-300'>
+                {reportData && <ReportList data={reportData} params={reportParams} />}
             </div>
         </div>
     );

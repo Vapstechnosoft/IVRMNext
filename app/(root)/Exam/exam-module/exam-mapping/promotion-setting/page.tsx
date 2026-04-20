@@ -27,7 +27,7 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function PromotionalSettingPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error, refetchAll } = usePromotionalSetting(searchParams);
-    useEffect(() => { console.log(response); }, [response]);
+    useEffect(() => {}, [response]);
 
     return (
         <FormProvider<IPromotionSetting>>
@@ -72,7 +72,6 @@ function PromotionalSettingPageContent({
                         }));
 
                         setOrderData(mapped);
-                        console.log('promotion settingh setOrderData', mapped);
                     } else {
                         toast.error(response.message || 'Failed to fetch order details');
                     }

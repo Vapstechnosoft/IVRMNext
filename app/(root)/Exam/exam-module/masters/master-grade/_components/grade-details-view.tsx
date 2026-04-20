@@ -6,8 +6,8 @@ import { FormProvider } from '@/components/ui/form/form-provider';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
 import { useMasterGradeDetails } from '@/hooks/exam/exammodule/usemasters';
 import type { IGradeDetails, IMasterGrade } from '@/types/exam/exam-module/masters';
-import { GradeDetailsColumns } from './grade-details-columns';
 import { X } from 'lucide-react';
+import { GradeDetailsColumns } from './grade-details-columns';
 
 interface MasterGradeDetailsPageProps {
     rowData: IMasterGrade; //  Will receive selected grade details

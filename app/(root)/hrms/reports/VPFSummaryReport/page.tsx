@@ -3,8 +3,8 @@
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { CollapsibleSection } from "@/components/ui/form/collapsible-section";
-import { useFinancialYearDropdown, useGetEmployees, useLeaveYearDropdown } from "@/hooks/hrms/useMasters";
-import { usePFSummaryReport } from "@/hooks/hrms/useReports";
+import { useFinancialYearDropdown, useGetEmployees } from "@/hooks/hrms/useMasters";
+import { useVPFSummaryReport } from "@/hooks/hrms/useReports";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -24,42 +24,40 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 // --- Schema ---
 
-const PFSummaryReportSchema = z.object({
+const VPFSummaryReportSchema = z.object({
   employees: z.string().min(1, "At least one employee must be selected"),
   year: z.string().min(1, "Year is required"),
-  flag: z.enum(["PFTotalReport", "PFGrandTotalReport", "PFStatementReport"]),
+  flag: z.enum(["VPFTotalReport", "VPFGrandTotalReport", "VPFStatementReport"]),
 });
 
-type PFSummaryReportFormValues = z.infer<typeof PFSummaryReportSchema>;
+type VPFSummaryReportFormValues = z.infer<typeof VPFSummaryReportSchema>;
 
 // --- Component ---
 
-export default function PFSummaryReport() {
+export default function VPFSummaryReport() {
   const [reportData, setReportData] = useState<any[]>([]);
   const [employeeDetails, setEmployeeDetails] = useState<any[]>([]);
   const [financialYear, setFinancialYear] = useState<string>("");
-  const [selectedFlag, setSelectedFlag] = useState<string>("PFTotalReport");
+  const [selectedFlag, setSelectedFlag] = useState<string>("VPFTotalReport");
+  const [resetKey, setResetKey] = useState<number>(0);
 
   const { data: employeesData, isLoading: isLoadingEmployees } = useGetEmployees();
   const { data: yearsData, isLoading: isLoadingYears } = useFinancialYearDropdown();
-  const { mutateAsync: getPFSummaryReport, isPending: isLoadingPFSummary } = usePFSummaryReport();
+  const { mutateAsync: getVPFSummaryReport, isPending: isLoadingVPFSummary } = useVPFSummaryReport();
 
   const {
     control,
     handleSubmit,
     reset,
-    watch,
     formState: { errors },
-  } = useForm<PFSummaryReportFormValues>({
-    resolver: zodResolver(PFSummaryReportSchema),
+  } = useForm<VPFSummaryReportFormValues>({
+    resolver: zodResolver(VPFSummaryReportSchema),
     defaultValues: {
       employees: "",
       year: "",
-      flag: "PFTotalReport",
+      flag: "VPFTotalReport",
     },
   });
-
- console.log("years data", yearsData);
 
   const formatedEmployees = useMemo(() => {
     return (
@@ -70,7 +68,7 @@ export default function PFSummaryReport() {
     );
   }, [employeesData]);
 
-  const onSubmit = async (data: PFSummaryReportFormValues) => {
+  const onSubmit = async (data: VPFSummaryReportFormValues) => {
     const selectedYear = yearsData?.data?.find(
       (y: any) => y.imfY_Id.toString() === data.year
     );
@@ -84,16 +82,18 @@ export default function PFSummaryReport() {
     };
 
     try {
-      const response = await getPFSummaryReport(payload);
-      if (response.success && response.data) {
+      const response = await getVPFSummaryReport(payload);
+      if (response?.success && response?.data) {
+        console.log("VPF Summary Report Response:", response);
         setReportData(response?.data?.reportData || []);
         setEmployeeDetails(response?.data?.empDetails || []);
         toast.success(`Data fetched successfully`);
       } else {
-        toast.error(response.message || "Failed to fetch report data");
+        toast.error(response?.message || "Failed to fetch report data");
       }
     } catch (error) {
-      console.error("PF Summary Report Error:", error);
+      console.error("VPF Summary Report Error:", error);
+      toast.error("An error occurred while fetching the report data");
     }
   };
 
@@ -110,7 +110,7 @@ export default function PFSummaryReport() {
       printWindow.document.write(`
         <html>
           <head>
-            <title>PF Summary Report</title>
+            <title>VPF Summary Report</title>
             <style>
               body { font-family: 'Inter', sans-serif; padding: 20px; }
               table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
@@ -143,8 +143,9 @@ export default function PFSummaryReport() {
     reset({
       employees: "",
       year: "",
-      flag: "PFTotalReport",
+      flag: "VPFTotalReport",
     });
+    setResetKey(prev => prev + 1);
   };
 
   const handleExport = () => {
@@ -153,7 +154,7 @@ export default function PFSummaryReport() {
       const blob = new Blob([table.outerHTML], {
         type: "application/vnd.ms-excel;charset=utf-8",
       });
-      saveAs(blob, `PF_Summary_Report_${financialYear}.xls`);
+      saveAs(blob, `VPF_Summary_Report_${financialYear}.xls`);
     } else {
       toast.error("Report content not found");
     }
@@ -161,35 +162,31 @@ export default function PFSummaryReport() {
 
   // --- Calculations for Summary Table ---
   const totals = useMemo(() => {
-    if (selectedFlag !== "PFTotalReport" || reportData.length === 0) return null;
+    if (selectedFlag !== "VPFTotalReport" || reportData.length === 0) return null;
     return reportData.reduce(
       (acc, curr) => {
-        acc.own_ob += curr.hrepfsT_OBOwnAmount || curr.HREPFST_OBOwnAmount || 0;
-        acc.inst_ob += curr.hrepfsT_OBInstituteAmount || curr.HREPFST_OBInstituteAmount || 0;
-        acc.own_cont += curr.hrepfsT_OwnContribution || curr.HREVPFST_Contribution || 0;
-        acc.inst_cont += curr.hrepfsT_InstituteContribution || curr.HREPFST_IntstituteContribution || 0;
-        acc.own_int += curr.hrepfsT_OwnInterest || curr.HREVPFST_Intersest || 0;
-        acc.inst_int += curr.hrepfsT_InstituteInterest || curr.HREPFST_InstituteInterest || 0;
-        acc.own_total += curr.own_GRANDTOTAL || curr.OWN_GRANDTOTAL || 0;
-        acc.inst_total += curr.inst_GRANDTOTAL || curr.INST_GRANDTOTAL || 0;
-        acc.own_settle += curr.hrepfsT_OwnSettlementAmount || curr.HREPFST_OwnSettlementAmount || 0;
-        acc.inst_settle += curr.hrepfsT_InstituteLSettlementAmount || curr.HREPFST_InstituteLSettlementAmount || 0;
-        acc.own_cb += curr.hrepfsT_OwnClosingBalance || curr.HREPFST_OwnClosingBalance || 0;
-        acc.inst_cb += curr.hrepfsT_InstituteClosingBalance || curr.HREPFST_InstituteClosingBalance || 0;
+        acc.ob += Number(curr.hrevpfsT_VOBAmount || 0);
+        acc.cont += Number(curr.hrevpfsT_Contribution || 0);
+        acc.int += Number(curr.hrevpfsT_Intersest || 0);
+        acc.total += Number(curr.grandtotal || curr.GRANDTOTAL || 0);
+        acc.settle += Number(curr.hrevpfsT_SettledAmount || 0);
+        acc.cb += Number(curr.hrevpfsT_ClosingBalance || 0);
         return acc;
       },
       {
-        own_ob: 0, inst_ob: 0, own_cont: 0, inst_cont: 0,
-        own_int: 0, inst_int: 0, own_total: 0, inst_total: 0,
-        own_settle: 0, inst_settle: 0, own_cb: 0, inst_cb: 0
+        ob: 0, cont: 0, int: 0, total: 0, settle: 0, cb: 0
       }
     );
   }, [reportData, selectedFlag]);
 
+  const formateFunction = (value: string) => {
+    return Number(value).toFixed(0);
+  }
+
   return (
     <div className="container min-h-screen space-y-4 p-2 pt-4 md:p-4 animate-in fade-in duration-500">
       <CollapsibleSection
-        title="PF SUMMARY REPORT"
+        title="VPF SUMMARY REPORT"
         description="Select report type, year and employees to generate the report."
         defaultOpen={true}
       >
@@ -206,16 +203,16 @@ export default function PFSummaryReport() {
                   className="flex flex-wrap justify-center gap-8"
                 >
                   <div className="flex items-center space-x-2 bg-white px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-                    <RadioGroupItem value="PFTotalReport" id="r1" />
-                    <Label htmlFor="r1" className="cursor-pointer font-medium text-slate-700">PF Summary Report</Label>
+                    <RadioGroupItem value="VPFTotalReport" id="r1" />
+                    <Label htmlFor="r1" className="cursor-pointer font-medium text-slate-700">VPF Summary Report</Label>
                   </div>
                   <div className="flex items-center space-x-2 bg-white px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-                    <RadioGroupItem value="PFGrandTotalReport" id="r2" />
-                    <Label htmlFor="r2" className="cursor-pointer font-medium text-slate-700">PF Grand Total Report</Label>
+                    <RadioGroupItem value="VPFGrandTotalReport" id="r2" />
+                    <Label htmlFor="r2" className="cursor-pointer font-medium text-slate-700">VPF Grand Total Report</Label>
                   </div>
                   <div className="flex items-center space-x-2 bg-white px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-                    <RadioGroupItem value="PFStatementReport" id="r3" />
-                    <Label htmlFor="r3" className="cursor-pointer font-medium text-slate-700">PF Statement Report</Label>
+                    <RadioGroupItem value="VPFStatementReport" id="r3" />
+                    <Label htmlFor="r3" className="cursor-pointer font-medium text-slate-700">VPF Statement Report</Label>
                   </div>
                 </RadioGroup>
               )}
@@ -228,6 +225,7 @@ export default function PFSummaryReport() {
                   Year <span className="text-destructive">*</span>
                 </Label>
                 <Controller
+                  key={resetKey}
                   name="year"
                   control={control}
                   render={({ field }) => (
@@ -235,14 +233,15 @@ export default function PFSummaryReport() {
                       {...field}
                       value={field.value?.toString() ?? ""}
                       onValueChange={(value) =>
-                        field.onChange(value ? Number(value) : undefined)
+                        field.onChange(value)
                       }
+                      disabled={isLoadingYears}
                     >
                       <SelectTrigger>
-                        {field.value
+                        {isLoadingYears ? "Loading..." : field.value
                           ? yearsData?.data?.find(
-                              (y: any) => y.imfY_Id === field.value,
-                            )?.hrmlY_LeaveYear
+                            (y: any) => y.imfY_Id.toString() === field.value,
+                          )?.imfY_FinancialYear
                           : "Select Year"}
                       </SelectTrigger>
                       <SelectContent>
@@ -267,20 +266,24 @@ export default function PFSummaryReport() {
                   Employees <span className="text-destructive">*</span>
                 </Label>
                 <Controller
+                  key={`emp-${resetKey}`}
                   name="employees"
                   control={control}
                   render={({ field }) => (
-                    <MultiSelect
-                      id={field.name}
-                      options={formatedEmployees}
-                      onValueChange={(values) => {
-                        field.onChange(values.join(","));
-                      }}
-                      defaultValue={field.value ? field.value.split(",") : []}
-                      placeholder="Select Employees"
-                      variant="inverted"
-                      className="min-h-9 bg-white"
-                    />
+                    <div className={isLoadingEmployees ? "pointer-events-none opacity-50" : ""}>
+                      <MultiSelect
+                        id={field.name}
+                        options={formatedEmployees}
+                        onValueChange={(values) => {
+                          field.onChange(values.join(","));
+                        }}
+                        defaultValue={field.value ? field.value.split(",") : []}
+                        placeholder={isLoadingEmployees ? "Loading employees..." : "Select Employees"}
+                        variant="inverted"
+                        className="min-h-9 bg-white"
+                        disabled={isLoadingEmployees}
+                      />
+                    </div>
                   )}
                 />
                 {errors.employees && (
@@ -291,8 +294,8 @@ export default function PFSummaryReport() {
           </div>
 
           <div className="flex gap-4 justify-center">
-            <Button type="submit" className="min-w-[140px] shadow-lg hover:shadow-xl transition-all" disabled={isLoadingPFSummary}>
-              {isLoadingPFSummary ? (
+            <Button type="submit" className="min-w-[140px] shadow-lg hover:shadow-xl transition-all" disabled={isLoadingVPFSummary}>
+              {isLoadingVPFSummary ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
                 <Search className="mr-2 h-4 w-4 " />
@@ -320,19 +323,27 @@ export default function PFSummaryReport() {
           <div className="flex justify-end p-4 gap-3 border-b bg-slate-50/50 print:hidden">
             <Button
               type="button"
-              variant="default"
-              className="gap-2 bg-indigo-600 hover:bg-indigo-700 shadow-md"
+              variant="destructive"
+              className="gap-2 shadow-md w-fit"
               onClick={handlePrint}
             >
               <Printer className="h-4 w-4" /> Print
             </Button>
             <Button
               type="button"
-              variant="outline"
-              className="gap-2 border-emerald-500 text-emerald-700 hover:bg-emerald-50 shadow-sm"
+              variant="destructive"
+              className="gap-2 shadow-sm w-fit"
               onClick={handleExport}
             >
               <Download className="h-4 w-4" /> Export
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              className="gap-2 shadow-sm w-fit"
+              onClick={handleReset}
+            >
+              <X className="h-4 w-4" /> Cancel
             </Button>
           </div>
 
@@ -340,127 +351,96 @@ export default function PFSummaryReport() {
             {/* Header Section for Print */}
             <div className="text-center mb-8 space-y-1">
               <h1 className="text-2xl font-bold text-slate-900 uppercase tracking-tight">
-                {employeeDetails[0]?.mI_Name || "PF REPORT"}
+                {employeeDetails[0]?.mI_Name || "VPF REPORT"}
               </h1>
               <h2 className="text-lg font-semibold text-slate-600 uppercase">
-                {selectedFlag === "PFTotalReport" 
-                  ? "PF SUMMARY financial year" 
-                  : selectedFlag === "PFGrandTotalReport" 
-                    ? "PF GRAND TOTAL financial year" 
-                    : "PF Statement for financial year"}
-                <br /> {financialYear}
+                {selectedFlag === "VPFTotalReport"
+                  ? "VPF SUMMARY for financial year"
+                  : selectedFlag === "VPFGrandTotalReport"
+                    ? "VPF Grand Total for financial year"
+                    : "VPF Statement for financial year"}
+                {" "}{financialYear}
               </h2>
             </div>
 
-            {/* PF Summary Report Table */}
-            {selectedFlag === "PFTotalReport" && (
+            {/* VPF Summary Report Table */}
+            {selectedFlag === "VPFTotalReport" && (
               <table className="w-full border-collapse text-sm">
                 <thead>
-                  <tr className="bg-slate-100">
-                    <th rowSpan={2} className="border border-slate-300 p-2 font-bold">Employee Name</th>
-                    <th colSpan={2} className="border border-slate-300 p-2 font-bold">OPENING BALANCE</th>
-                    <th colSpan={2} className="border border-slate-300 p-2 font-bold">CONTRIBUTION</th>
-                    <th colSpan={2} className="border border-slate-300 p-2 font-bold">INTEREST</th>
-                    <th colSpan={2} className="border border-slate-300 p-2 font-bold">TOTAL</th>
-                    <th colSpan={2} className="border border-slate-300 p-2 font-bold">SETTLEMENT</th>
-                    <th colSpan={2} className="border border-slate-300 p-2 font-bold">CLOSING BALANCE</th>
-                  </tr>
-                  <tr className="bg-slate-50">
-                    <th className="border border-slate-300 p-2 font-semibold">Own</th>
-                    <th className="border border-slate-300 p-2 font-semibold">School</th>
-                    <th className="border border-slate-300 p-2 font-semibold">Own</th>
-                    <th className="border border-slate-300 p-2 font-semibold">School</th>
-                    <th className="border border-slate-300 p-2 font-semibold">Own</th>
-                    <th className="border border-slate-300 p-2 font-semibold">School</th>
-                    <th className="border border-slate-300 p-2 font-semibold">Own</th>
-                    <th className="border border-slate-300 p-2 font-semibold">School</th>
-                    <th className="border border-slate-300 p-2 font-semibold">Own</th>
-                    <th className="border border-slate-300 p-2 font-semibold">School</th>
-                    <th className="border border-slate-300 p-2 font-semibold">Own</th>
-                    <th className="border border-slate-300 p-2 font-semibold">School</th>
+                  <tr className="bg-violet-500 text-white">
+                    <th className="border border-slate-300 p-2 font-bold text-left">EMPLOYEE</th>
+                    <th className="border border-slate-300 p-2 font-bold">OPENING BALANCE</th>
+                    <th className="border border-slate-300 p-2 font-bold">CONTRIBUTION</th>
+                    <th className="border border-slate-300 p-2 font-bold">INTEREST</th>
+                    <th className="border border-slate-300 p-2 font-bold">TOTAL</th>
+                    <th className="border border-slate-300 p-2 font-bold">SETTLEMENT</th>
+                    <th className="border border-slate-300 p-2 font-bold">CLOSING BALANCE</th>
                   </tr>
                 </thead>
                 <tbody>
                   {reportData.map((user, idx) => (
                     <tr key={idx} className="hover:bg-slate-50 transition-colors">
                       <td className="border border-slate-300 p-2 text-left font-medium">
-                        {user.ivrM_Month_Name?.split('|')[1] || user.HRME_EmployeeFirstName}
+                        {(user.hrmE_EmployeeFirstName || user.HRME_EmployeeFirstName || user.employeeName)}
                       </td>
-                      <td className="border border-slate-300 p-2">{user.hrepfsT_OBOwnAmount || user.HREPFST_OBOwnAmount || 0}</td>
-                      <td className="border border-slate-300 p-2">{user.hrepfsT_OBInstituteAmount || user.HREPFST_OBInstituteAmount || 0}</td>
-                      <td className="border border-slate-300 p-2">{user.hrepfsT_OwnContribution || user.HREVPFST_Contribution || 0}</td>
-                      <td className="border border-slate-300 p-2">{user.hrepfsT_InstituteContribution || user.HREPFST_IntstituteContribution || 0}</td>
-                      <td className="border border-slate-300 p-2">{user.hrepfsT_OwnInterest || user.HREVPFST_Intersest || 0}</td>
-                      <td className="border border-slate-300 p-2">{user.hrepfsT_InstituteInterest || user.HREPFST_InstituteInterest || 0}</td>
-                      <td className="border border-slate-300 p-2">{user.own_GRANDTOTAL || user.OWN_GRANDTOTAL || 0}</td>
-                      <td className="border border-slate-300 p-2">{user.inst_GRANDTOTAL || user.INST_GRANDTOTAL || 0}</td>
-                      <td className="border border-slate-300 p-2">{user.hrepfsT_OwnSettlementAmount || user.HREPFST_OwnSettlementAmount || 0}</td>
-                      <td className="border border-slate-300 p-2">{user.hrepfsT_InstituteLSettlementAmount || user.HREPFST_InstituteLSettlementAmount || 0}</td>
-                      <td className="border border-slate-300 p-2 font-bold text-indigo-700">{user.hrepfsT_OwnClosingBalance || user.HREPFST_OwnClosingBalance || 0}</td>
-                      <td className="border border-slate-300 p-2 font-bold text-indigo-700">{user.hrepfsT_InstituteClosingBalance || user.HREPFST_InstituteClosingBalance || 0}</td>
+                      <td className="border border-slate-300 p-2 text-center">{formateFunction(user.hrevpfsT_VOBAmount || 0)}</td>
+                      <td className="border border-slate-300 p-2 text-center">{formateFunction(user.hrevpfsT_Contribution || 0)}</td>
+                      <td className="border border-slate-300 p-2 text-center">{formateFunction(user.hrevpfsT_Intersest || 0)}</td>
+                      <td className="border border-slate-300 p-2 text-center">{formateFunction(user.grandtotal || user.GRANDTOTAL || 0)}</td>
+                      <td className="border border-slate-300 p-2 text-center">{formateFunction(user.hrevpfsT_SettledAmount || 0)}</td>
+                      <td className="border border-slate-300 p-2 text-center font-bold">{formateFunction(user.hrevpfsT_ClosingBalance || 0)}</td>
                     </tr>
                   ))}
                 </tbody>
-                <tfoot className="bg-slate-100 font-bold">
+                <tfoot className="font-bold">
                   <tr>
-                    <td className="border border-slate-300 p-2 text-center uppercase">Grand Total</td>
-                    <td className="border border-slate-300 p-2">{totals?.own_ob}</td>
-                    <td className="border border-slate-300 p-2">{totals?.inst_ob}</td>
-                    <td className="border border-slate-300 p-2">{totals?.own_cont}</td>
-                    <td className="border border-slate-300 p-2">{totals?.inst_cont}</td>
-                    <td className="border border-slate-300 p-2">{totals?.own_int}</td>
-                    <td className="border border-slate-300 p-2">{totals?.inst_int}</td>
-                    <td className="border border-slate-300 p-2">{totals?.own_total}</td>
-                    <td className="border border-slate-300 p-2">{totals?.inst_total}</td>
-                    <td className="border border-slate-300 p-2">{totals?.own_settle}</td>
-                    <td className="border border-slate-300 p-2">{totals?.inst_settle}</td>
-                    <td className="border border-slate-300 p-2 italic">{totals?.own_cb}</td>
-                    <td className="border border-slate-300 p-2 italic">{totals?.inst_cb}</td>
+                    <td className="border border-slate-300 p-2 text-left uppercase">GRAND TOTAL</td>
+                    <td className="border border-slate-300 p-2 text-center">{(totals?.ob || 0)}</td>
+                    <td className="border border-slate-300 p-2 text-center">{totals?.cont}</td>
+                    <td className="border border-slate-300 p-2 text-center">{totals?.int}</td>
+                    <td className="border border-slate-300 p-2 text-center">{totals?.total}</td>
+                    <td className="border border-slate-300 p-2 text-center">{totals?.settle}</td>
+                    <td className="border border-slate-300 p-2 text-center">{totals?.cb}</td>
                   </tr>
                 </tfoot>
               </table>
             )}
 
-            {/* PF Grand Total Report Table */}
-            {selectedFlag === "PFGrandTotalReport" && (
-              <table className="w-full max-w-2xl mx-auto border-collapse text-sm shadow-sm ring-1 ring-slate-200 rounded-lg overflow-hidden">
-                <thead className="bg-slate-800 text-white">
-                  <tr>
-                    <th className="p-3 text-left">Category</th>
-                    <th className="p-3">Own Total</th>
-                    <th className="p-3">School Total</th>
-                  </tr>
-                </thead>
+            {/* VPF Grand Total Report Table */}
+            {selectedFlag === "VPFGrandTotalReport" && (
+              <table className="w-full max-w-2xl mx-auto border-collapse text-sm shadow-sm ring-1 ring-slate-200 rounded-lg overflow-hidden border border-slate-300">
                 <tbody className="divide-y divide-slate-200">
                   {[
-                    { label: "OPENING BALANCE", own: "hrepfsT_OBOwnAmount", inst: "hrepfsT_OBInstituteAmount" },
-                    { label: "PF CONTRIBUTION", own: "hrepfsT_OwnContribution", inst: "hrepfsT_InstituteContribution" },
-                    { label: "PF TRANSFER", own: "hrepfsT_OwnTransferAmount", inst: "hrepfsT_InstituteTransferAmount" },
-                    { label: "INTEREST", own: "hrepfsT_OwnInterest", inst: "hrepfsT_InstituteInterest" },
-                    { label: "NON REFUNDABLE LOAN", own: "hrepfsT_OwnWithdrwanAmount", inst: "hrepfsT_InstituteWithdrawnAmount" },
-                    { label: "SETTLEMENT", own: "hrepfsT_OwnSettlementAmount", inst: "hrepfsT_InstituteLSettlementAmount" },
-                    { label: "CLOSING BALANCE", own: "hrepfsT_OwnClosingBalance", inst: "hrepfsT_InstituteClosingBalance" },
-                  ].map((row, idx) => (
-                    <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50"}>
-                      <td className="p-3 font-semibold text-slate-700">{row.label}</td>
-                      <td className="p-3 text-center">{reportData[0]?.[row.own] || 0}</td>
-                      <td className="p-3 text-center">{reportData[0]?.[row.inst] || 0}</td>
-                    </tr>
-                  ))}
+                    { label: "OPENING BALANCE", key: "hrevpfsT_VOBAmount" },
+                    { label: "VPF CONTRIBUTION", key: "hrevpfsT_Contribution" },
+                    { label: "PF TRANSFER", key: "hrevpfsT_TransferAmount" },
+                    { label: "INTEREST", key: "hrevpfsT_Intersest" },
+                    { label: "NON REFUNDABLE LOAN", key: "hrevpfsT_WithdrawnAmount" },
+                    { label: "CLOSING BALANCE", key: "hrevpfsT_ClosingBalance" },
+                    { label: "SETTLEMENT BALANCE", key: "hrevpfsT_SettledAmount" },
+                  ].map((row, idx) => {
+                    const totalValue = reportData.reduce((acc, curr) => acc + (Number(curr[row.key]) || 0), 0);
+                    return (
+                      <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50"}>
+                        <td className="p-3 border border-slate-300 font-semibold text-slate-700 text-center w-1/2">{row.label}</td>
+                        <td className="p-3 border border-slate-300 text-center w-1/2">{totalValue}</td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             )}
 
-            {/* PF Statement Report Table */}
-            {selectedFlag === "PFStatementReport" && (
+            {/* VPF Statement Report Table */}
+            {selectedFlag === "VPFStatementReport" && (
               <table className="w-full border-collapse text-sm">
                 <thead className="bg-slate-100">
                   <tr>
                     <th className="border border-slate-300 p-3 w-[10%]">SL NO.</th>
-                    <th className="border border-slate-300 p-3 w-[35%] text-left">EMPLOYEE NAME</th>
+                    <th className="border border-slate-300 p-3 w-[30%] text-left">EMPLOYEE NAME</th>
                     <th className="border border-slate-300 p-3 w-[20%]">PF AC NO</th>
-                    <th className="border border-slate-300 p-3 w-[15%]">SLIP NO</th>
-                    <th className="border border-slate-300 p-3 w-[20%]">SIGNATURE</th>
+                    <th className="border border-slate-300 p-3 w-[10%]">SLIP NO</th>
+                    <th className="border border-slate-300 p-3 w-[30%]">SIGNATURE</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -468,7 +448,7 @@ export default function PFSummaryReport() {
                     <tr key={idx} className="hover:bg-slate-50">
                       <td className="border border-slate-300 p-3 text-center">{idx + 1}</td>
                       <td className="border border-slate-300 p-3 text-left font-medium">
-                        {item.ivrM_Month_Name?.split('|')[1] || item.HRME_EmployeeFirstName}
+                        {item.hrmE_EmployeeFirstName || item.HRME_EmployeeFirstName || item.employeeName}
                       </td>
                       <td className="border border-slate-300 p-3 text-center">{item.hrmE_PFAccNo || item.HRME_PFAccNo}</td>
                       <td className="border border-slate-300 p-3 text-center">{item.hrmE_EmployeeOrder || item.HRME_EmployeeOrder || idx + 1}</td>

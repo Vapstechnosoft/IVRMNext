@@ -38,10 +38,10 @@ export type IStudentMarksRow = {
 };
 
 async function fetchSubjectAndStudentsMock(
-    academicYearId: number | string,
-    classId: number | string,
-    sectionId: number | string,
-    examId?: number | string,
+    _academicYearId: number | string,
+    _classId: number | string,
+    _sectionId: number | string,
+    _examId?: number | string,
     subjectId?: number | string
 ) {
     // small delay

@@ -10,7 +10,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { cn } from '@/lib/utils';
-import { vidyaniketanProgressReportSchema, VidyaniketanProgressReportSchema } from '@/schemas/exam/exam-module/reports';
+import { type VidyaniketanProgressReportSchema, vidyaniketanProgressReportSchema } from '@/schemas/exam/exam-module/reports';
 import {
     getClassDropDownByAcademicYearlist,
     getExamsDropDownByAcademicYearandClassandSectionlist,
@@ -22,7 +22,6 @@ import { CalendarIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
 
 export default function VidyaniketanProgressReportForm({
     onSuccess
@@ -141,7 +140,6 @@ export default function VidyaniketanProgressReportForm({
 
     // on submit
     const onSubmit = async (data: VidyaniketanProgressReportSchema) => {
-        
         const payload: any = {
             asmaY_Id: data.asmaY_Id,
             asmcL_Id: data.asmcL_Id,
@@ -152,7 +150,6 @@ export default function VidyaniketanProgressReportForm({
         };
         if (onSuccess) {
             await onSuccess(payload);
-            
         }
     };
 
@@ -377,15 +374,16 @@ export default function VidyaniketanProgressReportForm({
                                             name='emE_Id'
                                             render={({ field, fieldState }) => (
                                                 <div className='flex flex-col gap-2'>
-                                                    <div className='rounded-md border p-4 flex flex-col gap-3 max-h-[200px] overflow-y-auto'>
+                                                    <div className='flex max-h-[200px] flex-col gap-3 overflow-y-auto rounded-md border p-4'>
                                                         {loadingExams ? (
-                                                            <span className='text-sm text-muted-foreground'>Exams are loading...</span>
+                                                            <span className='text-muted-foreground text-sm'>Exams are loading...</span>
                                                         ) : exams.length === 0 ? (
-                                                            <span className='text-sm text-muted-foreground'>No Exams found</span>
+                                                            <span className='text-muted-foreground text-sm'>No Exams found</span>
                                                         ) : (
                                                             <div className='flex flex-col gap-3'>
                                                                 {exams.map((e) => {
-                                                                    const isChecked = field.value?.some((val) => val.emE_Id === e.emE_Id) || false;
+                                                                    const isChecked =
+                                                                        field.value?.some((val) => val.emE_Id === e.emE_Id) || false;
                                                                     return (
                                                                         <div key={e.emE_Id} className='flex items-center space-x-2'>
                                                                             <Checkbox
@@ -393,15 +391,22 @@ export default function VidyaniketanProgressReportForm({
                                                                                 checked={isChecked}
                                                                                 onCheckedChange={(checked) => {
                                                                                     if (checked) {
-                                                                                        field.onChange([...(field.value || []), { emE_Id: e.emE_Id }]);
+                                                                                        field.onChange([
+                                                                                            ...(field.value || []),
+                                                                                            { emE_Id: e.emE_Id }
+                                                                                        ]);
                                                                                     } else {
-                                                                                        field.onChange((field.value || []).filter((val) => val.emE_Id !== e.emE_Id));
+                                                                                        field.onChange(
+                                                                                            (field.value || []).filter(
+                                                                                                (val) => val.emE_Id !== e.emE_Id
+                                                                                            )
+                                                                                        );
                                                                                     }
                                                                                 }}
                                                                             />
                                                                             <Label
                                                                                 htmlFor={`exam-${e.emE_Id}`}
-                                                                                className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+                                                                                className='font-medium text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
                                                                                 {e.emE_ExamName}
                                                                             </Label>
                                                                         </div>
@@ -420,9 +425,12 @@ export default function VidyaniketanProgressReportForm({
                         </div>
 
                         <div className='flex justify-center gap-3'>
-                            <Button type='submit' isLoading={isSubmitting} disabled={isSubmitting || selectedExams?.length === 0} className='min-w-[140px]'>
+                            <Button
+                                type='submit'
+                                isLoading={isSubmitting}
+                                disabled={isSubmitting || selectedExams?.length === 0}
+                                className='min-w-[140px]'>
                                 {isSubmitting ? 'Generating...' : 'Report'}
-                                
                             </Button>
                             <Button
                                 type='button'

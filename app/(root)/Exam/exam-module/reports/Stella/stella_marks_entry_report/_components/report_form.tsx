@@ -18,98 +18,98 @@ import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 
 const Marks_reportData = {
-    "success": true,
-    "message": "Marks entry report generated successfully.",
-    "data": [
+    success: true,
+    message: 'Marks entry report generated successfully.',
+    data: [
         {
-            "mI_Id": "30",
-            "asmcL_Id": "409",
-            "asmS_Id": "162",
-            "asmcL_ClassName": "Nursery",
-            "asmC_SectionName": "Section A",
-            "ismS_Id": 1069,
-            "ismS_SubjectName": "COLOURING  SCENIC PICTURE",
-            "subjectOrder": 1,
-            "employename": "",
-            "sourceMarksEntryFlag": 1,
-            "sourceMarksColorFlag": "Green",
-            "sourceMarksEntry": "Full Entered"
+            mI_Id: '30',
+            asmcL_Id: '409',
+            asmS_Id: '162',
+            asmcL_ClassName: 'Nursery',
+            asmC_SectionName: 'Section A',
+            ismS_Id: 1069,
+            ismS_SubjectName: 'COLOURING  SCENIC PICTURE',
+            subjectOrder: 1,
+            employename: '',
+            sourceMarksEntryFlag: 1,
+            sourceMarksColorFlag: 'Green',
+            sourceMarksEntry: 'Full Entered'
         },
         {
-            "mI_Id": "30",
-            "asmcL_Id": "409",
-            "asmS_Id": "162",
-            "asmcL_ClassName": "Nursery",
-            "asmC_SectionName": "Section A",
-            "ismS_Id": 970,
-            "ismS_SubjectName": "SENSORIAL",
-            "subjectOrder": 2,
-            "employename": "",
-            "sourceMarksEntryFlag": 0,
-            "sourceMarksColorFlag": "Red",
-            "sourceMarksEntry": "Not Entered"
+            mI_Id: '30',
+            asmcL_Id: '409',
+            asmS_Id: '162',
+            asmcL_ClassName: 'Nursery',
+            asmC_SectionName: 'Section A',
+            ismS_Id: 970,
+            ismS_SubjectName: 'SENSORIAL',
+            subjectOrder: 2,
+            employename: '',
+            sourceMarksEntryFlag: 0,
+            sourceMarksColorFlag: 'Red',
+            sourceMarksEntry: 'Not Entered'
         },
         {
-            "mI_Id": "30",
-            "asmcL_Id": "409",
-            "asmS_Id": "162",
-            "asmcL_ClassName": "Nursery",
-            "asmC_SectionName": "Section A",
-            "ismS_Id": 762,
-            "ismS_SubjectName": "@#$%^&",
-            "subjectOrder": 3,
-            "employename": "",
-            "sourceMarksEntryFlag": 0,
-            "sourceMarksColorFlag": "Red",
-            "sourceMarksEntry": "Not Entered"
+            mI_Id: '30',
+            asmcL_Id: '409',
+            asmS_Id: '162',
+            asmcL_ClassName: 'Nursery',
+            asmC_SectionName: 'Section A',
+            ismS_Id: 762,
+            ismS_SubjectName: '@#$%^&',
+            subjectOrder: 3,
+            employename: '',
+            sourceMarksEntryFlag: 0,
+            sourceMarksColorFlag: 'Red',
+            sourceMarksEntry: 'Not Entered'
         },
         {
-            "mI_Id": "30",
-            "asmcL_Id": "409",
-            "asmS_Id": "162",
-            "asmcL_ClassName": "Nursery",
-            "asmC_SectionName": "Section A",
-            "ismS_Id": 779,
-            "ismS_SubjectName": "EVS",
-            "subjectOrder": 4,
-            "employename": "",
-            "sourceMarksEntryFlag": 0,
-            "sourceMarksColorFlag": "Red",
-            "sourceMarksEntry": "Not Entered"
+            mI_Id: '30',
+            asmcL_Id: '409',
+            asmS_Id: '162',
+            asmcL_ClassName: 'Nursery',
+            asmC_SectionName: 'Section A',
+            ismS_Id: 779,
+            ismS_SubjectName: 'EVS',
+            subjectOrder: 4,
+            employename: '',
+            sourceMarksEntryFlag: 0,
+            sourceMarksColorFlag: 'Red',
+            sourceMarksEntry: 'Not Entered'
         },
         {
-            "mI_Id": "30",
-            "asmcL_Id": "409",
-            "asmS_Id": "162",
-            "asmcL_ClassName": "Nursery",
-            "asmC_SectionName": "Section A",
-            "ismS_Id": 775,
-            "ismS_SubjectName": "KANNADA",
-            "subjectOrder": 5,
-            "employename": "",
-            "sourceMarksEntryFlag": 1,
-            "sourceMarksColorFlag": "Green",
-            "sourceMarksEntry": "Full Entered"
+            mI_Id: '30',
+            asmcL_Id: '409',
+            asmS_Id: '162',
+            asmcL_ClassName: 'Nursery',
+            asmC_SectionName: 'Section A',
+            ismS_Id: 775,
+            ismS_SubjectName: 'KANNADA',
+            subjectOrder: 5,
+            employename: '',
+            sourceMarksEntryFlag: 1,
+            sourceMarksColorFlag: 'Green',
+            sourceMarksEntry: 'Full Entered'
         },
         {
-            "mI_Id": "30",
-            "asmcL_Id": "409",
-            "asmS_Id": "162",
-            "asmcL_ClassName": "Nursery",
-            "asmC_SectionName": "Section A",
-            "ismS_Id": 767,
-            "ismS_SubjectName": "ENGLISH",
-            "subjectOrder": 6,
-            "employename": "",
-            "sourceMarksEntryFlag": 1,
-            "sourceMarksColorFlag": "Green",
-            "sourceMarksEntry": "Full Entered"
+            mI_Id: '30',
+            asmcL_Id: '409',
+            asmS_Id: '162',
+            asmcL_ClassName: 'Nursery',
+            asmC_SectionName: 'Section A',
+            ismS_Id: 767,
+            ismS_SubjectName: 'ENGLISH',
+            subjectOrder: 6,
+            employename: '',
+            sourceMarksEntryFlag: 1,
+            sourceMarksColorFlag: 'Green',
+            sourceMarksEntry: 'Full Entered'
         }
     ],
-    "total": 6,
-    "page": null,
-    "page_size": null
-}
+    total: 6,
+    page: null,
+    page_size: null
+};
 
 interface ReportFormProps {
     onReportGenerated: (data: any, info: any) => void;
@@ -149,9 +149,9 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
         } else if (academicData?.data) {
             const formatted = Array.isArray(academicData.data)
                 ? academicData.data.map((i: any) => ({
-                    asmaY_Id: i.asmaY_Id ?? 0,
-                    asmaY_Year: i.asmaY_Year ?? ''
-                }))
+                      asmaY_Id: i.asmaY_Id ?? 0,
+                      asmaY_Year: i.asmaY_Year ?? ''
+                  }))
                 : [];
             setYears(formatted);
             if (!formatted || formatted.length === 0) {
@@ -244,7 +244,6 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     }, [watchYear, watchClass, watchSection, setValue]);
 
     const onSubmit = async (data: MarksEntryReportSchema) => {
-        console.log('data', data);
         try {
             const payload = {
                 ASMAY_Id: Number(data.ASMAY_Id),
@@ -253,32 +252,23 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                 EME_Id: Number(data.EME_Id)
             };
 
-            console.log('marks entry report payload', payload);
-
             const selected_Year = years.find((y: any) => y.asmaY_Id === Number(data.ASMAY_Id))?.asmaY_Year || '';
             const selected_Exam = exams.find((e: any) => e.emE_Id === Number(data.EME_Id))?.emE_ExamName || '';
             const selected_Class = classes.find((c: any) => c.asmcL_Id === Number(data.ASMCL_Id))?.asmcL_ClassName || '';
-            console.log("sections",sections);
             const selected_Section = sections.find((s: any) => s.asmS_Id === Number(data.ASMS_Id))?.asmC_SectionName || '';
-            console.log("selected_Section",selected_Section);
             const result = await getReportDetails(payload);
 
-            console.log('marks entry report data', result.data);
-
             const resultData = Array.isArray(result.data) ? result.data[0] : [];
-            console.log('marks entry report result data', resultData);
             // TODO: Use dummy data if result is empty - REMOVE IN PRODUCTION
             if ((Array.isArray(resultData) && resultData.length === 0) || !result.data || result.data.length === 0) {
                 onReportGenerated(Marks_reportData.data, { selected_Year, selected_Exam, selected_Class, selected_Section });
             } else {
                 onReportGenerated(result.data, { selected_Year, selected_Exam, selected_Class, selected_Section });
             }
-
         } catch (error) {
             console.error('Error:', error);
         }
     };
-
 
     const handleClear = () => {
         reset();

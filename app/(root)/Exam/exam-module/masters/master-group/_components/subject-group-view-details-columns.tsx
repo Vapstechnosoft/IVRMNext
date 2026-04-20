@@ -1,5 +1,4 @@
 'use client';
-import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { IMasterSubjectGroupDetails } from '@/types/exam/exam-module/masters';
 import type { ColumnDef } from '@tanstack/react-table';

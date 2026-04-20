@@ -82,7 +82,6 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                 ismS_TTFlag: Number(data.ismS_TTFlag),
                 ismS_ActiveFlag: 1
             };
-            console.log('PAYLOAD:', payload);
             const response = await addOrUpdateMasterSubject(payload);
 
             if (response.success) {

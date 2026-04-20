@@ -85,9 +85,11 @@ export default function PFSummaryReport() {
 
     try {
       const response = await getPFSummaryReport(payload);
+      console.log("response", response)
       if (response.success && response.data) {
-        setReportData(response?.data?.reportData || []);
-        setEmployeeDetails(response?.data?.empDetails || []);
+        const actualData = response.data.data || response.data;
+        setReportData(actualData?.reportData || []);
+        setEmployeeDetails(actualData?.empDetails || []);
         toast.success(`Data fetched successfully`);
       } else {
         toast.error(response.message || "Failed to fetch report data");

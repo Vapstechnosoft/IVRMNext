@@ -67,7 +67,7 @@ export default function DanvantariBonafideCertificatePage() {
     const reportMutation = useDanvantariBonafideReport();
 
     /* -------------------- Data Initialization -------------------- */
-    const initialYearList = (loadData as any)?.yearlist || [];
+    const initialYearList = (loadData as any)?.data?.getyear || [];
 
     /* -------------------- Dependency Logic -------------------- */
     const handleYearChange = async (yearId: number) => {
@@ -80,8 +80,8 @@ export default function DanvantariBonafideCertificatePage() {
         setSearchTerm('');
 
         try {
-            const res = await yearMutation.mutateAsync({ ASMAY_Id: yearId });
-            setCourseList(Array.isArray(res?.getcourse) ? res?.getcourse : []);
+            const res = (await yearMutation.mutateAsync({ ASMAY_Id: yearId })) as any;
+            setCourseList(Array.isArray(res?.data?.getcourse) ? res?.data?.getcourse : []);
         } catch (error) {
             toast.error('Failed to update courses');
         }
@@ -95,11 +95,11 @@ export default function DanvantariBonafideCertificatePage() {
         setStudentId(null);
 
         try {
-            const res = await courseMutation.mutateAsync({
+            const res = (await courseMutation.mutateAsync({
                 ASMAY_Id: academicYearId!,
                 AMCO_Id: cId
-            });
-            setBranchList(Array.isArray(res?.getbranch) ? res?.getbranch : []);
+            })) as any;
+            setBranchList(Array.isArray(res?.data?.getbranch) ? res?.data?.getbranch : []);
         } catch (error) {
             toast.error('Failed to update branches');
         }
@@ -112,12 +112,12 @@ export default function DanvantariBonafideCertificatePage() {
         setStudentId(null);
 
         try {
-            const res = await branchMutation.mutateAsync({
+            const res = (await branchMutation.mutateAsync({
                 ASMAY_Id: academicYearId!,
                 AMCO_Id: courseId!,
                 AMB_Id: bId
-            });
-            setSemesterList(Array.isArray(res?.getsemester) ? res?.getsemester : []);
+            })) as any;
+            setSemesterList(Array.isArray(res?.data?.getsemester) ? res?.data?.getsemester : []);
         } catch (error) {
             toast.error('Failed to update semesters');
         }
@@ -129,13 +129,13 @@ export default function DanvantariBonafideCertificatePage() {
         setStudentId(null);
 
         try {
-            const res = await semesterMutation.mutateAsync({
+            const res = (await semesterMutation.mutateAsync({
                 ASMAY_Id: academicYearId!,
                 AMCO_Id: courseId!,
                 AMB_Id: branchId!,
                 AMSE_Id: sId
-            });
-            setSectionList(Array.isArray(res?.getsection) ? res?.getsection : []);
+            })) as any;
+            setSectionList(Array.isArray(res?.data?.getsection) ? res?.data?.getsection : []);
         } catch (error) {
             toast.error('Failed to update sections');
         }
@@ -145,7 +145,7 @@ export default function DanvantariBonafideCertificatePage() {
         const fetchStudents = async () => {
             if (searchTerm.length > 2 && academicYearId) {
                 try {
-                    const res = await searchFilterMutation.mutateAsync({
+                    const res = (await searchFilterMutation.mutateAsync({
                         searchfilter: searchTerm,
                         ASMAY_Id: academicYearId,
                         AMCST_SOL: studentStatus,
@@ -155,8 +155,8 @@ export default function DanvantariBonafideCertificatePage() {
                         ACMS_Id: reportType === 'A' ? 0 : sectionId || 0,
                         allorindid: reportType,
                         filterinitialdata: studentStatus
-                    });
-                    setStudentList(Array.isArray(res?.getstudentlist) ? res?.getstudentlist : []);
+                    })) as any;
+                    setStudentList(Array.isArray(res?.data?.getstudentlist) ? res?.data?.getstudentlist : []);
                 } catch (error) {
                     console.error('Search failed', error);
                 }
@@ -186,8 +186,8 @@ export default function DanvantariBonafideCertificatePage() {
         };
 
         try {
-            const res = await reportMutation.mutateAsync(payload);
-            const data = (res as any);
+            const res = (await reportMutation.mutateAsync(payload)) as any;
+            const data = (res?.data);
 
             if (data?.getstudentdetailslist?.length > 0) {
                 setReportData(data);

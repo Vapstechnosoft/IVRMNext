@@ -51,7 +51,6 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
     // Submit handler
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            console.log('Payload DATA:', data);
             const response = await addOrUpdateMasterSubject(data);
 
             if (response.success) {
