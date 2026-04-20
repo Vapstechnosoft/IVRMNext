@@ -2427,6 +2427,21 @@ export async function getUserAccessibleModules() {
                                     ]
                                 },
                                 {
+                                    id: 101,
+                                    name: 'AI ATS',
+                                    icon: 'BrainCircuit',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'AI Resume checker',
+                                            icon: 'FileSearch',
+                                            url: '/hrms/ai-ats/resume-checker',
+                                            title: 'AI Resume checker',
+                                            description: 'AI-powered resume evaluation and screening'
+                                        }
+                                    ]
+                                },
+                                {
                                     id: 1,
                                     name: 'Masters',
                                     icon: 'Database',
