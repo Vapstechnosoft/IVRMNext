@@ -14,6 +14,7 @@ interface ImageUploadSectionProps {
     borderColor?: string;
     statusLabel?: string;
     statusColor?: string;
+    variant?: 'default' | 'minimal';
 }
 
 export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
@@ -23,11 +24,14 @@ export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
     placeholder = "Upload Photo",
     borderColor = "border-primary",
     statusLabel,
-    statusColor = "text-black"
+    statusColor = "text-black",
+    variant = 'default'
 }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { mutateAsync: uploadPic, isPending: isUploading } = useNdaUploadProfilePic();
     const [previewUrl, setPreviewUrl] = useState<string | null>(value || null);
+
+    const isMinimal = variant === 'minimal';
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -45,23 +49,67 @@ export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
             return;
         }
 
-        const formData = new FormData();
-        formData.append("File", file);
-        formData.append("Id", "0");
-
-        try {
-            const res = await uploadPic(formData);
-            if (res) {
-                const uploadedUrl = typeof res === 'string' ? res : (res as any).data;
-                onChange(uploadedUrl);
-                setPreviewUrl(URL.createObjectURL(file));
-                toast.success(`${label} uploaded successfully`);
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = async () => {
+            const base64String = reader.result as string;
+            
+            try {
+                const res = await uploadPic({ file: [base64String] });
+                if (res) {
+                    const uploadedUrl = typeof res === 'string' ? res : (res as any).data;
+                    onChange(uploadedUrl);
+                    setPreviewUrl(base64String);
+                    toast.success(`${label} uploaded successfully`);
+                }
+            } catch (error) {
+                console.error(`Error uploading ${label}:`, error);
+                toast.error(`Failed to upload ${label}`);
             }
-        } catch (error) {
-            console.error(`Error uploading ${label}:`, error);
-            toast.error(`Failed to upload ${label}`);
-        }
+        };
+        reader.onerror = (error) => {
+            console.error(`reader error ${label}:`, error);
+            toast.error(`Failed to read ${label}`);
+        };
     };
+
+    if (isMinimal) {
+        return (
+            <div className="flex flex-col h-full bg-white rounded-xl border-2 border-primary/20 overflow-hidden shadow-sm group">
+                {/* Photo Box */}
+                <div className={cn(
+                    "relative aspect-square flex items-center justify-center bg-neutral-50 border-b border-primary/10",
+                    isUploading ? "animate-pulse" : ""
+                )}>
+                    {previewUrl ? (
+                        <img src={previewUrl} alt={label} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                    ) : (
+                        <div className="flex flex-col items-center gap-2 opacity-10">
+                            <User className="h-12 w-12" />
+                            <span className="text-[10px] font-black uppercase">No Image</span>
+                        </div>
+                    )}
+                    {isUploading && (
+                        <div className="absolute inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center">
+                            <Spinner className="h-5 w-5 text-primary" />
+                        </div>
+                    )}
+                </div>
+                
+                {/* Blue Banner Button */}
+                <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                    className="w-full bg-[#3c8dbc]/90 hover:bg-[#3c8dbc] text-white text-[10px] font-bold py-2.5 transition-colors uppercase tracking-widest flex items-center justify-center gap-2"
+                >
+                    <Upload className="h-3 w-3" />
+                    {label}
+                </button>
+                <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col items-center gap-4 p-4 rounded-2xl bg-gradient-to-br from-background to-accent/20 border border-border/50 shadow-inner group transition-all duration-300 hover:shadow-lg">

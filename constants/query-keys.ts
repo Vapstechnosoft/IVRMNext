@@ -83,7 +83,8 @@ export const ADMISSION_QUERY_KEYS = {
     ADMISSION_FORM_DETAILS: 'admission_form_details',
     ADMISSION_FORM_ONCHANGE_CLASS: 'admission_form_onchange_class',
     ADMISSION_FORM_ONCHANGE_STREAM: 'admission_form_onchange_stream',
-    ADMISSION_FORM_CASTE_BY_CATEGORY: 'admission_form_caste_by_category'
+    ADMISSION_FORM_CASTE_BY_CATEGORY: 'admission_form_caste_by_category',
+    OVER_ALL_VIEW_REPORT: 'over_all_view_report'
 };
 
 export const PREADMISSION_QUERY_KEYS = {
