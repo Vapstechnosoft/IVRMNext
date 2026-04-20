@@ -3,7 +3,7 @@
 import { api } from '@/lib/apiService';
 
 export async function getDanvantariBonafideLoadData() {
-    return await api.get<any>('admission', '/CollegeStudyCertificateReport/getdata/1');
+    return await api.get<any>('admission', '/CollegeStudyCertificateReport/getdata');
 }
 
 export async function changeYearDanvantariBonafide(data: { ASMAY_Id: number }) {

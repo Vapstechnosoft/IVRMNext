@@ -410,7 +410,7 @@ export default function SamarthaBonafideCertificatePage() {
                                                                     <Check className={cn('mr-2 h-4 w-4 text-indigo-600', studentId === sId ? 'opacity-100' : 'opacity-0')} />
                                                                     <div className="flex flex-col">
                                                                         <span className="font-medium">{s.studentname || s.studentName || [s.amsT_FirstName || s.AMST_FirstName || '', s.amsT_MiddleName || s.AMST_MiddleName || '', s.amsT_LastName || s.AMST_LastName || ''].filter(Boolean).join(' ')}</span>
-                                                                        <span className="text-[10px] text-muted-foreground">Adm: {s.amsT_AdmNo || s.amst_admno || s.AMST_AdmNo} | {s.asmcL_ClassName || s.ASMCL_ClassName || 'N/A'}</span>
+
                                                                     </div>
                                                                 </CommandItem>
                                                             );

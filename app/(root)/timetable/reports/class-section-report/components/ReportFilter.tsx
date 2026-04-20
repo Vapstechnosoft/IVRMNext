@@ -10,6 +10,7 @@ import { Loader2, RotateCcw, Search } from 'lucide-react';
 
 import { Label } from '@/components/ui/extension/field';
 import { useTimeTableAcademicYear, useTimeTableCategoryDropDownData, useTimeTableClassDropdownData } from '@/hooks/timetable/useMasters';
+import { useTimeTableCategoryDropDownClassWise, useTimeTableClassDropdown } from '@/hooks/timetable/reports';
 
 /* -------------------- SCHEMA -------------------- */
 const schema = z.object({
@@ -43,8 +44,8 @@ export default function ReportFilter({ onFetch }: ReportFilterProps) {
 
     /* -------------------- MASTER DATA -------------------- */
     const { data: ayData, isLoading: ayLoading } = useTimeTableAcademicYear();
-    const { data: catData, isLoading: catLoading } = useTimeTableCategoryDropDownData();
-    const { data: classData, isLoading: classLoading } = useTimeTableClassDropdownData();
+    const { data: catData, isLoading: catLoading } = useTimeTableCategoryDropDownClassWise();
+    const { data: classData, isLoading: classLoading } = useTimeTableClassDropdown();
 
     const mastersLoading = ayLoading || catLoading || classLoading;
 
@@ -83,7 +84,7 @@ export default function ReportFilter({ onFetch }: ReportFilterProps) {
                                                 field.onChange(value || '');
                                             }}
                                             value={field.value?.toString() || undefined}
-                                            >
+                                        >
                                             <SelectTrigger className={`h-9 text-sm ${errors.asmay_id ? 'border-red-500' : ''}`}>
                                                 <SelectValue placeholder={ayLoading ? 'Loading...' : 'Select Year'} />
                                             </SelectTrigger>
