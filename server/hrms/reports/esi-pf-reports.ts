@@ -126,7 +126,7 @@ export interface PFSummaryReportRequest {
 export async function getPFSummaryReport(data: PFSummaryReportRequest) {
     try {
         const response = await api.post<any>('hrms', '/api/ReportPFChallen/get_pf_yearly_or_summary_report', data);
-        if (response.success) return { success: true, data: response.data };
+        if (response.success) return { success: true, data: response.data, message: response.message };
         return { success: false, message: response.message };
     } catch (error: any) {
         return { success: false, message: error.message };

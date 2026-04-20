@@ -3663,6 +3663,14 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/leave-management/reports/leave-status-report',
                                             title: 'Leave Status Report',
                                             description: 'Leave Status Report'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Late Leave Report',
+                                            icon: 'FileSearch',
+                                            url: '/hrms/leave-management/reports/LateLeave',
+                                            title: 'Late Leave Report',
+                                            description: 'Late Leave Report'
                                         }
 
                                         // {
