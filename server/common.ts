@@ -2779,14 +2779,14 @@ export async function getUserAccessibleModules() {
                                         //     title: 'Employee Service Report',
                                         //     description: 'Employee Service Summary'
                                         // },
-                                        // {
-                                        //     id: 1289,
-                                        //     name: 'Salary Certificate',
-                                        //     icon: 'Award',
-                                        //     url: '/hrms/reports/employeeSalaryCertificateBGHS',
-                                        //     title: 'Salary Certificate',
-                                        //     description: 'Generate Salary Certificates'
-                                        // },
+                                        {
+                                            id: 1289,
+                                            name: 'Salary Certificate',
+                                            icon: 'Award',
+                                            url: '/hrms/reports/employeeSalaryCertificateBGHS',
+                                            title: 'Salary Certificate',
+                                            description: 'Generate Salary Certificates'
+                                        },
                                         {
                                             id: 13,
                                             name: 'PF Challan',
@@ -2836,14 +2836,14 @@ export async function getUserAccessibleModules() {
                                             title: 'HRMS Monthend Report',
                                             description: 'Monthly Closure Report'
                                         },
-                                        // {
-                                        //     id: 19,
-                                        //     name: 'Retirement Report',
-                                        //     icon: 'Clock',
-                                        //     url: '/hrms/reports/retirement-report',
-                                        //     title: 'Retirement Report',
-                                        //     description: 'Employee Retirement Report'
-                                        // },
+                                        {
+                                            id: 19,
+                                            name: 'Retirement Report',
+                                            icon: 'Clock',
+                                            url: '/hrms/reports/retirement-report',
+                                            title: 'Retirement Report',
+                                            description: 'Employee Retirement Report'
+                                        },
                                         {
                                             id: 20,
                                             name: 'Department Salary Report',
@@ -2916,6 +2916,7 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/reports/CBSSalarySlip',
                                             title: 'Employee Salary Slip Calcutta Boys Report',
                                             description: 'Employee Salary Slips'
+<<<<<<< HEAD
                                         }
                                         // {
                                         //     id: 29,
@@ -2949,6 +2950,74 @@ export async function getUserAccessibleModules() {
                                         //     title: 'PS8 Form Report',
                                         //     description: 'Manage PS8 Form Report (st.james)'
                                         // },
+=======
+                                        },
+                                        {
+                                            id: 29,
+                                            name: 'Employee Contribution Report',
+                                            icon: 'Clock',
+                                            url: '/hrms/reports/contribution-report',
+                                            title: 'Employee Contribution Report',
+                                            description: 'Manage Employee Contribution Report'
+                                        },
+                                        {
+                                            id: 30,
+                                            name: 'PS7 Form Report',
+                                            icon: 'Clock',
+                                            url: '/hrms/reports/PS7FromReportStJames',
+                                            title: 'PS7 Form Report',
+                                            description: 'Manage PS7 Form Report'
+                                        },
+                                        {
+                                            id: 31, 
+                                            name: "MONTH WISE REPORT(st.james)" ,
+                                            icon: 'Clock',
+                                            url: '/hrms/reports/PS8_MonthWiseReportStjames',
+                                            title: 'PS8 Month Wise Report',
+                                            description: 'Manage Month Wise Report (st.james)'
+                                        },
+                                        {
+                                            id: 32,
+                                            name: "PS8 Form Report(st.james)" ,
+                                            icon: 'Clock',
+                                            url: '/hrms/reports/PS8_ReportStjames',
+                                            title: 'PS8 Form Report',
+                                            description: 'Manage PS8 Form Report (st.james)'
+                                        },
+                                        {
+                                            id: 33,
+                                            name: "VPF YEARLY REPORT",
+                                            icon: 'Calandar',
+                                            url: '/hrms/reports/VPFYearlyReport',
+                                            title: 'VPF Yearly Report',
+                                            description: 'Manage VPF Yearly Report'
+                                        },
+                                        {
+                                            id: 34,
+                                            name: "VPF SUMMARY REPORT",
+                                            icon: 'Calandar',
+                                            url: '/hrms/reports/VPFSummaryReport',
+                                            title: 'VPF Summary Report',
+                                            description: 'Manage VPF Summary Report'
+                                        },
+                                        {
+                                            id: 35,
+                                            name: "PF SUMMARY REPORT",
+                                            icon: 'Calandar',
+                                            url: '/hrms/reports/PFSummaryReport',
+                                            title: 'PF Summary Report',
+                                            description: 'Manage PF Summary Report'
+                                        },
+                                        {
+                                            id: 36,
+                                            name: "PF YEARLY REPORT",
+                                            icon: 'Calandar',
+                                            url: '/hrms/reports/PFYearlyReport',
+                                            title: 'PF Yearly Report',
+                                            description: 'Manage PF Yearly Report'
+                                        },
+
+>>>>>>> 957a904735bc22b599342d2bd3a830b2be99bb88
                                     ]
                                 }
                             ]
@@ -3650,6 +3719,14 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/leave-management/reports/leave-status-report',
                                             title: 'Leave Status Report',
                                             description: 'Leave Status Report'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Late Leave Report',
+                                            icon: 'FileSearch',
+                                            url: '/hrms/leave-management/reports/LateLeave',
+                                            title: 'Late Leave Report',
+                                            description: 'Late Leave Report'
                                         }
 
                                         // {

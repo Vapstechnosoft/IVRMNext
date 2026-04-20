@@ -349,10 +349,10 @@ export default function PS8MonthWiseReportStjames() {
                       </tr>
                     ))}
                     <tr className="font-bold bg-slate-50">
-                      <td className="border border-gray-400 px-4 py-3">
+                      <td className="border border-gray-400 px-4 py-3 text-center">
                         Grand Total:
                       </td>
-                      <td className="border border-gray-400 px-4 py-3">
+                      <td className="border border-gray-400 px-4 py-3 text-center">
                         {reportData.reduce(
                           (acc: number, val: any) =>
                             acc + (val.pensionAmount || 0),

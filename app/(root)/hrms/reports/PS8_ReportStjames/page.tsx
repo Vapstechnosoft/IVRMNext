@@ -25,89 +25,12 @@ interface PS8MonthWiseReportFormValues {
 }
 
 const PS8MonthWiseReportFormSchema = z.object({
-  year: z.number().min(1, "Year is required"),
+  year: z.number({ 
+    required_error: "Year is required",
+    invalid_type_error: "Year is required"
+  }).min(1, "Year is required"),
 });
 
-const mockData = [
-  {
-    sumCondition: 0,
-    pensionAmount: 0,
-    employeeName: "MS. MINI ELIZABETH VARGHESE",
-    accNumber: "WB/19651/137",
-  },
-  {
-    sumCondition: 15000,
-    pensionAmount: 1292,
-    employeeName: "MR. KAUSTUBH GUPTA",
-    accNumber: "WB/19651/138",
-  },
-  {
-    sumCondition: 0,
-    pensionAmount: 0,
-    employeeName: "MS. MANJULI MUKHERJEE",
-    accNumber: "WB/19651/152",
-  },
-  {
-    sumCondition: 0,
-    pensionAmount: 0,
-    employeeName: "MS. SUMANA BASU",
-    accNumber: "WB/19651/156",
-  },
-  {
-    sumCondition: 165000,
-    pensionAmount: 13750,
-    employeeName: "MR. CHRISTOPHER GAVIN DSOUZA",
-    accNumber: "WB/19651/159",
-  },
-  {
-    sumCondition: 165000,
-    pensionAmount: 13750,
-    employeeName: "MR. BISWAROOP DASGUPTA",
-    accNumber: "WB/19651/162",
-  },
-  {
-    sumCondition: 0,
-    pensionAmount: 0,
-    employeeName: "MS. NIVEDITA CHATTERJEE",
-    accNumber: "WB/19651/164",
-  },
-  {
-    sumCondition: 0,
-    pensionAmount: 0,
-    employeeName: "MS. SEEMA GROVER",
-    accNumber: "WB/19651/172",
-  },
-  {
-    sumCondition: 165000,
-    pensionAmount: 14044,
-    employeeName: "MR. JOSEPH CHACKO",
-    accNumber: "WB/19651/173",
-  },
-  {
-    sumCondition: 165000,
-    pensionAmount: 13750,
-    employeeName: "MS. BETTY MARY MATHEW",
-    accNumber: "WB/19651/184",
-  },
-  {
-    sumCondition: 0,
-    pensionAmount: 0,
-    employeeName: "MR. NIRJHAR BAR",
-    accNumber: "WB/19651/185",
-  },
-  {
-    sumCondition: 165000,
-    pensionAmount: 13750,
-    employeeName: "MR. MOROMI ROY",
-    accNumber: "WB/19651/186",
-  },
-  {
-    sumCondition: 165000,
-    pensionAmount: 13750,
-    employeeName: "MS. SHELLEY MAZUMDER",
-    accNumber: "WB/19651/270",
-  },
-];
 
 export default function PS8ReportStjames() {
   const [reportData, setReportData] = useState<any[]>([]);
@@ -269,7 +192,7 @@ export default function PS8ReportStjames() {
             </div>
           </form>
         </CollapsibleSection>
-        {mockData && mockData.length > 0 && (
+        {reportData && reportData.length > 0 && (
           <CollapsibleSection
             title="PS8 FORM REPORT"
             defaultOpen={true}
@@ -310,12 +233,12 @@ export default function PS8ReportStjames() {
                 <h4>[PARAGRAPH 20]</h4>
               </div>
 
-              <div className="flex gap-6 text-sm mt-4">
+              <div className="flex text-sm mt-4">
                 
-                <p className="font-semibold">Annual Statement for the Currency Period:</p>
-                <p className="w-[100px]">From March {currentYear}</p>
-                <p className="w-[100px]">
-                  To Feb {currentYear ? currentYear + 1 : ""}
+                <p className="font-semibold mr-2">Annual Statement for the Currency Period:</p>
+                <p className="">From March <span className="mr-2 font-semibold">{currentYear}</span></p>
+                <p className="">
+                  To Feb <span className="mr-2 font-semibold">{currentYear ? currentYear + 1 : ""}</span>
                 </p>
               </div>
 
@@ -381,7 +304,7 @@ export default function PS8ReportStjames() {
                   </thead>
 
                   <tbody>
-                    {mockData.map((row: any, index: number) => (
+                    {reportData.map((row: any, index: number) => (
                       <tr key={row.accNumber}>
                         <td className="border p-2 text-center">{index + 1}</td>
                         <td className="border p-2 text-center">
@@ -407,13 +330,13 @@ export default function PS8ReportStjames() {
                         Total Amount
                       </td>
                       <td className="border p-2 text-center">
-                        {mockData.reduce(
+                        {reportData.reduce(
                           (acc, val) => acc + (val.sumCondition || 0),
                           0,
                         )}
                       </td>
                       <td className="border p-2 text-center">
-                        {mockData.reduce(
+                        {reportData.reduce(
                           (acc, val) => acc + (val.pensionAmount || 0),
                           0,
                         )}
