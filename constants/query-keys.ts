@@ -475,6 +475,7 @@ export const HRMS_QUERY_KEYS = {
     LEAVE_REPORT: 'leave_leave_report',
     OVERALL_REPORT: 'leave_overall_report',
     UNAUTHORIZED_LEAVE_COUNT_REPORT: 'leave_unauthorized_leave_count_report',
+    LATE_LEAVE_REPORT: 'leave_late_leave_report',
     // Leave Management Transactions
     LEAVE_CREDIT: 'leave_leave_credit',
     LEAVE_CREDIT_TRANSACTION: 'leave_leave_credit_transaction',

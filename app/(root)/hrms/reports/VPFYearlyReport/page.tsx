@@ -70,6 +70,7 @@ export default function VPFYearlyReport() {
   const [reportData, setReportData] = useState<any[]>([]);
   const [employeeDetails, setEmployeeDetails] = useState<any[]>([]);
   const [financialYear, setFinancialYear] = useState<string>("");
+  const [resetKey, setResetKey] = useState<number>(0);
 
   const { data: employeesData, isLoading: isLoadingEmployees } =
     useGetEmployees();
@@ -97,29 +98,30 @@ export default function VPFYearlyReport() {
     })) || [];
 
   const onSubmit = async (data: VPFYearlyReportProps) => {
-   console.log("form data", data);
-        const yearObj = yearsData?.data?.find((y: any) => y.imfY_Id.toString() === data.year);
-        setFinancialYear(yearObj?.imfY_FinancialYear || "");
-        
-        try {
-            const response = await getVPFSummaryReport({
-                hrmE_Id: data.employees,
-                imfY_Id: data.year,
-                flag: "EmployeeVPFreport"
-            });
+    console.log("form data", data);
+    const yearObj = yearsData?.data?.find((y: any) => y.imfY_Id.toString() === data.year);
+    setFinancialYear(yearObj?.imfY_FinancialYear || "");
 
-            if (response?.success && response?.data) {
-                setReportData(response.data.reportData || []);
-                setEmployeeDetails(response.data.empDetails || []);
-                toast.success(response.message || "Report generated successfully");
-            } else {
-                console.log("API Error:", response);
-                toast.error(response?.message || "Failed to fetch report data");
-            }
-        } catch (error: any) {
-            console.error("API Error:", error);
-            toast.error("An error occurred while fetching the report");
-        }
+    try {
+      const response = await getVPFSummaryReport({
+        hrmE_Id: data.employees,
+        imfY_Id: data.year,
+        flag: "EmployeeVPFreport"
+      });
+
+      if (response?.success && response?.data) {
+        console.log("VPF response", response);
+        setReportData(response.data.reportData || []);
+        setEmployeeDetails(response.data.empDetails || []);
+        toast.success(response.message || "Report generated successfully");
+      } else {
+        console.log("API Error:", response);
+        toast.error(response?.message || "Failed to fetch report data");
+      }
+    } catch (error: any) {
+      console.error("API Error:", error);
+      toast.error("An error occurred while fetching the report");
+    }
   };
 
   const handlePrint = () => {
@@ -134,6 +136,7 @@ export default function VPFYearlyReport() {
       employees: "",
       year: '',
     });
+    setResetKey(prev => prev + 1);
   };
 
   const handleExport = () => {
@@ -188,6 +191,7 @@ export default function VPFYearlyReport() {
                   Year <span className="text-destructive">*</span>
                 </Label>
                 <Controller
+                  key={resetKey}
                   name="year"
                   control={control}
                   render={({ field }) => (
@@ -228,23 +232,24 @@ export default function VPFYearlyReport() {
                   Employees <span className="text-destructive">*</span>
                 </Label>
                 <Controller
+                  key={`emp-${resetKey}`}
                   name="employees"
                   control={control}
-                  
+
                   render={({ field }) => (
                     <div className={isLoadingEmployees ? "pointer-events-none opacity-150" : ""}>
-                    <MultiSelect
-                      id={field.name}
-                      options={formatedEmployees}
-                      onValueChange={(values) => {
-                        field.onChange(values.join(", "));
-                      }}
-                      defaultValue={field.value ? field.value.split(", ") : []}
-                      placeholder={isLoadingEmployees ? "Loading employees..." : "Select Employees"}
-                      variant="inverted"
-                      className="min-h-9"
-                      disabled={isLoadingEmployees}
-                    />
+                      <MultiSelect
+                        id={field.name}
+                        options={formatedEmployees}
+                        onValueChange={(values) => {
+                          field.onChange(values.join(", "));
+                        }}
+                        defaultValue={field.value ? field.value.split(", ") : []}
+                        placeholder={isLoadingEmployees ? "Loading employees..." : "Select Employees"}
+                        variant="inverted"
+                        className="min-h-9"
+                        disabled={isLoadingEmployees}
+                      />
                     </div>
                   )}
                 />
@@ -339,14 +344,14 @@ export default function VPFYearlyReport() {
 
                   <div className="overflow-x-auto">
                     <table
-                      className="w-full border-collapse border border-black text-sm text-center"
+                      className="w-full border-collapse border border-slate-300 text-sm text-center"
                       border={1}
                     >
                       <thead>
-                        <tr className="bg-gray-100 uppercase font-bold">
-                          <th className="border border-black p-2">Months</th>
-                          <th className="border border-black p-2">CONTRIBUTION</th>
-                          <th className="border border-black p-2">INTEREST</th>
+                        <tr className="bg-violet-500 text-white uppercase font-bold">
+                          <th className="border border-slate-300 p-2">Months</th>
+                          <th className="border border-slate-300 p-2">CONTRIBUTION</th>
+                          <th className="border border-slate-300 p-2">INTEREST</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -354,31 +359,31 @@ export default function VPFYearlyReport() {
                           .filter((d) => d.hrmE_Id.toString() === emp.hrmE_Id.toString())
                           .map((row, idx) => (
                             <tr key={idx}>
-                              <td className="border border-black p-2 text-left px-4">
+                              <td className="border border-slate-300 p-2 text-left px-4">
                                 {row.ivrM_Month_Name || "Summary"}
                               </td>
-                              <td className="border border-black p-2 text-right px-4">
+                              <td className="border border-slate-300 p-2 text-left px-4">
                                 {row.hrevpfsT_Contribution ? Number(row.hrevpfsT_Contribution).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00"}
                               </td>
-                              <td className="border border-black p-2 text-right px-4">
+                              <td className="border border-slate-300 p-2 text-left px-4">
                                 {row.hrevpfsT_Intersest ? Number(row.hrevpfsT_Intersest).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00"}
                               </td>
                             </tr>
                           ))}
                       </tbody>
-                      {reportData.filter((d) => d.hrmE_Id.toString() === emp.hrmE_Id.toString()).length > 1 && (
+                      {/* {reportData.filter((d) => d.hrmE_Id.toString() === emp.hrmE_Id.toString()).length > 1 && (
                         <tfoot>
                           <tr className="font-bold bg-gray-50">
-                            <td className="border border-black p-2 text-right px-4 uppercase">
+                            <td className="border border-slate-300 p-2 text-center px-4 uppercase">
                               Total
                             </td>
-                            <td className="border border-black p-2 text-right px-4">
+                            <td className="border border-slate-300 p-2 text-center px-4">
                               {reportData
                                 .filter((d) => d.hrmE_Id.toString() === emp.hrmE_Id.toString())
                                 .reduce((acc, curr) => acc + Number(curr.hrevpfsT_Contribution || 0), 0)
                                 .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </td>
-                            <td className="border border-black p-2 text-right px-4">
+                            <td className="border border-slate-300 p-2 text-center px-4">
                               {reportData
                                 .filter((d) => d.hrmE_Id.toString() === emp.hrmE_Id.toString())
                                 .reduce((acc, curr) => acc + Number(curr.hrevpfsT_Intersest || 0), 0)
@@ -386,7 +391,7 @@ export default function VPFYearlyReport() {
                             </td>
                           </tr>
                         </tfoot>
-                      )}
+                      )} */}
                     </table>
                   </div>
                 </div>

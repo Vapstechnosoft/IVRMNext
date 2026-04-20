@@ -25,345 +25,7 @@ import { MultiSelect } from "@/components/ui/multi-select";
 import { saveAs } from "file-saver";
 import { usePFSummaryReport } from "@/hooks/hrms/useReports";
 
-const mockPFDetails = [
-  {
-    hrepfsT_Id: 5978,
-    hrmE_Id: 1,
-    ivrM_Month_Name: "Opening Balance",
-    hrepfsT_OwnContribution: 1547166,
-    hrepfsT_InstituteContribution: 1470503,
-    hrepfsT_OwnInterest: 0,
-    hrepfsT_InstituteInterest: 0,
-    ordercolumn: 1,
-  },
-  {
-    hrepfsT_Id: 5978,
-    hrmE_Id: 1,
-    ivrM_Month_Name: "April-2023",
-    hrepfsT_OwnContribution: 34215,
-    hrepfsT_InstituteContribution: 34215,
-    hrepfsT_OwnInterest: 10637,
-    hrepfsT_InstituteInterest: 10110,
-    ordercolumn: 2,
-  },
-  {
-    hrepfsT_Id: 5978,
-    hrmE_Id: 1,
-    ivrM_Month_Name: "Total Amount",
-    hrepfsT_OwnContribution: 1581381,
-    hrepfsT_InstituteContribution: 1504718,
-    hrepfsT_OwnInterest: 143935,
-    hrepfsT_InstituteInterest: 137611,
-    ordercolumn: 8,
-  },
-  {
-    hrepfsT_Id: 5979,
-    hrmE_Id: 1,
-    ivrM_Month_Name: "May-2023",
-    hrepfsT_OwnContribution: 35187,
-    hrepfsT_InstituteContribution: 35187,
-    hrepfsT_OwnInterest: 10872,
-    hrepfsT_InstituteInterest: 10345,
-    ordercolumn: 2,
-  },
-  {
-    hrepfsT_Id: 5980,
-    hrmE_Id: 1,
-    ivrM_Month_Name: "June-2023",
-    hrepfsT_OwnContribution: 35187,
-    hrepfsT_InstituteContribution: 35187,
-    hrepfsT_OwnInterest: 11114,
-    hrepfsT_InstituteInterest: 10587,
-    ordercolumn: 2,
-  },
-  {
-    hrepfsT_Id: 5980,
-    hrmE_Id: 1,
-    ivrM_Month_Name: "PF Transfer",
-    hrepfsT_OwnContribution: 1943,
-    hrepfsT_InstituteContribution: 1943,
-    hrepfsT_OwnInterest: 0,
-    hrepfsT_InstituteInterest: 0,
-    ordercolumn: 5,
-  },
-  {
-    hrepfsT_Id: 5981,
-    hrmE_Id: 1,
-    ivrM_Month_Name: "July-2023",
-    hrepfsT_OwnContribution: 36216,
-    hrepfsT_InstituteContribution: 36216,
-    hrepfsT_OwnInterest: 11369,
-    hrepfsT_InstituteInterest: 10842,
-    ordercolumn: 2,
-  },
-  {
-    hrepfsT_Id: 5982,
-    hrmE_Id: 1,
-    ivrM_Month_Name: "August-2023",
-    hrepfsT_OwnContribution: 36216,
-    hrepfsT_InstituteContribution: 36216,
-    hrepfsT_OwnInterest: 11618,
-    hrepfsT_InstituteInterest: 11091,
-    ordercolumn: 2,
-  },
-  {
-    hrepfsT_Id: 5983,
-    hrmE_Id: 1,
-    ivrM_Month_Name: "September-2023",
-    hrepfsT_OwnContribution: 36216,
-    hrepfsT_InstituteContribution: 36216,
-    hrepfsT_OwnInterest: 11867,
-    hrepfsT_InstituteInterest: 11340,
-    ordercolumn: 2,
-  },
-  {
-    hrepfsT_Id: 5984,
-    hrmE_Id: 1,
-    ivrM_Month_Name: "October-2023",
-    hrepfsT_OwnContribution: 36216,
-    hrepfsT_InstituteContribution: 36216,
-    hrepfsT_OwnInterest: 12116,
-    hrepfsT_InstituteInterest: 11589,
-    ordercolumn: 2,
-  },
-  {
-    hrepfsT_Id: 5985,
-    hrmE_Id: 1,
-    ivrM_Month_Name: "November-2023",
-    hrepfsT_OwnContribution: 36216,
-    hrepfsT_InstituteContribution: 36216,
-    hrepfsT_OwnInterest: 12365,
-    hrepfsT_InstituteInterest: 11838,
-    ordercolumn: 2,
-  },
-  {
-    hrepfsT_Id: 5986,
-    hrmE_Id: 1,
-    ivrM_Month_Name: "December-2023",
-    hrepfsT_OwnContribution: 36216,
-    hrepfsT_InstituteContribution: 36216,
-    hrepfsT_OwnInterest: 12614,
-    hrepfsT_InstituteInterest: 12087,
-    ordercolumn: 2,
-  },
-  {
-    hrepfsT_Id: 5987,
-    hrmE_Id: 1,
-    ivrM_Month_Name: "January-2024",
-    hrepfsT_OwnContribution: 37550,
-    hrepfsT_InstituteContribution: 37550,
-    hrepfsT_OwnInterest: 12863,
-    hrepfsT_InstituteInterest: 12336,
-    ordercolumn: 2,
-  },
-  {
-    hrepfsT_Id: 5988,
-    hrmE_Id: 1,
-    ivrM_Month_Name: "February-2024",
-    hrepfsT_OwnContribution: 37550,
-    hrepfsT_InstituteContribution: 37550,
-    hrepfsT_OwnInterest: 13121,
-    hrepfsT_InstituteInterest: 12594,
-    ordercolumn: 2,
-  },
-  {
-    hrepfsT_Id: 5989,
-    hrmE_Id: 1,
-    ivrM_Month_Name: "March-2024",
-    hrepfsT_OwnContribution: 37550,
-    hrepfsT_InstituteContribution: 37550,
-    hrepfsT_OwnInterest: 13379,
-    hrepfsT_InstituteInterest: 12852,
-    ordercolumn: 2,
-  },
-  {
-    hrepfsT_Id: 5989,
-    hrmE_Id: 1,
-    ivrM_Month_Name: "Closing Balance",
-    hrepfsT_OwnContribution: 2127579,
-    hrepfsT_InstituteContribution: 2044592,
-    hrepfsT_OwnInterest: 0,
-    hrepfsT_InstituteInterest: 0,
-    ordercolumn: 9,
-  },
-  {
-    hrepfsT_Id: 6448,
-    hrmE_Id: 3,
-    ivrM_Month_Name: "Opening Balance",
-    hrepfsT_OwnContribution: 3322748,
-    hrepfsT_InstituteContribution: 2585789,
-    hrepfsT_OwnInterest: 0,
-    hrepfsT_InstituteInterest: 0,
-    ordercolumn: 1,
-  },
-  {
-    hrepfsT_Id: 6448,
-    hrmE_Id: 3,
-    ivrM_Month_Name: "April-2023",
-    hrepfsT_OwnContribution: 11717,
-    hrepfsT_InstituteContribution: 10467,
-    hrepfsT_OwnInterest: 22844,
-    hrepfsT_InstituteInterest: 17777,
-    ordercolumn: 2,
-  },
-  {
-    hrepfsT_Id: 6448,
-    hrmE_Id: 3,
-    ivrM_Month_Name: "Total Amount",
-    hrepfsT_OwnContribution: 3334465,
-    hrepfsT_InstituteContribution: 2596256,
-    hrepfsT_OwnInterest: 279713,
-    hrepfsT_InstituteInterest: 218347,
-    ordercolumn: 8,
-  },
-  {
-    hrepfsT_Id: 6449,
-    hrmE_Id: 3,
-    ivrM_Month_Name: "May-2023",
-    hrepfsT_OwnContribution: 12059,
-    hrepfsT_InstituteContribution: 10809,
-    hrepfsT_OwnInterest: 22924,
-    hrepfsT_InstituteInterest: 17849,
-    ordercolumn: 2,
-  },
-  {
-    hrepfsT_Id: 6450,
-    hrmE_Id: 3,
-    ivrM_Month_Name: "June-2023",
-    hrepfsT_OwnContribution: 12059,
-    hrepfsT_InstituteContribution: 10809,
-    hrepfsT_OwnInterest: 23007,
-    hrepfsT_InstituteInterest: 17924,
-    ordercolumn: 2,
-  },
-  {
-    hrepfsT_Id: 6450,
-    hrmE_Id: 3,
-    ivrM_Month_Name: "PF Transfer",
-    hrepfsT_OwnContribution: 683,
-    hrepfsT_InstituteContribution: 683,
-    hrepfsT_OwnInterest: 0,
-    hrepfsT_InstituteInterest: 0,
-    ordercolumn: 5,
-  },
-  {
-    hrepfsT_Id: 6451,
-    hrmE_Id: 3,
-    ivrM_Month_Name: "July-2023",
-    hrepfsT_OwnContribution: 12420,
-    hrepfsT_InstituteContribution: 11170,
-    hrepfsT_OwnInterest: 23095,
-    hrepfsT_InstituteInterest: 18003,
-    ordercolumn: 2,
-  },
-  {
-    hrepfsT_Id: 6452,
-    hrmE_Id: 3,
-    ivrM_Month_Name: "August-2023",
-    hrepfsT_OwnContribution: 12420,
-    hrepfsT_InstituteContribution: 11170,
-    hrepfsT_OwnInterest: 23180,
-    hrepfsT_InstituteInterest: 18079,
-    ordercolumn: 2,
-  },
-  {
-    hrepfsT_Id: 6453,
-    hrmE_Id: 3,
-    ivrM_Month_Name: "September-2023",
-    hrepfsT_OwnContribution: 12420,
-    hrepfsT_InstituteContribution: 11170,
-    hrepfsT_OwnInterest: 23266,
-    hrepfsT_InstituteInterest: 18156,
-    ordercolumn: 2,
-  },
-  {
-    hrepfsT_Id: 6454,
-    hrmE_Id: 3,
-    ivrM_Month_Name: "October-2023",
-    hrepfsT_OwnContribution: 12420,
-    hrepfsT_InstituteContribution: 11170,
-    hrepfsT_OwnInterest: 23351,
-    hrepfsT_InstituteInterest: 18233,
-    ordercolumn: 2,
-  },
-  {
-    hrepfsT_Id: 6455,
-    hrmE_Id: 3,
-    ivrM_Month_Name: "November-2023",
-    hrepfsT_OwnContribution: 12420,
-    hrepfsT_InstituteContribution: 11170,
-    hrepfsT_OwnInterest: 23437,
-    hrepfsT_InstituteInterest: 18310,
-    ordercolumn: 2,
-  },
-  {
-    hrepfsT_Id: 6456,
-    hrmE_Id: 3,
-    ivrM_Month_Name: "December-2023",
-    hrepfsT_OwnContribution: 12420,
-    hrepfsT_InstituteContribution: 11170,
-    hrepfsT_OwnInterest: 23522,
-    hrepfsT_InstituteInterest: 18387,
-    ordercolumn: 2,
-  },
-  {
-    hrepfsT_Id: 6457,
-    hrmE_Id: 3,
-    ivrM_Month_Name: "January-2024",
-    hrepfsT_OwnContribution: 12888,
-    hrepfsT_InstituteContribution: 11638,
-    hrepfsT_OwnInterest: 23607,
-    hrepfsT_InstituteInterest: 18463,
-    ordercolumn: 2,
-  },
-  {
-    hrepfsT_Id: 6458,
-    hrmE_Id: 3,
-    ivrM_Month_Name: "February-2024",
-    hrepfsT_OwnContribution: 12888,
-    hrepfsT_InstituteContribution: 11638,
-    hrepfsT_OwnInterest: 23696,
-    hrepfsT_InstituteInterest: 18543,
-    ordercolumn: 2,
-  },
-  {
-    hrepfsT_Id: 6459,
-    hrmE_Id: 3,
-    ivrM_Month_Name: "March-2024",
-    hrepfsT_OwnContribution: 12888,
-    hrepfsT_InstituteContribution: 11638,
-    hrepfsT_OwnInterest: 23784,
-    hrepfsT_InstituteInterest: 18623,
-    ordercolumn: 2,
-  },
-  {
-    hrepfsT_Id: 6459,
-    hrmE_Id: 3,
-    ivrM_Month_Name: "Closing Balance",
-    hrepfsT_OwnContribution: 3752163,
-    hrepfsT_InstituteContribution: 2938838,
-    hrepfsT_OwnInterest: 0,
-    hrepfsT_InstituteInterest: 0,
-    ordercolumn: 9,
-  },
-];
 
-const mockEmployeeDetails = [
-  {
-    hrmE_Id: 1,
-    employeeName: "DR. TERENCE HAMILTON IRELAND",
-    hrmE_EmployeeCode: "175",
-    hrmE_PFAccNo: "WB/19651/192",
-    mI_Name: "St. James' School",
-  },
-  {
-    hrmE_Id: 3,
-    employeeName: "MR. NAYAN RANJAN CHATTERJEE",
-    hrmE_EmployeeCode: "42",
-    hrmE_PFAccNo: "WB/19651/091",
-    mI_Name: "St. James' School",
-  },
-];
 
 interface PFYearlyReportProps {
   employees: string;
@@ -422,8 +84,10 @@ export default function PFYearlyReport() {
       });
 
       if (response?.success && response?.data) {
-        setReportData(response.data.reportData || []);
-        setEmployeeDetails(response.data.empDetails || []);
+        console.log("response", response)
+        const actualData = response?.data
+        setReportData(actualData.reportData || []);
+        setEmployeeDetails(actualData.empDetails || []);
         toast.success(response.message || "Report generated successfully");
       } else {
         console.log("API Error:", response);
@@ -553,9 +217,9 @@ export default function PFYearlyReport() {
                           ? "Loading years..."
                           : field.value
                             ? yearsData?.data?.find(
-                                (y: any) =>
-                                  y.imfY_Id.toString() === field.value,
-                              )?.imfY_FinancialYear
+                              (y: any) =>
+                                y.imfY_Id.toString() === field.value,
+                            )?.imfY_FinancialYear
                             : "Select Year"}
                       </SelectTrigger>
                       <SelectContent>
@@ -636,7 +300,7 @@ export default function PFYearlyReport() {
           </form>
         </CollapsibleSection>
 
-        {reportData.length > 0 && (
+        {reportData?.length > 0 && (
           <CollapsibleSection
             title="PF YEARLY REPORT"
             defaultOpen={true}
@@ -677,64 +341,43 @@ export default function PFYearlyReport() {
                 >
                   <div className="space-y-4">
                     {/* Header Row */}
-                    <div className="grid grid-cols-3 w-full border-b border-black pb-2 items-center">
-                      <div className="text-left font-bold text-lg">
-                        {emp.mI_Name || "St. James' School"}
-                      </div>
-                      <div className="text-center font-bold text-lg">
-                        {todayDate}
-                      </div>
-                      <div className="text-right font-bold text-lg">
-                        SLIP NO : {index + 1}
-                      </div>
-                    </div>
+                     <div className="text-center space-y-2 mb-6 border-b border-black pb-4">
+                    <h2 className="text-xl font-bold uppercase">{emp.mI_Name || "St. James' School"}</h2>
+                    <h3 className="text-lg font-bold uppercase underline">
+                      PF STATEMENT FOR FINANCIAL YEAR {financialYear}
+                    </h3>
+                  </div>
 
-                    {/* Statement Title */}
-                    <div className="text-center py-2">
-                      <h4 className="font-bold text-xl uppercase">
-                        PF STATEMENT as On 31 MAR{" "}
-                        {financialYear.split("-")[1] || financialYear}
-                      </h4>
-                    </div>
-
-                    {/* Employee Info */}
-                    <div className="grid grid-cols-12 w-full gap-4 pt-2">
-                      <div className="col-span-8">
-                        <h5 className="font-bold">
-                          EMPLOYEE :&nbsp;&nbsp;
-                          <span className="font-normal">
-                            {emp.hrmE_EmployeeCode}
-                          </span>
-                          &nbsp;&nbsp;
-                          <span className="font-normal">
-                            {emp.employeeName}
-                          </span>
-                        </h5>
-                      </div>
-                      <div className="col-span-4 text-right">
-                        <h5 className="font-bold">
-                          PF A/C NO:&nbsp;&nbsp;
-                          <span className="font-normal">
-                            {emp.hrmE_PFAccNo}
-                          </span>
-                        </h5>
-                      </div>
-                    </div>
-
-                    {/* Manual Table Header for Contribution/Interest */}
-                    <div className="grid grid-cols-12 w-full mt-4 border-t border-l border-r border-black font-bold text-center bg-gray-50">
-                      <div className="col-span-4 py-2 border-r border-black"></div>
-                      <div className="col-span-4 py-2 border-r border-black">
-                        CONTRIBUTION
-                      </div>
-                      <div className="col-span-4 py-2">INTEREST</div>
-                    </div>
+                  <div className="w-full mb-6">
+                    <table className="w-full text-sm font-bold">
+                      <tbody>
+                        <tr>
+                          <td className="w-1/3"></td>
+                          <td className="w-1/3 text-center"></td>
+                          <td className="w-1/3 text-right p-1">Slip No. {index + 1}</td>
+                        </tr>
+                        <tr className="border-t border-black">
+                          <td className="p-2" colSpan={2}>
+                            EMPLOYEE: <span className="font-normal">&nbsp;&nbsp;{emp.hrmE_EmployeeCode}</span>&nbsp;&nbsp;<span className="font-normal">{emp.employeeName}</span>
+                          </td>
+                          <td className="p-2 text-right">
+                            PF A/C NO: <span className="font-normal">&nbsp;&nbsp;{emp.hrmE_PFAccNo}</span>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
 
                     {/* Data Table */}
-                    <table className="report-table">
+                    <table className="report-table mt-4">
                       <thead>
                         <tr className="bg-gray-50 font-bold uppercase text-center">
-                          <th style={{ width: "33.33%" }}>&nbsp;</th>
+                          <th rowSpan={1} style={{ width: "33.33%" }}>&nbsp;</th>
+                          <th colSpan={2} style={{ width: "33.33%" }}>CONTRIBUTION</th>
+                          <th colSpan={2} style={{ width: "33.33%" }}>INTEREST</th>
+                        </tr>
+                        <tr className="bg-gray-50 font-bold uppercase text-center">
+                          <th style={{ width: "33.33%" }}>Month</th>
                           <th style={{ width: "16.66%" }}>OWN</th>
                           <th style={{ width: "16.66%" }}>SCHOOL</th>
                           <th style={{ width: "16.66%" }}>OWN</th>
@@ -744,62 +387,55 @@ export default function PFYearlyReport() {
                       <tbody>
                         {reportData
                           .filter((d) => d.hrmE_Id === emp.hrmE_Id)
-                          .sort((a, b) => a.ordercolumn - b.ordercolumn)
                           .map((row, idx) => (
                             <tr
                               key={idx}
-                              className={
-                                row.ivrM_Month_Name.includes("Total") ||
-                                row.ivrM_Month_Name.includes("Balance")
-                                  ? "font-bold"
-                                  : ""
-                              }
                             >
                               <td className="text-left">
-                                {row.ivrM_Month_Name}
+                                {row.ivrM_Month_Name || "-"}
                               </td>
                               <td className="text-right">
                                 {row.hrepfsT_OwnContribution > 0
                                   ? row.hrepfsT_OwnContribution.toLocaleString(
-                                      undefined,
-                                      {
-                                        minimumFractionDigits: 2,
-                                        maximumFractionDigits: 2,
-                                      },
-                                    )
+                                    undefined,
+                                    {
+                                      minimumFractionDigits: 2,
+                                      maximumFractionDigits: 2,
+                                    },
+                                  )
                                   : ""}
                               </td>
                               <td className="text-right">
-                                {row.hrepfsT_InstituteContribution > 0
-                                  ? row.hrepfsT_InstituteContribution.toLocaleString(
-                                      undefined,
-                                      {
-                                        minimumFractionDigits: 2,
-                                        maximumFractionDigits: 2,
-                                      },
-                                    )
+                                {row.hrepfsT_IntstituteContribution > 0
+                                  ? row.hrepfsT_IntstituteContribution.toLocaleString(
+                                    undefined,
+                                    {
+                                      minimumFractionDigits: 2,
+                                      maximumFractionDigits: 2,
+                                    },
+                                  )
                                   : ""}
                               </td>
                               <td className="text-right">
                                 {row.hrepfsT_OwnInterest > 0
                                   ? row.hrepfsT_OwnInterest.toLocaleString(
-                                      undefined,
-                                      {
-                                        minimumFractionDigits: 2,
-                                        maximumFractionDigits: 2,
-                                      },
-                                    )
+                                    undefined,
+                                    {
+                                      minimumFractionDigits: 2,
+                                      maximumFractionDigits: 2,
+                                    },
+                                  )
                                   : ""}
                               </td>
                               <td className="text-right">
                                 {row.hrepfsT_InstituteInterest > 0
                                   ? row.hrepfsT_InstituteInterest.toLocaleString(
-                                      undefined,
-                                      {
-                                        minimumFractionDigits: 2,
-                                        maximumFractionDigits: 2,
-                                      },
-                                    )
+                                    undefined,
+                                    {
+                                      minimumFractionDigits: 2,
+                                      maximumFractionDigits: 2,
+                                    },
+                                  )
                                   : ""}
                               </td>
                             </tr>
