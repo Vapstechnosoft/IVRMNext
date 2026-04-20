@@ -3,20 +3,28 @@
 import { api } from '@/lib/apiService';
 
 export async function getStpeterStudentIdCardLoadData() {
-    return await api.get<any>('admission', '/StudentIdCardFormat/OnLoadStudentIdCardDetails/2');
+    const url = `/StudentIdCardFormat/OnLoadStudentIdCardDetails`;
+    const res = await api.post<any>('admission', url);
+    return res?.data || res;
 }
-
 export async function changeYearStpeterStudentIdCard(data: { ASMAY_Id: number }) {
-    return await api.post<any>('admission', '/StudentIdCardFormat/OnChangeYear', data);
+    const url = `/StudentIdCardFormat/OnChangeYear?ASMAY_Id=${data.ASMAY_Id}`;
+    const res = await api.post<any>('admission', url);
+    return res?.data || res;
 }
 
 export async function changeClassStpeterStudentIdCard(data: { ASMAY_Id: number; ASMCL_Id: number }) {
-    return await api.post<any>('admission', '/StudentIdCardFormat/OnChangeClass', data);
+    const url = `/StudentIdCardFormat/OnChangeClass?ASMAY_Id=${data.ASMAY_Id}&ASMCL_Id=${data.ASMCL_Id}`;
+    const res = await api.post<any>('admission', url);
+    return res?.data || res;
 }
 
 export async function changeSectionStpeterStudentIdCard(data: { ASMAY_Id: number; ASMCL_Id: number; ASMS_Id: number }) {
-    return await api.post<any>('admission', '/StudentIdCardFormat/OnChangeSection', data);
+    const url = `/StudentIdCardFormat/OnChangeSection?ASMAY_Id=${data.ASMAY_Id}&ASMCL_Id=${data.ASMCL_Id}&ASMS_Id=${data.ASMS_Id}`;
+    const res = await api.post<any>('admission', url);
+    return res?.data || res;
 }
+
 
 export async function getStpeterStudentIdCardReport(data: {
     ASMAY_Id: number;
@@ -24,5 +32,7 @@ export async function getStpeterStudentIdCardReport(data: {
     ASMS_Id: number;
     StudentTempList: any[];
 }) {
-    return await api.post<any>('admission', '/StudentIdCardFormat/GetReportDetails', data);
+    const url = '/StudentIdCardFormat/GetReportDetails';
+    const res = await api.post<any>('admission', url, data);
+    return res?.data || res;
 }

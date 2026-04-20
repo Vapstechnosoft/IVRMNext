@@ -21,6 +21,7 @@ import {
 } from '@/hooks/admission/preadmission/useCbsStudentTc';
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 const RESULT_TYPES = [
     "He appeared for and passed the ISC Examiniaton (Year XII) in March ",
@@ -207,6 +208,17 @@ export function FilterForm({ onSubmit, onReset, onPrint }: FilterFormProps) {
         }
     }, [selectedStudentId, asmayId]);
 
+    const handleFormError = (errors: any) => {
+        const firstError = Object.values(errors)[0] as any;
+        if (firstError?.message) {
+            toast.error(firstError.message);
+        }
+    };
+
+    const handleFormSubmit = (data: CbsStudentTcFields) => {
+        onSubmit(data);
+    };
+
     const handleReset = () => {
         reset();
         setStudentList([]);
@@ -218,7 +230,7 @@ export function FilterForm({ onSubmit, onReset, onPrint }: FilterFormProps) {
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(handleFormSubmit, handleFormError)} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
 
                     {/* LEFT COLUMN */}
@@ -272,6 +284,7 @@ export function FilterForm({ onSubmit, onReset, onPrint }: FilterFormProps) {
                                             })()}
                                         </SelectContent>
                                     </Select>
+                                    <FormMessage className="col-start-2 col-span-2" />
                                 </FormItem>
                             )}
                         />
@@ -301,6 +314,7 @@ export function FilterForm({ onSubmit, onReset, onPrint }: FilterFormProps) {
                                                     ))}
                                                 </SelectContent>
                                             </Select>
+                                            <FormMessage className="col-start-2 col-span-2" />
                                         </FormItem>
                                     )}
                                 />
@@ -328,6 +342,7 @@ export function FilterForm({ onSubmit, onReset, onPrint }: FilterFormProps) {
                                                     ))}
                                                 </SelectContent>
                                             </Select>
+                                            <FormMessage className="col-start-2 col-span-2" />
                                         </FormItem>
                                     )}
                                 />
@@ -352,7 +367,7 @@ export function FilterForm({ onSubmit, onReset, onPrint }: FilterFormProps) {
                             name="Previous_School_Name"
                             render={({ field }) => (
                                 <FormItem className="grid grid-cols-3 items-center space-y-0">
-                                    <FormLabel className="col-span-1 text-sm font-bold text-slate-700">Previous School Name:<span className="text-red-500">*</span></FormLabel>
+                                    <FormLabel className="col-span-1 text-sm font-bold text-slate-700">Previous School Name:</FormLabel>
                                     <FormControl className="col-span-2">
                                         <Input {...field} className="bg-white border-slate-300 h-8" />
                                     </FormControl>
@@ -463,6 +478,7 @@ export function FilterForm({ onSubmit, onReset, onPrint }: FilterFormProps) {
                                                 </Command>
                                             </PopoverContent>
                                         </Popover>
+                                        <FormMessage className="mt-1" />
                                     </div>
                                 </FormItem>
                             )}
@@ -509,6 +525,7 @@ export function FilterForm({ onSubmit, onReset, onPrint }: FilterFormProps) {
                                             ))}
                                         </SelectContent>
                                     </Select>
+                                    <FormMessage className="col-start-2 col-span-3" />
                                 </FormItem>
                             )}
                         />
