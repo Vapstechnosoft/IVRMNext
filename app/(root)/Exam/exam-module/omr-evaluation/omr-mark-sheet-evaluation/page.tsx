@@ -311,7 +311,7 @@ export default function OmrMarkSheetEvaluationPage() {
                             <CardContent className="flex-1 p-0 relative">
                                 {pdfUrl ? (
                                     <iframe
-                                        src={`${pdfUrl}#toolbar=0`}
+                                        src={pdfUrl}
                                         className="w-full h-full border-none"
                                         title="Evaluation Result"
                                     />
