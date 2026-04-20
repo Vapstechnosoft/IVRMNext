@@ -2916,41 +2916,6 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/reports/CBSSalarySlip',
                                             title: 'Employee Salary Slip Calcutta Boys Report',
                                             description: 'Employee Salary Slips'
-<<<<<<< HEAD
-                                        }
-                                        // {
-                                        //     id: 29,
-                                        //     name: 'Employee Contribution Report',
-                                        //     icon: 'Clock',
-                                        //     url: '/hrms/reports/contribution-report',
-                                        //     title: 'Employee Contribution Report',
-                                        //     description: 'Manage Employee Contribution Report'
-                                        // },
-                                        // {
-                                        //     id: 30,
-                                        //     name: 'PS7 Form Report',
-                                        //     icon: 'Clock',
-                                        //     url: '/hrms/reports/PS7FromReportStJames',
-                                        //     title: 'PS7 Form Report',
-                                        //     description: 'Manage PS7 Form Report'
-                                        // },
-                                        // {
-                                        //     id: 31,
-                                        //     name: "MONTH WISE REPORT(st.james)" ,
-                                        //     icon: 'Clock',
-                                        //     url: '/hrms/reports/PS8_MonthWiseReportStjames',
-                                        //     title: 'PS8 Month Wise Report',
-                                        //     description: 'Manage Month Wise Report (st.james)'
-                                        // },
-                                        // {
-                                        //     id: 32,
-                                        //     name: "PS8 Form Report(st.james)" ,
-                                        //     icon: 'Clock',
-                                        //     url: '/hrms/reports/PS8_ReportStjames',
-                                        //     title: 'PS8 Form Report',
-                                        //     description: 'Manage PS8 Form Report (st.james)'
-                                        // },
-=======
                                         },
                                         {
                                             id: 29,
@@ -2969,8 +2934,8 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage PS7 Form Report'
                                         },
                                         {
-                                            id: 31, 
-                                            name: "MONTH WISE REPORT(st.james)" ,
+                                            id: 31,
+                                            name: 'MONTH WISE REPORT(st.james)',
                                             icon: 'Clock',
                                             url: '/hrms/reports/PS8_MonthWiseReportStjames',
                                             title: 'PS8 Month Wise Report',
@@ -2978,7 +2943,7 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 32,
-                                            name: "PS8 Form Report(st.james)" ,
+                                            name: 'PS8 Form Report(st.james)',
                                             icon: 'Clock',
                                             url: '/hrms/reports/PS8_ReportStjames',
                                             title: 'PS8 Form Report',
@@ -2986,7 +2951,7 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 33,
-                                            name: "VPF YEARLY REPORT",
+                                            name: 'VPF YEARLY REPORT',
                                             icon: 'Calandar',
                                             url: '/hrms/reports/VPFYearlyReport',
                                             title: 'VPF Yearly Report',
@@ -2994,7 +2959,7 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 34,
-                                            name: "VPF SUMMARY REPORT",
+                                            name: 'VPF SUMMARY REPORT',
                                             icon: 'Calandar',
                                             url: '/hrms/reports/VPFSummaryReport',
                                             title: 'VPF Summary Report',
@@ -3002,7 +2967,7 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 35,
-                                            name: "PF SUMMARY REPORT",
+                                            name: 'PF SUMMARY REPORT',
                                             icon: 'Calandar',
                                             url: '/hrms/reports/PFSummaryReport',
                                             title: 'PF Summary Report',
@@ -3010,14 +2975,12 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 36,
-                                            name: "PF YEARLY REPORT",
+                                            name: 'PF YEARLY REPORT',
                                             icon: 'Calandar',
                                             url: '/hrms/reports/PFYearlyReport',
                                             title: 'PF Yearly Report',
                                             description: 'Manage PF Yearly Report'
-                                        },
-
->>>>>>> 957a904735bc22b599342d2bd3a830b2be99bb88
+                                        }
                                     ]
                                 }
                             ]
