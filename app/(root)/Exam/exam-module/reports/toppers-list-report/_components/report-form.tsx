@@ -275,7 +275,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
         try {
             // Prepare payload according to the required structure
             const payload = {
-                ASMAY_Id: Number.parseInt(formValues.ASMAY_Id) || 0,
+                ASMAY_Id: Number.parseInt(formValues.ASMAY_Id || '') || 0,
                 ASMCL_Id: Number.parseInt(formValues.ASMCL_Id || '') || 0,
                 ASMS_Id: formValues.type === '1' ? 0 : Number.parseInt(formValues.ASMS_Id || '') || 0,
                 EME_Id: Number.parseInt(formValues?.EME_Id || '0') || 0,
