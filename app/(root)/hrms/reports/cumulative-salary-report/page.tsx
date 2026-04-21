@@ -17,8 +17,7 @@ import { useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { printCumulativeSalaryReport } from './_components/print-utils';
-import { sum } from 'pdf-lib';
-import { access } from 'fs';
+
 
 // Static Month List (copied from Exam Module reference)
 const MONTH_LIST = [
@@ -158,44 +157,20 @@ function CumulativeSalaryReportContent() {
             return;
         }
 
-        // Find selected year object to get name if needed, assuming value is ID or Year
-        // If Dropdown value is ID, we might need Year String.
-        // Based on Exam module ref, ASMAY_Id is used.
-        // Payload expects "hreS_Year": "2025" (Year string).
-
         const selectedYearObj = yearsData?.data?.find((y: any) => y.hrmlY_Id.toString() === data.year);
-        // Fallback: if data.year is already the year string (depends on SelectItem value)
-        // Let's assume SelectItem value is ASMAY_Id, so we get the Year string.
-        // Actually, Exam module reference uses ASMAY_Id.
-        // BUT payload expects `hreS_Year` as string "2025".
-        // SO we must find the name.
-        const yearString = selectedYearObj?.hrmlY_LeaveYear?.split('-')[0] || data.year; // Extract 2025 from 2025-2026 if necessary, or just send Year code.
-        // Let's assume strictly 2025 like the payload sample.
-
-        // Month: Payload "hreS_Month": "April". So we need Name, not ID.
-        const selectedMonthObj = MONTH_LIST.find((m) => m.id.toString() === data.month);
-        const monthName = selectedMonthObj?.name || '';
+        
+        const yearString = data.year; 
+        const monthName = data.month;
 
         console.log('yearString', yearString);
         console.log('monthName', monthName);
+        console.log("data.designation", data.designation)
         generateReport(
             {
-                hreS_Year: yearString, // Careful here, might need full year or split. Payload "2025" implies calendar year? OR Academic start?
-                // If the user selects "2024-2025", and month is April 2025.
-                // Usually academic year 2024-2025 means April 2024 to March 2025?
-                // User payload "2025" "April".
-                // If I assume `asmaY_Year` is "2025-2026", usually the HRES_Year corresponds to the calendar year of that salary.
-                // Let's send the full string if we aren't sure, OR try to parse.
-                // Given "2025" in sample, likely strictly the year.
-                // For now, I will use the first part of the academic year string or the year entered.
-                // Actually, let's just stick to `asmaY_Year` string if it's "2025" style, but typically it is "2023-2024".
-                // Let's assume the user selects "2025" from a list that might be calendar years?
-                // "useAcademicYearDropdown" returns academic years.
-                // If the user meant "Calendar Year" dropdown, I don't have that.
-                // I'll use the selectedYearObj?.asmaY_Year for now.
+                hreS_Year: yearString,
                 hreS_Month: monthName,
                 hrmdeS_IdList: data.designation.map(Number),
-                hrmdeS_Ids: ''
+                hrmdeS_Ids: 'string'
             },
             {
                 onSuccess: (res) => {
@@ -335,7 +310,7 @@ function CumulativeSalaryReportContent() {
                 ]
                 : [];
 
-        return [...baseColumns,...summaryColumns.slice(0, 1),  ...earningGroup, ...summaryColumns.slice(1, 2), ...deductionGroup, ...summaryColumns.slice(2)];
+        return [...baseColumns, ...summaryColumns.slice(0, 1), ...earningGroup, ...summaryColumns.slice(1, 2), ...deductionGroup, ...summaryColumns.slice(2)];
     }, [reportData]);
 
     const processedGridData = useMemo(() => {
@@ -367,8 +342,8 @@ function CumulativeSalaryReportContent() {
                                         </SelectTrigger>
                                         <SelectContent>
                                             {yearsData?.data?.map((y: any) => (
-                                                <SelectItem key={y.hrmlY_Id} value={y.hrmlY_Id.toString()}>
-                                                    {y.hrmlY_LeaveYear}
+                                                <SelectItem key={y.hrmlY_Id} value={y?.hrmlY_LeaveYear}>
+                                                    {y?.hrmlY_LeaveYear}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -392,7 +367,7 @@ function CumulativeSalaryReportContent() {
                                         </SelectTrigger>
                                         <SelectContent>
                                             {MONTH_LIST.map((m) => (
-                                                <SelectItem key={m.id} value={m.id.toString()}>
+                                                <SelectItem key={m.id} value={m.name?.toString()}>
                                                     {m.name}
                                                 </SelectItem>
                                             ))}

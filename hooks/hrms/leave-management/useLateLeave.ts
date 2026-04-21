@@ -4,12 +4,12 @@ import { getLateLeaveReport, submitLateLeave } from '@/server/hrms/leave-managem
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
 import { SubmitLateLeaveRequest } from '@/server/hrms/leave-management/reports/lateLeave-report';
 
-export function useLateLeaveReport() {
+export function useLateLeaveReport(page: number = 1, pageSize: number = 10) {
     return useQueries({
         queries: [
             {
-                queryKey: [HRMS_QUERY_KEYS.LATE_LEAVE_REPORT],
-                queryFn:() => getLateLeaveReport(),
+                queryKey: [HRMS_QUERY_KEYS.LATE_LEAVE_REPORT, page, pageSize],
+                queryFn:() => getLateLeaveReport(page, pageSize),
                 staleTime: 0
             }
         ]

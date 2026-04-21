@@ -21,11 +21,13 @@ export type LateLeaveItem = {
 
 export const getLateLeaveColumns = (
   onEdit: (item: LateLeaveItem) => void,
-  onDelete: (item: LateLeaveItem) => void
+  onDelete: (item: LateLeaveItem) => void,
+  page: number = 1,
+  pageSize: number = 10
 ): ColumnDef<LateLeaveItem>[] => [
   {
     header: 'Sno',
-    cell: ({ row }) => row.index + 1,
+    cell: ({ row }) => (page - 1) * pageSize + row.index + 1,
   },
   {
     accessorKey: 'year',
@@ -50,10 +52,20 @@ export const getLateLeaveColumns = (
   {
     accessorKey: 'hrelaP_TotalDays',
     header: 'NO. OF DAYS',
+    cell:({row}) => (
+      <div className='text-center'>
+        {row.original.hrelaP_TotalDays}
+      </div>
+    )
   },
   {
     accessorKey: 'hrelS_CBLeaves',
     header: 'LEAVE BALANCE',
+    cell:({row}) => (
+      <div className='text-center'>
+        {row.original.hrelS_CBLeaves}
+      </div>
+    )
   },
   {
     id: "actions",
