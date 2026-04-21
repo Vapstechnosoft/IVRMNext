@@ -1160,31 +1160,32 @@ export async function getUserAccessibleModules() {
                                     ]
                                 },
 
-                                // {
-                                //     id: 13,
-                                //     name: 'Danvantari Phisiotheraphy',
-                                //     icon: 'Settings',
-                                //     pages: [
+                                {
+                                    id: 13,
+                                    name: 'Danvantari Phisiotheraphy',
+                                    icon: 'Settings',
+                                    pages: [
 
-                                //         {
-                                //             id: 71,
-                                //             name: 'DCPS_BonifiedCertificate',
-                                //             icon: 'Settings',
-                                //             url: '/admission/danvantari/reports/DCPS_BonifiedCertificate',
-                                //             title: 'DCPS_BonifiedCertificate',
-                                //             description: 'DCPS_BonifiedCertificate'
-                                //         },
-                                //         {
-                                //             id: 72,
-                                //             name: 'DCPS_TransferCertificate',
-                                //             icon: 'Settings',
-                                //             url: '/admission/danvantari/reports/DCPS_TransferCertificate',
-                                //             title: 'DCPS_TransferCertificate',
-                                //             description: 'DCPS_TransferCertificate'
-                                //         }
+                                        {
+                                            id: 71,
+                                            name: 'DCPS_BonifiedCertificate',
+                                            icon: 'Settings',
+                                            url: '/admission/Danvantari/reports/DCPS_BonifiedCertificate',
+                                            title: 'DCPS_BonifiedCertificate',
+                                            description: 'DCPS_BonifiedCertificate'
+                                        }
+                                        // ,
+                                        // {
+                                        //     id: 72,
+                                        //     name: 'DCPS_TransferCertificate',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/Danvantari/reports/DCPS_TransferCertificate',
+                                        //     title: 'DCPS_TransferCertificate',
+                                        //     description: 'DCPS_TransferCertificate'
+                                        // }
 
-                                //     ]
-                                // },
+                                    ]
+                                },
                                 {
                                     id: 14,
                                     name: 'SRKVS',

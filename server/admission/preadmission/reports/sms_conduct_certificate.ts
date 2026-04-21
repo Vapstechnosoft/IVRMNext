@@ -14,8 +14,10 @@ export async function getSMSCConductCertLoadData() {
  * Handles Academic Year change to fetch courses
  */
 export async function onSMSCConductCertYearChange(data: { ASMAY_Id: number }) {
-    const url = '/CollegeStudyCertificateReport/onchangeyear';
-    return await api.post<any>('admission', url, data);
+    // const url = '/CollegeStudyCertificateReport/onchangeyear';
+    // return await api.post<any>('admission', url, data);
+    const url = `/CollegeStudyCertificateReport/onchangeyear?ASMAY_Id=${data.ASMAY_Id}`;
+    return await api.post<any>('admission', url, {});
 }
 
 /**
@@ -38,8 +40,10 @@ export async function onSMSCConductCertBranchChange(data: { ASMAY_Id: number; AM
  * Handles Semester change to fetch sections
  */
 export async function onSMSCConductCertSemesterChange(data: { ASMAY_Id: number; AMCO_Id: number; AMB_Id: number; AMSE_Id: number }) {
-    const url = '/CollegeStudyCertificateReport/onchangesemester';
-    return await api.post<any>('admission', url, data);
+    // const url = '/CollegeStudyCertificateReport/onchangesemester';
+    // return await api.post<any>('admission', url, data);
+    const url = `/CollegeStudyCertificateReport/onchangesemester?ASMAY_Id=${data.ASMAY_Id}&AMCO_Id=${data.AMCO_Id}&AMB_Id=${data.AMB_Id}&AMSE_Id=${data.AMSE_Id}`;
+    return await api.post<any>('admission', url, {});
 }
 
 /**
@@ -56,8 +60,10 @@ export async function searchSMSCConductCertStudents(data: {
     ACMS_Id: number;
     allorindid: string;
 }) {
-    const url = '/CollegeStudyCertificateReport/searchfilter';
-    return await api.post<any>('admission', url, data);
+    // const url = '/CollegeStudyCertificateReport/searchfilter';
+    // return await api.post<any>('admission', url, data);
+    const url = `/CollegeStudyCertificateReport/searchfilter?ASMAY_Id=${data.ASMAY_Id}&AMCST_SOL=${data.AMCST_SOL}&AMCO_Id=${data.AMCO_Id}&AMB_Id=${data.AMB_Id}&AMSE_Id=${data.AMSE_Id}&ACMS_Id=${data.ACMS_Id}&allorindid=${data.allorindid}`;
+    return await api.post<any>('admission', url, {});
 }
 
 /**
@@ -72,7 +78,10 @@ export async function getSMSCConductCertReport(data: {
     ACMS_Id: number;
     AMCST_Id: number;
     allorindid: string;
+
 }) {
-    const url = '/CollegeStudyCertificateReport/onclickreport';
-    return await api.post<any>('admission', url, data);
+    // const url = '/CollegeStudyCertificateReport/onclickreport';
+    // return await api.post<any>('admission', url, data);
+    const url = `/CollegeStudyCertificateReport/onclickreport?ASMAY_Id=${data.ASMAY_Id}&AMCST_SOL=${data.AMCST_SOL}&AMCO_Id=${data.AMCO_Id}&AMB_Id=${data.AMB_Id}&AMSE_Id=${data.AMSE_Id}&ACMS_Id=${data.ACMS_Id}&AMCST_Id=${data.AMCST_Id}&allorindid=${data.allorindid}`;
+    return await api.post<any>('admission', url, {});
 }
