@@ -1163,31 +1163,31 @@ export async function getUserAccessibleModules() {
                                 },
 
 
-                                // {
-                                //     id: 13,
-                                //     name: 'Danvantari Phisiotheraphy',
-                                //     icon: 'Settings',
-                                //     pages: [
+                                {
+                                    id: 13,
+                                    name: 'Danvantari Phisiotheraphy',
+                                    icon: 'Settings',
+                                    pages: [
 
-                                //         {
-                                //             id: 71,
-                                //             name: 'DCPS_BonifiedCertificate',
-                                //             icon: 'Settings',
-                                //             url: '/admission/danvantari/reports/DCPS_BonifiedCertificate',
-                                //             title: 'DCPS_BonifiedCertificate',
-                                //             description: 'DCPS_BonifiedCertificate'
-                                //         },
-                                //         {
-                                //             id: 72,
-                                //             name: 'DCPS_TransferCertificate',
-                                //             icon: 'Settings',
-                                //             url: '/admission/danvantari/reports/DCPS_TransferCertificate',
-                                //             title: 'DCPS_TransferCertificate',
-                                //             description: 'DCPS_TransferCertificate'
-                                //         }
+                                        {
+                                            id: 71,
+                                            name: 'DCPS_BonifiedCertificate',
+                                            icon: 'Settings',
+                                            url: '/admission/danvantari/reports/DCPS_BonifiedCertificate',
+                                            title: 'DCPS_BonifiedCertificate',
+                                            description: 'DCPS_BonifiedCertificate'
+                                        },
+                                        {
+                                            id: 72,
+                                            name: 'DCPS_TransferCertificate',
+                                            icon: 'Settings',
+                                            url: '/admission/Danvantari/reports/DCPS_TransferCertificate',
+                                            title: 'DCPS_TransferCertificate',
+                                            description: 'DCPS_TransferCertificate'
+                                        }
 
-                                //     ]
-                                // },
+                                    ]
+                                },
                                 {
                                     id: 14,
                                     name: 'SRKVS',
@@ -1212,14 +1212,14 @@ export async function getUserAccessibleModules() {
                                     pages: [
 
 
-                                        // {
-                                        //     id: 74,
-                                        //     name: 'Employee IDcard Report STpeter',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/stpeter/reports/EmployeeIDcardReportSTpeter',
-                                        //     title: 'EmployeeIDcardReportSTpeter',
-                                        //     description: 'EmployeeIDcardReportSTpeter'
-                                        // },
+                                        {
+                                            id: 74,
+                                            name: 'Employee IDcard Report STpeter',
+                                            icon: 'Settings',
+                                            url: '/admission/stpeter/reports/EmployeeIDcardReportSTpeter',
+                                            title: 'EmployeeIDcardReportSTpeter',
+                                            description: 'EmployeeIDcardReportSTpeter'
+                                        },
 
                                         {
                                             id: 75,
@@ -6848,6 +6848,14 @@ export async function getUserAccessibleModules() {
                                             // url: '/StaffPortal/attendance/attendance-entry',
                                             url: '/admission/preadmission/attendance-entry/student-attendance',
                                             title: 'Attendance Entry',
+                                            description: 'Daily Student Attendance'
+                                        },
+                                        {
+                                            id: 8002,
+                                            name: 'Mess Attendance Entry',
+                                            icon: 'UserCheck',
+                                            url: '/admission/preadmission/newsharedhost/transactions/mess-attendance-entry',
+                                            title: 'Mess Attendance Entry',
                                             description: 'Daily Student Attendance'
                                         }
                                     ]

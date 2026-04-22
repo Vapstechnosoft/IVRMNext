@@ -3,7 +3,7 @@
 import { api } from '@/lib/apiService';
 
 export async function getStpeterEmployeeIdCardLoadData() {
-    return await api.get<any>('admission', '/EmployeeProfileReport/getalldetails/2');
+    return await api.get<any>('admission', '/EmployeeProfileReport/onloadgetdetails');
 }
 
 export async function getStpeterDepts(data: { hrmgT_IdList: number[] }) {

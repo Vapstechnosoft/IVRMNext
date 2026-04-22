@@ -15,10 +15,10 @@ import {
     attendanceDeleteRecordWise
 } from '@/server/admission/preadmission/transactions/mess_attendance_entry';
 
-export const useMessAttendanceLoadData = (yearId: number) => {
+export const useMessAttendanceLoadData = (portalType?: string) => {
     return useQuery({
-        queryKey: ['mess-attendance-load-data', yearId],
-        queryFn: () => getMessAttendanceLoadData(yearId),
+        queryKey: ['mess-attendance-load', portalType],
+        queryFn: () => getMessAttendanceLoadData(portalType)
     });
 };
 
