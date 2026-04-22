@@ -16,6 +16,6 @@ export async function checkLibraryDataValidation(data: any) {
 }
 
 export async function saveImportLibraryData(data: any) {
-    const response = await api.post<any>('library', `${MODULE_URL}/ `, data);
+    const response = await api.post<any>('library', `${MODULE_URL}/`, data);
     return response.data;
 }

@@ -16,9 +16,9 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import type { ILostBookList } from '@/types/library/transactions/transactions';
 import { format } from 'date-fns';
 import { Loader2, Save, X } from 'lucide-react';
-import type { ILostBookList } from '@/types/library/transactions/transactions';
 
 type FormFields = z.infer<typeof lostBookSchema.addOrUpdate>;
 
@@ -56,7 +56,7 @@ export default function UpdateLostBookForm({ selectedRow, onSuccess, onCancel, c
         resolver: zodResolver(lostBookSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
-            LMBANO_Id: selectedRow?.lmbanO_Id,
+            LMBANO_Id: selectedRow?.lmbanO_Id?.toString() || '',
             LMBANO_AvialableStatus: (selectedRow?.lmbanO_AvialableStatus?.toLowerCase() as any) || 'lost',
             LMBANO_LostDamagedDate: initialDate,
             LMBANO_LostDamagedReason: selectedRow?.lmbanO_LostDamagedReason || '',
@@ -80,18 +80,20 @@ export default function UpdateLostBookForm({ selectedRow, onSuccess, onCancel, c
         try {
             const response = await getBookListDropdown(bookCategory, bookType);
             if (response.success && Array.isArray(response.data)) {
-                
-                let foundMatch = response.data.find((b: any) => b.lmbanO_Id === selectedRow?.lmbanO_Id);
-                let finalOptions = response.data;
+                const foundMatch = response.data.find((b: any) => b.lmbanO_Id === selectedRow?.lmbanO_Id);
+                let finalOptions: any[] = response.data as any[];
                 // If the selected book isn't in the default set, maybe we append it just for display?
                 if (!foundMatch && selectedRow?.lmbanO_Id) {
-                    finalOptions = [{ 
-                        lmbanO_Id: selectedRow.lmbanO_Id, 
-                        lmbanO_AccessionNo: selectedRow.lmbanO_AccessionNo, 
-                        lmB_BookTitle: selectedRow.lmB_BookTitle 
-                    }, ...response.data];
+                    finalOptions = [
+                        {
+                            lmbanO_Id: selectedRow.lmbanO_Id,
+                            lmbanO_AccessionNo: selectedRow.lmbanO_AccessionNo,
+                            lmB_BookTitle: selectedRow.lmB_BookTitle
+                        },
+                        ...(response.data as any[])
+                    ];
                 }
-                
+
                 setBookOptions(finalOptions);
             }
         } catch (error) {
@@ -101,7 +103,7 @@ export default function UpdateLostBookForm({ selectedRow, onSuccess, onCancel, c
     };
 
     const handleBookSelect = async (bookId: number) => {
-        setValue('LMBANO_Id', bookId);
+        setValue('LMBANO_Id', String(bookId));
 
         try {
             const response = await getAuthorNameDropdown(bookId);
@@ -136,8 +138,13 @@ export default function UpdateLostBookForm({ selectedRow, onSuccess, onCancel, c
     return (
         <form onSubmit={handleSubmit(onSubmit)} className={`space-y-6 p-4 ${className}`}>
             <div className='space-y-4'>
-                <Label htmlFor='LMBANO_Id'>Book Title: <span className='text-red-500'>*</span></Label>
-                <Select disabled value={selectedRow?.lmbanO_Id?.toString()} onValueChange={(value) => handleBookSelect(Number.parseInt(value))}>
+                <Label htmlFor='LMBANO_Id'>
+                    Book Title: <span className='text-red-500'>*</span>
+                </Label>
+                <Select
+                    disabled
+                    value={selectedRow?.lmbanO_Id?.toString()}
+                    onValueChange={(value) => handleBookSelect(Number.parseInt(value))}>
                     <SelectTrigger>
                         <SelectValue placeholder={`Select ${bookCategory === 'book' ? 'book' : 'non-book'}...`} />
                     </SelectTrigger>
@@ -153,20 +160,29 @@ export default function UpdateLostBookForm({ selectedRow, onSuccess, onCancel, c
             </div>
 
             <div className='space-y-4'>
-                <Label htmlFor='LMBANO_LostDamagedDate'>Lost Date: <span className='text-red-500'>*</span></Label>
+                <Label htmlFor='LMBANO_LostDamagedDate'>
+                    Lost Date: <span className='text-red-500'>*</span>
+                </Label>
                 <Input id='LMBANO_LostDamagedDate' type='date' {...register('LMBANO_LostDamagedDate')} className='w-full' />
                 {errors.LMBANO_LostDamagedDate && <p className='text-red-500 text-sm'>{errors.LMBANO_LostDamagedDate.message}</p>}
             </div>
 
             <div className='space-y-4'>
-                <Label htmlFor='LMBANO_AmountCollected'>Price: <span className='text-red-500'>*</span></Label>
+                <Label htmlFor='LMBANO_AmountCollected'>
+                    Price: <span className='text-red-500'>*</span>
+                </Label>
                 <Input id='LMBANO_AmountCollected' placeholder='Enter Lost/Damage Price' {...register('LMBANO_AmountCollected')} />
                 {errors.LMBANO_AmountCollected && <p className='text-red-500 text-sm'>{errors.LMBANO_AmountCollected.message}</p>}
             </div>
 
             <div className='space-y-4'>
-                <Label className='font-semibold text-lg'>Mode Of Payment: <span className='text-red-500'>*</span></Label>
-                <RadioGroup defaultValue={(selectedRow?.lmbanO_ModeOfPayment as any) || undefined} onValueChange={(value) => setValue('LMBANO_ModeOfPayment', value as 'Cash' | 'Bank')} className='flex space-x-6'>
+                <Label className='font-semibold text-lg'>
+                    Mode Of Payment: <span className='text-red-500'>*</span>
+                </Label>
+                <RadioGroup
+                    defaultValue={(selectedRow?.lmbanO_ModeOfPayment as any) || undefined}
+                    onValueChange={(value) => setValue('LMBANO_ModeOfPayment', value as 'Cash' | 'Bank')}
+                    className='flex space-x-6'>
                     <div className='flex items-center space-x-2'>
                         <RadioGroupItem value='Cash' id='edit-cash' />
                         <Label htmlFor='edit-cash'>Cash</Label>
@@ -181,13 +197,23 @@ export default function UpdateLostBookForm({ selectedRow, onSuccess, onCancel, c
 
             <div className='space-y-4'>
                 <Label htmlFor='LMBANO_LostDamagedReason'>Delete Reason:</Label>
-                <Textarea id='LMBANO_LostDamagedReason' placeholder='Enter the Remarks' {...register('LMBANO_LostDamagedReason')} rows={3} />
+                <Textarea
+                    id='LMBANO_LostDamagedReason'
+                    placeholder='Enter the Remarks'
+                    {...register('LMBANO_LostDamagedReason')}
+                    rows={3}
+                />
                 {errors.LMBANO_LostDamagedReason && <p className='text-red-500 text-sm'>{errors.LMBANO_LostDamagedReason.message}</p>}
             </div>
 
             <div className='space-y-4'>
-                <Label className='font-semibold text-lg'>Book Status: <span className='text-red-500'>*</span></Label>
-                <RadioGroup defaultValue={(selectedRow?.lmbanO_AvialableStatus?.toLowerCase() as any) || 'lost'} onValueChange={(value) => setValue('LMBANO_AvialableStatus', value as 'lost' | 'damaged')} className='flex space-x-6'>
+                <Label className='font-semibold text-lg'>
+                    Book Status: <span className='text-red-500'>*</span>
+                </Label>
+                <RadioGroup
+                    defaultValue={(selectedRow?.lmbanO_AvialableStatus?.toLowerCase() as any) || 'lost'}
+                    onValueChange={(value) => setValue('LMBANO_AvialableStatus', value as 'lost' | 'damaged')}
+                    className='flex space-x-6'>
                     <div className='flex items-center space-x-2'>
                         <RadioGroupItem value='lost' id='edit-lost' />
                         <Label htmlFor='edit-lost'>Lost</Label>
@@ -208,7 +234,15 @@ export default function UpdateLostBookForm({ selectedRow, onSuccess, onCancel, c
                     </Button>
                 )}
                 <Button type='submit' disabled={isSubmitting || loading} className='flex items-center gap-2'>
-                    {isSubmitting || loading ? <><Loader2 className='h-4 w-4 animate-spin' /> SAVING...</> : <><Save className='h-4 w-4' /> UPDATE</>}
+                    {isSubmitting || loading ? (
+                        <>
+                            <Loader2 className='h-4 w-4 animate-spin' /> SAVING...
+                        </>
+                    ) : (
+                        <>
+                            <Save className='h-4 w-4' /> UPDATE
+                        </>
+                    )}
                 </Button>
             </div>
         </form>
