@@ -508,6 +508,8 @@ export default function OnlineAdminLeavePage() {
                                     {/* Application Form Integrated Below Grid */}
                                     <div className='mt-8 pb-4'>
                                         <ApplyLeaveForm
+                                            combinedBalanceData={combinedBalanceData}
+                                            isLoadingBalance={isLoadingBalance}
                                             selectedEmployeeId={selectedEmployeeId}
                                             selectedLeave={selectedLeave}
                                             selectedFromDate={selectedFromDate}

@@ -81,10 +81,17 @@ export default function AddEmployeeLateInEarlyOutReportForm({
     const deptIds = watchedDepartment.map(Number).filter(Boolean);
     const desigIds = watchedDesignation.map(Number).filter(Boolean);
 
+    console.log("groupTypeIds", groupTypeIds);
+    console.log("deptIds", deptIds);
+    console.log("desigIds", desigIds);
+
     const { data: groupTypesData } = useReportGroupTypes();
     const { data: departmentsData } = useReportDepartments(groupTypeIds.toString());
     const { data: designationsData } = useReportDesignations(groupTypeIds.toString(), deptIds.toString());
     const { data: employeesData } = useReportEmployeesByDeptAndDesignation(deptIds.toString(), desigIds.toString());
+
+    console.log("employeesData", employeesData);
+
 
     const groupTypesDataTransformed = useMemo(() => {
         return (
@@ -379,7 +386,7 @@ export default function AddEmployeeLateInEarlyOutReportForm({
                                                 }))}
                                                 onValueChange={(values) => field.onChange(values)}
                                                 defaultValue={field.value || []}
-                                                placeholder='Select Employees'
+                                                placeholder={employeesDataTransformed.length > 0 ? "Select Employees" : "No employees available"}
                                                 className={`w-full ${errors.query ? 'border-red-500' : ''}`}
                                                 maxHeight={240}
                                             />
