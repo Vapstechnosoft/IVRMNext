@@ -5,7 +5,8 @@ import { ADMISSION_QUERY_KEYS } from '@/constants/query-keys';
 import {
     getDanvantariTCLoadData,
     changeYearDanvantariTC,
-    stdNameChangeDanvantariTC,
+    changeCourseDanvantariTC,
+    changeSemesterDanvantariTC,
     getDanvantariTCDetails
 } from '@/server/admission/preadmission/reports/danvantari_transfer_certificate';
 
@@ -22,9 +23,15 @@ export const useChangeYearDanvantariTC = () => {
     });
 };
 
-export const useStdNameChangeDanvantariTC = () => {
+export const useChangeCourseDanvantariTC = () => {
     return useMutation({
-        mutationFn: (data: { AMCST_Id: number; ASMAY_Id: number; tctemporper: string }) => stdNameChangeDanvantariTC(data)
+        mutationFn: (data: { ASMAY_Id: number; AMCO_Id: number; tctemporper: string }) => changeCourseDanvantariTC(data)
+    });
+};
+
+export const useChangeSemesterDanvantariTC = () => {
+    return useMutation({
+        mutationFn: (data: { ASMAY_Id: number; AMCO_Id: number; AMB_Id: number; AMSE_Id: number; tctemporper: string }) => changeSemesterDanvantariTC(data)
     });
 };
 

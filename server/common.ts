@@ -1168,20 +1168,20 @@ export async function getUserAccessibleModules() {
 
                                         {
                                             id: 71,
-                                            name: 'DCPS_BonifiedCertificate',
+                                            name: 'DCPS Bonified Certificate',
                                             icon: 'Settings',
                                             url: '/admission/Danvantari/reports/DCPS_BonifiedCertificate',
-                                            title: 'DCPS_BonifiedCertificate',
-                                            description: 'DCPS_BonifiedCertificate'
+                                            title: 'DCPS Bonified Certificate',
+                                            description: 'Bonified Certificate'
                                         }
                                         // ,
                                         // {
                                         //     id: 72,
-                                        //     name: 'DCPS_TransferCertificate',
+                                        //     name: 'DCPS Transfer Certificate',
                                         //     icon: 'Settings',
                                         //     url: '/admission/Danvantari/reports/DCPS_TransferCertificate',
-                                        //     title: 'DCPS_TransferCertificate',
-                                        //     description: 'DCPS_TransferCertificate'
+                                        //     title: 'DCPS Transfer Certificate',
+                                        //     description: 'DCPS Transfer Certificate'
                                         // }
 
                                     ]
@@ -1240,31 +1240,31 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 },
-                                // {
-                                //     id: 17,
-                                //     name: 'SMS degree college',
-                                //     icon: 'Settings',
-                                //     pages: [
-                                //         //Need to create UI
-                                //         // {
-                                //         //     id: 74,
-                                //         //     name: 'SMSCollegeStudentTc',
-                                //         //     icon: 'Settings',
-                                //         //     url: '/admission/sms/transaction/SMSCollegeStudentTc',
-                                //         //     title: 'SMSCollegeStudentTc',
-                                //         //     description: 'SMSCollegeStudentTc'
-                                //         // },
+                                {
+                                    id: 17,
+                                    name: 'SMS degree college',
+                                    icon: 'Settings',
+                                    pages: [
+                                        //Need to create UI
+                                        // {
+                                        //     id: 74,
+                                        //     name: 'SMSCollegeStudentTc',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/sms/transaction/SMSCollegeStudentTc',
+                                        //     title: 'SMSCollegeStudentTc',
+                                        //     description: 'SMSCollegeStudentTc'
+                                        // },
 
-                                //         {
-                                //             id: 75,
-                                //             name: 'SMSCConductCertificate',
-                                //             icon: 'Settings',
-                                //             url: '/admission/sms/reports/SMSCConductCertificate',
-                                //             title: 'SMSCConductCertificate',
-                                //             description: 'SMSCConductCertificate'
-                                //         }
-                                //     ]
-                                // },
+                                        {
+                                            id: 75,
+                                            name: 'SMSCConductCertificate',
+                                            icon: 'Settings',
+                                            url: '/admission/sms/reports/SMSCConductCertificate',
+                                            title: 'SMSCConductCertificate',
+                                            description: 'SMSCConductCertificate'
+                                        }
+                                    ]
+                                },
                                 {
                                     id: 18,
                                     name: 'GM Vidya Nikethan School',
