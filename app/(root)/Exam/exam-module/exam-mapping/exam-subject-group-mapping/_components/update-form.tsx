@@ -101,7 +101,7 @@ export default function UpdateExamSubjectGroup({ mI_Id = 30, selectedRow, onSucc
                 setTimeout(() => {
                     trigger(['asmaY_Id', 'emcA_Id', 'emE_Id']);
                 }, 0);
-            } catch (err: any) {
+            } catch (_err: any) {
                 toast.error('Failed to load group details');
             }
         };
@@ -129,7 +129,7 @@ export default function UpdateExamSubjectGroup({ mI_Id = 30, selectedRow, onSucc
                     });
                     setTimeout(() => trigger('emcA_Id'), 0);
                 }
-            } catch (err: any) {
+            } catch (_err: any) {
                 toast.error('Failed to load categories');
             }
         };
@@ -160,7 +160,7 @@ export default function UpdateExamSubjectGroup({ mI_Id = 30, selectedRow, onSucc
                     });
                     setTimeout(() => trigger('emE_Id'), 0);
                 }
-            } catch (err: any) {
+            } catch (_err: any) {
                 toast.error('Failed to load exams');
             }
         };
@@ -183,7 +183,7 @@ export default function UpdateExamSubjectGroup({ mI_Id = 30, selectedRow, onSucc
                     const response_ = await getSubjectsForPromotionalExam(asmaY_Id, emcA_Id);
                     setSubjects((response_?.data || []) as IESubject[]);
                 }
-            } catch (err: any) {
+            } catch (_err: any) {
                 toast.error('Failed to load subjects');
             }
         };

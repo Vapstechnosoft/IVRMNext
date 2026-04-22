@@ -1,6 +1,6 @@
 import { type VariantProps, cva } from 'class-variance-authority';
 import type * as React from 'react';
-
+import { StandardTooltip } from '@/components/StandardTooltip';
 import { cn } from '@/lib/utils';
 
 const badgeVariants = cva(
@@ -46,10 +46,22 @@ const badgeVariants = cva(
     }
 );
 
-export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof badgeVariants> {}
+export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof badgeVariants> {
+    toolTip?: string;
+}
 
-function Badge({ className, variant, size, shape, ...props }: BadgeProps) {
-    return <div className={cn(badgeVariants({ variant, size, shape }), className)} {...props} />;
+function Badge({ className, variant, size, shape, toolTip, ...props }: BadgeProps) {
+    const badgeContent = <div className={cn(badgeVariants({ variant, size, shape }), 'cursor-default', className)} {...props} />;
+
+    if (toolTip) {
+        return (
+            <StandardTooltip content={toolTip}>
+                {badgeContent}
+            </StandardTooltip>
+        );
+    }
+
+    return badgeContent;
 }
 
 export { Badge, badgeVariants };

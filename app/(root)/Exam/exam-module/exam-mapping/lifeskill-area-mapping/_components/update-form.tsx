@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DataTableSkeleton } from '@/components/ui/view-data-table/view-data-table-skeleton';
 import {
     useMasterGradeDropdownList,
     useMasterLifeSkillArea,
@@ -19,7 +20,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-import { DataTableSkeleton } from '@/components/ui/view-data-table/view-data-table-skeleton';
 
 type FormFields = z.infer<typeof lifeSkillAreaMappingSchema.addOrUpdate>;
 

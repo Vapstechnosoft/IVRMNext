@@ -1,12 +1,12 @@
 'use client';
 
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { IHallTicketGeneratedItem } from '@/types/exam/exam-module/exam-mapping';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
+import { useFormContext } from '@/components/ui/form/form-provider';
+import type { IHallTicketGeneratedItem } from '@/types/exam/exam-module/exam-mapping';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Eye } from 'lucide-react';
-import { useFormContext } from '@/components/ui/form/form-provider';
 import { useCallback } from 'react';
-import { ActionButtons } from '@/components/ui/form/action-buttons';
 
 export const HallTicketGeneratedColumns: ColumnDef<IHallTicketGeneratedItem>[] = [
     // SL No

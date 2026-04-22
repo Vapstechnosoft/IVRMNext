@@ -561,16 +561,16 @@ export const useMasterStudentList = (
     };
 };
 
-export const useStudentCategoryByClass = (asmcL_Id?: number, asmaY_Id?: number) => {
+export const useStudentCategoryByClass = (asmcL_Id?: number, asmaY_Id?: number, admflag?: string) => {
     const queryClient = useQueryClient();
     return {
         ...useQuery({
-            queryKey: [ADMISSION_QUERY_KEYS.STUDENT_CATEGORY_BY_CLASS, asmcL_Id ?? 0, asmaY_Id ?? 0],
+            queryKey: [ADMISSION_QUERY_KEYS.STUDENT_CATEGORY_BY_CLASS, asmcL_Id ?? 0, asmaY_Id ?? 0, admflag ?? ''],
             queryFn: async () => {
                 if (!asmcL_Id || asmcL_Id <= 0 || !asmaY_Id || asmaY_Id <= 0) {
                     return { data: null } as any;
                 }
-                return await getStudentCategoryByClass(asmcL_Id, asmaY_Id);
+                return await getStudentCategoryByClass(asmcL_Id, asmaY_Id, admflag);
             },
             enabled: Boolean(asmcL_Id && asmcL_Id > 0 && asmaY_Id && asmaY_Id > 0),
             staleTime: 0

@@ -17,7 +17,7 @@ export default function TBSReportSchoolPrintable({ reportData }: { reportData: a
     } = reportData;
 
     // Helper to get marks/grade for a specific student, subject, and exam group
-    const getStudentMark = (amstId: number, ismsId: number, emeId: number, displayName: string) => {
+    const _getStudentMark = (amstId: number, ismsId: number, emeId: number, displayName: string) => {
         return getstudentmarksdetails.find(
             (m: any) => m.AMST_Id === amstId && m.ISMS_Id === ismsId && m.EME_Id === emeId && m.EMPSG_DisplayName === displayName
         );
@@ -46,7 +46,7 @@ export default function TBSReportSchoolPrintable({ reportData }: { reportData: a
 
             {getstudentdetails.map((report: any, index: number) => {
                 const termDetails = getstudentwisetermwisedetails.find((p: any) => p.AMST_Id === report.AMST_Id);
-                const attendance = getstudentwiseattendancedetails.find((a: any) => a.AMST_Id === report.AMST_Id);
+                const _attendance = getstudentwiseattendancedetails.find((a: any) => a.AMST_Id === report.AMST_Id);
                 const promotion = getpromotionremarksdetails?.find((d: any) => d.amsT_Id === report.AMST_Id);
 
                 return (

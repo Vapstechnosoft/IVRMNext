@@ -78,10 +78,47 @@ export default function AIQuestionPaperGenerator() {
         hard: 30
     });
 
+    const handleDifficultyChange = (type: 'easy' | 'medium' | 'hard', value: number) => {
+        const others = type === 'easy' ? ['medium', 'hard'] : type === 'medium' ? ['easy', 'hard'] : ['easy', 'medium'];
+        const newValue = Math.min(100, Math.max(0, value));
+        const remaining = 100 - newValue;
+        
+        const other1Key = others[0] as 'easy' | 'medium' | 'hard';
+        const other2Key = others[1] as 'easy' | 'medium' | 'hard';
+        
+        const other1Val = difficulty[other1Key];
+        const other2Val = difficulty[other2Key];
+        const currentOthersSum = other1Val + other2Val;
+        
+        let newOther1Val, newOther2Val;
+        
+        if (currentOthersSum === 0) {
+            newOther1Val = Math.round(remaining / 2);
+            newOther2Val = remaining - newOther1Val;
+        } else {
+            newOther1Val = Math.round((other1Val / currentOthersSum) * remaining);
+            newOther2Val = remaining - newOther1Val;
+        }
+        
+        setDifficulty({
+            ...difficulty,
+            [type]: newValue,
+            [other1Key]: newOther1Val,
+            [other2Key]: newOther2Val
+        });
+    };
+
     // Handlers
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files?.[0]) {
-            setFile(e.target.files[0]);
+        const selectedFile = e.target.files?.[0];
+        if (selectedFile) {
+            if (selectedFile.type !== "application/pdf") {
+                toast.error("Only PDF files are allowed");
+                e.target.value = "";
+                setFile(null);
+                return;
+            }
+            setFile(selectedFile);
             toast.success("File uploaded successfully");
         }
     };
@@ -122,7 +159,25 @@ export default function AIQuestionPaperGenerator() {
         }
 
         if (!chapters) {
-            toast.warning("Generating for entire textbook (no specific chapters selected)");
+            toast.error("Please enter specific chapter names or numbers");
+            return;
+        }
+
+        if (markConfigs.length === 0) {
+            toast.error("At least you should add one section to generate question paper");
+            return;
+        }
+
+        const hasInvalidMarkValue = markConfigs.some(c => c.markValue <= 0);
+        if (hasInvalidMarkValue) {
+            toast.error("Mark value must be greater than zero");
+            return;
+        }
+
+        const hasInvalidCount = markConfigs.some(c => c.count <= 0);
+        if (hasInvalidCount) {
+             toast.error("Number of questions must be at least 1 for all sections");
+             return;
         }
 
         setIsLoading(true);
@@ -191,68 +246,77 @@ export default function AIQuestionPaperGenerator() {
         if (!generatedPaper) return;
 
         const doc = new jsPDF();
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 20;
+        const maxWidth = pageWidth - margin * 2;
         let yPos = 20;
+
+        const addNewPage = () => {
+            doc.addPage();
+            yPos = 20;
+        };
 
         // Header
         doc.setFontSize(18);
-        doc.text(generatedPaper.title.toUpperCase(), 105, yPos, { align: "center" });
+        doc.setFont('helvetica', 'bold');
+        doc.text(generatedPaper.title.toUpperCase(), pageWidth / 2, yPos, { align: "center" });
         yPos += 10;
 
         doc.setFontSize(12);
-        doc.text(`Total Marks: ${generatedPaper.totalMarks}`, 105, yPos, { align: "center" });
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Total Marks: ${generatedPaper.totalMarks}`, pageWidth / 2, yPos, { align: "center" });
         if (chapters) {
             yPos += 7;
-            doc.text(`Chapters: ${chapters}`, 105, yPos, { align: "center" });
+            doc.text(`Chapters: ${chapters}`, pageWidth / 2, yPos, { align: "center" });
         }
-        yPos += 15;
-        doc.line(20, yPos, 190, yPos);
+        yPos += 10;
+        doc.line(margin, yPos, pageWidth - margin, yPos);
         yPos += 10;
 
         // Content
         generatedPaper.sections.forEach((section, sIdx) => {
             // Check for page break
-            if (yPos > 270) {
-                doc.addPage();
-                yPos = 20;
-            }
+            if (yPos > pageHeight - 30) addNewPage();
 
             doc.setFontSize(14);
             doc.setFont("helvetica", "bold");
-            doc.text(`Section ${sIdx + 1}: ${section.markValue} Marks Questions`, 20, yPos);
+            doc.text(`Section ${String.fromCharCode(65 + sIdx)}: ${section.markValue} Marks Questions`, margin, yPos);
             yPos += 10;
 
             doc.setFontSize(11);
             doc.setFont("helvetica", "normal");
 
             section.questions.forEach((q, qIdx) => {
-                // Check for page break
-                if (yPos > 270) {
-                    doc.addPage();
-                    yPos = 20;
-                }
-
                 // Split text to fit page width
-                const splitQuestion = doc.splitTextToSize(`${qIdx + 1}. ${q.text}`, 170);
-                doc.text(splitQuestion, 20, yPos);
-                yPos += (splitQuestion.length * 5) + 2;
+                const questionText = `${qIdx + 1}. ${q.text}`;
+                const splitQuestion = doc.splitTextToSize(questionText, maxWidth);
+
+                const qHeight = splitQuestion.length * 6;
+                if (yPos + qHeight > pageHeight - margin) addNewPage();
+
+                doc.text(splitQuestion, margin, yPos);
+                yPos += qHeight + 2;
 
                 if (q.type === 'MCQ' && q.options) {
                     q.options.forEach(opt => {
-                        // Simple check if option is correct (remove * for student paper usually, but here we keep context)
-                        // Implementation: Remove * for PDF view if needed, but per prompt instruction we show keys? 
-                        // Let's print them cleanly.
                         const cleanOpt = opt.replace('*', '').trim();
-                        doc.text(`   ${cleanOpt}`, 25, yPos);
-                        yPos += 5;
+                        const splitOpt = doc.splitTextToSize(`   ${cleanOpt}`, maxWidth - 5);
+
+                        const optHeight = splitOpt.length * 6;
+                        if (yPos + optHeight > pageHeight - margin) addNewPage();
+
+                        doc.text(splitOpt, margin + 5, yPos);
+                        yPos += optHeight;
                     });
                     yPos += 2;
                 }
 
                 // Add spacing between questions
-                yPos += 3;
+                yPos += 5;
             });
 
-            yPos += 10; // Extra space after section
+            yPos += 5; // Extra space after section
         });
 
         doc.save(`question-paper-${Date.now()}.pdf`);
@@ -301,7 +365,7 @@ export default function AIQuestionPaperGenerator() {
                                     </CardHeader>
                                     <CardContent className="space-y-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                         <div className="grid w-full items-center gap-1.5">
-                                            <Label htmlFor="pdf-upload">Textbook (PDF)</Label>
+                                            <Label htmlFor="pdf-upload" className="after:content-['*'] after:ml-0.5 after:text-red-500">Textbook (PDF)</Label>
                                             <Input
                                                 id="pdf-upload"
                                                 type="file"
@@ -312,7 +376,7 @@ export default function AIQuestionPaperGenerator() {
                                         </div>
 
                                         <div className="grid w-full items-center gap-1.5 pt-2">
-                                            <Label htmlFor="chapters">Chapter Numbers</Label>
+                                            <Label htmlFor="chapters" className="after:content-['*'] after:ml-0.5 after:text-red-500">Chapter Numbers</Label>
                                             <Input
                                                 id="chapters"
                                                 placeholder="e.g. 1, 2, 5.1"
@@ -340,7 +404,7 @@ export default function AIQuestionPaperGenerator() {
                                                 value={[difficulty.easy]}
                                                 max={100}
                                                 step={5}
-                                                onValueChange={(val: any[]) => setDifficulty({ ...difficulty, easy: val[0] })}
+                                                onValueChange={(val: number[]) => handleDifficultyChange('easy', val[0])}
                                                 className="py-1"
                                             />
                                         </div>
@@ -352,7 +416,7 @@ export default function AIQuestionPaperGenerator() {
                                                 value={[difficulty.medium]}
                                                 max={100}
                                                 step={5}
-                                                onValueChange={(val: any[]) => setDifficulty({ ...difficulty, medium: val[0] })}
+                                                onValueChange={(val: number[]) => handleDifficultyChange('medium', val[0])}
                                                 className="py-1"
                                             />
                                         </div>
@@ -364,7 +428,7 @@ export default function AIQuestionPaperGenerator() {
                                                 value={[difficulty.hard]}
                                                 max={100}
                                                 step={5}
-                                                onValueChange={(val: any[]) => setDifficulty({ ...difficulty, hard: val[0] })}
+                                                onValueChange={(val: number[]) => handleDifficultyChange('hard', val[0])}
                                                 className="py-1"
                                             />
                                         </div>
@@ -462,7 +526,7 @@ export default function AIQuestionPaperGenerator() {
                                         <Button
                                             size="lg"
                                             onClick={handleGenerate}
-                                            disabled={isLoading || !file}
+                                            disabled={isLoading}
                                             className="min-w-[200px]"
                                         >
                                             {isLoading ? (

@@ -36,7 +36,7 @@ export default function ToggleCategoryForm({ rowData, onClose }: ToggleCategoryF
         onClose();
     };
 
-    const onSubmit: SubmitHandler<FormFields> = async (data) => {
+    const onSubmit: SubmitHandler<FormFields> = async (_data) => {
         try {
             setLoading(true);
 

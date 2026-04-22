@@ -300,3 +300,48 @@ export async function getMasterInstitution(): Promise<ApiResponse<Institution>> 
         throw new Error(error?.message || 'Failed to fetch institution details');
     }
 }
+
+
+/**
+ * Get institution details
+ * GET /api/MasterDropDown/GetEmployees
+ * 
+ * @returns Institution details
+ */
+
+export async function getEmployees(): Promise<ApiResponse<any[]>> {
+    const url = '/api/MasterDropDown/GetEmployees';
+    try {
+        const response = await api.get<any[]>('hrms', url);
+       
+        const res = response as any;
+        return {
+            success: res?.success ?? true,
+            message: res?.message || 'Data fetched successfully',
+            data: res?.data || res || []
+        };
+    } catch (error: any) {
+        throw new Error(error?.message || 'Failed to fetch employees');
+    }
+}
+
+
+/**
+ * Get financial year dropdown
+ */
+
+export async function getFinancialYearDropdown(): Promise<ApiResponse<any[]>> {
+    const url = '/api/MasterDropDown/finanicial_year_drop_down';
+    try {
+        const response = await api.get<any[]>('hrms', url);
+       
+        const res = response as any;
+        return {
+            success: res?.success ?? true,
+            message: res?.message || 'Data fetched successfully',
+            data: res?.data || res || []
+        };
+    } catch (error: any) {
+        throw new Error(error?.message || 'Failed to fetch financial year dropdown');
+    }
+}

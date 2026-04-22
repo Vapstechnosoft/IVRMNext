@@ -13,12 +13,13 @@ import {
     useReportDepartments,
     useReportDesignations,
     useReportEmployeesByDeptAndDesignation,
+    useReportEmployeesByGroupTypeDeptAndDesignation,
     useReportGroupTypes
 } from '@/hooks/hrms/useReports';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
-import { format } from 'date-fns';
+import { addMonths, format } from 'date-fns';
 import { Calendar as CalendarIcon, Save } from 'lucide-react';
 import { Label } from 'react-aria-components';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
@@ -48,6 +49,7 @@ export default function AddEmployeeInOutReportForm({
         reset,
         watch,
         clearErrors,
+        setValue,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(employeeInOutReportFilterSchema),
@@ -66,6 +68,7 @@ export default function AddEmployeeInOutReportForm({
     });
 
     const allOrIndividualValue = watch('allOrIndividual');
+    const fromDateValue = watch('fromDate');
 
     const watchedType = watch('type') || [];
     const watchedDepartment = watch('department') || [];
@@ -75,10 +78,21 @@ export default function AddEmployeeInOutReportForm({
     const deptIds = watchedDepartment.map(Number).filter(Boolean);
     const desigIds = watchedDesignation.map(Number).filter(Boolean);
 
+    const fromDateObject = fromDateValue ? new Date(fromDateValue) : undefined;
+    const maxToDate = fromDateObject ? addMonths(fromDateObject, 1) : undefined;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const effectiveToDateMax = maxToDate && maxToDate < today ? maxToDate : today;
+
+    console.log('Selected GroupType IDs:', groupTypeIds);
+    console.log('Selected Department IDs:', deptIds);
+    console.log('Selected Designation IDs:', desigIds);
+
     const { data: groupTypesData } = useReportGroupTypes();
     const { data: departmentsData } = useReportDepartments(groupTypeIds.toString());
     const { data: designationsData } = useReportDesignations(groupTypeIds.toString(), deptIds.toString());
-    const { data: employeesData } = useReportEmployeesByDeptAndDesignation(deptIds.toString(), desigIds.toString());
+    const { data: employeesData } = useReportEmployeesByGroupTypeDeptAndDesignation(groupTypeIds, deptIds, desigIds);
 
     const groupTypesDataTransformed = useMemo(() => {
         return (
@@ -108,7 +122,13 @@ export default function AddEmployeeInOutReportForm({
     }, [designationsData]);
 
     const employeesDataTransformed = useMemo(() => {
-        const list = employeesData?.data || employeesData;
+        let list = employeesData?.data || employeesData;
+
+        // Handle nested array if present (e.g., response.data.employeeNames)
+        if (list && typeof list === 'object' && !Array.isArray(list)) {
+            list = list.employeeNames || list.data || list;
+        }
+
         if (!list || !Array.isArray(list)) return [];
 
         return list
@@ -121,6 +141,8 @@ export default function AddEmployeeInOutReportForm({
                 const lastName = (emp.HRME_EmployeeLastName || emp.hrmE_EmployeeLastName || '').trim();
 
                 const employeeName =
+                    emp.employeeFullName ||
+                    emp.hrmE_EmployeeFullName ||
                     [firstName, middleName, lastName].filter(Boolean).join(' ') ||
                     emp.value ||
                     emp.employeeName ||
@@ -141,23 +163,24 @@ export default function AddEmployeeInOutReportForm({
             .filter(Boolean);
     }, [employeesData]);
 
+    console.log("employeesDataTransformed", employeesDataTransformed);
+
     const onSubmit: SubmitHandler<FormFields> = async (data: FormFields) => {
         try {
 
 
             console.log('form data', data);
-            // Determine comma-separated employee IDs
-            let hrmeIds = '0';
+            // Determine employee IDs as an array of numbers
+            let hrmeIds: number[] = [];
             if (data.allOrIndividual === 'Individual') {
-                hrmeIds = data.query || '0';
+                hrmeIds = data.query ? [Number(data.query)] : [];
             } else if (data.allOrIndividual === 'All') {
-                const allIds = employeesDataTransformed.map((emp: any) => emp.id).join(',');
-                hrmeIds = allIds || '0';
+                hrmeIds = employeesDataTransformed.map((emp: any) => Number(emp.id));
             }
 
             const payload = {
-                fromDate: data.fromDate,
-                toDate: data.toDate,
+                from_date: data.fromDate,
+                to_date: data.toDate,
                 hrme_ids: hrmeIds
             };
 
@@ -387,14 +410,23 @@ export default function AddEmployeeInOutReportForm({
                                     render={({ field }) => (
                                         <DatePicker
                                             date={field.value ? new Date(field.value) : undefined}
+                                            disabled={[{ after: today }]}
                                             setDate={(date) => {
                                                 if (date) {
                                                     const year = date.getFullYear();
                                                     const month = String(date.getMonth() + 1).padStart(2, '0');
                                                     const day = String(date.getDate()).padStart(2, '0');
-                                                    field.onChange(`${year}-${month}-${day}`);
+                                                    const formattedFromDate = `${year}-${month}-${day}`;
+                                                    field.onChange(formattedFromDate);
+
+                                                    const nextMonthDate = addMonths(date, 1);
+                                                    const nextYear = nextMonthDate.getFullYear();
+                                                    const nextMonth = String(nextMonthDate.getMonth() + 1).padStart(2, '0');
+                                                    const nextDay = String(nextMonthDate.getDate()).padStart(2, '0');
+                                                    setValue('toDate', `${nextYear}-${nextMonth}-${nextDay}`);
                                                 } else {
                                                     field.onChange('');
+                                                    setValue('toDate', '');
                                                 }
                                             }}
                                             placeholder='From date'
@@ -416,6 +448,14 @@ export default function AddEmployeeInOutReportForm({
                                     render={({ field }) => (
                                         <DatePicker
                                             date={field.value ? new Date(field.value) : undefined}
+                                            disabled={
+                                                fromDateObject
+                                                    ? [
+                                                        { before: fromDateObject },
+                                                        { after: effectiveToDateMax }
+                                                      ]
+                                                    : [{ after: today }]
+                                            }
                                             setDate={(date) => {
                                                 if (date) {
                                                     const year = date.getFullYear();
@@ -432,6 +472,26 @@ export default function AddEmployeeInOutReportForm({
                                     )}
                                 />
                                 {errors.toDate && <FormError>{errors.toDate.message}</FormError>}
+                            </div>
+
+                            {/* Employee and Code  */}
+                            <div className='col-span-1'>
+                                <Label className='mb-2 block font-medium text-gray-700 text-sm'>Code & Name</Label>
+                                <Controller
+                                    name='codeOrName'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <Select value={field.value} onValueChange={field.onChange}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder='Select Code or Name' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value='Code'>Code :: Name</SelectItem>
+                                                <SelectItem value='Name'>Name :: Code</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                                />
                             </div>
 
                             {/* Time In/Time Out */}

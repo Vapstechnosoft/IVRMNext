@@ -12,7 +12,7 @@ import TBSReportSchoolPrintable from './_components/tbs-report-school-printable'
 
 export default function TBSReportSchoolPage() {
     const [reportData, setReportData] = useState<any>(null);
-    const [isGenerating, setIsGenerating] = useState(false);
+    const [_isGenerating, setIsGenerating] = useState(false);
 
     const handleFormSuccess = async (payload: Record<string, any>) => {
         setIsGenerating(true);

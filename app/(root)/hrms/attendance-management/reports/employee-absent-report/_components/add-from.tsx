@@ -181,6 +181,30 @@ export default function AddEmployeeAbsentReportForm({
         }
     }
 
+    // // Handle clearing the page on a hard refresh (F5/Reload)
+    // useEffect(() => {
+    //     if (typeof window !== "undefined") {
+    //         const entries = performance.getEntriesByType("navigation");
+    //         if (entries.length > 0) {
+    //             const nav = entries[0] as PerformanceNavigationTiming;
+    //             // Only clear if the user performed a hard refresh while URL has parameters
+    //             if (nav.type === "reload" && window.location.search.length > 0) {
+    //                 reset({
+    //                     type: [],
+    //                     department: [],
+    //                     designation: [],
+    //                     allOrIndividual: "All",
+    //                     employeeIds: [],
+    //                     fromDate: "",
+    //                     toDate: "",
+    //                 });
+    //                 router.replace(pathname);
+    //             }
+    //         }
+    //     }
+    // // eslint-disable-next-line react-hooks/exhaustive-deps
+    // }, []);
+
     const handleReset = () => {
         reset({
             type: [],
@@ -392,10 +416,19 @@ export default function AddEmployeeAbsentReportForm({
                     type="submit"
                     className="bg-primary px-8 text-primary-foreground shadow-md transition-all hover:translate-y-[-1px] hover:shadow-lg"
                     disabled={isSubmitting || isTypesLoading}
-                    isLoading={isSubmitting}
-                    loadingText="Generating..."
+                   
                 >
-                    <Search className="mr-2 h-4 w-4" /> Get Report
+                    {
+                        isSubmitting ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating...
+                            </>
+                        ) : (
+                            <>
+                                <Search className="mr-2 h-4 w-4" /> Get Report
+                            </>
+                        )
+                    }
                 </Button>
             </div>
         </form>

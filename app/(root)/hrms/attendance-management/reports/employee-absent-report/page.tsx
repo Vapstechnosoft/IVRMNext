@@ -33,7 +33,7 @@ export default function EmployeeAbsentReportPage(props: {
                 toast.dismiss(lastToastId);
                 setLastToastId(null);
             }
-            
+
             if (error) {
                 toast.error('Failed to generate report');
             } else if (response?.data) {
@@ -246,11 +246,14 @@ function EmployeeAbsentReportPageContent({
                                         error={error}
                                         showViewOptions={false}
                                         columnPinning={{ left: ['hrme_id'], right: ['actions'] }}
-                                        isPaginationRequired={true}
+                                        isPaginationRequired={false}
+                                        isSearchRequired={false}
+                                        manualPagination={true}
                                         loadingMessage='Analyzing attendance records...'
                                         noDataTitle='No records matches your criteria'
                                         noDataDescription='Try adjusting your category, department or date range filters.'
                                         errorTitle='Unable to load report'
+                                        scrollable={true}
                                     />
                                 </div>
                             </div>

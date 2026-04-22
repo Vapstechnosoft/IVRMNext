@@ -16,9 +16,27 @@ interface FeeDetailsProps {
 }
 
 export default function FeeDetails({ onClose, data, loading }: FeeDetailsProps) {
+    const getTotalRow = (data: IFeeTDetails[]): IFeeTDetails => {
+        const sum = (key: keyof IFeeTDetails) => data.reduce((acc, item) => acc + (Number(item[key]) || 0), 0);
+        return {
+            fmG_Id: 0,
+            fmG_GroupName: 'Total',
+            fsS_CurrentYrCharges: sum('fsS_CurrentYrCharges'),
+            fsS_ConcessionAmount: sum('fsS_ConcessionAmount'),
+            fsS_WaivedAmount: sum('fsS_WaivedAmount'),
+            fsS_AdjustedAmount: sum('fsS_AdjustedAmount'),
+            fsS_TotalToBePaid: sum('fsS_TotalToBePaid'),
+            fsS_PaidAmount: sum('fsS_PaidAmount'),
+            fsS_ToBePaid: sum('fsS_ToBePaid'),
+            fsS_RefundAmount: sum('fsS_RefundAmount'),
+            fsS_RunningExcessAmount: sum('fsS_RunningExcessAmount'),
+            fsS_FineAmount: sum('fsS_FineAmount')
+        } as IFeeTDetails;
+    };
+    const finalData = data.length ? [...data, getTotalRow(data)] : [];
     const tableProps = useDataTableProps({
-        data: data,
-        total: data.length,
+        data: finalData,
+        total: finalData.length,
         pageIndex: 0,
         pageSize: 5
     });
@@ -38,7 +56,6 @@ export default function FeeDetails({ onClose, data, loading }: FeeDetailsProps) 
                         </Button>
                     </div>
 
-                    {/* Data Table */}
                     <GenericDataTable<IFeeTDetails>
                         {...tableProps}
                         columns={feeDetailsColumn}
@@ -60,88 +77,67 @@ export const feeDetailsColumn: ColumnDef<IFeeTDetails>[] = [
         accessorKey: 'fmG_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='SL No' />,
         cell: ({ row, table }) => {
+            const isTotal = row.original.fmG_GroupName === 'Total';
+            if (isTotal) return <div className='font-bold'>-</div>;
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
             return <div>{pageIndex * pageSize + row.index + 1}</div>;
-        },
-        enableSorting: false,
-        enableHiding: true
+        }
     },
     {
         accessorKey: 'fmG_GroupName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Group Name' />,
-        cell: ({ row }) => <div>{row.getValue('fmG_GroupName')}</div>,
-        enableHiding: true,
-        enableSorting: false
+        cell: ({ row }) => {
+            const isTotal = row.original.fmG_GroupName === 'Total';
+
+            return <div className={isTotal ? 'font-bold text-blue-600' : ''}>{row.getValue('fmG_GroupName')}</div>;
+        }
     },
-    {
-        accessorKey: 'fsS_CurrentYrCharges',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Total Charges' />,
-        cell: ({ row }) => <div>{row.getValue('fsS_TotalToBePaid')}</div>,
-        enableHiding: true,
-        enableSorting: false
-    },
-    {
-        accessorKey: 'fsS_ConcessionAmount',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Total Concession' />,
-        cell: ({ row }) => <div>{row.getValue('fsS_ConcessionAmount')}</div>,
-        enableHiding: true,
-        enableSorting: false
-    },
-    {
-        accessorKey: 'fsS_WaivedAmount',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Total WaivedOff' />,
-        cell: ({ row }) => <div>{row.getValue('fsS_WaivedAmount')}</div>,
-        enableHiding: true,
-        enableSorting: false
-    },
-    {
-        accessorKey: 'fsS_AdjustedAmount',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Total Adjustment' />,
-        cell: ({ row }) => <div>{row.getValue('fsS_AdjustedAmount')}</div>,
-        enableHiding: true,
-        enableSorting: false
-    },
-    {
-        accessorKey: 'fsS_TotalToBePaid',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Total Payable' />,
-        cell: ({ row }) => <div>{row.getValue('fsS_TotalToBePaid')}</div>,
-        enableHiding: true,
-        enableSorting: false
-    },
-    {
-        accessorKey: 'fsS_PaidAmount',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Total Paid Amount' />,
-        cell: ({ row }) => <div>{row.getValue('fsS_PaidAmount')}</div>,
-        enableHiding: true,
-        enableSorting: false
-    },
-    {
-        accessorKey: 'fsS_ToBePaid',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Total Outstanding' />,
-        cell: ({ row }) => <div>{row.getValue('fsS_ToBePaid')}</div>,
-        enableHiding: true,
-        enableSorting: false
-    },
-    {
-        accessorKey: 'fsS_RefundAmount',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Total Refund' />,
-        cell: ({ row }) => <div>{row.getValue('fsS_RefundAmount')}</div>,
-        enableHiding: true,
-        enableSorting: false
-    },
-    {
-        accessorKey: 'fsS_RunningExcessAmount',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Total Excess' />,
-        cell: ({ row }) => <div>{row.getValue('fsS_RunningExcessAmount')}</div>,
-        enableHiding: true,
-        enableSorting: false
-    },
-    {
-        accessorKey: 'fsS_FineAmount',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Total Fine' />,
-        cell: ({ row }) => <div>{row.getValue('fsS_FineAmount')}</div>,
-        enableHiding: true,
-        enableSorting: false
-    }
+    ...[
+        'fsS_CurrentYrCharges',
+        'fsS_ConcessionAmount',
+        'fsS_WaivedAmount',
+        'fsS_AdjustedAmount',
+        'fsS_TotalToBePaid',
+        'fsS_PaidAmount',
+        'fsS_ToBePaid',
+        'fsS_RefundAmount',
+        'fsS_RunningExcessAmount',
+        'fsS_FineAmount'
+    ].map((key) => ({
+        accessorKey: key,
+        header: ({ column }: any) => <DataTableColumnHeader column={column} title={getColumnTitle(key)} />,
+        cell: ({ row }: any) => {
+            const isTotal = row.original.fmG_GroupName === 'Total';
+
+            return <div className={isTotal ? 'font-bold' : ''}>{row.getValue(key)}</div>;
+        }
+    }))
 ];
+
+const getColumnTitle = (key: string) => {
+    switch (key) {
+        case 'fsS_CurrentYrCharges':
+            return 'Total Charges';
+        case 'fsS_ConcessionAmount':
+            return 'Total Concession';
+        case 'fsS_WaivedAmount':
+            return 'Total WaivedOff';
+        case 'fsS_AdjustedAmount':
+            return 'Total Adjustment';
+        case 'fsS_TotalToBePaid':
+            return 'Total Payable';
+        case 'fsS_PaidAmount':
+            return 'Total Paid Amount';
+        case 'fsS_ToBePaid':
+            return 'Total Outstanding';
+        case 'fsS_RefundAmount':
+            return 'Total Refund';
+        case 'fsS_RunningExcessAmount':
+            return 'Total Excess';
+        case 'fsS_FineAmount':
+            return 'Total Fine';
+        default:
+            return key;
+    }
+};

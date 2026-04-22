@@ -194,7 +194,6 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
     }
 
     const onSubmit = async (data: FormFields) => {
-        console.log('form data', data);
         if (!addedRows.length) {
             toast.error('Add at least one exam row before saving');
             return;

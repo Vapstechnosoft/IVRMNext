@@ -79,7 +79,7 @@ export default function AiPerformanceAnalysisPage() {
             setSelectedStudentName('');
         } catch (error: any) {
             console.error(error);
-            toast.error('Error processing file: ' + error.message);
+            toast.error(`Error processing file: ${error.message}`);
         } finally {
             setIsLoading(false);
         }
@@ -313,14 +313,14 @@ export default function AiPerformanceAnalysisPage() {
                 <Separator />
 
                 {/* Introduction Section for Teachers */}
-                <div className='bg-primary/5 rounded-lg p-3 border border-primary/10 space-y-1.5'>
-                    <h2 className='text-base font-semibold text-primary flex items-center gap-2'>
-                        <span className='bg-primary text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px]'>?</span>
+                <div className='space-y-1.5 rounded-lg border border-primary/10 bg-primary/5 p-3'>
+                    <h2 className='flex items-center gap-2 font-semibold text-base text-primary'>
+                        <span className='flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] text-white'>?</span>
                         How to use this tool?
                     </h2>
                     <p className='text-muted-foreground text-xs leading-relaxed'>
-                        Transform raw exam data into insights. Upload reports to see trends,
-                        identify students needing support, and generate automated summaries instantly.
+                        Transform raw exam data into insights. Upload reports to see trends, identify students needing support, and generate
+                        automated summaries instantly.
                     </p>
                 </div>
 
@@ -329,15 +329,13 @@ export default function AiPerformanceAnalysisPage() {
                     title='1. Data Upload'
                     description='Upload class cumulative report (CSV/Excel/PDF)'
                     defaultOpen={!allStudents.length}>
-                    <div className='p-4 space-y-4'>
+                    <div className='space-y-4 p-4'>
                         {/* Sample Format Info */}
                         {!allStudents.length && (
-                            <div className='border rounded-lg p-4 bg-muted/30 space-y-3'>
-                                <h4 className='font-medium text-sm flex items-center gap-2'>
-                                    💡 Sample of correct file format:
-                                </h4>
+                            <div className='space-y-3 rounded-lg border bg-muted/30 p-4'>
+                                <h4 className='flex items-center gap-2 font-medium text-sm'>💡 Sample of correct file format:</h4>
                                 <div className='overflow-x-auto'>
-                                    <table className='min-w-full text-[11px] border-collapse'>
+                                    <table className='min-w-full border-collapse text-[11px]'>
                                         <thead>
                                             <tr className='bg-muted'>
                                                 <th className='border p-2 text-left'>Student Name</th>
@@ -366,7 +364,8 @@ export default function AiPerformanceAnalysisPage() {
                                     </table>
                                 </div>
                                 <p className='text-[11px] text-muted-foreground italic'>
-                                    Note: The file must contain a "Student Name" column or similar. Subject columns should contain numeric marks.
+                                    Note: The file must contain a "Student Name" column or similar. Subject columns should contain numeric
+                                    marks.
                                 </p>
                             </div>
                         )}
@@ -376,9 +375,9 @@ export default function AiPerformanceAnalysisPage() {
                 </CollapsibleSection>
 
                 {allStudents.length > 0 && (
-                    <div className='space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500'>
-                        <div className='bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 p-3 rounded-lg flex items-center justify-center gap-2 animate-bounce'>
-                            <span className='text-green-600 dark:text-green-400 font-medium text-sm'>
+                    <div className='fade-in slide-in-from-bottom-4 animate-in space-y-6 duration-500'>
+                        <div className='flex animate-bounce items-center justify-center gap-2 rounded-lg border border-green-200 bg-green-50 p-3 dark:border-green-800 dark:bg-green-950/20'>
+                            <span className='font-medium text-green-600 text-sm dark:text-green-400'>
                                 ✅ File uploaded successfully! Scroll down to see the data and start analysis.
                             </span>
                         </div>
@@ -391,12 +390,12 @@ export default function AiPerformanceAnalysisPage() {
                                 </div>
                             </div>
 
-                            <div className='border rounded-xl overflow-hidden bg-card shadow-sm'>
+                            <div className='overflow-hidden rounded-xl border bg-card shadow-sm'>
                                 <StudentTable students={allStudents} />
                             </div>
 
                             <div className='flex justify-end border-t pt-4'>
-                                <Button onClick={handleClassAnalysis} disabled={isLoading} size='lg' className='w-full sm:w-auto shadow-lg'>
+                                <Button onClick={handleClassAnalysis} disabled={isLoading} size='lg' className='w-full shadow-lg sm:w-auto'>
                                     {isLoading ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : null}
                                     Analyze Class Performance
                                 </Button>

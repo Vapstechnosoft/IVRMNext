@@ -1,24 +1,9 @@
 'use client';
-
-import * as React from 'react';
-import {
-    LayoutDashboard,
-    Users,
-    UserCircle,
-    BookOpen,
-    Calendar,
-    Award,
-    Wallet,
-    Bus,
-    Library,
-    Settings,
-    ChevronLeft,
-    LogOut
-} from 'lucide-react';
+import Logo from '@/components/layout/navigation/logo';
 import { cn } from '@/lib/utils';
+import { Award, BookOpen, Bus, Calendar, LayoutDashboard, Library, LogOut, Settings, UserCircle, Users, Wallet } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import Logo from '@/components/layout/navigation/logo';
 
 const menuItems = [
     { title: 'Dashboard', icon: LayoutDashboard, url: '/school-admin' },
@@ -39,16 +24,15 @@ export function AdminSidebar({ collapsed, onToggle }: { collapsed: boolean; onTo
     return (
         <aside
             className={cn(
-                "h-screen sticky top-0 bg-white border-r border-slate-200 transition-all duration-500 flex flex-col z-50",
-                collapsed ? "w-20" : "w-64"
-            )}
-        >
-            <div className="h-20 flex items-center justify-between px-6 border-b border-slate-50">
-                {!collapsed && <Logo className="h-8 transition-opacity duration-300" />}
-                {collapsed && <div className="h-8 w-8 bg-indigo-600 rounded-lg mx-auto" />}
+                'sticky top-0 z-50 flex h-screen flex-col border-slate-200 border-r bg-white transition-all duration-500',
+                collapsed ? 'w-20' : 'w-64'
+            )}>
+            <div className='flex h-20 items-center justify-between border-slate-50 border-b px-6'>
+                {!collapsed && <Logo className='h-8 transition-opacity duration-300' />}
+                {collapsed && <div className='mx-auto h-8 w-8 rounded-lg bg-indigo-600' />}
             </div>
 
-            <div className="flex-1 py-6 px-4 space-y-2 overflow-y-auto custom-scrollbar">
+            <div className='custom-scrollbar flex-1 space-y-2 overflow-y-auto px-4 py-6'>
                 {menuItems.map((item) => {
                     const isActive = pathname === item.url;
                     return (
@@ -56,21 +40,20 @@ export function AdminSidebar({ collapsed, onToggle }: { collapsed: boolean; onTo
                             key={item.title}
                             href={item.url}
                             className={cn(
-                                "flex items-center gap-3 p-3 rounded-xl transition-all group relative",
+                                'group relative flex items-center gap-3 rounded-xl p-3 transition-all',
                                 isActive
-                                    ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100 font-bold"
-                                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-semibold"
-                            )}
-                        >
-                            <item.icon size={22} strokeWidth={isActive ? 2.5 : 2} className={cn("shrink-0", isActive ? "text-white" : "group-hover:text-indigo-600")} />
-                            {!collapsed && (
-                                <span className="truncate">{item.title}</span>
-                            )}
-                            {isActive && !collapsed && (
-                                <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                            )}
+                                    ? 'bg-indigo-600 font-bold text-white shadow-indigo-100 shadow-lg'
+                                    : 'font-semibold text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                            )}>
+                            <item.icon
+                                size={22}
+                                strokeWidth={isActive ? 2.5 : 2}
+                                className={cn('shrink-0', isActive ? 'text-white' : 'group-hover:text-indigo-600')}
+                            />
+                            {!collapsed && <span className='truncate'>{item.title}</span>}
+                            {isActive && !collapsed && <div className='absolute right-3 h-1.5 w-1.5 animate-pulse rounded-full bg-white' />}
                             {collapsed && (
-                                <div className="absolute left-full ml-4 px-3 py-2 bg-slate-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50 shadow-xl">
+                                <div className='pointer-events-none absolute left-full z-50 ml-4 whitespace-nowrap rounded-lg bg-slate-900 px-3 py-2 text-white text-xs opacity-0 shadow-xl transition-opacity group-hover:opacity-100'>
                                     {item.title}
                                 </div>
                             )}
@@ -79,12 +62,12 @@ export function AdminSidebar({ collapsed, onToggle }: { collapsed: boolean; onTo
                 })}
             </div>
 
-            <div className="p-4 border-t border-slate-100">
+            <div className='border-slate-100 border-t p-4'>
+                {/* biome-ignore lint/a11y/useButtonType: <explanation> */}
                 <button
                     onClick={onToggle}
-                    className="w-full flex items-center gap-3 p-3 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-red-600 transition-all font-bold group"
-                >
-                    <LogOut size={22} className="shrink-0 group-hover:rotate-12 transition-transform" />
+                    className='group flex w-full items-center gap-3 rounded-xl p-3 font-bold text-slate-500 transition-all hover:bg-slate-50 hover:text-red-600'>
+                    <LogOut size={22} className='shrink-0 transition-transform group-hover:rotate-12' />
                     {!collapsed && <span>Logout</span>}
                 </button>
             </div>

@@ -29,3 +29,39 @@ export async function evaluateOmr(formData: FormData) {
         };
     }
 }
+
+export async function validateOmrMarkings(file: File) {
+    try {
+        const arrayBuffer = await file.arrayBuffer();
+        const base64 = Buffer.from(arrayBuffer).toString('base64');
+        
+        const { Groq } = await import('groq-sdk');
+        const client = new Groq({ apiKey: process.env.omr_groq_key });
+
+        const response = await client.chat.completions.create({
+            model: "llama-3.2-11b-vision-preview",
+            messages: [
+                {
+                    role: "user",
+                    content: [
+                        { 
+                            type: "text", 
+                            text: "CRITICAL TASK: Look at the student's marks on this OMR sheet. Are they using standard filled/colored circles? Or are they using thin pen strokes like tick marks (✓) or crosses (x)? If you see ANY tick marks or crosses instead of fully colored bubbles, you MUST return isValidStyle: false. Return ONLY this JSON: {\"isValidStyle\": boolean, \"hasTicks\": boolean}" 
+                        },
+                        {
+                            type: "image_url",
+                            image_url: { url: `data:image/jpeg;base64,${base64}` }
+                        }
+                    ]
+                }
+            ],
+            response_format: { type: "json_object" }
+        });
+
+        const content = response.choices[0].message.content || '{"isValidStyle": true}';
+        return JSON.parse(content);
+    } catch (error) {
+        console.error('Validation Error:', error);
+        return { isValidStyle: true }; 
+    }
+}

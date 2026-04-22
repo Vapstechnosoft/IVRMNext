@@ -1,5 +1,5 @@
 import { TIMETABLE_QUERY_KEYS } from '@/constants/Timetable-query-keys';
-import { getClassDetails, getSectionDetailsTT } from '@/server/timetable/reports/classwisett';
+import { getClassDetails, getSectionDetailsTT, getTimeTableCategoryDropDownDetails } from '@/server/timetable/reports/classwisett';
 import { getAcademicYear, getDeputationReportDetails, getDeputationReportLoadData } from '@/server/timetable/reports/deputationreport';
 import {
     getstaffwiseWorkingHoursAcademicYear,
@@ -7,6 +7,7 @@ import {
     getstaffwiseWorkingHoursStaffDD
 } from '@/server/timetable/reports/stafWiseWrokingHours';
 import { getstaffdropdowndatattstaffreport } from '@/server/timetable/reports/staffwisett';
+import { getuseTimeTableClassDropdownData } from '@/server/timetable/reports/subjectwisett';
 
 import type { ApiSearchparams } from '@/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -127,6 +128,45 @@ export const staffwiseWorkingHoursStaffData = () => {
         }
     };
 };
+
+
+export const useTimeTableCategoryDropDownClassWise = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.MASTER_CATEGORY_DROPDOWNDATA_TT, searchParams ?? {}],
+            queryFn: async () => getTimeTableCategoryDropDownDetails(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.MASTER_CATEGORY_DROPDOWNDATA_TT]
+            });
+        }
+    };
+};
+
+
+export const useTimeTableClassDropdown = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.MASTER_TT_CLASSDROPDOWN, searchParams ?? {}],
+            queryFn: async () => getuseTimeTableClassDropdownData(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.MASTER_TT_CLASSDROPDOWN]
+            });
+        }
+    };
+};
+
 
 // export const staffwiseWorkingHoursStaffData = (searchParams?: ApiSearchparams) => {
 //     const queryClient = useQueryClient();

@@ -1,55 +1,104 @@
 'use client';
 
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Upload, FileCheck, ClipboardCheck, PlayCircle, Eye, Download, FileText, Trash2 } from 'lucide-react';
+import { evaluateOmr, validateOmrMarkings } from '@/server/omr-evaluation';
+import { ClipboardCheck, Download, Eye, FileText, PlayCircle, Trash2, Upload } from 'lucide-react';
+import Script from 'next/script';
+import { useState } from 'react';
 import { toast } from 'sonner';
-import { evaluateOmr } from '@/server/omr-evaluation';
 
-// Helper to convert images to PNG and get dimensions for validation
-const convertToPng = async (file: File): Promise<{ file: File; width: number; height: number }> => {
-    if (!file.type.startsWith('image/')) {
-        // Return original file if it's not an image (like PDF), width/height 0
-        return { file, width: 0, height: 0 };
+// Helper to convert images and PDFs to JPEG for backend OCR compatibility
+const convertToJpeg = async (file: File): Promise<{ file: File; width: number; height: number }> => {
+    // 1. Handle PDF Conversion
+    if (file.type === 'application/pdf') {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const typedarray = new Uint8Array(e.target?.result as ArrayBuffer);
+                    const pdfjsLib = (window as any).pdfjsLib;
+                    if (!pdfjsLib) return reject('PDF rendering library not loaded. Please wait a moment.');
+
+                    const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                    const page = await pdf.getPage(1);
+                    const viewport = page.getViewport({ scale: 2.0 }); // High scale for better OCR accuracy
+
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    if (!context) return reject('Canvas context failed');
+
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+
+                    await page.render({ canvasContext: context, viewport: viewport }).promise;
+
+                    canvas.toBlob(
+                        (blob) => {
+                            if (blob) {
+                                const newName = `${file.name.replace(/\.[^/.]+$/, '')}.jpg`;
+                                resolve({
+                                    file: new File([blob], newName, { type: 'image/jpeg' }),
+                                    width: viewport.width,
+                                    height: viewport.height
+                                });
+                            } else reject('PDF to Image conversion failed');
+                        },
+                        'image/jpeg',
+                        0.95
+                    );
+                } catch (err) {
+                    reject(`Failed to process PDF: ${err}`);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
     }
 
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const img = new Image();
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                canvas.width = img.width;
-                canvas.height = img.height;
-                const ctx = canvas.getContext('2d');
-                if (!ctx) return reject('Canvas context failed');
-                ctx.drawImage(img, 0, 0);
-                canvas.toBlob((blob) => {
-                    if (blob) {
-                        const newName = file.name.replace(/\.[^/.]+$/, "") + ".png";
-                        resolve({
-                            file: new File([blob], newName, { type: 'image/png' }),
-                            width: img.width,
-                            height: img.height
-                        });
-                    } else reject('Blob conversion failed');
-                }, 'image/png');
+    // 2. Handle Image Conversion (ensure JPEG)
+    if (file.type.startsWith('image/')) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    if (!ctx) return reject('Canvas context failed');
+                    ctx.drawImage(img, 0, 0);
+                    canvas.toBlob(
+                        (blob) => {
+                            if (blob) {
+                                const newName = `${file.name.replace(/\.[^/.]+$/, '')}.jpg`;
+                                resolve({
+                                    file: new File([blob], newName, { type: 'image/jpeg' }),
+                                    width: img.width,
+                                    height: img.height
+                                });
+                            } else reject('Image to JPEG conversion failed');
+                        },
+                        'image/jpeg',
+                        0.95
+                    );
+                };
+                img.onerror = () => reject('Image load failed');
+                img.src = e.target?.result as string;
             };
-            img.onerror = () => reject('Image load failed');
-            img.src = e.target?.result as string;
-        };
-        reader.onerror = () => reject('File read failed');
-        reader.readAsDataURL(file);
-    });
+            reader.onerror = () => reject('File read failed');
+            reader.readAsDataURL(file);
+        });
+    }
+
+    return { file, width: 0, height: 0 };
 };
 
 export default function OmrMarkSheetEvaluationPage() {
     const [studentFile, setStudentFile] = useState<File | null>(null);
     const [answerKeyFile, setAnswerKeyFile] = useState<File | null>(null);
-    const [questionCount, setQuestionCount] = useState('150');
+    const [questionCount, _setQuestionCount] = useState('150');
     const [isEvaluating, setIsEvaluating] = useState(false);
     const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
@@ -68,14 +117,14 @@ export default function OmrMarkSheetEvaluationPage() {
         setIsEvaluating(true);
 
         try {
-            // Ensure both files are PNG for the backend API and get metadata for validation
-            const studentInfo = await convertToPng(studentFile);
-            const answerKeyInfo = await convertToPng(answerKeyFile);
+            // Ensure both files are JPEG for the backend API and get metadata for validation
+            const studentInfo = await convertToJpeg(studentFile);
+            const answerKeyInfo = await convertToJpeg(answerKeyFile);
 
-            // Robust validation: Check if they are the same image content 
+            // Robust validation: Check if they are the same image content
             // (Same dimensions and same base filename even if format differs)
-            const base1 = studentFile.name.replace(/\.[^/.]+$/, "");
-            const base2 = answerKeyFile.name.replace(/\.[^/.]+$/, "");
+            const base1 = studentFile.name.replace(/\.[^/.]+$/, '');
+            const base2 = answerKeyFile.name.replace(/\.[^/.]+$/, '');
 
             if (
                 (studentInfo.width === answerKeyInfo.width && studentInfo.height === answerKeyInfo.height && base1 === base2) ||
@@ -84,6 +133,17 @@ export default function OmrMarkSheetEvaluationPage() {
                 toast.error('The Student Sheet and Answer Key appear to be the same image. Please provide different sheets.');
                 setIsEvaluating(false);
                 return;
+            }
+
+            // AI Pre-check for marking styles (ticks, crosses, etc.)
+            const validation = await validateOmrMarkings(studentInfo.file);
+            if (!validation.isValidStyle) {
+                toast.error(
+                    'The answered format has varied items (e.g., tick marks detected). These will be considered invalid during processing.',
+                    {
+                        duration: 10000
+                    }
+                );
             }
 
             toast.info('Processing OMR evaluation... this may take a moment.');
@@ -136,32 +196,41 @@ export default function OmrMarkSheetEvaluationPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#f8fafc] p-4 lg:p-8">
-            <div className="max-w-7xl mx-auto space-y-6">
+        <div className='min-h-screen bg-[#f8fafc] p-4 lg:p-8'>
+            <Script
+                src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js'
+                strategy='lazyOnload'
+                onLoad={() => {
+                    if ((window as any).pdfjsLib) {
+                        (window as any).pdfjsLib.GlobalWorkerOptions.workerSrc =
+                            'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                    }
+                }}
+            />
+            <div className='mx-auto max-w-7xl space-y-6'>
                 {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className='flex flex-col justify-between gap-4 md:flex-row md:items-center'>
                     <div>
-                        <h1 className="text-3xl font-bold font-outfit text-slate-900 tracking-tight">OMR AI Evaluator</h1>
-                        <p className="text-slate-500 mt-1">Industrial-grade OMR evaluation powered by AI VRM Engine.</p>
+                        <h1 className='font-bold font-outfit text-3xl text-slate-900 tracking-tight'>OMR AI Evaluator</h1>
+                        <p className='mt-1 text-slate-500'>Industrial-grade OMR evaluation powered by AI VRM Engine.</p>
                     </div>
-                    <div className="flex items-center gap-3">
-                        <Button variant="outline" onClick={clearFiles} disabled={isEvaluating} className="rounded-xl border-slate-200">
-                            <Trash2 className="w-4 h-4 mr-2 text-slate-400" />
+                    <div className='flex items-center gap-3'>
+                        <Button variant='outline' onClick={clearFiles} disabled={isEvaluating} className='rounded-xl border-slate-200'>
+                            <Trash2 className='mr-2 h-4 w-4 text-slate-400' />
                             Clear All
                         </Button>
                         <Button
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200 transition-all active:scale-95 rounded-xl px-8"
+                            className='rounded-xl bg-indigo-600 px-8 text-white shadow-indigo-200 shadow-lg transition-all hover:bg-indigo-700 active:scale-95'
                             onClick={handleEvaluation}
-                            disabled={!studentFile || !answerKeyFile || isEvaluating}
-                        >
+                            disabled={!studentFile || !answerKeyFile || isEvaluating}>
                             {isEvaluating ? (
                                 <>
-                                    <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                                    <div className='mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white' />
                                     Processing...
                                 </>
                             ) : (
                                 <>
-                                    <PlayCircle className="w-4 h-4 mr-2" />
+                                    <PlayCircle className='mr-2 h-4 w-4' />
                                     Generate Result
                                 </>
                             )}
@@ -169,115 +238,123 @@ export default function OmrMarkSheetEvaluationPage() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div className='grid grid-cols-1 gap-6 lg:grid-cols-12'>
                     {/* Input Controls */}
-                    <div className="lg:col-span-4 space-y-6">
-                        <Card className="border-none shadow-xl bg-white/80 backdrop-blur-sm overflow-hidden rounded-3xl">
-                            <div className="h-1.5 bg-indigo-600" />
+                    <div className='space-y-6 lg:col-span-4'>
+                        <Card className='overflow-hidden rounded-3xl border-none bg-white/80 shadow-xl backdrop-blur-sm'>
+                            <div className='h-1.5 bg-indigo-600' />
                             <CardHeader>
-                                <CardTitle className="text-lg flex items-center">
-                                    <Upload className="w-5 h-5 mr-2 text-indigo-600" />
+                                <CardTitle className='flex items-center text-lg'>
+                                    <Upload className='mr-2 h-5 w-5 text-indigo-600' />
                                     Source Sheets
                                 </CardTitle>
                                 <CardDescription>Provide the scanned OMR images for processing.</CardDescription>
                             </CardHeader>
-                            <CardContent className="space-y-6">
+                            <CardContent className='space-y-6'>
                                 {/* Student File */}
-                                <div className="space-y-2">
-                                    <Label className="text-slate-700 font-semibold px-1">Student Answer Sheet</Label>
-                                    <div className={`relative group border-2 border-dashed rounded-2xl p-4 transition-all ${studentFile ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-slate-200 hover:border-indigo-300'}`}>
+                                <div className='space-y-2'>
+                                    <Label className='px-1 font-semibold text-slate-700'>Student Answer Sheet</Label>
+                                    <div
+                                        className={`group relative rounded-2xl border-2 border-dashed p-4 transition-all ${studentFile ? 'border-emerald-200 bg-emerald-50' : 'border-slate-200 bg-slate-50 hover:border-indigo-300'}`}>
                                         <input
-                                            type="file"
-                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                            type='file'
+                                            className='absolute inset-0 h-full w-full cursor-pointer opacity-0'
                                             onChange={(e) => setStudentFile(e.target.files?.[0] || null)}
-                                            accept="image/*,application/pdf"
+                                            accept='image/*,application/pdf'
                                         />
-                                        <div className="flex items-center gap-3">
-                                            <div className={`p-2.5 rounded-xl ${studentFile ? 'bg-emerald-500 text-white' : 'bg-white shadow-sm text-indigo-600 group-hover:scale-110'}`}>
-                                                <FileText className="w-5 h-5" />
+                                        <div className='flex items-center gap-3'>
+                                            <div
+                                                className={`rounded-xl p-2.5 ${studentFile ? 'bg-emerald-500 text-white' : 'bg-white text-indigo-600 shadow-sm group-hover:scale-110'}`}>
+                                                <FileText className='h-5 w-5' />
                                             </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-bold text-slate-800 truncate">{studentFile ? studentFile.name : 'Choose Student Sheet'}</p>
-                                                <p className="text-[11px] text-slate-500">{studentFile ? (studentFile.size / 1024).toFixed(1) + ' KB' : 'Max size 20MB'}</p>
+                                            <div className='min-w-0 flex-1'>
+                                                <p className='truncate font-bold text-slate-800 text-sm'>
+                                                    {studentFile ? studentFile.name : 'Choose Student Sheet'}
+                                                </p>
+                                                <p className='text-[11px] text-slate-500'>
+                                                    {studentFile ? `${(studentFile.size / 1024).toFixed(1)} KB` : 'Max size 20MB'}
+                                                </p>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Answer Key File */}
-                                <div className="space-y-2">
-                                    <Label className="text-slate-700 font-semibold px-1">Official Answer Key</Label>
-                                    <div className={`relative group border-2 border-dashed rounded-2xl p-4 transition-all ${answerKeyFile ? 'bg-indigo-50 border-indigo-200' : 'bg-slate-50 border-slate-200 hover:border-indigo-300'}`}>
+                                <div className='space-y-2'>
+                                    <Label className='px-1 font-semibold text-slate-700'>Official Answer Key</Label>
+                                    <div
+                                        className={`group relative rounded-2xl border-2 border-dashed p-4 transition-all ${answerKeyFile ? 'border-indigo-200 bg-indigo-50' : 'border-slate-200 bg-slate-50 hover:border-indigo-300'}`}>
                                         <input
-                                            type="file"
-                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                            type='file'
+                                            className='absolute inset-0 h-full w-full cursor-pointer opacity-0'
                                             onChange={(e) => setAnswerKeyFile(e.target.files?.[0] || null)}
-                                            accept="image/*,application/pdf"
+                                            accept='image/*,application/pdf'
                                         />
-                                        <div className="flex items-center gap-3">
-                                            <div className={`p-2.5 rounded-xl ${answerKeyFile ? 'bg-indigo-600 text-white' : 'bg-white shadow-sm text-indigo-600 group-hover:scale-110'}`}>
-                                                <ClipboardCheck className="w-5 h-5" />
+                                        <div className='flex items-center gap-3'>
+                                            <div
+                                                className={`rounded-xl p-2.5 ${answerKeyFile ? 'bg-indigo-600 text-white' : 'bg-white text-indigo-600 shadow-sm group-hover:scale-110'}`}>
+                                                <ClipboardCheck className='h-5 w-5' />
                                             </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-bold text-slate-800 truncate">{answerKeyFile ? answerKeyFile.name : 'Choose Answer Key'}</p>
-                                                <p className="text-[11px] text-slate-500">{answerKeyFile ? (answerKeyFile.size / 1024).toFixed(1) + ' KB' : 'Reference Key'}</p>
+                                            <div className='min-w-0 flex-1'>
+                                                <p className='truncate font-bold text-slate-800 text-sm'>
+                                                    {answerKeyFile ? answerKeyFile.name : 'Choose Answer Key'}
+                                                </p>
+                                                <p className='text-[11px] text-slate-500'>
+                                                    {answerKeyFile ? `${(answerKeyFile.size / 1024).toFixed(1)} KB` : 'Reference Key'}
+                                                </p>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-
                             </CardContent>
                         </Card>
-
                     </div>
 
                     {/* Result Preview Panel */}
-                    <div className="lg:col-span-8 flex flex-col h-full min-h-[600px]">
-                        <Card className="flex-1 border-none shadow-2xl bg-slate-900 overflow-hidden rounded-[2.5rem] flex flex-col">
-                            <CardHeader className="bg-slate-800/50 border-b border-slate-700/50 flex flex-row items-center justify-between px-8 py-5">
-                                <div className="space-y-0.5">
-                                    <CardTitle className="text-lg text-white flex items-center">
-                                        <Eye className="w-5 h-5 mr-2 text-indigo-400" />
+                    <div className='flex h-full min-h-[600px] flex-col lg:col-span-8'>
+                        <Card className='flex flex-1 flex-col overflow-hidden rounded-[2.5rem] border-none bg-slate-900 shadow-2xl'>
+                            <CardHeader className='flex flex-row items-center justify-between border-slate-700/50 border-b bg-slate-800/50 px-8 py-5'>
+                                <div className='space-y-0.5'>
+                                    <CardTitle className='flex items-center text-lg text-white'>
+                                        <Eye className='mr-2 h-5 w-5 text-indigo-400' />
                                         Evaluation Preview
                                     </CardTitle>
-                                    <CardDescription className="text-slate-400">Real-time PDF rendering of results.</CardDescription>
+                                    <CardDescription className='text-slate-400'>Real-time PDF rendering of results.</CardDescription>
                                 </div>
                                 {pdfUrl && (
-                                    <Button onClick={downloadPdf} className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-xl shadow-indigo-900/40 border-none transition-all active:scale-95">
-                                        <Download className="w-4 h-4 mr-2" />
+                                    <Button
+                                        onClick={downloadPdf}
+                                        className='rounded-xl border-none bg-indigo-600 text-white shadow-indigo-900/40 shadow-xl transition-all hover:bg-indigo-700 active:scale-95'>
+                                        <Download className='mr-2 h-4 w-4' />
                                         Download PDF
                                     </Button>
                                 )}
                             </CardHeader>
-                            <CardContent className="flex-1 p-0 relative">
+                            <CardContent className='relative flex-1 p-0'>
                                 {pdfUrl ? (
-                                    <iframe
-                                        src={`${pdfUrl}#toolbar=0`}
-                                        className="w-full h-full border-none"
-                                        title="Evaluation Result"
-                                    />
+                                    <iframe src={`${pdfUrl}#toolbar=0`} className='h-full w-full border-none' title='Evaluation Result' />
                                 ) : (
-                                    <div className="h-full flex flex-col items-center justify-center text-center p-12">
-                                        <div className="w-24 h-24 bg-slate-800 rounded-[2rem] flex items-center justify-center mb-6 animate-pulse">
-                                            <FileText className="w-10 h-10 text-slate-600" />
+                                    <div className='flex h-full flex-col items-center justify-center p-12 text-center'>
+                                        <div className='mb-6 flex h-24 w-24 animate-pulse items-center justify-center rounded-[2rem] bg-slate-800'>
+                                            <FileText className='h-10 w-10 text-slate-600' />
                                         </div>
-                                        <h3 className="text-xl font-bold text-slate-300">Ready for Evaluation</h3>
-                                        <p className="text-slate-500 text-sm max-w-sm mt-2">
+                                        <h3 className='font-bold text-slate-300 text-xl'>Ready for Evaluation</h3>
+                                        <p className='mt-2 max-w-sm text-slate-500 text-sm'>
                                             Upload your sheets on the left and click "Generate Result" to view the evaluated PDF here.
                                         </p>
                                     </div>
                                 )}
 
                                 {isEvaluating && (
-                                    <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-8">
-                                        <div className="relative w-20 h-20 mb-6">
-                                            <div className="absolute inset-0 border-4 border-indigo-500/20 rounded-full" />
-                                            <div className="absolute inset-0 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-                                            <FileText className="absolute inset-0 m-auto w-8 h-8 text-indigo-400" />
+                                    <div className='absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-900/80 p-8 backdrop-blur-sm'>
+                                        <div className='relative mb-6 h-20 w-20'>
+                                            <div className='absolute inset-0 rounded-full border-4 border-indigo-500/20' />
+                                            <div className='absolute inset-0 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent' />
+                                            <FileText className='absolute inset-0 m-auto h-8 w-8 text-indigo-400' />
                                         </div>
-                                        <h3 className="text-xl font-bold text-white mb-2">Analyzing OMR Bubbles...</h3>
-                                        <div className="w-64 h-1.5 bg-slate-700 rounded-full overflow-hidden">
-                                            <div className="h-full bg-indigo-500 animate-[loading_2s_ease-in-out_infinite]" />
+                                        <h3 className='mb-2 font-bold text-white text-xl'>Analyzing OMR Bubbles...</h3>
+                                        <div className='h-1.5 w-64 overflow-hidden rounded-full bg-slate-700'>
+                                            <div className='h-full animate-[loading_2s_ease-in-out_infinite] bg-indigo-500' />
                                         </div>
                                     </div>
                                 )}

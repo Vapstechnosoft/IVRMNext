@@ -17,27 +17,29 @@ export interface EmployeeAbsentReportRow {
 export const employeeAbsentReportColumns: ColumnDef<EmployeeAbsentReportRow>[] = [
     {
         accessorKey: 'hrme_id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='text-center ml-4'  />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
             const continuousIndex = pageIndex * pageSize + row.index + 1;
-            return <div className='w-full pl-6'>{continuousIndex}</div>;
+            return <div className='text-left ml-4'>{continuousIndex}</div>;
         },
+        
         enableSorting: true,
-        enableHiding: false
+        enableHiding: false,
     },
     {
         accessorKey: 'ecode',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Code' />,
-        cell: ({ row }) => <div>{row.getValue('ecode')}</div>,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Code'  />,
+        cell: ({ row }) => <div className='w-fit'>{row.getValue('ecode')}</div>,
         enableSorting: true,
-        enableHiding: true
+        enableHiding: true,
+       
     },
     {
         accessorKey: 'ename',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
-        cell: ({ row }) => <div>{row.getValue('ename')}</div>,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name'  />,
+        cell: ({ row }) => <div className='w-fit'>{row.getValue('ename')}</div>,
         enableSorting: true,
         enableHiding: true
     },
