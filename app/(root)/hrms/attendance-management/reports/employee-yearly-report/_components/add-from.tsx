@@ -18,6 +18,7 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
+import { addMonths } from 'date-fns';
 import { Save } from 'lucide-react';
 import { Label } from 'react-aria-components';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
@@ -71,6 +72,7 @@ export default function AddEmployeeYearlyReportForm({
         reset,
         watch,
         clearErrors,
+        setValue,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(employeeYearlyReportFilterSchema),
@@ -88,10 +90,15 @@ export default function AddEmployeeYearlyReportForm({
     });
 
     const allOrIndividualValue = watch('allOrIndividual');
+    const fromDateValue = watch('fromDate');
 
     const watchedType = watch('type') || [];
     const watchedDepartment = watch('department') || [];
     const watchedDesignation = watch('designation') || [];
+
+    const fromDateObject = fromDateValue ? new Date(fromDateValue) : undefined;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
     const groupTypeIds = useMemo(() => watchedType.map(Number).filter(Boolean), [watchedType]);
     const deptIds = useMemo(() => watchedDepartment.map(Number).filter(Boolean), [watchedDepartment]);
@@ -403,8 +410,14 @@ export default function AddEmployeeYearlyReportForm({
                                                     const month = String(date.getMonth() + 1).padStart(2, '0');
                                                     const day = String(date.getDate()).padStart(2, '0');
                                                     field.onChange(`${year}-${month}-${day}`);
+                                                    const nextMonthDate = addMonths(date, 1);
+                                                    const nextYear = nextMonthDate.getFullYear();
+                                                    const nextMonth = String(nextMonthDate.getMonth() + 1).padStart(2, '0');
+                                                    const nextDay = String(nextMonthDate.getDate()).padStart(2, '0');
+                                                    // setValue('toDate', `${nextYear}-${nextMonth}-${nextDay}`);
                                                 } else {
                                                     field.onChange('');
+                                                    setValue('toDate', '');
                                                 }
                                             }}
                                             placeholder='From date'
@@ -438,6 +451,14 @@ export default function AddEmployeeYearlyReportForm({
                                             }}
                                             placeholder='To date'
                                             className={errors.toDate ? 'border-red-500' : ''}
+                                            disabled={
+                                                fromDateObject
+                                                    ? [
+                                                          { before: fromDateObject },
+                                                          { after: today }
+                                                      ]
+                                                    : [{ after: today }]
+                                            }
                                         />
                                     )}
                                 />
