@@ -18,6 +18,8 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import {
     useDanvantariTCLoadData,
     useChangeYearDanvantariTC,
+    useChangeCourseDanvantariTC,
+    useChangeSemesterDanvantariTC,
     useDanvantariTCDetails
 } from '@/hooks/admission/preadmission/reports/useDanvantariTransferCertificate';
 
@@ -30,41 +32,94 @@ export default function DanvantariTransferCertificatePage() {
     /* -------------------- UI State -------------------- */
     const [tctempper, setTctempper] = useState<'temp' | 'per'>('per');
     const [academicYearId, setAcademicYearId] = useState<number | null>(null);
+    const [courseId, setCourseId] = useState<number | null>(null);
+    const [semesterId, setSemesterId] = useState<number | null>(null);
     const [studentId, setStudentId] = useState<number | null>(null);
-    
+
+    // Filter lists
+    const [courseList, setCourseList] = useState<any[]>([]);
+    const [semesterList, setSemesterList] = useState<any[]>([]);
+    const [studentList, setStudentList] = useState<any[]>([]);
+
     // UI inputs
     const [hallTicketNo, setHallTicketNo] = useState('');
     const [reasonForLeaving, setReasonForLeaving] = useState('');
     const [identificationMarks, setIdentificationMarks] = useState('');
-    
-    // Data lists
-    const [studentList, setStudentList] = useState<any[]>([]);
-    
+
     // Control states
     const [studentOpen, setStudentOpen] = useState(false);
     const [showReport, setShowReport] = useState(false);
     const [reportData, setReportData] = useState<any>(null);
 
     const yearMutation = useChangeYearDanvantariTC();
+    const courseMutation = useChangeCourseDanvantariTC();
+    const semesterMutation = useChangeSemesterDanvantariTC();
     const reportMutation = useDanvantariTCDetails();
 
-    const academicYearList = (loadData as any)?.getyear || [];
+    const academicYearList = (loadData as any)?.data?.getyear || (loadData as any)?.getyear || [];
 
     /* -------------------- Handlers -------------------- */
     const handleYearChange = async (yearId: number) => {
         setAcademicYearId(yearId);
+        setCourseId(null);
+        setSemesterId(null);
         setStudentId(null);
+        setCourseList([]);
+        setSemesterList([]);
         setStudentList([]);
         setShowReport(false);
-        
+
         try {
-            const res = await yearMutation.mutateAsync({ 
+            const res = await yearMutation.mutateAsync({
                 ASMAY_Id: yearId,
                 tctemporper: tctempper
             });
-            setStudentList(Array.isArray(res?.getstudent) ? res?.getstudent : []);
+            const data = (res as any)?.data || res;
+            setCourseList(Array.isArray(data?.getcourse) ? data?.getcourse : Array.isArray(data?.courselist) ? data?.courselist : []);
         } catch (error) {
-            toast.error('Failed to load students for selected year');
+            toast.error('Failed to load courses for selected year');
+        }
+    };
+
+    const handleCourseChange = async (cid: number) => {
+        setCourseId(cid);
+        setSemesterId(null);
+        setStudentId(null);
+        setSemesterList([]);
+        setStudentList([]);
+        setShowReport(false);
+
+        try {
+            const res = await courseMutation.mutateAsync({
+                ASMAY_Id: academicYearId!,
+                AMCO_Id: cid,
+                tctemporper: tctempper
+            });
+            const data = (res as any)?.data || res;
+            setSemesterList(Array.isArray(data?.getsemester) ? data?.getsemester : Array.isArray(data?.semesterlist) ? data?.semesterlist : []);
+        } catch (error) {
+            toast.error('Failed to load semesters');
+        }
+    };
+
+    const handleSemesterChange = async (sid: number) => {
+        setSemesterId(sid);
+        setStudentId(null);
+        setStudentList([]);
+        setShowReport(false);
+
+        try {
+            const res = await semesterMutation.mutateAsync({
+                ASMAY_Id: academicYearId!,
+                AMCO_Id: courseId!,
+                AMB_Id: 0, // Default or derived from course
+                AMSE_Id: sid,
+                tctemporper: tctempper
+            });
+            const data = (res as any)?.data || res;
+            setStudentList(Array.isArray(data?.getstudent) ? data?.getstudent : Array.isArray(data?.getstudentdetails) ? data?.getstudentdetails : []);
+        } catch (error) {
+            toast.error('Failed to load students');
         }
     };
 
@@ -80,9 +135,9 @@ export default function DanvantariTransferCertificatePage() {
                 AMCST_Id: studentId,
                 tctemporper: tctempper
             });
-            const data = (res as any);
+            const data = (res as any)?.data || res;
 
-            if (data?.getstudentdetails?.length > 0) {
+            if ((data?.getstudentdetails?.length > 0) || (data?.getstudentlist?.length > 0)) {
                 setReportData(data);
                 setShowReport(true);
                 toast.success('Report generated successfully');
@@ -97,7 +152,11 @@ export default function DanvantariTransferCertificatePage() {
 
     const handleCancel = () => {
         setAcademicYearId(null);
+        setCourseId(null);
+        setSemesterId(null);
         setStudentId(null);
+        setCourseList([]);
+        setSemesterList([]);
         setStudentList([]);
         setHallTicketNo('');
         setReasonForLeaving('');
@@ -108,7 +167,7 @@ export default function DanvantariTransferCertificatePage() {
 
     const handlePrint = useReactToPrint({
         contentRef: printRef,
-        documentTitle: `Danvantari_TC_${studentList.find(s => s.amcsT_Id === studentId)?.studentName || 'Report'}`
+        documentTitle: `Danvantari_TC_${studentList.find(s => (s.amcsT_Id || s.AMCST_Id || s.AMST_Id) === studentId)?.studentName || studentList.find(s => (s.amcsT_Id || s.AMCST_Id || s.AMST_Id) === studentId)?.studentname || 'Report'}`
     });
 
     return (
@@ -166,13 +225,45 @@ export default function DanvantariTransferCertificatePage() {
                             </div>
 
                             <div className='grid grid-cols-[140px_1fr] items-center gap-4'>
+                                <Label className='text-sm font-bold text-slate-700'>Course:<span className='text-red-500'>*</span></Label>
+                                <Select value={courseId?.toString()} onValueChange={(v) => handleCourseChange(Number(v))} disabled={!academicYearId}>
+                                    <SelectTrigger className='h-10 rounded-xl'>
+                                        <SelectValue placeholder='Select Course' />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {courseList.map((course: any) => (
+                                            <SelectItem key={course.amcO_Id || course.AMCO_Id} value={(course.amcO_Id || course.AMCO_Id).toString()}>
+                                                {course.amcO_CourseName || course.AMCO_CourseName || course.coursename}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className='grid grid-cols-[140px_1fr] items-center gap-4'>
+                                <Label className='text-sm font-bold text-slate-700'>Semester:<span className='text-red-500'>*</span></Label>
+                                <Select value={semesterId?.toString()} onValueChange={(v) => handleSemesterChange(Number(v))} disabled={!courseId}>
+                                    <SelectTrigger className='h-10 rounded-xl'>
+                                        <SelectValue placeholder='Select Semester' />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {semesterList.map((sem: any) => (
+                                            <SelectItem key={sem.amsE_Id || sem.AMSE_Id} value={(sem.amsE_Id || sem.AMSE_Id).toString()}>
+                                                {sem.amsE_SemName || sem.AMSE_SemName || sem.semestername}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className='grid grid-cols-[140px_1fr] items-center gap-4'>
                                 <Label className='text-sm font-bold text-slate-700'>Student Name:<span className='text-red-500'>*</span></Label>
                                 <Popover open={studentOpen} onOpenChange={setStudentOpen}>
                                     <PopoverTrigger asChild>
                                         <Button
                                             variant="outline"
                                             role="combobox"
-                                            disabled={!academicYearId}
+                                            disabled={!semesterId}
                                             className={cn(
                                                 "w-full justify-between h-10 rounded-xl bg-white border-input font-normal",
                                                 !studentId && "text-muted-foreground"
@@ -180,7 +271,7 @@ export default function DanvantariTransferCertificatePage() {
                                         >
                                             <span className="truncate pr-2">
                                                 {studentId
-                                                    ? (studentList.find((s: any) => s.amcsT_Id === studentId)?.studentName || "Selected Student")
+                                                    ? (studentList.find((s: any) => (s.amcsT_Id || s.AMCST_Id || s.AMST_Id) === studentId)?.studentName || studentList.find((s: any) => (s.amcsT_Id || s.AMCST_Id || s.AMST_Id) === studentId)?.studentname || "Selected Student")
                                                     : "Select Student"}
                                             </span>
                                             <div className="flex items-center shrink-0">
@@ -211,19 +302,19 @@ export default function DanvantariTransferCertificatePage() {
                                                 <CommandGroup className="max-h-64 overflow-y-auto">
                                                     {studentList.map((s: any) => (
                                                         <CommandItem
-                                                            key={s.amcsT_Id}
-                                                            value={`${s.studentName} ${s.amsT_AdmNo || ''}`}
+                                                            key={s.amcsT_Id || s.AMCST_Id || s.AMST_Id}
+                                                            value={`${s.studentName || s.studentname} ${s.amsT_AdmNo || s.AMST_AdmNo || ''}`}
                                                             onSelect={() => {
-                                                                setStudentId(s.amcsT_Id);
+                                                                setStudentId(s.amcsT_Id || s.AMCST_Id || s.AMST_Id);
                                                                 setStudentOpen(false);
                                                             }}
                                                             className="flex items-center justify-between"
                                                         >
                                                             <div className="flex items-center">
-                                                                <Check className={cn('mr-2 h-4 w-4 text-indigo-600', studentId === s.amcsT_Id ? 'opacity-100' : 'opacity-0')} />
+                                                                <Check className={cn('mr-2 h-4 w-4 text-indigo-600', studentId === (s.amcsT_Id || s.AMCST_Id || s.AMST_Id) ? 'opacity-100' : 'opacity-0')} />
                                                                 <div className="flex flex-col">
-                                                                    <span className="font-medium text-slate-700">{s.studentName}</span>
-                                                                    <span className="text-[10px] text-muted-foreground uppercase">{s.amsT_AdmNo}</span>
+                                                                    <span className="font-medium text-slate-700">{s.studentName || s.studentname}</span>
+                                                                    <span className="text-[10px] text-muted-foreground uppercase">{s.amsT_AdmNo || s.AMST_AdmNo}</span>
                                                                 </div>
                                                             </div>
                                                         </CommandItem>
@@ -297,12 +388,12 @@ export default function DanvantariTransferCertificatePage() {
             </CollapsibleSection>
 
             {/* Print Preview */}
-            {showReport && reportData && reportData.getstudentdetails?.map((student: any, idx: number) => (
+            {showReport && reportData && (reportData.getstudentdetails || reportData.getstudentlist)?.map((student: any, idx: number) => (
                 <div key={idx} className='mt-8 flex flex-col items-center bg-slate-50 p-8 rounded-3xl border-2 border-dashed border-indigo-200 overflow-auto'>
                     <div ref={printRef} className='bg-white shadow-2xl w-[210mm] min-h-[297mm] p-0 printable-content'>
                         <div className="certificate-page relative p-[15mm] flex flex-col" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', margin: '0 auto' }}>
-                           <div className="h-full border-[1.5px] border-black p-[8mm] flex flex-col relative">
-                                
+                            <div className="h-full border-[1.5px] border-black p-[8mm] flex flex-col relative">
+
                                 {/* Header Section */}
                                 <div className="text-center mb-6">
                                     <img src={student.imgname || "https://vapsclg.blob.core.windows.net/files/76/NoticeUpload/d120170c-fbbf-48c2-b675-ef8d053a0d03.jpg"} className="w-[85%] mx-auto h-auto object-contain" alt="Danvantari Logo" />
@@ -410,7 +501,7 @@ export default function DanvantariTransferCertificatePage() {
                                     </div>
                                 </div>
 
-                           </div>
+                            </div>
                         </div>
                     </div>
                 </div>

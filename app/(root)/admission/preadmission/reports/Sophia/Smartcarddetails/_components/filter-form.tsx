@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { SophiaSmartcardReportSchema, type SophiaSmartcardReportFields } from '@/schemas/admission/preadmission/reports/sophia-smartcard-report';
@@ -9,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useSophiaSmartcardReport } from '@/hooks/admission/preadmission/reports/useSophiaSmartcardReport';
 import { toast } from 'sonner';
-import { Check, ClipboardList, RotateCcw } from 'lucide-react';
+import { Check, ClipboardList, RotateCcw, Download, Printer } from 'lucide-react';
 
 interface FilterFormProps {
     onSubmit: (data: SophiaSmartcardReportFields) => void;
@@ -22,6 +23,7 @@ interface FilterFormProps {
 
 export const FilterForm = ({ onSubmit, onReset, onExport, onPrint, hasData, hasSelectedData }: FilterFormProps) => {
     const { loadData, reportMutation } = useSophiaSmartcardReport();
+    const [resetKey, setResetKey] = React.useState(0);
 
     const form = useForm<SophiaSmartcardReportFields>({
         resolver: zodResolver(SophiaSmartcardReportSchema),
@@ -29,22 +31,26 @@ export const FilterForm = ({ onSubmit, onReset, onExport, onPrint, hasData, hasS
             ASMAY_Id: 0,
             ASMCL_Id: 0,
             ASMS_Id: 0,
+            SPCCMH_Id: 0,
             Admnoallind: 'Regular'
         }
     });
+
+    const { reset } = form;
 
     const handleFormSubmit = (data: SophiaSmartcardReportFields) => {
         onSubmit(data);
     };
 
     const handleReset = () => {
-        form.reset({
-            ASMAY_Id: undefined,
-            ASMCL_Id: undefined,
-            ASMS_Id: undefined,
-            SPCCMH_Id: undefined,
+        reset({
+            ASMAY_Id: 0,
+            ASMCL_Id: 0,
+            ASMS_Id: 0,
+            SPCCMH_Id: 0,
             Admnoallind: 'Regular'
         });
+        setResetKey(prev => prev + 1);
         onReset();
     };
 
@@ -57,7 +63,7 @@ export const FilterForm = ({ onSubmit, onReset, onExport, onPrint, hasData, hasS
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div key={resetKey} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {/* Academic Year */}
                     <FormField
                         control={form.control}
@@ -65,7 +71,7 @@ export const FilterForm = ({ onSubmit, onReset, onExport, onPrint, hasData, hasS
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel className="font-bold uppercase tracking-wider text-xs">Academic Year <span className="text-red-500">*</span></FormLabel>
-                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
+                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString() || "0"}>
                                     <FormControl>
                                         <SelectTrigger className="border-slate-300">
                                             <SelectValue placeholder="---Select---" />
@@ -91,7 +97,7 @@ export const FilterForm = ({ onSubmit, onReset, onExport, onPrint, hasData, hasS
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel className="font-bold uppercase tracking-wider text-xs">Class <span className="text-red-500">*</span></FormLabel>
-                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
+                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString() || "0"}>
                                     <FormControl>
                                         <SelectTrigger className="border-slate-300">
                                             <SelectValue placeholder="---Select---" />
@@ -117,7 +123,7 @@ export const FilterForm = ({ onSubmit, onReset, onExport, onPrint, hasData, hasS
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel className="font-bold uppercase tracking-wider text-xs">Section <span className="text-red-500">*</span></FormLabel>
-                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
+                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString() || "0"}>
                                     <FormControl>
                                         <SelectTrigger className="border-slate-300">
                                             <SelectValue placeholder="---Select---" />
@@ -198,7 +204,7 @@ export const FilterForm = ({ onSubmit, onReset, onExport, onPrint, hasData, hasS
                 <div className="flex flex-wrap gap-4 items-center justify-center pt-4">
                     <Button
                         type="submit"
-                        className="min-w-[120px] bg-[#3c8dbc] hover:bg-[#367fa9] text-white rounded-none font-bold uppercase"
+                        className="w-fit px-6 bg-[#3c8dbc] hover:bg-[#367fa9] text-white rounded-none font-bold uppercase"
                         disabled={reportMutation.isPending}
                     >
                         {reportMutation.isPending ? 'Generating...' : (
@@ -210,7 +216,7 @@ export const FilterForm = ({ onSubmit, onReset, onExport, onPrint, hasData, hasS
                     <Button
                         type="button"
                         onClick={handleReset}
-                        className="min-w-[120px] bg-[#dd4b39] hover:bg-[#c23321] text-white rounded-none font-bold uppercase"
+                        className="w-fit px-6 bg-[#dd4b39] hover:bg-[#c23321] text-white rounded-none font-bold uppercase"
                     >
                         <RotateCcw className="w-4 h-4 mr-2" /> Cancel
                     </Button>
@@ -218,17 +224,17 @@ export const FilterForm = ({ onSubmit, onReset, onExport, onPrint, hasData, hasS
                         type="button"
                         onClick={onExport}
                         disabled={!hasData}
-                        className="min-w-[120px] bg-[#337ab7] hover:bg-[#286090] text-white rounded-none font-bold uppercase"
+                        className="w-fit px-6 bg-[#337ab7] hover:bg-[#286090] text-white rounded-none font-bold uppercase"
                     >
-                        <ClipboardList className="w-4 h-4 mr-2" /> Export to Excel
+                        <Download className="w-4 h-4 mr-2" /> Export to Excel
                     </Button>
                     <Button
                         type="button"
                         onClick={onPrint}
                         disabled={!hasSelectedData}
-                        className="min-w-[120px] bg-[#f0ad4e] hover:bg-[#ec971f] text-white rounded-none font-bold uppercase"
+                        className="w-fit px-6 bg-[#f0ad4e] hover:bg-[#ec971f] text-white rounded-none font-bold uppercase"
                     >
-                        <RotateCcw className="w-4 h-4 mr-2" /> Print
+                        <Printer className="w-4 h-4 mr-2" /> Print
                     </Button>
                 </div>
             </form>

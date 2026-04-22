@@ -38,6 +38,7 @@ const PS7ReportSchema = z.object({
 export default function PS7FromReportStJames() {
   const [reportedData, setReportData] = useState<any>(null);
   const [resetkey, setResetKey] = useState(0);
+  const [selectedYear, setSelectedYear] = useState<string>("");
 
   const { data: yearsData } = useLeaveYearDropdown();
   const { data: employeesData } = usePS7ReportEmployees();
@@ -59,13 +60,11 @@ export default function PS7FromReportStJames() {
     },
   });
 
-  let selectedYear = "";
-
   const onSubmit = async (data: FilterFormValues) => {
     const year = yearsData?.data?.find(
       (year: any) => year.hrmlY_Id === data.year,
     )?.hrmlY_LeaveYear;
-    selectedYear = year;
+    setSelectedYear(year || "");
     const hrmE_Ids = data.hreme_Ids.join(",");
     const requestData: PS7ReportDataRequest = {
       hrmE_Ids,

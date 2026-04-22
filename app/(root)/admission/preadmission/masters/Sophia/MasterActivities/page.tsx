@@ -1,7 +1,9 @@
 'use client';
 
-import { use } from 'react';
-import { Plus, X } from 'lucide-react';
+import { Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useMemo } from 'react';
+import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -11,10 +13,24 @@ import type { IMasterActivityList } from '@/schemas/admission/preadmission/maste
 import ActivityForm from './_components/activity-form';
 import { masterActivityColumns } from './_components/columns';
 
-type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+export default function MasterActivityPage() {
+    return (
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading page...</div>}>
+            <MasterActivityPageContentWrapper />
+        </Suspense>
+    );
+}
 
-export default function MasterActivityPage(props: { searchParams: SearchParams }) {
-    const searchParams = use(props.searchParams);
+function MasterActivityPageContentWrapper() {
+    const nextSearchParams = useSearchParams();
+    const searchParams = useMemo(() => {
+        const params: any = {};
+        nextSearchParams.forEach((value, key) => {
+            params[key] = value;
+        });
+        return params;
+    }, [nextSearchParams]);
+
     const { data: response, isLoading, error } = useMasterActivityDetails(searchParams);
 
     return (
@@ -23,7 +39,6 @@ export default function MasterActivityPage(props: { searchParams: SearchParams }
         </FormProvider>
     );
 }
-
 function MasterActivityPageContent({
     response,
     isLoading,

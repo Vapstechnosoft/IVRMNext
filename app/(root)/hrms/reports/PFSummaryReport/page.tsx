@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { CollapsibleSection } from "@/components/ui/form/collapsible-section";
 import { useFinancialYearDropdown, useGetEmployees, useLeaveYearDropdown } from "@/hooks/hrms/useMasters";
@@ -38,12 +38,12 @@ export default function PFSummaryReport() {
   const [reportData, setReportData] = useState<any[]>([]);
   const [employeeDetails, setEmployeeDetails] = useState<any[]>([]);
   const [financialYear, setFinancialYear] = useState<string>("");
-  const [selectedFlag, setSelectedFlag] = useState<string>("PFTotalReport");
 
   const { data: employeesData, isLoading: isLoadingEmployees } = useGetEmployees();
   const { data: yearsData, isLoading: isLoadingYears } = useFinancialYearDropdown();
   const { mutateAsync: getPFSummaryReport, isPending: isLoadingPFSummary } = usePFSummaryReport();
 
+  const [resetKey, setResetKey] = useState(0); // For resetting MultiSelect
   const {
     control,
     handleSubmit,
@@ -59,7 +59,12 @@ export default function PFSummaryReport() {
     },
   });
 
- console.log("years data", yearsData);
+  const watchedFlag = watch("flag");
+
+  useEffect(() => {
+    setReportData([]);
+    setEmployeeDetails([]);
+  }, [watchedFlag]);
 
   const formatedEmployees = useMemo(() => {
     return (
@@ -75,8 +80,7 @@ export default function PFSummaryReport() {
       (y: any) => y.imfY_Id.toString() === data.year
     );
     setFinancialYear(selectedYear?.imfY_FinancialYear || "");
-    setSelectedFlag(data.flag);
-
+    
     const payload = {
       hrmE_Id: data.employees,
       imfY_Id: data.year,
@@ -85,9 +89,12 @@ export default function PFSummaryReport() {
 
     try {
       const response = await getPFSummaryReport(payload);
+      console.log("response", response)
       if (response.success && response.data) {
-        setReportData(response?.data?.reportData || []);
-        setEmployeeDetails(response?.data?.empDetails || []);
+        const actualData = response.data.data || response.data;
+        const reportList = Array.isArray(actualData) ? actualData : (actualData?.reportData || []);
+        setReportData(reportList);
+        setEmployeeDetails(actualData?.empDetails || actualData || []);
         toast.success(`Data fetched successfully`);
       } else {
         toast.error(response.message || "Failed to fetch report data");
@@ -145,6 +152,7 @@ export default function PFSummaryReport() {
       year: "",
       flag: "PFTotalReport",
     });
+    setResetKey((prev) => prev + 1); // Reset MultiSelect
   };
 
   const handleExport = () => {
@@ -161,7 +169,7 @@ export default function PFSummaryReport() {
 
   // --- Calculations for Summary Table ---
   const totals = useMemo(() => {
-    if (selectedFlag !== "PFTotalReport" || reportData.length === 0) return null;
+    if (watchedFlag !== "PFTotalReport" || reportData.length === 0) return null;
     return reportData.reduce(
       (acc, curr) => {
         acc.own_ob += curr.hrepfsT_OBOwnAmount || curr.HREPFST_OBOwnAmount || 0;
@@ -170,12 +178,12 @@ export default function PFSummaryReport() {
         acc.inst_cont += curr.hrepfsT_InstituteContribution || curr.HREPFST_IntstituteContribution || 0;
         acc.own_int += curr.hrepfsT_OwnInterest || curr.HREVPFST_Intersest || 0;
         acc.inst_int += curr.hrepfsT_InstituteInterest || curr.HREPFST_InstituteInterest || 0;
-        acc.own_total += curr.own_GRANDTOTAL || curr.OWN_GRANDTOTAL || 0;
-        acc.inst_total += curr.inst_GRANDTOTAL || curr.INST_GRANDTOTAL || 0;
+        acc.own_total += curr.own_GrandTotal || curr.OWN_GRANDTOTAL || 0;
+        acc.inst_total += curr.inst_GrandTotal || curr.INST_GRANDTOTAL || 0;
         acc.own_settle += curr.hrepfsT_OwnSettlementAmount || curr.HREPFST_OwnSettlementAmount || 0;
         acc.inst_settle += curr.hrepfsT_InstituteLSettlementAmount || curr.HREPFST_InstituteLSettlementAmount || 0;
-        acc.own_cb += curr.hrepfsT_OwnClosingBalance || curr.HREPFST_OwnClosingBalance || 0;
-        acc.inst_cb += curr.hrepfsT_InstituteClosingBalance || curr.HREPFST_InstituteClosingBalance || 0;
+        acc.own_cb += curr.hrepfsT_OwnClosingBalance || curr.hrepfsT_OwnClosingBalance || 0;
+        acc.inst_cb += curr.hrepfsT_InstituteClosingBalance || curr.hrepfsT_InstituteClosingBalance || 0;
         return acc;
       },
       {
@@ -184,7 +192,7 @@ export default function PFSummaryReport() {
         own_settle: 0, inst_settle: 0, own_cb: 0, inst_cb: 0
       }
     );
-  }, [reportData, selectedFlag]);
+  }, [reportData, watchedFlag]);
 
   return (
     <div className="container min-h-screen space-y-4 p-2 pt-4 md:p-4 animate-in fade-in duration-500">
@@ -198,11 +206,12 @@ export default function PFSummaryReport() {
             {/* Report Type Radio Group */}
             <Controller
               name="flag"
+              key={resetKey}
               control={control}
               render={({ field }) => (
                 <RadioGroup
                   onValueChange={field.onChange}
-                  defaultValue={field.value}
+                  value={field.value}
                   className="flex flex-wrap justify-center gap-8"
                 >
                   <div className="flex items-center space-x-2 bg-white px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer">
@@ -227,23 +236,26 @@ export default function PFSummaryReport() {
                 <Label className="block font-semibold text-slate-700">
                   Year <span className="text-destructive">*</span>
                 </Label>
-                <Controller
+                 <Controller
+                 key={resetKey}
                   name="year"
                   control={control}
                   render={({ field }) => (
                     <Select
                       {...field}
-                      value={field.value?.toString() ?? ""}
-                      onValueChange={(value) =>
-                        field.onChange(value ? Number(value) : undefined)
-                      }
+                      value={field.value ?? ""}
+                      onValueChange={(value) => field.onChange(value)}
+                      disabled={isLoadingYears}
                     >
                       <SelectTrigger>
-                        {field.value
-                          ? yearsData?.data?.find(
-                              (y: any) => y.imfY_Id === field.value,
-                            )?.hrmlY_LeaveYear
-                          : "Select Year"}
+                        {isLoadingYears
+                          ? "Loading years..."
+                          : field.value
+                            ? yearsData?.data?.find(
+                              (y: any) =>
+                                y.imfY_Id.toString() === field.value,
+                            )?.imfY_FinancialYear
+                            : "Select Year"}
                       </SelectTrigger>
                       <SelectContent>
                         {yearsData?.data?.map((year: any) => (
@@ -267,6 +279,8 @@ export default function PFSummaryReport() {
                   Employees <span className="text-destructive">*</span>
                 </Label>
                 <Controller
+                  key={resetKey}
+
                   name="employees"
                   control={control}
                   render={({ field }) => (
@@ -315,24 +329,24 @@ export default function PFSummaryReport() {
         <CollapsibleSection
           title="REPORT DETAILS"
           defaultOpen={true}
-          className="mt-6 border-none shadow-xl bg-white overflow-hidden rounded-xl"
+          className="border-none shadow-xl bg-white overflow-hidden rounded-xl"
         >
-          <div className="flex justify-end p-4 gap-3 border-b bg-slate-50/50 print:hidden">
+          <div className="flex justify-end px-4 gap-3 print:hidden ">
             <Button
               type="button"
-              variant="default"
-              className="gap-2 bg-indigo-600 hover:bg-indigo-700 shadow-md"
+              variant="destructive"
+              className="gap-2 shadow-md w-fit"
               onClick={handlePrint}
             >
-              <Printer className="h-4 w-4" /> Print
+              <Printer className="h-4 w-4 " /> Print
             </Button>
             <Button
               type="button"
-              variant="outline"
-              className="gap-2 border-emerald-500 text-emerald-700 hover:bg-emerald-50 shadow-sm"
+              variant="destructive"
+              className="gap-2 shadow-sm w-fit"
               onClick={handleExport}
             >
-              <Download className="h-4 w-4" /> Export
+              <Download className="h-4 w-4 " /> Export
             </Button>
           </div>
 
@@ -340,12 +354,12 @@ export default function PFSummaryReport() {
             {/* Header Section for Print */}
             <div className="text-center mb-8 space-y-1">
               <h1 className="text-2xl font-bold text-slate-900 uppercase tracking-tight">
-                {employeeDetails[0]?.mI_Name || "PF REPORT"}
+                {employeeDetails[0]?.mI_Name || "St. James' School"}
               </h1>
               <h2 className="text-lg font-semibold text-slate-600 uppercase">
-                {selectedFlag === "PFTotalReport" 
+                {watchedFlag === "PFTotalReport" 
                   ? "PF SUMMARY financial year" 
-                  : selectedFlag === "PFGrandTotalReport" 
+                  : watchedFlag === "PFGrandTotalReport" 
                     ? "PF GRAND TOTAL financial year" 
                     : "PF Statement for financial year"}
                 <br /> {financialYear}
@@ -353,7 +367,7 @@ export default function PFSummaryReport() {
             </div>
 
             {/* PF Summary Report Table */}
-            {selectedFlag === "PFTotalReport" && (
+            {watchedFlag === "PFTotalReport" && (
               <table className="w-full border-collapse text-sm">
                 <thead>
                   <tr className="bg-slate-100">
@@ -383,68 +397,68 @@ export default function PFSummaryReport() {
                 <tbody>
                   {reportData.map((user, idx) => (
                     <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                      <td className="border border-slate-300 p-2 text-left font-medium">
-                        {user.ivrM_Month_Name?.split('|')[1] || user.HRME_EmployeeFirstName}
+                      <td className="border border-slate-300 p-2 text-center font-medium">
+                        {user?.hrmE_EmployeeFirstName}
                       </td>
-                      <td className="border border-slate-300 p-2">{user.hrepfsT_OBOwnAmount || user.HREPFST_OBOwnAmount || 0}</td>
-                      <td className="border border-slate-300 p-2">{user.hrepfsT_OBInstituteAmount || user.HREPFST_OBInstituteAmount || 0}</td>
-                      <td className="border border-slate-300 p-2">{user.hrepfsT_OwnContribution || user.HREVPFST_Contribution || 0}</td>
-                      <td className="border border-slate-300 p-2">{user.hrepfsT_InstituteContribution || user.HREPFST_IntstituteContribution || 0}</td>
-                      <td className="border border-slate-300 p-2">{user.hrepfsT_OwnInterest || user.HREVPFST_Intersest || 0}</td>
-                      <td className="border border-slate-300 p-2">{user.hrepfsT_InstituteInterest || user.HREPFST_InstituteInterest || 0}</td>
-                      <td className="border border-slate-300 p-2">{user.own_GRANDTOTAL || user.OWN_GRANDTOTAL || 0}</td>
-                      <td className="border border-slate-300 p-2">{user.inst_GRANDTOTAL || user.INST_GRANDTOTAL || 0}</td>
-                      <td className="border border-slate-300 p-2">{user.hrepfsT_OwnSettlementAmount || user.HREPFST_OwnSettlementAmount || 0}</td>
-                      <td className="border border-slate-300 p-2">{user.hrepfsT_InstituteLSettlementAmount || user.HREPFST_InstituteLSettlementAmount || 0}</td>
-                      <td className="border border-slate-300 p-2 font-bold text-indigo-700">{user.hrepfsT_OwnClosingBalance || user.HREPFST_OwnClosingBalance || 0}</td>
-                      <td className="border border-slate-300 p-2 font-bold text-indigo-700">{user.hrepfsT_InstituteClosingBalance || user.HREPFST_InstituteClosingBalance || 0}</td>
+                      <td className="border border-slate-300 p-2 text-center">{user.hrepfsT_OBOwnAmount || user.HREPFST_OBOwnAmount || 0}</td>
+                      <td className="border border-slate-300 p-2 text-center">{user.hrepfsT_OBInstituteAmount || user.HREPFST_OBInstituteAmount || 0}</td>
+                      <td className="border border-slate-300 p-2 text-center">{user.hrepfsT_OwnContribution || user.HREVPFST_Contribution || 0}</td>
+                      <td className="border border-slate-300 p-2 text-center">{user.hrepfsT_InstituteContribution || user.HREPFST_IntstituteContribution || 0}</td>
+                      <td className="border border-slate-300 p-2 text-center">{user.hrepfsT_OwnInterest || user.HREVPFST_Intersest || 0}</td>
+                      <td className="border border-slate-300 p-2 text-center">{user.hrepfsT_InstituteInterest || user.HREPFST_InstituteInterest || 0}</td>
+                      <td className="border border-slate-300 p-2 text-center">{user.own_GrandTotal || user.OWN_GRANDTOTAL || 0}</td>
+                      <td className="border border-slate-300 p-2 text-center">{user.inst_GrandTotal || user.INST_GRANDTOTAL || 0}</td>
+                      <td className="border border-slate-300 p-2 text-center">{user.hrepfsT_OwnSettlementAmount || user.HREPFST_OwnSettlementAmount || 0}</td>
+                      <td className="border border-slate-300 p-2 text-center">{user.hrepfsT_InstituteLSettlementAmount || user.hrepfsT_InstituteLSettlementAmount || 0}</td>
+                      <td className="border border-slate-300 p-2 text-center">{user.hrepfsT_OwnClosingBalance || user.hrepfsT_OwnClosingBalance || 0}</td>
+                      <td className="border border-slate-300 p-2 text-center">{user.hrepfsT_InstituteClosingBalance || user.hrepfsT_InstituteClosingBalance || 0}</td>
                     </tr>
                   ))}
                 </tbody>
                 <tfoot className="bg-slate-100 font-bold">
                   <tr>
                     <td className="border border-slate-300 p-2 text-center uppercase">Grand Total</td>
-                    <td className="border border-slate-300 p-2">{totals?.own_ob}</td>
-                    <td className="border border-slate-300 p-2">{totals?.inst_ob}</td>
-                    <td className="border border-slate-300 p-2">{totals?.own_cont}</td>
-                    <td className="border border-slate-300 p-2">{totals?.inst_cont}</td>
-                    <td className="border border-slate-300 p-2">{totals?.own_int}</td>
-                    <td className="border border-slate-300 p-2">{totals?.inst_int}</td>
-                    <td className="border border-slate-300 p-2">{totals?.own_total}</td>
-                    <td className="border border-slate-300 p-2">{totals?.inst_total}</td>
-                    <td className="border border-slate-300 p-2">{totals?.own_settle}</td>
-                    <td className="border border-slate-300 p-2">{totals?.inst_settle}</td>
-                    <td className="border border-slate-300 p-2 italic">{totals?.own_cb}</td>
-                    <td className="border border-slate-300 p-2 italic">{totals?.inst_cb}</td>
+                    <td className="border border-slate-300 p-2 text-center">{totals?.own_ob}</td>
+                    <td className="border border-slate-300 p-2 text-center">{totals?.inst_ob}</td>
+                    <td className="border border-slate-300 p-2 text-center">{totals?.own_cont}</td>
+                    <td className="border border-slate-300 p-2 text-center">{totals?.inst_cont}</td>
+                    <td className="border border-slate-300 p-2 text-center">{totals?.own_int}</td>
+                    <td className="border border-slate-300 p-2 text-center">{totals?.inst_int}</td>
+                    <td className="border border-slate-300 p-2 text-center">{totals?.own_total}</td>
+                    <td className="border border-slate-300 p-2 text-center">{totals?.inst_total}</td>
+                    <td className="border border-slate-300 p-2 text-center">{totals?.own_settle}</td>
+                    <td className="border border-slate-300 p-2 text-center">{totals?.inst_settle}</td>
+                    <td className="border border-slate-300 p-2 text-center">{totals?.own_cb}</td>
+                    <td className="border border-slate-300 p-2 text-center">{totals?.inst_cb}</td>
                   </tr>
                 </tfoot>
               </table>
             )}
 
             {/* PF Grand Total Report Table */}
-            {selectedFlag === "PFGrandTotalReport" && (
-              <table className="w-full max-w-2xl mx-auto border-collapse text-sm shadow-sm ring-1 ring-slate-200 rounded-lg overflow-hidden">
-                <thead className="bg-slate-800 text-white">
+            {watchedFlag === "PFGrandTotalReport" && (
+              <table className="w-full mx-auto text-sm shadow-sm ring-1 ring-slate-200 rounded-lg ">
+                <thead >
                   <tr>
-                    <th className="p-3 text-left">Category</th>
-                    <th className="p-3">Own Total</th>
-                    <th className="p-3">School Total</th>
+                    <th className="p-3 text-center border border-slate-300">Category</th>
+                    <th className="p-3 text-center border border-slate-300">Own Total</th>
+                    <th className="p-3 text-center border border-slate-300">School Total</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200">
+                <tbody >
                   {[
-                    { label: "OPENING BALANCE", own: "hrepfsT_OBOwnAmount", inst: "hrepfsT_OBInstituteAmount" },
-                    { label: "PF CONTRIBUTION", own: "hrepfsT_OwnContribution", inst: "hrepfsT_InstituteContribution" },
-                    { label: "PF TRANSFER", own: "hrepfsT_OwnTransferAmount", inst: "hrepfsT_InstituteTransferAmount" },
-                    { label: "INTEREST", own: "hrepfsT_OwnInterest", inst: "hrepfsT_InstituteInterest" },
-                    { label: "NON REFUNDABLE LOAN", own: "hrepfsT_OwnWithdrwanAmount", inst: "hrepfsT_InstituteWithdrawnAmount" },
-                    { label: "SETTLEMENT", own: "hrepfsT_OwnSettlementAmount", inst: "hrepfsT_InstituteLSettlementAmount" },
-                    { label: "CLOSING BALANCE", own: "hrepfsT_OwnClosingBalance", inst: "hrepfsT_InstituteClosingBalance" },
-                  ].map((row, idx) => (
-                    <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50"}>
-                      <td className="p-3 font-semibold text-slate-700">{row.label}</td>
-                      <td className="p-3 text-center">{reportData[0]?.[row.own] || 0}</td>
-                      <td className="p-3 text-center">{reportData[0]?.[row.inst] || 0}</td>
+                    { label: "OPENING BALANCE", own: "hrepfsT_OBOwnAmount", altOwn: "HREPFST_OBOwnAmount", inst: "hrepfsT_OBInstituteAmount", altInst: "HREPFST_OBInstituteAmount" },
+                    { label: "PF CONTRIBUTION", own: "hrepfsT_OwnContribution", altOwn: "HREPFST_Contribution", inst: "hrepfsT_InstituteContribution", altInst: "HREPFST_IntstituteContribution" },
+                    { label: "PF TRANSFER", own: "hrepfsT_OwnTransferAmount", altOwn: "HREPFST_OwnTransferAmount", inst: "hrepfsT_InstituteTransferAmount", altInst: "HREPFST_InstituteTransferAmount" },
+                    { label: "INTEREST", own: "hrepfsT_OwnInterest", altOwn: "HREVPFST_Intersest", inst: "hrepfsT_InstituteInterest", altInst: "HREPFST_InstituteInterest" },
+                    { label: "NON REFUNDABLE LOAN", own: "hrepfsT_OwnWithdrwanAmount", altOwn: "HREPFST_OwnWithdrawnAmount", inst: "hrepfsT_InstituteWithdrawnAmount", altInst: "HREPFST_InstituteWithdrawnAmount" },
+                    { label: "SETTLEMENT", own: "hrepfsT_OwnSettlementAmount", altOwn: "HREPFST_OwnSettlementAmount", inst: "hrepfsT_InstituteLSettlementAmount", altInst: "HREPFST_InstituteLSettlementAmount" },
+                    { label: "CLOSING BALANCE", own: "hrepfsT_OwnClosingBalance", altOwn: "HREPFST_OwnClosingBalance", inst: "hrepfsT_InstituteClosingBalance", altInst: "HREPFST_InstituteClosingBalance" },
+                  ].map((row: any, idx) => (
+                    <tr key={idx} >
+                      <td className="p-3 font-semibold border border-slate-300">{row.label}</td>
+                      <td className="p-3 text-center border border-slate-300">{reportData[0]?.[row.own] || reportData[0]?.[row.altOwn] || 0}</td>
+                      <td className="p-3 text-center border border-slate-300">{reportData[0]?.[row.inst] || reportData[0]?.[row.altInst] || 0}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -452,7 +466,7 @@ export default function PFSummaryReport() {
             )}
 
             {/* PF Statement Report Table */}
-            {selectedFlag === "PFStatementReport" && (
+            {watchedFlag === "PFStatementReport" && (
               <table className="w-full border-collapse text-sm">
                 <thead className="bg-slate-100">
                   <tr>
@@ -468,7 +482,7 @@ export default function PFSummaryReport() {
                     <tr key={idx} className="hover:bg-slate-50">
                       <td className="border border-slate-300 p-3 text-center">{idx + 1}</td>
                       <td className="border border-slate-300 p-3 text-left font-medium">
-                        {item.ivrM_Month_Name?.split('|')[1] || item.HRME_EmployeeFirstName}
+                        {item?.hrmE_EmployeeFirstName}
                       </td>
                       <td className="border border-slate-300 p-3 text-center">{item.hrmE_PFAccNo || item.HRME_PFAccNo}</td>
                       <td className="border border-slate-300 p-3 text-center">{item.hrmE_EmployeeOrder || item.HRME_EmployeeOrder || idx + 1}</td>
