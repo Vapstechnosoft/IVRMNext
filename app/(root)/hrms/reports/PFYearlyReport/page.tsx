@@ -394,7 +394,7 @@ export default function PFYearlyReport() {
                               <td className="text-left">
                                 {row.ivrM_Month_Name || "-"}
                               </td>
-                              <td className="text-right">
+                              <td className="text-left">
                                 {row.hrepfsT_OwnContribution > 0
                                   ? row.hrepfsT_OwnContribution.toLocaleString(
                                     undefined,
@@ -403,20 +403,20 @@ export default function PFYearlyReport() {
                                       maximumFractionDigits: 2,
                                     },
                                   )
-                                  : ""}
+                                  : "0.00"}
                               </td>
-                              <td className="text-right">
-                                {row.hrepfsT_IntstituteContribution > 0
-                                  ? row.hrepfsT_IntstituteContribution.toLocaleString(
+                              <td className="text-left">
+                                {row.hrepfsT_InstituteContribution > 0
+                                  ? row.hrepfsT_InstituteContribution.toLocaleString(
                                     undefined,
                                     {
                                       minimumFractionDigits: 2,
                                       maximumFractionDigits: 2,
                                     },
                                   )
-                                  : ""}
+                                  : "0.00"}
                               </td>
-                              <td className="text-right">
+                              <td className="text-left">
                                 {row.hrepfsT_OwnInterest > 0
                                   ? row.hrepfsT_OwnInterest.toLocaleString(
                                     undefined,
@@ -425,9 +425,9 @@ export default function PFYearlyReport() {
                                       maximumFractionDigits: 2,
                                     },
                                   )
-                                  : ""}
+                                  : "0.00"}
                               </td>
-                              <td className="text-right">
+                              <td className="text-left">
                                 {row.hrepfsT_InstituteInterest > 0
                                   ? row.hrepfsT_InstituteInterest.toLocaleString(
                                     undefined,
@@ -436,7 +436,7 @@ export default function PFYearlyReport() {
                                       maximumFractionDigits: 2,
                                     },
                                   )
-                                  : ""}
+                                  : "0.00"}
                               </td>
                             </tr>
                           ))}
