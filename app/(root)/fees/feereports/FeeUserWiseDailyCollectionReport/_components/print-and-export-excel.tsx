@@ -10,7 +10,7 @@ export function printTable(tableId: string) {
     printWindow.document.write(`
         <html>
         <head>
-            <title>Print Report</title>
+            <title></title>
             <style>
                 body { font-family: Arial; }
                 table { width: 100%; border-collapse: collapse; }
@@ -20,7 +20,7 @@ export function printTable(tableId: string) {
             </style>
         </head>
         <body>
-            <h3>Fee UserWise Daily Collection Report</h3>
+            <h3 style='text-align: center;'>Fee UserWise Daily Collection Report</h3>
             ${table.outerHTML}
         </body>
         </html>
@@ -38,27 +38,27 @@ export function exportToExcel(data: any, fileName: string) {
     if (data.studentWise) {
         worksheetData = data.studentWise.map((item: any) => ({
             'Sl No': '',
-            'Student Name': item.Student_Name,
-            'Admission No': item.Admission_No,
-            'Class Name': item.ClassName,
-            'Section Name': item.SectionName,
-            Date: item.Date,
-            'Mode Of Payment': item.ModeOfPayment,
-            'Bank Name': item.BankName,
-            'Cheque No': item.DD_OR_CHeque_No,
-            'Head Name': item.FMH_FeeName,
-            Amount: item.Amount,
-            'Receipt No': item.Receipt_No,
-            GeneratedBy: item.GeneratedBy
+            'Student Name': item.studentName,
+            'Admission No': item.admissionNo,
+            'Class Name': item.className,
+            'Section Name': item.sectionName,
+            Date: item.date ? item.date.split('T')[0] : '',
+            'Mode Of Payment': item.modeOfPayment,
+            'Bank Name': item.bankName,
+            'Cheque No': item.ddOrChequeNo,
+            'Head Name': item.fmhFeeName,
+            Amount: item.amount || item.totalAmount || 0,
+            'Receipt No': item.receiptNo,
+            GeneratedBy: item.generatedBy
         }));
     } else if (data.totalCollection) {
         worksheetData = data.totalCollection.map((item: any) => ({
             'Sl No': '',
-            Date: item.Date,
-            'Mode Of Payment': item.ModeOfPayment,
-            'Total Amount': item.totalAmount,
-            'Receipt No': item.Receipt_No,
-            GeneratedBy: item.GeneratedBy
+            Date: item.date ? item.date.split('T')[0] : '',
+            'Mode Of Payment': item.modeOfPayment,
+            'Total Amount': item.totalAmount || 0,
+            'Receipt No': item.receiptNo,
+            GeneratedBy: item.generatedBy
         }));
     }
 

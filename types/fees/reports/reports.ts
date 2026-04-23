@@ -571,28 +571,20 @@ export interface IFeeTrailAuditReportforExcel {
 }
 
 export interface FeeUserWiseDailyCollectionData {
-    totalRecords?: number;
-    totalAmount?: number;
-    totalReceipts?: number;
-    studentWise?: {
-        Student_Name: string;
-        Admission_No: string;
-        ClassName: string;
-        SectionName: string;
-        Date: string;
-        ModeOfPayment: string;
-        BankName: string;
-        DD_OR_CHeque_No: string;
-        FMH_FeeName: string;
-        Amount: number;
-        Receipt_No: string;
-        GeneratedBy: string;
-    }[];
-    totalCollection?: {
-        Date: string;
-        ModeOfPayment: string;
-        totalAmount: number;
-        Receipt_No: string;
-        GeneratedBy: string;
-    }[];
+    studentName: string;
+    admissionNo: string;
+    className: string;
+    sectionName: string;
+    date: string;
+    modeOfPayment: string;
+    bankName: string;
+    ddOrChequeNo: string;
+    amount: number;
+    receiptNo: string;
+    generatedBy: string;
+    fmhFeeName: string;
+    fmgGroupName: string;
+    userId: string;
+    totalAmount: number;
+    receiptCount: number;
 }

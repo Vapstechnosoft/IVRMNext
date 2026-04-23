@@ -1902,6 +1902,14 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/feereports/feeIncomeTax_Report',
                                             title: 'Fee IncomeTax Report',
                                             description: 'Manage Fee IncomeTax Report Details'
+                                        },
+                                        {
+                                            id: 10029,
+                                            name: 'Fee User Wise Daily Collection Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/FeeUserWiseDailyCollectionReport',
+                                            title: 'Fee User Wise Daily Collection Report',
+                                            description: 'Manage Fee User Wise Daily Collection Report Details'
                                         }
                                     ]
                                 }

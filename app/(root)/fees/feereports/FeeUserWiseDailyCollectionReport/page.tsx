@@ -35,10 +35,10 @@ const today = new Date();
 export default function FeeUserWiseDailyCollectionReport() {
     const [loading, setLoading] = useState(false);
     const [showReport, setShowReport] = useState(false);
-    const [reportData, setReportData] = useState<FeeUserWiseDailyCollectionData | null>(null);
+    const [reportData, setReportData] = useState<FeeUserWiseDailyCollectionData[] | null>(null);
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [searchString, setSearchString] = useState('');
-    const [filteredData, setFilteredData] = useState<FeeUserWiseDailyCollectionData | null>(null);
+    const [filteredData, setFilteredData] = useState<FeeUserWiseDailyCollectionData[] | null>(null);
 
     const {
         control,
@@ -119,7 +119,7 @@ export default function FeeUserWiseDailyCollectionReport() {
                 all_ListData: data.groupIds.map((id) => {
                     const selectedGroup = feeGroups.find((group) => group.value === id.toString());
                     return {
-                        columnID: id,
+                        columnID: id.toString(),
                         columnName: selectedGroup ? selectedGroup.label : 'Group',
                         fmG_Id: id
                     };
@@ -129,11 +129,11 @@ export default function FeeUserWiseDailyCollectionReport() {
             console.log('payload', payload);
 
             const response: any = await generateReportAsync(payload as any);
-            const responseData = Array.isArray(response?.data) && response.data.length > 0 ? response.data[0] : response?.data;
+            const responseData = Array.isArray(response?.data) ? response.data : [];
 
             console.log('response', responseData);
 
-            if (responseData && (responseData.studentWise?.length > 0 || responseData.totalCollection?.length > 0)) {
+            if (responseData && responseData.length > 0) {
                 setReportData(responseData);
                 setShowReport(true);
                 toast.success('Report generated successfully');
@@ -154,11 +154,7 @@ export default function FeeUserWiseDailyCollectionReport() {
     const handleSelectAll = (checked: boolean) => {
         const activeData = filteredData || reportData;
         if (checked && activeData) {
-            if (watch('type') === 'STW' && activeData.studentWise) {
-                setSelectedIds(activeData.studentWise.map((_, index) => index));
-            } else if (watch('type') === 'TCW' && activeData.totalCollection) {
-                setSelectedIds(activeData.totalCollection.map((_, index) => index));
-            }
+            setSelectedIds(activeData.map((_, index) => index));
         } else {
             setSelectedIds([]);
         }
@@ -181,12 +177,11 @@ export default function FeeUserWiseDailyCollectionReport() {
             return;
         }
 
+        const items = activeData.filter((_, idx: number) => selectedIds.includes(idx));
         let exportData: any = {};
-        if (watch('type') === 'STW' && activeData.studentWise) {
-            const items = activeData.studentWise.filter((_: any, idx: number) => selectedIds.includes(idx));
+        if (result === 'STW') {
             exportData = { studentWise: items };
-        } else if (watch('type') === 'TCW' && activeData.totalCollection) {
-            const items = activeData.totalCollection.filter((_: any, idx: number) => selectedIds.includes(idx));
+        } else if (result === 'TCW') {
             exportData = { totalCollection: items };
         }
 
@@ -211,34 +206,29 @@ export default function FeeUserWiseDailyCollectionReport() {
     useEffect(() => {
         if (searchString.trim() !== '') {
             if (reportData) {
-                const filtered = { ...reportData };
-                if (watch('type') === 'STW' && reportData.studentWise) {
-                    filtered.studentWise = reportData.studentWise.filter(
+                if (result === 'STW') {
+                    const filtered = reportData.filter(
                         (item) =>
-                            item.Student_Name.toLowerCase().includes(searchString.toLowerCase()) ||
-                            item.Admission_No.toLowerCase().includes(searchString.toLowerCase()) ||
-                            item.ClassName.toLowerCase().includes(searchString.toLowerCase()) ||
-                            item.SectionName.toLowerCase().includes(searchString.toLowerCase()) ||
-                            item.ModeOfPayment.toLowerCase().includes(searchString.toLowerCase()) ||
-                            item.FMH_FeeName.toLowerCase().includes(searchString.toLowerCase()) ||
-                            item.Receipt_No.toLowerCase().includes(searchString.toLowerCase()) ||
-                            item.GeneratedBy.toLowerCase().includes(searchString.toLowerCase())
+                            (item.studentName || '').toLowerCase().includes(searchString.toLowerCase()) ||
+                            (item.admissionNo || '').toLowerCase().includes(searchString.toLowerCase()) ||
+                            (item.className || '').toLowerCase().includes(searchString.toLowerCase()) ||
+                            (item.sectionName || '').toLowerCase().includes(searchString.toLowerCase()) ||
+                            (item.modeOfPayment || '').toLowerCase().includes(searchString.toLowerCase()) ||
+                            (item.fmhFeeName || '').toLowerCase().includes(searchString.toLowerCase()) ||
+                            (item.receiptNo || '').toLowerCase().includes(searchString.toLowerCase()) ||
+                            (item.generatedBy || '').toLowerCase().includes(searchString.toLowerCase())
                     );
-                    filtered.totalRecords = filtered.studentWise.length;
-                    filtered.totalAmount = filtered.studentWise.reduce((sum, item) => sum + item.Amount, 0);
-                } else if (watch('type') === 'TCW' && reportData.totalCollection) {
-                    filtered.totalCollection = reportData.totalCollection.filter(
+                    setFilteredData(filtered);
+                } else if (result === 'TCW') {
+                    const filtered = reportData.filter(
                         (item) =>
-                            item.ModeOfPayment.toLowerCase().includes(searchString.toLowerCase()) ||
-                            item.Receipt_No.toLowerCase().includes(searchString.toLowerCase()) ||
-                            item.GeneratedBy.toLowerCase().includes(searchString.toLowerCase()) ||
-                            item.Date.includes(searchString)
+                            (item.modeOfPayment || '').toLowerCase().includes(searchString.toLowerCase()) ||
+                            (item.receiptNo || '').toLowerCase().includes(searchString.toLowerCase()) ||
+                            (item.generatedBy || '').toLowerCase().includes(searchString.toLowerCase()) ||
+                            (item.date || '').includes(searchString)
                     );
-                    filtered.totalRecords = filtered.totalCollection.length;
-                    filtered.totalAmount = filtered.totalCollection.reduce((sum, item) => sum + item.totalAmount, 0);
-                    filtered.totalReceipts = filtered.totalCollection.length;
+                    setFilteredData(filtered);
                 }
-                setFilteredData(filtered);
             }
         } else {
             setFilteredData(reportData);
@@ -416,13 +406,13 @@ export default function FeeUserWiseDailyCollectionReport() {
                     <div className='space-y-4'>
                         <div className='flex items-center justify-between'>
                             <div>
-                                <strong>Total Grid Records:</strong> {reportData.totalRecords}
+                                <strong>Total Grid Records:</strong> {activeData?.length || 0}
                             </div>
                             <div>
                                 <input
                                     type='text'
                                     placeholder='Search here...'
-                                    className='rounded border px-3 py-2'
+                                    className='rounded px-3 py-2'
                                     onChange={(e) => setSearchString(e.target.value)}
                                 />
                             </div>
@@ -430,36 +420,33 @@ export default function FeeUserWiseDailyCollectionReport() {
 
                         {watch('type') === 'STW' ? (
                             <Table id='report-table'>
-                                <TableHeader className='border bg-violet-600'>
+                                <TableHeader className='w-full border bg-violet-600'>
                                     <TableRow>
                                         <TableHead className='border text-white '>
                                             <input
                                                 type='checkbox'
-                                                checked={
-                                                    Boolean(activeData?.studentWise?.length) &&
-                                                    selectedIds.length === activeData?.studentWise?.length
-                                                }
+                                                checked={Boolean(activeData?.length) && selectedIds.length === activeData?.length}
                                                 onChange={(e) => handleSelectAll(e.target.checked)}
                                                 className='border-white bg-white text-white'
                                             />
                                         </TableHead>
-                                        <TableHead className='border text-white'>Sl No</TableHead>
-                                        <TableHead className='border text-white'>Student Name</TableHead>
-                                        <TableHead className='border text-white'>Admission No</TableHead>
-                                        <TableHead className='border text-white'>Class Name</TableHead>
-                                        <TableHead className='border text-white'>Section Name</TableHead>
-                                        <TableHead className='border text-white'>Date</TableHead>
-                                        <TableHead className='border text-white'>Mode Of Payment</TableHead>
-                                        <TableHead className='border text-white'>Bank Name</TableHead>
-                                        <TableHead className='border text-white'>Cheque No</TableHead>
-                                        <TableHead className='border text-white'>Head Name</TableHead>
-                                        <TableHead className='border text-white'>Amount</TableHead>
-                                        <TableHead className='border text-white'>Receipt No</TableHead>
-                                        <TableHead className='border text-white'>GeneratedBy</TableHead>
+                                        <TableHead className='w-fit border text-white'>Sl No</TableHead>
+                                        <TableHead className='w-fit border text-white'>Student Name</TableHead>
+                                        <TableHead className='w-fit border text-white'>Admission No</TableHead>
+                                        <TableHead className='w-fit border text-white'>Class Name</TableHead>
+                                        <TableHead className='w-fit border text-white'>Section Name</TableHead>
+                                        <TableHead className='w-fit min-w-[120px] whitespace-nowrap border text-white'>Date</TableHead>
+                                        <TableHead className='w-fit border text-white'>Mode Of Payment</TableHead>
+                                        <TableHead className='w-fit border text-white'>Bank Name</TableHead>
+                                        <TableHead className='w-fit border text-white'>Cheque No</TableHead>
+                                        <TableHead className='w-fit border text-white'>Head Name</TableHead>
+                                        <TableHead className='w-fit border text-white'>Amount</TableHead>
+                                        <TableHead className='w-fit border text-white'>Receipt No</TableHead>
+                                        <TableHead className='w-fit border text-white'>GeneratedBy</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {activeData?.studentWise?.map((item, index) => (
+                                    {activeData?.map((item, index) => (
                                         <TableRow key={index} className={!selectedIds.includes(index) ? 'no-print' : ''}>
                                             <TableCell className='border'>
                                                 <input
@@ -469,18 +456,20 @@ export default function FeeUserWiseDailyCollectionReport() {
                                                 />
                                             </TableCell>
                                             <TableCell className='w-fit border '>{index + 1}</TableCell>
-                                            <TableCell className='w-fit border'>{item.Student_Name}</TableCell>
-                                            <TableCell className='w-fit border'>{item.Admission_No}</TableCell>
-                                            <TableCell className='w-fit border'>{item.ClassName}</TableCell>
-                                            <TableCell className='w-fit border'>{item.SectionName}</TableCell>
-                                            <TableCell className='w-[120px] border'>{item.Date}</TableCell>
-                                            <TableCell className='w-fit border'>{item.ModeOfPayment}</TableCell>
-                                            <TableCell className='w-fit border'>{item.BankName}</TableCell>
-                                            <TableCell className='w-fit border'>{item.DD_OR_CHeque_No}</TableCell>
-                                            <TableCell className='w-fit border'>{item.FMH_FeeName}</TableCell>
-                                            <TableCell className='w-fit border'>{item.Amount}</TableCell>
-                                            <TableCell className='w-fit border'>{item.Receipt_No}</TableCell>
-                                            <TableCell className='w-fit border'>{item.GeneratedBy}</TableCell>
+                                            <TableCell className='w-fit border'>{item.studentName}</TableCell>
+                                            <TableCell className='w-fit border'>{item.admissionNo}</TableCell>
+                                            <TableCell className='w-fit border'>{item.className}</TableCell>
+                                            <TableCell className='w-fit border'>{item.sectionName}</TableCell>
+                                            <TableCell className='w-fit min-w-[120px] whitespace-nowrap border'>
+                                                {item.date ? item.date.split('T')[0] : ''}
+                                            </TableCell>
+                                            <TableCell className='w-fit border'>{item.modeOfPayment}</TableCell>
+                                            <TableCell className='w-fit border'>{item.bankName}</TableCell>
+                                            <TableCell className='w-fit border'>{item.ddOrChequeNo}</TableCell>
+                                            <TableCell className='w-fit border'>{item.fmhFeeName}</TableCell>
+                                            <TableCell className='w-fit border'>{item.amount || item.totalAmount}</TableCell>
+                                            <TableCell className='w-fit border'>{item.receiptNo}</TableCell>
+                                            <TableCell className='w-fit border'>{item.generatedBy}</TableCell>
                                         </TableRow>
                                     ))}
                                     <TableRow className='no-print border'>
@@ -488,7 +477,9 @@ export default function FeeUserWiseDailyCollectionReport() {
                                             <strong>Total</strong>
                                         </TableCell>
                                         <TableCell colSpan={3} className='border text-center'>
-                                            <strong>{activeData?.totalAmount}</strong>
+                                            <strong>
+                                                {activeData?.reduce((sum, item) => sum + (item.amount || item.totalAmount || 0), 0)}
+                                            </strong>
                                         </TableCell>
                                     </TableRow>
                                 </TableBody>
@@ -500,24 +491,21 @@ export default function FeeUserWiseDailyCollectionReport() {
                                         <TableHead>
                                             <input
                                                 type='checkbox'
-                                                checked={
-                                                    Boolean(activeData?.totalCollection?.length) &&
-                                                    selectedIds.length === activeData?.totalCollection?.length
-                                                }
+                                                checked={Boolean(activeData?.length) && selectedIds.length === activeData?.length}
                                                 onChange={(e) => handleSelectAll(e.target.checked)}
                                                 className='border-white bg-white text-white'
                                             />
                                         </TableHead>
-                                        <TableHead className='border'>Sl No</TableHead>
-                                        <TableHead className='border'>Date</TableHead>
-                                        <TableHead className='border'>Mode Of Payment</TableHead>
-                                        <TableHead className='border'>Total Amount</TableHead>
-                                        <TableHead className='border'>Receipt No</TableHead>
-                                        <TableHead className='border'>GeneratedBy</TableHead>
+                                        <TableHead className='border text-white'>Sl No</TableHead>
+                                        <TableHead className='min-w-[120px] whitespace-nowrap border text-white'>Date</TableHead>
+                                        <TableHead className='border text-white'>Mode Of Payment</TableHead>
+                                        <TableHead className='border text-white'>Total Amount</TableHead>
+                                        <TableHead className='border text-white'>Receipt No</TableHead>
+                                        <TableHead className='border text-white'>GeneratedBy</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {activeData?.totalCollection?.map((item, index) => (
+                                    {activeData?.map((item, index) => (
                                         <TableRow key={index} className={!selectedIds.includes(index) ? 'no-print' : ''}>
                                             <TableCell>
                                                 <input
@@ -527,21 +515,27 @@ export default function FeeUserWiseDailyCollectionReport() {
                                                 />
                                             </TableCell>
                                             <TableCell className='border'>{index + 1}</TableCell>
-                                            <TableCell className='border'>{item.Date}</TableCell>
-                                            <TableCell className='border'>{item.ModeOfPayment}</TableCell>
-                                            <TableCell className='border'>{item.totalAmount}</TableCell>
-                                            <TableCell className='border'>{item.Receipt_No}</TableCell>
-                                            <TableCell className='border'>{item.GeneratedBy}</TableCell>
+                                            <TableCell className='min-w-[120px] whitespace-nowrap border'>
+                                                {item.date ? item.date.split('T')[0] : ''}
+                                            </TableCell>
+                                            <TableCell className='border'>{item.modeOfPayment}</TableCell>
+                                            <TableCell className='border'>{item.amount || item.totalAmount}</TableCell>
+                                            <TableCell className='border'>{item.receiptCount}</TableCell>
+                                            <TableCell className='border'>{item.generatedBy}</TableCell>
                                         </TableRow>
                                     ))}
                                     <TableRow className='no-print'>
                                         <TableCell colSpan={4} className='border'>
                                             <strong>Total</strong>
                                         </TableCell>
-                                        <TableCell colSpan={3} className='border'>
-                                            <strong>{activeData?.totalAmount}</strong>
+                                        <TableCell colSpan={1} className='border'>
+                                            <strong>
+                                                {activeData?.reduce((sum, item) => sum + (item.amount || item.totalAmount || 0), 0)}
+                                            </strong>
                                         </TableCell>
-                                        {/* <TableCell className='border'><strong>{activeData?.totalReceipts}</strong></TableCell> */}
+                                        <TableCell colSpan={2} className='border'>
+                                            <strong>{activeData?.reduce((sum, item) => sum + (item.receiptCount || 0), 0)}</strong>
+                                        </TableCell>
                                     </TableRow>
                                 </TableBody>
                             </Table>
