@@ -1101,14 +1101,14 @@ export async function getUserAccessibleModules() {
                                     name: 'St. Thomas Church School',
                                     icon: 'Settings',
                                     pages: [
-                                        // {
-                                        //     id: 61,
-                                        //     name: 'St. Thomas Admission Form',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/stthomas/admission-form',
-                                        //     title: 'St. Thomas Admission Form',
-                                        //     description: 'St. Thomas Admission Form'
-                                        // },
+                                        {
+                                            id: 61,
+                                            name: 'St. Thomas Admission Form',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/stthomas/admission-form',
+                                            title: 'St. Thomas Admission Form',
+                                            description: 'St. Thomas Admission Form'
+                                        },
                                         {
                                             id: 62,
                                             name: 'Total Strength',
@@ -1206,14 +1206,14 @@ export async function getUserAccessibleModules() {
                                     name: 'St. Peters School Durgapur',
                                     icon: 'Settings',
                                     pages: [
-                                        // {
-                                        //     id: 74,
-                                        //     name: 'Employee IDcard Report STpeter',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/stpeter/reports/EmployeeIDcardReportSTpeter',
-                                        //     title: 'EmployeeIDcardReportSTpeter',
-                                        //     description: 'EmployeeIDcardReportSTpeter'
-                                        // },
+                                        {
+                                            id: 74,
+                                            name: 'Employee IDcard Report STpeter',
+                                            icon: 'Settings',
+                                            url: '/admission/stpeter/reports/EmployeeIDcardReportSTpeter',
+                                            title: 'EmployeeIDcardReportSTpeter',
+                                            description: 'EmployeeIDcardReportSTpeter'
+                                        },
 
                                         {
                                             id: 75,
