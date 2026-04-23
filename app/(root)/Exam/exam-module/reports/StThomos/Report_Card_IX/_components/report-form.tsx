@@ -48,7 +48,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     // Loading States
     const [loadingClasses, setLoadingClasses] = useState(false);
     const [loadingSections, setLoadingSections] = useState(false);
-    const [loadingStudents, setLoadingStudents] = useState(false);
+    const [_loadingStudents, setLoadingStudents] = useState(false);
 
     const methods = useForm<ReportCardIXSchema>({
         resolver: zodResolver(reportCardIXSchema),
@@ -67,7 +67,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     const watchYear = useWatch({ control, name: 'ASMAY_Id' });
     const watchClass = useWatch({ control, name: 'ASMCL_Id' });
     const watchSection = useWatch({ control, name: 'ASMS_Id' });
-    const watchSelectedStudents = useWatch({ control, name: 'selectedStudents' });
+    const _watchSelectedStudents = useWatch({ control, name: 'selectedStudents' });
 
     // Load Classes
     useEffect(() => {
@@ -121,17 +121,17 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                 );
                 const valid = Array.isArray(data)
                     ? (data as any[]).filter(
-                          (
-                              s
-                          ): s is {
-                              amsT_AdmNo: number;
-                              amsT_Id: number;
-                              studentName?: string;
-                              amsT_FirstName?: string;
-                              amsT_MiddleName?: string;
-                              amsT_LastName?: string;
-                          } => !!s?.amsT_Id
-                      )
+                        (
+                            s
+                        ): s is {
+                            amsT_AdmNo: number;
+                            amsT_Id: number;
+                            studentName?: string;
+                            amsT_FirstName?: string;
+                            amsT_MiddleName?: string;
+                            amsT_LastName?: string;
+                        } => !!s?.amsT_Id
+                    )
                     : [];
 
                 const mappedStudents = valid.map((s) => ({
@@ -181,8 +181,6 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
             exmname: data.exmname,
             brngroup: data.brngroup
         };
-
-        console.log('Report Card IX payload:', payload);
         try {
             const [result, institutionRes] = await Promise.all([getReportDetails(payload), getMasterInstitution()]);
             const enrichedParams = {

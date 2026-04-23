@@ -108,7 +108,7 @@ export default function GDARSStudyCertificatePage() {
             const res = await detailsMutation.mutateAsync(payload);
             console.log("Report Response:", res);
             const reportResult = res?.data || res;
-            const dataList = reportResult?.studentlist || reportResult?.studentList || reportResult?.fillstudlist || [];
+            const dataList = reportResult?.studentlist || reportResult?.studenttcdetails || reportResult?.fillstudlist || [];
             if (reportResult && Array.isArray(dataList) && dataList.length > 0) {
                 // Ensure studentlist is present for the mapping in JSX
                 if (!reportResult.studentlist) reportResult.studentlist = dataList;

@@ -8,10 +8,9 @@ export default function MarksEntryReportPage() {
     const [info, setInfo] = useState<any>(null);
     const listRef = useRef<HTMLDivElement>(null);
 
-    const handleReportGenerated = (data: any, info:any) => {
+    const handleReportGenerated = (data: any, info: any) => {
         setReportData(data);
         setInfo(info);
-        
     };
 
     const handleReset = () => {
@@ -38,10 +37,7 @@ export default function MarksEntryReportPage() {
             <div ref={listRef} className='mt-6 duration-300 ease-in-out'>
                 {reportData && (
                     <div className='fade-in slide-in-from-bottom-4 animate-in duration-500'>
-                        <ReportList
-                            data={reportData}
-                            info={info}
-                        />
+                        <ReportList data={reportData} info={info} />
                     </div>
                 )}
             </div>

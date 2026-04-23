@@ -99,26 +99,24 @@ export default function AddExamMarksProcessCondition({ onSuccess }: { onSuccess?
     }, [selectedCategoryId, setValue, selectedYearId]);
 
     const onSubmit = async (payload: FormFields) => {
-        console.log('payload', payload);
-
-        // Remove empty string date fields instead of sending them, 
+        // Remove empty string date fields instead of sending them,
         // taking care of both cases where backend crashes on `null` or missing record mapping info.
         const formattedPayload = { ...payload };
 
         if (!formattedPayload.eycE_ExamStartDate || formattedPayload.eycE_ExamStartDate.trim() === '') {
-            delete (formattedPayload as any).eycE_ExamStartDate;
+            (formattedPayload as any).eycE_ExamStartDate = undefined;
         }
         if (!formattedPayload.eycE_ExamEndDate || formattedPayload.eycE_ExamEndDate.trim() === '') {
-            delete (formattedPayload as any).eycE_ExamEndDate;
+            (formattedPayload as any).eycE_ExamEndDate = undefined;
         }
         if (!formattedPayload.eycE_MarksEntryLastDate || formattedPayload.eycE_MarksEntryLastDate.trim() === '') {
-            delete (formattedPayload as any).eycE_MarksEntryLastDate;
+            (formattedPayload as any).eycE_MarksEntryLastDate = undefined;
         }
         if (!formattedPayload.eycE_MarksProcessLastDate || formattedPayload.eycE_MarksProcessLastDate.trim() === '') {
-            delete (formattedPayload as any).eycE_MarksProcessLastDate;
+            (formattedPayload as any).eycE_MarksProcessLastDate = undefined;
         }
         if (!formattedPayload.eycE_MarksPublishDate || formattedPayload.eycE_MarksPublishDate.trim() === '') {
-            delete (formattedPayload as any).eycE_MarksPublishDate;
+            (formattedPayload as any).eycE_MarksPublishDate = undefined;
         }
 
         try {
@@ -221,7 +219,9 @@ export default function AddExamMarksProcessCondition({ onSuccess }: { onSuccess?
                                         label='Marks Entry Last Date'
                                         placeholder='Select Marks Entry Last Date'
                                         fromDate={
-                                            methods.watch('eycE_ExamEndDate') === '' ? today : new Date(methods.watch('eycE_ExamEndDate' as any))
+                                            methods.watch('eycE_ExamEndDate') === ''
+                                                ? today
+                                                : new Date(methods.watch('eycE_ExamEndDate' as any))
                                         }
                                     />
                                 )}

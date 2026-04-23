@@ -72,6 +72,10 @@ export const ROUTES = {
                     GROUP_DEPT_DESSG_MAPPING: '/group-dept-dessg-mapping',
                     RELIGION_CATEGORY_MAPPING: '/religion-category-mapping'
                 }
+            },
+            AI_ATS: '/hrms/ai-ats',
+            AI_ATS_SUB_MENUS: {
+                RESUME_CHECKER: '/resume-checker'
             }
         }
     }

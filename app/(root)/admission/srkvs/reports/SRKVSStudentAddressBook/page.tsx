@@ -62,7 +62,15 @@ export default function SRKVSStudentAddressBookPage() {
     const sectionMutation = useChangeSectionSrkvsAddressBook();
     const reportMutation = useSrkvsAddressBookReport();
 
-    const academicYearList = (loadData as any)?.yeardropdown || [];
+    const academicYearList = (loadData as any)?.accyear || [];
+
+    useMemo(() => {
+        if (loadData) {
+            const data = loadData as any;
+            if (Array.isArray(data.classlist)) setClassList(data.classlist);
+            if (Array.isArray(data.sectionlist)) setSectionList(data.sectionlist);
+        }
+    }, [loadData]);
 
     /* -------------------- Filtering Logic -------------------- */
     const filteredStudents = useMemo(() => {
@@ -111,9 +119,9 @@ export default function SRKVSStudentAddressBookPage() {
                 ASMAY_Id: academicYearId!,
                 flag: activeStatus,
                 ASMCL_Id: classId!,
-                ASMC_Id: sId
+                ASMS_Id: sId
             });
-            const students = Array.isArray(res?.studentlist) ? res?.studentlist : [];
+            const students = Array.isArray(res) ? res : (Array.isArray((res as any)?.studentlist) ? (res as any)?.studentlist : []);
             setStudentList(students);
             // Default to select all
             setSelectedStudentIds(students.map((s: any) => s.amsT_Id));
@@ -142,23 +150,26 @@ export default function SRKVSStudentAddressBookPage() {
             return;
         }
 
-        const selectedList = studentList.filter(s => selectedStudentIds.includes(s.amsT_Id));
+        const selectedList = studentList
+            .filter(s => selectedStudentIds.includes(s.amsT_Id))
+            .map(s => ({ amsT_Id: s.amsT_Id, studentname: s.amsT_FirstName }));
 
         try {
             const res = await reportMutation.mutateAsync({
                 asmaY_Id: academicYearId,
                 asmcL_Id: classId,
-                asmC_Id: sectionId,
+                asmS_Id: sectionId,
                 flag: activeStatus,
                 sall: "1",
                 studentlisttemp: selectedList
             });
 
-            const data = (res as any);
-            if (data?.getdetails?.length > 0) {
-                setReportItems(data.getdetails);
+            const reportData = Array.isArray(res) ? res : (Array.isArray((res as any)?.getdetails) ? (res as any)?.getdetails : []);
+
+            if (reportData.length > 0) {
+                setReportItems(reportData);
                 setShowReport(true);
-                toast.success(`Generated address book for ${data.getdetails.length} students`);
+                toast.success(`Generated address book for ${reportData.length} students`);
             } else {
                 toast.error('No records found for the selected students');
                 setShowReport(false);
@@ -172,7 +183,7 @@ export default function SRKVSStudentAddressBookPage() {
         if (reportItems.length === 0) return;
 
         const excelData = reportItems.map(item => ({
-            'Student Name': item.AMST_FirstName,
+            'Student Name': item.studentname,
             'Admission No': item.AMST_AdmNo,
             'Class': item.ASMCL_ClassName,
             'Section': item.ASMC_SectionName,
@@ -475,7 +486,7 @@ export default function SRKVSStudentAddressBookPage() {
                                     {reportDisplayType === 'address' ? (
                                         <div className="flex flex-col space-y-1 p-4 border border-slate-200 min-h-[50mm] justify-center">
                                             <div className="text-[16px] font-bold uppercase underline">
-                                                {user.AMST_FirstName} ({user.ASMCL_ClassName} {user.ASMC_SectionName})
+                                                {user.studentname} ({user.ASMCL_ClassName} {user.ASMC_SectionName})
                                             </div>
                                             <div className="text-[14px] flex gap-2">
                                                 <span>S/O.</span>
@@ -502,7 +513,7 @@ export default function SRKVSStudentAddressBookPage() {
                                         </div>
                                     ) : (
                                         <div className="flex flex-col p-6 min-h-[60mm] text-[15px] space-y-1.5 whitespace-pre-wrap font-mono tracking-tight bg-slate-50">
-                                            <span className="font-black uppercase">{user.AMST_FirstName} ({user.ASMCL_ClassName} {user.ASMC_SectionName})</span>
+                                            <span className="font-black uppercase">{user.studentname} ({user.ASMCL_ClassName} {user.ASMC_SectionName})</span>
                                             <span>ADM: {user.AMST_AdmNo}</span>
                                             <span className="font-bold">{user.AMST_FatherName}</span>
                                             <span>
@@ -535,7 +546,10 @@ export default function SRKVSStudentAddressBookPage() {
                     }
                     @page {
                         size: A4;
-                        margin: 0;
+                        margin-top: 30mm;
+                        margin-bottom: 10mm;
+                        margin-left: 0;
+                        margin-right: 0;
                     }
                     body {
                         -webkit-print-color-adjust: exact !important;

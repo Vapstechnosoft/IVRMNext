@@ -1,11 +1,34 @@
 'use server';
 
-import { api } from '@/lib/apiService';
 import type { UserResponseData } from '@/types';
 
 export async function getUserByEmail(username: string, password: string) {
-    const url = `/configuration/login?username=${username}&password=${password}`;
+    const baseUrl = process.env.NEXT_PUBLIC_PREADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '';
+    const url = `${baseUrl}/configuration/login?username=${username}&password=${password}`;
 
-    //Send payload to login API to validate login and get user details & token
-    return await api.post<UserResponseData>('preadmission', url);
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            return {
+                success: false,
+                message: `Server Error: ${response.statusText}`,
+                data: null
+            };
+        }
+
+        return await response.json();
+    } catch (error: any) {
+        return {
+            success: false,
+            message: error.message || 'Network error',
+            data: null
+        };
+    }
 }

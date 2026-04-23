@@ -20,6 +20,7 @@ import { employeeAbsentReportFilterSchema } from "@/schemas/hrms/attendance-mana
 import { Loader2, RotateCcw, Search } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { addMonths } from "date-fns";
 import { toast } from "sonner";
 
 interface AddEmployeeAbsentReportFormProps {
@@ -36,6 +37,7 @@ export default function AddEmployeeAbsentReportForm({
     const router = useRouter();
     const pathname = usePathname();
     const [isSubmittingManual, setIsSubmittingManual] = useState(false);
+    const [resetkey,setResetKey] = useState(0);
 
     const {
         handleSubmit,
@@ -48,20 +50,13 @@ export default function AddEmployeeAbsentReportForm({
     } = useForm<z.infer<typeof employeeAbsentReportFilterSchema>>({
         resolver: zodResolver(employeeAbsentReportFilterSchema),
         defaultValues: {
-            type: searchParams?.type ? String(searchParams.type).split(",") : [],
-            department: searchParams?.department
-                ? String(searchParams.department).split(",")
-                : [],
-            designation: searchParams?.designation
-                ? String(searchParams.designation).split(",")
-                : [],
-            allOrIndividual:
-                (searchParams?.allOrIndividual as "All" | "Individual") || "All",
-            employeeIds: searchParams?.employee
-                ? String(searchParams.employee).split(",")
-                : [],
-            fromDate: searchParams?.fromDate || "",
-            toDate: searchParams?.toDate || "",
+            type: [],
+            department: [],
+            designation: [],
+            allOrIndividual: "All",
+            employeeIds: [],
+            fromDate: "",
+            toDate: "",
         },
     });
 
@@ -70,6 +65,7 @@ export default function AddEmployeeAbsentReportForm({
     const selectedDepts = watch("department");
     const selectedDesigs = watch("designation");
     const allOrIndividual = watch("allOrIndividual");
+    const fromDateValue = watch("fromDate");
 
     // Cascading data fetching using report-specific hooks
     const { data: groupTypesData, isLoading: isTypesLoading } =
@@ -148,6 +144,10 @@ export default function AddEmployeeAbsentReportForm({
         if (selectedDesigs.length === 0) setValue("employeeIds", []);
     }, [selectedDesigs, setValue]);
 
+    const fromDateObject = fromDateValue ? new Date(fromDateValue) : undefined;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     async function onSubmit(
         values: z.infer<typeof employeeAbsentReportFilterSchema>,
     ) {
@@ -181,29 +181,6 @@ export default function AddEmployeeAbsentReportForm({
         }
     }
 
-    // Handle clearing the page on a hard refresh (F5/Reload)
-    useEffect(() => {
-        if (typeof window !== "undefined") {
-            const entries = performance.getEntriesByType("navigation");
-            if (entries.length > 0) {
-                const nav = entries[0] as PerformanceNavigationTiming;
-                // Only clear if the user performed a hard refresh while URL has parameters
-                if (nav.type === "reload" && window.location.search.length > 0) {
-                    reset({
-                        type: [],
-                        department: [],
-                        designation: [],
-                        allOrIndividual: "All",
-                        employeeIds: [],
-                        fromDate: "",
-                        toDate: "",
-                    });
-                    router.replace(pathname);
-                }
-            }
-        }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
     const handleReset = () => {
         reset({
@@ -216,6 +193,7 @@ export default function AddEmployeeAbsentReportForm({
             toDate: "",
         });
         router.push(pathname);
+        setResetKey((prev) => prev + 1);
     };
 
     return (
@@ -227,6 +205,7 @@ export default function AddEmployeeAbsentReportForm({
                         Group Type <span className="text-red-500">*</span>
                     </Label>
                     <Controller
+                    key={resetkey}
                         name="type"
                         control={control}
                         render={({ field }) => (
@@ -249,6 +228,7 @@ export default function AddEmployeeAbsentReportForm({
                         Department <span className="text-red-500">*</span>
                     </Label>
                     <Controller
+                    key={resetkey}
                         name="department"
                         control={control}
                         render={({ field }) => (
@@ -273,6 +253,7 @@ export default function AddEmployeeAbsentReportForm({
                         Designation <span className="text-red-500">*</span>
                     </Label>
                     <Controller
+                    key={resetkey}
                         name="designation"
                         control={control}
                         render={({ field }) => (
@@ -298,6 +279,7 @@ export default function AddEmployeeAbsentReportForm({
                     <div className="space-y-3">
                         <Label className="block text-sm font-medium">Employee Filter</Label>
                         <Controller
+                        key={resetkey}
                             name="allOrIndividual"
                             control={control}
                             render={({ field }) => (
@@ -332,6 +314,7 @@ export default function AddEmployeeAbsentReportForm({
                                 Select Employees <span className="text-red-500">*</span>
                             </Label>
                             <Controller
+                            key={resetkey}
                                 name="employeeIds"
                                 control={control}
                                 render={({ field }) => (
@@ -361,14 +344,27 @@ export default function AddEmployeeAbsentReportForm({
                             From Date <span className="text-red-500">*</span>
                         </Label>
                         <Controller
+                        key={resetkey}
                             name="fromDate"
                             control={control}
                             render={({ field }) => (
                                 <DatePicker
                                     date={field.value ? new Date(field.value) : undefined}
-                                    setDate={(date: Date | undefined) =>
-                                        field.onChange(date?.toISOString())
-                                    }
+                                    setDate={(date: Date | undefined) => {
+                                        field.onChange(date?.toISOString());
+                                        if (date) {
+                                            const nextMonthDate = addMonths(date, 1);
+                                            const today = new Date();
+                                            today.setHours(0, 0, 0, 0);
+                                            const effectiveToDate = nextMonthDate < today ? nextMonthDate : today;
+                                            const nextYear = effectiveToDate.getFullYear();
+                                            const nextMonth = String(effectiveToDate.getMonth() + 1).padStart(2, '0');
+                                            const nextDay = String(effectiveToDate.getDate()).padStart(2, '0');
+                                            // setValue('toDate', `${nextYear}-${nextMonth}-${nextDay}`);
+                                        } else {
+                                            setValue('toDate', '');
+                                        }
+                                    }}
                                     placeholder="Select From Date"
                                     className={errors.fromDate ? "border-red-500" : ""}
                                 />
@@ -384,6 +380,7 @@ export default function AddEmployeeAbsentReportForm({
                             To Date <span className="text-red-500">*</span>
                         </Label>
                         <Controller
+                        key={resetkey}
                             name="toDate"
                             control={control}
                             render={({ field }) => (
@@ -394,6 +391,14 @@ export default function AddEmployeeAbsentReportForm({
                                     }
                                     placeholder="Select To Date"
                                     className={errors.toDate ? "border-red-500" : ""}
+                                    disabled={
+                                        fromDateObject
+                                            ? [
+                                                  { before: fromDateObject },
+                                                  { after: today }
+                                              ]
+                                            : [{ after: today }]
+                                    }
                                 />
                             )}
                         />

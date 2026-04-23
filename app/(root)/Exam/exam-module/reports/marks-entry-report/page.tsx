@@ -13,7 +13,6 @@ export default function MarksEntryReportPage() {
         setReportData(data);
         setSelectedYear(year);
         setSelectedExam(exam);
-        console.log("Data", data, "Year", year, "Exam", exam);
     };
 
     const handleReset = () => {
@@ -41,11 +40,7 @@ export default function MarksEntryReportPage() {
             <div ref={listRef} className='mt-6 duration-300 ease-in-out'>
                 {reportData && (
                     <div className='fade-in slide-in-from-bottom-4 animate-in duration-500'>
-                        <ReportList
-                            data={reportData}
-                            selected_Year={selectedYear}
-                            selected_Exam={selectedExam}
-                        />
+                        <ReportList data={reportData} selected_Year={selectedYear} selected_Exam={selectedExam} />
                     </div>
                 )}
             </div>

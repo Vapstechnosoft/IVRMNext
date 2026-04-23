@@ -10,65 +10,77 @@ export const ndaStudentProfileUpdateSchema = z.object({
     
     // Student Details
     Mobilenumber: z.string()
+        .min(1, "Enter Mobile number")
         .min(10, "Mobile number must contain 10 digits")
         .max(10, "Mobile number must contain 10 digits")
-        .regex(mobilePattern, "Enter valid Mobile NO")
-        .or(z.literal('')),
+        .regex(mobilePattern, "Enter valid Mobile NO"),
     EmailidforCandidate: z.string()
-        .regex(emailPattern, "Enter valid Email")
-        .or(z.literal('')),
+        .min(1, "Enter Email")
+        .regex(emailPattern, "Enter valid Email"),
     Bloodgroup: z.string().optional().or(z.literal('')),
     
     // Guardian Details
-    Guardianname: z.string().optional().or(z.literal('')),
+    Guardianname: z.string().min(1, "Enter Guardianname").optional().or(z.literal('')),
     AMSTG_GuardianPhoneNo: z.string()
+        .min(1, "Enter Mobile number")
+        .min(10, "Mobile number must contain 10 digits")
+        .max(10, "Mobile number must contain 10 digits")
         .regex(mobilePattern, "Enter valid Mobile NO")
+        .optional()
         .or(z.literal('')),
     AMSTG_emailid: z.string()
+        .min(1, "Enter Email")
         .regex(emailPattern, "Enter valid Email")
+        .optional()
         .or(z.literal('')),
         
     // Father Details
     AMST_FatherMobleNo: z.string()
-        .regex(mobilePattern, "Enter valid Mobile NO")
-        .or(z.literal('')),
+        .min(1, "Enter Mobile number")
+        .min(10, "Mobile number must contain 10 digits")
+        .max(10, "Mobile number must contain 10 digits")
+        .regex(mobilePattern, "Enter valid Mobile NO"),
     AMST_FatheremailId: z.string()
-        .regex(emailPattern, "Enter valid Email")
-        .or(z.literal('')),
+        .min(1, "Enter Email")
+        .regex(emailPattern, "Enter valid Email"),
         
     // Mother Details
     AMST_MotherMobileNo: z.string()
-        .regex(mobilePattern, "Enter valid Mobile NO")
-        .or(z.literal('')),
+        .min(1, "Enter Mobile number")
+        .min(10, "Mobile number must contain 10 digits")
+        .max(10, "Mobile number must contain 10 digits")
+        .regex(mobilePattern, "Enter valid Mobile NO"),
     AMST_MotherEmailId: z.string()
-        .regex(emailPattern, "Enter valid Email")
-        .or(z.literal('')),
+        .min(1, "Enter Email")
+        .regex(emailPattern, "Enter valid Email"),
         
-    // Photo URLs (base64 or blob strings from server)
+    // Photo URLs
     ASTUREQ_StudentPhoto: z.string().optional().or(z.literal('')),
     ASTUREQ_FatherPhoto: z.string().optional().or(z.literal('')),
     ASTUREQ_MotherPhoto: z.string().optional().or(z.literal('')),
     ASTUREQ_GuardianPhoto: z.string().optional().or(z.literal('')),
     
     // Residential Address
-    Resstreet: z.string().optional().or(z.literal('')),
-    ResArea: z.string().optional().or(z.literal('')),
-    Rescity: z.string().optional().or(z.literal('')),
-    Rescountry: z.union([z.number(), z.string()]).optional().or(z.literal('')),
-    Resstate: z.union([z.number(), z.string()]).optional().or(z.literal('')),
-    ResPincode: z.string().optional().or(z.literal('')),
+    Resstreet: z.string().min(1, "Enter Street").or(z.literal('')),
+    ResArea: z.string().min(1, "Enter Area").or(z.literal('')),
+    Rescity: z.string().min(1, "Enter City").or(z.literal('')),
+    Rescountry: z.union([z.number(), z.string()]).refine(val => val !== "0" && val !== 0, "Select Country").or(z.literal('')),
+    Resstate: z.union([z.number(), z.string()]).refine(val => val !== "0" && val !== 0, "Select State").or(z.literal('')),
+    ResPincode: z.string().min(1, "Enter Pincode").or(z.literal('')),
     
     // Permanent Address
-    Perstreett: z.string().optional().or(z.literal('')),
-    PerArea: z.string().optional().or(z.literal('')),
-    Percity: z.string().optional().or(z.literal('')),
-    PerState: z.union([z.number(), z.string()]).optional().or(z.literal('')),
-    PerPincode: z.string().optional().or(z.literal('')),
+    Perstreett: z.string().min(1, "Enter Street").or(z.literal('')),
+    PerArea: z.string().min(1, "Enter Area").or(z.literal('')),
+    Percity: z.string().min(1, "Enter City").or(z.literal('')),
+    Percountry: z.union([z.number(), z.string()]).refine(val => val !== "0" && val !== 0, "Select Country").or(z.literal('')),
+    PerState: z.union([z.number(), z.string()]).refine(val => val !== "0" && val !== 0, "Select State").or(z.literal('')),
+    PerPincode: z.string().min(1, "Enter Pincode").or(z.literal('')),
     
-    // Meta fields
-    STP_PERCOUNTRY: z.union([z.number(), z.string()]).optional(),
-    STP_CURCOUNTRY: z.union([z.number(), z.string()]).optional(),
-    AMST_BloodGroup: z.string().optional(),
+    // Additional mapping fields
+    flagSMF: z.string().optional(),
+    ASTUREQ_Date: z.string().optional(),
 });
 
 export type NdaStudentProfileUpdateFields = z.infer<typeof ndaStudentProfileUpdateSchema>;
+
+

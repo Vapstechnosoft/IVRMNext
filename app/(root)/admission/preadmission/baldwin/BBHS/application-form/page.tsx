@@ -64,13 +64,13 @@ function StudentApplicationPageContent({
 
     const onCloseSuccessDialog = () => {
         setSuccessOpen(false);
-        window.location.reload();
+        // window.location.reload(); // Removed to avoid infinite loop/refresh
     };
 
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                {session?.data?.role.toUpperCase() === ROLES.ADMIN && <PreadmissionStatusCountReport />}
+                {session?.data?.role?.toUpperCase() === ROLES.ADMIN && <PreadmissionStatusCountReport />}
                 {/* Header */}
                 <div className='flex justify-end'>
                     <Button

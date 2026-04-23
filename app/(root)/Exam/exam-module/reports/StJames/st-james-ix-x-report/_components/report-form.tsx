@@ -1,26 +1,22 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CollapsibleContent } from '@/components/ui/collapsible';
 import { FormError, Label } from '@/components/ui/extension/field';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
-import { stJamesIX_XReportSchema, StJamesIX_XReportSchema } from '@/schemas/exam/exam-module/reports';
+import { type StJamesIX_XReportSchema, stJamesIX_XReportSchema } from '@/schemas/exam/exam-module/reports';
 import {
     getClassDropDownByAcademicYearlist,
     getExamsDropDownByAcademicYearandClassandSectionlist,
     getSectionsDropDownByAcademicYearandClasslist
 } from '@/server/exam/exam-module/reports/cumulative-report';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { format } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 export default function StJamesIX_XReportForm({
     onSuccess
@@ -35,7 +31,7 @@ export default function StJamesIX_XReportForm({
             asmcL_Id: 0,
             asmS_Id: 0,
             type: 'indi',
-            displayAttendance: true,
+            displayAttendance: true
         } as any
     });
 
@@ -139,18 +135,16 @@ export default function StJamesIX_XReportForm({
 
     // on submit
     const onSubmit = async (data: StJamesIX_XReportSchema) => {
-
         const payload: any = {
             asmaY_Id: data.asmaY_Id,
             asmcL_Id: data.asmcL_Id,
             asmS_Id: data.asmS_Id,
             emE_Ids: data.emE_Id.map((e) => e.emE_Id).join(','),
             type: data.type,
-            displayAttendance: data.displayAttendance,
+            displayAttendance: data.displayAttendance
         };
         if (onSuccess) {
             await onSuccess(payload);
-
         }
     };
 
@@ -164,11 +158,8 @@ export default function StJamesIX_XReportForm({
                                 control={control}
                                 name='type'
                                 render={({ field, fieldState }) => (
-                                    <div className='flex-1 flex justify-center gap-2 sm:flex-row sm:items-center h-8 bg-gray-100 rounded-md '>
-                                        <RadioGroup
-                                            onValueChange={field.onChange}
-                                            value={field.value}
-                                            className='flex flex-row space-x-4'>
+                                    <div className='flex h-8 flex-1 justify-center gap-2 rounded-md bg-gray-100 sm:flex-row sm:items-center '>
+                                        <RadioGroup onValueChange={field.onChange} value={field.value} className='flex flex-row space-x-4'>
                                             <div className='flex items-center space-x-2'>
                                                 <RadioGroupItem value='indi' id='r1' />
                                                 <Label htmlFor='r1' className='font-normal'>
@@ -184,7 +175,6 @@ export default function StJamesIX_XReportForm({
                                         </RadioGroup>
                                         {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                     </div>
-
                                 )}
                             />
                         </div>
@@ -309,19 +299,15 @@ export default function StJamesIX_XReportForm({
                                         </div>
                                     )}
                                 />
-                                <div className='flex gap-2 items-center'>
+                                <div className='flex items-center gap-2'>
                                     <Controller
                                         control={control}
                                         name='displayAttendance'
                                         render={({ field }) => (
-                                            <Checkbox
-                                                id="displayAttendance"
-                                                checked={field.value}
-                                                onCheckedChange={field.onChange}
-                                            />
+                                            <Checkbox id='displayAttendance' checked={field.value} onCheckedChange={field.onChange} />
                                         )}
                                     />
-                                    <Label htmlFor="displayAttendance">Display Attendance</Label>
+                                    <Label htmlFor='displayAttendance'>Display Attendance</Label>
                                 </div>
                             </div>
 
@@ -350,15 +336,16 @@ export default function StJamesIX_XReportForm({
                                             name='emE_Id'
                                             render={({ field, fieldState }) => (
                                                 <div className='flex flex-col gap-2'>
-                                                    <div className='rounded-md border p-4 flex flex-col gap-3 max-h-[200px] overflow-y-auto'>
+                                                    <div className='flex max-h-[200px] flex-col gap-3 overflow-y-auto rounded-md border p-4'>
                                                         {loadingExams ? (
-                                                            <span className='text-sm text-muted-foreground'>Exams are loading...</span>
+                                                            <span className='text-muted-foreground text-sm'>Exams are loading...</span>
                                                         ) : exams.length === 0 ? (
-                                                            <span className='text-sm text-muted-foreground'>No Exams found</span>
+                                                            <span className='text-muted-foreground text-sm'>No Exams found</span>
                                                         ) : (
                                                             <div className='flex flex-col gap-3'>
                                                                 {exams.map((e) => {
-                                                                    const isChecked = field.value?.some((val) => val.emE_Id === e.emE_Id) || false;
+                                                                    const isChecked =
+                                                                        field.value?.some((val) => val.emE_Id === e.emE_Id) || false;
                                                                     return (
                                                                         <div key={e.emE_Id} className='flex items-center space-x-2'>
                                                                             <Checkbox
@@ -366,15 +353,22 @@ export default function StJamesIX_XReportForm({
                                                                                 checked={isChecked}
                                                                                 onCheckedChange={(checked) => {
                                                                                     if (checked) {
-                                                                                        field.onChange([...(field.value || []), { emE_Id: e.emE_Id }]);
+                                                                                        field.onChange([
+                                                                                            ...(field.value || []),
+                                                                                            { emE_Id: e.emE_Id }
+                                                                                        ]);
                                                                                     } else {
-                                                                                        field.onChange((field.value || []).filter((val) => val.emE_Id !== e.emE_Id));
+                                                                                        field.onChange(
+                                                                                            (field.value || []).filter(
+                                                                                                (val) => val.emE_Id !== e.emE_Id
+                                                                                            )
+                                                                                        );
                                                                                     }
                                                                                 }}
                                                                             />
                                                                             <Label
                                                                                 htmlFor={`exam-${e.emE_Id}`}
-                                                                                className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+                                                                                className='font-medium text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
                                                                                 {e.emE_ExamName}
                                                                             </Label>
                                                                         </div>
@@ -393,9 +387,12 @@ export default function StJamesIX_XReportForm({
                         </div>
 
                         <div className='flex justify-center gap-3'>
-                            <Button type='submit' isLoading={isSubmitting} disabled={isSubmitting || selectedExams?.length === 0} className='min-w-[140px]'>
+                            <Button
+                                type='submit'
+                                isLoading={isSubmitting}
+                                disabled={isSubmitting || selectedExams?.length === 0}
+                                className='min-w-[140px]'>
                                 {isSubmitting ? 'Generating...' : 'Report'}
-
                             </Button>
                             <Button
                                 type='button'

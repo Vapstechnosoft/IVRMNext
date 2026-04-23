@@ -55,9 +55,9 @@ export default function TBSReportSchoolForm({
     const [sections, setSections] = useState<any[]>([]);
     const [loadingSections, setLoadingSections] = useState(false);
     const [exams, setExams] = useState<any[]>([]);
-    const [loadingExams, setLoadingExams] = useState(false);
+    const [_loadingExams, setLoadingExams] = useState(false);
     const [students, setStudents] = useState<any[]>([]);
-    const [loadingStudents, setLoadingStudents] = useState(false);
+    const [_loadingStudents, setLoadingStudents] = useState(false);
     const [gradeList, setGradeList] = useState<any[]>([]);
 
     const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();

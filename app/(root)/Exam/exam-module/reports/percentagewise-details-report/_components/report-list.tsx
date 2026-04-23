@@ -42,7 +42,7 @@ export const ReportList: React.FC<ReportListProps> = ({ data, institution, crite
     return (
         <Card>
             <CardHeader className='text-center '>
-                <CardTitle >Percentagewise Student Details</CardTitle>
+                <CardTitle>Percentagewise Student Details</CardTitle>
             </CardHeader>
             <CardContent>
                 <div id='report-print-section' className='bg-white '>
@@ -56,12 +56,8 @@ export const ReportList: React.FC<ReportListProps> = ({ data, institution, crite
                         )}
                         <h3 className='mt-2 font-semibold text-lg'>Percentage Wise Report</h3>
                         <div style={{ textAlign: 'center', marginTop: '10px' }}>
-                            <span style={{ marginRight: '20px', fontWeight: 'bold' }}>
-                                Year: {criteria.selected_Year}
-                            </span>
-                            <span style={{ fontWeight: 'bold' }}>
-                                Exam: {criteria.select_Exam}
-                            </span>
+                            <span style={{ marginRight: '20px', fontWeight: 'bold' }}>Year: {criteria.selected_Year}</span>
+                            <span style={{ fontWeight: 'bold' }}>Exam: {criteria.select_Exam}</span>
                         </div>
                     </div>
 

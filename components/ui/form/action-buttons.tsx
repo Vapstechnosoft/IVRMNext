@@ -83,7 +83,7 @@ export function ActionButtons({
                                 size={size}
                                 onClick={handleView}
                                 disabled={disabled.view}
-                                className='h-8 w-8 p-0 transition-all duration-200 hover:bg-purple-50 hover:text-purple-600'>
+                                className='h-8 w-8 p-0 transition-all duration-200 text-blue-600 hover:text-blue-700 hover:bg-blue-50'>
                                 <Eye className='h-4 w-4' />
                             </Button>
                         </TooltipTrigger>
@@ -102,7 +102,7 @@ export function ActionButtons({
                                 size={size}
                                 onClick={handleEdit}
                                 disabled={disabled.edit}
-                                className='h-8 w-8 p-0 transition-all duration-200 hover:bg-blue-50 hover:text-blue-600'>
+                                className='h-8 w-8 p-0 transition-all duration-200 text-primary hover:text-primary hover:bg-primary/5'>
                                 <Edit className='h-4 w-4' />
                             </Button>
                         </TooltipTrigger>
@@ -134,7 +134,7 @@ export function ActionButtons({
                                 variant={variant}
                                 size={size}
                                 onClick={handleDelete}
-                                className='h-8 w-8 p-0 transition-all duration-200 hover:bg-red-50 hover:text-red-600'>
+                                className='h-8 w-8 p-0 transition-all duration-200 text-destructive hover:text-destructive hover:bg-red-50'>
                                 <Trash2 className='h-4 w-4' />
                             </Button>
                         </TooltipTrigger>

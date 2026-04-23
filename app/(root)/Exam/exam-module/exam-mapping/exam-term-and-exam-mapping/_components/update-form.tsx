@@ -172,8 +172,6 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
     useEffect(() => {
         if (!rowData || academicYears.length === 0) return;
 
-        console.log('update form rowData', rowData);
-
         reset(
             {
                 ecT_Id: rowData.ecT_Id ?? 0,
@@ -622,14 +620,8 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
                                     control={control}
                                     name='ecT_TermStartDate'
                                     render={({ field, fieldState }) => (
-                                        <DateField
-                                            field={field}
-                                            fieldState={fieldState}
-                                            label='Term Start Date'
-                                            required={true}
-                                        />
+                                        <DateField field={field} fieldState={fieldState} label='Term Start Date' required={true} />
                                     )}
-
                                 />
 
                                 <Controller

@@ -24,7 +24,7 @@ export const AddressFields: React.FC<AddressFieldsProps> = ({
     const streetKey = isResidential ? 'Resstreet' : 'Perstreett';
     const areaKey = isResidential ? 'ResArea' : 'PerArea';
     const cityKey = isResidential ? 'Rescity' : 'Percity';
-    const countryKey = isResidential ? 'Rescountry' : 'Rescountry'; // Both use Rescountry in legacy?
+    const countryKey = isResidential ? 'Rescountry' : 'Percountry';
     const stateKey = isResidential ? 'Resstate' : 'PerState';
     const pinKey = isResidential ? 'ResPincode' : 'PerPincode';
 

@@ -8,8 +8,12 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { type PromotionDetailsReportSchema, promotionDetailsReportSchema } from '@/schemas/exam/exam-module/reports';
-import { getClassDropDownByAcademicYearlist, getSectionsDropDownByAcademicYearandClasslist, getStudentsDropDownByAcademicYearandClassandSectionlist } from '@/server/exam/exam-module/reports/cumulative-report';
-import { getClasses, getReportDetails, getSections, getTermsAndStudents } from '@/server/exam/exam-module/reports/StThomos/promotion-details-report';
+import { getReportDetails, getTermsAndStudents } from '@/server/exam/exam-module/reports/StThomos/promotion-details-report';
+import {
+    getClassDropDownByAcademicYearlist,
+    getSectionsDropDownByAcademicYearandClasslist,
+    getStudentsDropDownByAcademicYearandClassandSectionlist
+} from '@/server/exam/exam-module/reports/cumulative-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -85,7 +89,6 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                 }
             })();
             setValue('ASMCL_Id', '');
-
         } else {
             setClasses([]);
         }
@@ -111,13 +114,12 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                 }
             })();
             setValue('ASMS_Id', '');
-
         } else {
             setSections([]);
         }
     }, [watchYear, watchClass, setValue]);
 
-    // Load Terms 
+    // Load Terms
     useEffect(() => {
         if (watchSection) {
             (async () => {
@@ -154,28 +156,23 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
         if (!watchYear || !watchClass || !watchSection) return;
         (async () => {
             try {
-
                 const { data } = await getStudentsDropDownByAcademicYearandClassandSectionlist(
                     Number(watchYear),
                     Number(watchClass),
                     Number(watchSection)
                 );
-                const valid = Array.isArray(data)
-                    ? data.filter((s): s is any => !!s?.amsT_Id)
-                    : [];
+                const valid = Array.isArray(data) ? data.filter((s): s is any => !!s?.amsT_Id) : [];
 
                 // Map to consistent format if needed, but the cumulative report logic returns objects with amsT_Id and studentName/amsT_FirstName
                 // We'll map them to a structure suitable for the display
-                const mappedStudents = valid.map(s => ({
+                const mappedStudents = valid.map((s) => ({
                     amsT_Id: s.amsT_Id,
                     amsT_AdmNo: s.amsT_AdmNo,
                     studentName: s.studentName || `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim()
                 }));
 
                 setStudents(mappedStudents);
-                console.log('Students:', mappedStudents);
                 setValue('selectedStudents', []);
-
             } catch {
                 toast.error('Failed to load students');
             } finally {
@@ -213,8 +210,6 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                 ...data,
                 selectedStudentNames
             };
-
-            console.log('tabulation payload data', payloadToSubmit);
             const result = await getReportDetails(payloadToSubmit);
             onReportGenerated(result, payloadToSubmit.superAverage);
         } catch (error) {

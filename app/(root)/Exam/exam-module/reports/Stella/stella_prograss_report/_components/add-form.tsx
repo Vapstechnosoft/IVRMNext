@@ -10,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { cn } from '@/lib/utils';
-import { stellaProgressReportSchema, StellaProgressReportSchema } from '@/schemas/exam/exam-module/reports';
+import { type StellaProgressReportSchema, stellaProgressReportSchema } from '@/schemas/exam/exam-module/reports';
 import {
     getClassDropDownByAcademicYearlist,
     getSectionsDropDownByAcademicYearandClasslist,
@@ -22,8 +22,6 @@ import { CalendarIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
-
-
 
 export default function StellaProgressReportForm({
     onSuccess
@@ -59,7 +57,7 @@ export default function StellaProgressReportForm({
 
     const [loadingClasses, setLoadingClasses] = useState(false);
     const [loadingSections, setLoadingSections] = useState(false);
-    const [loadingStudents, setLoadingStudents] = useState(false);
+    const [_loadingStudents, setLoadingStudents] = useState(false);
 
     const hasStudentsSelected = Array.isArray(studentList) && studentList.length > 0;
 
@@ -133,9 +131,7 @@ export default function StellaProgressReportForm({
                     selectedClass,
                     selectedSection
                 );
-                const valid = Array.isArray(data)
-                    ? data.filter((s): s is any => !!s?.amsT_Id)
-                    : [];
+                const valid = Array.isArray(data) ? data.filter((s): s is any => !!s?.amsT_Id) : [];
                 if (valid.length === 0) {
                     toast.info('No students found');
                 }
@@ -159,7 +155,6 @@ export default function StellaProgressReportForm({
 
     // on submit
     const onSubmit = async (data: StellaProgressReportSchema) => {
-        console.log("Data123",data);
         if (!hasStudentsSelected) {
             toast.error('Please select at least one student');
             return;
@@ -395,7 +390,11 @@ export default function StellaProgressReportForm({
                         <hr className='my-6 border-gray-300' />
 
                         <div className='flex justify-center gap-3'>
-                            <Button type='submit' isLoading={isSubmitting} disabled={isSubmitting || !hasStudentsSelected} className='min-w-[140px]'>
+                            <Button
+                                type='submit'
+                                isLoading={isSubmitting}
+                                disabled={isSubmitting || !hasStudentsSelected}
+                                className='min-w-[140px]'>
                                 {isSubmitting ? 'Generating...' : 'Report'}
                             </Button>
                             <Button
