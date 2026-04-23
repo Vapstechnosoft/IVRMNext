@@ -25,9 +25,9 @@ export const ReportList = ({ data, params }: ReportListProps) => {
     const reportFormat: 'format1' | 'format2' | 'format3' = params?.reportFormat ?? 'format1';
 
     // ── Print ─────────────────────────────────────────────────────────────────
-    const handlePrint = useReactToPrint({
-        content: () => printRef.current
-    });
+    // const handlePrint = useReactToPrint({
+    //     content: () => printRef.current
+    // });
 
     // ── Excel (Format 1 only) ─────────────────────────────────────────────────
     const handleExcel = () => {
@@ -181,8 +181,8 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                         : '';
                                     const dayStr = d
                                         ? d
-                                              .toLocaleDateString('en-US', { weekday: 'long' })
-                                              .toUpperCase()
+                                            .toLocaleDateString('en-US', { weekday: 'long' })
+                                            .toUpperCase()
                                         : '';
                                     return (
                                         <tr key={si}>
@@ -339,13 +339,13 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                             <FileDown className='h-4 w-4' /> Excel
                         </Button>
                     )}
-                    <Button
+                    {/* <Button
                         variant='default'
                         size='sm'
                         onClick={handlePrint}
                         className='flex items-center gap-2'>
                         <Printer className='h-4 w-4' /> Print
-                    </Button>
+                    </Button> */}
                 </div>
             </div>
 

@@ -45,17 +45,18 @@ export async function getMultipleExamProgressReport(payload: {
     const url = `/${CONTROLLER}/BGHS_GetMultiple_Exam_Progress_Report`;
     try {
         const promise = await api.post<any>('exam', url, payload);
-        
+
+        // biome-ignore lint/complexity/useOptionalChain: <explanation>
         if (promise && promise.data) {
             // Handle legacy wrapper if present
             const actualData = promise.data;
             if (actualData.getstudentmarksdetails && actualData.getstudentmarksdetails.length > 0) {
                 return transformReportData(actualData);
             }
-        } else if (promise && promise.getstudentmarksdetails && promise.getstudentmarksdetails.length > 0) {
+        } else if (promise?.getstudentmarksdetails) {
             return transformReportData(promise);
         }
-        
+
         return promise;
     } catch (error) {
         console.error('getMultipleExamProgressReport Error:', error);
@@ -79,7 +80,7 @@ function transformReportData(promise: any) {
     // 1. Process Exam Details (Calculate Total and Grade columns)
     let totalMaxMarks = 0;
     for (const exam of getexamdetails) {
-        totalMaxMarks += (exam.eyceS_MaxMarks || 0);
+        totalMaxMarks += exam.eyceS_MaxMarks || 0;
     }
 
     const processedExamDetails = [...getexamdetails];
@@ -89,10 +90,10 @@ function transformReportData(promise: any) {
     // 2. Map subjects and marks to students
     const transformedStudents = getstudentdetails.map((stu: any) => {
         const studentSubjects = getstudentwisesubjectlist.filter((sub: any) => sub.AMST_Id === stu.AMST_Id);
-        
+
         const applicableCount = studentSubjects.filter((sub: any) => sub.EYCES_AplResultFlg).length;
         const nonApplicableCount = studentSubjects.filter((sub: any) => !sub.EYCES_AplResultFlg).length;
-        
+
         const studentMarks = getstudentmarksdetails.filter((mark: any) => mark.AMST_Id === stu.AMST_Id);
 
         return {
