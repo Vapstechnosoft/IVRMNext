@@ -1785,14 +1785,6 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/feereports/feedefaulterreportstthomas',
                                             title: 'Fee Defaulter Report',
                                             description: 'Manage Fee Defaulter Report Details'
-                                        },
-                                        {
-                                            id: 10028,
-                                            name: 'Fee IncomeTax Report',
-                                            icon: 'BadgeIndianRupee',
-                                            url: '/fees/feereports/feeIncomeTax_Report',
-                                            title: 'Fee IncomeTax Report',
-                                            description: 'Manage Fee IncomeTax Report Details'
                                         }
                                     ]
                                 }
@@ -1894,6 +1886,22 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/feereports/headwisereport',
                                             title: 'Fee Head Wise Report Calcaltta',
                                             description: 'Fee Head Wise Report Calcaltta'
+                                        },
+                                        {
+                                            id: 507,
+                                            name: 'Master Student Fee Group Mapping (Vishwadarshana Society)',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/masters/StudentFeeGroupMappingVishwa',
+                                            title: 'Master Student Fee Group Mapping (Vishwadarshana Society)',
+                                            description: 'Manage Master Student Fee Group Mapping Details'
+                                        },
+                                        {
+                                            id: 10028,
+                                            name: 'Fee IncomeTax Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feeIncomeTax_Report',
+                                            title: 'Fee IncomeTax Report',
+                                            description: 'Manage Fee IncomeTax Report Details'
                                         }
                                     ]
                                 }

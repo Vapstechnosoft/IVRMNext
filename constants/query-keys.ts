@@ -284,7 +284,8 @@ export const FEES_QUERY_KEYS = {
     FEE_FEE_RECEIPT_REPORT_LOGO: 'fee_fee_receipt_report_logo',
     FEE_CATEGORY_DROPDOWNS: 'fee_category_dropdown',
     FEE_STUDENT_DROPDOWNS: 'fee_student_dropdown',
-    FEE_HEAD_DROPDOWNS: 'fee_head_dropdown'
+    FEE_HEAD_DROPDOWNS: 'fee_head_dropdown',
+    FEE_USER_WISE_DAILY_COLLECTION_REPORT: 'fee_user_wise_daily_collection_report'
 };
 
 export const EXAM_QUERY_KEYS = {

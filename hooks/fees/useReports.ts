@@ -31,6 +31,7 @@ import { getStudentDropDown } from '@/server/fees/reports/fee_it_report_ukschool
 import { getfeeMonths } from '@/server/fees/reports/fee_monthendReport';
 import { getFeeReceiptLogo } from '@/server/fees/reports/fee_receipt_report';
 import { getFeeHeadDropDown } from '@/server/fees/reports/fee_refund_report_gmvps';
+import { getUserWiseDailyCollectionReport } from '@/server/fees/reports/fee_userwise_daily_collections';
 import { getFeesInstallmentDropDown, getFeesTranasctionInstallmentDropDown } from '@/server/fees/reports/fee_yearlyCollectionReport';
 import {
     getFeesTermDropDownforStudentTermWiseReport,
@@ -604,5 +605,11 @@ export const useFeeTaxReport = () => {
                 queryKey: [FEES_QUERY_KEYS.FEE_DEFAULTER_REPORT, 'fee-tax-report']
             });
         }
+    });
+};
+
+export const useUserWiseDailyCollectionReport = () => {
+    return useMutation({
+        mutationFn: (data: any) => getUserWiseDailyCollectionReport(data) // Using any or specific interface as needed
     });
 };
