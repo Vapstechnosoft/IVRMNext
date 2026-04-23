@@ -1174,15 +1174,15 @@ export async function getUserAccessibleModules() {
                                             title: 'DCPS Bonified Certificate',
                                             description: 'Bonified Certificate'
                                         }
-                                        // ,
-                                        // {
-                                        //     id: 72,
-                                        //     name: 'DCPS Transfer Certificate',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/Danvantari/reports/DCPS_TransferCertificate',
-                                        //     title: 'DCPS Transfer Certificate',
-                                        //     description: 'DCPS Transfer Certificate'
-                                        // }
+                                        ,
+                                        {
+                                            id: 72,
+                                            name: 'DCPS Transfer Certificate',
+                                            icon: 'Settings',
+                                            url: '/admission/Danvantari/reports/DCPS_TransferCertificate',
+                                            title: 'DCPS Transfer Certificate',
+                                            description: 'DCPS Transfer Certificate'
+                                        }
 
                                     ]
                                 },
@@ -7087,7 +7087,16 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/attendance-entry/student-attendance',
                                             title: 'Attendance Entry',
                                             description: 'Daily Student Attendance'
+                                        },
+                                        {
+                                            id: 8002,
+                                            name: 'Mess Attendance Entry',
+                                            icon: 'UserCheck',
+                                            url: '/admission/preadmission/newsharedhost/transactions/mess-attendance-entry',
+                                            title: 'Mess Attendance Entry',
+                                            description: 'Daily Student Attendance'
                                         }
+
                                     ]
                                 },
                                 {

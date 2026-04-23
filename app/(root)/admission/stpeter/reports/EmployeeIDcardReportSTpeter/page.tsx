@@ -48,12 +48,16 @@ export default function EmployeeIDcardReportSTpeterPage() {
     const filterMutation = useFilterStpeterEmployees();
     const detailsMutation = useGetStpeterEmployeeDetails();
 
+    const formatIdList = (ids: number[]) => (ids.length === 0 ? [0] : ids);
+    const getData = (res: any) => res?.data?.data || res?.data || res;
+
     /* -------------------- Initial Data -------------------- */
     useEffect(() => {
-        if (loadData) {
-            const groups = (loadData as any).groupTypedropdown || [];
-            const depts = (loadData as any).departmentdropdown || [];
-            const desigs = (loadData as any).designationdropdown || [];
+        const data = getData(loadData);
+        if (data) {
+            const groups = data.groupTypelist || [];
+            const depts = data.departmentlist || [];
+            const desigs = data.designationlist || [];
 
             setGroupTypes(groups);
             setDepartments(depts);
@@ -66,61 +70,95 @@ export default function EmployeeIDcardReportSTpeterPage() {
         }
     }, [loadData]);
 
-    /* -------------------- Handlers -------------------- */
-    const handleGroupToggle = async (id: number) => {
-        const newIds = selectedGroupIds.includes(id) 
-            ? selectedGroupIds.filter(i => i !== id) 
-            : [...selectedGroupIds, id];
-        setSelectedGroupIds(newIds);
-        
+    const updateDepartments = async (groupIds: number[]) => {
         try {
-            const res = await deptMutation.mutateAsync({ hrmgT_IdList: newIds });
-            const depts = Array.isArray(res?.departmentdropdown) ? res?.departmentdropdown : [];
+            const res = await deptMutation.mutateAsync({ hrmgT_IdList: formatIdList(groupIds) });
+            const data = getData(res);
+            const depts = Array.isArray(data?.departmentlist) ? data.departmentlist : [];
             setDepartments(depts);
-            setSelectedDeptIds(depts.map((d: any) => d.hrmD_Id));
+            const allDeptIds = depts.map((d: any) => d.hrmD_Id);
+            setSelectedDeptIds(allDeptIds);
+            return allDeptIds;
         } catch (error) {
             toast.error('Failed to update departments');
+            return [];
         }
+    };
+
+    const updateDesignations = async (groupIds: number[], deptIds: number[]) => {
+        try {
+            const res = await desigMutation.mutateAsync({ 
+                hrmgT_IdList: formatIdList(groupIds), 
+                hrmD_IdList: formatIdList(deptIds) 
+            });
+            const data = getData(res);
+            const desigs = Array.isArray(data?.designationlist) ? data.designationlist : [];
+            setDesignations(desigs);
+            const allDesigIds = desigs.map((d: any) => d.hrmdeS_Id);
+            setSelectedDesigIds(allDesigIds);
+            return allDesigIds;
+        } catch (error) {
+            toast.error('Failed to update designations');
+            return [];
+        }
+    };
+
+    /* -------------------- Handlers -------------------- */
+    const handleGroupToggle = async (id: number) => {
+        const newGroupIds = selectedGroupIds.includes(id) 
+            ? selectedGroupIds.filter(i => i !== id) 
+            : [...selectedGroupIds, id];
+        setSelectedGroupIds(newGroupIds);
+        
+        const newDeptIds = await updateDepartments(newGroupIds);
+        await updateDesignations(newGroupIds, newDeptIds);
     };
 
     const handleDeptToggle = async (id: number) => {
-        const newIds = selectedDeptIds.includes(id) 
+        const newDeptIds = selectedDeptIds.includes(id) 
             ? selectedDeptIds.filter(i => i !== id) 
             : [...selectedDeptIds, id];
-        setSelectedDeptIds(newIds);
-
-        try {
-            const res = await desigMutation.mutateAsync({ 
-                hrmgT_IdList: selectedGroupIds, 
-                hrmD_IdList: newIds 
-            });
-            const desigs = Array.isArray(res?.designationdropdown) ? res?.designationdropdown : [];
-            setDesignations(desigs);
-            setSelectedDesigIds(desigs.map((d: any) => d.hrmdeS_Id));
-        } catch (error) {
-            toast.error('Failed to update designations');
-        }
+        setSelectedDeptIds(newDeptIds);
+        await updateDesignations(selectedGroupIds, newDeptIds);
     };
 
     const handleSearchEmployees = async () => {
-        if (selectedGroupIds.length === 0 || selectedDeptIds.length === 0 || selectedDesigIds.length === 0) {
-            toast.error('Please select at least one Group, Department, and Designation');
-            return;
-        }
-
         try {
             const res = await filterMutation.mutateAsync({
-                hrmgT_IdList: selectedGroupIds,
-                hrmD_IdList: selectedDeptIds,
-                hrmdeS_IdList: selectedDesigIds
+                hrmgT_IdList: formatIdList(selectedGroupIds),
+                hrmD_IdList: formatIdList(selectedDeptIds),
+                hrmdeS_IdList: formatIdList(selectedDesigIds)
             });
-            const employees = Array.isArray(res?.employeedropdown) ? res?.employeedropdown : [];
+            const data = getData(res);
+            const employees = Array.isArray(data?.employeedropdown) ? data.employeedropdown : [];
             setEmployeeList(employees);
             if (employees.length === 0) toast.error('No employees found for this selection');
             else toast.success(`Found ${employees.length} employees`);
         } catch (error) {
             toast.error('Error filtering employees');
         }
+    };
+
+    const handleClear = () => {
+        const data = getData(loadData);
+        if (data) {
+            const groups = data.groupTypelist || [];
+            const depts = data.departmentlist || [];
+            const desigs = data.designationlist || [];
+
+            setGroupTypes(groups);
+            setDepartments(depts);
+            setDesignations(desigs);
+
+            setSelectedGroupIds(groups.map((g: any) => g.hrmgT_Id));
+            setSelectedDeptIds(depts.map((d: any) => d.hrmD_Id));
+            setSelectedDesigIds(desigs.map((ds: any) => ds.hrmdeS_Id));
+        }
+        setEmployeeList([]);
+        setSelectedEmployeeIds([]);
+        setEmployeeSearch('');
+        setShowReport(false);
+        setReportData([]);
     };
 
     const handleShowDetails = async () => {
@@ -131,7 +169,7 @@ export default function EmployeeIDcardReportSTpeterPage() {
 
         try {
             const res = await detailsMutation.mutateAsync({ hrmE_multiId: selectedEmployeeIds });
-            const data = (res as any);
+            const data = getData(res);
             if (data?.arrayempsList?.length > 0) {
                 setReportData(data.arrayempsList);
                 setShowReport(true);
@@ -155,154 +193,193 @@ export default function EmployeeIDcardReportSTpeterPage() {
     }, [employeeList, employeeSearch]);
 
     return (
-        <div className='min-h-screen p-4 space-y-6'>
-            <CollapsibleSection
-                title="Employee ID Card Report"
-                description="St. Peter's School Durgapur"
-                defaultOpen={true}
-                variant='outline'
-                className='shadow-lg'>
+        <div className='min-h-screen p-4'>
+        <CollapsibleSection
+            title='Employee Profile Report'
+            description="Generate printable ID cards for St. Peter's School employees"
+            defaultOpen={true}
+            variant='outline'
+            className='shadow-lg'>
 
-                <div className='bg-white p-6 space-y-8'>
-                    {/* Multi-Select Filters */}
+            <div className='p-6 space-y-6'>
+                    {/* Multi-Select Filters Grid */}
                     <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
                         {/* Group Type */}
-                        <div className='flex flex-col border rounded-2xl bg-slate-50 overflow-hidden h-[300px]'>
-                            <div className='p-3 bg-indigo-600 text-white flex items-center justify-between'>
-                                <div className='flex items-center gap-2'>
-                                    <Users className='h-4 w-4' />
-                                    <span className='font-bold text-sm'>Group Type</span>
+                        <div className='flex flex-col border border-blue-200 rounded-sm overflow-hidden h-[300px]'>
+                            <div className='px-3 py-1.5 bg-white border-b border-blue-100 flex items-center justify-between'>
+                                <Label className='text-[11px] font-bold text-slate-700'>
+                                    Group Type:<span className='text-red-500'>*</span>
+                                </Label>
+                                <div className='flex items-center gap-1.5'>
+                                    <Checkbox 
+                                        id='grp-all'
+                                        checked={selectedGroupIds.length === groupTypes.length && groupTypes.length > 0}
+                                        onCheckedChange={async (checked) => {
+                                            const ids = checked ? groupTypes.map(g => g.hrmgT_Id) : [];
+                                            setSelectedGroupIds(ids);
+                                            const newDepts = await updateDepartments(ids);
+                                            await updateDesignations(ids, newDepts);
+                                        }}
+                                        className='h-3.5 w-3.5 rounded-none border-slate-400'
+                                    />
+                                    <Label htmlFor='grp-all' className='text-[10px] font-bold text-slate-500'>All</Label>
                                 </div>
-                                <Checkbox 
-                                    checked={selectedGroupIds.length === groupTypes.length && groupTypes.length > 0}
-                                    onCheckedChange={(checked) => {
-                                        const ids = checked ? groupTypes.map(g => g.hrmgT_Id) : [];
-                                        setSelectedGroupIds(ids);
-                                    }}
-                                    className='border-white data-[state=checked]:bg-white data-[state=checked]:text-indigo-600'
-                                />
                             </div>
-                            <ScrollArea className='flex-grow p-2'>
-                                {groupTypes.map((g: any) => (
-                                    <div 
-                                        key={g.hrmgT_Id} 
-                                        className='flex items-center space-x-2 p-2 hover:bg-slate-200 rounded-lg cursor-pointer transition-colors'
-                                        onClick={() => handleGroupToggle(g.hrmgT_Id)}>
-                                        <Checkbox checked={selectedGroupIds.includes(g.hrmgT_Id)} />
-                                        <span className='text-xs font-medium'>{g.hrmgT_EmployeeGroupType}</span>
-                                    </div>
-                                ))}
+                            <ScrollArea className='flex-grow bg-white'>
+                                <div className='p-1'>
+                                    {groupTypes.map((g: any) => (
+                                        <div 
+                                            key={g.hrmgT_Id} 
+                                            className='flex items-center space-x-2 px-3 py-1 hover:bg-blue-50/50 cursor-pointer transition-colors group'
+                                            onClick={() => handleGroupToggle(g.hrmgT_Id)}>
+                                            <Checkbox 
+                                                checked={selectedGroupIds.includes(g.hrmgT_Id)} 
+                                                className='h-3 w-3 rounded-none border-slate-300 data-[state=checked]:bg-[#3f51b5] data-[state=checked]:border-[#3f51b5]'
+                                            />
+                                            <span className='text-[10px] font-medium text-slate-600 group-hover:text-blue-700'>{g.hrmgT_EmployeeGroupType}</span>
+                                        </div>
+                                    ))}
+                                </div>
                             </ScrollArea>
                         </div>
 
                         {/* Department */}
-                        <div className='flex flex-col border rounded-2xl bg-slate-50 overflow-hidden h-[300px]'>
-                            <div className='p-3 bg-indigo-600 text-white flex items-center justify-between'>
-                                <div className='flex items-center gap-2'>
-                                    <Building2 className='h-4 w-4' />
-                                    <span className='font-bold text-sm'>Department</span>
+                        <div className='flex flex-col border border-blue-200 rounded-sm overflow-hidden h-[300px]'>
+                            <div className='px-3 py-1.5 bg-white border-b border-blue-100 flex items-center justify-between'>
+                                <Label className='text-[11px] font-bold text-slate-700'>
+                                    Department:<span className='text-red-500'>*</span>
+                                </Label>
+                                <div className='flex items-center gap-1.5'>
+                                    <Checkbox 
+                                        id='dept-all'
+                                        checked={selectedDeptIds.length === departments.length && departments.length > 0}
+                                        onCheckedChange={async (checked) => {
+                                            const ids = checked ? departments.map(d => d.hrmD_Id) : [];
+                                            setSelectedDeptIds(ids);
+                                            await updateDesignations(selectedGroupIds, ids);
+                                        }}
+                                        className='h-3.5 w-3.5 rounded-none border-slate-400'
+                                    />
+                                    <Label htmlFor='dept-all' className='text-[10px] font-bold text-slate-500'>All</Label>
                                 </div>
-                                <Checkbox 
-                                    checked={selectedDeptIds.length === departments.length && departments.length > 0}
-                                    onCheckedChange={(checked) => {
-                                        const ids = checked ? departments.map(d => d.hrmD_Id) : [];
-                                        setSelectedDeptIds(ids);
-                                    }}
-                                    className='border-white data-[state=checked]:bg-white data-[state=checked]:text-indigo-600'
-                                />
                             </div>
-                            <ScrollArea className='flex-grow p-2'>
-                                {departments.map((d: any) => (
-                                    <div 
-                                        key={d.hrmD_Id} 
-                                        className='flex items-center space-x-2 p-2 hover:bg-slate-200 rounded-lg cursor-pointer transition-colors'
-                                        onClick={() => handleDeptToggle(d.hrmD_Id)}>
-                                        <Checkbox checked={selectedDeptIds.includes(d.hrmD_Id)} />
-                                        <span className='text-xs font-medium'>{d.hrmD_DepartmentName}</span>
-                                    </div>
-                                ))}
+                            <ScrollArea className='flex-grow bg-white'>
+                                <div className='p-1'>
+                                    {departments.map((d: any) => (
+                                        <div 
+                                            key={d.hrmD_Id} 
+                                            className='flex items-center space-x-2 px-3 py-1 hover:bg-blue-50/50 cursor-pointer transition-colors group'
+                                            onClick={() => handleDeptToggle(d.hrmD_Id)}>
+                                            <Checkbox 
+                                                checked={selectedDeptIds.includes(d.hrmD_Id)} 
+                                                className='h-3 w-3 rounded-none border-slate-300 data-[state=checked]:bg-[#3f51b5] data-[state=checked]:border-[#3f51b5]'
+                                            />
+                                            <span className='text-[10px] font-medium text-slate-600 group-hover:text-blue-700'>{d.hrmD_DepartmentName}</span>
+                                        </div>
+                                    ))}
+                                </div>
                             </ScrollArea>
                         </div>
 
                         {/* Designation */}
-                        <div className='flex flex-col border rounded-2xl bg-slate-50 overflow-hidden h-[300px]'>
-                            <div className='p-3 bg-indigo-600 text-white flex items-center justify-between'>
-                                <div className='flex items-center gap-2'>
-                                    <Briefcase className='h-4 w-4' />
-                                    <span className='font-bold text-sm'>Designation</span>
+                        <div className='flex flex-col border border-blue-200 rounded-sm overflow-hidden h-[300px]'>
+                            <div className='px-3 py-1.5 bg-white border-b border-blue-100 flex items-center justify-between'>
+                                <Label className='text-[11px] font-bold text-slate-700'>
+                                    Designation:<span className='text-red-500'>*</span>
+                                </Label>
+                                <div className='flex items-center gap-1.5'>
+                                    <Checkbox 
+                                        id='desig-all'
+                                        checked={selectedDesigIds.length === designations.length && designations.length > 0}
+                                        onCheckedChange={(checked) => {
+                                            const ids = checked ? designations.map(d => d.hrmdeS_Id) : [];
+                                            setSelectedDesigIds(ids);
+                                        }}
+                                        className='h-3.5 w-3.5 rounded-none border-slate-400'
+                                    />
+                                    <Label htmlFor='desig-all' className='text-[10px] font-bold text-slate-500'>All</Label>
                                 </div>
-                                <Checkbox 
-                                    checked={selectedDesigIds.length === designations.length && designations.length > 0}
-                                    onCheckedChange={(checked) => {
-                                        const ids = checked ? designations.map(d => d.hrmdeS_Id) : [];
-                                        setSelectedDesigIds(ids);
-                                    }}
-                                    className='border-white data-[state=checked]:bg-white data-[state=checked]:text-indigo-600'
-                                />
                             </div>
-                            <ScrollArea className='flex-grow p-2'>
-                                {designations.map((d: any) => (
-                                    <div 
-                                        key={d.hrmdeS_Id} 
-                                        className='flex items-center space-x-2 p-2 hover:bg-slate-200 rounded-lg cursor-pointer transition-colors'
-                                        onClick={() => setSelectedDesigIds(prev => prev.includes(d.hrmdeS_Id) ? prev.filter(i => i !== d.hrmdeS_Id) : [...prev, d.hrmdeS_Id])}>
-                                        <Checkbox checked={selectedDesigIds.includes(d.hrmdeS_Id)} />
-                                        <span className='text-xs font-medium'>{d.hrmdeS_DesignationName}</span>
-                                    </div>
-                                ))}
+                            <ScrollArea className='flex-grow bg-white'>
+                                <div className='p-1'>
+                                    {designations.map((d: any) => (
+                                        <div 
+                                            key={d.hrmdeS_Id} 
+                                            className='flex items-center space-x-2 px-3 py-1 hover:bg-blue-50/50 cursor-pointer transition-colors group'
+                                            onClick={() => setSelectedDesigIds(prev => prev.includes(d.hrmdeS_Id) ? prev.filter(i => i !== d.hrmdeS_Id) : [...prev, d.hrmdeS_Id])}>
+                                            <Checkbox 
+                                                checked={selectedDesigIds.includes(d.hrmdeS_Id)} 
+                                                className='h-3 w-3 rounded-none border-slate-300 data-[state=checked]:bg-[#3f51b5] data-[state=checked]:border-[#3f51b5]'
+                                            />
+                                            <span className='text-[10px] font-medium text-slate-600 group-hover:text-blue-700'>{d.hrmdeS_DesignationName}</span>
+                                        </div>
+                                    ))}
+                                </div>
                             </ScrollArea>
                         </div>
                     </div>
 
-                    <div className='flex justify-center border-b pb-8'>
+                    <div className='flex justify-center border-t pt-6 gap-3'>
                         <Button
-                            size='lg'
+                            size='sm'
                             onClick={handleSearchEmployees}
                             disabled={filterMutation.isPending}
-                            className='min-w-[180px] bg-indigo-600 hover:bg-indigo-700 rounded-xl font-black'>
-                            {filterMutation.isPending ? <Loader2 className='animate-spin mr-2' /> : <Search className='mr-2 h-4 w-4' />}
-                            SEARCH EMPLOYEES
+                            className='min-w-[120px] bg-[#3f51b5] hover:bg-[#303f9f] rounded-sm font-bold text-[11px] h-9 shadow-sm uppercase'>
+                            {filterMutation.isPending ? <Loader2 className='animate-spin mr-2 h-4 w-4' /> : <Search className='mr-2 h-4 w-4' />}
+                            SEARCH
+                        </Button>
+                        <Button
+                            size='sm'
+                            variant='destructive'
+                            onClick={handleClear}
+                            className='min-w-[120px] bg-[#ff5722] hover:bg-[#e64a19] rounded-sm font-bold text-[11px] h-9 shadow-sm uppercase'>
+                            <X className='mr-2 h-4 w-4' />
+                            CANCEL
                         </Button>
                     </div>
 
                     {/* Employee List Section */}
                     {employeeList.length > 0 && (
-                        <div className='space-y-4 max-w-2xl mx-auto'>
-                            <div className='flex items-center justify-between'>
-                                <Label className='text-lg font-black text-slate-700'>Select Employees</Label>
-                                <div className='flex items-center space-x-2'>
+                        <div className='space-y-4 max-w-4xl mx-auto border-t pt-8'>
+                            <div className='flex items-center justify-between px-2'>
+                                <Label className='text-xs font-bold text-slate-700 uppercase'>1. Select Employees</Label>
+                                <div className='flex items-center space-x-2 bg-slate-50 px-3 py-1 border rounded-sm'>
                                     <Checkbox 
                                         id='sel-all-emp' 
                                         checked={selectedEmployeeIds.length === employeeList.length}
                                         onCheckedChange={(checked) => setSelectedEmployeeIds(checked ? employeeList.map(e => e.hrmE_Id) : [])}
+                                        className='h-3.5 w-3.5 rounded-none border-slate-400'
                                     />
-                                    <Label htmlFor='sel-all-emp' className='font-bold text-xs'>SELECT ALL</Label>
+                                    <Label htmlFor='sel-all-emp' className='font-bold text-[10px] text-slate-500'>SELECT ALL</Label>
                                 </div>
                             </div>
-                            <div className='relative'>
-                                <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400' />
+                            <div className='relative max-w-md'>
+                                <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400' />
                                 <Input 
-                                    className='pl-10 h-10 rounded-xl' 
+                                    className='pl-10 h-9 rounded-sm text-[11px] border-slate-200 focus:ring-0 focus:border-[#3f51b5]' 
                                     placeholder='Search employee by name...' 
                                     value={employeeSearch}
                                     onChange={(e) => setEmployeeSearch(e.target.value)}
                                 />
-                                {employeeSearch && <X className='absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 cursor-pointer' onClick={() => setEmployeeSearch('')} />}
+                                {employeeSearch && <X className='absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 cursor-pointer' onClick={() => setEmployeeSearch('')} />}
                             </div>
-                            <ScrollArea className='h-[250px] border rounded-2xl p-2 bg-slate-50'>
-                                <div className='grid grid-cols-1 md:grid-cols-2 gap-2'>
+                            <ScrollArea className='h-[300px] border border-blue-100 rounded-sm p-1 bg-white'>
+                                <div className='grid grid-cols-1 md:grid-cols-2 gap-1'>
                                     {filteredEmployees.map((e: any) => (
                                         <div 
                                             key={e.hrmE_Id}
                                             onClick={() => setSelectedEmployeeIds(prev => prev.includes(e.hrmE_Id) ? prev.filter(i => i !== e.hrmE_Id) : [...prev, e.hrmE_Id])}
                                             className={cn(
-                                                'flex items-center space-x-3 p-3 rounded-xl cursor-pointer transition-all border-2',
-                                                selectedEmployeeIds.includes(e.hrmE_Id) ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'bg-white border-transparent hover:border-slate-200'
+                                                'flex items-center space-x-3 p-2 rounded-sm cursor-pointer transition-all border group',
+                                                selectedEmployeeIds.includes(e.hrmE_Id) ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white border-transparent hover:border-slate-100 hover:bg-slate-50'
                                             )}>
-                                            <Checkbox checked={selectedEmployeeIds.includes(e.hrmE_Id)} />
+                                            <Checkbox 
+                                                checked={selectedEmployeeIds.includes(e.hrmE_Id)} 
+                                                className='h-3 w-3 rounded-none border-slate-300 data-[state=checked]:bg-[#3f51b5] data-[state=checked]:border-[#3f51b5]'
+                                            />
                                             <div className='flex flex-col'>
-                                                <span className='text-sm font-bold uppercase'>{e.hrmE_EmployeeFirstName} {e.hrmE_EmployeeLastName}</span>
-                                                <span className='text-[10px] opacity-60'>Code: {e.hrmE_EmployeeCode || 'N/A'}</span>
+                                                <span className='text-[10px] font-bold uppercase'>{e.hrmE_EmployeeFirstName} {e.hrmE_EmployeeLastName}</span>
+                                                <span className='text-[9px] opacity-60'>Code: {e.hrmE_EmployeeCode || 'N/A'}</span>
                                             </div>
                                         </div>
                                     ))}
@@ -312,17 +389,17 @@ export default function EmployeeIDcardReportSTpeterPage() {
                             {/* Final Action Buttons */}
                             <div className='flex justify-center gap-4 pt-4'>
                                 <Button
-                                    size='lg'
+                                    size='sm'
                                     onClick={handleShowDetails}
                                     disabled={detailsMutation.isPending}
-                                    className='min-w-[160px] bg-slate-800 hover:bg-slate-900 rounded-xl font-bold'>
+                                    className='min-w-[140px] bg-slate-700 hover:bg-slate-800 rounded-sm font-bold text-[11px] h-9 shadow-sm'>
                                     {detailsMutation.isPending ? <Loader2 className='animate-spin' /> : 'SHOW CARDS'}
                                 </Button>
                                 <Button
-                                    size='lg'
+                                    size='sm'
                                     onClick={handlePrint}
                                     disabled={!showReport}
-                                    className='min-w-[160px] bg-indigo-600 hover:bg-indigo-700 rounded-xl font-bold'>
+                                    className='min-w-[140px] bg-[#3f51b5] hover:bg-[#303f9f] rounded-sm font-bold text-[11px] h-9 shadow-sm'>
                                     <Printer className='mr-2 h-4 w-4' />
                                     PRINT
                                 </Button>

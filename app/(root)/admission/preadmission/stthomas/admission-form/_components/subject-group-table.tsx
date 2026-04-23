@@ -3,19 +3,19 @@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/extension/field';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Control, Controller } from 'react-hook-form';
+import { Control, Controller, FieldValues, Path } from 'react-hook-form';
 
-interface SubjectGroupTableProps {
-    control: Control<any>;
+interface SubjectGroupTableProps<T extends FieldValues> {
+    control: Control<T>;
     electiveList: any[];
     isLoading?: boolean;
 }
 
-export function SubjectGroupTable({ control, electiveList, isLoading }: SubjectGroupTableProps) {
+export function SubjectGroupTable<T extends FieldValues>({ control, electiveList, isLoading }: SubjectGroupTableProps<T>) {
     return (
         <div className="space-y-4">
             <Label htmlFor="electivelist_Groups">Integrated Programs / Elective Groups</Label>
-            
+
             <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
                 <Table>
                     <TableHeader>
@@ -37,21 +37,21 @@ export function SubjectGroupTable({ control, electiveList, isLoading }: SubjectG
                             electiveList.map((group: any, groupIdx: number) => {
                                 const subjects = group.subjects || [];
                                 const rowCount = subjects.length || 1;
-                                
+
                                 return (
-                                    <Controller
+                                    <Controller<T>
                                         key={group.asmgC_Id}
-                                        name="electivelist_Groups"
+                                        name={"electivelist_Groups" as Path<T>}
                                         control={control}
                                         render={({ field }) => {
-                                            const isSelected = (field.value || []).includes(group.asmgC_Id);
-                                            
+                                            const isSelected = (field.value as any[] || []).includes(group.asmgC_Id);
+
                                             const handleToggle = (checked: boolean) => {
-                                                const currentVals = field.value || [];
+                                                const currentVals = field.value as any[] || [];
                                                 if (checked) {
                                                     field.onChange([...currentVals, group.asmgC_Id]);
                                                 } else {
-                                                    field.onChange(currentVals.filter((v: number) => v !== group.asmgC_Id));
+                                                    field.onChange(currentVals.filter((v: any) => v !== group.asmgC_Id));
                                                 }
                                             };
 
@@ -69,7 +69,7 @@ export function SubjectGroupTable({ control, electiveList, isLoading }: SubjectG
                                                                             {group.asmgC_GroupName}
                                                                         </TableCell>
                                                                         <TableCell className="text-center" rowSpan={rowCount}>
-                                                                            <Checkbox 
+                                                                            <Checkbox
                                                                                 checked={isSelected}
                                                                                 onCheckedChange={handleToggle}
                                                                             />
@@ -86,7 +86,7 @@ export function SubjectGroupTable({ control, electiveList, isLoading }: SubjectG
                                                             <TableCell className="text-center">{groupIdx + 1}</TableCell>
                                                             <TableCell className="font-medium">{group.asmgC_GroupName}</TableCell>
                                                             <TableCell className="text-center">
-                                                                <Checkbox 
+                                                                <Checkbox
                                                                     checked={isSelected}
                                                                     onCheckedChange={handleToggle}
                                                                 />
