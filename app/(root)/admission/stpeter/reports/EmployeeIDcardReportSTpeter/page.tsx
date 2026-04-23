@@ -31,7 +31,7 @@ export default function EmployeeIDcardReportSTpeterPage() {
     const [groupTypes, setGroupTypes] = useState<any[]>([]);
     const [departments, setDepartments] = useState<any[]>([]);
     const [designations, setDesignations] = useState<any[]>([]);
-    
+
     const [selectedGroupIds, setSelectedGroupIds] = useState<number[]>([]);
     const [selectedDeptIds, setSelectedDeptIds] = useState<number[]>([]);
     const [selectedDesigIds, setSelectedDesigIds] = useState<number[]>([]);
@@ -42,6 +42,7 @@ export default function EmployeeIDcardReportSTpeterPage() {
 
     const [showReport, setShowReport] = useState(false);
     const [reportData, setReportData] = useState<any[]>([]);
+    const [summaryData, setSummaryData] = useState<any[]>([]);
 
     const deptMutation = useGetStpeterDepts();
     const desigMutation = useGetStpeterDesig();
@@ -58,12 +59,14 @@ export default function EmployeeIDcardReportSTpeterPage() {
             const groups = data.groupTypelist || [];
             const depts = data.departmentlist || [];
             const desigs = data.designationlist || [];
+            const employees = data.employeedropdown || [];
 
             setGroupTypes(groups);
             setDepartments(depts);
             setDesignations(desigs);
+            // setEmployeeList(employees);
 
-            // Default: Select all groups
+            // Default: Select all
             setSelectedGroupIds(groups.map((g: any) => g.hrmgT_Id));
             setSelectedDeptIds(depts.map((d: any) => d.hrmD_Id));
             setSelectedDesigIds(desigs.map((ds: any) => ds.hrmdeS_Id));
@@ -87,9 +90,9 @@ export default function EmployeeIDcardReportSTpeterPage() {
 
     const updateDesignations = async (groupIds: number[], deptIds: number[]) => {
         try {
-            const res = await desigMutation.mutateAsync({ 
-                hrmgT_IdList: formatIdList(groupIds), 
-                hrmD_IdList: formatIdList(deptIds) 
+            const res = await desigMutation.mutateAsync({
+                hrmgT_IdList: formatIdList(groupIds),
+                hrmD_IdList: formatIdList(deptIds)
             });
             const data = getData(res);
             const desigs = Array.isArray(data?.designationlist) ? data.designationlist : [];
@@ -105,18 +108,18 @@ export default function EmployeeIDcardReportSTpeterPage() {
 
     /* -------------------- Handlers -------------------- */
     const handleGroupToggle = async (id: number) => {
-        const newGroupIds = selectedGroupIds.includes(id) 
-            ? selectedGroupIds.filter(i => i !== id) 
+        const newGroupIds = selectedGroupIds.includes(id)
+            ? selectedGroupIds.filter(i => i !== id)
             : [...selectedGroupIds, id];
         setSelectedGroupIds(newGroupIds);
-        
+
         const newDeptIds = await updateDepartments(newGroupIds);
         await updateDesignations(newGroupIds, newDeptIds);
     };
 
     const handleDeptToggle = async (id: number) => {
-        const newDeptIds = selectedDeptIds.includes(id) 
-            ? selectedDeptIds.filter(i => i !== id) 
+        const newDeptIds = selectedDeptIds.includes(id)
+            ? selectedDeptIds.filter(i => i !== id)
             : [...selectedDeptIds, id];
         setSelectedDeptIds(newDeptIds);
         await updateDesignations(selectedGroupIds, newDeptIds);
@@ -145,20 +148,24 @@ export default function EmployeeIDcardReportSTpeterPage() {
             const groups = data.groupTypelist || [];
             const depts = data.departmentlist || [];
             const desigs = data.designationlist || [];
+            const employees = data.employeedropdown || [];
 
             setGroupTypes(groups);
             setDepartments(depts);
             setDesignations(desigs);
+            setEmployeeList([]);
 
             setSelectedGroupIds(groups.map((g: any) => g.hrmgT_Id));
             setSelectedDeptIds(depts.map((d: any) => d.hrmD_Id));
             setSelectedDesigIds(desigs.map((ds: any) => ds.hrmdeS_Id));
+        } else {
+            setEmployeeList([]);
         }
-        setEmployeeList([]);
         setSelectedEmployeeIds([]);
         setEmployeeSearch('');
         setShowReport(false);
         setReportData([]);
+        setSummaryData([]);
     };
 
     const handleShowDetails = async () => {
@@ -170,9 +177,34 @@ export default function EmployeeIDcardReportSTpeterPage() {
         try {
             const res = await detailsMutation.mutateAsync({ hrmE_multiId: selectedEmployeeIds });
             const data = getData(res);
-            if (data?.arrayempsList?.length > 0) {
-                setReportData(data.arrayempsList);
+
+            const arrayEmps = data?.arrayempsList || [];
+            const fills = data?.filltypes || [];
+
+            if (arrayEmps.length > 0 || fills.length > 0) {
+                // Merge logic: VAPS backend often returns matching indices for these two arrays
+                const merged = (arrayEmps.length >= fills.length ? arrayEmps : fills).map((item: any, idx: number) => {
+                    const empDetail = arrayEmps[idx] || {};
+                    const fillDetail = fills[idx] || {};
+                    return {
+                        ...empDetail,
+                        ...fillDetail,
+                        hrmE_Id: item.hrmE_Id || fillDetail.hrmE_Id || empDetail.hrmE_Id || 0,
+                        // Priority merging for common fields
+                        hrmE_EmployeeFirstName: empDetail.hrmE_EmployeeFirstName || fillDetail.hrmE_EmployeeFirstName,
+                        hrmE_EmployeeCode: empDetail.hrmE_EmployeeCode || fillDetail.hrme_employeecode || fillDetail.hrmE_EmployeeCode,
+                        hrmE_DOJ: empDetail.hrmE_DOJ || fillDetail.hrme_doj || fillDetail.hrmE_DOJ,
+                        hrmE_DOB: empDetail.hrmE_DOB || fillDetail.hrme_dob || fillDetail.hrmE_DOB,
+                        employeefullname: fillDetail.employeefullname || empDetail.employeefullname,
+                        // Use top level designation if item one is missing
+                        designationName: empDetail.designationName || fillDetail.hrmdeS_DesignationName || data?.designationName || 'Staff'
+                    };
+                });
+
+                setReportData(merged);
+                setSummaryData(fills);
                 setShowReport(true);
+                toast.success('Employee details fetched successfully');
             } else {
                 toast.error('Could not fetch employee details');
             }
@@ -183,25 +215,59 @@ export default function EmployeeIDcardReportSTpeterPage() {
 
     const handlePrint = useReactToPrint({
         contentRef: printRef,
-        documentTitle: 'St_Peters_Employee_ID_Cards'
+        documentTitle: 'St_Peters_Employee_ID_Cards',
+        onBeforePrint: () => {
+            return new Promise((resolve) => {
+                setTimeout(() => resolve(void 0), 500);
+            });
+        }
     });
 
+    /* -------------------- Helpers -------------------- */
+    const getQualification = (emp: any) => {
+        return emp.hrmE_QualificationName || emp.employequalification?.[0]?.hrmC_QulaificationName || 'N/A';
+    };
+
+    const getSubjects = (emp: any) => {
+        const subjects = emp.employeeclasssubject?.map((s: any) => s.ismS_SubjectName).filter(Boolean) || [];
+        return [...new Set(subjects)].join(', ') || 'N/A';
+    };
+
+    const getEmployeeName = (one: any) => {
+        const emp = one.currentemployeeDetails;
+        if (emp) {
+            return `${emp.hrmE_EmployeeFirstName} ${emp.hrmE_EmployeeMiddleName || ''} ${emp.hrmE_EmployeeLastName}`.trim();
+        }
+        // Fallback to top level if available (defensive)
+        if (one.hrmE_EmployeeFirstName || one.hrmE_EmployeeMiddleName || one.hrmE_EmployeeLastName) {
+            return `${one.hrmE_EmployeeFirstName || ''} ${one.hrmE_EmployeeMiddleName || ''} ${one.hrmE_EmployeeLastName || ''}`.trim();
+        }
+        // Support for merged filltypes attribute
+        if (one.employeefullname) {
+            return one.employeefullname;
+        }
+        return 'Unknown Employee';
+    };
+
     const filteredEmployees = useMemo(() => {
-        return employeeList.filter(e => 
-            `${e.hrmE_EmployeeFirstName} ${e.hrmE_EmployeeMiddleName || ''} ${e.hrmE_EmployeeLastName || ''}`.toLowerCase().includes(employeeSearch.toLowerCase())
-        );
+        return employeeList.filter(e => {
+            const fullName = `${e.hrmE_EmployeeFirstName || ''} ${e.hrmE_EmployeeMiddleName || ''} ${e.hrmE_EmployeeLastName || ''}`.toLowerCase();
+            const code = (e.hrmE_EmployeeCode || e.currentemployeeDetails?.hrmE_EmployeeCode || '').toLowerCase();
+            const search = employeeSearch.toLowerCase();
+            return fullName.includes(search) || code.includes(search);
+        });
     }, [employeeList, employeeSearch]);
 
     return (
         <div className='min-h-screen p-4'>
-        <CollapsibleSection
-            title='Employee Profile Report'
-            description="Generate printable ID cards for St. Peter's School employees"
-            defaultOpen={true}
-            variant='outline'
-            className='shadow-lg'>
+            <CollapsibleSection
+                title='Employee Profile Report'
+                description="Generate printable ID cards for St. Peter's School employees"
+                defaultOpen={true}
+                variant='outline'
+                className='shadow-lg'>
 
-            <div className='p-6 space-y-6'>
+                <div className='p-6 space-y-6'>
                     {/* Multi-Select Filters Grid */}
                     <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
                         {/* Group Type */}
@@ -211,7 +277,7 @@ export default function EmployeeIDcardReportSTpeterPage() {
                                     Group Type:<span className='text-red-500'>*</span>
                                 </Label>
                                 <div className='flex items-center gap-1.5'>
-                                    <Checkbox 
+                                    <Checkbox
                                         id='grp-all'
                                         checked={selectedGroupIds.length === groupTypes.length && groupTypes.length > 0}
                                         onCheckedChange={async (checked) => {
@@ -228,12 +294,12 @@ export default function EmployeeIDcardReportSTpeterPage() {
                             <ScrollArea className='flex-grow bg-white'>
                                 <div className='p-1'>
                                     {groupTypes.map((g: any) => (
-                                        <div 
-                                            key={g.hrmgT_Id} 
+                                        <div
+                                            key={g.hrmgT_Id}
                                             className='flex items-center space-x-2 px-3 py-1 hover:bg-blue-50/50 cursor-pointer transition-colors group'
                                             onClick={() => handleGroupToggle(g.hrmgT_Id)}>
-                                            <Checkbox 
-                                                checked={selectedGroupIds.includes(g.hrmgT_Id)} 
+                                            <Checkbox
+                                                checked={selectedGroupIds.includes(g.hrmgT_Id)}
                                                 className='h-3 w-3 rounded-none border-slate-300 data-[state=checked]:bg-[#3f51b5] data-[state=checked]:border-[#3f51b5]'
                                             />
                                             <span className='text-[10px] font-medium text-slate-600 group-hover:text-blue-700'>{g.hrmgT_EmployeeGroupType}</span>
@@ -250,7 +316,7 @@ export default function EmployeeIDcardReportSTpeterPage() {
                                     Department:<span className='text-red-500'>*</span>
                                 </Label>
                                 <div className='flex items-center gap-1.5'>
-                                    <Checkbox 
+                                    <Checkbox
                                         id='dept-all'
                                         checked={selectedDeptIds.length === departments.length && departments.length > 0}
                                         onCheckedChange={async (checked) => {
@@ -266,12 +332,12 @@ export default function EmployeeIDcardReportSTpeterPage() {
                             <ScrollArea className='flex-grow bg-white'>
                                 <div className='p-1'>
                                     {departments.map((d: any) => (
-                                        <div 
-                                            key={d.hrmD_Id} 
+                                        <div
+                                            key={d.hrmD_Id}
                                             className='flex items-center space-x-2 px-3 py-1 hover:bg-blue-50/50 cursor-pointer transition-colors group'
                                             onClick={() => handleDeptToggle(d.hrmD_Id)}>
-                                            <Checkbox 
-                                                checked={selectedDeptIds.includes(d.hrmD_Id)} 
+                                            <Checkbox
+                                                checked={selectedDeptIds.includes(d.hrmD_Id)}
                                                 className='h-3 w-3 rounded-none border-slate-300 data-[state=checked]:bg-[#3f51b5] data-[state=checked]:border-[#3f51b5]'
                                             />
                                             <span className='text-[10px] font-medium text-slate-600 group-hover:text-blue-700'>{d.hrmD_DepartmentName}</span>
@@ -288,7 +354,7 @@ export default function EmployeeIDcardReportSTpeterPage() {
                                     Designation:<span className='text-red-500'>*</span>
                                 </Label>
                                 <div className='flex items-center gap-1.5'>
-                                    <Checkbox 
+                                    <Checkbox
                                         id='desig-all'
                                         checked={selectedDesigIds.length === designations.length && designations.length > 0}
                                         onCheckedChange={(checked) => {
@@ -303,12 +369,12 @@ export default function EmployeeIDcardReportSTpeterPage() {
                             <ScrollArea className='flex-grow bg-white'>
                                 <div className='p-1'>
                                     {designations.map((d: any) => (
-                                        <div 
-                                            key={d.hrmdeS_Id} 
+                                        <div
+                                            key={d.hrmdeS_Id}
                                             className='flex items-center space-x-2 px-3 py-1 hover:bg-blue-50/50 cursor-pointer transition-colors group'
                                             onClick={() => setSelectedDesigIds(prev => prev.includes(d.hrmdeS_Id) ? prev.filter(i => i !== d.hrmdeS_Id) : [...prev, d.hrmdeS_Id])}>
-                                            <Checkbox 
-                                                checked={selectedDesigIds.includes(d.hrmdeS_Id)} 
+                                            <Checkbox
+                                                checked={selectedDesigIds.includes(d.hrmdeS_Id)}
                                                 className='h-3 w-3 rounded-none border-slate-300 data-[state=checked]:bg-[#3f51b5] data-[state=checked]:border-[#3f51b5]'
                                             />
                                             <span className='text-[10px] font-medium text-slate-600 group-hover:text-blue-700'>{d.hrmdeS_DesignationName}</span>
@@ -343,46 +409,59 @@ export default function EmployeeIDcardReportSTpeterPage() {
                         <div className='space-y-4 max-w-4xl mx-auto border-t pt-8'>
                             <div className='flex items-center justify-between px-2'>
                                 <Label className='text-xs font-bold text-slate-700 uppercase'>1. Select Employees</Label>
-                                <div className='flex items-center space-x-2 bg-slate-50 px-3 py-1 border rounded-sm'>
-                                    <Checkbox 
-                                        id='sel-all-emp' 
-                                        checked={selectedEmployeeIds.length === employeeList.length}
+                                <div className='flex items-center space-x-2 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-100 cursor-pointer hover:bg-slate-100 transition-colors'
+                                    onClick={() => setSelectedEmployeeIds(selectedEmployeeIds.length === employeeList.length ? [] : employeeList.map(e => e.hrmE_Id))}>
+                                    <Checkbox
+                                        id='sel-all-emp'
+                                        checked={selectedEmployeeIds.length === employeeList.length && employeeList.length > 0}
                                         onCheckedChange={(checked) => setSelectedEmployeeIds(checked ? employeeList.map(e => e.hrmE_Id) : [])}
                                         className='h-3.5 w-3.5 rounded-none border-slate-400'
                                     />
-                                    <Label htmlFor='sel-all-emp' className='font-bold text-[10px] text-slate-500'>SELECT ALL</Label>
+                                    <Label htmlFor='sel-all-emp' className='font-bold text-[10px] text-slate-600 uppercase cursor-pointer'>SELECT ALL ({selectedEmployeeIds.length}/{employeeList.length})</Label>
                                 </div>
                             </div>
                             <div className='relative max-w-md'>
-                                <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400' />
-                                <Input 
-                                    className='pl-10 h-9 rounded-sm text-[11px] border-slate-200 focus:ring-0 focus:border-[#3f51b5]' 
-                                    placeholder='Search employee by name...' 
+                                <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400' />
+                                <Input
+                                    className='pl-10 h-10 rounded-sm text-[12px] border-slate-200 focus:ring-0 focus:border-[#3f51b5] placeholder:text-slate-400'
+                                    placeholder='Search employee by name or code...'
                                     value={employeeSearch}
                                     onChange={(e) => setEmployeeSearch(e.target.value)}
                                 />
-                                {employeeSearch && <X className='absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 cursor-pointer' onClick={() => setEmployeeSearch('')} />}
+                                {employeeSearch && <X className='absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 cursor-pointer hover:text-slate-600' onClick={() => setEmployeeSearch('')} />}
                             </div>
-                            <ScrollArea className='h-[300px] border border-blue-100 rounded-sm p-1 bg-white'>
-                                <div className='grid grid-cols-1 md:grid-cols-2 gap-1'>
-                                    {filteredEmployees.map((e: any) => (
-                                        <div 
-                                            key={e.hrmE_Id}
-                                            onClick={() => setSelectedEmployeeIds(prev => prev.includes(e.hrmE_Id) ? prev.filter(i => i !== e.hrmE_Id) : [...prev, e.hrmE_Id])}
-                                            className={cn(
-                                                'flex items-center space-x-3 p-2 rounded-sm cursor-pointer transition-all border group',
-                                                selectedEmployeeIds.includes(e.hrmE_Id) ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white border-transparent hover:border-slate-100 hover:bg-slate-50'
-                                            )}>
-                                            <Checkbox 
-                                                checked={selectedEmployeeIds.includes(e.hrmE_Id)} 
-                                                className='h-3 w-3 rounded-none border-slate-300 data-[state=checked]:bg-[#3f51b5] data-[state=checked]:border-[#3f51b5]'
-                                            />
-                                            <div className='flex flex-col'>
-                                                <span className='text-[10px] font-bold uppercase'>{e.hrmE_EmployeeFirstName} {e.hrmE_EmployeeLastName}</span>
-                                                <span className='text-[9px] opacity-60'>Code: {e.hrmE_EmployeeCode || 'N/A'}</span>
+                            <ScrollArea className='h-[320px] border border-blue-100 rounded-sm p-1 bg-slate-50/20'>
+                                <div className='grid grid-cols-1 md:grid-cols-2 gap-1.5'>
+                                    {filteredEmployees.map((e: any) => {
+                                        const isSelected = selectedEmployeeIds.includes(e.hrmE_Id);
+                                        return (
+                                            <div
+                                                key={e.hrmE_Id}
+                                                onClick={() => setSelectedEmployeeIds(prev => prev.includes(e.hrmE_Id) ? prev.filter(i => i !== e.hrmE_Id) : [...prev, e.hrmE_Id])}
+                                                className={cn(
+                                                    'flex items-center space-x-3 p-3 rounded-sm cursor-pointer transition-all border group relative overflow-hidden',
+                                                    isSelected ? 'bg-blue-50 border-blue-200 ring-1 ring-blue-100' : 'bg-white border-slate-200 hover:border-blue-200'
+                                                )}>
+                                                <div className={cn(
+                                                    'w-5 h-5 rounded-full border flex items-center justify-center transition-colors',
+                                                    isSelected ? 'bg-blue-600 border-blue-600' : 'bg-white border-slate-300 group-hover:border-blue-400'
+                                                )}>
+                                                    {isSelected && <Check className="w-3 h-3 text-white" />}
+                                                </div>
+                                                <div className='flex flex-col min-w-0 pr-4'>
+                                                    <span className='text-[10px] font-bold uppercase text-slate-800 truncate'>{getEmployeeName(e)}</span>
+                                                    <div className='flex items-center gap-2 mt-0.5'>
+                                                        <span className='text-[9px] text-slate-500 font-medium bg-slate-100 px-1.5 py-0.5 rounded-[2px]'>
+                                                            Code: {e.hrmE_EmployeeCode || e.currentemployeeDetails?.hrmE_EmployeeCode || 'N/A'}
+                                                        </span>
+                                                        <span className='text-[9px] text-blue-500 font-bold uppercase truncate max-w-[120px]'>
+                                                            {e.designationName || 'Staff'}
+                                                        </span>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             </ScrollArea>
 
@@ -410,62 +489,162 @@ export default function EmployeeIDcardReportSTpeterPage() {
             </CollapsibleSection>
 
             {/* Print Preview */}
-            {showReport && reportData.length > 0 && (
-                <div className='mt-8 flex flex-col items-center bg-slate-100 p-10 rounded-[40px] border-2 border-dashed border-slate-300 overflow-auto'>
-                    <div ref={printRef} className='flex flex-wrap justify-center gap-8 bg-white p-10 printable-content shadow-2xl'>
-                        {reportData.map((single: any, index: number) => (
-                            <div key={index} className="id-card-wrapper">
-                                <div className="id-card">
-                                    <div className="top-blue">
-                                        <div className="school-logo-container">
-                                            <img src="https://dcampusstrg.blob.core.windows.net/files/17/ISM_Attachments/5c2382c2-78ff-4a46-8b4b-3e120cf31216.png" alt="School Logo" />
-                                            <div className="school-name-style">
-                                                St. Peter&apos;s School
+            {showReport && (
+                <div className='mt-8 space-y-8 pb-20'>
+                    {/* Summary Table (On-Screen & Print) */}
+                    {summaryData.length > 0 && (
+                        <div className="bg-white border rounded-xl shadow-sm overflow-hidden max-w-5xl mx-auto printable-summary">
+                            <div className="bg-slate-50 px-6 py-4 border-b flex items-center justify-between">
+                                <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center">
+                                    <Users className="w-4 h-4 mr-2 text-[#3f51b5]" />
+                                    Employee Summary List
+                                </h3>
+                                <span className="text-[10px] font-bold px-2 py-1 bg-blue-100 text-blue-700 rounded-full">
+                                    {summaryData.length} EMPLOYEES
+                                </span>
+                            </div>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="bg-slate-50/50">
+                                            <th className="px-6 py-3 text-[9px] font-bold text-slate-500 uppercase tracking-wider border-b">Sl.No</th>
+                                            <th className="px-6 py-3 text-[9px] font-bold text-slate-500 uppercase tracking-wider border-b">Employee Details</th>
+                                            <th className="px-6 py-3 text-[9px] font-bold text-slate-500 uppercase tracking-wider border-b">Qualification</th>
+                                            <th className="px-6 py-3 text-[9px] font-bold text-slate-500 uppercase tracking-wider border-b">Subjects Taught</th>
+                                            <th className="px-6 py-3 text-[9px] font-bold text-slate-500 uppercase tracking-wider border-b">Code/PAN</th>
+                                            <th className="px-6 py-3 text-[9px] font-bold text-slate-500 uppercase tracking-wider border-b">DOJ/DOB</th>
+                                            <th className="px-6 py-3 text-[9px] font-bold text-slate-500 uppercase tracking-wider border-b">Docs</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100">
+                                        {reportData.map((emp, idx) => {
+                                            const docs = emp.employeedocument || [];
+                                            return (
+                                                <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                                                    <td className="px-6 py-3 text-[10px] text-slate-600 font-medium">{idx + 1}</td>
+                                                    <td className="px-6 py-3">
+                                                        <div className="flex flex-col">
+                                                            <span className="text-[10px] text-slate-900 font-bold uppercase">{getEmployeeName(emp)}</span>
+                                                            <span className="text-[9px] text-slate-500 uppercase">{emp.designationName || 'N/A'}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-3 text-[10px] text-slate-600 font-semibold">{getQualification(emp)}</td>
+                                                    <td className="px-6 py-3 text-[9px] text-slate-500 italic max-w-[200px] truncate" title={getSubjects(emp)}>{getSubjects(emp)}</td>
+                                                    <td className="px-6 py-3">
+                                                        <div className="flex flex-col text-[9px]">
+                                                            <span className="text-slate-600 font-bold">Code: {emp.hrme_employeecode || emp.hrmE_EmployeeCode || 'N/A'}</span>
+                                                            <span className="text-slate-400">PAN: {emp.hrme_pancardno || emp.hrmE_PANCardNo || 'N/A'}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-3">
+                                                        <div className="flex flex-col text-[9px]">
+                                                            <span className="text-slate-600">DOJ: {emp.hrme_doj || emp.hrmE_DOJ ? new Date(emp.hrme_doj || emp.hrmE_DOJ).toLocaleDateString('en-GB') : 'N/A'}</span>
+                                                            <span className="text-slate-400">DOB: {emp.hrme_dob || emp.hrmE_DOB ? new Date(emp.hrme_dob || emp.hrmE_DOB).toLocaleDateString('en-GB') : 'N/A'}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-3">
+                                                        <div className="flex flex-wrap gap-1">
+                                                            {docs.map((doc: any, dIdx: number) => (
+                                                                <a
+                                                                    key={dIdx}
+                                                                    href={doc.hrmedS_DocumentImageName}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="px-1.5 py-0.5 bg-blue-50 text-blue-600 border border-blue-100 rounded-[2px] text-[8px] font-bold hover:bg-blue-100 transition-colors"
+                                                                    title={doc.hrmedS_DocumentName}>
+                                                                    DOC
+                                                                </a>
+                                                            ))}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ID Cards Section */}
+                    {reportData.length > 0 && (
+                        <div className='flex flex-col items-center bg-slate-100 p-6 md:p-10 rounded-[32px] border border-slate-200 overflow-auto'>
+                            <Label className="mb-6 text-slate-500 text-[11px] font-bold uppercase tracking-[0.2em]">ID Cards Preview</Label>
+                            <div ref={printRef} className='flex flex-wrap justify-center gap-10 bg-transparent printable-content'>
+                                {reportData.map((single: any, index: number) => {
+                                    const emp = single.currentemployeeDetails;
+                                    const desig = single.designationName || emp?.hrmdeS_DesignationName || single.hrmdeS_DesignationName || 'Employee';
+                                    const address = single.hrmE_LocStreet || emp?.hrmE_LocStreet || single.hrmE_PerStreet || emp?.hrmE_PerStreet || 'MIRABAI ROAD, DURGAPUR-713204';
+                                    const mobile = single.hrmE_MobileNo || emp?.hrmE_MobileNo || 'XXXXXXXXXX';
+                                    const blood = single.hrmE_BloodGroup || emp?.hrmE_BloodGroup || 'N/A';
+
+                                    return (
+                                        <div key={index} className="id-card-wrapper">
+                                            <div className="id-card">
+                                                <div className="top-blue">
+                                                    <div className="school-logo-container">
+                                                        <img 
+                                                            src="https://dcampusstrg.blob.core.windows.net/files/17/ISM_Attachments/034c34ba-ca51-442c-9eb7-74ec831b17b1.png" 
+                                                            alt="School Logo"
+                                                            crossOrigin="anonymous" 
+                                                        />
+                                                        <div className="school-name-style">
+                                                            St. Peter&apos;s School
+                                                        </div>
+                                                    </div>
+                                                    <div className="subtitle-style">
+                                                        UNDER THE DIOCESE OF DURGAPUR, (CHURCH OF NORTH INDIA)<br />
+                                                        Affiliated to the Council for the Indian School Certificate Examination, New Delhi<br />
+                                                        School Code : WB065
+                                                    </div>
+                                                </div>
+
+                                                <div className="photo-container">
+                                                    <img
+                                                        src={emp?.hrmE_Photo || "https://vapsclg.blob.core.windows.net/files/100/StudentPhotos/102ec61d-7212-421f-829d-4395679ac021.png"}
+                                                        alt="Employee Photo"
+                                                        crossOrigin="anonymous"
+                                                        onError={(e: any) => {
+                                                            e.target.src = "https://vapsclg.blob.core.windows.net/files/100/StudentPhotos/102ec61d-7212-421f-829d-4395679ac021.png";
+                                                        }}
+                                                    />
+                                                </div>
+
+                                                <div className="info-area">
+                                                    <div className="info-row">
+                                                        <span className="info-label">Name :</span>
+                                                        <span className="info-value name-highlight">
+                                                            {getEmployeeName(single)}
+                                                        </span>
+                                                    </div>
+                                                    <div className="info-row">
+                                                        <span className="info-label">Designation :</span>
+                                                        <span className="info-value">{desig}</span>
+                                                    </div>
+                                                    <div className="info-row">
+                                                        <span className="info-label">Address :</span>
+                                                        <span className="info-value text-[11px] leading-tight font-medium line-clamp-2">{address}</span>
+                                                    </div>
+                                                    <div className="info-row">
+                                                        <span className="info-label">Blood Group :</span>
+                                                        <span className="info-value">{blood}</span>
+                                                    </div>
+                                                    <div className="info-row">
+                                                        <span className="info-label">Emg. Con. No. :</span>
+                                                        <span className="info-value">{mobile}</span>
+                                                    </div>
+                                                </div>
+
+                                                <div className="id-card-footer">
+                                                    MIRABAI ROAD, DURGAPUR-713204<br />PHONE : 0343-2564132 / 2663994
+                                                </div>
                                             </div>
                                         </div>
-                                        <div className="subtitle-style">
-                                            UNDER THE DIOCESE OF DURGAPUR, (CHURCH OF NORTH INDIA)<br />
-                                            Affiliated to the Council for the Indian School Certificate Examination, New Delhi<br />
-                                            School Code : WB065
-                                        </div>
-                                    </div>
-
-                                    <div className="photo-container">
-                                        <img src={single.empdetails?.hrmE_Photo || "https://vapsclg.blob.core.windows.net/files/76/NoticeUpload/d120170c-fbbf-48c2-b675-ef8d053a0d03.jpg"} alt="Employee Photo" />
-                                    </div>
-
-                                    <div className="info-area">
-                                        <div className="info-row">
-                                            <span className="info-label">Name : </span>
-                                            <span className="info-value name-highlight">
-                                                {single.empdetails?.hrmE_EmployeeFirstName} {single.empdetails?.hrmE_EmployeeMiddleName || ''} {single.empdetails?.hrmE_EmployeeLastName}
-                                            </span>
-                                        </div>
-                                        <div className="info-row">
-                                            <span className="info-label">Designation : </span>
-                                            <span className="info-value italic">{single.empdetails?.hrmdeS_DesignationName || 'Employee'}</span>
-                                        </div>
-                                        <div className="info-row">
-                                            <span className="info-label">Address : </span>
-                                            <span className="info-value text-xs line-clamp-2">{single.empdetails?.hrmE_PerStreet || 'Durgapur, West Bengal'}</span>
-                                        </div>
-                                        <div className="info-row">
-                                            <span className="info-label">Blood Group : </span>
-                                            <span className="info-value">{single.empdetails?.hrmE_BloodGroup || 'N/A'}</span>
-                                        </div>
-                                        <div className="info-row">
-                                            <span className="info-label">Emg. Con. No. : </span>
-                                            <span className="info-value">{single.empdetails?.hrmE_MobileNo || 'XXXXXXXXXX'}</span>
-                                        </div>
-                                    </div>
-
-                                    <div className="id-card-footer">
-                                        MIRABAI ROAD, DURGAPUR-713204 PHONE : 0343-2564132 / 2663994
-                                    </div>
-                                </div>
+                                    );
+                                })}
                             </div>
-                        ))}
-                    </div>
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -575,11 +754,10 @@ export default function EmployeeIDcardReportSTpeterPage() {
                 }
 
                 .info-label {
-                    width: 110px;
+                    width: 105px;
                     font-weight: 800;
                     color: #2dbde4;
-                    font-size: 12px;
-                    text-transform: uppercase;
+                    font-size: 13px;
                 }
 
                 .info-value {
@@ -590,10 +768,11 @@ export default function EmployeeIDcardReportSTpeterPage() {
 
                 .name-highlight {
                     color: #f1a311;
-                    font-size: 16px;
+                    font-size: 18px;
                     font-weight: 900;
                     text-transform: uppercase;
-                    border-bottom: 1px solid rgba(241, 163, 17, 0.3);
+                    line-height: 1.1;
+                    display: inline-block;
                 }
 
                 .id-card-footer {
@@ -609,6 +788,10 @@ export default function EmployeeIDcardReportSTpeterPage() {
                 }
 
                 @media print {
+                    .printable-summary {
+                        break-after: page;
+                        margin-bottom: 20px !important;
+                    }
                     .printable-content {
                         width: 100% !important;
                         padding: 0 !important;
