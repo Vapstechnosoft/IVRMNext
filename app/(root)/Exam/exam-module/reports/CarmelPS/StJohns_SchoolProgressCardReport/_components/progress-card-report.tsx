@@ -22,75 +22,74 @@ interface Props {
     onPrint?: () => void;
 }
 
-export default function ProgressCardReport({ reportData, institution, subjects, headerInfo, examName, examCode, year, onPrint }: Props) {
-    // Filter only subjects that appear in results
-    const resultSubjects = subjects
-        .filter((s) => s.eyceS_AplResultFlg !== false)
-        .sort((a, b) => (a.eyceS_SubjectOrder ?? 999) - (b.eyceS_SubjectOrder ?? 999));
-
-    const formatDate = (dateStr?: string | null) => {
-        if (!dateStr) return 'N/A';
-        try {
-            return new Date(dateStr).toLocaleDateString('en-GB'); // dd-MM-yyyy
-        } catch {
-            return 'N/A';
-        }
-    };
-
+export default function ProgressCardReport({ reportData, institution, subjects, headerInfo, examName, year, onPrint }: Props) {
     return (
         <>
-            {/* Print-only CSS */}
             <style jsx global>{`
-        @media print {
-          body * {
-            visibility: hidden !important;
-          }
-          #progress-card-print-area,
-          #progress-card-print-area * {
-            visibility: visible !important;
-          }
-          #progress-card-print-area {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-          }
-          .no-print {
-            display: none !important;
-          }
-          .page-break-before {
-            page-break-before: always !important;
-          }
-          table {
-            width: 100% !important;
-            border-collapse: collapse !important;
-            font-size: 12px !important;
-          }
-          th,
-          td {
-            border: 1px solid black !important;
-            padding: 6px 4px !important;
-            text-align: center !important;
-          }
-          th {
-            background-color: #c6dff7 !important;
-            color: black !important;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-          }
-          @page {
-            size: A4 portrait;
-            margin: 10mm;
-          }
-        }
-        @media screen {
-          .print-only {
-            display: none !important;
-          }
-        }
-      `}</style>
+                @media print {
+                    body * {
+                        visibility: hidden !important;
+                    }
+                    #progress-card-print-area,
+                    #progress-card-print-area * {
+                        visibility: visible !important;
+                    }
+                    #progress-card-print-area {
+                        position: absolute;
+                        left: 0;
+                        top: 0;
+                        width: 100%;
+                    }
+                    .no-print {
+                        display: none !important;
+                    }
+                    @page {
+                        size: A4 portrait;
+                        margin: 5mm;
+                    }
+                    .table-bordered {
+                        border: 1px solid black !important;
+                    }
+                    .table-bordered th, .table-bordered td {
+                        border: 1px solid black !important;
+                    }
+                    .bg-blue-header {
+                        background-color: #c6dff7 !important;
+                        -webkit-print-color-adjust: exact;
+                    }
+                }
 
-            {/* Screen: Show Print Button */}
+                .st-johns-container {
+                    font-family: 'Source Sans Pro', sans-serif !important;
+                    color: black;
+                }
+
+                .table-custom {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-bottom: 1rem;
+                }
+
+                .table-custom th, .table-custom td {
+                    border: 1px solid black;
+                    padding: 8px;
+                    text-align: center;
+                }
+
+                .bg-blue-header {
+                    background-color: #c6dff7;
+                }
+
+                .text-left { text-align: left !important; }
+                .text-center { text-align: center !important; }
+                .text-right { text-align: right !important; }
+                .font-bold { font-weight: bold; }
+                .padding-top-10 { padding-top: 10px; }
+                .margin-top-15 { margin-top: 15px; }
+                .margin-top-100 { margin-top: 100px; }
+                .margin-top-150 { margin-top: 150px; }
+            `}</style>
+
             <div className='no-print my-6 flex justify-end'>
                 <Button onClick={onPrint} className='flex items-center gap-2'>
                     <Printer className='h-4 w-4' />
@@ -98,191 +97,234 @@ export default function ProgressCardReport({ reportData, institution, subjects, 
                 </Button>
             </div>
 
-            {/* Printable Area */}
-            <div id='progress-card-print-area' className='space-y-0'>
+            <div id='progress-card-print-area' className='st-johns-container'>
                 {reportData.map((report, index) => (
-                    <div
-                        key={report.amsT_FirstName + index}
-                        className={`bg-white ${index > 0 ? 'page-break-before' : ''}`}
-                        style={{ border: '0.1px solid black', margin: '15mm', padding: '10mm' }}>
-                        {/* School Header Image */}
-                        <div className='mb-4 text-center'>
+                    <div key={report.amsT_Id + index} className="report-page p-4 bg-white mb-8 border border-black" style={{ pageBreakBefore: 'always' }}>
+                        {/* Header Image */}
+                        <div className="w-full text-center mb-4">
                             <Image
-                                src={institution?.mI_Logo || 'https://kusumadata.blob.core.windows.net/files/30/Vidya%20Vikas%20Marks.jpg'}
-                                alt={institution?.mI_Name || 'School Header'}
+                                src={institution?.mI_Logo || "https://dcampusstrg.blob.core.windows.net/files/17/NAACDocumentsUpload/6a4bad20-fd91-45ff-b0cd-b152f3d07edc.jpg"}
+                                alt="School Header"
                                 width={800}
-                                height={200}
-                                className='inline-block border border-black'
+                                height={150}
+                                className="w-full h-auto mx-auto"
                                 unoptimized
                             />
                         </div>
 
-                        {/* Student Details */}
-                        <div className='my-6 text-center'>
-                            <div className='inline-block bg-[#c6dff7] px-16 py-2 font-bold text-xl'>STUDENT DETAILS</div>
+                        {/* Student Details Section */}
+                        <div className="border border-black p-4 mb-6">
+                            <div className="grid grid-cols-12 gap-4">
+                                <div className="col-span-8 space-y-4">
+                                    <div className="grid grid-cols-12 text-2xl font-bold">
+                                        <div className="col-span-5">Name of the Student</div>
+                                        <div className="col-span-1">:</div>
+                                        <div className="col-span-6">{report.amsT_FirstName}</div>
+                                    </div>
+                                    <div className="grid grid-cols-12 text-2xl font-bold">
+                                        <div className="col-span-5">Reg No</div>
+                                        <div className="col-span-1">:</div>
+                                        <div className="col-span-6">{report.amsT_RegistrationNo}</div>
+                                    </div>
+                                    <div className="grid grid-cols-12 text-2xl font-bold">
+                                        <div className="col-span-5">Class</div>
+                                        <div className="col-span-1">:</div>
+                                        <div className="col-span-6">{report.asmcL_ClassName} - {report.asmC_SectionName}</div>
+                                    </div>
+                                </div>
+                                <div className="col-span-4 text-right">
+                                    {report.amsT_Photoname ? (
+                                        <img src={report.amsT_Photoname} alt="Student" style={{ width: '150px', height: '150px', border: '1px solid black', objectFit: 'cover' }} />
+                                    ) : (
+                                        <div style={{ width: '150px', height: '150px', border: '1px solid black', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Photo</div>
+                                    )}
+                                </div>
+                            </div>
                         </div>
 
-                        <div className='border border-black p-4 text-sm'>
-                            <table className='w-full'>
+                        {/* Exam Title */}
+                        <div className="text-center mb-6">
+                            <h3 className="font-bold text-2xl leading-tight">
+                                {examName.toUpperCase()} - {year} <br /><br />
+                                STATEMENT OF MARKS & GRADE
+                            </h3>
+                        </div>
+
+                        {/* Scholastic Table */}
+                        <table className="table-custom mb-6">
+                            <thead>
+                                <tr className="bg-blue-header font-bold text-black">
+                                    <th rowSpan={2} style={{ width: '80px' }}>SL No</th>
+                                    <th colSpan={2} rowSpan={2}>SUBJECT(SCHOLASTIC)</th>
+                                    <th colSpan={4}>{examName}</th>
+                                </tr>
+                                <tr className="bg-blue-header font-bold text-black">
+                                    <th>Max Marks</th>
+                                    <th>Min Marks</th>
+                                    <th>Obtained Marks</th>
+                                    <th>Grade</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {report.sub_list
+                                    .filter(m => {
+                                        const sub = subjects.find(s => s.ismS_Id === m.ismS_Id);
+                                        return sub?.eyceS_AplResultFlg !== false;
+                                    })
+                                    .map((mark, i) => {
+                                        const subject = subjects.find(s => s.ismS_Id === mark.ismS_Id);
+                                        if (!subject) return null;
+                                        const isAbsent = mark.estmpS_PassFailFlg === 'AB';
+
+                                        return (
+                                            <tr key={mark.ismS_Id}>
+                                                <td>{i + 1}</td>
+                                                <td colSpan={2} className="text-left font-bold pl-4">{subject.ismS_SubjectName}</td>
+                                                <td className="bg-blue-header">{mark.estmpS_MaxMarks}</td>
+                                                <td className="bg-blue-header">{mark.estmpS_MinMarks}</td>
+                                                <td className="bg-blue-header">
+                                                    {isAbsent ? 'AB' : mark.estmpS_ObtainedMarks}
+                                                </td>
+                                                <td className="bg-blue-header">{mark.estmpS_ObtainedGrade}</td>
+                                            </tr>
+                                        );
+                                    })}
+                                <tr className="bg-blue-header font-bold">
+                                    <td>&nbsp;</td>
+                                    <td colSpan={2} className="text-left font-bold pl-4 uppercase">TOTAL</td>
+                                    <td>{report.estmP_TotalMaxMarks}</td>
+                                    <td>{/* Min Marks Total - often calculated or from estmP_MinMarks */}</td>
+                                    <td>{report.estmP_TotalObtMarks}</td>
+                                    <td>{report.estmP_TotalGrade}</td>
+                                </tr>
+                                <tr className="bg-blue-header font-bold">
+                                    <td>&nbsp;</td>
+                                    <td colSpan={2} className="text-left font-bold pl-4 uppercase">PERCENTAGE</td>
+                                    <td colSpan={4}>{report.estmP_Percentage} %</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        {/* Co-Scholastic Table */}
+                        <table className="table-custom mb-6">
+                            <thead>
+                                <tr className="bg-blue-header font-bold text-black">
+                                    <th style={{ width: '80px' }}>SL No</th>
+                                    <th colSpan={3}>SUBJECT(CO - SCHOLASTIC)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {report.sub_list
+                                    .filter(m => {
+                                        const sub = subjects.find(s => s.ismS_Id === m.ismS_Id);
+                                        return sub?.eyceS_AplResultFlg === false;
+                                    })
+                                    .map((mark, i) => {
+                                        const subject = subjects.find(s => s.ismS_Id === mark.ismS_Id);
+                                        if (!subject) return null;
+
+                                        return (
+                                            <tr key={mark.ismS_Id}>
+                                                <td>{i + 1}</td>
+                                                <td colSpan={2} className="text-left font-bold pl-4">{subject.ismS_SubjectName}</td>
+                                                <td className="bg-blue-header">
+                                                    {subject.eyceS_MarksDisplayFlg ? mark.estmpS_ObtainedMarks : mark.estmpS_ObtainedGrade}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                            </tbody>
+                        </table>
+
+                        {/* Graphical View */}
+                        <div className="mb-6 text-center">
+                            <h4 className="font-bold text-xl mb-4">Graphical View</h4>
+                            <div className="flex justify-center">
+                                {report.studentdetailsgraph && report.studentdetailsgraph[0]?.ImagePath ? (
+                                    <img src={report.studentdetailsgraph[0].ImagePath} alt="Performance Graph" style={{ maxWidth: '500px', height: 'auto', objectFit: 'contain' }} />
+                                ) : (
+                                    <div className="h-40 w-80 border border-dashed border-gray-400 flex items-center justify-center text-gray-500">
+                                        Performance Index Graph
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Attendance Table */}
+                        <div className="mb-6">
+                            <div className="ml-[5%]">
+                                <h2 className="text-left font-bold text-xl mb-2">ATTENDANCE</h2>
+                            </div>
+                            <table className="table-custom text-xs">
+                                <thead>
+                                    <tr className="font-bold">
+                                        <th colSpan={2}></th>
+                                        <th>MAY</th><th>JUN</th><th>JUL</th><th>AUG</th><th>SEP</th><th>OCT</th>
+                                        <th>NOV</th><th>DEC</th><th>JAN</th><th>FEB</th><th>MAR</th><th>APR</th>
+                                        <th>TOTAL</th>
+                                    </tr>
+                                </thead>
                                 <tbody>
                                     <tr>
-                                        <td className='w-1/4 py-1 font-bold'>Name of the Student</td>
-                                        <td className='py-1'>
-                                            : <strong>{report.amsT_FirstName}</strong>
-                                        </td>
+                                        <td colSpan={2} className="text-left font-bold">No of Working Days</td>
+                                        {['May', 'June', 'July', 'August', 'September', 'October', 'November', 'December', 'January', 'February', 'March', 'April', 'TotalSchoolDays'].map(month => (
+                                            <td key={month}>{report.stud_work_attendence?.[0]?.[month] || ''}</td>
+                                        ))}
                                     </tr>
                                     <tr>
-                                        <td className='py-1 font-bold'>Father Name</td>
-                                        <td className='py-1'>
-                                            : <strong>{report.amsT_FatherName || 'N/A'}</strong>
-                                        </td>
+                                        <td colSpan={2} className="text-left font-bold">No of Days Present</td>
+                                        {['May', 'June', 'July', 'August', 'September', 'October', 'November', 'December', 'January', 'February', 'March', 'April', 'TotalPresentDays'].map(month => (
+                                            <td key={month}>{report.stud_present_attendence?.[0]?.[month] || ''}</td>
+                                        ))}
                                     </tr>
-                                    <tr>
-                                        <td className='py-1 font-bold'>Grade</td>
-                                        <td className='py-1'>
-                                            :{' '}
-                                            <strong>
-                                                {headerInfo.cla} {headerInfo.sec}
-                                            </strong>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td className='py-1 font-bold'>Roll No</td>
-                                        <td className='py-1'>
-                                            : <strong>{report.amaY_RollNo ?? 'N/A'}</strong>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td className='py-1 font-bold'>Date Of Birth</td>
-                                        <td className='py-1'>
-                                            : <strong>{formatDate(report.amsT_DOB)}</strong>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Remarks Section */}
+                        <div className="mb-4">
+                            <table className="table-custom" style={{ backgroundColor: 'transparent' }}>
+                                <tbody>
+                                    <tr style={{ border: '0.5px solid #727272' }}>
+                                        <td className="text-left min-h-[70px] p-4">
+                                            <span className="text-2xl">REMARKS : </span>
+                                            <span className="text-2xl font-bold">
+                                                {report.promotion_remarks?.[0]?.emeR_Remarks || ''}
+                                            </span>
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
 
-                        {/* Exam Title */}
-                        <div className='my-6 text-center'>
-                            <h3 className='font-bold text-xl leading-6'>
-                                {examName} - {year} <br />
-                                <br />
-                                STATEMENT OF MARKS & GRADE
-                            </h3>
+                        {/* Result & Promoted To Section */}
+                        <div className="grid grid-cols-2 gap-4 mb-10">
+                            <table className="table-custom" style={{ backgroundColor: 'transparent' }}>
+                                <tbody>
+                                    <tr style={{ border: '0.5px solid #727272' }}>
+                                        <td className="text-left min-h-[70px] p-4">
+                                            <span className="text-2xl">RESULT : </span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table className="table-custom" style={{ backgroundColor: 'transparent' }}>
+                                <tbody>
+                                    <tr style={{ border: '0.5px solid #727272' }}>
+                                        <td className="text-left min-h-[70px] p-4">
+                                            <span className="text-2xl">PROMOTED TO : <strong>{/* Promotion Value */}</strong></span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
 
-                        {/* Marks Table */}
-                        <table className='table-bordered w-full text-center text-sm'>
-                            <thead>
-                                <tr>
-                                    <th colSpan={6} className='bg-[#c6dff7] text-left'>
-                                        PART -1 : Academic Performance : Scholastic Areas
-                                    </th>
-                                </tr>
-                                <tr>
-                                    <th rowSpan={2}>SL No</th>
-                                    <th colSpan={2} rowSpan={2}>
-                                        Subjects
-                                    </th>
-                                    <th colSpan={3}>{examCode}</th>
-                                </tr>
-                                <tr>
-                                    <th>Max Marks</th>
-                                    <th>Obtained Marks</th>
-                                    <th>Grade</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {resultSubjects.map((subj, i) => {
-                                    const mark = report.sub_list.find((m) => m.ismS_Id === subj.ismS_Id);
-                                    const isAbsent = mark?.estmpS_PassFailFlg === 'AB';
-                                    const showMarks = subj.eyceS_MarksDisplayFlg;
-                                    const showGrade = subj.eyceS_GradeDisplayFlg;
-
-                                    return (
-                                        <tr key={subj.ismS_Id}>
-                                            <td>{i + 1}</td>
-                                            <td colSpan={2} className='pl-4 text-left'>
-                                                {subj.ismS_SubjectName}
-                                            </td>
-                                            <td className='bg-[#c6dff7]'>{mark?.estmpS_MaxMarks ?? '-'}</td>
-                                            <td className='bg-[#c6dff7]'>
-                                                {isAbsent ? 'AB' : showMarks ? (mark?.estmpS_ObtainedMarks ?? '-') : '-'}
-                                            </td>
-                                            <td className='bg-[#c6dff7]'>
-                                                {isAbsent ? 'AB' : showGrade ? (mark?.estmpS_ObtainedGrade ?? '-') : '-'}
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-
-                                {/* Total Rows */}
-                                <tr>
-                                    <th colSpan={4} className='bg-[#c6dff7] text-right'>
-                                        TOTAL
-                                    </th>
-                                    <th colSpan={2} className='bg-[#c6dff7]'>
-                                        {report.estmP_TotalMaxMarks ?? '-'}
-                                    </th>
-                                </tr>
-                                <tr>
-                                    <th colSpan={4} className='bg-[#c6dff7] text-right'>
-                                        OBTAINED
-                                    </th>
-                                    <th colSpan={2} className='bg-[#c6dff7]'>
-                                        {report.estmP_TotalObtMarks ?? '-'}
-                                    </th>
-                                </tr>
-                                <tr>
-                                    <th colSpan={4} className='bg-[#c6dff7] text-right'>
-                                        PERCENTAGE
-                                    </th>
-                                    <th colSpan={2} className='bg-[#c6dff7]'>
-                                        {report.estmP_Percentage != null ? `${report.estmP_Percentage} %` : '-'}
-                                    </th>
-                                </tr>
-                                <tr>
-                                    <th colSpan={4} className='bg-[#c6dff7] text-right'>
-                                        OVERALL GRADE
-                                    </th>
-                                    <th colSpan={2} className='bg-[#c6dff7]'>
-                                        {report.estmP_TotalGrade ?? '-'}
-                                    </th>
-                                </tr>
-                                <tr>
-                                    <td colSpan={6} className='h-20 pl-4 text-left align-top'>
-                                        <strong>Remarks :</strong>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-
-                        {/* Grading Scale */}
-                        <div className='my-6 text-center font-bold text-sm'>
-                            Grading: A+={' > '}=90% to 100%, A={' > '}=80% to 89%, B+={' > '}=70% to 79%, B={' > '}=60% to 69%, C={' > '}
-                            =40% to 59%, D={' > '}=0% to 39%
-                        </div>
-
-                        {/* Signatures */}
-                        <div className='mt-12 grid grid-cols-3 text-center text-sm'>
-                            <div>
-                                <div className='mx-auto h-16 w-32 border-black border-t' />
-                                <p>Class Teacher Signature</p>
-                            </div>
-                            <div>
-                                <Image
-                                    src='https://dcampusstrg.blob.core.windows.net/files/17/NAACDocumentsUpload/5176b5e3-d100-4fb0-92fc-2fcc2b902ae2.jpg'
-                                    alt='Principal'
-                                    width={120}
-                                    height={80}
-                                    className='-mt-12 mx-auto'
-                                    unoptimized
-                                />
-                                <p>Principal Signature</p>
-                            </div>
-                            <div>
-                                <div className='mx-auto h-16 w-32 border-black border-t' />
-                                <p>Parent Signature</p>
+                        {/* Signatures Section */}
+                        <div className="margin-top-150">
+                            <div className="grid grid-cols-3 gap-4 text-center font-bold">
+                                <div>Principal /H.M Signature</div>
+                                <div>Class Teacher Signature</div>
+                                <div>Parent Signature</div>
                             </div>
                         </div>
                     </div>

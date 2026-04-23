@@ -120,17 +120,17 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                 );
                 const valid = Array.isArray(data)
                     ? (data as any[]).filter(
-                          (
-                              s
-                          ): s is {
-                              amsT_AdmNo: number;
-                              amsT_Id: number;
-                              studentName?: string;
-                              amsT_FirstName?: string;
-                              amsT_MiddleName?: string;
-                              amsT_LastName?: string;
-                          } => !!s?.amsT_Id
-                      )
+                        (
+                            s
+                        ): s is {
+                            amsT_AdmNo: number;
+                            amsT_Id: number;
+                            studentName?: string;
+                            amsT_FirstName?: string;
+                            amsT_MiddleName?: string;
+                            amsT_LastName?: string;
+                        } => !!s?.amsT_Id
+                    )
                     : [];
 
                 // Map to consistent format if needed, but the cumulative report logic returns objects with amsT_Id and studentName/amsT_FirstName
@@ -210,7 +210,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     return (
         <div className='mx-auto w-full rounded-lg border border-gray-200 bg-white p-4 shadow-md'>
             <div className='mb-4 flex items-center justify-between border-b pb-2'>
-                <h3 className='font-semibold text-gray-800 text-lg'>Seniors Progress Card Report</h3>
+
             </div>
             <FormProvider {...methods}>
                 <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
@@ -365,18 +365,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                         Print Logo
                                     </Label>
                                 </div>
-                                <div className='flex items-center space-x-2'>
-                                    <Controller
-                                        control={control}
-                                        name='superAverage'
-                                        render={({ field }) => (
-                                            <Checkbox id='superAvg' checked={field.value} onCheckedChange={field.onChange} />
-                                        )}
-                                    />
-                                    <Label htmlFor='superAvg' className='cursor-pointer font-normal'>
-                                        Super Average
-                                    </Label>
-                                </div>
+
                             </div>
                         </div>
 

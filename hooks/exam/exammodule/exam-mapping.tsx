@@ -33,6 +33,8 @@ import {
 
 import { getYearlyCategoryDatesMapping } from '@/server/exam/exam-module/exam-mapping/yearly-category-dates-mapping';
 import { getYearlyCategorySubjectMapping } from '@/server/exam/exam-module/exam-mapping/yearly-category-subject-mapping';
+import { getExamTTSessionList } from '@/server/exam/exam-module/exam-mapping/exam-tt-session';
+import { getExamTTTransSettingsList } from '@/server/exam/exam-module/exam-mapping/exam-tt-trans-settings';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -464,6 +466,42 @@ export const useEmployeeDropdownList = () => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [EXAM_QUERY_KEYS.EMPLOYEE_DROPDOWN_LIST]
+            });
+        }
+    };
+};
+
+export const useExamTTSession = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.EXAM_TT_SESSION_MASTER, searchParams ?? {}],
+            queryFn: async () => getExamTTSessionList(searchParams),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.EXAM_TT_SESSION_MASTER]
+            });
+        }
+    };
+};
+
+export const useExamTTTransSettings = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.EXAM_TT_TRANS_SETTINGS, searchParams ?? {}],
+            queryFn: async () => getExamTTTransSettingsList(searchParams),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.EXAM_TT_TRANS_SETTINGS]
             });
         }
     };
