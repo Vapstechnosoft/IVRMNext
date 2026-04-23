@@ -62,13 +62,15 @@ export default function MessAttendanceEntryPage() {
     const [academicYearId, setAcademicYearId] = useState<string>('');
     const [classId, setClassId] = useState<string>('');
     const [sectionId, setSectionId] = useState<string>('');
-    const [entryType, setEntryType] = useState<string>(''); // Dailyonce, Dailytwice, monthly, period
+    const [entryType, setEntryType] = useState<string>('Dailyonce'); // Dailyonce, Dailytwice, monthly, period
     const [doe, setDoe] = useState<string>(new Date().toISOString().split('T')[0]);
     const [monthId, setMonthId] = useState<string>('');
     const [subjectId, setSubjectId] = useState<string>('');
     const [periodId, setPeriodId] = useState<string>('');
     const [batchId, setBatchId] = useState<string>('');
     const [attendanceType, setAttendanceType] = useState<'Regular' | 'Extra Period'>('Regular');
+    const [session1, setSession1] = useState<boolean>(false);
+    const [session2, setSession2] = useState<boolean>(false);
 
     const [fromDate, setFromDate] = useState<string>('');
     const [toDate, setToDate] = useState<string>('');
@@ -78,13 +80,40 @@ export default function MessAttendanceEntryPage() {
     const [selectedStudentIds, setSelectedStudentIds] = useState<number[]>([]);
     const [searchValue, setSearchValue] = useState<string>('');
     const [updateCount, setUpdateCount] = useState<number>(0);
+    const [saveDis, setSaveDis] = useState<boolean>(false);
 
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
     const [historyData, setHistoryData] = useState<any[]>([]);
     const [historySearch, setHistorySearch] = useState('');
 
+    // --- Configuration State ---
+    const [showAdmNo, setShowAdmNo] = useState(true);
+    const [showRegNo, setShowRegNo] = useState(false);
+    const [showRollNo, setShowRollNo] = useState(true);
+    const [sortKey, setSortKey] = useState<string>('studentname');
+    const [sortReverse, setSortReverse] = useState<boolean>(false);
+    const [isBatchRequired, setIsBatchRequired] = useState(false);
+
     // --- Queries & Mutations ---
-    const { data: loadData, isLoading: isLoadLoading } = useMessAttendanceLoadData(Number(academicYearId) || 0);
+    const { data: loadData, isLoading: isLoadLoading } = useMessAttendanceLoadData();
+
+    useEffect(() => {
+        if (loadData) {
+            if (loadData.currentYear?.length > 0 && !academicYearId) {
+                const curYear = loadData.currentYear[0];
+                setAcademicYearId(curYear.asmaY_Id.toString());
+                // In legacy, if yearid === 0, doe = new Date(), else from_date
+                // Here we default to current date or from_date
+            }
+
+            // Check default entry type from loadData if available
+            if (loadData.asA_Att_EntryType && !entryType) {
+                const types: any = { 'D': 'Dailyonce', 'H': 'Dailytwice', 'M': 'monthly', 'P': 'period' };
+                setEntryType(types[loadData.asA_Att_EntryType] || '');
+            }
+        }
+    }, [loadData]);
+
     const studentDataMutation = useGetStudentData();
     const studentsMutation = useGetStudents();
     const monthClassHeldMutation = useGetMonthClassHeld();
@@ -100,20 +129,53 @@ export default function MessAttendanceEntryPage() {
     const years = loadData?.academicYearList || [];
     const classes = loadData?.classList || [];
     const sections = loadData?.sectionList || [];
-    const months = loadData?.monthList || [];
+
+    // Sort Month List based on Academic Year Start
+    const sortedMonths = useMemo(() => {
+        if (!loadData?.monthList || !loadData?.currentYear?.[0]) return loadData?.monthList || [];
+        const fromDate = new Date(loadData.currentYear[0].asmaY_From_Date);
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+        let monthsOrder: string[] = [];
+        let date = new Date(fromDate);
+        for (let i = 0; i < 12; i++) {
+            monthsOrder.push(monthNames[date.getMonth()].toLowerCase());
+            date.setMonth(date.getMonth() + 1);
+        }
+
+        return [...loadData.monthList].sort((a, b) => {
+            return monthsOrder.indexOf(a.ivrM_Month_Name.toLowerCase().trim()) - monthsOrder.indexOf(b.ivrM_Month_Name.toLowerCase().trim());
+        });
+    }, [loadData]);
+
     const subjects = loadData?.subjectList || [];
     const periods = loadData?.periodlist || [];
-    const batches = loadData?.batchList || [];
+    const [subjectBatches, setSubjectBatches] = useState<any[]>([]);
+    const batches = subjectBatches.length > 0 ? subjectBatches : (loadData?.batchList || []);
 
-    const filteredStudents = useMemo(() => {
-        if (!searchValue) return studentList;
+    const processedStudents = useMemo(() => {
+        let list = [...studentList];
+
+        // Sorting logic based on sortKey
+        list.sort((a, b) => {
+            let valA = a[sortKey];
+            let valB = b[sortKey];
+            if (typeof valA === 'string') valA = valA.toLowerCase();
+            if (typeof valB === 'string') valB = valB.toLowerCase();
+            if (valA < valB) return sortReverse ? 1 : -1;
+            if (valA > valB) return sortReverse ? -1 : 1;
+            return 0;
+        });
+
+        if (!searchValue) return list;
         const search = searchValue.toLowerCase();
-        return studentList.filter(s =>
+        return list.filter(s =>
             s.studentname?.toLowerCase().includes(search) ||
             s.amsT_AdmNo?.toLowerCase().includes(search) ||
-            s.amsT_RegistrationNo?.toLowerCase().includes(search)
+            s.amsT_RegistrationNo?.toLowerCase().includes(search) ||
+            s.amaY_RollNo?.toString().includes(search)
         );
-    }, [studentList, searchValue]);
+    }, [studentList, searchValue, sortKey, sortReverse]);
 
     // --- Handlers ---
     const handleYearChange = (val: string) => {
@@ -122,31 +184,77 @@ export default function MessAttendanceEntryPage() {
         setSectionId('');
         setEntryType('');
         setStudentList([]);
+        setSelectedStudentIds([]);
     };
+
+    const [classSections, setClassSections] = useState<any[]>(sections);
+
+    useEffect(() => {
+        if (loadData?.sectionList) {
+            setClassSections(loadData.sectionList);
+        }
+    }, [loadData]);
 
     const handleClassChange = async (val: string) => {
         setClassId(val);
         setSectionId('');
         setEntryType('');
         setStudentList([]);
+        setSelectedStudentIds([]);
 
         try {
             const res = await studentDataMutation.mutateAsync({
-                ASMAY_Id: Number(academicYearId),
-                ASMCL_Id: Number(val),
-                classsecflag: '1'
+                asmay_Id: Number(academicYearId),
+                asmcl_Id: Number(val),
+                asmS_Id: 0,
+                asamdM_Entry_DateTime: doe,
+                monthflag: '0',
+                monthflag1: '0',
+                classsecflag: '1',
+                checksubject: '0'
             });
 
-            if (res?.message) {
-                // toast.info(res.message);
-            }
+            if (res) {
+                if (res.isHoliday) {
+                    toast.warning(res.holidayMessage || "Selected date is a holiday.");
+                    return;
+                }
 
-            if (res?.asA_Att_EntryType) {
-                const types = { 'D': 'Dailyonce', 'H': 'Dailytwice', 'M': 'monthly', 'P': 'period' };
-                setEntryType((types as any)[res.asA_Att_EntryType] || '');
+                if (res.asA_Att_EntryType) {
+                    const types: any = { 'D': 'Dailyonce', 'H': 'Dailytwice', 'M': 'monthly', 'P': 'period' };
+                    setEntryType(types[res.asA_Att_EntryType] || 'Dailyonce');
+                } else {
+                    setEntryType('Dailyonce');
+                }
+
+                if (res.section?.length > 0) {
+                    setClassSections(res.section);
+                }
             }
         } catch (error) {
             toast.error('Failed to load class configuration');
+        }
+    };
+
+    const applyConfiguration = (promise: any) => {
+        if (promise.admissionstandarad?.length > 0) {
+            const config = promise.admissionstandarad[0];
+            const orderFlags: any = {
+                1: 'studentname', 2: 'studentname', 3: 'amaY_RollNo',
+                4: 'studentname', 5: 'studentname', 6: 'amsT_RegistrationNo', 7: 'amsT_AdmNo'
+            };
+            setSortKey(orderFlags[config.asC_Att_Default_OrderFlag] || 'studentname');
+        }
+
+        if (promise.getstandarad?.length > 0) {
+            const std = promise.getstandarad[0];
+            setShowAdmNo(std.ivrmgC_AdmnoColumnDisplay === 1);
+            setShowRegNo(std.ivrmgC_RegnoColumnDisplay === 1);
+            setShowRollNo(std.ivrmgC_RollnoColumnDisplay === 1);
+            if (std.ivrmgC_AdmnoColumnDisplay !== 1 && std.ivrmgC_RegnoColumnDisplay !== 1 && std.ivrmgC_RollnoColumnDisplay !== 1) {
+                setShowAdmNo(true);
+                setShowRollNo(true);
+            }
         }
     };
 
@@ -160,29 +268,37 @@ export default function MessAttendanceEntryPage() {
             if (entryType === 'monthly') {
                 if (!monthId) return;
                 res = await monthClassHeldMutation.mutateAsync({
-                    ASMAY_Id: Number(academicYearId),
-                    ASMCL_Id: Number(classId),
-                    ASMS_Id: Number(sid),
+                    asmay_Id: Number(academicYearId),
+                    asmcl_Id: Number(classId),
+                    asmS_Id: Number(sid),
                     monthid: Number(monthId),
                     monthflag: 'M',
                     monthflag1: 'monthly',
-                    ASA_FromDate: entryDate
+                    asamdM_Entry_DateTime: entryDate
                 });
-                setTotalClassHeld(res?.countclass || 0);
-                setFromDate(res?.startdate ? new Date(res.startdate).toISOString().split('T')[0] : '');
-                setToDate(res?.enddate ? new Date(res.enddate).toISOString().split('T')[0] : '');
             } else if (entryType === 'period') {
-                // Period logic handled separately in handlePeriodChange or handleDOEChange
-                return;
+                if (!periodId) return;
+                res = await stdListPeriodMutation.mutateAsync({
+                    asmay_Id: Number(academicYearId),
+                    asmcl_Id: Number(classId),
+                    asmS_Id: Number(sid),
+                    ismS_Id: Number(subjectId),
+                    ttmP_Id: Number(periodId),
+                    monthflag: 'P',
+                    monthflag1: 'period',
+                    asamdM_Entry_DateTime: entryDate,
+                    asasB_Id: Number(batchId) || 0
+                });
             } else {
-                res = await datewiseAttMutation.mutateAsync({
-                    ASMAY_Id: Number(academicYearId),
-                    ASMCL_Id: Number(classId),
-                    ASMS_Id: Number(sid),
-                    monthid: 0,
+                res = await studentsMutation.mutateAsync({
+                    asmay_Id: Number(academicYearId),
+                    asmcl_Id: Number(classId),
+                    asmS_Id: Number(sid),
+                    asamdM_Entry_DateTime: entryDate,
                     monthflag: entryType === 'Dailyonce' ? 'D' : 'H',
-                    monthflag1: entryType,
-                    ASA_FromDate: entryDate
+                    monthflag1: entryType === 'Dailyonce' ? 'Dailyonce' : 'Dailytwice',
+                    classsecflag: '1',
+                    checksubject: '1'
                 });
             }
 
@@ -192,11 +308,27 @@ export default function MessAttendanceEntryPage() {
                     setStudentList([]);
                     return;
                 }
-                const list = res.studentList || [];
+
+                applyConfiguration(res);
+
+                const list = res.studentList || res.studestudentList1 || res.students || [];
                 setStudentList(list);
-                setUpdateCount(res.countclass1 || 0);
-                // In Angular, selected = true if pdays > 0
-                setSelectedStudentIds(list.filter((s: any) => s.pdays > 0).map((s: any) => s.amsT_Id));
+                
+                const updateCnt = res.countclass1 || (res.monthList && res.monthList[0]?.attcount) || 0;
+                setUpdateCount(updateCnt);
+
+                if (entryType === 'monthly') {
+                    setTotalClassHeld(res.countclass || 0);
+                    if (res.startdate) setFromDate(new Date(res.startdate).toISOString().split('T')[0]);
+                    if (res.enddate) setToDate(new Date(res.enddate).toISOString().split('T')[0]);
+                }
+
+                // Set selected based on pdays
+                const selected = list.filter((s: any) => {
+                    if (res.attendanceentryflag === 'A') return s.pdays === 0;
+                    return s.pdays > 0;
+                }).map((s: any) => s.amsT_Id);
+                setSelectedStudentIds(selected);
             }
         } catch (error) {
             toast.error('Failed to fetch students');
@@ -205,51 +337,58 @@ export default function MessAttendanceEntryPage() {
 
     const handleSectionChange = (val: string) => {
         setSectionId(val);
-        fetchStudents(val);
+        setStudentList([]);
+        if (entryType !== 'monthly' && entryType !== 'period') {
+            fetchStudents(val);
+        }
     };
 
-    const handleDOEChange = (val: string) => {
+    const handleDOEChange = async (val: string) => {
         setDoe(val);
-        if (entryType === 'period') {
-            handlePeriodChange(periodId, val);
-        } else {
-            fetchStudents(undefined, val);
+        if (sectionId) {
+            if (entryType === 'period') {
+                if (subjectId && periodId) fetchStudents(undefined, val);
+            } else if (entryType !== 'monthly') {
+                try {
+                    const res = await datewiseAttMutation.mutateAsync({
+                        asmay_Id: Number(academicYearId),
+                        asmcl_Id: Number(classId),
+                        asmS_Id: Number(sectionId),
+                        asamdM_Entry_DateTime: val,
+                        monthflag: entryType === 'Dailyonce' ? 'D' : 'H',
+                        monthid: 0
+                    });
+                    if (res) {
+                        applyConfiguration(res);
+                        const list = res.studentList || res.studestudentList1 || res.students || [];
+                        setStudentList(list);
+                        
+                        const updateCnt = res.countclass1 || (res.monthList && res.monthList[0]?.attcount) || 0;
+                        setUpdateCount(updateCnt);
+                        const selected = list.filter((s: any) => {
+                            if (res.attendanceentryflag === 'A') return s.pdays === 0;
+                            return s.pdays > 0;
+                        }).map((s: any) => s.amsT_Id);
+                        setSelectedStudentIds(selected);
+                    }
+                } catch (error) {
+                    toast.error('Failed to fetch attendance data for the selected date');
+                }
+            }
         }
     };
 
     const handleMonthChange = async (val: string) => {
         setMonthId(val);
-        // Cascades to fetching class held and student list
         if (!academicYearId || !classId || !sectionId) return;
-        try {
-            const res = await monthClassHeldMutation.mutateAsync({
-                ASMAY_Id: Number(academicYearId),
-                ASMCL_Id: Number(classId),
-                ASMS_Id: Number(sectionId),
-                monthid: Number(val),
-                monthflag: 'M',
-                monthflag1: 'monthly',
-                ASA_FromDate: doe
-            });
-            if (res) {
-                setTotalClassHeld(res.countclass || 0);
-                setStudentList(res.studentList || []);
-                setUpdateCount(res.countclass1 || 0);
-                setFromDate(res.startdate ? new Date(res.startdate).toISOString().split('T')[0] : '');
-                setToDate(res.enddate ? new Date(res.enddate).toISOString().split('T')[0] : '');
-                setSelectedStudentIds((res.studentList || []).filter((s: any) => s.pdays > 0).map((s: any) => s.amsT_Id));
-            }
-        } catch (error) {
-            toast.error('Failed to load month data');
-        }
+        fetchStudents(undefined, doe);
     };
-
-    const [isBatchRequired, setIsBatchRequired] = useState(false);
 
     const handleSubjectChange = async (val: string) => {
         setSubjectId(val);
         setPeriodId('');
         setBatchId('');
+        setStudentList([]);
         try {
             const res = await batchListMutation.mutateAsync({
                 ASMAY_Id: Number(academicYearId),
@@ -258,8 +397,10 @@ export default function MessAttendanceEntryPage() {
                 ismS_Id: Number(val)
             });
             if (res?.batchList?.length > 0) {
+                setSubjectBatches(res.batchList);
                 setIsBatchRequired(true);
             } else {
+                setSubjectBatches([]);
                 setIsBatchRequired(false);
             }
         } catch (error) {
@@ -267,37 +408,16 @@ export default function MessAttendanceEntryPage() {
         }
     };
 
-    const handlePeriodChange = async (pId: string, d?: string) => {
-        const pid = pId || periodId;
-        const entryDate = d || doe;
-        setPeriodId(pid);
-        if (!pid) return;
-
-        try {
-            const res = await stdListPeriodMutation.mutateAsync({
-                ASMAY_Id: Number(academicYearId),
-                ASMCL_Id: Number(classId),
-                ASMS_Id: Number(sectionId),
-                ismS_Id: Number(subjectId),
-                TTMP_Id: Number(pid),
-                monthflag: 'P',
-                monthflag1: 'period',
-                ASA_FromDate: entryDate,
-                asasB_Id: Number(batchId) || 0
-            });
-            if (res) {
-                setStudentList(res.studentList || []);
-                setUpdateCount(res.countclass1 || 0);
-                setSelectedStudentIds((res.studentList || []).filter((s: any) => s.pdays > 0).map((s: any) => s.amsT_Id));
-            }
-        } catch (error) {
-            toast.error('Failed to load period data');
+    const handlePeriodChange = async (pId: string) => {
+        setPeriodId(pId);
+        if (academicYearId && classId && sectionId && subjectId && pId) {
+            fetchStudents();
         }
     };
 
     const handleSelectAll = (checked: boolean) => {
         if (checked) {
-            setSelectedStudentIds(filteredStudents.map(s => s.amsT_Id));
+            setSelectedStudentIds(processedStudents.map(s => s.amsT_Id));
         } else {
             setSelectedStudentIds([]);
         }
@@ -313,52 +433,72 @@ export default function MessAttendanceEntryPage() {
 
     const handleSave = async () => {
         if (!academicYearId || !classId || !sectionId) {
-            toast.error('Please complete all required filters');
+            toast.error('Please complete all required fields');
             return;
         }
 
         const formattedList = studentList.map(s => ({
-            ...s,
-            selected: selectedStudentIds.includes(s.amsT_Id),
-            pdays: selectedStudentIds.includes(s.amsT_Id) ? 1.0 : 0.0
+            amsT_Id: s.amsT_Id,
+            selected: entryType === 'monthly' ? (Number(s.pdays) > 0) : selectedStudentIds.includes(s.amsT_Id),
+            pdays: entryType === 'monthly' ? Number(s.pdays || 0) : (selectedStudentIds.includes(s.amsT_Id) ? 1.0 : 0.0),
+            asamdM_Id: s.asamdM_Id || 0,
+            asasmdM_Id: s.asasmdM_Id || 0
         }));
 
         const payload = {
-            ASAMDM_Id: 0, // In Angular code, it takes asamdM_Id
-            ismS_Id: Number(subjectId) || 0,
-            ASMAY_Id: Number(academicYearId),
-            ASMCL_Id: Number(classId),
-            ASMS_Id: Number(sectionId),
+            asmay_Id: Number(academicYearId),
+            asmcl_Id: Number(classId),
+            asmS_Id: Number(sectionId),
+            asamdm_Entry_DateTime: doe,
+            asamdm_Network_IP: '127.0.0.1', // Placeholder as per required structure
+            stdList: formattedList,
+            // Keeping auxiliary fields if they are useful, but prioritizing requested ones
             TTMP_Id: Number(periodId) || 0,
-            ASAMDM_Entry_DateTime: doe,
-            asasB_Id: Number(batchId) || 0,
-            stdList: formattedList
+            ismS_Id: Number(subjectId) || 0,
+            asasB_Id: Number(batchId) || 0
         };
 
         try {
             const res = await saveMutation.mutateAsync(payload);
-            if (res?.returnval) {
-                toast.success(res.message || 'Record Saved Successfully!');
+            if (res?.success || res?.returnval) {
+                toast.success(res.message || 'Attendance saved successfully.');
                 handleClear();
+            } else if (res?.message) {
+                toast.error(res.message);
             } else {
-                toast.error(res?.message || 'Record Not Saved Successfully!');
+                toast.error('Failed to save attendance record');
             }
         } catch (error) {
-            toast.error('Network Error during save');
+            toast.error('Error during save operation');
         }
     };
 
     const handleDelete = async () => {
-        // Confirmation is handled via standard swal in legacy, here we can use a simpler flow or toast
-        if (!window.confirm("Do you want to delete the selected attendance details?")) return;
+        if (!window.confirm("Do You Want To Delete The Selected Attendace Details ?")) return;
+
+        let fromD = doe;
+        let toD = doe;
+        let classHeld = '1.00';
+
+        if (entryType === 'monthly') {
+            fromD = fromDate;
+            toD = toDate;
+            classHeld = totalClassHeld.toString();
+        }
 
         const payload = {
             ASMAY_Id: Number(academicYearId),
             ASMCL_Id: Number(classId),
             ASMS_Id: Number(sectionId),
-            ASA_Entry_DateTime: new Date().toISOString().split('T')[0], // Entry date from legacy
-            stdList: studentList,
-            // ... other fields as per legacy
+            ismS_Id: Number(subjectId) || 0,
+            TTMP_Id: Number(periodId) || 0,
+            ASA_Entry_DateTime: new Date().toISOString().split('T')[0],
+            ASA_FromDate: fromD,
+            ASA_ToDate: toD,
+            ASA_ClassHeld: classHeld,
+            ASA_Regular_Extra: attendanceType,
+            asasB_Id: Number(batchId) || 0,
+            stdList: studentList
         };
 
         try {
@@ -375,14 +515,7 @@ export default function MessAttendanceEntryPage() {
     };
 
     const handleClear = () => {
-        setAcademicYearId('');
-        setClassId('');
-        setSectionId('');
-        setEntryType('');
-        setStudentList([]);
-        setSelectedStudentIds([]);
-        setUpdateCount(0);
-        window.location.reload(); // Quick reset as per legacy reload
+        window.location.reload();
     };
 
     const openHistory = async () => {
@@ -397,11 +530,15 @@ export default function MessAttendanceEntryPage() {
                 ASMS_Id: Number(sectionId),
                 att_entry_type: entryType
             });
-            if (res?.viewStudentPeriodWiseAttDetails) {
-                setHistoryData(res.viewStudentPeriodWiseAttDetails);
+
+            // Handle different response structures
+            const historyList = res?.viewStudentPeriodWiseAttDetails || (Array.isArray(res) ? res : []);
+
+            if (historyList.length > 0) {
+                setHistoryData(historyList);
                 setIsHistoryOpen(true);
             } else {
-                toast.info('No history found');
+                toast.info('No attendance records found for the selection');
             }
         } catch (error) {
             toast.error('Failed to load history');
@@ -492,31 +629,57 @@ export default function MessAttendanceEntryPage() {
             </Card>
 
             {/* --- Entry Inputs Card --- */}
-            {entryType && (
+            {classId && (
                 <Card className='shadow-xl border-none bg-white rounded-3xl overflow-hidden animate-in slide-in-from-bottom-5 duration-500'>
                     <CardHeader className='border-b border-slate-100 bg-slate-50/50 px-8 py-4'>
                         <div className='flex items-center justify-between'>
                             <CardTitle className='text-lg font-bold text-slate-800 flex items-center gap-2'>
-                                <Badge className='bg-indigo-600'>{entryType.toUpperCase().replace('ONCE', ' ONCE').replace('TWICE', ' TWICE')}</Badge>
-                                Entry Logic
+                                <Badge className='bg-indigo-600'>{entryType.toUpperCase().replace('ONCE', ' ONCE').replace('TWICE', ' TWICE') || 'ATTENDANCE ENTRY'}</Badge>
                             </CardTitle>
                             <Button variant='ghost' size='sm' onClick={openHistory} className='text-indigo-600 font-bold hover:bg-white'>
-                                <Eye className='w-4 h-4 mr-2' /> View Period Wise History
+                                <Eye className='w-4 h-4 mr-2' /> View Attendance
                             </Button>
                         </div>
                     </CardHeader>
                     <CardContent className='p-8 space-y-8'>
-                        <div className='grid grid-cols-1 lg:grid-cols-2 gap-8'>
+                        {/* Entry Type Radio Group */}
+                        <div className='flex justify-center'>
+                            <RadioGroup
+                                value={entryType}
+                                onValueChange={(val) => {
+                                    setEntryType(val);
+                                    setStudentList([]);
+                                    setSelectedStudentIds([]);
+                                }}
+                                className='flex flex-wrap items-center justify-center gap-8 bg-slate-50/80 p-6 rounded-[2rem] border-2 border-slate-100'
+                            >
+                                {[
+                                    { id: 'Dailyonce', label: 'Daily Once' },
+                                    { id: 'Dailytwice', label: 'Daily Twice' },
+                                    { id: 'monthly', label: 'Monthly' },
+                                    { id: 'period', label: 'Period Wise' }
+                                ].map((type) => (
+                                    <div key={type.id} className='flex items-center space-x-2.5 group cursor-pointer'>
+                                        <RadioGroupItem value={type.id} id={type.id} className='w-5 h-5 border-2 border-slate-300 text-indigo-600 focus:ring-indigo-500' />
+                                        <Label htmlFor={type.id} className='text-sm font-black text-slate-600 cursor-pointer group-hover:text-indigo-600 transition-colors uppercase tracking-tight'>
+                                            {type.label}
+                                        </Label>
+                                    </div>
+                                ))}
+                            </RadioGroup>
+                        </div>
+
+                        <div className='grid grid-cols-1 lg:grid-cols-2 gap-12'>
                             {/* Left Side: Parameters */}
                             <div className='space-y-6'>
                                 <div className='space-y-2'>
                                     <Label className='text-sm font-bold text-slate-700'>Section <span className='text-rose-500'>*</span></Label>
                                     <Select value={sectionId} onValueChange={handleSectionChange}>
-                                        <SelectTrigger className='h-12 border-2 rounded-xl font-semibold'>
+                                        <SelectTrigger className='h-12 border-2 rounded-2xl font-semibold bg-white'>
                                             <SelectValue placeholder='Select Section' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {sections.map((s: any) => (
+                                            {classSections.map((s: any) => (
                                                 <SelectItem key={s.asmS_Id} value={s.asmS_Id.toString()}>{s.asmC_SectionName}</SelectItem>
                                             ))}
                                         </SelectContent>
@@ -528,11 +691,11 @@ export default function MessAttendanceEntryPage() {
                                         <div className='space-y-2'>
                                             <Label className='text-sm font-bold text-slate-700'>Month <span className='text-rose-500'>*</span></Label>
                                             <Select value={monthId} onValueChange={handleMonthChange}>
-                                                <SelectTrigger className='h-12 border-2 rounded-xl font-semibold'>
+                                                <SelectTrigger className='h-12 border-2 rounded-2xl font-semibold bg-white'>
                                                     <SelectValue placeholder='Select Month' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {months.map((m: any) => (
+                                                    {sortedMonths.map((m: any) => (
                                                         <SelectItem key={m.ivrM_Month_Id} value={m.ivrM_Month_Id.toString()}>{m.ivrM_Month_Name}</SelectItem>
                                                     ))}
                                                 </SelectContent>
@@ -540,17 +703,17 @@ export default function MessAttendanceEntryPage() {
                                         </div>
                                         <div className='grid grid-cols-2 gap-4'>
                                             <div className='space-y-2'>
-                                                <Label className='text-xs font-bold text-slate-400'>Attendance From Date</Label>
-                                                <Input type='date' value={fromDate} readOnly className='bg-slate-50 border-none' />
+                                                <Label className='text-xs font-bold text-slate-400'>From Date</Label>
+                                                <Input type='date' value={fromDate} readOnly className='bg-slate-50 border-none rounded-xl' />
                                             </div>
                                             <div className='space-y-2'>
-                                                <Label className='text-xs font-bold text-slate-400'>Attendance To Date</Label>
-                                                <Input type='date' value={toDate} readOnly className='bg-slate-50 border-none' />
+                                                <Label className='text-xs font-bold text-slate-400'>To Date</Label>
+                                                <Input type='date' value={toDate} readOnly className='bg-slate-50 border-none rounded-xl' />
                                             </div>
                                         </div>
                                         <div className='p-4 bg-indigo-50 rounded-2xl border border-indigo-100 flex items-center justify-between'>
                                             <span className='font-bold text-indigo-700'>Total Class Helds:</span>
-                                            <Badge variant='secondary' className='text-xl px-4 py-1 bg-white text-indigo-600 border-indigo-200'>{totalClassHeld}</Badge>
+                                            <Badge className='text-lg h-9 w-12 flex items-center justify-center bg-white text-indigo-600 border-indigo-200'>{totalClassHeld}</Badge>
                                         </div>
                                     </div>
                                 )}
@@ -561,7 +724,7 @@ export default function MessAttendanceEntryPage() {
                                             <div className='space-y-2'>
                                                 <Label className='text-sm font-bold text-slate-700'>Subject <span className='text-rose-500'>*</span></Label>
                                                 <Select value={subjectId} onValueChange={handleSubjectChange}>
-                                                    <SelectTrigger className='h-12 border-2 rounded-xl font-semibold'>
+                                                    <SelectTrigger className='h-12 border-2 rounded-2xl font-semibold bg-white'>
                                                         <SelectValue placeholder='Select Subject' />
                                                     </SelectTrigger>
                                                     <SelectContent>
@@ -576,7 +739,7 @@ export default function MessAttendanceEntryPage() {
                                                     Batch {isBatchRequired && <span className='text-rose-500'>*</span>}
                                                 </Label>
                                                 <Select value={batchId} onValueChange={setBatchId}>
-                                                    <SelectTrigger className='h-12 border-2 rounded-xl font-semibold'>
+                                                    <SelectTrigger className='h-12 border-2 rounded-2xl font-semibold bg-white'>
                                                         <SelectValue placeholder='Select Batch' />
                                                     </SelectTrigger>
                                                     <SelectContent>
@@ -590,7 +753,7 @@ export default function MessAttendanceEntryPage() {
                                         <div className='space-y-2'>
                                             <Label className='text-sm font-bold text-slate-700'>Period <span className='text-rose-500'>*</span></Label>
                                             <Select value={periodId} onValueChange={handlePeriodChange}>
-                                                <SelectTrigger className='h-12 border-2 rounded-xl font-semibold'>
+                                                <SelectTrigger className='h-12 border-2 rounded-2xl font-semibold bg-white'>
                                                     <SelectValue placeholder='Select Period' />
                                                 </SelectTrigger>
                                                 <SelectContent>
@@ -604,8 +767,8 @@ export default function MessAttendanceEntryPage() {
                                 )}
                             </div>
 
-                            {/* Right Side: DOE & Radio Logic */}
-                            <div className='space-y-6'>
+                            {/* Right Side: DOE & Status */}
+                            <div className='space-y-8'>
                                 <div className='space-y-2'>
                                     <Label className='text-sm font-bold text-slate-700'>Date of Entry (DOE) <span className='text-rose-500'>*</span></Label>
                                     <div className='relative'>
@@ -613,44 +776,51 @@ export default function MessAttendanceEntryPage() {
                                             type='date'
                                             value={doe}
                                             onChange={(e) => handleDOEChange(e.target.value)}
-                                            className='h-12 pl-10 border-2 rounded-xl font-semibold focus:ring-indigo-500'
+                                            className='h-12 pl-12 border-2 rounded-2xl font-semibold focus:ring-indigo-500 bg-white shadow-sm'
                                         />
-                                        <CalendarIcon className='absolute left-3 top-3.5 w-5 h-5 text-slate-400' />
+                                        <CalendarIcon className='absolute left-4 top-3.5 w-5 h-5 text-indigo-500' />
                                     </div>
                                 </div>
 
-                                {entryType === 'period' && (
-                                    <div className='p-6 bg-slate-50 border border-slate-200 rounded-3xl space-y-4'>
-                                        <Label className='text-xs font-black uppercase text-slate-400 tracking-wider'>Attendance Mode</Label>
-                                        <RadioGroup value={attendanceType} onValueChange={(val: any) => setAttendanceType(val)} className='flex flex-col gap-3'>
-                                            <div className='flex items-center space-x-3 p-3 bg-white border-2 border-transparent hover:border-indigo-500 rounded-2xl cursor-pointer transition-all has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50'>
-                                                <RadioGroupItem value='Regular' id='regular' className='text-indigo-600' />
-                                                <Label htmlFor='regular' className='font-bold text-slate-800 cursor-pointer flex-1'>Regular Period</Label>
+                                {entryType === 'Dailytwice' && (
+                                    <div className='p-6 bg-slate-50 border-2 border-slate-100 rounded-[2rem] space-y-5 shadow-sm'>
+                                        <div className='flex items-center gap-2'>
+                                            <div className='w-1 h-4 bg-indigo-500 rounded-full' />
+                                            <Label className='text-xs font-black uppercase text-slate-400 tracking-wider'>Session Configuration</Label>
+                                        </div>
+                                        <div className='flex gap-8'>
+                                            <div className='flex items-center space-x-3 group cursor-pointer'>
+                                                <Checkbox id='session1' checked={session1} onCheckedChange={(val: any) => setSession1(!!val)} className='w-6 h-6 rounded-lg' />
+                                                <Label htmlFor='session1' className='text-sm font-black text-slate-600 group-hover:text-indigo-600 cursor-pointer transition-colors'>1st Half</Label>
                                             </div>
-                                            <div className='flex items-center space-x-3 p-3 bg-white border-2 border-transparent hover:border-indigo-500 rounded-2xl cursor-pointer transition-all has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50'>
-                                                <RadioGroupItem value='Extra Period' id='extra' />
-                                                <Label htmlFor='extra' className='font-bold text-slate-800 cursor-pointer flex-1'>Extra Period</Label>
+                                            <div className='flex items-center space-x-3 group cursor-pointer'>
+                                                <Checkbox id='session2' checked={session2} onCheckedChange={(val: any) => setSession2(!!val)} className='w-6 h-6 rounded-lg' />
+                                                <Label htmlFor='session2' className='text-sm font-black text-slate-600 group-hover:text-indigo-600 cursor-pointer transition-colors'>2nd Half</Label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {entryType === 'period' && (
+                                    <div className='p-6 bg-slate-50 border-2 border-slate-100 rounded-[2rem] space-y-5 shadow-sm'>
+                                        <div className='flex items-center gap-2'>
+                                            <div className='w-1 h-4 bg-indigo-500 rounded-full' />
+                                            <Label className='text-xs font-black uppercase text-slate-400 tracking-wider'>Attendance Mode</Label>
+                                        </div>
+                                        <RadioGroup value={attendanceType} onValueChange={(val: any) => setAttendanceType(val)} className='flex flex-row gap-6'>
+                                            <div className='flex items-center space-x-3 p-1 rounded-xl cursor-not-allowed transition-all'>
+                                                <RadioGroupItem value='Regular' id='regular' className='text-indigo-600 w-5 h-5' />
+                                                <Label htmlFor='regular' className='font-bold text-slate-800 cursor-pointer text-sm'>Regular</Label>
+                                            </div>
+                                            <div className='flex items-center space-x-3 p-1 rounded-xl cursor-pointer transition-all'>
+                                                <RadioGroupItem value='Extra Period' id='extra' className='text-indigo-600 w-5 h-5' />
+                                                <Label htmlFor='extra' className='font-bold text-slate-800 cursor-pointer text-sm'>Extra Period</Label>
                                             </div>
                                         </RadioGroup>
                                     </div>
                                 )}
 
-                                <div className='p-6 bg-indigo-500 text-white rounded-3xl shadow-lg'>
-                                    <div className='flex items-center justify-between'>
-                                        <div>
-                                            <p className='text-indigo-100 text-xs font-bold uppercase tracking-widest'>Current Status</p>
-                                            <h4 className='text-xl font-black mt-1'>{updateCount > 0 ? 'Update Mode' : 'New Entry'}</h4>
-                                        </div>
-                                        <div className='p-3 bg-white/20 rounded-2xl'>
-                                            {updateCount > 0 ? <RefreshCw className='w-8 h-8' /> : <Save className='w-8 h-8' />}
-                                        </div>
-                                    </div>
-                                    <p className='text-sm mt-4 text-indigo-100/80 leading-relaxed font-medium'>
-                                        {updateCount > 0
-                                            ? 'Existing attendance record found. Changes will update the current data.'
-                                            : 'No record found for the selected criteria. A new entry will be created.'}
-                                    </p>
-                                </div>
+
                             </div>
                         </div>
                     </CardContent>
@@ -659,123 +829,132 @@ export default function MessAttendanceEntryPage() {
 
             {/* --- Student Grid Card --- */}
             {studentList.length > 0 && (
-                <Card className='shadow-2xl border-none bg-white rounded-3xl overflow-hidden animate-in zoom-in-95 duration-500'>
-                    <CardHeader className='border-b border-slate-100 bg-slate-900/5 px-8 py-6'>
-                        <div className='flex flex-col md:flex-row md:items-center justify-between gap-4'>
-                            <div>
-                                <CardTitle className='text-xl font-black text-slate-800 tracking-tight'>Student Attendance Register</CardTitle>
-                                <p className='text-slate-500 text-xs font-bold uppercase mt-1 tracking-widest flex items-center gap-1.5'>
-                                    <Badge size='sm' className='bg-indigo-600 text-[10px]'>{filteredStudents.length} Students</Badge>
-                                </p>
-                            </div>
-                            <div className='flex items-center gap-4 bg-white p-1.5 rounded-2xl shadow-inner border-2 border-slate-100'>
-                                <div className='relative'>
-                                    <Search className='absolute left-3 top-3 w-4 h-4 text-slate-400' />
-                                    <Input
-                                        placeholder='Search by name, roll no...'
-                                        value={searchValue}
-                                        onChange={(e) => setSearchValue(e.target.value)}
-                                        className='pl-9 border-none bg-transparent h-10 w-[300px] text-sm font-semibold'
-                                    />
-                                </div>
-                                <div className='h-8 w-[2px] bg-slate-100' />
-                                <div className='flex items-center gap-2 pr-4'>
-                                    <Checkbox
-                                        checked={selectedStudentIds.length === filteredStudents.length && filteredStudents.length > 0}
-                                        onCheckedChange={handleSelectAll}
-                                        className='rounded-md border-2 border-indigo-400'
-                                    />
-                                    <Label className='text-xs font-black text-indigo-600 uppercase cursor-pointer'>Select All</Label>
-                                </div>
+                <Card className='shadow-none border border-slate-200 rounded-none overflow-hidden animate-in fade-in duration-700 bg-white'>
+                    <CardHeader className='bg-[#3a5998] border-b border-slate-300 px-6 py-3 rounded-none'>
+                        <div className='flex items-center justify-between'>
+                            <CardTitle className='text-sm font-bold text-white uppercase tracking-tight'>STUDENT DETAILS</CardTitle>
+                            <div className='flex items-center gap-3 bg-white p-1 rounded-sm shadow-inner'>
+                                <Search className='w-4 h-4 text-slate-400 ml-2' />
+                                <Input
+                                    placeholder='search here...'
+                                    value={searchValue}
+                                    onChange={(e) => setSearchValue(e.target.value)}
+                                    className='h-8 w-[400px] border-none text-xs italic focus-visible:ring-0 shadow-none'
+                                />
                             </div>
                         </div>
                     </CardHeader>
                     <CardContent className='p-0'>
-                        <div className='max-h-[600px] overflow-auto scroll-smooth custom-scrollbar'>
-                            <Table>
-                                <TableHeader className='bg-slate-50/80 sticky top-0 z-10 backdrop-blur-md'>
-                                    <TableRow className='hover:bg-transparent border-slate-200'>
-                                        <TableHead className='w-16 text-center font-black text-slate-400 text-[10px] uppercase'>SL.</TableHead>
-                                        <TableHead className='font-black text-slate-400 text-[10px] uppercase'>Student Name</TableHead>
-                                        <TableHead className='font-black text-slate-400 text-[10px] uppercase'>Adm No.</TableHead>
-                                        <TableHead className='font-black text-slate-400 text-[10px] uppercase'>Reg No.</TableHead>
-                                        <TableHead className='text-center font-black text-slate-400 text-[10px] uppercase'>Roll No.</TableHead>
-                                        <TableHead className='text-center font-black text-indigo-600 text-[10px] uppercase w-32'>Attendance</TableHead>
+                        <div className='overflow-x-auto'>
+                            <Table className='border-collapse'>
+                                <TableHeader className='bg-[#006699]'>
+                                    <TableRow className='hover:bg-[#006699] border-none'>
+                                        <TableHead className='w-20 text-center font-bold text-white text-[11px] uppercase border-r border-white/20 whitespace-nowrap px-2'>SL. NO.</TableHead>
+                                        <TableHead className='text-center font-bold text-white text-[11px] uppercase border-r border-white/20 px-8'>Student Name</TableHead>
+                                        {showAdmNo && (
+                                            <TableHead
+                                                className='text-center font-bold text-white text-[11px] uppercase border-r border-white/20 whitespace-nowrap px-6 cursor-pointer hover:bg-white/10'
+                                                onClick={() => { setSortKey('amsT_AdmNo'); setSortReverse(!sortReverse); }}
+                                            >
+                                                Admission No. {sortKey === 'amsT_AdmNo' && (sortReverse ? '↓' : '↑')}
+                                            </TableHead>
+                                        )}
+                                        {showRollNo && (
+                                            <TableHead
+                                                className='text-center font-bold text-white text-[11px] uppercase border-r border-white/20 whitespace-nowrap px-6 cursor-pointer hover:bg-white/10'
+                                                onClick={() => { setSortKey('amaY_RollNo'); setSortReverse(!sortReverse); }}
+                                            >
+                                                Roll No. {sortKey === 'amaY_RollNo' && (sortReverse ? '↓' : '↑')}
+                                            </TableHead>
+                                        )}
+                                        {showRegNo && (
+                                            <TableHead
+                                                className='text-center font-bold text-white text-[11px] uppercase border-r border-white/20 whitespace-nowrap px-6 cursor-pointer hover:bg-white/10'
+                                                onClick={() => { setSortKey('amsT_RegistrationNo'); setSortReverse(!sortReverse); }}
+                                            >
+                                                Reg No. {sortKey === 'amsT_RegistrationNo' && (sortReverse ? '↓' : '↑')}
+                                            </TableHead>
+                                        )}
+                                        <TableHead className='text-center font-bold text-white text-[11px] uppercase px-4'>
+                                            <div className='flex items-center justify-center gap-2'>
+                                                <Checkbox
+                                                    checked={selectedStudentIds.length === processedStudents.length && processedStudents.length > 0}
+                                                    onCheckedChange={handleSelectAll}
+                                                    className='border-white data-[state=checked]:bg-white data-[state=checked]:text-[#006699] w-4 h-4'
+                                                />
+                                                <span>{entryType === 'Dailyonce' ? 'Daily' : 'Attendance'}</span>
+                                            </div>
+                                        </TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {filteredStudents.map((s, idx) => (
-                                        <TableRow
-                                            key={s.amsT_Id}
-                                            className='group hover:bg-indigo-50/30 transition-colors border-slate-100'
-                                        >
-                                            <TableCell className='text-center text-slate-400 font-bold'>
-                                                {idx + 1}
-                                            </TableCell>
-                                            <TableCell>
-                                                <div className='flex flex-col'>
-                                                    <span className='font-black text-slate-800 text-sm'>{s.studentname}</span>
-                                                    <span className='text-[10px] font-bold text-slate-400'>ID: {s.amsT_Id}</span>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell className='font-bold text-slate-600 text-xs'>{s.amsT_AdmNo}</TableCell>
-                                            <TableCell className='font-bold text-slate-500 text-xs'>{s.amsT_RegistrationNo}</TableCell>
-                                            <TableCell className='text-center'>
-                                                <Badge variant='outline' className='bg-white font-bold text-indigo-600 border-indigo-100'>{s.amaY_RollNo}</Badge>
-                                            </TableCell>
-                                            <TableCell className='text-center'>
-                                                <div className='flex items-center justify-center'>
-                                                    <Checkbox
-                                                        id={`s-${s.amsT_Id}`}
-                                                        checked={selectedStudentIds.includes(s.amsT_Id)}
-                                                        onCheckedChange={(checked: boolean) => handleStudentSelect(s.amsT_Id, checked)}
-                                                        className='w-6 h-6 rounded-lg border-2 border-slate-300 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-600 transition-all scale-110'
-                                                    />
-                                                </div>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
+                                    {processedStudents.map((s, index) => {
+                                        const isSelected = selectedStudentIds.includes(s.amsT_Id);
+                                        return (
+                                            <TableRow
+                                                key={s.amsT_Id}
+                                                className={`border-b border-slate-200 transition-colors h-12 ${isSelected ? 'bg-[#d9edf7]' : 'hover:bg-slate-50'}`}
+                                            >
+                                                <TableCell className='text-center font-bold text-slate-700 text-xs border-r border-slate-200 px-2'>{index + 1}</TableCell>
+                                                <TableCell className='font-bold text-slate-800 text-[11px] uppercase border-r border-slate-200 px-8'>{s.studentname}</TableCell>
+                                                {showAdmNo && <TableCell className='text-center text-[11px] font-bold text-slate-600 border-r border-slate-200 px-6'>{s.amsT_AdmNo}</TableCell>}
+                                                {showRollNo && <TableCell className='text-center text-[11px] font-bold text-slate-600 border-r border-slate-200 px-6'>{s.amaY_RollNo}</TableCell>}
+                                                {showRegNo && <TableCell className='text-center text-[11px] font-bold text-slate-600 border-r border-slate-200 px-6'>{s.amsT_RegistrationNo}</TableCell>}
+                                                <TableCell className='text-center px-4'>
+                                                    {entryType === 'monthly' ? (
+                                                        <Input
+                                                            type='number'
+                                                            value={s.pdays || 0}
+                                                            max={totalClassHeld}
+                                                            onChange={(e) => {
+                                                                const val = Number(e.target.value);
+                                                                setStudentList(prev => prev.map(p =>
+                                                                    p.amsT_Id === s.amsT_Id ? { ...p, pdays: val } : p
+                                                                ));
+                                                            }}
+                                                            className='w-20 mx-auto h-8 text-center font-bold border-slate-300'
+                                                        />
+                                                    ) : (
+                                                        <Checkbox
+                                                            checked={isSelected}
+                                                            onCheckedChange={(checked) => handleStudentSelect(s.amsT_Id, !!checked)}
+                                                            className='border-slate-400 w-4 h-4'
+                                                        />
+                                                    )}
+                                                </TableCell>
+                                            </TableRow>
+                                        );
+                                    })}
                                 </TableBody>
                             </Table>
                         </div>
 
-                        {/* --- Footer Actions --- */}
-                        <div className='p-8 bg-slate-50 border-t border-slate-100'>
-                            <div className='flex flex-col sm:flex-row items-center justify-center gap-4'>
-                                <Button
-                                    size='lg'
-                                    onClick={handleSave}
-                                    disabled={saveMutation.isPending}
-                                    className='min-w-[200px] h-14 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-lg shadow-xl shadow-indigo-200 transition-all hover:scale-105 active:scale-95 disabled:opacity-50'
-                                >
-                                    {saveMutation.isPending ? (
-                                        <Loader2 className='w-6 h-6 animate-spin mr-3' />
-                                    ) : (
-                                        updateCount > 0 ? <RefreshCw className='w-6 h-6 mr-3' /> : <Save className='w-6 h-6 mr-3' />
-                                    )}
-                                    {updateCount > 0 ? 'UPDATE RECORD' : 'SAVE ATTENDANCE'}
-                                </Button>
+                        {/* Centered Footer Buttons */}
+                        <div className='flex flex-wrap items-center justify-center gap-4 py-8 bg-slate-50 border-t border-slate-200 mt-6'>
+                            <Button
+                                onClick={handleSave}
+                                disabled={saveMutation.isPending || saveDis}
+                                className='bg-[#3a5998] hover:bg-[#2d4373] text-white font-bold h-10 px-8 transition-transform active:scale-95 shadow-md flex items-center gap-2 uppercase text-xs rounded-sm'
+                            >
+                                {saveMutation.isPending ? <Loader2 className='w-4 h-4 animate-spin' /> : <Save className='w-4 h-4' />}
+                                {updateCount > 0 ? 'UPDATE' : 'SAVE'}
+                            </Button>
 
-                                {updateCount > 0 && (
-                                    <Button
-                                        size='lg'
-                                        variant='outline'
-                                        onClick={handleDelete}
-                                        className='min-w-[160px] h-14 border-2 border-rose-100 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded-2xl font-black text-base shadow-lg shadow-rose-100 transition-all'
-                                    >
-                                        <Trash2 className='w-6 h-6 mr-2' /> DELETE
-                                    </Button>
-                                )}
-
+                            {updateCount > 0 && (
                                 <Button
-                                    variant='ghost'
-                                    size='lg'
-                                    onClick={handleClear}
-                                    className='min-w-[140px] h-14 text-slate-400 hover:text-slate-800 font-bold text-base'
+                                    onClick={handleDelete}
+                                    className='bg-[#444444] hover:bg-slate-800 text-white font-bold h-10 px-8 transition-transform active:scale-95 shadow-md flex items-center gap-2 uppercase text-xs rounded-sm'
                                 >
-                                    <X className='w-5 h-5 mr-2' /> CANCEL
+                                    <Trash2 className='w-4 h-4' /> DELETE
                                 </Button>
-                            </div>
+                            )}
+
+                            <Button
+                                onClick={handleClear}
+                                className='bg-[#ff6f00] hover:bg-[#e65100] text-white font-bold h-10 px-8 transition-transform active:scale-95 shadow-md flex items-center gap-2 uppercase text-xs rounded-sm'
+                            >
+                                <X className='w-4 h-4' /> CANCEL
+                            </Button>
                         </div>
                     </CardContent>
                 </Card>
@@ -783,83 +962,87 @@ export default function MessAttendanceEntryPage() {
 
             {/* --- History Modal --- */}
             <Dialog open={isHistoryOpen} onOpenChange={setIsHistoryOpen}>
-                <DialogContent className='max-w-6xl rounded-3xl overflow-hidden p-0 bg-white border-none shadow-2xl'>
-                    <DialogHeader className='bg-slate-900 px-8 py-6 text-white'>
-                        <div className='flex items-center justify-between'>
-                            <div className='flex items-center gap-3'>
-                                <div className='p-2 bg-white/10 rounded-xl'>
-                                    <History className='w-6 h-6 text-indigo-400' />
-                                </div>
-                                <div>
-                                    <DialogTitle className='text-2xl font-black'>Attendance Records</DialogTitle>
-                                    <p className='text-slate-400 text-xs font-bold uppercase tracking-widest mt-1'>Review and manage previous entries</p>
-                                </div>
-                            </div>
+                <DialogContent className='max-w-7xl rounded-none overflow-hidden p-0 bg-white border-none shadow-2xl'>
+                    <DialogHeader className='bg-[#3a5998] px-8 py-4 text-white flex flex-row items-center justify-between'>
+                        <DialogTitle className='text-lg font-bold uppercase tracking-tight'>ATTENDANCE DETAILS</DialogTitle>
+                        <div className='flex items-center gap-4'>
                             <div className='relative'>
-                                <Search className='absolute left-3 top-2.5 w-4 h-4 text-slate-500' />
+                                <Search className='absolute right-3 top-2.5 w-4 h-4 text-slate-400' />
                                 <Input
                                     value={historySearch}
                                     onChange={(e) => setHistorySearch(e.target.value)}
-                                    placeholder='Quick search history...'
-                                    className='bg-white/5 border-white/10 text-white pl-10 h-10 w-64 rounded-xl text-sm'
+                                    placeholder='search here...'
+                                    className='bg-white text-slate-900 pr-10 h-9 w-64 rounded-none text-xs border-none shadow-inner italic'
                                 />
                             </div>
+                            <Button variant='ghost' size='icon' onClick={() => setIsHistoryOpen(false)} className='text-white hover:bg-white/20 h-8 w-8'>
+                                <X className='w-5 h-5' />
+                            </Button>
                         </div>
                     </DialogHeader>
 
-                    <div className='p-8 h-[600px] overflow-auto'>
-                        <Table>
+                    <div className='max-h-[70vh] overflow-auto custom-scrollbar border-x border-slate-200'>
+                        <Table className='border-collapse'>
                             <TableHeader>
-                                <TableRow className='border-slate-100'>
-                                    <TableHead className='font-black text-[10px] text-slate-400 uppercase'>Details</TableHead>
-                                    <TableHead className='font-black text-[10px] text-slate-400 uppercase text-center whitespace-nowrap'>Attendance Date</TableHead>
-                                    <TableHead className='font-black text-[10px] text-slate-400 uppercase text-center'>Entry Info</TableHead>
-                                    <TableHead className='font-black text-[10px] text-slate-400 uppercase text-center'>Counts</TableHead>
-                                    <TableHead className='font-black text-[10px] text-slate-400 uppercase text-center'>Action</TableHead>
+                                <TableRow className='bg-[#006699] hover:bg-[#006699] border-b border-slate-200'>
+                                    <TableHead className='w-16 text-center font-bold text-white text-[11px] uppercase border-r border-white/20 whitespace-nowrap'>Sl.No</TableHead>
+                                    <TableHead className='text-center font-bold text-white text-[11px] uppercase border-r border-white/20 px-4'>Attendance Details</TableHead>
+                                    <TableHead className='text-center font-bold text-white text-[11px] uppercase border-r border-white/20 whitespace-nowrap px-6'>Attendance Date</TableHead>
+                                    <TableHead className='text-center font-bold text-white text-[11px] uppercase border-r border-white/20 whitespace-nowrap px-6'>Entry Date</TableHead>
+                                    <TableHead className='text-center font-bold text-white text-[11px] uppercase border-r border-white/20'>Entry By</TableHead>
+                                    <TableHead className='text-center font-bold text-white text-[11px] uppercase'>Action</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {historyData.filter(h =>
                                     h.ASMAY_Year?.toLowerCase().includes(historySearch.toLowerCase()) ||
-                                    h.EMPLOYEENAME?.toLowerCase().includes(historySearch.toLowerCase())
+                                    h.EMPLOYEENAME?.toLowerCase().includes(historySearch.toLowerCase()) ||
+                                    h.ASMCL_ClassName?.toLowerCase().includes(historySearch.toLowerCase())
                                 ).map((h, i) => (
-                                    <TableRow key={i} className='hover:bg-slate-50/80 border-slate-50'>
-                                        <TableCell>
-                                            <div className='space-y-1'>
-                                                <Badge variant='outline' className='font-bold text-indigo-600 bg-indigo-50/50 border-indigo-100'>{h.ASMAY_Year}</Badge>
-                                                <div className='flex flex-col text-xs font-bold text-slate-700'>
-                                                    <span>{h.ASMCL_ClassName} ({h.ASMC_SectionName})</span>
-                                                    {h.ISMS_SUBJECTNAME && <span className='text-indigo-500 uppercase'>{h.ISMS_SUBJECTNAME}</span>}
-                                                </div>
+                                    <TableRow key={i} className='hover:bg-slate-50 border-b border-slate-200 h-16'>
+                                        <TableCell className='text-center font-bold text-slate-700 text-xs border-r border-slate-200'>{i + 1}</TableCell>
+                                        <TableCell className='border-r border-slate-200 px-6'>
+                                            <div className='flex flex-col gap-0.5'>
+                                                <span className='text-[13px] font-black text-slate-800 leading-tight'>Academic Year : {h.ASMAY_Year}</span>
+                                                <span className='text-[13px] font-black text-slate-800 leading-tight'>Class : {h.ASMCL_ClassName}</span>
+                                                <span className='text-[13px] font-black text-slate-800 leading-tight'>Section : {h.ASMC_SectionName}</span>
+                                                {h.ISMS_SUBJECTNAME && <span className='text-[13px] font-black text-indigo-600 leading-tight italic'>Subject : {h.ISMS_SUBJECTNAME}</span>}
                                             </div>
                                         </TableCell>
-                                        <TableCell className='text-center text-sm font-black text-slate-800'>
-                                            {h.ASA_FROMDATE && format(new Date(h.ASA_FROMDATE), 'dd MMM yyyy')}
+                                        <TableCell className='text-center text-[12px] font-bold text-slate-700 border-r border-slate-200 whitespace-nowrap px-6'>
+                                            {h.ASA_FROMDATE}
                                         </TableCell>
-                                        <TableCell className='text-center'>
-                                            <div className='flex flex-col text-xs'>
-                                                <span className='font-bold text-slate-800'>{h.EMPLOYEENAME}</span>
-                                                <span className='text-slate-400 font-medium'>{h.ASA_Entry_DateTime && format(new Date(h.ASA_Entry_DateTime), 'dd/MM/yy HH:mm')}</span>
-                                            </div>
+                                        <TableCell className='text-center text-[12px] font-bold text-slate-700 border-r border-slate-200 whitespace-nowrap px-6'>
+                                            {h.ASA_Entry_DateTime?.split(' ')[0]}
                                         </TableCell>
-                                        <TableCell className='text-center'>
-                                            <div className='flex items-center justify-center gap-2'>
-                                                <Badge className='bg-emerald-50 text-emerald-600 border-emerald-100 font-bold'>P: {h.PresentCount}</Badge>
-                                                <Badge className='bg-rose-50 text-rose-600 border-rose-100 font-bold'>A: {h.AbsentCount}</Badge>
-                                            </div>
+                                        <TableCell className='text-center text-[12px] font-bold text-slate-700 border-r border-slate-200 px-6'>
+                                            {h.EMPLOYEENAME}
                                         </TableCell>
-                                        <TableCell className='text-center'>
-                                            <Button
-                                                variant='ghost'
-                                                size='icon'
-                                                onClick={() => deleteHistoryRecord(h)}
-                                                className='text-slate-300 hover:text-rose-600 transition-colors'
-                                            >
-                                                <Trash2 className='w-5 h-5' />
-                                            </Button>
+                                        <TableCell className='text-center px-4'>
+                                            {(h.DELETE_FLAG === 1 || h.delete_flag === 1) ? (
+                                                <Button
+                                                    variant='ghost'
+                                                    size='icon'
+                                                    onClick={() => deleteHistoryRecord(h)}
+                                                    className='text-rose-600 hover:bg-rose-50 rounded-lg transition-all'
+                                                >
+                                                    <Trash2 className='w-4 h-4' />
+                                                </Button>
+                                            ) : (
+                                                <Badge variant='secondary' className='text-[9px] bg-slate-100 text-slate-400 font-black uppercase tracking-tighter'>
+                                                    Locked
+                                                </Badge>
+                                            )}
                                         </TableCell>
                                     </TableRow>
                                 ))}
+                                {historyData.length === 0 && (
+                                    <TableRow>
+                                        <TableCell colSpan={6} className='h-40 text-center text-slate-400 font-bold'>
+                                            No records found for the selected criteria
+                                        </TableCell>
+                                    </TableRow>
+                                )}
                             </TableBody>
                         </Table>
                     </div>
