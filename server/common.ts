@@ -1174,15 +1174,15 @@ export async function getUserAccessibleModules() {
                                             title: 'DCPS Bonified Certificate',
                                             description: 'Bonified Certificate'
                                         }
-                                        // ,
-                                        // {
-                                        //     id: 72,
-                                        //     name: 'DCPS Transfer Certificate',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/Danvantari/reports/DCPS_TransferCertificate',
-                                        //     title: 'DCPS Transfer Certificate',
-                                        //     description: 'DCPS Transfer Certificate'
-                                        // }
+                                        ,
+                                        {
+                                            id: 72,
+                                            name: 'DCPS Transfer Certificate',
+                                            icon: 'Settings',
+                                            url: '/admission/Danvantari/reports/DCPS_TransferCertificate',
+                                            title: 'DCPS Transfer Certificate',
+                                            description: 'DCPS Transfer Certificate'
+                                        }
 
                                     ]
                                 },
