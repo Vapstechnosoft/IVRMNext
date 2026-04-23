@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import type { ICumulativeReport, IReportHeader, ISubject } from '@/types/exam/exam-module/report';
 import { FileSpreadsheetIcon, Printer } from 'lucide-react';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import * as XLSX from 'xlsx';
 
 interface CumulativeReportGridViewProps {
@@ -87,16 +87,10 @@ export default function CumulativeReportGridView({
 
         // Applicable subjects
         applicableSubjects.forEach((subj) => {
-            const isEVS = subj.ismS_SubjectName?.toUpperCase().includes('EVS');
-            if (isEVS) {
-                mainHeaderRow.push(subj.ismS_SubjectName || '');
-                subHeaderRow.push('Marks & Grade');
-            } else {
-                mainHeaderRow.push(subj.ismS_SubjectName || '');
-                mainHeaderRow.push('');
-                subHeaderRow.push('Marks');
-                subHeaderRow.push('Grade');
-            }
+            mainHeaderRow.push(subj.ismS_SubjectName || '');
+            mainHeaderRow.push('');
+            subHeaderRow.push('Marks');
+            subHeaderRow.push('Grade');
         });
 
         // Total columns
@@ -105,16 +99,10 @@ export default function CumulativeReportGridView({
 
         // Non-applicable subjects
         nonApplicableSubjects.forEach((subj) => {
-            const isEVS = subj.ismS_SubjectName?.toUpperCase().includes('EVS');
-            if (isEVS) {
-                mainHeaderRow.push(subj.ismS_SubjectName || '');
-                subHeaderRow.push('Marks & Grade');
-            } else {
-                mainHeaderRow.push(subj.ismS_SubjectName || '');
-                mainHeaderRow.push('');
-                subHeaderRow.push('Marks');
-                subHeaderRow.push('Grade');
-            }
+            mainHeaderRow.push(subj.ismS_SubjectName || '');
+            mainHeaderRow.push('');
+            subHeaderRow.push('Marks');
+            subHeaderRow.push('Grade');
         });
 
         // Data rows
@@ -132,14 +120,9 @@ export default function CumulativeReportGridView({
                 const marks = sub?.estmpS_ObtainedMarks;
                 const grade = sub?.estmpS_ObtainedGrade;
                 const isAB = sub?.estmpS_PassFailFlg === 'AB';
-                const isEVS = subj.ismS_SubjectName?.toUpperCase().includes('EVS');
 
                 if (isAB) {
-                    isEVS ? row.push('AB') : row.push('AB', 'AB');
-                } else if (isEVS && marks != null && grade != null) {
-                    row.push(`${marks} | ${grade}`);
-                } else if (isEVS) {
-                    row.push(marks ?? grade ?? '');
+                    row.push('AB', 'AB');
                 } else {
                     row.push(marks ?? '');
                     row.push(grade ?? '');
@@ -160,14 +143,9 @@ export default function CumulativeReportGridView({
                 const marks = sub?.estmpS_ObtainedMarks;
                 const grade = sub?.estmpS_ObtainedGrade;
                 const isAB = sub?.estmpS_PassFailFlg === 'AB';
-                const isEVS = subj.ismS_SubjectName?.toUpperCase().includes('EVS');
 
                 if (isAB) {
-                    isEVS ? row.push('AB') : row.push('AB', 'AB');
-                } else if (isEVS && marks != null && grade != null) {
-                    row.push(`${marks} | ${grade}`);
-                } else if (isEVS) {
-                    row.push(marks ?? grade ?? '');
+                    row.push('AB', 'AB');
                 } else {
                     row.push(marks ?? '');
                     row.push(grade ?? '');
@@ -197,15 +175,11 @@ export default function CumulativeReportGridView({
         // Merge subject names (non-EVS)
         let currentCol = baseColumnsCount;
         [...applicableSubjects, ...nonApplicableSubjects].forEach((subj) => {
-            if (!subj.ismS_SubjectName?.toUpperCase().includes('EVS')) {
-                ws['!merges']!.push({
-                    s: { r: titleRows.length, c: currentCol },
-                    e: { r: titleRows.length, c: currentCol + 1 }
-                });
-                currentCol += 2;
-            } else {
-                currentCol += 1;
-            }
+            ws['!merges']!.push({
+                s: { r: titleRows.length, c: currentCol },
+                e: { r: titleRows.length, c: currentCol + 1 }
+            });
+            currentCol += 2;
         });
 
         // Styling
@@ -304,20 +278,46 @@ export default function CumulativeReportGridView({
                     <table className='w-full border-collapse'>
                         <thead>
                             <tr className='bg-blue-800 text-white'>
-                                <th className='border border-blue-900 px-2 py-3'>Sl No</th>
-                                <th className='border border-blue-900 px-4 py-3 text-left'>Student Name</th>
-                                {columnFlags.rollno && <th className='border border-blue-900 px-3 py-3'>Roll No</th>}
+                                <th rowSpan={2} className='border border-blue-900 px-2 py-3'>
+                                    Sl No
+                                </th>
+                                <th rowSpan={2} className='border border-blue-900 px-4 py-3 text-left'>
+                                    Student Name
+                                </th>
+                                {columnFlags.rollno && (
+                                    <th rowSpan={2} className='border border-blue-900 px-3 py-3'>
+                                        Roll No
+                                    </th>
+                                )}
                                 {subjects
                                     .filter((s) => s.eyceS_AplResultFlg)
                                     .map((subj) => (
-                                        <th key={subj.ismS_Id} className='border border-blue-900 px-3 py-3'>
+                                        <th key={subj.ismS_Id} colSpan={2} className='border border-blue-900 px-3 py-3 text-center'>
                                             {subj.ismS_SubjectName}
                                         </th>
                                     ))}
-                                <th className='border border-blue-900 px-3 py-3'>Total</th>
-                                <th className='border border-blue-900 px-3 py-3'>Obtained</th>
-                                <th className='border border-blue-900 px-3 py-3'>%</th>
-                                <th className='border border-blue-900 px-3 py-3'>Grade</th>
+                                <th rowSpan={2} className='border border-blue-900 px-3 py-3'>
+                                    Total
+                                </th>
+                                <th rowSpan={2} className='border border-blue-900 px-3 py-3'>
+                                    Obtained
+                                </th>
+                                <th rowSpan={2} className='border border-blue-900 px-3 py-3'>
+                                    %
+                                </th>
+                                <th rowSpan={2} className='border border-blue-900 px-3 py-3'>
+                                    Grade
+                                </th>
+                            </tr>
+                            <tr className='bg-blue-800 text-white'>
+                                {subjects
+                                    .filter((s) => s.eyceS_AplResultFlg)
+                                    .map((subj) => (
+                                        <React.Fragment key={subj.ismS_Id}>
+                                            <th className='border border-blue-900 px-3 py-2 text-center'>Marks</th>
+                                            <th className='border border-blue-900 px-3 py-2 text-center'>Grade</th>
+                                        </React.Fragment>
+                                    ))}
                             </tr>
                         </thead>
                         <tbody>
@@ -342,30 +342,22 @@ export default function CumulativeReportGridView({
                                                     return (
                                                         <td
                                                             key={subj.ismS_Id}
+                                                            colSpan={2}
                                                             className='border border-gray-400 py-2 text-center text-red-600'>
                                                             AB
                                                         </td>
                                                     );
                                                 }
 
-                                                const isEVS = subj.ismS_SubjectName?.toUpperCase().includes('EVS');
-                                                if (isEVS && mark.estmpS_ObtainedMarks != null && mark.estmpS_ObtainedGrade) {
-                                                    return (
-                                                        <td key={subj.ismS_Id} className='border border-gray-400 py-2 text-center'>
-                                                            <div className='flex items-center justify-center gap-5'>
-                                                                <span>{mark.estmpS_ObtainedMarks}</span>
-                                                                <span>{mark.estmpS_ObtainedGrade}</span>
-                                                            </div>
-                                                        </td>
-                                                    );
-                                                }
-
                                                 return (
-                                                    <td key={subj.ismS_Id} className='border border-gray-400 py-2 text-center'>
-                                                        {mark.estmpS_ObtainedMarks != null
-                                                            ? mark.estmpS_ObtainedMarks
-                                                            : (mark.estmpS_ObtainedGrade ?? '-')}
-                                                    </td>
+                                                    <React.Fragment key={subj.ismS_Id}>
+                                                        <td className='border border-gray-400 py-2 text-center'>
+                                                            {mark.estmpS_ObtainedMarks != null ? mark.estmpS_ObtainedMarks : '-'}
+                                                        </td>
+                                                        <td className='border border-gray-400 py-2 text-center font-medium text-blue-700'>
+                                                            {mark.estmpS_ObtainedGrade ?? '-'}
+                                                        </td>
+                                                    </React.Fragment>
                                                 );
                                             })}
 

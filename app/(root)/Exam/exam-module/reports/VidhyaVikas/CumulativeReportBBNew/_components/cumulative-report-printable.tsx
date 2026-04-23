@@ -1,5 +1,6 @@
 import type { ICumulativeReport, IMasterInstitution, IReportHeader, ISubject, Institution } from '@/types/exam/exam-module/report';
 import Image from 'next/image';
+import React from 'react';
 interface CumulativeReportPrintViewProps {
     reportData: ICumulativeReport[];
     institution: Institution | IMasterInstitution;
@@ -211,11 +212,13 @@ export default function CumulativeReportPrintView({
                     <table className='table-bordered table-condensed table' style={{ fontSize: fontSizeValue }} border={1}>
                         <thead>
                             <tr>
-                                <th>#</th>
-                                <th>Student Name</th>
-                                {columnFlags.admno && <th>Adm No</th>}
-                                {columnFlags.regno && <th>Reg No</th>}
-                                {columnFlags.rollno && <th>Roll No</th>}
+                                <th rowSpan={2}>#</th>
+                                <th rowSpan={2} className='student-name text-left'>
+                                    Student Name
+                                </th>
+                                {columnFlags.admno && <th rowSpan={2}>Adm No</th>}
+                                {columnFlags.regno && <th rowSpan={2}>Reg No</th>}
+                                {columnFlags.rollno && <th rowSpan={2}>Roll No</th>}
 
                                 {applicableSubjects.map((subj) => (
                                     <th key={subj.ismS_Id} colSpan={2}>
@@ -225,10 +228,12 @@ export default function CumulativeReportPrintView({
 
                                 {applicableSubjects.length > 0 && (
                                     <>
-                                        <th>Total</th>
-                                        <th>Obtained</th>
-                                        <th style={{ width: '5%' }}>%</th>
-                                        <th>Grade</th>
+                                        <th rowSpan={2}>Total</th>
+                                        <th rowSpan={2}>Obtained</th>
+                                        <th rowSpan={2} style={{ width: '5%' }}>
+                                            %
+                                        </th>
+                                        <th rowSpan={2}>Grade</th>
                                     </>
                                 )}
 
@@ -236,6 +241,20 @@ export default function CumulativeReportPrintView({
                                     <th key={subj.ismS_Id} colSpan={2}>
                                         {subj.ismS_SubjectName}
                                     </th>
+                                ))}
+                            </tr>
+                            <tr>
+                                {applicableSubjects.map((subj) => (
+                                    <React.Fragment key={subj.ismS_Id}>
+                                        <th>Marks</th>
+                                        <th>Grade</th>
+                                    </React.Fragment>
+                                ))}
+                                {nonApplicableSubjects.map((subj) => (
+                                    <React.Fragment key={subj.ismS_Id}>
+                                        <th>Marks</th>
+                                        <th>Grade</th>
+                                    </React.Fragment>
                                 ))}
                             </tr>
                         </thead>
@@ -252,30 +271,26 @@ export default function CumulativeReportPrintView({
                                         {columnFlags.regno && <td>{student.amsT_RegistrationNo ?? '-'}</td>}
                                         {columnFlags.rollno && <td>{student.amaY_RollNo ?? '-'}</td>}
 
-                                        {/* Applicable Subjects (EVS = Marks + Grade side by side) */}
+                                        {/* Applicable Subjects */}
                                         {applicableSubjects.map((subj) => {
                                             const mark = student.sub_list?.find((m) => m.ismS_Id === subj.ismS_Id);
                                             const isAB = mark?.estmpS_PassFailFlg === 'AB';
-                                            const showBoth = mark?.estmpS_ObtainedMarks != null && mark?.estmpS_ObtainedGrade;
+
+                                            if (isAB) {
+                                                return (
+                                                    <td key={subj.ismS_Id} colSpan={2} style={{ padding: '2px' }}>
+                                                        AB
+                                                    </td>
+                                                );
+                                            }
 
                                             return (
-                                                <td key={subj.ismS_Id} colSpan={2} style={{ padding: '2px' }}>
-                                                    {isAB ? (
-                                                        'AB'
-                                                    ) : showBoth ? (
-                                                        <div className='evs-cell'>
-                                                            <span>{mark.estmpS_ObtainedMarks}</span>
-                                                            <span>{mark.estmpS_ObtainedGrade}</span>
-                                                        </div>
-                                                    ) : (
-                                                        <>
-                                                            {mark?.estmpS_ObtainedMarks ?? '-'}
-                                                            {mark?.estmpS_ObtainedGrade &&
-                                                                !mark?.estmpS_ObtainedMarks &&
-                                                                ` ${mark.estmpS_ObtainedGrade}`}
-                                                        </>
-                                                    )}
-                                                </td>
+                                                <React.Fragment key={subj.ismS_Id}>
+                                                    <td style={{ padding: '2px' }}>
+                                                        {mark?.estmpS_ObtainedMarks != null ? mark.estmpS_ObtainedMarks : '-'}
+                                                    </td>
+                                                    <td style={{ padding: '2px' }}>{mark?.estmpS_ObtainedGrade ?? '-'}</td>
+                                                </React.Fragment>
                                             );
                                         })}
 
@@ -294,17 +309,26 @@ export default function CumulativeReportPrintView({
                                             const mark = student.sub_list?.find((m) => m.ismS_Id === subj.ismS_Id);
                                             const isAB = mark?.estmpS_PassFailFlg === 'AB';
 
+                                            if (isAB) {
+                                                return (
+                                                    <td
+                                                        key={subj.ismS_Id}
+                                                        colSpan={2}
+                                                        style={{ padding: '2px', textAlign: 'center', color: 'red' }}>
+                                                        AB
+                                                    </td>
+                                                );
+                                            }
+
                                             return (
-                                                <td key={subj.ismS_Id} colSpan={2}>
-                                                    {isAB ? (
-                                                        'AB'
-                                                    ) : (
-                                                        <>
-                                                            {mark?.estmpS_ObtainedMarks ?? ''}
-                                                            {mark?.estmpS_ObtainedGrade ?? ''}
-                                                        </>
-                                                    )}
-                                                </td>
+                                                <React.Fragment key={subj.ismS_Id}>
+                                                    <td style={{ padding: '2px', textAlign: 'center' }}>
+                                                        {mark?.estmpS_ObtainedMarks != null ? mark.estmpS_ObtainedMarks : '-'}
+                                                    </td>
+                                                    <td style={{ padding: '2px', textAlign: 'center', fontWeight: 'bold' }}>
+                                                        {mark?.estmpS_ObtainedGrade ?? '-'}
+                                                    </td>
+                                                </React.Fragment>
                                             );
                                         })}
                                     </tr>

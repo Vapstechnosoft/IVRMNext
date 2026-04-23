@@ -1165,7 +1165,6 @@ export async function getUserAccessibleModules() {
                                     name: 'Danvantari Phisiotheraphy',
                                     icon: 'Settings',
                                     pages: [
-
                                         {
                                             id: 71,
                                             name: 'DCPS Bonified Certificate',
@@ -1173,8 +1172,7 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/Danvantari/reports/DCPS_BonifiedCertificate',
                                             title: 'DCPS Bonified Certificate',
                                             description: 'Bonified Certificate'
-                                        }
-                                        ,
+                                        },
                                         {
                                             id: 72,
                                             name: 'DCPS Transfer Certificate',
@@ -1183,7 +1181,6 @@ export async function getUserAccessibleModules() {
                                             title: 'DCPS Transfer Certificate',
                                             description: 'DCPS Transfer Certificate'
                                         }
-
                                     ]
                                 },
                                 {
@@ -2339,7 +2336,7 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/Baldwin/MultipleExamProgressCardReport2',
                                             title: 'Multiple Exam Progress Card Report 2',
                                             description: 'Generate Multiple Exam Progress Card Report 2 for Baldwin'
-                                        }
+                                        },
                                         // ,
                                         // {
                                         //     id: 90,
@@ -2429,7 +2426,6 @@ export async function getUserAccessibleModules() {
                                         //     title: 'GMVPS_Vidyaniketan Performance Analysis Report',
                                         //     description: 'GMVPS_Vidyaniketan Performance Analysis Report'
                                         // }
-                                        ,
                                         {
                                             id: 21002,
                                             name: 'GMVPS_Vidyaniketan Progress Card Report',
@@ -2669,6 +2665,14 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/tbs-report-school',
                                             title: 'TBS Report School',
                                             description: 'TBS Report School'
+                                        },
+                                        {
+                                            id: 21032,
+                                            name: 'SRKVS Cumulative Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/SRKVS/CumulativeReportSRKVS',
+                                            title: 'SRKVS Cumulative Report',
+                                            description: 'SRKVS Cumulative Report'
                                         }
                                     ]
                                 }
@@ -7370,7 +7374,6 @@ export async function getUserAccessibleModules() {
                                             title: 'Mess Attendance Entry',
                                             description: 'Daily Student Attendance'
                                         }
-
                                     ]
                                 },
                                 {

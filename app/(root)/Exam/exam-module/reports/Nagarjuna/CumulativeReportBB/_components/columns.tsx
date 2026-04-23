@@ -100,8 +100,8 @@ export default function CumulativeReportGridView({
         });
 
         // Total columns
-        mainHeaderRow.push('Total', 'Obtained', '%', 'Grade');
-        subHeaderRow.push('Max', 'Marks', '', '');
+        mainHeaderRow.push('Total', 'Obtained', 'SECTION RANK', 'CLASS HELD', 'ATTENDANCE');
+        subHeaderRow.push('Max', 'Marks', '', '', '', '', '');
 
         // Non-applicable subjects
         nonApplicableSubjects.forEach((subj) => {
@@ -150,8 +150,9 @@ export default function CumulativeReportGridView({
             row.push(
                 isAbsent ? '' : (student.estmP_TotalMaxMarks ?? ''),
                 isAbsent ? '' : (student.estmP_TotalObtMarks ?? ''),
-                isAbsent || student.estmP_Percentage == null ? '' : `${Number(student.estmP_Percentage).toFixed(2)}%`,
-                isAbsent ? '' : (student.estmP_TotalGrade ?? '')
+                isAbsent || student.estmP_SectionRank == null ? '' : student.estmP_SectionRank,
+                isAbsent ? '' : (student.classheld ?? ''),
+                isAbsent ? '' : (student.classatt ?? '')
             );
 
             // Non-applicable subjects
@@ -316,8 +317,9 @@ export default function CumulativeReportGridView({
                                     ))}
                                 <th className='border border-blue-900 px-3 py-3'>Total</th>
                                 <th className='border border-blue-900 px-3 py-3'>Obtained</th>
-                                <th className='border border-blue-900 px-3 py-3'>%</th>
-                                <th className='border border-blue-900 px-3 py-3'>Grade</th>
+                                <th className='border border-blue-900 px-3 py-3'>SECTION RANK</th>
+                                <th className='border border-blue-900 px-3 py-3'>CLASS HELD</th>
+                                <th className='border border-blue-900 px-3 py-3'>ATTENDANCE</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -376,14 +378,13 @@ export default function CumulativeReportGridView({
                                             {isAbsent ? '' : (student.estmP_TotalObtMarks ?? '-')}
                                         </td>
                                         <td className='border border-gray-400 py-2 text-center'>
-                                            {isAbsent
-                                                ? '-'
-                                                : student.estmP_Percentage
-                                                  ? `${Number(student.estmP_Percentage).toFixed(1)}%`
-                                                  : '-'}
+                                            {isAbsent || student.estmP_SectionRank == null ? '' : student.estmP_SectionRank}
                                         </td>
                                         <td className='border border-gray-400 py-2 text-center'>
-                                            {isAbsent ? '' : (student.estmP_TotalGrade ?? '-')}
+                                            {isAbsent ? '' : (student.classheld ?? '-')}
+                                        </td>
+                                        <td className='border border-gray-400 py-2 text-center'>
+                                            {isAbsent ? '' : (student.classatt ?? '-')}
                                         </td>
                                     </tr>
                                 );

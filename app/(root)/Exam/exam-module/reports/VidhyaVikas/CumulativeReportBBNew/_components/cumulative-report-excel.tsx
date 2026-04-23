@@ -63,16 +63,10 @@ export default function CumulativeReportExcel({ reportData, subjects, headerInfo
 
         // Add subjects to headers
         applicableSubjects.forEach((subj) => {
-            const isEVS = subj.ismS_SubjectName?.toUpperCase().includes('EVS');
-            if (isEVS) {
-                mainHeaderRow.push(subj.ismS_SubjectName || '');
-                subHeaderRow.push('Marks & Grade');
-            } else {
-                mainHeaderRow.push(subj.ismS_SubjectName || '');
-                mainHeaderRow.push('');
-                subHeaderRow.push('Marks');
-                subHeaderRow.push('Grade');
-            }
+            mainHeaderRow.push(subj.ismS_SubjectName || '');
+            mainHeaderRow.push('');
+            subHeaderRow.push('Marks');
+            subHeaderRow.push('Grade');
         });
 
         // Total columns
@@ -81,16 +75,10 @@ export default function CumulativeReportExcel({ reportData, subjects, headerInfo
 
         // Non-applicable subjects
         nonApplicableSubjects.forEach((subj) => {
-            const isEVS = subj.ismS_SubjectName?.toUpperCase().includes('EVS');
-            if (isEVS) {
-                mainHeaderRow.push(subj.ismS_SubjectName || '');
-                subHeaderRow.push('Marks & Grade');
-            } else {
-                mainHeaderRow.push(subj.ismS_SubjectName || '');
-                mainHeaderRow.push('');
-                subHeaderRow.push('Marks');
-                subHeaderRow.push('Grade');
-            }
+            mainHeaderRow.push(subj.ismS_SubjectName || '');
+            mainHeaderRow.push('');
+            subHeaderRow.push('Marks');
+            subHeaderRow.push('Grade');
         });
 
         // Data rows
@@ -108,14 +96,9 @@ export default function CumulativeReportExcel({ reportData, subjects, headerInfo
                 const marks = sub?.estmpS_ObtainedMarks;
                 const grade = sub?.estmpS_ObtainedGrade;
                 const isAB = sub?.estmpS_PassFailFlg === 'AB';
-                const isEVS = subj.ismS_SubjectName?.toUpperCase().includes('EVS');
 
                 if (isAB) {
-                    isEVS ? row.push('AB') : row.push('AB', 'AB');
-                } else if (isEVS && marks != null && grade != null) {
-                    row.push(`${marks} | ${grade}`);
-                } else if (isEVS) {
-                    row.push(marks ?? grade ?? '');
+                    row.push('AB', 'AB');
                 } else {
                     row.push(marks ?? '');
                     row.push(grade ?? '');
@@ -136,14 +119,9 @@ export default function CumulativeReportExcel({ reportData, subjects, headerInfo
                 const marks = sub?.estmpS_ObtainedMarks;
                 const grade = sub?.estmpS_ObtainedGrade;
                 const isAB = sub?.estmpS_PassFailFlg === 'AB';
-                const isEVS = subj.ismS_SubjectName?.toUpperCase().includes('EVS');
 
                 if (isAB) {
-                    isEVS ? row.push('AB') : row.push('AB', 'AB');
-                } else if (isEVS && marks != null && grade != null) {
-                    row.push(`${marks} | ${grade}`);
-                } else if (isEVS) {
-                    row.push(marks ?? grade ?? '');
+                    row.push('AB', 'AB');
                 } else {
                     row.push(marks ?? '');
                     row.push(grade ?? '');
@@ -177,20 +155,15 @@ export default function CumulativeReportExcel({ reportData, subjects, headerInfo
             });
         }
 
-        // Merge subject names (non-EVS) over Marks/Grade columns
+        // Merge subject names over Marks/Grade columns
         let currentCol = baseColumnsCount;
 
         [...applicableSubjects, ...nonApplicableSubjects].forEach((subj) => {
-            const isEVS = subj.ismS_SubjectName?.toUpperCase().includes('EVS');
-            if (!isEVS) {
-                ws['!merges']!.push({
-                    s: { r: titleRows.length, c: currentCol },
-                    e: { r: titleRows.length, c: currentCol + 1 }
-                });
-                currentCol += 2;
-            } else {
-                currentCol += 1;
-            }
+            ws['!merges']!.push({
+                s: { r: titleRows.length, c: currentCol },
+                e: { r: titleRows.length, c: currentCol + 1 }
+            });
+            currentCol += 2;
         });
 
         // Apply styling: Everything centered except Student Name (left) and titles (center)

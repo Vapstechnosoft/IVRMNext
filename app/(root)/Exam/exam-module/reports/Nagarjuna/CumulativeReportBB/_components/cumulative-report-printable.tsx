@@ -227,8 +227,9 @@ export default function CumulativeReportPrintView({
                                     <>
                                         <th>Total</th>
                                         <th>Obtained</th>
-                                        <th style={{ width: '5%' }}>%</th>
-                                        <th>Grade</th>
+                                        <th>SECTION RANK</th>
+                                        <th>CLASS HELD</th>
+                                        <th>ATTENDANCE</th>
                                     </>
                                 )}
 
@@ -284,8 +285,9 @@ export default function CumulativeReportPrintView({
                                             <>
                                                 <td>{isAbsent ? '' : (student.estmP_TotalMaxMarks ?? '-')}</td>
                                                 <td>{isAbsent ? '' : (student.estmP_TotalObtMarks ?? '-')}</td>
-                                                <td>{isAbsent ? '' : `${Number(student.estmP_Percentage ?? 0).toFixed(1)}%`}</td>
-                                                <td>{isAbsent ? '' : (student.estmP_TotalGrade ?? '-')}</td>
+                                                <td>{isAbsent || student.estmP_SectionRank == null ? '' : student.estmP_SectionRank}</td>
+                                                <td>{isAbsent ? '' : (student.classheld ?? '-')}</td>
+                                                <td>{isAbsent ? '' : (student.classatt ?? '-')}</td>
                                             </>
                                         )}
 
