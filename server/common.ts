@@ -1126,15 +1126,13 @@ export async function getUserAccessibleModules() {
                                             description: 'St. Thomas TC Custom Report'
                                         }
                                     ]
-                                }
-                                ,
+                                },
 
                                 {
                                     id: 12,
                                     name: 'Samartha',
                                     icon: 'Settings',
                                     pages: [
-
                                         {
                                             id: 71,
                                             name: 'SamarthaBonafideCertificate',
@@ -1162,13 +1160,11 @@ export async function getUserAccessibleModules() {
                                     ]
                                 },
 
-
                                 {
                                     id: 13,
                                     name: 'Danvantari Phisiotheraphy',
                                     icon: 'Settings',
                                     pages: [
-
                                         {
                                             id: 71,
                                             name: 'DCPS_BonifiedCertificate',
@@ -1185,7 +1181,6 @@ export async function getUserAccessibleModules() {
                                             title: 'DCPS_TransferCertificate',
                                             description: 'DCPS_TransferCertificate'
                                         }
-
                                     ]
                                 },
                                 {
@@ -1193,8 +1188,6 @@ export async function getUserAccessibleModules() {
                                     name: 'SRKVS',
                                     icon: 'Settings',
                                     pages: [
-
-
                                         {
                                             id: 74,
                                             name: 'SRKVS Student Address Book',
@@ -1210,8 +1203,6 @@ export async function getUserAccessibleModules() {
                                     name: 'St. Peters School Durgapur',
                                     icon: 'Settings',
                                     pages: [
-
-
                                         {
                                             id: 74,
                                             name: 'Employee IDcard Report STpeter',
@@ -1236,8 +1227,6 @@ export async function getUserAccessibleModules() {
                                     name: 'GNANA DEEPA ACADEMY RESIDENTIAL SCHOOL',
                                     icon: 'Settings',
                                     pages: [
-
-
                                         {
                                             id: 74,
                                             name: 'GDARSStudyCertificate',
@@ -1253,7 +1242,7 @@ export async function getUserAccessibleModules() {
                                     name: 'SMS degree college',
                                     icon: 'Settings',
                                     pages: [
-                                        //Need to create UI 
+                                        //Need to create UI
                                         // {
                                         //     id: 74,
                                         //     name: 'SMSCollegeStudentTc',
@@ -1273,7 +1262,6 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 }
-
                             ]
                         }
                     ]
@@ -1534,7 +1522,6 @@ export async function getUserAccessibleModules() {
                                     name: 'Transactions',
                                     icon: 'BadgeIndianRupee',
                                     pages: [
-                                        
                                         {
                                             id: 40,
                                             name: 'Fee Amount Entry',
@@ -1656,7 +1643,6 @@ export async function getUserAccessibleModules() {
                                             title: 'Fee Staff Other Transaction',
                                             description: 'Fee Staff Other Transaction'
                                         }
-                                        
                                     ]
                                 },
                                 {
@@ -1799,6 +1785,14 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/feereports/feedefaulterreportstthomas',
                                             title: 'Fee Defaulter Report',
                                             description: 'Manage Fee Defaulter Report Details'
+                                        },
+                                        {
+                                            id: 10028,
+                                            name: 'Fee IncomeTax Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feeIncomeTax_Report',
+                                            title: 'Fee IncomeTax Report',
+                                            description: 'Manage Fee IncomeTax Report Details'
                                         }
                                     ]
                                 }
@@ -1885,7 +1879,7 @@ export async function getUserAccessibleModules() {
                                             title: 'Fee Transaction STTHOMAS',
                                             description: 'Fee Transaction STTHOMAS'
                                         },
-                                          {
+                                        {
                                             id: 55555,
                                             name: 'Fee Amount Entry STTHOMAS',
                                             icon: 'BadgeIndianRupee',
@@ -1900,8 +1894,7 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/feereports/headwisereport',
                                             title: 'Fee Head Wise Report Calcaltta',
                                             description: 'Fee Head Wise Report Calcaltta'
-                                        },
-                                        
+                                        }
                                     ]
                                 }
                             ]
@@ -2998,7 +2991,7 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/reports/CBSSalarySlip',
                                             title: 'Employee Salary Slip Calcutta Boys Report',
                                             description: 'Employee Salary Slips'
-                                        },
+                                        }
                                         // {
                                         //     id: 29,
                                         //     name: 'Employee Contribution Report',
@@ -3016,7 +3009,7 @@ export async function getUserAccessibleModules() {
                                         //     description: 'Manage PS7 Form Report'
                                         // },
                                         // {
-                                        //     id: 31, 
+                                        //     id: 31,
                                         //     name: "MONTH WISE REPORT(st.james)" ,
                                         //     icon: 'Clock',
                                         //     url: '/hrms/reports/PS8_MonthWiseReportStjames',
@@ -3031,7 +3024,6 @@ export async function getUserAccessibleModules() {
                                         //     title: 'PS8 Form Report',
                                         //     description: 'Manage PS8 Form Report (st.james)'
                                         // },
-
                                     ]
                                 }
                             ]
@@ -3283,13 +3275,12 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 10,
-                                            name: "Employee Log Insertion",
-                                            icon: "ClipboardList",
-                                            url: "/hrms/attendance-management/masters/FrontOfficeAddlogsCBS",
-                                            title: "Employee Log Insertion",
-                                            description: "Manage Employee Log Insertion"
+                                            name: 'Employee Log Insertion',
+                                            icon: 'ClipboardList',
+                                            url: '/hrms/attendance-management/masters/FrontOfficeAddlogsCBS',
+                                            title: 'Employee Log Insertion',
+                                            description: 'Manage Employee Log Insertion'
                                         }
-
                                     ]
                                 },
                                 {

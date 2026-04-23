@@ -716,3 +716,10 @@ export const feeCollectionReportVVVS = z.object({
     fromDate: z.string().min(1, 'From Date is required'),
     toDate: z.string().min(1, 'To Date is required')
 });
+
+export const feeIncomeTaxReportSchema = z.object({
+    asmaY_Id: z.number({ required_error: 'Academic Year is required' }),
+    asmcL_Id: z.number({ required_error: 'Class is required' }),
+    asmS_Id: z.number({ required_error: 'Section is required' }),
+    amst_Id: z.number({ required_error: 'Student is required' })
+});
