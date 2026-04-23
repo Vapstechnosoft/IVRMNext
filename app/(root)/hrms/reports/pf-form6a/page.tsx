@@ -163,9 +163,7 @@ function PFForm6AContent() {
 
     return (
         <div className='container min-h-screen space-y-4 p-2'>
-            <div className='flex items-center justify-between'>
-                <h2 className='text-2xl font-bold tracking-tight'>PF Form 6A Report</h2>
-            </div>
+            
 
             <CollapsibleSection defaultOpen={true} title="Report Criteria" variant='outline' className='shadow-sm'>
                 <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
