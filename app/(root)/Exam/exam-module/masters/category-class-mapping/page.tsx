@@ -91,8 +91,8 @@ function FormSections() {
         selectedRow
     } = useFormContext<ICategoryMapping>();
 
-    const [sections, setSections] = useState<{ id: number; name: string }[]>([]);
-    const [selectedSections, setSelectedSections] = useState<{ id: number; name: string }[]>([]);
+    const [_sections, _setSections] = useState<{ id: number; name: string }[]>([]);
+    const [_selectedSections, _setSelectedSections] = useState<{ id: number; name: string }[]>([]);
     useEffect(() => {
         async function fetchSections() {
             if (!selectedRow) return; // Skip if no row selected

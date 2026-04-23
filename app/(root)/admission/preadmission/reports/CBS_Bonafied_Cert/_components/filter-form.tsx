@@ -139,6 +139,13 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
         });
     };
 
+    const handleFormError = (errors: any) => {
+        const firstError = Object.values(errors)[0] as any;
+        if (firstError?.message) {
+            toast.error(firstError.message);
+        }
+    };
+
     const handleStudentSearch = (value: string) => {
         searchFilterMutation.mutate({
             searchfilter: value,
@@ -175,7 +182,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(handleFormSubmit, handleFormError)} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* All / Individual */}
                     <FormField

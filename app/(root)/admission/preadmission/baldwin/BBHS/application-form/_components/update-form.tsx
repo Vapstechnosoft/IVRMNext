@@ -1020,7 +1020,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
 
             const formData = new FormData();
             formData.append('file', file);
-            formData.append('SubContainerName', 'preadmission_student_photo');
+            formData.append('SubContainerName', 'preadmission_father_photo');
 
             const response = await uploadDocument(formData);
 
@@ -1077,7 +1077,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
 
             const formData = new FormData();
             formData.append('file', file);
-            formData.append('SubContainerName', 'preadmission_student_photo');
+            formData.append('SubContainerName', 'preadmission_mother_photo');
 
             const response = await uploadDocument(formData);
 
@@ -1704,7 +1704,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                 country='in'
                                                                 value={
                                                                     phoneValues.pasR_MobileNo ??
-                                                                    (field.value != null ? String(field.value) : null)
+                                                                    (field.value != null ? String(field.value) : '')
                                                                 }
                                                                 onChange={(phone: any, countryData: any) =>
                                                                     handlePhoneChange(phone, countryData, 'pasR_MobileNo')
@@ -2702,7 +2702,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                         country='in'
                                                                         value={
                                                                             phoneValues.pasR_FatherMobleNo ??
-                                                                            (field.value != null ? String(field.value) : null)
+                                                                            (field.value != null ? String(field.value) : '')
                                                                         }
                                                                         onChange={(phone: any, countryData: any) =>
                                                                             handlePhoneChange(phone, countryData, 'pasR_FatherMobleNo')
@@ -3049,7 +3049,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                         country='in'
                                                                         value={
                                                                             phoneValues.pasR_MotherMobleNo ??
-                                                                            (field.value != null ? String(field.value) : null)
+                                                                            (field.value != null ? String(field.value) : '')
                                                                         }
                                                                         onChange={(phone: any, countryData: any) =>
                                                                             handlePhoneChange(phone, countryData, 'pasR_MotherMobleNo')
@@ -3156,7 +3156,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                         country='in'
                                                                         value={
                                                                             phoneValues.pasR_AltContactNo ??
-                                                                            (field.value != null ? String(field.value) : null)
+                                                                            (field.value != null ? String(field.value) : '')
                                                                         }
                                                                         onChange={(phone: any, countryData: any) =>
                                                                             handlePhoneChange(phone, countryData, 'pasR_AltContactNo')
@@ -3939,7 +3939,23 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                     ) : (
                                         <Button
                                             type='button'
-                                            onClick={handleSubmit(onSubmit)}
+                                            onClick={handleSubmit(onSubmit, (errors) => {
+                                                console.log('Validation errors:', errors);
+                                                toast.error('Please check the form for errors.');
+
+                                                // Log specifically which tabs have errors
+                                                const studentFields = ['pasR_FirstName', 'pasR_MiddleName', 'pasR_LastName', 'pasR_DOB', 'pasR_MobileNo', 'religion_Id', 'caste_Id', 'pasR_Sex', 'asmcL_Id', 'pasR_emailId', 'pasR_Nationality'];
+                                                const addressFields = ['pasR_ConStreet', 'pasR_ConArea', 'pasR_ConCity', 'pasR_ConState', 'pasR_ConCountry', 'pasR_ConPincode'];
+                                                const parentFields = ['pasR_FatherName', 'pasR_FatherNationality', 'pasR_MotherName', 'pasR_MotherNationality'];
+
+                                                const hasStudentErrors = studentFields.some(field => errors[field as keyof typeof errors]);
+                                                const hasAddressErrors = addressFields.some(field => errors[field as keyof typeof errors]);
+                                                const hasParentErrors = parentFields.some(field => errors[field as keyof typeof errors]);
+
+                                                if (hasStudentErrors) toast.info('Check Student Information tab');
+                                                if (hasAddressErrors) toast.info('Check Address Information tab');
+                                                if (hasParentErrors) toast.info('Check Parents Information tab');
+                                            })}
                                             disabled={isSubmitting}
                                             className='min-w-[160px] transition-all duration-200 hover:scale-105'>
                                             {isSubmitting ? (

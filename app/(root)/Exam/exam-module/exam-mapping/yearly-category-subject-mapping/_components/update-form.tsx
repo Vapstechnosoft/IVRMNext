@@ -221,178 +221,176 @@ export default function UpdateCategorySubjectMappingForm({ rowData, onSuccess }:
         }
     };
 
-    return (
-        isLoading || isFetchingSubjects ? (
-            <div className='flex h-64 items-center justify-center'>
-                <div className='text-center'>
-                    <RefreshCw className='mx-auto h-8 w-8 animate-spin text-secondary' />
-                    <p className='mt-2 text-gray-600 text-sm'>Loading data...</p>
-                </div>
+    return isLoading || isFetchingSubjects ? (
+        <div className='flex h-64 items-center justify-center'>
+            <div className='text-center'>
+                <RefreshCw className='mx-auto h-8 w-8 animate-spin text-secondary' />
+                <p className='mt-2 text-gray-600 text-sm'>Loading data...</p>
             </div>
-        ) : (
-            <div className='flex w-full flex-col gap-6'>
-                <FormProvider {...methods}>
-                    <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-6 rounded-2xl bg-white p-6 shadow-md' noValidate>
-                        <div className='grid grid-cols-2 gap-6'>
-                            <div className='grid grid-rows-2 gap-3'>
-                                {/* Academic Year */}
-                                <Controller
-                                    control={control}
-                                    name='asmaY_Id'
-                                    render={({ field, fieldState }) => (
-                                        <div>
-                                            <Label>
-                                                Academic Year <span className='text-red-500'>*</span>
-                                            </Label>
-                                            <Select
-                                                key={field.value} // <— forces remount when value changes
-                                                value={field.value && field.value !== 0 ? String(field.value) : undefined}
-                                                onValueChange={(val) => field.onChange(Number(val))}>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder='Select Academic Year' />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {academicYearLoading ? (
-                                                        <SelectItem value='loading' disabled>
-                                                            Loading Academic Year...
+        </div>
+    ) : (
+        <div className='flex w-full flex-col gap-6'>
+            <FormProvider {...methods}>
+                <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-6 rounded-2xl bg-white p-6 shadow-md' noValidate>
+                    <div className='grid grid-cols-2 gap-6'>
+                        <div className='grid grid-rows-2 gap-3'>
+                            {/* Academic Year */}
+                            <Controller
+                                control={control}
+                                name='asmaY_Id'
+                                render={({ field, fieldState }) => (
+                                    <div>
+                                        <Label>
+                                            Academic Year <span className='text-red-500'>*</span>
+                                        </Label>
+                                        <Select
+                                            key={field.value} // <— forces remount when value changes
+                                            value={field.value && field.value !== 0 ? String(field.value) : undefined}
+                                            onValueChange={(val) => field.onChange(Number(val))}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder='Select Academic Year' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {academicYearLoading ? (
+                                                    <SelectItem value='loading' disabled>
+                                                        Loading Academic Year...
+                                                    </SelectItem>
+                                                ) : academicYearError ? (
+                                                    <SelectItem value='error' disabled>
+                                                        Error loading Academic Year
+                                                    </SelectItem>
+                                                ) : (
+                                                    academicYear?.data?.map((item) => (
+                                                        <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                            {item.asmaY_Year}
                                                         </SelectItem>
-                                                    ) : academicYearError ? (
-                                                        <SelectItem value='error' disabled>
-                                                            Error loading Academic Year
-                                                        </SelectItem>
-                                                    ) : (
-                                                        academicYear?.data?.map((item) => (
-                                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                                {item.asmaY_Year}
-                                                            </SelectItem>
-                                                        ))
-                                                    )}
-                                                </SelectContent>
-                                            </Select>
-                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                                    ))
+                                                )}
+                                            </SelectContent>
+                                        </Select>
+                                        {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                    </div>
+                                )}
+                            />
+
+                            {/* Category */}
+                            <Controller
+                                control={control}
+                                name='emcA_Id'
+                                render={({ field, fieldState }) => (
+                                    <div>
+                                        <Label>
+                                            Category <span className='text-red-500'>*</span>
+                                        </Label>
+                                        <Select
+                                            key={field.value} // <— forces remount when value changes
+                                            value={field.value && field.value !== 0 ? String(field.value) : undefined}
+                                            onValueChange={(val) => field.onChange(Number(val))}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder='Select Category' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {categories.map((cat) => (
+                                                    <SelectItem key={cat.emcA_Id} value={String(cat.emcA_Id)}>
+                                                        {cat.emcA_CategoryName}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                    </div>
+                                )}
+                            />
+
+                            {/* Subject Group */}
+                            <Controller
+                                control={control}
+                                name='emG_Id'
+                                render={({ field, fieldState }) => (
+                                    <div>
+                                        <Label>
+                                            Subject Group <span className='text-red-500'>*</span>
+                                        </Label>
+                                        <Select
+                                            key={field.value} // <— forces remount when value changes
+                                            value={field.value && field.value !== 0 ? String(field.value) : undefined}
+                                            onValueChange={(val) => field.onChange(Number(val))}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder='Select Subject Group' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {subjectGroups.map((g) => (
+                                                    <SelectItem key={g.emG_Id} value={String(g.emG_Id)}>
+                                                        {g.emG_GroupName}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                    </div>
+                                )}
+                            />
+
+                            <Controller
+                                control={control}
+                                name='eyC_BasedOnPaperTypeFlg'
+                                render={({ field }) => {
+                                    const checkboxId = 'eyc_based_on_paper_type_flag';
+
+                                    return (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                id={checkboxId}
+                                                checked={field.value}
+                                                onCheckedChange={(checked) => field.onChange(!!checked)}
+                                            />
+
+                                            <label htmlFor={checkboxId} className='cursor-pointer font-medium text-sm leading-none'>
+                                                Based on Paper Type
+                                            </label>
                                         </div>
-                                    )}
-                                />
-
-                                {/* Category */}
-                                <Controller
-                                    control={control}
-                                    name='emcA_Id'
-                                    render={({ field, fieldState }) => (
-                                        <div>
-                                            <Label>
-                                                Category <span className='text-red-500'>*</span>
-                                            </Label>
-                                            <Select
-                                                key={field.value} // <— forces remount when value changes
-                                                value={field.value && field.value !== 0 ? String(field.value) : undefined}
-                                                onValueChange={(val) => field.onChange(Number(val))}>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder='Select Category' />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {categories.map((cat) => (
-                                                        <SelectItem key={cat.emcA_Id} value={String(cat.emcA_Id)}>
-                                                            {cat.emcA_CategoryName}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                        </div>
-                                    )}
-                                />
-
-                                {/* Subject Group */}
-                                <Controller
-                                    control={control}
-                                    name='emG_Id'
-                                    render={({ field, fieldState }) => (
-                                        <div>
-                                            <Label>
-                                                Subject Group <span className='text-red-500'>*</span>
-                                            </Label>
-                                            <Select
-                                                key={field.value} // <— forces remount when value changes
-                                                value={field.value && field.value !== 0 ? String(field.value) : undefined}
-                                                onValueChange={(val) => field.onChange(Number(val))}>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder='Select Subject Group' />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {subjectGroups.map((g) => (
-                                                        <SelectItem key={g.emG_Id} value={String(g.emG_Id)}>
-                                                            {g.emG_GroupName}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                        </div>
-                                    )}
-                                />
-
-                                <Controller
-                                    control={control}
-                                    name='eyC_BasedOnPaperTypeFlg'
-                                    render={({ field }) => {
-                                        const checkboxId = 'eyc_based_on_paper_type_flag';
-
-                                        return (
-                                            <div className='flex items-center space-x-2'>
-                                                <Checkbox
-                                                    id={checkboxId}
-                                                    checked={field.value}
-                                                    onCheckedChange={(checked) => field.onChange(!!checked)}
-                                                />
-
-                                                <label htmlFor={checkboxId} className='cursor-pointer font-medium text-sm leading-none'>
-                                                    Based on Paper Type
-                                                </label>
-                                            </div>
-                                        );
-                                    }}
-                                />
-                            </div>
-
-                            {/* Subject List */}
-                            <div>
-                                <Controller
-                                    control={control}
-                                    name='subjects_list'
-                                    render={({ field }) => (
-                                        <CustomMultiSelectBox
-                                            options={subjects.map((subj) => ({
-                                                label: subj.ismS_SubjectName,
-                                                value: subj.ismS_Id.toString()
-                                            }))}
-                                            onChange={(selectedValues) => {
-                                                const selected = subjects.filter((s) => selectedValues.includes(s.ismS_Id.toString()));
-                                                field.onChange(selected);
-                                            }}
-                                            value={field.value.map((s: any) => s.ismS_Id.toString())}
-                                            label='Subjects'
-                                            height='200px'
-                                            isSearchRequired={true}
-                                            error={errors.subjects_list?.message}
-                                            isRequired={true}
-                                        />
-                                    )}
-                                />
-                            </div>
+                                    );
+                                }}
+                            />
                         </div>
 
-                        <div className='mt-4 flex justify-start gap-4'>
-                            <Button type='submit' className='w-fit' disabled={isSubmitting}>
-                                {isSubmitting ? 'Saving...' : rowData ? 'Update' : 'Save'}
-                            </Button>
-                            <Button type='button' variant='outline' className='w-fit' onClick={handlereset}>
-                                Reset
-                            </Button>
+                        {/* Subject List */}
+                        <div>
+                            <Controller
+                                control={control}
+                                name='subjects_list'
+                                render={({ field }) => (
+                                    <CustomMultiSelectBox
+                                        options={subjects.map((subj) => ({
+                                            label: subj.ismS_SubjectName,
+                                            value: subj.ismS_Id.toString()
+                                        }))}
+                                        onChange={(selectedValues) => {
+                                            const selected = subjects.filter((s) => selectedValues.includes(s.ismS_Id.toString()));
+                                            field.onChange(selected);
+                                        }}
+                                        value={field.value.map((s: any) => s.ismS_Id.toString())}
+                                        label='Subjects'
+                                        height='200px'
+                                        isSearchRequired={true}
+                                        error={errors.subjects_list?.message}
+                                        isRequired={true}
+                                    />
+                                )}
+                            />
                         </div>
-                    </form>
-                </FormProvider>
-            </div>
-        )
+                    </div>
+
+                    <div className='mt-4 flex justify-start gap-4'>
+                        <Button type='submit' className='w-fit' disabled={isSubmitting}>
+                            {isSubmitting ? 'Saving...' : rowData ? 'Update' : 'Save'}
+                        </Button>
+                        <Button type='button' variant='outline' className='w-fit' onClick={handlereset}>
+                            Reset
+                        </Button>
+                    </div>
+                </form>
+            </FormProvider>
+        </div>
     );
 }

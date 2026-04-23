@@ -8,183 +8,11 @@ interface PS7ReportDisplayProps {
     year: string;
 }
 
-const reportData = {
-    
-        "employeeDetails": [
-            {
-                "hrmE_EmployeeName": "MR. SAGNIK GHOSH DASTIDAR",
-                "hrmE_FatherName": "MR BABLU GHOSH DASTIDAR",
-                "mI_Name": "St. James' School",
-                "mI_Address1": "165, Acharya Jagadish Chandra Bose Road",
-                "hrmE_PFAccNo": "WB/19651/228",
-                "hrmE_DOL": null,
-                "hrmE_PensionStoppedDate": null,
-                "hrmE_Id": 36
-            },
-            {
-                "hrmE_EmployeeName": "MS.GURIA  SINGH",
-                "hrmE_FatherName": null,
-                "mI_Name": "St. James' School",
-                "mI_Address1": "165, Acharya Jagadish Chandra Bose Road",
-                "hrmE_PFAccNo": "WB/19651/10318",
-                "hrmE_DOL": null,
-                "hrmE_PensionStoppedDate": null,
-                "hrmE_Id": 138
-            }
-        ],
-        "yearlySum": 303410,
-        "yearlyPension": 25283,
-        "details": [
-            {
-                "hrmE_Id": 138,
-                "sumCondition": 12600,
-                "pensionAmount": 1050,
-                "monthName": "January"
-            },
-            {
-                "hrmE_Id": 138,
-                "sumCondition": 0,
-                "pensionAmount": 0,
-                "monthName": "February"
-            },
-            {
-                "hrmE_Id": 138,
-                "sumCondition": 12865,
-                "pensionAmount": 1072,
-                "monthName": "March"
-            },
-            {
-                "hrmE_Id": 138,
-                "sumCondition": 12450,
-                "pensionAmount": 1037,
-                "monthName": "April"
-            },
-            {
-                "hrmE_Id": 138,
-                "sumCondition": 12865,
-                "pensionAmount": 1072,
-                "monthName": "May"
-            },
-            {
-                "hrmE_Id": 138,
-                "sumCondition": 12450,
-                "pensionAmount": 1037,
-                "monthName": "June"
-            },
-            {
-                "hrmE_Id": 138,
-                "sumCondition": 12600,
-                "pensionAmount": 1050,
-                "monthName": "July"
-            },
-            {
-                "hrmE_Id": 138,
-                "sumCondition": 13020,
-                "pensionAmount": 1085,
-                "monthName": "August"
-            },
-            {
-                "hrmE_Id": 138,
-                "sumCondition": 13020,
-                "pensionAmount": 1085,
-                "monthName": "September"
-            },
-            {
-                "hrmE_Id": 138,
-                "sumCondition": 13020,
-                "pensionAmount": 1085,
-                "monthName": "October"
-            },
-            {
-                "hrmE_Id": 138,
-                "sumCondition": 10920,
-                "pensionAmount": 910,
-                "monthName": "November"
-            },
-            {
-                "hrmE_Id": 138,
-                "sumCondition": 12600,
-                "pensionAmount": 1050,
-                "monthName": "December"
-            },
-            {
-                "hrmE_Id": 36,
-                "sumCondition": 15000,
-                "pensionAmount": 1250,
-                "monthName": "January"
-            },
-            {
-                "hrmE_Id": 36,
-                "sumCondition": 0,
-                "pensionAmount": 0,
-                "monthName": "February"
-            },
-            {
-                "hrmE_Id": 36,
-                "sumCondition": 15000,
-                "pensionAmount": 1250,
-                "monthName": "March"
-            },
-            {
-                "hrmE_Id": 36,
-                "sumCondition": 15000,
-                "pensionAmount": 1250,
-                "monthName": "April"
-            },
-            {
-                "hrmE_Id": 36,
-                "sumCondition": 15000,
-                "pensionAmount": 1250,
-                "monthName": "May"
-            },
-            {
-                "hrmE_Id": 36,
-                "sumCondition": 15000,
-                "pensionAmount": 1250,
-                "monthName": "June"
-            },
-            {
-                "hrmE_Id": 36,
-                "sumCondition": 15000,
-                "pensionAmount": 1250,
-                "monthName": "July"
-            },
-            {
-                "hrmE_Id": 36,
-                "sumCondition": 15000,
-                "pensionAmount": 1250,
-                "monthName": "August"
-            },
-            {
-                "hrmE_Id": 36,
-                "sumCondition": 15000,
-                "pensionAmount": 1250,
-                "monthName": "September"
-            },
-            {
-                "hrmE_Id": 36,
-                "sumCondition": 15000,
-                "pensionAmount": 1250,
-                "monthName": "October"
-            },
-            {
-                "hrmE_Id": 36,
-                "sumCondition": 15000,
-                "pensionAmount": 1250,
-                "monthName": "November"
-            },
-            {
-                "hrmE_Id": 36,
-                "sumCondition": 15000,
-                "pensionAmount": 1250,
-                "monthName": "December"
-            }
-        ]
-    }
+
 
 
 export function PS7ReportDisplay({ data, year }: PS7ReportDisplayProps) {
-    // if (!data || !data.employeeDetails || data.employeeDetails.length === 0) return null;
+    if (!data || !data.employeeDetails || data.employeeDetails.length === 0) return null;
 
     const currentYearStr = year || new Date().getFullYear().toString();
     const nextYearNum = parseInt(currentYearStr) + 1;
@@ -193,7 +21,7 @@ export function PS7ReportDisplay({ data, year }: PS7ReportDisplayProps) {
         window.print();
     };
 
-    const response = data || reportData; // Use actual data if available, otherwise fallback to mock data
+    const response = data 
 
     return (
         <>

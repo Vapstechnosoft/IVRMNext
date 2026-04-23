@@ -225,6 +225,12 @@ export async function POST(req: NextRequest) {
 
         // Construct Prompt
         const totalMarks = markConfigArray.reduce((acc, curr) => acc + Number(curr.markValue) * Number(curr.count), 0);
+        const totalQuestionsCount = markConfigArray.reduce((acc, curr) => acc + Number(curr.count), 0);
+        
+        // Calculate exact counts for each difficulty
+        const easyCount = Math.round(((difficultyConfig.easy || 30) / 100) * totalQuestionsCount);
+        const mediumCount = Math.round(((difficultyConfig.medium || 40) / 100) * totalQuestionsCount);
+        const hardCount = Math.max(0, totalQuestionsCount - easyCount - mediumCount);
 
         let questionsRequirement = '';
         for (const cfg of markConfigArray) {
@@ -243,21 +249,24 @@ export async function POST(req: NextRequest) {
             **Configuration:**
             - Chapters Targeted: ${chapters.join(', ') || 'All Content'}
             - Total Marks (Target): ${totalMarks}
+            - Total Questions: ${totalQuestionsCount}
       
             **Question Requirements:**
             ${questionsRequirement}
 
-            **Difficulty Distribution:**
-            - Easy: ${difficultyConfig.easy || '30'}%
-            - Medium: ${difficultyConfig.medium || '40'}%
-            - Hard: ${difficultyConfig.hard || '30'}%
+            **Difficulty Distribution (STRICT COUNTS):**
+            - Easy: ${easyCount} questions
+            - Medium: ${mediumCount} questions
+            - Hard: ${hardCount} questions
 
             **Content:**
             ${contextContent.slice(0, 50000)} ... [truncated]
 
             **Instructions:**
             1. **Content Source:** Create questions based ONLY on the provided text content.
-            2. **Quantity:** Ensure the exact number of questions for each mark category is generated.
+            2. **Quantity & Difficulty:** 
+               - Ensure the exact number of questions for each mark category is generated.
+               - STICK RIGIDLY to the difficulty counts provided above across the entire paper.
             3. **Chapter Distribution:** **CRITICAL:** Distribute the questions **EQUALLY** across all the chapters provided in the content. Do not focus only on the first chapter.
             4. **Question Types:** 
                - If "MCQ", provide 4 options (A, B, C, D) and mark the correct one with *.

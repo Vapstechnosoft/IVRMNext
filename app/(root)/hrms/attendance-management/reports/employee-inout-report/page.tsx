@@ -245,7 +245,7 @@ function EmployeeInOutReportPageContent({
                             </div>
 
                             <div className="rounded-md  shadow-sm">
-                                <div className="bg-gray-400 py-2 px-4 mb-4 text-center text-black font-bold text-sm tracking-wide shadow-inner">
+                                <div className="bg-gray-200 py-2 px-4 mb-4 text-center text-black font-bold text-sm tracking-wide shadow-inner">
                                     Employee In Out Report from {formatDate(response?.fromDate)} to {formatDate(response?.toDate)}
                                 </div>
                                 <GenericDataTable
@@ -253,6 +253,10 @@ function EmployeeInOutReportPageContent({
                                     columns={dynamicColumns as any}
                                     isLoading={isLoading}
                                     showViewOptions={false}
+                                    isSearchRequired={false}
+                                    isPaginationRequired={false}
+                                    manualPagination={true}
+                                    scrollable
                                 />
                             </div>
                         </div>

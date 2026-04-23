@@ -2,16 +2,12 @@
 
 import { api } from '@/lib/apiService';
 
-/** Maps UI (Per/Temp) to query param style used by BBKV / other TC reports */
 function tcTempParam(v: string) {
     const u = (v || '').toLowerCase();
     return u === 'temp' || u === 'temporary' ? 'temp' : 'per';
 }
 
-/**
- * TunBridge Student TC Custom Report — legacy Angular used:
- * `studenttccustomreport/getdetails/2`
- */
+
 export async function getTunBridgeTcLoadData() {
     const url = '/StudenttcCustomReport/getinitialdata';
     return await api.get<any>('admission', url);

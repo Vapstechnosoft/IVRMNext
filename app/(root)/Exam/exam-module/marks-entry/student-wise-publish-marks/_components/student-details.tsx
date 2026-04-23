@@ -51,7 +51,7 @@ export default function StudentMarksPublishDetails({ searchParams, studentData, 
             const { data: response } = await getStudentWisePublishMarksData(searchPayload);
             const apiStudents = Array.isArray(response) ? response : [];
             onRefresh(searchParams, apiStudents);
-        } catch (error: any) {
+        } catch (_error: any) {
             toast.error('Failed to refresh data');
         } finally {
             setLocalLoading(false);
@@ -91,15 +91,12 @@ export default function StudentMarksPublishDetails({ searchParams, studentData, 
                     estmP_PublishToStudentFlg: s.estmP_PublishToStudentFlg
                 }))
             };
-            console.log('update payload', payload);
             const response = await StudentsMarksPublish(payload);
 
             if (!response?.success) {
                 toast.error(response?.message || 'Update failed');
                 return;
             }
-            console.log('response', response);
-            console.log('selectedRows', selectedRows);
             toast.success(`${selectedRows.length} ${response.message}`);
             handleRefresh();
             // reset UI

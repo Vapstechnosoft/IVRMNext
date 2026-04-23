@@ -86,7 +86,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     const validateSubjectsRef = useRef<(() => boolean) | null>(null);
     const [subSubjects, setSubSubjects] = useState<any[]>([]);
     const [subExams, setSubExams] = useState<any[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
+    const [_isLoading, _setIsLoading] = useState(false);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const watchYear = watch('ASMAY_Id');
@@ -390,9 +390,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
 
                             // Sub-Exam Mapping
                             if (updated.eyceS_SubExamFlg && !updated.eyceS_SubSubjectFlg) {
-                                console.log('mapped subexams api params', updated.eyceS_Id);
                                 const { data: mappedList } = await getSubExamsMappedList(updated.eyceS_Id);
-                                console.log('mapped subexams list', mappedList);
                                 if (mappedList?.length) {
                                     updated.subExamConfig = mappedList;
                                     // updated.subExamConfig = mappedList.map((item: any) => ({
@@ -480,7 +478,6 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
             });
 
             const sortedList = [...updatedList].sort((a, b) => (a.emsE_SubExamOrder ?? 0) - (b.emsE_SubExamOrder ?? 0));
-            console.log('sortedList', sortedList);
 
             setSubExamModalState({
                 open: true,
@@ -489,7 +486,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                     list: sortedList
                 }
             });
-        } catch (error) {
+        } catch (_error) {
             setSubExamModalState({
                 open: true,
                 subject: {
@@ -508,8 +505,6 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
             setSubSubjectModalState({ open: true, subject });
 
             const safeSubSubjectList = Array.isArray(subject.subSubjectConfig) ? subject.subSubjectConfig : [];
-            console.log('config subsubjects', safeSubSubjectList);
-            console.log('subSubjects', subSubjects);
             const updatedList = subSubjects.map((item: any) => {
                 const matched = safeSubSubjectList.find((ss: any) => ss.emsS_Id === item.emsS_Id);
 
@@ -828,7 +823,6 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                 exm_subject_subsubjects_subexam,
                 Temp_Subject_Order: values.Temp_Subject_Order ?? []
             };
-            console.log('FINAL PAYLOAD:', finalPayload);
             const res = await addOrUpdateExamSubjectWizard(finalPayload);
             if (res.success) toast.success('Exam Subject Wizard saved successfully');
             else toast.error(res.message);
@@ -837,7 +831,6 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
             refetchAll();
             router.refresh();
             window.location.reload();
-            console.log('FINAL PAYLOAD:', finalPayload);
         } catch (err: any) {
             console.error(err);
             toast.error(err?.message ?? 'Failed to save Exam Subject Wizard');
@@ -923,7 +916,9 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                                     />
 
                                     <div>
-                                        <Label>Category <span className='text-red-500'>*</span></Label>
+                                        <Label>
+                                            Category <span className='text-red-500'>*</span>
+                                        </Label>
                                         <Select
                                             value={watchCategory?.toString() ?? ''}
                                             onValueChange={(val) => {
@@ -959,9 +954,10 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                                     </div>
 
                                     <div>
-                                        <Label>Exams <span className='text-red-500'>*</span></Label>
+                                        <Label>
+                                            Exams <span className='text-red-500'>*</span>
+                                        </Label>
                                         <CustomMultiSelectBox
-                                            
                                             options={exams.map((ex) => ({
                                                 label: ex.EME_ExamName,
                                                 value: ex.EME_Id.toString()
@@ -1186,7 +1182,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     );
 }
 
-const mapToSubExamConfig = (r: any) => ({
+const _mapToSubExamConfig = (r: any) => ({
     eycessS_Id: r.eycessS_Id ?? 0,
     eyceS_Id: 0,
     emsE_Id: r.emsE_Id,

@@ -34,9 +34,9 @@ export const masterExamSchema = {
         emE_Id: z.number().optional(),
         mI_Id: z.number().optional(),
         emE_ExamName: createExamCustomStringSchema('Exam Name', 1, 100),
-        emE_ExamCode: z.string().min(1, { message: 'Exam Code is required' }),
+        emE_ExamCode: createExamCustomStringSchema('Exam Code', 1, 50),
         emE_ExamDescription: createExamCustomStringSchema('Exam Description', 1, 100),
-        emE_IVRSExamName: z.string().min(1, { message: 'IVRS Exam Name is required' }),
+        emE_IVRSExamName: createExamCustomStringSchema('IVRS Exam Name', 1, 100),
         emE_FinalExamFlag: z.boolean({
             required_error: 'Final Exam flag is required'
         }),

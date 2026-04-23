@@ -95,8 +95,7 @@ export default function PS8MonthWiseReportStjames() {
   const [reportData, setReportData] = useState<any[]>([]);
   const [currentYear, setCurrentYear] = useState<number | null>(null);
   const { data: yearsData } = useLeaveYearDropdown();
-  const { mutateAsync: getPS8MonthWiseReportData, isPending: isLoading } =
-    usePS8MonthWiseReportStJames();
+  const { mutateAsync: getPS8MonthWiseReportData, isPending: isLoading } = usePS8MonthWiseReportStJames();
   const {
     reset,
     control,
@@ -121,14 +120,14 @@ export default function PS8MonthWiseReportStjames() {
         year: Number(year),
       };
       const response = await getPS8MonthWiseReportData(payload);
-      if (response.success) {
+      if (response.success && response.data && response.data.length > 0) {
         // Note: The response data itself seems to be the array based on the provided sample,
         // but if it's nested under another property, adjust accordingly.
         setReportData(response.data || []);
         toast.success(response.message || "Report data fetched successfully");
       } else {
-        toast.error(response.message);
         setReportData([]);
+        toast.error(response.message || "No data found");
       }
     } catch (error: any) {
       toast.error(
@@ -250,7 +249,7 @@ export default function PS8MonthWiseReportStjames() {
             </div>
           </form>
         </CollapsibleSection>
-        {mockData && mockData.length > 0 && (
+        {reportData && reportData.length > 0 && (
           <CollapsibleSection
             title="MONTH WISE REPORT(st.james)"
             defaultOpen={true}
@@ -314,7 +313,7 @@ export default function PS8MonthWiseReportStjames() {
                   <thead>
                     <tr className="bg-slate-100">
                       <th className="border border-gray-400 px-4 py-3 text-center font-semibold">
-                        No Month
+                        Month
                       </th>
                       <th className="border border-gray-400 px-4 py-3 text-center font-semibold">
                         Contribution to Pension Fund
@@ -326,7 +325,7 @@ export default function PS8MonthWiseReportStjames() {
                     </tr>
                   </thead>
                   <tbody>
-                    {mockData.map((row: any, index: number) => (
+                    {reportData.map((row: any, index: number) => (
                       <tr key={row.monthId || index}>
                         <td className="border border-gray-400 px-4 py-2 text-center">
                           {row.monthName}
@@ -350,11 +349,11 @@ export default function PS8MonthWiseReportStjames() {
                       </tr>
                     ))}
                     <tr className="font-bold bg-slate-50">
-                      <td className="border border-gray-400 px-4 py-3">
+                      <td className="border border-gray-400 px-4 py-3 text-center">
                         Grand Total:
                       </td>
-                      <td className="border border-gray-400 px-4 py-3">
-                        {mockData.reduce(
+                      <td className="border border-gray-400 px-4 py-3 text-center">
+                        {reportData.reduce(
                           (acc: number, val: any) =>
                             acc + (val.pensionAmount || 0),
                           0,

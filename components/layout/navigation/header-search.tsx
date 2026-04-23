@@ -12,6 +12,7 @@ import { setNavigationContext } from './navigation-context';
 import { searchDatabase } from '@/server/search-action';
 import type { IUserAccessibleModules } from '@/types';
 import { translateText } from '@/server/translate-action';
+import { getKeywordsForPage } from '@/lib/page-keywords';
 
 interface SearchResult {
     type: 'page';
@@ -23,6 +24,8 @@ interface SearchResult {
     subMenu: string;
     pageData: any; // Full page object for context
     subMenusPages: any[]; // Full sibling pages
+    keywords?: string;
+    description?: string;
 }
 
 interface DbResult {
@@ -102,7 +105,9 @@ export function HeaderSearch() {
                             menu: menu.name,
                             subMenu: subMenu.name,
                             pageData: page,
-                            subMenusPages: subMenu.pages
+                            subMenusPages: subMenu.pages,
+                            keywords: getKeywordsForPage(page.name),
+                            description: page.description
                         });
                     });
                 });
@@ -239,9 +244,9 @@ export function HeaderSearch() {
         const allPages = getAllPages();
         const searchTerms = initialSearchTerm.toLowerCase().split(' ');
         const filteredPages = allPages.filter(item => {
-            const text = `${item.title} ${item.subtitle}`.toLowerCase();
+            const text = `${item.title} ${item.subtitle} ${item.description || ''} ${item.keywords || ''}`.toLowerCase();
             return searchTerms.every(term => text.includes(term));
-        }).slice(0, 7); // Limit 6 suggestions
+        }).slice(0, 7); // Limit suggestions
         setResults(filteredPages);
 
         if (debounceRef.current) clearTimeout(debounceRef.current);

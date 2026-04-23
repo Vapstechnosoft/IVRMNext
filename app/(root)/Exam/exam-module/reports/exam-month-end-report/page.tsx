@@ -14,8 +14,8 @@ import { getInitialData, getReportData } from '@/server/exam/exam-module/reports
 import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
 import type { IMasterInstitution, Institution } from '@/types/exam/exam-module/report';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Check, Loader2, Printer, X } from 'lucide-react';
-import { useEffect, useState, useRef } from 'react';
+import { Loader2, Printer } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { toast } from 'sonner';
@@ -72,10 +72,7 @@ export default function ExamMonthEndReportPage() {
     useEffect(() => {
         const fetchInitialData = async () => {
             try {
-                const [data, institutionRes] = await Promise.all([
-                    getInitialData(),
-                    getMasterInstitution()
-                ]);
+                const [data, institutionRes] = await Promise.all([getInitialData(), getMasterInstitution()]);
 
                 setMonthList(data.monthlist);
                 if (data.monthlist && data.monthlist.length === 0) {
@@ -97,7 +94,6 @@ export default function ExamMonthEndReportPage() {
 
     const onSubmit = async (data: ExamMonthEndReportFormValues) => {
         try {
-            console.log('Month End Report payload:', data);
             const response = await getReportData(data);
             const safeReportData = Array.isArray(response.data) ? response.data : [];
             // Set report table data
@@ -131,7 +127,7 @@ export default function ExamMonthEndReportPage() {
     const handlePrint = () => {
         const tableContent = document.getElementById('reportTable');
         const chartContent = document.getElementById('reportChart');
-        const footerContent = document.getElementById('reportFooter');
+        const _footerContent = document.getElementById('reportFooter');
 
         // Construct Header
         const printHeader = `
@@ -255,7 +251,6 @@ export default function ExamMonthEndReportPage() {
             </div>
         );
     }
-
 
     return (
         <div className='container mx-auto space-y-6 p-4'>
@@ -422,7 +417,6 @@ export default function ExamMonthEndReportPage() {
 
                         <div className='flex justify-center gap-4 border-t pt-4'>
                             <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting} className='w-32 '>
-                               
                                 Report
                             </Button>
                             <Button type='button' variant='outline' onClick={handleCancel} className='w-32'>
@@ -516,7 +510,9 @@ export default function ExamMonthEndReportPage() {
 
                             {/* Chart */}
                             <div className='border-t pt-6' id='reportChart'>
-                                <h3 className='mb-6 text-center font-semibold text-lg uppercase'>GRAPHICAL ANALYSIS OF EXAM MONTH END REPORT</h3>
+                                <h3 className='mb-6 text-center font-semibold text-lg uppercase'>
+                                    GRAPHICAL ANALYSIS OF EXAM MONTH END REPORT
+                                </h3>
                                 <div className='h-[350px] w-full'>
                                     <ResponsiveContainer width='100%' height='100%'>
                                         <BarChart data={reportData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>

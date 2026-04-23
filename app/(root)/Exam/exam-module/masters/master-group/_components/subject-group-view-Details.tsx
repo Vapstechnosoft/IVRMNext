@@ -35,7 +35,6 @@ export default function MasterSubjectGroupDetailsPage({ rowData, onClose }: Mast
                             />
                         </div>
                         <div className='flex gap-2'>
-
                             <Button
                                 type='button'
                                 onClick={onClose}

@@ -203,6 +203,7 @@ export default function SalaryCertificatePage() {
     try {
       const res = await getSalaryCertificateReport(payload);
       if (res.success) {
+        console.log("Report API response :", res);
         setReportData(res.data);
         toast.success("Salary certificate generated successfully!");
       } else {
@@ -228,14 +229,14 @@ export default function SalaryCertificatePage() {
 
   const calculateGrossEarning = () => {
     if (!reportData) return 0;
-    return reportData.employeeSalaryslipDetails
-      .filter((item: any) => item.HRMED_EarnDedFlag === "Earning")
-      .reduce((sum: number, item: any) => sum + item.Amount, 0);
+    return reportData?.salaryHeads
+      .filter((item: any) => item.hrmeD_EarnDedFlag === "Earning")
+      .reduce((sum: number, item: any) => sum + item.amount, 0);
   };
 
   const calculateTotalDeductions = () => {
     if (!reportData) return 0;
-    return reportData.employeeSalaryslipDetails
+    return reportData?.salaryHeads
       .filter((item: any) => item.HRMED_EarnDedFlag === "Deduction")
       .reduce((sum: number, item: any) => sum + item.Amount, 0);
   };
@@ -510,12 +511,11 @@ export default function SalaryCertificatePage() {
                 <p className="text-justify leading-relaxed">
                   This is to certify that Mr/Ms.{" "}
                   <span className="font-semibold">
-                    {reportData.currentemployeeDetails.hrmE_EmployeeFirstName}
-                    {reportData.currentemployeeDetails.hrmE_EmployeeLastName}
+                    {reportData.employee.employeeName}
                   </span>{" "}
                   (Employee Code:{" "}
                   <span className="font-semibold">
-                    {reportData.currentemployeeDetails.hrmE_EmployeeCode}
+                    {reportData.employee.employeeCode}
                   </span>
                   ) is working in Our Institution as a{" "}
                   <span className="font-semibold">
@@ -547,12 +547,12 @@ export default function SalaryCertificatePage() {
                   <tbody>
                     {(() => {
                       const earnings =
-                        reportData.employeeSalaryslipDetails.filter(
-                          (item: any) => item.HRMED_EarnDedFlag === "Earning",
+                        reportData.salaryHeads.filter(
+                          (item: any) => item.hrmeD_EarnDedFlag === "Earning",
                         );
                       const deductions =
-                        reportData.employeeSalaryslipDetails.filter(
-                          (item: any) => item.HRMED_EarnDedFlag === "Deduction",
+                        reportData.salaryHeads.filter(
+                          (item: any) => item.hrmeD_EarnDedFlag === "Deduction",
                         );
                       const maxRows = Math.max(
                         earnings.length,
@@ -565,11 +565,11 @@ export default function SalaryCertificatePage() {
                           className="hover:bg-slate-50 dark:hover:bg-slate-900/50"
                         >
                           <td className="border border-slate-300 px-4 py-2 text-sm">
-                            {earnings[index]?.HRMED_Name || ""}
+                            {earnings[index]?.hrmeD_Name || ""}
                           </td>
                           <td className="border border-slate-300 px-4 py-2 text-right text-sm">
                             {earnings[index]
-                              ? `₹${earnings[index].Amount.toLocaleString(
+                              ? `₹${earnings[index].amount.toLocaleString(
                                   "en-IN",
                                   {
                                     minimumFractionDigits: 2,
@@ -579,11 +579,11 @@ export default function SalaryCertificatePage() {
                               : ""}
                           </td>
                           <td className="border border-slate-300 px-4 py-2 text-sm">
-                            {deductions[index]?.HRMED_Name || ""}
+                            {deductions[index]?.hrmeD_Name || ""}
                           </td>
                           <td className="border border-slate-300 px-4 py-2 text-right text-sm">
                             {deductions[index]
-                              ? `₹${deductions[index].Amount.toLocaleString(
+                              ? `₹${deductions[index].amount.toLocaleString(
                                   "en-IN",
                                   {
                                     minimumFractionDigits: 2,

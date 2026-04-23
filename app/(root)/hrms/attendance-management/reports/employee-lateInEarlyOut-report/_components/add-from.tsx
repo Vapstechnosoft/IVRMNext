@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { CalendarYear } from '@/components/ui/calendar_year';
+import { CalendarYear } from './calendarYear';
 import { FormError } from '@/components/ui/extension/field';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -19,7 +19,7 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
-import { format } from 'date-fns';
+import { addMonths, format } from 'date-fns';
 import { Calendar as CalendarIcon, Save } from 'lucide-react';
 import { Label } from 'react-aria-components';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
@@ -49,6 +49,7 @@ export default function AddEmployeeLateInEarlyOutReportForm({
         reset,
         watch,
         clearErrors,
+        setValue,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(employeeLateInEarlyOutReportFilterSchema),
@@ -67,6 +68,10 @@ export default function AddEmployeeLateInEarlyOutReportForm({
     });
 
     const allOrIndividualValue = watch('allOrIndividual');
+    const fromDateValue = watch('fromDate');
+    const fromDateObject = fromDateValue ? new Date(fromDateValue) : undefined;
+    const today = new Date();
+    const effectiveToDateMax = fromDateObject ? addMonths(fromDateObject, 1) : today;
 
     const watchedType = watch('type') || [];
     const watchedDepartment = watch('department') || [];
@@ -76,10 +81,17 @@ export default function AddEmployeeLateInEarlyOutReportForm({
     const deptIds = watchedDepartment.map(Number).filter(Boolean);
     const desigIds = watchedDesignation.map(Number).filter(Boolean);
 
+    console.log("groupTypeIds", groupTypeIds);
+    console.log("deptIds", deptIds);
+    console.log("desigIds", desigIds);
+
     const { data: groupTypesData } = useReportGroupTypes();
     const { data: departmentsData } = useReportDepartments(groupTypeIds.toString());
     const { data: designationsData } = useReportDesignations(groupTypeIds.toString(), deptIds.toString());
     const { data: employeesData } = useReportEmployeesByDeptAndDesignation(deptIds.toString(), desigIds.toString());
+
+    console.log("employeesData", employeesData);
+
 
     const groupTypesDataTransformed = useMemo(() => {
         return (
@@ -374,7 +386,7 @@ export default function AddEmployeeLateInEarlyOutReportForm({
                                                 }))}
                                                 onValueChange={(values) => field.onChange(values)}
                                                 defaultValue={field.value || []}
-                                                placeholder='Select Employees'
+                                                placeholder={employeesDataTransformed.length > 0 ? "Select Employees" : "No employees available"}
                                                 className={`w-full ${errors.query ? 'border-red-500' : ''}`}
                                                 maxHeight={240}
                                             />
@@ -411,7 +423,25 @@ export default function AddEmployeeLateInEarlyOutReportForm({
                                                 <CalendarYear
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
-                                                    onSelect={(date: Date | undefined) => field.onChange(date?.toISOString() ?? '')}
+                                                    disabled={[{ after: today }]}
+                                                    onSelect={(date: Date | undefined) => {
+                                                        if (date) {
+                                                            const year = date.getFullYear();
+                                                            const month = String(date.getMonth() + 1).padStart(2, '0');
+                                                            const day = String(date.getDate()).padStart(2, '0');
+                                                            const formattedFromDate = `${year}-${month}-${day}`;
+                                                            field.onChange(formattedFromDate);
+
+                                                            const nextMonthDate = addMonths(date, 1);
+                                                            const nextYear = nextMonthDate.getFullYear();
+                                                            const nextMonth = String(nextMonthDate.getMonth() + 1).padStart(2, '0');
+                                                            const nextDay = String(nextMonthDate.getDate()).padStart(2, '0');
+                                                            // setValue('toDate', `${nextYear}-${nextMonth}-${nextDay}`);
+                                                        } else {
+                                                            field.onChange('');
+                                                            setValue('toDate', '');
+                                                        }
+                                                    }}
                                                     captionLayout='dropdown'
                                                     fromYear={2000}
                                                     toYear={2050}
@@ -450,7 +480,24 @@ export default function AddEmployeeLateInEarlyOutReportForm({
                                                 <CalendarYear
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
-                                                    onSelect={(date: Date | undefined) => field.onChange(date?.toISOString() ?? '')}
+                                                    disabled={
+                                                        fromDateObject
+                                                            ? [
+                                                                  { before: fromDateObject },
+                                                                  { after: today }
+                                                              ]
+                                                            : [{ after: today }]
+                                                    }
+                                                    onSelect={(date: Date | undefined) => {
+                                                        if (date) {
+                                                            const year = date.getFullYear();
+                                                            const month = String(date.getMonth() + 1).padStart(2, '0');
+                                                            const day = String(date.getDate()).padStart(2, '0');
+                                                            field.onChange(`${year}-${month}-${day}`);
+                                                        } else {
+                                                            field.onChange('');
+                                                        }
+                                                    }}
                                                     captionLayout='dropdown'
                                                     fromYear={2000}
                                                     toYear={2050}

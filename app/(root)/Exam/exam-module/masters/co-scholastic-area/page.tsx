@@ -8,7 +8,7 @@ import { MasterViewDetails } from '@/components/ui/set-order/generic-set-order';
 import { useCoScholasticArea } from '@/hooks/exam/exammodule/usemasters';
 import { UpdatedOrderdCoScholasticArea, getCoScholasticAreaOrderData } from '@/server/exam/exam-module/masters/co-scholastic-area';
 import type { ICoScholasticArea } from '@/types/exam/exam-module/masters';
-import { GitCompareArrows, List, Plus, X } from 'lucide-react';
+import { GitCompareArrows, Plus, X } from 'lucide-react';
 import { use, useState } from 'react';
 import { toast } from 'sonner';
 import AddCoScholasticAreaForm from './_components/add-form';

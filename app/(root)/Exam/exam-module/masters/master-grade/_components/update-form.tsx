@@ -10,7 +10,7 @@ import { masterGradeSchema } from '@/schemas/exam/exam-module/masters';
 import { addOrUpdateMasterGrade, getGradeDetailsById } from '@/server/exam/exam-module/masters/grade';
 import type { IMasterGrade } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Plus, Save, Trash, RefreshCw } from 'lucide-react';
+import { Plus, RefreshCw, Save, Trash } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -237,9 +237,9 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
         setIsLoading(true);
         const timer = setTimeout(() => {
             setIsLoading(false);
-        }, 500)
+        }, 500);
         return () => clearTimeout(timer);
-    }, [gradeData])
+    }, [gradeData]);
 
     if (isLoading) {
         return (
@@ -249,8 +249,6 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
             </div>
         );
     }
-
-
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className={`space-y-6 ${className}`} noValidate>

@@ -72,7 +72,7 @@ export async function getStudentApplicationList(asmay_id: number, searchParams?:
  * Specifically for BBHS Student Application submission
  */
 export async function addBBHSStudentApplication(data: any) {
-    const url = '/student_application_form/add_student_application';
+    const url = '/student_application_form/add_student_application_bbhs';
     return await api.post<any>('preadmission', url, data);
 }
 
