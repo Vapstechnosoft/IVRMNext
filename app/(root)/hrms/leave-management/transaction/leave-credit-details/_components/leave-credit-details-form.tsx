@@ -391,7 +391,7 @@ export function LeaveCreditDetailsForm({
             </TabsContent>
             <TabsContent value='Encashment' className='mt-4'>
                 <EncashmentForm
-                    control={control}
+                    control={control as any}
                     errors={errors}
                     handleSubmit={handleSubmit}
                     watch={watch}

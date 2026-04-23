@@ -5,8 +5,8 @@ import { HRMS_MI_ID } from '@/constants/hrms-config';
 
 
 
-export async function getLateLeaveReport(): Promise<ApiResponse<any>> {
-    const url = `/api/LeaveTransfer/get_manual_leave_deduct_grid`;
+export async function getLateLeaveReport(page: number = 1, pageSize: number = 10): Promise<ApiResponse<any>> {
+    const url = `/api/LeaveTransfer/get_manual_leave_deduct_grid?page=${page}&page_size=${pageSize}`;
 
     try {
         const response = await api.get<any>('hmslms', url);

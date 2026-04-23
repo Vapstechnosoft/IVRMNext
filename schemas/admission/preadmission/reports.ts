@@ -174,7 +174,7 @@ export const CategoryWiseAttendanceSchema = z.object({
 export const ClassWiseDailyAttendanceSchema = z.object({
     asmaY_Id: z.coerce.number().min(1, 'Academic Year is required'),
     asmcL_Id: z.coerce.number().min(1, 'Class is required'),
-    asmS_Id: z.coerce.number().min(0, 'Section is required'), // 0 is for "All"
+    asmS_Id: z.coerce.number().min(1, 'Section is required'),
     fromDate: z.date({
         required_error: 'Date is required',
         invalid_type_error: "That's not a date!"

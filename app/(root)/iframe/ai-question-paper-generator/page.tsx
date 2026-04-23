@@ -78,10 +78,47 @@ export default function AIQuestionPaperGenerator() {
         hard: 30
     });
 
+    const handleDifficultyChange = (type: 'easy' | 'medium' | 'hard', value: number) => {
+        const others = type === 'easy' ? ['medium', 'hard'] : type === 'medium' ? ['easy', 'hard'] : ['easy', 'medium'];
+        const newValue = Math.min(100, Math.max(0, value));
+        const remaining = 100 - newValue;
+        
+        const other1Key = others[0] as 'easy' | 'medium' | 'hard';
+        const other2Key = others[1] as 'easy' | 'medium' | 'hard';
+        
+        const other1Val = difficulty[other1Key];
+        const other2Val = difficulty[other2Key];
+        const currentOthersSum = other1Val + other2Val;
+        
+        let newOther1Val, newOther2Val;
+        
+        if (currentOthersSum === 0) {
+            newOther1Val = Math.round(remaining / 2);
+            newOther2Val = remaining - newOther1Val;
+        } else {
+            newOther1Val = Math.round((other1Val / currentOthersSum) * remaining);
+            newOther2Val = remaining - newOther1Val;
+        }
+        
+        setDifficulty({
+            ...difficulty,
+            [type]: newValue,
+            [other1Key]: newOther1Val,
+            [other2Key]: newOther2Val
+        });
+    };
+
     // Handlers
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files?.[0]) {
-            setFile(e.target.files[0]);
+        const selectedFile = e.target.files?.[0];
+        if (selectedFile) {
+            if (selectedFile.type !== "application/pdf") {
+                toast.error("Only PDF files are allowed");
+                e.target.value = "";
+                setFile(null);
+                return;
+            }
+            setFile(selectedFile);
             toast.success("File uploaded successfully");
         }
     };
@@ -367,7 +404,7 @@ export default function AIQuestionPaperGenerator() {
                                                 value={[difficulty.easy]}
                                                 max={100}
                                                 step={5}
-                                                onValueChange={(val: any[]) => setDifficulty({ ...difficulty, easy: val[0] })}
+                                                onValueChange={(val: number[]) => handleDifficultyChange('easy', val[0])}
                                                 className="py-1"
                                             />
                                         </div>
@@ -379,7 +416,7 @@ export default function AIQuestionPaperGenerator() {
                                                 value={[difficulty.medium]}
                                                 max={100}
                                                 step={5}
-                                                onValueChange={(val: any[]) => setDifficulty({ ...difficulty, medium: val[0] })}
+                                                onValueChange={(val: number[]) => handleDifficultyChange('medium', val[0])}
                                                 className="py-1"
                                             />
                                         </div>
@@ -391,7 +428,7 @@ export default function AIQuestionPaperGenerator() {
                                                 value={[difficulty.hard]}
                                                 max={100}
                                                 step={5}
-                                                onValueChange={(val: any[]) => setDifficulty({ ...difficulty, hard: val[0] })}
+                                                onValueChange={(val: number[]) => handleDifficultyChange('hard', val[0])}
                                                 className="py-1"
                                             />
                                         </div>

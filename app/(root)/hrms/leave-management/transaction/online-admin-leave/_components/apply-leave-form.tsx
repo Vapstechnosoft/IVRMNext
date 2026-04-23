@@ -64,6 +64,8 @@ interface ApplyLeaveFormProps {
     selectedFromDate?: Date;
     selectedToDate?: Date;
     totalDays?: number;
+    combinedBalanceData?: any; // Add this prop
+    isLoadingBalance?: boolean; // Add this prop
 }
 
 export default function ApplyLeaveForm({
@@ -74,7 +76,9 @@ export default function ApplyLeaveForm({
     selectedLeave,
     selectedFromDate,
     selectedToDate,
-    totalDays
+    totalDays,
+    combinedBalanceData,
+    isLoadingBalance
 }: ApplyLeaveFormProps) {
     const { mutate: saveLeave, isPending } = useSaveAdminEmployeeLeaveApplication();
 
@@ -372,7 +376,7 @@ export default function ApplyLeaveForm({
                         <div className='flex items-center gap-4'>
                             <Button
                                 type='submit'
-                                disabled={isPending || !selectedEmployeeId}
+                                disabled={combinedBalanceData?.length === 0 || isPending || !selectedEmployeeId}
                                 className='bg-orange-500 hover:bg-orange-600 text-white font-black h-12 px-16 rounded-full shadow-xl shadow-orange-200 flex items-center gap-3 uppercase text-sm transition-all active:scale-95'
                             >
                                 APPLY LEAVE NOW <ArrowRight className='h-5 w-5' />
@@ -389,6 +393,13 @@ export default function ApplyLeaveForm({
                                 <span className='text-xl leading-none'>×</span> CANCEL
                             </Button>
                         </div>
+                        {
+                            combinedBalanceData?.length === 0 && !isLoadingBalance && (
+                                <Badge variant='destructive' className='w-auto py-1 px-2 text-xs'>
+                                    No leave balance available for the selected leave type.
+                                </Badge>
+                            )
+                        }
 
                         <p className='text-[10px] text-slate-400 font-medium tracking-widest uppercase opacity-60'>
                             This will directly update the employee's leave records as an administrator action.

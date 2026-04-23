@@ -33,7 +33,7 @@ export default function EmployeeAbsentReportPage(props: {
                 toast.dismiss(lastToastId);
                 setLastToastId(null);
             }
-            
+
             if (error) {
                 toast.error('Failed to generate report');
             } else if (response?.data) {
@@ -242,7 +242,7 @@ function EmployeeAbsentReportPageContent({
                                     <GenericDataTable<EmployeeAbsentReportRow>
                                         {...tableProps}
                                         columns={employeeAbsentReportColumns}
-                                        isLoading={false}
+                                        isLoading={isLoading}
                                         error={error}
                                         showViewOptions={false}
                                         columnPinning={{ left: ['hrme_id'], right: ['actions'] }}
