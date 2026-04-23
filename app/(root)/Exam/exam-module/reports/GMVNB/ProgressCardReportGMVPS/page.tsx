@@ -29,12 +29,19 @@ export default function ProgressCardReportPage() {
         try {
             const res = await getExamReportCard(payload);
             if (!res?.success || !Array.isArray(res?.data) || res.data.length === 0) {
-                //toast.error('No records found');
                 setIsReportVisible(false);
-                //return;
+                return;
             }
 
             const flatRows: any[] = res.data;
+
+            // Extra data from response
+            const activity_main_list_area = (res as any).activity_main_list_area || [];
+            const getstudentwiseactiviteslist = (res as any).getstudentwiseactiviteslist || [];
+            const strudentwisedentalandvision = (res as any).strudentwisedentalandvision || [];
+            const stud_work_attendence = (res as any).stud_work_attendence || [];
+            const stud_present_attendence = (res as any).stud_present_attendence || [];
+            const studentdetailsgraph = (res as any).studentdetailsgraph || [];
 
             const studentMap = new Map<number, IExamReportCard>();
             const subjectMap = new Map<number, ISubject>();
@@ -59,12 +66,16 @@ export default function ProgressCardReportPage() {
                 if (!studentMap.has(studentId)) {
                     studentMap.set(studentId, {
                         amsT_Id: studentId,
-                        amsT_FirstName: row.amsT_FirstName.trim(),
+                        amsT_FirstName: row.amsT_FirstName?.trim() || '',
                         amsT_FatherName: row.amsT_FatherName || 'N/A',
+                        amsT_MotherName: row.amsT_MotherName || 'N/A',
                         amsT_DOB: row.amsT_DOB,
+                        amsT_Photoname: row.amsT_Photoname || '',
                         amaY_RollNo: row.amaY_RollNo,
                         amsT_AdmNo: row.amsT_AdmNo,
                         amsT_RegistrationNo: row.amsT_RegistrationNo,
+                        asmcL_ClassName: row.asmcL_ClassName,
+                        asmC_SectionName: row.asmC_SectionName,
                         sub_list: [],
                         estmP_TotalMaxMarks: row.estmP_TotalMaxMarks,
                         estmP_TotalObtMarks: row.estmP_TotalObtMarks,
@@ -75,7 +86,15 @@ export default function ProgressCardReportPage() {
                         estmP_SectionRank: row.estmP_SectionRank,
                         classheld: row.asA_ClassHeld,
                         classatt: row.asA_Class_Attended,
-                        estmP_TotalGradeRemark: row.emgD_Remarks || row.estmP_TotalGradeRemark || 'Good'
+                        estmP_TotalGradeRemark: row.emgD_Remarks || row.estmP_TotalGradeRemark || 'Good',
+
+                        // Add filtered data for this student
+                        activity_main_list_area: activity_main_list_area, // Often common for all
+                        getstudentwiseactiviteslist: getstudentwiseactiviteslist.filter((a: any) => a.AMST_Id === studentId),
+                        strudentwisedentalandvision: strudentwisedentalandvision.filter((h: any) => h.AMST_Id === studentId),
+                        stud_work_attendence: stud_work_attendence.filter((at: any) => at.AMST_Id === studentId),
+                        stud_present_attendence: stud_present_attendence.filter((at: any) => at.AMST_Id === studentId),
+                        studentdetailsgraph: studentdetailsgraph.filter((g: any) => g.AMST_Id === studentId)
                     });
                 }
 
@@ -85,6 +104,7 @@ export default function ProgressCardReportPage() {
                         ismS_Id: row.ismS_Id,
                         estmpS_MaxMarks: row.estmpS_MaxMarks,
                         estmpS_ObtainedMarks: row.estmpS_ObtainedMarks ?? null,
+                        estmpS_MinMarks: row.estmpS_MinMarks,
                         estmpS_ObtainedGrade: row.estmpS_ObtainedGrade || '-',
                         estmpS_PassFailFlg: row.estmpS_PassFailFlg
                     });
@@ -102,7 +122,6 @@ export default function ProgressCardReportPage() {
 
             setSubjects(filteredSubjects);
             setReportData(Array.from(studentMap.values()));
-            const _safeReportData = Array.from(studentMap.values());
             setHeaderInfo({
                 cla: firstRow.asmcL_ClassName,
                 sec: firstRow.asmC_SectionName
@@ -130,7 +149,8 @@ export default function ProgressCardReportPage() {
 
         const rows: any[] = [];
 
-        for (let i = 1; i <= 100; i++) {
+        for (let i = 1; i <= 5; i++) {
+            // Reduced to 5 for testing
             const totalMax = subjects.length * 100;
             let totalObt = 0;
 
@@ -143,16 +163,18 @@ export default function ProgressCardReportPage() {
                     amsT_Id: 15000 + i,
                     amsT_FirstName: `Student ${i}`,
                     amsT_FatherName: `Father ${i}`,
+                    amsT_MotherName: `Mother ${i}`,
                     amsT_DOB: '2016-01-01T00:00:00',
+                    amsT_Photoname: 'https://dcampusstrg.blob.core.windows.net/files/17/NAACDocumentsUpload/6a4bad20-fd91-45ff-b0cd-b152f3d07edc.jpg',
                     amaY_RollNo: i,
                     amsT_AdmNo: `ADM${i}`,
                     amsT_RegistrationNo: `REG${i}`,
 
                     // Class Info
-                    asmcL_ClassName: 'ClassnRhd',
-                    asmC_SectionName: 'AAAA',
-                    emE_ExamName: 'Vaps Exam1(Raju)',
-                    asmaY_Year: '2025',
+                    asmcL_ClassName: 'Grade X',
+                    asmC_SectionName: 'Section A',
+                    emE_ExamName: 'Annual Exam',
+                    asmaY_Year: '2025-26',
 
                     // Subject Info
                     ismS_Id: sub.id,
@@ -165,7 +187,7 @@ export default function ProgressCardReportPage() {
                     // Marks
                     estmpS_MaxMarks: 100,
                     estmpS_ObtainedMarks: marks,
-                    estmpS_ObtainedGrade: '',
+                    estmpS_ObtainedGrade: marks >= 90 ? 'A1' : marks >= 80 ? 'A2' : marks >= 70 ? 'B1' : 'B2',
                     estmpS_PassFailFlg: marks >= 35,
 
                     // Totals
@@ -176,9 +198,9 @@ export default function ProgressCardReportPage() {
                     estmP_Result: '',
                     estmP_ClassRank: i,
                     estmP_SectionRank: i,
-                    asA_ClassHeld: 46,
-                    asA_Class_Attended: 44,
-                    emgD_Remarks: 'Good'
+                    asA_ClassHeld: 200,
+                    asA_Class_Attended: 180,
+                    emgD_Remarks: 'Good Performance'
                 });
             });
 

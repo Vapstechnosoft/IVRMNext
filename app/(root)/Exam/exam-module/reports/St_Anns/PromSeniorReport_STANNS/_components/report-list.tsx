@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { ArcElement, BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Title, Tooltip } from 'chart.js';
 import { Printer } from 'lucide-react';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { Bar } from 'react-chartjs-2';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
@@ -36,7 +36,6 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
     // Config Flags
     const showLogo = params.printLogo;
-    const showSuperAverage = params.superAverage;
     const examName = params.exmname;
 
     // Helper to get attendance
@@ -110,6 +109,10 @@ export const ReportList = ({ data, params }: ReportListProps) => {
         'ACCEPTS RESPONSIBILITY FOR LEARNING'
     ];
 
+    useEffect(() => {
+        console.log(_institution);
+    }, [_institution]);
+
     return (
         <div className='printable-content space-y-6 font-serif'>
             <div className='no-print flex justify-end'>
@@ -136,44 +139,31 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                 className='page-break-before-always mb-8 border border-gray-300 bg-white p-4 shadow-sm print:m-0 print:border-none print:p-0 print:shadow-none'>
                                 {/* Header with logo */}
                                 {showLogo && (
-                                    <div className='mb-4 flex flex-row items-center justify-between'>
-                                        <div className='w-32'>
-                                            <img
-                                                src='https://dcampusstrg.blob.core.windows.net/files/17/Trnsportdocuments/7115f492-3955-47e6-97d9-187413d0f3a5.jpg'
-                                                className='h-[100px] w-[100px] object-cover'
-                                                alt='Transport Logo'
-                                            />
+                                    <div className='mb-4 flex flex-row items-center justify-center'>
+                                        <div className='w-full text-center'>
+                                            {_institution?.mI_Logo && (
+                                                <img
+                                                    src={_institution?.mI_Logo}
+                                                    className='mx-auto h-[70px] w-[80%] object-contain'
+                                                    alt='Header Logo'
+                                                />
+                                            )}
                                         </div>
-                                        <div className='flex-1 text-center'>
-                                            <img
-                                                src='https://sthomashowrah.blob.core.windows.net/files/Logo Header stt.jpg'
-                                                className='mx-auto h-[70px] w-auto object-contain'
-                                                alt='Header Logo'
-                                            />
-                                            <div className='mt-1 space-y-1 text-center text-[9px] leading-tight'>
-                                                <p>(Diocese of Calcutta, CNI)</p>
-                                                <p>
-                                                    A Christian Minority Co-Educational English Medium School under Article 30 of the Indian
-                                                    Constitution)
-                                                </p>
-                                                <p>3, Church Road, Howrah-711101 West Bengal, India</p>
-                                                <p>Phone No: +91 33 2641 2138,+91 33 2641 3590 Email ID: stesh1860@gmail.com</p>
-                                            </div>
-                                        </div>
-                                        <div className='w-32'>&nbsp;</div>
                                     </div>
                                 )}
                                 {!showLogo && <div className='mt-[130px]'>&nbsp;</div>}
 
                                 <div className='relative'>
                                     {/* Watermark */}
-                                    <div className='pointer-events-none absolute inset-0 z-0 flex items-center justify-center opacity-20 print:opacity-20'>
-                                        <img
-                                            src='https://sthomashowrah.blob.core.windows.net/files/4/stthomos.jpeg'
-                                            className='h-[417px] w-[420px] object-contain'
-                                            alt='Watermark'
-                                        />
-                                    </div>
+                                    {/* <div className='pointer-events-none absolute inset-0 z-0 flex items-center justify-center opacity-20 print:opacity-20'>
+                                        {_institution?.mI_BackgroundImage || _institution?.mI_Logo ? (
+                                            <img
+                                                src={_institution?.mI_BackgroundImage || _institution?.mI_Logo}
+                                                className='h-[417px] w-[420px] object-contain'
+                                                alt='Watermark'
+                                            />
+                                        ) : null}
+                                    </div> */}
 
                                     <div className='relative z-10'>
                                         {/* Exam Title */}
@@ -197,6 +187,10 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                         <div className='mb-1 flex gap-2'>
                                                             <span className='font-bold'>NAME :</span>
                                                             <span className='font-bold'>{report.studentname}</span>
+                                                        </div>
+                                                        <div className='mb-1 flex gap-2'>
+                                                            <span className='font-bold'>ROLL NO :</span>
+                                                            <span className='font-bold'>{report.rollno}</span>
                                                         </div>
                                                         <div className='flex gap-2'>
                                                             <span className='font-bold'>CLASS :</span>
@@ -243,11 +237,6 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                             {grp.empG_DistplayName}
                                                         </th>
                                                     ))}
-                                                    <th
-                                                        colSpan={groupDetails.length + 1}
-                                                        className='border-[0.5px] border-gray-500 p-1 text-[13px] uppercase'>
-                                                        SUPER AVERAGE
-                                                    </th>
                                                 </tr>
                                                 <tr>
                                                     <th className='border-[0.5px] border-gray-500 p-1' />
@@ -262,12 +251,6 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                             {exa.displayName === 'AVG' && <span>{exa.displayName}</span>}
                                                         </th>
                                                     ))}
-                                                    <th className='w-[70px] border-[0.5px] border-gray-500 p-1 text-center text-[13px]'>
-                                                        100/50
-                                                    </th>
-                                                    <th className='w-[70px] border-[0.5px] border-gray-500 p-1 text-center text-[13px]'>
-                                                        <b>AVG</b>
-                                                    </th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -305,17 +288,6 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                                 </td>
                                                             );
                                                         })}
-                                                        {/* Super Average Columns */}
-                                                        <td className='border-[0.5px] border-gray-500 p-1 text-center'>
-                                                            {subj.ismS_Id < 1000 && showSuperAverage && (
-                                                                <span>{subj.estmppsG_GroupObtMarks}</span>
-                                                            )}
-                                                        </td>
-                                                        <td className='border-[0.5px] border-gray-500 p-1 text-center'>
-                                                            {(subj.esG_Id === 0 || subj.ismS_Id > 1000) && showSuperAverage && (
-                                                                <span className='font-semibold'>{subj.groupAVGMarks}</span>
-                                                            )}
-                                                        </td>
                                                     </tr>
                                                 ))}
 
@@ -342,27 +314,6 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                             </td>
                                                         );
                                                     })}
-                                                    {/* Super Average Totals */}
-                                                    <td className='border-[0.5px] border-gray-500 p-1 text-center'>
-                                                        {showSuperAverage && (
-                                                            <span className='font-bold'>
-                                                                {
-                                                                    examWiseTotalDetails.find((t: any) => t.amsT_Id === report.amsT_Id)
-                                                                        ?.estmppsG_GroupObtMarks
-                                                                }
-                                                            </span>
-                                                        )}
-                                                    </td>
-                                                    <td className='border-[0.5px] border-gray-500 p-1 text-center'>
-                                                        {showSuperAverage && (
-                                                            <span className='font-bold'>
-                                                                {
-                                                                    examWiseTotalDetails.find((t: any) => t.amsT_Id === report.amsT_Id)
-                                                                        ?.estmppsG_GroupAvgMarks
-                                                                }
-                                                            </span>
-                                                        )}
-                                                    </td>
                                                 </tr>
 
                                                 {/* Percentage Row */}
@@ -388,26 +339,6 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                             </td>
                                                         );
                                                     })}
-                                                    <td className='border-[0.5px] border-gray-500 p-1 text-center'>
-                                                        {showSuperAverage && (
-                                                            <span className='font-bold'>
-                                                                {
-                                                                    examWiseTotalDetails.find((t: any) => t.amsT_Id === report.amsT_Id)
-                                                                        ?.totalPercentage
-                                                                }
-                                                            </span>
-                                                        )}
-                                                    </td>
-                                                    <td className='border-[0.5px] border-gray-500 p-1 text-center'>
-                                                        {showSuperAverage && (
-                                                            <span className='font-bold'>
-                                                                {
-                                                                    examWiseTotalDetails.find((t: any) => t.amsT_Id === report.amsT_Id)
-                                                                        ?.totaver
-                                                                }
-                                                            </span>
-                                                        )}
-                                                    </td>
                                                 </tr>
 
                                                 {/* Rank Row */}
@@ -585,7 +516,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                     <td className='border-l-0 p-2 align-top'>
                                                         {remarks.map((r: any, idx: number) => (
                                                             <span key={idx} className='block'>
-                                                                {r.remarks}
+                                                                {r.remarks || r.eprD_Remarks}
                                                             </span>
                                                         ))}
                                                     </td>
@@ -597,16 +528,21 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                         <table className='w-full border-collapse border border-gray-400 border-t-0 bg-transparent text-[12px]'>
                                             <thead>
                                                 <tr>
-                                                    <th className='h-[70px] w-1/4 border border-gray-400 border-t-0 p-2 align-bottom'>
+                                                    <th className='h-[90px] w-1/4 border border-gray-400 border-t-0 p-2 align-bottom'>
                                                         DATE
                                                     </th>
-                                                    <th className='h-[70px] w-1/4 border border-gray-400 border-t-0 p-2 align-bottom'>
-                                                        PRINCIPAL&apos;S SIGNATURE
+                                                    <th className='h-[90px] w-1/4 border border-gray-400 border-t-0 p-2 align-bottom text-center'>
+                                                        {_institution?.mI_Signature ? (
+                                                            <img src={_institution.mI_Signature} alt="Rector Signature" className="mx-auto h-[50px] object-contain mb-1" />
+                                                        ) : (
+                                                            <div className="h-[50px] mb-1"></div>
+                                                        )}
+                                                        RECTOR SIGNATURE
                                                     </th>
-                                                    <th className='h-[70px] w-1/4 border border-gray-400 border-t-0 p-2 align-bottom'>
-                                                        CLASS TEACHER&apos;S SIGNATURE
+                                                    <th className='h-[90px] w-1/4 border border-gray-400 border-t-0 p-2 align-bottom'>
+                                                        CLASS TEACHER
                                                     </th>
-                                                    <th className='h-[70px] w-1/4 border border-gray-400 border-t-0 p-2 align-bottom'>
+                                                    <th className='h-[90px] w-1/4 border border-gray-400 border-t-0 p-2 align-bottom'>
                                                         PARENT&apos;S SIGNATURE
                                                     </th>
                                                 </tr>

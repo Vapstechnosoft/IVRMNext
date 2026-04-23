@@ -350,7 +350,9 @@ export const EXAM_QUERY_KEYS = {
     PROMOTIONAL_SETTING_GRID: 'promotional-setting-grid',
     PROMOTIONAL_SETTING_DETAILS: 'promotional-setting-details',
     PROMOTIONAL_GROUP_DETAILS: 'promotional-group-details',
-    PROMOTIONAL_GROUP_MAPPED_EXAMS_DETAILS: 'promotional-group-mapped-exams-details'
+    PROMOTIONAL_GROUP_MAPPED_EXAMS_DETAILS: 'promotional-group-mapped-exams-details',
+    EXAM_TT_SESSION_MASTER: 'exam_tt_session_master',
+    EXAM_TT_TRANS_SETTINGS: 'exam_tt_trans_settings'
 };
 
 export const HRMS_QUERY_KEYS = {

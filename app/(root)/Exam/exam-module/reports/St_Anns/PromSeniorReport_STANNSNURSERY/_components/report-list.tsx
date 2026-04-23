@@ -136,44 +136,31 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                 className='page-break-before-always mb-8 border border-gray-300 bg-white p-4 shadow-sm print:m-0 print:border-none print:p-0 print:shadow-none'>
                                 {/* Header with logo */}
                                 {showLogo && (
-                                    <div className='mb-4 flex flex-row items-center justify-between'>
-                                        <div className='w-32'>
-                                            <img
-                                                src='https://dcampusstrg.blob.core.windows.net/files/17/Trnsportdocuments/7115f492-3955-47e6-97d9-187413d0f3a5.jpg'
-                                                className='h-[100px] w-[100px] object-cover'
-                                                alt='Transport Logo'
-                                            />
+                                    <div className='mb-4 flex flex-row items-center justify-center'>
+                                        <div className='w-full text-center'>
+                                            {_institution?.mI_Logo && (
+                                                <img
+                                                    src={_institution?.mI_Logo}
+                                                    className='mx-auto h-[70px] w-[80%] object-contain'
+                                                    alt='Header Logo'
+                                                />
+                                            )}
                                         </div>
-                                        <div className='flex-1 text-center'>
-                                            <img
-                                                src='https://sthomashowrah.blob.core.windows.net/files/Logo Header stt.jpg'
-                                                className='mx-auto h-[70px] w-auto object-contain'
-                                                alt='Header Logo'
-                                            />
-                                            <div className='mt-1 space-y-1 text-center text-[9px] leading-tight'>
-                                                <p>(Diocese of Calcutta, CNI)</p>
-                                                <p>
-                                                    A Christian Minority Co-Educational English Medium School under Article 30 of the Indian
-                                                    Constitution)
-                                                </p>
-                                                <p>3, Church Road, Howrah-711101 West Bengal, India</p>
-                                                <p>Phone No: +91 33 2641 2138,+91 33 2641 3590 Email ID: stesh1860@gmail.com</p>
-                                            </div>
-                                        </div>
-                                        <div className='w-32'>&nbsp;</div>
                                     </div>
                                 )}
                                 {!showLogo && <div className='mt-[130px]'>&nbsp;</div>}
 
                                 <div className='relative'>
                                     {/* Watermark */}
-                                    <div className='pointer-events-none absolute inset-0 z-0 flex items-center justify-center opacity-20 print:opacity-20'>
-                                        <img
-                                            src='https://sthomashowrah.blob.core.windows.net/files/4/stthomos.jpeg'
-                                            className='h-[417px] w-[420px] object-contain'
-                                            alt='Watermark'
-                                        />
-                                    </div>
+                                    {/* <div className='pointer-events-none absolute inset-0 z-0 flex items-center justify-center opacity-20 print:opacity-20'>
+                                        {_institution?.mI_BackgroundImage || _institution?.mI_Logo ? (
+                                            <img
+                                                src={_institution?.mI_BackgroundImage || _institution?.mI_Logo}
+                                                className='h-[417px] w-[420px] object-contain'
+                                                alt='Watermark'
+                                            />
+                                        ) : null}
+                                    </div> */}
 
                                     <div className='relative z-10'>
                                         {/* Exam Title */}
@@ -585,7 +572,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                     <td className='border-l-0 p-2 align-top'>
                                                         {remarks.map((r: any, idx: number) => (
                                                             <span key={idx} className='block'>
-                                                                {r.remarks}
+                                                                {r.remarks || r.eprD_Remarks}
                                                             </span>
                                                         ))}
                                                     </td>
@@ -597,16 +584,21 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                         <table className='w-full border-collapse border border-gray-400 border-t-0 bg-transparent text-[12px]'>
                                             <thead>
                                                 <tr>
-                                                    <th className='h-[70px] w-1/4 border border-gray-400 border-t-0 p-2 align-bottom'>
+                                                    <th className='h-[90px] w-1/4 border border-gray-400 border-t-0 p-2 align-bottom'>
                                                         DATE
                                                     </th>
-                                                    <th className='h-[70px] w-1/4 border border-gray-400 border-t-0 p-2 align-bottom'>
-                                                        PRINCIPAL&apos;S SIGNATURE
+                                                    <th className='h-[90px] w-1/4 border border-gray-400 border-t-0 p-2 align-bottom text-center'>
+                                                        {_institution?.mI_Signature ? (
+                                                            <img src={_institution.mI_Signature} alt="Rector Signature" className="mx-auto h-[50px] object-contain mb-1" />
+                                                        ) : (
+                                                            <div className="h-[50px] mb-1"></div>
+                                                        )}
+                                                        RECTOR SIGNATURE
                                                     </th>
-                                                    <th className='h-[70px] w-1/4 border border-gray-400 border-t-0 p-2 align-bottom'>
-                                                        CLASS TEACHER&apos;S SIGNATURE
+                                                    <th className='h-[90px] w-1/4 border border-gray-400 border-t-0 p-2 align-bottom'>
+                                                        CLASS TEACHER
                                                     </th>
-                                                    <th className='h-[70px] w-1/4 border border-gray-400 border-t-0 p-2 align-bottom'>
+                                                    <th className='h-[90px] w-1/4 border border-gray-400 border-t-0 p-2 align-bottom'>
                                                         PARENT&apos;S SIGNATURE
                                                     </th>
                                                 </tr>

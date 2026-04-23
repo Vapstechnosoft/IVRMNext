@@ -46,7 +46,7 @@ export const studentApplicationFormSchema = {
         pasR_BirthPlace: createStringOnlyOptionalSchema('Student Birth Place', 1, 100),
         religion_Id: z.number().int({ message: 'Religion is required' }),
         caste_Id: z.number().int({ message: 'Caste is required' }),
-        SubCaste_Id: z.number().int({ message: 'Sub Caste is required' }).optional(),
+        SubCaste_Id: z.union([z.string(), z.number()]).optional().transform((val) => (val === '' ? undefined : val)),
         pasR_Sex: createStringSchema('Gender', 1, 50),
         pasR_DOB: z.date({ message: 'Date Of Birth is required' }).refine((date) => {
             // This will be validated in the form's custom validation
@@ -75,7 +75,7 @@ export const studentApplicationFormSchema = {
         reference_ids: z.array(z.string()).optional(),
         pasR_TransportReqdFlag: z.number().int({ message: 'Transport Required Flag is required' }),
 
-        PASR_BloodGroup: createStringOnlyOptionalSchema('Blood Group', 1, 10),
+        PASR_BloodGroup: z.union([z.string(), z.number(), z.nan()]).optional().transform((val) => (val === '' || Number.isNaN(val) ? undefined : String(val))),
         // Residential Address
         pasR_ConStreet: createOptionalAlphaNumericSchema('Street', 1, 100),
         pasR_ConArea: createOptionalAlphaNumericSchema('Area', 1, 100),
@@ -183,9 +183,9 @@ export const studentApplicationFormSchema = {
         guardianDetails: z
             .array(
                 z.object({
-                    PASRG_GuardianName: createStringOnlySchema('Guardian Name', 1, 100),
-                    PASRG_GuardianRelation: createStringOnlySchema('Guardian Relation', 1, 100),
-                    ReportType: createStringOnlySchema('Report Type', 1, 100),
+                    PASRG_GuardianName: createStringOnlyOptionalSchema('Guardian Name', 1, 100),
+                    PASRG_GuardianRelation: createStringOnlyOptionalSchema('Guardian Relation', 1, 100),
+                    ReportType: createStringOnlyOptionalSchema('Report Type', 1, 100),
                     PASRG_PhoneOffice: createOptionalNumberOnlyStringSchema('Office Phone', 1, 15),
                     PASRG_GuardianPhoneNo: createOptionalNumberOnlyStringSchema('Guardian Phone', 1, 15)
                 })

@@ -23,15 +23,10 @@ interface Props {
 }
 
 export default function ProgressCardReport({ reportData, institution, subjects, headerInfo, examName, examCode, year, onPrint }: Props) {
-    // Filter only subjects that appear in results
-    const resultSubjects = subjects
-        .filter((s) => s.eyceS_AplResultFlg !== false)
-        .sort((a, b) => (a.eyceS_SubjectOrder ?? 999) - (b.eyceS_SubjectOrder ?? 999));
-
     const formatDate = (dateStr?: string | null) => {
         if (!dateStr) return 'N/A';
         try {
-            return new Date(dateStr).toLocaleDateString('en-GB'); // dd-MM-yyyy
+            return new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(dateStr));
         } catch {
             return 'N/A';
         }
@@ -39,58 +34,75 @@ export default function ProgressCardReport({ reportData, institution, subjects, 
 
     return (
         <>
-            {/* Print-only CSS */}
             <style jsx global>{`
-        @media print {
-          body * {
-            visibility: hidden !important;
-          }
-          #progress-card-print-area,
-          #progress-card-print-area * {
-            visibility: visible !important;
-          }
-          #progress-card-print-area {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-          }
-          .no-print {
-            display: none !important;
-          }
-          .page-break-before {
-            page-break-before: always !important;
-          }
-          table {
-            width: 100% !important;
-            border-collapse: collapse !important;
-            font-size: 12px !important;
-          }
-          th,
-          td {
-            border: 1px solid black !important;
-            padding: 6px 4px !important;
-            text-align: center !important;
-          }
-          th {
-            background-color: #c6dff7 !important;
-            color: black !important;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-          }
-          @page {
-            size: A4 portrait;
-            margin: 10mm;
-          }
-        }
-        @media screen {
-          .print-only {
-            display: none !important;
-          }
-        }
-      `}</style>
+                @import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;700&display=swap');
 
-            {/* Screen: Show Print Button */}
+                @media print {
+                    body * {
+                        visibility: hidden !important;
+                    }
+                    #progress-card-print-area,
+                    #progress-card-print-area * {
+                        visibility: visible !important;
+                    }
+                    #progress-card-print-area {
+                        position: absolute;
+                        left: 0;
+                        top: 0;
+                        width: 100%;
+                    }
+                    .no-print {
+                        display: none !important;
+                    }
+                    .page-break-after {
+                        page-break-after: always !important;
+                    }
+                    .page-break-before {
+                        page-break-before: always !important;
+                    }
+                    @page {
+                        size: A4 portrait;
+                        margin: 5mm;
+                    }
+                    .table-bordered {
+                        border: 1px solid black !important;
+                    }
+                    .table-bordered th, .table-bordered td {
+                        border: 1px solid black !important;
+                    }
+                    .bg-gray {
+                        background-color: #BABABA !important;
+                        -webkit-print-color-adjust: exact;
+                    }
+                }
+
+                .report-container {
+                    font-family: 'Source Sans Pro', sans-serif !important;
+                    color: black;
+                }
+
+                .table-custom {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-bottom: 1rem;
+                }
+
+                .table-custom th, .table-custom td {
+                    border: 1px solid black;
+                    padding: 4px;
+                    text-align: center;
+                }
+
+                .text-left { text-align: left !important; }
+                .text-center { text-align: center !important; }
+                .text-right { text-align: right !important; }
+                .font-bold { font-weight: bold; }
+                .margin-top-10 { margin-top: 10px; }
+                .margin-top-15 { margin-top: 15px; }
+                .margin-top-100 { margin-top: 100px; }
+                .padding-8 { padding: 8px; }
+            `}</style>
+
             <div className='no-print my-6 flex justify-end'>
                 <Button onClick={onPrint} className='flex items-center gap-2'>
                     <Printer className='h-4 w-4' />
@@ -98,193 +110,242 @@ export default function ProgressCardReport({ reportData, institution, subjects, 
                 </Button>
             </div>
 
-            {/* Printable Area */}
-            <div id='progress-card-print-area' className='space-y-0'>
+            <div id='progress-card-print-area' className='report-container'>
                 {reportData.map((report, index) => (
-                    <div
-                        key={report.amsT_FirstName + index}
-                        className={`bg-white ${index > 0 ? 'page-break-before' : ''}`}
-                        style={{ border: '0.1px solid black', margin: '15mm', padding: '10mm' }}>
-                        {/* School Header Image */}
-                        <div className='mb-4 text-center'>
+                    <div key={report.amsT_Id + index} className="report-page p-4 bg-white mb-8">
+                        {/* Header Image */}
+                        <div className="w-full text-center mb-4">
                             <Image
-                                src={institution?.mI_Logo || 'https://kusumadata.blob.core.windows.net/files/30/Vidya%20Vikas%20Marks.jpg'}
-                                alt={institution?.mI_Name || 'School Header'}
+                                src="https://dcampusstrg.blob.core.windows.net/files/17/NAACDocumentsUpload/6a4bad20-fd91-45ff-b0cd-b152f3d07edc.jpg"
+                                alt="School Header"
                                 width={800}
-                                height={200}
-                                className='inline-block border border-black'
+                                height={150}
+                                className="w-full h-auto mx-auto"
                                 unoptimized
                             />
                         </div>
 
-                        {/* Student Details */}
-                        <div className='my-6 text-center'>
-                            <div className='inline-block bg-[#c6dff7] px-16 py-2 font-bold text-xl'>STUDENT DETAILS</div>
+                        {/* Student Details Section */}
+                        <div className="grid grid-cols-12 gap-4 mb-6">
+                            <div className="col-span-9 space-y-1">
+                                <div className="grid grid-cols-12">
+                                    <div className="col-span-4 font-bold">Name</div>
+                                    <div className="col-span-1">:</div>
+                                    <div className="col-span-7 font-bold">{report.amsT_FirstName}</div>
+                                </div>
+                                <div className="grid grid-cols-12">
+                                    <div className="col-span-4 font-bold">Admission No</div>
+                                    <div className="col-span-1">:</div>
+                                    <div className="col-span-7 font-bold">{report.amsT_AdmNo}</div>
+                                </div>
+                                <div className="grid grid-cols-12">
+                                    <div className="col-span-4 font-bold">Class & Section</div>
+                                    <div className="col-span-1">:</div>
+                                    <div className="col-span-7 font-bold">{report.asmcL_ClassName} - {report.asmC_SectionName}</div>
+                                </div>
+                                <div className="grid grid-cols-12">
+                                    <div className="col-span-4 font-bold">Date of Birth</div>
+                                    <div className="col-span-1">:</div>
+                                    <div className="col-span-7 font-bold">{formatDate(report.amsT_DOB)}</div>
+                                </div>
+                                <div className="grid grid-cols-12">
+                                    <div className="col-span-4 font-bold">Mother's Name</div>
+                                    <div className="col-span-1">:</div>
+                                    <div className="col-span-7 font-bold">{report.amsT_MotherName}</div>
+                                </div>
+                                <div className="grid grid-cols-12">
+                                    <div className="col-span-4 font-bold">Father's Name</div>
+                                    <div className="col-span-1">:</div>
+                                    <div className="col-span-7 font-bold">{report.amsT_FatherName}</div>
+                                </div>
+                            </div>
+                            <div className="col-span-3 text-right">
+                                {report.amsT_Photoname ? (
+                                    <img src={report.amsT_Photoname} alt="Student" style={{ width: '120px', height: '120px', border: '1px solid black', objectFit: 'cover' }} />
+                                ) : (
+                                    <div style={{ width: '120px', height: '120px', border: '1px solid black', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Photo</div>
+                                )}
+                            </div>
                         </div>
 
-                        <div className='border border-black p-4 text-sm'>
-                            <table className='w-full'>
+                        {/* Exam Title */}
+                        <div className="text-center mb-4">
+                            <h3 className="font-bold text-xl uppercase">{examName} - {year}</h3>
+                        </div>
+
+                        {/* Marks Table */}
+                        <table className="table-custom mb-6">
+                            <thead>
+                                <tr>
+                                    <th rowSpan={2} style={{ width: '50px' }}>SL No</th>
+                                    <th colSpan={2} rowSpan={2}>SUBJECT</th>
+                                    <th colSpan={4}>{examName}</th>
+                                </tr>
+                                <tr>
+                                    <th>MAXIMUM MARK</th>
+                                    <th>MINIMUM MARKS</th>
+                                    <th>MARKS OBTAINED</th>
+                                    <th>GRADE</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {report.sub_list.map((mark, i) => {
+                                    const subject = subjects.find(s => s.ismS_Id === mark.ismS_Id);
+                                    if (!subject) return null;
+
+                                    const isAbsent = mark.estmpS_PassFailFlg === 'AB';
+
+                                    return (
+                                        <tr key={mark.ismS_Id}>
+                                            <td>{i + 1}</td>
+                                            <td colSpan={2} className="text-left font-bold pl-4">{subject.ismS_SubjectName}</td>
+                                            <td>{mark.estmpS_MaxMarks}</td>
+                                            <td>{mark.estmpS_MinMarks}</td>
+                                            <td>
+                                                {isAbsent ? 'AB' : mark.estmpS_ObtainedMarks}
+                                            </td>
+                                            <td>{mark.estmpS_ObtainedGrade}</td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+
+                        {/* Scholastic Grading Scale */}
+                        {/* <div className="mb-6">
+                            <h4 className="text-center font-bold underline mb-2">SCHOLASTIC GRADING SCALE</h4>
+                            <table className="table-custom">
+                                <thead>
+                                    <tr className="font-bold">
+                                        <td>Grade</td>
+                                        <td>A1</td><td>A2</td><td>B1</td><td>B2</td><td>C1</td><td>C2</td><td>D</td><td>E</td>
+                                    </tr>
+                                </thead>
                                 <tbody>
                                     <tr>
-                                        <td className='w-1/4 py-1 font-bold'>Name of the Student</td>
-                                        <td className='py-1'>
-                                            : <strong>{report.amsT_FirstName}</strong>
-                                        </td>
+                                        <td className="font-bold">Mark</td>
+                                        <td>91-100</td><td>81-90</td><td>71-80</td><td>61-70</td><td>51-60</td><td>41-50</td><td>33-40</td><td>0-32</td>
                                     </tr>
-                                    <tr>
-                                        <td className='py-1 font-bold'>Father Name</td>
-                                        <td className='py-1'>
-                                            : <strong>{report.amsT_FatherName || 'N/A'}</strong>
-                                        </td>
+                                </tbody>
+                            </table>
+                        </div> */}
+
+                        {/* Student Performance Index (Graph Placeholder) */}
+                        {/* <div className="mb-6 text-center">
+                            <h4 className="font-bold underline mb-4">STUDENT PERFORMANCE INDEX</h4>
+                            <div className="flex justify-center">
+                                {report.studentdetailsgraph && report.studentdetailsgraph[0]?.ImagePath ? (
+                                    <img src={report.studentdetailsgraph[0].ImagePath} alt="Performance Graph" style={{ maxWidth: '500px', height: 'auto' }} />
+                                ) : (
+                                    <div className="h-40 w-80 border border-dashed border-gray-400 flex items-center justify-center text-gray-500">
+                                        Performance Index Graph
+                                    </div>
+                                )}
+                            </div>
+                        </div> */}
+
+                        {/* Page Break for longer reports */}
+                        {/* <div className="page-break-after"></div> */}
+
+                        {/* Co-Scholastic Activities */}
+                        {/* <div className="mb-6 mt-8">
+                            <h4 className="text-center font-bold underline mb-4">CO-SCHOLASTIC ACTIVITIES</h4>
+                            {report.activity_main_list_area?.map((acti, i) => (
+                                <div key={i} className="mb-4">
+                                    <h5 className="text-center font-bold mb-2">{acti.ECACT_SkillName}</h5>
+                                    <table className="table-custom">
+                                        <thead>
+                                            <tr className="bg-gray font-bold">
+                                                <th className="text-left pl-4">Particulars</th>
+                                                <th>Grade</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {report.getstudentwiseactiviteslist
+                                                ?.filter((grade: any) => grade.ECACT_Id === acti.ECACT_Id)
+                                                .map((grade: any, j: number) => (
+                                                    <tr key={j}>
+                                                        <td className="text-left pl-4 font-bold">{grade.ECACTA_SkillArea}</td>
+                                                        <td>{grade.EMGD_Name}</td>
+                                                    </tr>
+                                                ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ))}
+                        </div> */}
+
+                        {/* Health Status */}
+                        {/* <div className="mb-6">
+                            <h4 className="text-center font-bold underline mb-2">Health Status</h4>
+                            <table className="table-custom">
+                                <thead>
+                                    <tr className="font-bold">
+                                        <th>Height (in cm)</th>
+                                        <th>Weight (in Kg)</th>
+                                        <th>Blood Group</th>
+                                        <th>Dental Hygiene</th>
+                                        <th>Vision (Right & Left)</th>
                                     </tr>
+                                </thead>
+                                <tbody>
+                                    {report.strudentwisedentalandvision?.map((hv: any, i: number) => (
+                                        <tr key={i}>
+                                            <td>{hv.SPCCSHW_Height}</td>
+                                            <td>{hv.SPCCSHW_Weight}</td>
+                                            <td>{hv.AMST_BloodGroup}</td>
+                                            <td>{hv.HMDNHY_DentalHygiene}</td>
+                                            <td>{hv.HMVSN_VisionHygiene}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div> */}
+
+                        {/* Attendance Details */}
+                        {/* <div className="mb-8">
+                            <h4 className="text-center font-bold underline mb-2 uppercase">Attendance Details</h4>
+                            <table className="table-custom">
+                                <tbody>
                                     <tr>
-                                        <td className='py-1 font-bold'>Grade</td>
-                                        <td className='py-1'>
-                                            :{' '}
-                                            <strong>
-                                                {headerInfo.cla} {headerInfo.sec}
-                                            </strong>
+                                        <th className="bg-gray text-center font-bold">Total number of <br /> working days</th>
+                                        <td style={{ width: '100px' }} className="font-bold">
+                                            {report.stud_work_attendence?.[0]?.TotalSchoolDays || ''}
                                         </td>
-                                    </tr>
-                                    <tr>
-                                        <td className='py-1 font-bold'>Roll No</td>
-                                        <td className='py-1'>
-                                            : <strong>{report.amaY_RollNo ?? 'N/A'}</strong>
+                                        <th className="bg-gray text-center font-bold">Number of days <br /> attended</th>
+                                        <td style={{ width: '100px' }} className="font-bold">
+                                            {report.stud_present_attendence?.[0]?.TotalPresentDays || ''}
                                         </td>
-                                    </tr>
-                                    <tr>
-                                        <td className='py-1 font-bold'>Date Of Birth</td>
-                                        <td className='py-1'>
-                                            : <strong>{formatDate(report.amsT_DOB)}</strong>
+                                        <th className="bg-gray text-center font-bold">Attendance <br /> Percentage</th>
+                                        <td style={{ width: '100px' }} className="font-bold">
+                                            {report.stud_present_attendence?.[0]?.Total_Percentage || ''}
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
-                        </div>
+                        </div> */}
 
-                        {/* Exam Title */}
-                        <div className='my-6 text-center'>
-                            <h3 className='font-bold text-xl leading-6'>
-                                {examName} - {year} <br />
-                                <br />
-                                STATEMENT OF MARKS & GRADE
-                            </h3>
-                        </div>
-
-                        {/* Marks Table */}
-                        <table className='table-bordered w-full text-center text-sm'>
-                            <thead>
-                                <tr>
-                                    <th colSpan={6} className='bg-[#c6dff7] text-left'>
-                                        PART -1 : Academic Performance : Scholastic Areas
-                                    </th>
-                                </tr>
-                                <tr>
-                                    <th rowSpan={2}>SL No</th>
-                                    <th colSpan={2} rowSpan={2}>
-                                        Subjects
-                                    </th>
-                                    <th colSpan={3}>{examCode}</th>
-                                </tr>
-                                <tr>
-                                    <th>Max Marks</th>
-                                    <th>Obtained Marks</th>
-                                    <th>Grade</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {resultSubjects.map((subj, i) => {
-                                    const mark = report.sub_list.find((m) => m.ismS_Id === subj.ismS_Id);
-                                    const isAbsent = mark?.estmpS_PassFailFlg === 'AB';
-                                    const showMarks = subj.eyceS_MarksDisplayFlg;
-                                    const showGrade = subj.eyceS_GradeDisplayFlg;
-
-                                    return (
-                                        <tr key={subj.ismS_Id}>
-                                            <td>{i + 1}</td>
-                                            <td colSpan={2} className='pl-4 text-left'>
-                                                {subj.ismS_SubjectName}
-                                            </td>
-                                            <td className='bg-[#c6dff7]'>{mark?.estmpS_MaxMarks ?? '-'}</td>
-                                            <td className='bg-[#c6dff7]'>
-                                                {isAbsent ? 'AB' : showMarks ? (mark?.estmpS_ObtainedMarks ?? '-') : '-'}
-                                            </td>
-                                            <td className='bg-[#c6dff7]'>
-                                                {isAbsent ? 'AB' : showGrade ? (mark?.estmpS_ObtainedGrade ?? '-') : '-'}
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-
-                                {/* Total Rows */}
-                                <tr>
-                                    <th colSpan={4} className='bg-[#c6dff7] text-right'>
-                                        TOTAL
-                                    </th>
-                                    <th colSpan={2} className='bg-[#c6dff7]'>
-                                        {report.estmP_TotalMaxMarks ?? '-'}
-                                    </th>
-                                </tr>
-                                <tr>
-                                    <th colSpan={4} className='bg-[#c6dff7] text-right'>
-                                        OBTAINED
-                                    </th>
-                                    <th colSpan={2} className='bg-[#c6dff7]'>
-                                        {report.estmP_TotalObtMarks ?? '-'}
-                                    </th>
-                                </tr>
-                                <tr>
-                                    <th colSpan={4} className='bg-[#c6dff7] text-right'>
-                                        PERCENTAGE
-                                    </th>
-                                    <th colSpan={2} className='bg-[#c6dff7]'>
-                                        {report.estmP_Percentage != null ? `${report.estmP_Percentage} %` : '-'}
-                                    </th>
-                                </tr>
-                                <tr>
-                                    <th colSpan={4} className='bg-[#c6dff7] text-right'>
-                                        OVERALL GRADE
-                                    </th>
-                                    <th colSpan={2} className='bg-[#c6dff7]'>
-                                        {report.estmP_TotalGrade ?? '-'}
-                                    </th>
-                                </tr>
-                                <tr>
-                                    <td colSpan={6} className='h-20 pl-4 text-left align-top'>
-                                        <strong>Remarks :</strong>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-
-                        {/* Grading Scale */}
-                        <div className='my-6 text-center font-bold text-sm'>
-                            Grading: A+={' > '}=90% to 100%, A={' > '}=80% to 89%, B+={' > '}=70% to 79%, B={' > '}=60% to 69%, C={' > '}
-                            =40% to 59%, D={' > '}=0% to 39%
-                        </div>
-
-                        {/* Signatures */}
-                        <div className='mt-12 grid grid-cols-3 text-center text-sm'>
-                            <div>
-                                <div className='mx-auto h-16 w-32 border-black border-t' />
-                                <p>Class Teacher Signature</p>
+                        {/* Signatures Section */}
+                        <div className="mt-20">
+                            <div className="grid grid-cols-3 gap-4 mb-4">
+                                <div className="text-left">
+                                    <img src="https://dcampusstrg.blob.core.windows.net/files/17/NAACDocumentsUpload/7ca4aa81-6797-481d-aa9e-c2ae85080ed8.jpg" alt="Principal Signature" style={{ width: '150px' }} />
+                                </div>
+                                <div></div>
+                                <div></div>
                             </div>
-                            <div>
-                                <Image
-                                    src='https://dcampusstrg.blob.core.windows.net/files/17/NAACDocumentsUpload/5176b5e3-d100-4fb0-92fc-2fcc2b902ae2.jpg'
-                                    alt='Principal'
-                                    width={120}
-                                    height={80}
-                                    className='-mt-12 mx-auto'
-                                    unoptimized
-                                />
-                                <p>Principal Signature</p>
-                            </div>
-                            <div>
-                                <div className='mx-auto h-16 w-32 border-black border-t' />
-                                <p>Parent Signature</p>
+                            <div className="grid grid-cols-3 gap-4 text-sm">
+                                <div className="text-left font-bold pl-4">Principal’s Signature</div>
+                                <div className="text-center font-bold">Institution Seal</div>
+                                <div className="text-right pr-4">
+                                    <span className="font-bold">Class Teacher’s Signature</span><br />
+                                    <span className="font-bold">Date: {new Date().toLocaleDateString('en-GB')}</span>
+                                </div>
                             </div>
                         </div>
+
+                        {/* Final Page Break */}
+                        {index < reportData.length - 1 && <div className="page-break-after"></div>}
                     </div>
                 ))}
             </div>
