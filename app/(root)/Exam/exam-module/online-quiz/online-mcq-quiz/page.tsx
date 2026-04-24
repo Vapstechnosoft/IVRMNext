@@ -125,9 +125,9 @@ export default function OnlineMcqQuizPage() {
         const calculateStats = async () => {
             if (publishedQuizzes.length === 0) {
                 setDashboardStats({
-                    activeQuizzes: '00',
-                    totalSubmissions: '0',
-                    averageScore: '0%'
+                    activeQuizzes: 0,
+                    totalSubmissions: 0,
+                    averageScore: 0
                 });
                 return;
             }
