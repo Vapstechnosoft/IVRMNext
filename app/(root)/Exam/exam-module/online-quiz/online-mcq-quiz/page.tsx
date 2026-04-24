@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
 import { BarChart3, CheckCircle2, FileText, Plus, Sparkles, Trophy, Upload, Wand2, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import CountUp from 'react-countup';
 import { toast } from 'sonner';
 
 export default function OnlineMcqQuizPage() {
@@ -107,12 +108,71 @@ export default function OnlineMcqQuizPage() {
     const [publishedQuizzes, setPublishedQuizzes] = useState<any[]>([]);
     const [selectedAnalytics, setSelectedAnalytics] = useState<any>(null);
     const [_isLoadingAnalytics, setIsLoadingAnalytics] = useState(false);
+    const [dashboardStats, setDashboardStats] = useState({
+        activeQuizzes: 0,
+        totalSubmissions: 0,
+        averageScore: 0
+    });
 
     // Initial load from local storage
     useEffect(() => {
         const saved = localStorage.getItem('ai_published_quizzes');
         if (saved) setPublishedQuizzes(JSON.parse(saved));
     }, []);
+
+    // Calculate Dynamic Stats
+    useEffect(() => {
+        const calculateStats = async () => {
+            if (publishedQuizzes.length === 0) {
+                setDashboardStats({
+                    activeQuizzes: '00',
+                    totalSubmissions: '0',
+                    averageScore: '0%'
+                });
+                return;
+            }
+
+            try {
+                let totalSubmissions = 0;
+                let totalScoreSum = 0;
+                let quizzesWithAttempts = 0;
+
+                // Fetch analytics for each quiz to aggregate
+                // In a production app, this should be a single bulk API call
+                const analyticsPromises = publishedQuizzes.map(quiz =>
+                    fetch(`/api/exam/teacher-analytics/${quiz.id}`)
+                        .then(res => res.ok ? res.json() : null)
+                        .catch(() => null)
+                );
+
+                const results = await Promise.all(analyticsPromises);
+
+                results.forEach(data => {
+                    if (data && typeof data.attempts === 'number') {
+                        totalSubmissions += data.attempts;
+                        if (data.attempts > 0 && typeof data.average_score === 'number') {
+                            totalScoreSum += data.average_score;
+                            quizzesWithAttempts++;
+                        }
+                    }
+                });
+
+                const avgScore = quizzesWithAttempts > 0 
+                    ? Math.round(totalScoreSum / quizzesWithAttempts) 
+                    : 0;
+
+                setDashboardStats({
+                    activeQuizzes: publishedQuizzes.length,
+                    totalSubmissions: totalSubmissions,
+                    averageScore: avgScore
+                });
+            } catch (error) {
+                console.error("Error calculating dashboard stats:", error);
+            }
+        };
+
+        calculateStats();
+    }, [publishedQuizzes]);
 
     const handleFinalSend = async () => {
         if (!publishConfig.targetClass || !publishConfig.targetSection) {
@@ -341,9 +401,9 @@ export default function OnlineMcqQuizPage() {
                             {/* Stats Grid */}
                             <div className='grid grid-cols-1 gap-6 md:grid-cols-3'>
                                 {[
-                                    { label: 'Active Quizzes', value: publishedQuizzes.length.toString().padStart(2, '0'), icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-50' },
-                                    { label: 'Total Submissions', value: '450', icon: BarChart3, color: 'text-blue-500', bg: 'bg-blue-50' },
-                                    { label: 'Average Class Score', value: '78%', icon: Sparkles, color: 'text-orange-500', bg: 'bg-orange-50' },
+                                    { label: 'Active Quizzes', value: dashboardStats.activeQuizzes, icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-50', suffix: '' },
+                                    { label: 'Total Submissions', value: dashboardStats.totalSubmissions, icon: BarChart3, color: 'text-blue-500', bg: 'bg-blue-50', suffix: '' },
+                                    { label: 'Average Class Score', value: dashboardStats.averageScore, icon: Sparkles, color: 'text-orange-500', bg: 'bg-orange-50', suffix: '%' },
                                 ].map((stat, idx) => (
                                     <Card key={idx} className='group overflow-hidden rounded-[2rem] border-none bg-white shadow-sm transition-all duration-500 hover:shadow-xl'>
                                         <CardContent className="p-8">
@@ -353,7 +413,9 @@ export default function OnlineMcqQuizPage() {
                                                 </div>
                                                 <div>
                                                     <p className='font-black text-[11px] text-slate-400 uppercase tracking-[0.2em]'>{stat.label}</p>
-                                                    <p className='font-black text-3xl text-slate-800 tracking-tight'>{stat.value}</p>
+                                                    <p className='font-black text-3xl text-slate-800 tracking-tight'>
+                                                        <CountUp end={stat.value} duration={2} suffix={stat.suffix} preserveValue={true} />
+                                                    </p>
                                                 </div>
                                             </div>
                                         </CardContent>
