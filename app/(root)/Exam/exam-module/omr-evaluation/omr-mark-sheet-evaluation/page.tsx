@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { evaluateOmr, validateOmrMarkings } from '@/server/omr-evaluation';
+import { evaluateOmr } from '@/server/omr-evaluation';
 import { ClipboardCheck, Download, Eye, FileText, PlayCircle, Trash2, Upload } from 'lucide-react';
 import Script from 'next/script';
 import { useState } from 'react';
@@ -133,17 +133,6 @@ export default function OmrMarkSheetEvaluationPage() {
                 toast.error('The Student Sheet and Answer Key appear to be the same image. Please provide different sheets.');
                 setIsEvaluating(false);
                 return;
-            }
-
-            // AI Pre-check for marking styles (ticks, crosses, etc.)
-            const validation = await validateOmrMarkings(studentInfo.file);
-            if (!validation.isValidStyle) {
-                toast.error(
-                    'The answered format has varied items (e.g., tick marks detected). These will be considered invalid during processing.',
-                    {
-                        duration: 10000
-                    }
-                );
             }
 
             toast.info('Processing OMR evaluation... this may take a moment.');
@@ -332,7 +321,7 @@ export default function OmrMarkSheetEvaluationPage() {
                             </CardHeader>
                             <CardContent className='relative flex-1 p-0'>
                                 {pdfUrl ? (
-                                    <iframe src={`${pdfUrl}#toolbar=0`} className='h-full w-full border-none' title='Evaluation Result' />
+                                    <iframe src={`${pdfUrl}`} className='h-full w-full border-none rounded-b-[2rem]' title='Evaluation Result' />
                                 ) : (
                                     <div className='flex h-full flex-col items-center justify-center p-12 text-center'>
                                         <div className='mb-6 flex h-24 w-24 animate-pulse items-center justify-center rounded-[2rem] bg-slate-800'>
