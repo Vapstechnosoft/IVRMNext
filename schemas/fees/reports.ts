@@ -765,3 +765,13 @@ export const feeDemandRegisterReportGMVPSSchema = z.object({
     thirdPartyTrans: z.boolean().default(false),
     pdaTrans: z.boolean().default(false)
 });
+
+export const feeChequeBounceSchema = z.object({
+    asmaY_Id: z.number({ required_error: 'Academic Year is required' }),
+    asmcL_Id: z.number({ required_error: 'Class is required' }),
+    asmS_Id: z.number({ required_error: 'Section is required' }),
+    amst_Id: z.number({ required_error: 'Student is required' }),
+    FYP_ID: z.string().min(1, 'Receipt No is required'),
+    FCB_DATE: z.date({ required_error: 'Date is required' }),
+    FCB_Remarks: z.string().optional()
+});
