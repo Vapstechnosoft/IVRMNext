@@ -285,7 +285,8 @@ export const FEES_QUERY_KEYS = {
     FEE_FEE_RECEIPT_REPORT_LOGO: 'fee_fee_receipt_report_logo',
     FEE_CATEGORY_DROPDOWNS: 'fee_category_dropdown',
     FEE_STUDENT_DROPDOWNS: 'fee_student_dropdown',
-    FEE_HEAD_DROPDOWNS: 'fee_head_dropdown'
+    FEE_HEAD_DROPDOWNS: 'fee_head_dropdown',
+    FEE_USER_WISE_DAILY_COLLECTION_REPORT: 'fee_user_wise_daily_collection_report'
 };
 
 export const EXAM_QUERY_KEYS = {
@@ -350,7 +351,9 @@ export const EXAM_QUERY_KEYS = {
     PROMOTIONAL_SETTING_GRID: 'promotional-setting-grid',
     PROMOTIONAL_SETTING_DETAILS: 'promotional-setting-details',
     PROMOTIONAL_GROUP_DETAILS: 'promotional-group-details',
-    PROMOTIONAL_GROUP_MAPPED_EXAMS_DETAILS: 'promotional-group-mapped-exams-details'
+    PROMOTIONAL_GROUP_MAPPED_EXAMS_DETAILS: 'promotional-group-mapped-exams-details',
+    EXAM_TT_SESSION_MASTER: 'exam_tt_session_master',
+    EXAM_TT_TRANS_SETTINGS: 'exam_tt_trans_settings'
 };
 
 export const HRMS_QUERY_KEYS = {

@@ -569,3 +569,22 @@ export interface IFeeTrailAuditReportforExcel {
     fmG_GroupName: string;
     amaY_RollNo: string;
 }
+
+export interface FeeUserWiseDailyCollectionData {
+    studentName: string;
+    admissionNo: string;
+    className: string;
+    sectionName: string;
+    date: string;
+    modeOfPayment: string;
+    bankName: string;
+    ddOrChequeNo: string;
+    amount: number;
+    receiptNo: string;
+    generatedBy: string;
+    fmhFeeName: string;
+    fmgGroupName: string;
+    userId: string;
+    totalAmount: number;
+    receiptCount: number;
+}

@@ -38,6 +38,9 @@ export default function DanvantariTransferCertificatePage() {
     const [semesterId, setSemesterId] = useState<number | null>(null);
     const [studentId, setStudentId] = useState<number | null>(null);
     const [selectedStudentName, setSelectedStudentName] = useState<string>('');
+    const [sectionId, setSectionId] = useState<number>(0);
+    const [admNo, setAdmNo] = useState<string>('');
+    const [miId, setMiId] = useState<number>(30);
 
     // Filter lists
     const [courseList, setCourseList] = useState<any[]>([]);
@@ -99,6 +102,9 @@ export default function DanvantariTransferCertificatePage() {
         setSemesterId(null);
         setStudentId(null);
         setSelectedStudentName('');
+        setSectionId(0);
+        setAdmNo('');
+        setMiId(30);
         setCourseList([]);
         setBranchList([]);
         setSemesterList([]);
@@ -218,12 +224,38 @@ export default function DanvantariTransferCertificatePage() {
             const res = await reportMutation.mutateAsync({
                 ASMAY_Id: academicYearId,
                 AMCST_Id: studentId,
+                AMCO_Id: courseId || 0,
+                AMB_Id: branchId || 0,
+                AMSE_Id: semesterId || 0,
+                ACMS_Id: sectionId || 1,
+                miId: miId,
+                admNo: admNo,
+                studentName: selectedStudentName,
                 tctemporper: tctempper
             });
-            const data = (res as any)?.data || res;
 
-            if ((data?.getstudentdetails?.length > 0) || (data?.getstudentlist?.length > 0)) {
-                setReportData(data);
+            console.log("res", res);
+            const data = (res as any)?.data || res;
+            console.log("data", data);
+            console.log("data keys", Object.keys(data || {}));
+
+            if (res && (res as any).success === false) {
+                toast.error((res as any).message || 'Error from server');
+                return;
+            }
+
+            // Extract students list from various possible structures
+            let students = [];
+            if (Array.isArray(data)) {
+                students = data;
+            } else if (data) {
+                students = data.getstudentdetails || data.getstudentlist || data.getreport || data.getstudent || [];
+            }
+
+            if (students && students.length > 0) {
+                // Wrap in expected structure if it was a plain array
+                const finalReportData = Array.isArray(data) ? { getstudentdetails: data } : data;
+                setReportData(finalReportData);
                 setShowReport(true);
                 toast.success('Report generated successfully');
             } else {
@@ -231,6 +263,7 @@ export default function DanvantariTransferCertificatePage() {
                 setShowReport(false);
             }
         } catch (error) {
+            console.error('Error generating report:', error);
             toast.error('Error generating report');
         }
     };
@@ -242,6 +275,7 @@ export default function DanvantariTransferCertificatePage() {
         setSemesterId(null);
         setStudentId(null);
         setSelectedStudentName('');
+        setSectionId(0);
         setCourseList([]);
         setBranchList([]);
         setSemesterList([]);
@@ -437,8 +471,14 @@ export default function DanvantariTransferCertificatePage() {
                                                             onSelect={() => {
                                                                 const id = s.amcsT_Id || s.AMCST_Id || s.AMST_Id;
                                                                 const name = s.studentName || s.studentname || "Selected Student";
+                                                                const sid = s.acmS_Id || s.ACMS_Id || 1;
+                                                                const admNo = s.amsT_AdmNo || s.AMST_AdmNo || "";
+                                                                const miid = s.mI_Id || s.mi_Id || 30;
                                                                 setStudentId(id);
                                                                 setSelectedStudentName(name);
+                                                                setSectionId(sid);
+                                                                setAdmNo(admNo);
+                                                                setMiId(miid);
                                                                 setStudentOpen(false);
                                                             }}
                                                             className="flex items-center justify-between"
@@ -550,79 +590,79 @@ export default function DanvantariTransferCertificatePage() {
                                     {/* Row 1 */}
                                     <div className="flex items-center gap-2">
                                         <div className="flex-shrink-0 w-[180px]">1. Admission No :</div>
-                                        <div className="flex-grow border-b border-black px-2 pb-0.5" contentEditable>{student.AMCST_AdmNo}</div>
+                                        <div className="flex-grow border-b border-black px-2 pb-0.5" contentEditable suppressContentEditableWarning={true}>{student.AMCST_AdmNo}</div>
                                         <div className="flex-shrink-0 w-[100px] text-right">H.T.No :</div>
-                                        <div className="flex-grow border-b border-black px-2 pb-0.5" contentEditable>{hallTicketNo}</div>
+                                        <div className="flex-grow border-b border-black px-2 pb-0.5" contentEditable suppressContentEditableWarning={true}>{hallTicketNo}</div>
                                     </div>
 
                                     {/* Row 2 */}
                                     <div className="flex items-center gap-2">
                                         <div className="flex-shrink-0 w-[180px]">2. Course Admitted :</div>
-                                        <div className="flex-grow border-b border-black px-2 pb-0.5" contentEditable>{student.coursename}</div>
+                                        <div className="flex-grow border-b border-black px-2 pb-0.5" contentEditable suppressContentEditableWarning={true}>{student.coursename}</div>
                                     </div>
 
                                     {/* Row 3 */}
                                     <div className="flex items-center gap-2">
                                         <div className="flex-shrink-0 w-[240px]">3. Name of the Student (as per SSC) :</div>
-                                        <div className="flex-grow border-b border-black px-2 pb-0.5 uppercase" contentEditable>{student.studentname}</div>
+                                        <div className="flex-grow border-b border-black px-2 pb-0.5 uppercase" contentEditable suppressContentEditableWarning={true}>{student.studentname}</div>
                                     </div>
 
                                     {/* Row 4 */}
                                     <div className="flex items-center gap-2">
                                         <div className="flex-shrink-0 w-[190px]">4. Name of the Father :</div>
-                                        <div className="flex-grow border-b border-black px-2 pb-0.5 uppercase" contentEditable>{student.AMCST_FatherName}</div>
+                                        <div className="flex-grow border-b border-black px-2 pb-0.5 uppercase" contentEditable suppressContentEditableWarning={true}>{student.AMCST_FatherName}</div>
                                     </div>
 
                                     {/* Row 5 */}
                                     <div className="flex items-center gap-2">
                                         <div className="flex-shrink-0 w-[160px]">5. Date of Birth :</div>
-                                        <div className="flex-grow border-b border-black px-2 pb-0.5" contentEditable>{student.AMCST_DOB ? format(new Date(student.AMCST_DOB), 'dd/MM/yyyy') : ''}</div>
+                                        <div className="flex-grow border-b border-black px-2 pb-0.5" contentEditable suppressContentEditableWarning={true}>{student.AMCST_DOB ? format(new Date(student.AMCST_DOB), 'dd/MM/yyyy') : ''}</div>
                                     </div>
 
                                     {/* Row 6 */}
                                     <div className="flex items-center gap-2">
                                         <div className="flex-shrink-0 w-[180px]">6. Identification Marks :</div>
-                                        <div className="flex-grow border-b border-black px-2 pb-0.5 uppercase" contentEditable>{identificationMarks}</div>
+                                        <div className="flex-grow border-b border-black px-2 pb-0.5 uppercase" contentEditable suppressContentEditableWarning={true}>{identificationMarks}</div>
                                     </div>
 
                                     {/* Row 7 */}
                                     <div className="flex items-center gap-4">
                                         <div className="flex items-center gap-2 flex-grow">
                                             <div className="flex-shrink-0">7. Nationality :</div>
-                                            <div className="flex-grow border-b border-black px-2 pb-0.5 text-center" contentEditable>{student.nationality}</div>
+                                            <div className="flex-grow border-b border-black px-2 pb-0.5 text-center" contentEditable suppressContentEditableWarning={true}>{student.nationality}</div>
                                         </div>
                                         <div className="flex items-center gap-2 flex-grow">
                                             <div className="flex-shrink-0">Religion :</div>
-                                            <div className="flex-grow border-b border-black px-2 pb-0.5 text-center" contentEditable>{student.religion}</div>
+                                            <div className="flex-grow border-b border-black px-2 pb-0.5 text-center" contentEditable suppressContentEditableWarning={true}>{student.religion}</div>
                                         </div>
                                         <div className="flex items-center gap-2 flex-grow">
                                             <div className="flex-shrink-0">Caste :</div>
-                                            <div className="flex-grow border-b border-black px-2 pb-0.5 text-center" contentEditable>{student.caste}</div>
+                                            <div className="flex-grow border-b border-black px-2 pb-0.5 text-center" contentEditable suppressContentEditableWarning={true}>{student.caste}</div>
                                         </div>
                                     </div>
 
                                     {/* Row 8 */}
                                     <div className="flex items-start gap-2">
                                         <div className="flex-shrink-0 w-[420px]">8. Class Studying at the time of leaving the institution :</div>
-                                        <div className="flex-grow border-b border-black px-2 pb-0.5" contentEditable>{student.CurrentSemStudying}</div>
+                                        <div className="flex-grow border-b border-black px-2 pb-0.5" contentEditable suppressContentEditableWarning={true}>{student.CurrentSemStudying}</div>
                                     </div>
 
                                     {/* Row 9 */}
                                     <div className="flex items-center gap-2">
                                         <div className="flex-shrink-0 w-[240px]">9. Reason for leaving institution :</div>
-                                        <div className="flex-grow border-b border-black px-2 pb-0.5" contentEditable>{reasonForLeaving}</div>
+                                        <div className="flex-grow border-b border-black px-2 pb-0.5" contentEditable suppressContentEditableWarning={true}>{reasonForLeaving}</div>
                                     </div>
 
                                     {/* Row 10 */}
                                     <div className="flex items-center gap-2">
                                         <div className="flex-shrink-0 w-[140px]">10. T.C. issue on :</div>
-                                        <div className="flex-grow border-b border-black px-2 pb-0.5" contentEditable>{format(new Date(), 'dd/MM/yyyy')}</div>
+                                        <div className="flex-grow border-b border-black px-2 pb-0.5" contentEditable suppressContentEditableWarning={true}>{format(new Date(), 'dd/MM/yyyy')}</div>
                                     </div>
 
                                     {/* Row 11 */}
                                     <div className="flex items-center gap-2">
                                         <div className="flex-shrink-0 w-[240px]">11. Conduct of the Student :</div>
-                                        <div className="flex-grow border-b border-black px-2 pb-0.5" contentEditable>{student.ACSTC_Conduct}</div>
+                                        <div className="flex-grow border-b border-black px-2 pb-0.5" contentEditable suppressContentEditableWarning={true}>{student.ACSTC_Conduct}</div>
                                     </div>
                                 </div>
 
