@@ -8,7 +8,9 @@ import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
+import { Checkbox } from '@/components/ui/checkbox';
 import { FormError } from '@/components/ui/extension/field';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Input } from '@/components/ui/input';
 import { feeClassWiseDueListReportSophia } from '@/schemas/fees/reports';
 import { feeClassWiseDueListreportSophia } from '@/server/fees/reports/sophia_reports';
@@ -26,6 +28,19 @@ interface IAcademicYear {
     asmaY_Id: string | number;
     asmaY_Year: string;
     asmaY_Order?: number;
+}
+
+export interface IFeeClassWiseDueListReportofSophia {
+    id: number;
+    studentName: string;
+    amsT_AdmNo: string;
+    asmcL_ClassName: string;
+    asmcL_Id: number;
+    fmT_Name: string;
+    balance: number;
+    fine: number;
+    fine_calc: number;
+    totalDue: number;
 }
 
 export default function FeeClassWiseDueListReportofSophia() {
@@ -52,17 +67,19 @@ export default function FeeClassWiseDueListReportofSophia() {
             toDate: format(new Date(), 'yyyy-MM-dd')
         }
     });
-
     const classWiseChecked = watch('classwise');
     const dateWiseChecked = watch('dateWise');
     const termWiseChecked = watch('termWise');
-    // const selectedClassId = watch("classId");
+    const selectedClassId = watch('classId');
+    const selctedAcademicYearId = watch('academicYearId');
+    const selectedTermId = watch('termId');
+    const selectedSectionId = watch('sectionId');
 
     const [academicYears, setAcademicYears] = useState<IAcademicYear[]>([]);
     const [classes, setClasses] = useState<IFeeClassDropdownList[]>([]);
     const [sections, setSections] = useState<IFeeSectionDropdownList[]>([]);
-    const [reportData, setReportData] = useState<any[]>([]);
-    const [showReport, setShowReport] = useState(false);
+    const [reportData, setReportData] = useState<IFeeClassWiseDueListReportofSophia[]>([]);
+    const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
     const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
 
@@ -110,12 +127,16 @@ export default function FeeClassWiseDueListReportofSophia() {
         }
     }, [sectionListResponse, sectionListError]);
 
+    useEffect(() => {
+        setReportData([]);
+    }, [selctedAcademicYearId, selectedClassId, selectedSectionId, selectedTermId, classWiseChecked, dateWiseChecked, termWiseChecked]);
+
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
+        setReportData([]);
         if (data.active === false && data.deactive === false && data.left === false) {
             toast.error('Please Select Any One CheckBox Active or Deactive or Left ..');
             return;
         }
-        setShowReport(false);
         try {
             const payload = {
                 classlist: data.classwise === true ? [data.classId] : [],
@@ -137,16 +158,23 @@ export default function FeeClassWiseDueListReportofSophia() {
             const responseJson = typeof apiData === 'string' ? JSON.parse(apiData) : apiData;
             if (responseJson?.data) {
                 setReportData(responseJson.data);
-                setShowReport(true);
                 toast.success('Report Generated Successfully');
             }
         } catch (error: any) {
             console.error('Error generating report:', error);
             toast.error(error.message || 'Failed to generate report');
-            setShowReport(false);
         }
     };
-
+    const toggleAllstudents = () => {
+        if (selectedIds.length === reportData.length) {
+            setSelectedIds([]);
+        } else {
+            setSelectedIds(reportData.map((r) => r.id));
+        }
+    };
+    const toggleRow = (id: number) => {
+        setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+    };
     return (
         <div className='min-h-screen bg-gray-50 py-8'>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-8'>
@@ -474,6 +502,125 @@ export default function FeeClassWiseDueListReportofSophia() {
                                             {isSubmitting ? 'Generating...' : 'Report'}
                                         </Button>
                                     </div>
+                                    {reportData.length > 0 && (
+                                        <div className='mt-10'>
+                                            {/* Loading State */}
+                                            <CollapsibleSection
+                                                defaultOpen={true}
+                                                variant='default'
+                                                size='lg'
+                                                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                                                <div className='flex items-center justify-between border-b bg-primary/5 px-8 py-6'>
+                                                    <div className='mb-6 text-center'>
+                                                        <h2 className='font-bold text-2xl text-primary'>Fee Class Wise Due Report</h2>
+                                                    </div>
+                                                    <div className='flex gap-3'>
+                                                        <div className='mb-4 flex justify-end gap-2'>
+                                                            <Button
+                                                                size='sm'
+                                                                className='h-8 w-auto px-3 text-xs'
+                                                                // onClick={handleExportExcel}
+                                                            >
+                                                                Export Excel
+                                                            </Button>
+
+                                                            <Button
+                                                                size='sm'
+                                                                variant='outline'
+                                                                className='h-8 w-auto px-3 text-xs'
+                                                                // onClick={handlePrint}
+                                                            >
+                                                                Print
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    {/* Table */}
+                                                    <div className='overflow-x-auto px-8 pb-8'>
+                                                        <table className='w-full border-collapse border border-gray-300 text-sm'>
+                                                            <thead className='bg-primary text-white'>
+                                                                <tr>
+                                                                    <th className='p-2 text-center'>
+                                                                        <Checkbox
+                                                                            checked={
+                                                                                selectedIds.length === reportData.length &&
+                                                                                reportData.length > 0
+                                                                            }
+                                                                            onCheckedChange={toggleAllstudents}
+                                                                        />
+                                                                    </th>
+                                                                    <th className='border px-2 py-2 text-center font-semibold'>Sl No</th>
+                                                                    <th className='border px-2 py-2 text-center font-semibold'>
+                                                                        Admission No
+                                                                    </th>
+                                                                    <th className='border px-2 py-2 text-center font-semibold'>
+                                                                        StudentName
+                                                                    </th>
+                                                                    <th className='border px-2 py-2 text-center font-semibold'>Term</th>
+                                                                    <th className='border px-2 py-2 text-center font-semibold'>
+                                                                        Due amount till{' '}
+                                                                        {new Date().toLocaleDateString('en-GB', {
+                                                                            day: '2-digit',
+                                                                            month: 'short',
+                                                                            year: 'numeric'
+                                                                        })}
+                                                                    </th>
+                                                                    <th className='border px-2 py-2 text-center font-semibold'>
+                                                                        Fine amount till{' '}
+                                                                        {new Date().toLocaleDateString('en-GB', {
+                                                                            day: '2-digit',
+                                                                            month: 'short',
+                                                                            year: 'numeric'
+                                                                        })}
+                                                                    </th>
+                                                                    <th className='border px-2 py-2 text-center font-semibold'>
+                                                                        Total due amount{' '}
+                                                                        {new Date().toLocaleDateString('en-GB', {
+                                                                            day: '2-digit',
+                                                                            month: 'short',
+                                                                            year: 'numeric'
+                                                                        })}
+                                                                    </th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {reportData.map((row, index) => (
+                                                                    <tr
+                                                                        key={row.id}
+                                                                        className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                                                                        <td className='p-2 text-center'>
+                                                                            <Checkbox
+                                                                                checked={selectedIds.includes(row.id)}
+                                                                                onCheckedChange={() => toggleRow(row.id)}
+                                                                            />
+                                                                        </td>
+                                                                        <td className='border px-2 py-2 text-center'>{index + 1}</td>
+                                                                        <td className='border px-2 py-2 text-left'>{row.amsT_AdmNo}</td>
+                                                                        <td className='border px-2 py-2 text-right'>
+                                                                            {row.studentName || '-'}
+                                                                        </td>
+                                                                        <td className='border px-2 py-2 text-right'>
+                                                                            {row.fmT_Name?.toLocaleString() || '-'}
+                                                                        </td>
+                                                                        <td className='border px-2 py-2 text-right'>
+                                                                            {row.balance?.toLocaleString() || '-'}
+                                                                        </td>
+                                                                        <td className='border px-2 py-2 text-right'>
+                                                                            {row.fine?.toLocaleString() || '-'}
+                                                                        </td>
+                                                                        <td className='border px-2 py-2 text-right'>
+                                                                            {row.totalDue?.toLocaleString() || '-'}
+                                                                        </td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </CollapsibleSection>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -481,14 +628,14 @@ export default function FeeClassWiseDueListReportofSophia() {
                 </div>
             </form>
 
-            {showReport && reportData.length > 0 && (
+            {/* {showReport && reportData.length > 0 && (
                 <div className='mx-auto mt-8 max-w-7xl'>
                     <Card className='border-0 p-6 shadow-xl'>
                         <h2 className='mb-4 font-bold text-xl'>Report Results</h2>
                         <pre>{JSON.stringify(reportData, null, 2)}</pre>
                     </Card>
                 </div>
-            )}
+            )} */}
         </div>
     );
 }
