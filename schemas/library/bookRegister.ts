@@ -1,92 +1,81 @@
 import { z } from 'zod';
+import { createStringSchema, deleteIdSchema } from '../validationSchemas';
 
 export const bookRegisterSchema = {
     addOrUpdate: z.object({
-        LMB_Id: z.number().optional(),
+        lmB_Id: z.number().nonnegative().optional(),
         mI_Id: z.number().optional(),
+        lmB_BookTitle: createStringSchema('Book Title', 1, 200),
+        mB_Subtitle: z.string().max(200).optional(),
+        lmC_Id: z.number({ required_error: 'Category is required' }).min(1),
+        lmB_BookType: z.string({ required_error: 'Book Type is required' }).min(1),
+        lmS_Id: z.number({ required_error: 'Subject is required' }).min(1),
+        lmD_Id: z.number({ required_error: 'Department is required' }).min(1),
+        binding_Type: z.string().optional(),
+        lmB_Edition: z.string().optional(),
+        lmB_PublishedYear: z.union([z.string(), z.number()]).refine(val => !!val, 'Published Year is required'),
+        lmB_EntryDate: z.union([z.date(), z.string()]),
+        mB_Call_No: z.string().optional(),
+        lmB_ISBNNo: createStringSchema('ISBN No', 1, 50),
+        lmB_ClassNo: z.string().optional(),
+        lmB_VolNo: z.string().optional(),
+        mB_Pages: z.coerce.number().optional(),
+        invoice_No: z.string().optional(),
+        lmBkf_KeyFactor: z.string().optional(),
+        lmBkf_PageNo: z.coerce.number().optional(),
+        lmB_BookNo: z.string().optional(),
+        lmAL_Id: z.number({ required_error: 'Library is required' }).min(1),
 
-        // Tab 1: Book Details
-        LMB_BookTitle: z.string().min(1, 'Book Title is required'),
-        MB_Subtitle: z.string().optional(),
-        LMC_Id: z.coerce.number().min(1, 'Category is required'),
-        LMB_BookType: z.string().min(1, 'Book Type is required'),
-        LMS_Id: z.coerce.number().min(1, 'Subject is required'),
-        LMD_Id: z.coerce.number().min(1, 'Department is required'),
-        Binding_Type: z.string().optional(),
-        LMB_Edition: z.string().optional(),
-        LMB_PublishedYear: z.string().min(1, 'Published Year is required'),
-        LMB_EntryDate: z.coerce.date({ required_error: 'Entry Date is required' }),
-        MB_Call_No: z.string().optional(),
-        LMB_ISBNNo: z.string().min(1, 'ISBN is required'),
-        LMB_ClassNo: z.string().optional(),
-        LMB_VolNo: z.string().optional(),
-        MB_Pages: z.coerce.number().optional(),
-        Invoice_No: z.string().optional(),
-        LMBKF_KeyFactor: z.string().optional(),
-        LMBKF_PageNo: z.coerce.number().optional(),
-        LMB_BookNo: z.string().optional(),
-        LMAL_Id: z.coerce.number().min(1, 'Library Name is required'),
+        purchase_Date: z.union([z.date(), z.string()]),
+        lmL_Id: z.number({ required_error: 'Language is required' }).min(1),
+        lmB_BillNo: z.string().optional(),
+        voucher_No: z.string().optional(),
+        lmB_PurOrDonated: z.string({ required_error: 'Purchase Type is required' }).min(1),
+        donor_Id: z.string().optional(),
+        lmB_DonorAddress: z.string().optional(),
+        currencyType: z.string().optional(),
+        source_Type: z.string().optional(),
+        lmV_Id: z.number().optional(),
+        mB_Keywords: z.string().optional(),
+        lmP_Id: z.number().optional(),
+        mB_Remarks: z.string().optional(),
+        bibliography_Page: z.string().optional(),
+        index_Page: z.string().optional(),
 
-        // Tab 2: Purchase Details
-        Purchase_Date: z.coerce.date({ required_error: 'Purchase Date is required' }),
-        LML_Id: z.coerce.number().min(1, 'Language is required'),
-        LMB_BillNo: z.string().optional(),
-        Voucher_No: z.string().optional(),
-        LMB_PurOrDonated: z.string().min(1, 'Purchased/Donated is required'),
+        lmAU_Id: z.number().optional(),
+        lmB_AuthorFirstName: z.string().optional(),
+        lmB_AuthorMiddleName: z.string().optional(),
+        lmB_AuthorLastName: z.string().optional(),
 
-        // if Donated
-        Donor_Id: z.string().optional(),
-        LMB_DonorAddress: z.string().optional(),
+        lmbanO_AvialableStatus: z.string().min(1, 'Status is required'),
+        lRM_Id: z.number({ required_error: 'Room is required' }).min(1),
+        lSM_Id: z.number({ required_error: 'Shelf is required' }).min(1),
+        lRAM_Id: z.number({ required_error: 'Rack is required' }).min(1),
+        lmrA_Id: z.number().optional(),
 
-        CurrencyType: z.string().optional(),
-        Source_Type: z.string().optional(),
-        LMV_Id: z.coerce.number().optional(), // Vendor
-        MB_Keywords: z.string().optional(),
-        LMP_Id: z.coerce.number().optional(), // Publisher
-        MB_Remarks: z.string().optional(),
-        Bibliography_Page: z.string().optional(),
-        Index_Page: z.string().optional(),
+        lmB_Price: z.coerce.number().optional(),
+        mB_Disc_Type: z.string().optional(),
+        mB_Discountper: z.coerce.number().optional(),
+        mB_Discount: z.coerce.number().optional(),
+        lmB_NetPrice: z.coerce.number().optional(),
 
-        // Tab 3: Author & Accessories
-        // Author can be selected (Master) or entered manually?
-        // Legacy: 'master_author' checkbox.
-        // We will accept either an ID or string names.
-        LMAU_Id: z.coerce.number().optional(), // Author ID
-        LMB_AuthorFirstName: z.string().optional(),
-        LMB_AuthorMiddleName: z.string().optional(),
-        LMB_AuthorLastName: z.string().optional(),
+        with_Accessories: z.boolean().optional(),
+        lmaC_Id: z.number().optional(),
 
-        LMBANO_AvialableStatus: z.string().min(1, 'Status is required'),
-        LRM_Id: z.coerce.number().min(1, 'Room No is required'),
-        LSM_Id: z.coerce.number().min(1, 'Shelf No is required'),
-        LRAM_Id: z.coerce.number().min(1, 'Rack No is required'),
-        lmrA_Id: z.coerce.number().min(1, 'Rack Name is required'),
-
-        LMB_Price: z.coerce.number().optional(),
-        MB_Disc_Type: z.string().optional(),
-        MB_Discountper: z.coerce.number().optional(),
-        MB_Discount: z.coerce.number().optional(),
-        LMB_NetPrice: z.coerce.number().optional(),
-
-        With_Accessories: z.boolean().optional(),
-        lmaC_Id: z.coerce.number().optional(), // Accessories ID
-
-        // Accession Grid
-        // lmbano_id is for update?
         accessionList: z
             .array(
                 z.object({
-                    LMBANO_Id: z.number().optional(),
-                    LMBANO_No: z.string().min(1, 'Accession No is required'),
-                    LMBANO_AvialableStatus: z.string().optional()
+                    lmbanO_Id: z.number().optional(),
+                    lmbanO_No: z.string().min(1, 'Accession No is required'),
+                    lmbanO_AvialableStatus: z.string().optional()
                 })
             )
-            .optional(),
+            .min(1, 'At least one accession number is required'),
 
-        LMB_ActiveFlag: z.boolean().optional()
+        mB_ActiveFlag: z.boolean().optional(),
+        lmB_StudentPhoto: z.string().optional()
     }),
     delete: z.object({
-        LMB_Id: z.number(),
-        LMB_BookTitle: z.string().optional() // for logging/confirmation
+        lmB_Id: deleteIdSchema('lmB_Id')
     })
 };

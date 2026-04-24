@@ -7,7 +7,7 @@ import { bookRegisterSchema } from '@/schemas/library/bookRegister';
 import type { BookRegisterPayload } from '@/types/library/masters/bookRegister';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import TabAuthorDetails from './TabAuthorDetails';
@@ -22,15 +22,21 @@ export default function BookRegisterForm({ initialData, onSuccess }: { initialDa
     const form = useForm<BookRegisterPayload>({
         resolver: zodResolver(bookRegisterSchema.addOrUpdate),
         defaultValues: initialData || {
-            LMB_BookTitle: '',
-            LMB_BookType: '',
-            LMB_EntryDate: new Date(),
-            Purchase_Date: new Date(),
-            LMBANO_AvialableStatus: 'Available',
-            With_Accessories: false,
-            accessionList: [{ LMBANO_No: '' }]
+            lmB_BookTitle: '',
+            lmB_BookType: '',
+            lmB_EntryDate: new Date(),
+            purchase_Date: new Date(),
+            lmbanO_AvialableStatus: 'Available',
+            with_Accessories: false,
+            accessionList: [{ lmbanO_No: '' }]
         }
     });
+
+    useEffect(() => {
+        if (initialData) {
+            form.reset(initialData);
+        }
+    }, [initialData, form]);
 
     const onSubmit = (data: BookRegisterPayload) => {
         saveMutation.mutate(data, {
@@ -58,9 +64,9 @@ export default function BookRegisterForm({ initialData, onSuccess }: { initialDa
             <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
                     <TabsList className='grid w-full grid-cols-3'>
-                        <TabsTrigger value='bookDetails'>Book Info</TabsTrigger>
-                        <TabsTrigger value='purchaseDetails'>Purchase Info</TabsTrigger>
-                        <TabsTrigger value='authorDetails'>Author & Accession</TabsTrigger>
+                        <TabsTrigger value='bookDetails'>Books,Category Details</TabsTrigger>
+                        <TabsTrigger value='purchaseDetails'>purchase,Language Details</TabsTrigger>
+                        <TabsTrigger value='authorDetails'>Author,Accessories Details</TabsTrigger>
                     </TabsList>
 
                     <div className='mt-2 min-h-[300px] rounded-md border p-4'>

@@ -15,18 +15,18 @@ import UpdateMasterAuthorForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-export default function MasterClassPage(props: { searchParams: SearchParams }) {
+export default function LibraryAuthorPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error, refetch } = useLibraryMasterAuthor(searchParams);
 
     return (
         <FormProvider<IMasterAuthorList>>
-            <MasterClassPageContent response={response} isLoading={isLoading} error={error} refetch={refetch} />
+            <LibraryAuthorPageContent response={response} isLoading={isLoading} error={error} refetch={refetch} />
         </FormProvider>
     );
 }
 
-function MasterClassPageContent({
+function LibraryAuthorPageContent({
     response,
     isLoading,
     error,
@@ -150,8 +150,8 @@ function FormSections({ refetch }: { refetch: () => void }) {
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Master Library'
-                        description='Update the Master Library details below'
+                        title='Edit Master Author'
+                        description='Update the Master Author details below'
                         defaultOpen={true}
                         variant='outline'
                         size='md'

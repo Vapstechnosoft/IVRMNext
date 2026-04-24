@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
-import { useMasterLibrary } from '@/hooks/library/useMasters';
+import { useLibraryMasterAuthor } from '@/hooks/library/useMasters';
 import { masterAuthorSchema } from '@/schemas/library/masters';
 import { addOrUpdateMasterAuthor } from '@/server/library/masters/master_author';
 import type { IMasterAuthorList } from '@/types/library/masters/masters';
@@ -23,7 +23,7 @@ interface UpdateMasterAuthorFormProps {
 }
 
 export default function UpdateMasterAuthorForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterAuthorFormProps) {
-    const { refetchAll } = useMasterLibrary();
+    const { refetchAll } = useLibraryMasterAuthor();
 
     const {
         register,
@@ -53,28 +53,10 @@ export default function UpdateMasterAuthorForm({ onSuccess, className = '', sele
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const {
-                lmaU_AuthorFirstName,
-                lmaU_AuthorMiddleName,
-                lmaU_AuthorLastName,
-                lmaU_MobileNo,
-                lmaU_Address,
-                lmaU_EmailId,
-                lmaU_PhoneNo,
-                lmaU_ActiveFlg
-            } = data;
-
             const payload = {
-                mI_Id: 30,
-                lmaU_Id: row.lmaU_Id,
-                lmaU_AuthorFirstName,
-                lmaU_AuthorMiddleName,
-                lmaU_AuthorLastName,
-                lmaU_MobileNo,
-                lmaU_Address,
-                lmaU_EmailId,
-                lmaU_PhoneNo,
-                lmaU_ActiveFlg
+                ...data,
+                mI_Id: row.mI_Id || 30,
+                lmaU_Id: row.lmaU_Id
             };
 
             const response = await addOrUpdateMasterAuthor(payload);

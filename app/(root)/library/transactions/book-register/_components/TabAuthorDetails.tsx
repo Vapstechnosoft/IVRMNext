@@ -21,7 +21,7 @@ export default function TabAuthorDetails({ dropdownData }: { dropdownData: any }
     });
 
     const handleAddCopies = () => {
-        append({ LMBANO_No: '' });
+        append({ lmbanO_No: '' });
     };
 
     return (
@@ -31,7 +31,7 @@ export default function TabAuthorDetails({ dropdownData }: { dropdownData: any }
                     <Label>Author</Label>
                     <Controller
                         control={control}
-                        name='LMAU_Id'
+                        name='lmAU_Id'
                         render={({ field }) => (
                             <Select
                                 onValueChange={(val) => field.onChange(Number(val))}
@@ -57,7 +57,7 @@ export default function TabAuthorDetails({ dropdownData }: { dropdownData: any }
                     </Label>
                     <Controller
                         control={control}
-                        name='LRM_Id'
+                        name='lRM_Id'
                         render={({ field }) => (
                             <Select
                                 onValueChange={(val) => field.onChange(Number(val))}
@@ -75,7 +75,7 @@ export default function TabAuthorDetails({ dropdownData }: { dropdownData: any }
                             </Select>
                         )}
                     />
-                    {errors.LRM_Id && <FormError>{errors.LRM_Id.message}</FormError>}
+                    {errors.lRM_Id && <FormError>{errors.lRM_Id.message}</FormError>}
                 </div>
 
                 <div className='flex flex-col gap-1.5'>
@@ -84,7 +84,7 @@ export default function TabAuthorDetails({ dropdownData }: { dropdownData: any }
                     </Label>
                     <Controller
                         control={control}
-                        name='LRAM_Id'
+                        name='lRAM_Id'
                         render={({ field }) => (
                             <Select
                                 onValueChange={(val) => field.onChange(Number(val))}
@@ -102,7 +102,7 @@ export default function TabAuthorDetails({ dropdownData }: { dropdownData: any }
                             </Select>
                         )}
                     />
-                    {errors.LRAM_Id && <FormError>{errors.LRAM_Id.message}</FormError>}
+                    {errors.lRAM_Id && <FormError>{errors.lRAM_Id.message}</FormError>}
                 </div>
 
                 <div className='flex flex-col gap-1.5'>
@@ -111,7 +111,7 @@ export default function TabAuthorDetails({ dropdownData }: { dropdownData: any }
                     </Label>
                     <Controller
                         control={control}
-                        name='LSM_Id'
+                        name='lSM_Id'
                         render={({ field }) => (
                             <Select
                                 onValueChange={(val) => field.onChange(Number(val))}
@@ -129,7 +129,7 @@ export default function TabAuthorDetails({ dropdownData }: { dropdownData: any }
                             </Select>
                         )}
                     />
-                    {errors.LSM_Id && <FormError>{errors.LSM_Id.message}</FormError>}
+                    {errors.lSM_Id && <FormError>{errors.lSM_Id.message}</FormError>}
                 </div>
 
                 <div className='flex flex-col gap-1.5'>
@@ -138,7 +138,7 @@ export default function TabAuthorDetails({ dropdownData }: { dropdownData: any }
                     </Label>
                     <Controller
                         control={control}
-                        name='LMBANO_AvialableStatus'
+                        name='lmbanO_AvialableStatus'
                         render={({ field }) => (
                             <Select onValueChange={field.onChange} value={field.value || undefined}>
                                 <SelectTrigger>
@@ -153,7 +153,7 @@ export default function TabAuthorDetails({ dropdownData }: { dropdownData: any }
                             </Select>
                         )}
                     />
-                    {errors.LMBANO_AvialableStatus && <FormError>{errors.LMBANO_AvialableStatus.message}</FormError>}
+                    {errors.lmbanO_AvialableStatus && <FormError>{errors.lmbanO_AvialableStatus.message}</FormError>}
                 </div>
             </div>
 
@@ -171,7 +171,6 @@ export default function TabAuthorDetails({ dropdownData }: { dropdownData: any }
                             <TableHead>
                                 Accession No <span className='text-red-500'>*</span>
                             </TableHead>
-                            {/* <TableHead className="w-[50px]"></TableHead> */}
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -179,9 +178,9 @@ export default function TabAuthorDetails({ dropdownData }: { dropdownData: any }
                             <TableRow key={field.id}>
                                 <TableCell>
                                     <InputText
-                                        {...register(`accessionList.${index}.LMBANO_No` as const)}
+                                        {...register(`accessionList.${index}.lmbanO_No` as const)}
                                         placeholder='Enter Accession No'
-                                        error={errors.accessionList?.[index]?.LMBANO_No?.message}
+                                        error={errors.accessionList?.[index]?.lmbanO_No?.message}
                                     />
                                 </TableCell>
                                 <TableCell>

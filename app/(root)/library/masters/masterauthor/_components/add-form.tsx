@@ -45,30 +45,21 @@ export default function AddMasterAuthorForm({ onSuccess, className = '' }: AddMa
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const { lmaU_MobileNo, lmaU_AuthorFirstName, lmaU_Address, lmaU_EmailId, lmaU_PhoneNo } = data;
-
             const payload = {
-                IMCC_ID: 0,
-                lmaU_MobileNo,
-                lmaU_AuthorFirstName,
-                lmaU_Address,
-                lmaU_EmailId,
-                lmaU_ActiveFlag: true,
-                lmaU_PhoneNo
+                ...data,
+                mI_Id: 30,
+                lmaU_Id: 0
             };
-
-            // const js = JSON.stringify(payload);
-            //console.log('Payload JSON:', js);
 
             const response = await addOrUpdateMasterAuthor(payload);
 
             if (response.success) {
-                toast.success(response.message || 'Class Category saved successfully');
+                toast.success(response.message || 'Master Author saved successfully');
                 reset();
                 refetchAll();
                 onSuccess?.();
             } else {
-                toast.error(response.message || 'Failed to save Class Category');
+                toast.error(response.message || 'Failed to save Master Author');
             }
         } catch (error: any) {
             toast.error(error?.message || 'Something went wrong');

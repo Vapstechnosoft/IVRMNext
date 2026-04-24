@@ -64,6 +64,7 @@ export default function SimpleRequisitionReport({ onSearch }: SimpleRequisitionR
     error: ReportOrganizationdropdownerror,
     refetchAll: refetchAllReportOrganization
   } = UsePcRequisitionReportOrganization();
+  console.log("ReportOrganizationDropDown", ReportOrganizationDropDown);
 
  const handleCancel = () => {
   reset({
@@ -111,7 +112,10 @@ export default function SimpleRequisitionReport({ onSearch }: SimpleRequisitionR
                       Error loading Organizations
                     </SelectItem>
                   ) : (
-                    (ReportOrganizationDropDown?.data?.getuserinstitution || ReportOrganizationDropDown?.data || [])?.map((item: any) => (
+                    (ReportOrganizationDropDown?.data?.getuserinstitution || 
+                     ReportOrganizationDropDown?.data?.getinstitution || 
+                     ReportOrganizationDropDown?.data || 
+                     [])?.map((item: any) => (
                       <SelectItem key={item.mI_Id} value={item.mI_Id.toString()}>
                         {item.mI_Name}
                       </SelectItem>

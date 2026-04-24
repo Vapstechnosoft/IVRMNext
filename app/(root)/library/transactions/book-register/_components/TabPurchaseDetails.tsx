@@ -19,7 +19,7 @@ export default function TabPurchaseDetails({ dropdownData }: { dropdownData: any
         watch,
         formState: { errors }
     } = useFormContext<BookRegisterPayload>();
-    const purchaseType = watch('LMB_PurOrDonated');
+    const purchaseType = watch('lmB_PurOrDonated');
 
     return (
         <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
@@ -29,7 +29,7 @@ export default function TabPurchaseDetails({ dropdownData }: { dropdownData: any
                 </Label>
                 <Controller
                     control={control}
-                    name='Purchase_Date'
+                    name='purchase_Date'
                     render={({ field }) => (
                         <Popover>
                             <PopoverTrigger asChild>
@@ -52,7 +52,7 @@ export default function TabPurchaseDetails({ dropdownData }: { dropdownData: any
                         </Popover>
                     )}
                 />
-                {errors.Purchase_Date && <FormError>{errors.Purchase_Date.message}</FormError>}
+                {errors.purchase_Date && <FormError>{errors.purchase_Date.message}</FormError>}
             </div>
 
             <div className='flex flex-col gap-1.5'>
@@ -61,7 +61,7 @@ export default function TabPurchaseDetails({ dropdownData }: { dropdownData: any
                 </Label>
                 <Controller
                     control={control}
-                    name='LMB_PurOrDonated'
+                    name='lmB_PurOrDonated'
                     render={({ field }) => (
                         <Select onValueChange={field.onChange} value={field.value || undefined}>
                             <SelectTrigger>
@@ -75,13 +75,13 @@ export default function TabPurchaseDetails({ dropdownData }: { dropdownData: any
                         </Select>
                     )}
                 />
-                {errors.LMB_PurOrDonated && <FormError>{errors.LMB_PurOrDonated.message}</FormError>}
+                {errors.lmB_PurOrDonated && <FormError>{errors.lmB_PurOrDonated.message}</FormError>}
             </div>
 
             {purchaseType === 'Donated' && (
                 <>
-                    <InputText label='Donor Name' {...register('Donor_Id')} error={errors.Donor_Id?.message} />
-                    <InputText label='Donor Address' {...register('LMB_DonorAddress')} error={errors.LMB_DonorAddress?.message} />
+                    <InputText label='Donor Name' {...register('donor_Id')} error={errors.donor_Id?.message} />
+                    <InputText label='Donor Address' {...register('lmB_DonorAddress')} error={errors.lmB_DonorAddress?.message} />
                 </>
             )}
 
@@ -89,7 +89,7 @@ export default function TabPurchaseDetails({ dropdownData }: { dropdownData: any
                 <Label>Vendor</Label>
                 <Controller
                     control={control}
-                    name='LMV_Id'
+                    name='lmV_Id'
                     render={({ field }) => (
                         <Select
                             onValueChange={(val) => field.onChange(Number(val))}
@@ -114,7 +114,7 @@ export default function TabPurchaseDetails({ dropdownData }: { dropdownData: any
                 </Label>
                 <Controller
                     control={control}
-                    name='LML_Id'
+                    name='lmL_Id'
                     render={({ field }) => (
                         <Select
                             onValueChange={(val) => field.onChange(Number(val))}
@@ -132,13 +132,13 @@ export default function TabPurchaseDetails({ dropdownData }: { dropdownData: any
                         </Select>
                     )}
                 />
-                {errors.LML_Id && <FormError>{errors.LML_Id.message}</FormError>}
+                {errors.lmL_Id && <FormError>{errors.lmL_Id.message}</FormError>}
             </div>
 
-            <InputText label='Bill No' {...register('LMB_BillNo')} />
-            <InputText label='Voucher No' {...register('Voucher_No')} />
-            <InputText label='Price' type='number' {...register('LMB_Price')} />
-            <InputText label='Net Price' type='number' {...register('LMB_NetPrice')} />
+            <InputText label='Bill No' {...register('lmB_BillNo')} />
+            <InputText label='Voucher No' {...register('voucher_No')} />
+            <InputText label='Price' type='number' {...register('lmB_Price')} />
+            <InputText label='Net Price' type='number' {...register('lmB_NetPrice')} />
         </div>
     );
 }
