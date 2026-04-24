@@ -942,3 +942,27 @@ export interface IPromotionDetailsByIdResponse {
         group_Exam_List: IPromotionalSubGroupExamDetails[];
     };
 }
+
+export interface IExamTTSession {
+    ettS_Id: number;
+    ettS_SessionName: string;
+    ettS_StartTime: string;
+    ettS_EndTime: string;
+    ettS_Activeflag: boolean;
+}
+
+export interface IExamTTTransSettings {
+    extT_Id: number;
+    academicyear: string;
+    classname: string;
+    sectionname: string;
+    emG_GroupName: string;
+    examname: string;
+    extT_FromDate: string;
+    extT_EndDate: string;
+    asmaY_Id: number;
+    asmcL_Id: number;
+    asmS_Id: number;
+    emE_Id: number;
+    emG_Id: number;
+}
