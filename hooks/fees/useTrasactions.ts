@@ -30,6 +30,16 @@ import {
     getFeeAdjutmentGridList
 } from '@/server/fees/trasactions/fee_adjustment';
 import {
+    getClassDropDownDetails,
+    getFeeChequeBounceAcademicYear,
+    getFeeChequeBounceInitialData,
+    getFeeChequeBounceReceipts,
+    getFeeChequeBounceSections,
+    getFeeChequeBounceStudents,
+    getSectionDropDownDetails,
+    getStudentDropDownDetails
+} from '@/server/fees/trasactions/fee_cheque_bounce';
+import {
     getOpeningAcademicYearDropdownData,
     getOpeningBalanceList,
     getOpeningCategoryDropdownData,
@@ -63,6 +73,13 @@ import {
     get_Receipt_number,
     geteditThirdpartytrasaction
 } from '@/server/fees/trasactions/thirdPartyTrasaction';
+import {
+    getThirdPartyTrasactionBankDropDown_GM,
+    getThirdPartyTrasactionGroupDropDown_GM,
+    getThirdPartyTrasactionHeadDropDown_GM,
+    getThirdPartyTrasactionStudentDropDown_GM,
+    getThirdPartyTrasaction_GM
+} from '@/server/fees/trasactions/thirdpartyTransaction_GM';
 import { feeTransactionWaivedOff, getClassdetails, getsectiondetails } from '@/server/fees/trasactions/waived_off';
 import type { ApiSearchparams } from '@/types';
 
