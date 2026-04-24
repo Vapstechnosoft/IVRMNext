@@ -19,7 +19,7 @@ import { getEmployeeLogReport } from '@/server/hrms/hrmsConfig/reports/employee-
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
-import { format } from 'date-fns';
+import { format, addMonths } from 'date-fns';
 import { Save } from 'lucide-react';
 import { Label } from 'react-aria-components';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
@@ -74,9 +74,14 @@ export default function AddEmployeeLogReportForm({
 
     const allOrIndividualValue = watch('allOrIndividual');
     const dateModeValue = watch('dateMode');
+    const fromDateValue = watch('fromDate');
     const watchedType = watch('type') || [];
     const watchedDepartment = watch('department') || [];
     const watchedDesignation = watch('designation') || [];
+
+    const fromDateObject = fromDateValue ? new Date(fromDateValue) : undefined;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
     const groupTypeIds = watchedType.map(Number).filter(Boolean);
     const deptIds = watchedDepartment.map(Number).filter(Boolean);
@@ -555,8 +560,14 @@ export default function AddEmployeeLogReportForm({
                                                             const month = String(date.getMonth() + 1).padStart(2, '0');
                                                             const day = String(date.getDate()).padStart(2, '0');
                                                             field.onChange(`${year}-${month}-${day}`);
+                                                            const nextMonthDate = addMonths(date, 1);
+                                                            const nextYear = nextMonthDate.getFullYear();
+                                                            const nextMonth = String(nextMonthDate.getMonth() + 1).padStart(2, '0');
+                                                            const nextDay = String(nextMonthDate.getDate()).padStart(2, '0');
+                                                            // setValue('toDate', `${nextYear}-${nextMonth}-${nextDay}`);
                                                         } else {
                                                             field.onChange('');
+                                                            setValue('toDate', '');
                                                         }
                                                     }}
                                                     placeholder='From date'
@@ -588,6 +599,14 @@ export default function AddEmployeeLogReportForm({
                                                     }}
                                                     placeholder='To date'
                                                     className={errors.toDate ? 'border-red-500' : ''}
+                                                    disabled={
+                                                        fromDateObject
+                                                            ? [
+                                                                  { before: fromDateObject },
+                                                                  { after: today }
+                                                              ]
+                                                            : [{ after: today }]
+                                                    }
                                                 />
                                             )}
                                         />

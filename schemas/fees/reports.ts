@@ -716,3 +716,30 @@ export const feeCollectionReportVVVS = z.object({
     fromDate: z.string().min(1, 'From Date is required'),
     toDate: z.string().min(1, 'To Date is required')
 });
+
+export const feeIncomeTaxReportSchema = z.object({
+    asmaY_Id: z.number({ required_error: 'Academic Year is required' }),
+    asmcL_Id: z.number({ required_error: 'Class is required' }),
+    asmS_Id: z.number({ required_error: 'Section is required' }),
+    amst_Id: z.number({ required_error: 'Student is required' })
+});
+
+export const feeUserWiseDailyCollectionReportSchema = z
+    .object({
+        type: z.enum(['STW', 'TCW']).default('STW'), // Student Wise or Total Collection
+        ASMAY: z.number().min(1, 'Academic Year is required'),
+        groupIds: z.array(z.number()).min(1, 'Select at least one Group'),
+        fromDate: z.string().min(1, 'From Date is required'),
+        toDate: z.string().min(1, 'To Date is required')
+    })
+    .superRefine((data, ctx) => {
+        const fromDate = new Date(data.fromDate);
+        const toDate = new Date(data.toDate);
+        if (fromDate > toDate) {
+            ctx.addIssue({
+                path: ['fromDate'],
+                message: 'From date should not be greater than to date',
+                code: z.ZodIssueCode.custom
+            });
+        }
+    });

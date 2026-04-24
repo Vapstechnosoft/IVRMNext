@@ -151,7 +151,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
     });
 
     const { data: admissionDetails, refetch: refetchAdmissionDetails, isLoading: detailsLoading, error: detailsError } = useAdmissionFormDetails();
-    
+
     // Watch class and academic year for the class-based student category API
     const classIdForCategory = watch('asmcL_Id');
     const asmaYId = watch('asmaY_Id' as any);
@@ -237,9 +237,9 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
     const allCaste = useMemo(() => (admissionDetails as any)?.castes || (admissionDetails as any)?.allCaste || (admissionDetails as any)?.allCasteList || (admissionDetails as any)?.AllCaste || [], [admissionDetails]);
 
     const currentCategoryId = watch('imCC_Id');
-    const { 
-        data: filteredCastes, 
-        isLoading: isCastesLoading 
+    const {
+        data: filteredCastes,
+        isLoading: isCastesLoading
     } = useGetCasteByCasteCategory(Number(currentCategoryId));
 
     const availableCastes = useMemo(() => {
@@ -504,11 +504,31 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
         };
 
         if (currentStep === 1) {
-            // Check all mandatory fields from watchedStep1
-            const fieldsValid = watchedStep1.every(checkFilled);
-            // Also check student photo if mandatory (usually is)
-            const photoValid = rowData?.amsT_Photoname || uploadedDocuments.some(d => d.amsmD_Id === 0); // simplistic check
-            return fieldsValid;
+            // Check major mandatory fields
+            const mandatoryFields = [
+                watch('asmaY_Id'),
+                watch('amsT_FirstName'),
+                watch('amsT_DOB'),
+                watch('asmcL_Id'),
+                watch('amsT_RegistrationNo'),
+                watch('amsT_AdmissionNo'),
+                watch('imCC_Id'),
+                watch('imC_Id'),
+                watch('amsT_Sex'),
+                watch('amsT_Nationality'),
+                watch('amsT_Date'),
+                watch('asmS_Id'),
+                watch('feeConcessionType')
+            ];
+            const coreFieldsValid = mandatoryFields.every(checkFilled);
+
+            // Also check mobile and email - they might be in the root fields or the first element of arrays
+            const mobile = watch('amsT_MobileNo') || (watch('mobileNos')?.[0]?.amsT_MobileNo);
+            const email = watch('amsT_emailId') || (watch('adm_M_Student_EmailIdDTO')?.[0]?.amsT_emailId);
+
+            const contactValid = checkFilled(mobile) && checkFilled(email);
+
+            return coreFieldsValid && contactValid;
         }
         if (currentStep === 2) {
             const resValid = [
@@ -516,7 +536,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 watch('amsT_ConArea'),
                 watch('amsT_ConCity'),
                 watch('amsT_ConCountry'),
-                watch('amsT_ConState'),
                 watch('amsT_ConPincode')
             ].every(checkFilled);
 
@@ -527,7 +546,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 watch('amsT_PerArea'),
                 watch('amsT_PerCity'),
                 watch('amsT_PerCountry'),
-                watch('amsT_PerState'),
                 watch('amsT_PerPincode')
             ].every(checkFilled);
 
@@ -1996,10 +2014,10 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                 </SelectTrigger>
                                 <SelectContent>
                                     {country?.data?.map((item: any) => (
-                                            <SelectItem key={item.ivrmmC_Id} value={item.ivrmmC_Id.toString()}>
-                                                {item.ivrmmC_CountryName}
-                                            </SelectItem>
-                                        ))
+                                        <SelectItem key={item.ivrmmC_Id} value={item.ivrmmC_Id.toString()}>
+                                            {item.ivrmmC_CountryName}
+                                        </SelectItem>
+                                    ))
                                     }
                                 </SelectContent>
                             </Select>
@@ -2028,10 +2046,10 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                 </SelectTrigger>
                                 <SelectContent>
                                     {prevStates?.data?.map((item: any) => (
-                                            <SelectItem key={item.ivrmmS_Id} value={item.ivrmmS_Id.toString()}>
-                                                {item.ivrmmS_Name}
-                                            </SelectItem>
-                                        ))
+                                        <SelectItem key={item.ivrmmS_Id} value={item.ivrmmS_Id.toString()}>
+                                            {item.ivrmmS_Name}
+                                        </SelectItem>
+                                    ))
                                     }
                                 </SelectContent>
                             </Select>
@@ -2160,11 +2178,16 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 throw new Error(`Validation failed: missing required fields: ${missingRequired.join(', ')}`);
             }
 
-            // Student photo required
-            if (!formData.amsT_Photoname && !formData.amsT_Photoname) {
-                console.warn('[Admission] saveFirstTab aborted - missing student photo');
-                toast.error('Please upload student photo');
-                throw new Error('Validation failed: missing student photo');
+            // Student photo - usually optional on update unless explicitly checked
+            // Actually, we skip this check if formData doesn't contain it yet
+            // but we can check the studentPhoto state if needed.
+            // For now, removing the strict block since it might cause issues on load.
+            const photoVal = formData.amsT_Photoname || studentPhoto?.amsT_Photoname;
+            if (!photoVal && rowData?.amsT_Photoname) {
+                // Existing photo exists
+            } else if (!photoVal) {
+                console.warn('[Admission] saveFirstTab - no student photo detected');
+                // Optional: toast.error('Please upload student photo');
             }
 
             // EMIS conditional
@@ -2235,22 +2258,38 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 // New fields for Nationality/State
                 amsT_Nationality: Number(formData.amsT_Nationality ?? 0),
                 amsT_State: Number(formData.amsT_State ?? 0),
-                MobileCountryCode: (() => {
-                    const src = (Array.isArray(getValues('mobileNos')) ? getValues('mobileNos') : []) as any[];
+                mobileCountryCode: (() => {
+                    const src = (Array.isArray(formData.mobileNos ?? getValues('mobileNos')) ? (formData.mobileNos ?? getValues('mobileNos')) : []) as any[];
                     const m = src[0]; // Take primary mobile
                     return String(m?.amstsmS_CountryCode ?? m?.countryCode ?? '91').replace(/\D/g, '');
                 })(),
-                MobileNumber: (() => {
-                    const src = (Array.isArray(getValues('mobileNos')) ? getValues('mobileNos') : []) as any[];
+                mobileNumber: (() => {
+                    const src = (Array.isArray(formData.mobileNos ?? getValues('mobileNos')) ? (formData.mobileNos ?? getValues('mobileNos')) : []) as any[];
                     const m = src[0];
-                    return String(m?.amsT_MobileNo ?? m?.MobileNumber ?? m?.mobileNo ?? m ?? '').trim();
+                    return String(m?.amsT_MobileNo ?? m?.mobileNumber ?? m?.mobileNo ?? formData.amsT_MobileNo ?? '').trim();
                 })(),
-                EmailId: (() => {
+                emailId: (() => {
                     const src = (
-                        Array.isArray(getValues('adm_M_Student_EmailIdDTO')) ? getValues('adm_M_Student_EmailIdDTO') : []
+                        Array.isArray(formData.adm_M_Student_EmailIdDTO ?? getValues('adm_M_Student_EmailIdDTO'))
+                            ? (formData.adm_M_Student_EmailIdDTO ?? getValues('adm_M_Student_EmailIdDTO'))
+                            : []
                     ) as any[];
                     const e = src[0];
-                    return String(e?.amsT_emailId ?? e?.EmailId ?? e?.emailId ?? e ?? '').trim();
+                    return String(e?.amsT_emailId ?? e?.emailId ?? formData.amsT_emailId ?? '').trim();
+                })(),
+                amsT_MobileNo: (() => {
+                    const src = (Array.isArray(formData.mobileNos ?? getValues('mobileNos')) ? (formData.mobileNos ?? getValues('mobileNos')) : []) as any[];
+                    const m = src[0];
+                    return String(m?.amsT_MobileNo ?? m?.mobileNumber ?? m?.mobileNo ?? formData.amsT_MobileNo ?? '').trim();
+                })(),
+                amsT_emailId: (() => {
+                    const src = (
+                        Array.isArray(formData.adm_M_Student_EmailIdDTO ?? getValues('adm_M_Student_EmailIdDTO'))
+                            ? (formData.adm_M_Student_EmailIdDTO ?? getValues('adm_M_Student_EmailIdDTO'))
+                            : []
+                    ) as any[];
+                    const e = src[0];
+                    return String(e?.amsT_emailId ?? e?.emailId ?? formData.amsT_emailId ?? '').trim();
                 })(),
                 amsT_PerState: Number(formData.amsT_PerState ?? 0),
                 amsT_PerDistrict: Number(formData.amsT_PerDistrict ?? 0),
@@ -2857,13 +2896,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                     const res = await saveFirstTab({
                         ...formData,
                         amsT_Photoname: studentPhoto?.amsT_Photoname,
-                        mobileNos: (formData.mobileNos || []).map((m: any) => ({
-                            MobileCountryCode: m.amstsmS_CountryCode?.replace('+', '') || '91',
-                            MobileNumber: m.amsT_MobileNo || m.amstsmS_MobileNo
-                        })),
-                        adm_M_Student_EmailIdDTO: (formData.adm_M_Student_EmailIdDTO || []).map((e: any) => ({
-                            EmailId: e.amsT_emailId || e.amstE_EmailId
-                        }))
+                        mobileNos: formData.mobileNos,
+                        adm_M_Student_EmailIdDTO: formData.adm_M_Student_EmailIdDTO
                     });
                     console.debug('[Admission] saveFirstTab response (auto):', res);
                     if (!res?.success) {
@@ -4544,1229 +4578,908 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                             {/* biome-ignore lint: template literal needed for bracket syntax in Tailwind */}
                             <div className={`max-h-[calc(100vh-2rem)] overflow-y-auto p-6 md:p-8`}>
                                 {currentStep === 1 && (
-                                    <div className='space-y-6'>
-                                        <div>
-                                            <h2 className='font-bold text-2xl text-gray-900'>Student Information</h2>
-                                            <p className='mt-1 text-gray-500 text-sm'>
-                                                Please provide the student&apos;s basic information
-                                            </p>
-                                        </div>
-                                        <div className='flex justify-between'>
-                                            <div className='flex flex-col gap-1.5'>
-                                                <Label>Academic Year <span className='ml-1 text-red-500'>*</span></Label>
+                                    <div className='card-box'>
+                                        <div className='grid grid-cols-1 gap-8 lg:grid-cols-12'>
+                                            {/* Left Column - Main Information (7/12) */}
+                                            <div className='col-span-12 space-y-4 lg:col-span-7'>
+                                                <div className='mb-4'>
+                                                    <h2 className='font-bold text-2xl text-gray-900'>Student Information</h2>
+                                                    <p className='mt-1 text-gray-500 text-sm'>
+                                                        Please provide the student&apos;s basic information
+                                                    </p>
+                                                </div>
+
+                                                {/* Row 1: Student Name */}
+                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+                                                    <InputText
+                                                        label='First Name'
+                                                        required
+                                                        id='amsT_FirstName'
+                                                        placeholder='Enter first name'
+                                                        {...register('amsT_FirstName')}
+                                                        error={errors.amsT_FirstName?.message}
+                                                    />
+                                                    <InputText
+                                                        label='Middle Name'
+                                                        id='amsT_MiddleName'
+                                                        placeholder='Enter middle name'
+                                                        {...register('amsT_MiddleName')}
+                                                        error={errors.amsT_MiddleName?.message}
+                                                    />
+                                                    <InputText
+                                                        label='Last Name'
+                                                        id='amsT_LastName'
+                                                        placeholder='Enter last name'
+                                                        {...register('amsT_LastName')}
+                                                        error={errors.amsT_LastName?.message}
+                                                    />
+                                                </div>
+
+                                                {/* Row 2: PEN No, Academic Year & Registration No */}
+                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+                                                    <InputText
+                                                        label='PEN No'
+                                                        id='amsT_PENNo'
+                                                        placeholder='Enter PEN No'
+                                                        {...register('amsT_PENNo')}
+                                                        error={errors.amsT_PENNo?.message}
+                                                    />
+                                                    <InputText
+                                                        label='Academic Year'
+                                                        required
+                                                        id='academic_year'
+                                                        placeholder='Academic Year'
+                                                        value={(admissionDetails as any)?.allAcademicYear?.[0]?.asmaY_Year || (admissionDetails as any)?.academicYearOnLoad?.[0]?.asmaY_Year || ''}
+                                                        className='font-semibold'
+                                                        disabled
+                                                    />
+                                                    <InputText
+                                                        label='Registration No'
+                                                        required
+                                                        id='amsT_RegistrationNo'
+                                                        placeholder='Enter registration number'
+                                                        {...register('amsT_RegistrationNo')}
+                                                        onBlur={(e) => {
+                                                            register('amsT_RegistrationNo').onBlur(e);
+                                                            handleCheckDuplicateRegNo(e.target.value);
+                                                        }}
+                                                        error={errors.amsT_RegistrationNo?.message}
+                                                    />
+                                                </div>
+
+                                                {/* Row 3: Admission No & Class & Section */}
+                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+                                                    <InputText
+                                                        label='Admission No'
+                                                        required
+                                                        id='amsT_AdmissionNo'
+                                                        placeholder='Enter admission number'
+                                                        {...register('amsT_AdmissionNo')}
+                                                        onBlur={(e) => {
+                                                            register('amsT_AdmissionNo').onBlur(e);
+                                                            handleCheckDuplicateAdmissionNo(e.target.value);
+                                                        }}
+                                                        error={errors.amsT_AdmissionNo?.message}
+                                                    />
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Label htmlFor='asmcL_Id'>
+                                                            Class <span className='ml-1 text-red-500'>*</span>
+                                                        </Label>
+                                                        <Controller
+                                                            name='asmcL_Id'
+                                                            control={control}
+                                                            render={({ field, fieldState: { error } }) => (
+                                                                <Select
+                                                                    key={`class_${field.value || 'empty'}_${admissionClass?.data?.length || 0}`}
+                                                                    value={field.value?.toString() || ''}
+                                                                    onValueChange={(value) => field.onChange(Number(value))}>
+                                                                    <SelectTrigger disabled className={cn('w-full', error && 'border-red-500')}>
+                                                                        <SelectValue
+                                                                            placeholder={
+                                                                                admissionClassLoading ? 'Loading classes...' : 'Select a class'
+                                                                            }
+                                                                        />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {admissionClassLoading ? (
+                                                                            <SelectItem value='0' disabled>
+                                                                                Loading classes...
+                                                                            </SelectItem>
+                                                                        ) : admissionClassError ? (
+                                                                            <SelectItem value='error' disabled>
+                                                                                Error loading classes
+                                                                            </SelectItem>
+                                                                        ) : admissionClass?.data && admissionClass.data.length > 0 ? (
+                                                                            admissionClass.data.map((classItem: any) => (
+                                                                                <SelectItem
+                                                                                    key={classItem.asmcL_Id}
+                                                                                    value={classItem.asmcL_Id.toString()}>
+                                                                                    {classItem.asmcL_ClassName}
+                                                                                </SelectItem>
+                                                                            ))
+                                                                        ) : (
+                                                                            <SelectItem value='0' disabled>
+                                                                                No classes available
+                                                                            </SelectItem>
+                                                                        )}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            )}
+                                                        />
+                                                        {errors.asmcL_Id && <FormError>{errors.asmcL_Id.message}</FormError>}
+                                                    </div>
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Label htmlFor='asmS_Id'>
+                                                            Section <span className='ml-1 text-red-500'>*</span>
+                                                        </Label>
+                                                        <Controller
+                                                            name='asmS_Id'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <Select
+                                                                    key={`sec_${field.value || 'empty'}_${sectionData?.data?.length || 0}`}
+                                                                    value={field.value?.toString() || ''}
+                                                                    onValueChange={(value) => field.onChange(Number(value))}
+                                                                    disabled={!classId || classId === 0 || sectionLoading}>
+                                                                    <SelectTrigger disabled className={cn(errors.asmS_Id && 'border-red-500')}>
+                                                                        <SelectValue
+                                                                            placeholder={sectionLoading ? 'Loading...' : 'Select section'}
+                                                                        />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {sectionLoading ? (
+                                                                            <SelectItem value='0' disabled>
+                                                                                Loading sections...
+                                                                            </SelectItem>
+                                                                        ) : sectionError ? (
+                                                                            <SelectItem value='error' disabled>
+                                                                                Error loading sections
+                                                                            </SelectItem>
+                                                                        ) : sectionData?.data && sectionData.data.length > 0 ? (
+                                                                            sectionData.data.map((section: any) => (
+                                                                                <SelectItem
+                                                                                    key={section.asmS_Id}
+                                                                                    value={section.asmS_Id.toString()}>
+                                                                                    {section.asmC_SectionName}
+                                                                                </SelectItem>
+                                                                            ))
+                                                                        ) : (
+                                                                            <SelectItem value='0' disabled>
+                                                                                No sections available
+                                                                            </SelectItem>
+                                                                        )}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            )}
+                                                        />
+                                                        {errors.asmS_Id && <FormError>{errors.asmS_Id.message}</FormError>}
+                                                    </div>
+                                                </div>
+
+                                                {/* Row 4: Date of Admission & Date of Birth */}
+                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                    <Controller
+                                                        name='amsT_Date'
+                                                        control={control}
+                                                        render={({ field, fieldState: { error } }) => (
+                                                            <div className='flex flex-col space-y-2'>
+                                                                <Label htmlFor='amsT_Date'>
+                                                                    Date of Admission <span className='ml-1 text-red-500'>*</span>
+                                                                </Label>
+                                                                <Popover
+                                                                    open={openPopover === 'amsT_Date'}
+                                                                    onOpenChange={(open) => setOpenPopover(open ? 'amsT_Date' : null)}>
+                                                                    <PopoverTrigger asChild>
+                                                                        <Button
+                                                                            variant={'outline'}
+                                                                            className={cn(
+                                                                                'w-full justify-start text-left font-normal',
+                                                                                !field.value && 'text-muted-foreground',
+                                                                                error && 'border-red-500'
+                                                                            )}>
+                                                                            <CalendarIcon className='mr-2 h-4 w-4' />
+                                                                            {field.value ? format(field.value, 'dd/MM/yyyy') : <span>Pick a date</span>}
+                                                                        </Button>
+                                                                    </PopoverTrigger>
+                                                                    <PopoverContent className='w-auto p-0' align='start'>
+                                                                        <CalendarYear
+                                                                            mode='single'
+                                                                            selected={field.value}
+                                                                            onSelect={(date: Date | undefined) => {
+                                                                                if (date) {
+                                                                                    field.onChange(date);
+                                                                                    setOpenPopover(null);
+                                                                                }
+                                                                            }}
+                                                                            disabled={(date: Date) =>
+                                                                                date > new Date() || date < new Date('1900-01-01')
+                                                                            }
+                                                                            initialFocus
+                                                                        />
+                                                                    </PopoverContent>
+                                                                </Popover>
+                                                                {error && <span className='text-red-500 text-sm'>{error.message}</span>}
+                                                            </div>
+                                                        )}
+                                                    />
+                                                    <Controller
+                                                        name='amsT_DOB'
+                                                        control={control}
+                                                        render={({ field, fieldState: { error } }) => (
+                                                            <div className='flex flex-col space-y-2'>
+                                                                <Label htmlFor='amsT_DOB'>
+                                                                    Date of Birth <span className='ml-1 text-red-500'>*</span>
+                                                                </Label>
+                                                                <Popover
+                                                                    open={openPopover === 'amsT_DOB'}
+                                                                    onOpenChange={(open) => setOpenPopover(open ? 'amsT_DOB' : null)}>
+                                                                    <PopoverTrigger asChild>
+                                                                        <Button
+                                                                            variant={'outline'}
+                                                                            className={cn(
+                                                                                'w-full justify-start text-left font-normal',
+                                                                                !field.value && 'text-muted-foreground',
+                                                                                error && 'border-red-500'
+                                                                            )}>
+                                                                            <CalendarIcon className='mr-2 h-4 w-4' />
+                                                                            {field.value ? format(field.value, 'dd/MM/yyyy') : <span>Pick a date</span>}
+                                                                        </Button>
+                                                                    </PopoverTrigger>
+                                                                    <PopoverContent className='w-auto p-0' align='start'>
+                                                                        <CalendarYear
+                                                                            mode='single'
+                                                                            selected={field.value}
+                                                                            onSelect={(date: Date | undefined) => {
+                                                                                if (date) {
+                                                                                    field.onChange(date);
+                                                                                    handleDOBChange(date);
+                                                                                    setOpenPopover(null);
+                                                                                }
+                                                                            }}
+                                                                            disabled={(date: Date) =>
+                                                                                date > new Date() || date < new Date('1900-01-01')
+                                                                            }
+                                                                            initialFocus
+                                                                        />
+                                                                    </PopoverContent>
+                                                                </Popover>
+                                                                {error && <span className='text-red-500 text-sm'>{error.message}</span>}
+                                                            </div>
+                                                        )}
+                                                    />
+                                                </div>
+
+                                                {/* Row 5: DOB in Words */}
                                                 <InputText
-                                                    required
-                                                    id='academic_year'
-                                                    placeholder='Academic Year'
-                                                    value={watch('asmaY_Id' as any) || ''}
-                                                    className='w-fit font-semibold'
+                                                    label='Date of Birth in Words'
+                                                    id='amsT_DOB_Words'
+                                                    placeholder='Date of birth in words'
+                                                    {...register('amsT_DOB_Words')}
+                                                    error={errors.amsT_DOB_Words?.message}
                                                     disabled
                                                 />
-                                            </div>
-                                            {/* Student Photo Upload - Mandatory */}
-                                            <div className='col-span-full w-fit'>
-                                                <div className='rounded-lg border-2 border-blue-200 bg-blue-50 p-2'>
-                                                    <div className='mb-1'>
-                                                        <Label htmlFor='student_photo'>
-                                                            Student Photo <span className='ml-1 text-red-500'>*</span>
-                                                        </Label>
-                                                    </div>
 
-                                                    {!studentPhoto?.amsT_Photoname ? (
-                                                        <label
-                                                            htmlFor='student_photo'
-                                                            className={cn(
-                                                                'flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-2 py-3 text-center transition-all hover:border-primary hover:bg-white',
-                                                                studentPhoto?.isUploading
-                                                                    ? 'border-blue-400 bg-blue-100'
-                                                                    : 'border-gray-300 bg-white'
-                                                            )}>
-                                                            {studentPhoto?.isUploading ? (
-                                                                <div className='flex flex-col items-center gap-2'>
-                                                                    <svg
-                                                                        className='h-8 w-8 animate-spin text-primary'
-                                                                        fill='none'
-                                                                        stroke='currentColor'
-                                                                        viewBox='0 0 24 24'>
-                                                                        <circle
-                                                                            className='opacity-25'
-                                                                            cx='12'
-                                                                            cy='12'
-                                                                            r='10'
-                                                                            strokeWidth='4'
-                                                                            stroke='currentColor'
-                                                                        />
-                                                                        <path
-                                                                            className='opacity-75'
-                                                                            fill='currentColor'
-                                                                            d='M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z'
-                                                                        />
-                                                                    </svg>
-                                                                    <span className='font-medium text-primary text-sm'>
-                                                                        Uploading photo...
-                                                                    </span>
-                                                                </div>
-                                                            ) : (
-                                                                <>
-                                                                    <svg
-                                                                        className='h-12 w-12 text-primary'
-                                                                        fill='none'
-                                                                        stroke='currentColor'
-                                                                        viewBox='0 0 24 24'>
-                                                                        <path
-                                                                            strokeLinecap='round'
-                                                                            strokeLinejoin='round'
-                                                                            strokeWidth={2}
-                                                                            d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
-                                                                        />
-                                                                    </svg>
-                                                                    <span className='font-medium text-gray-700 text-sm'>
-                                                                        Click to upload
-                                                                    </span>
-                                                                    <span className='mt-1 max-w-[250px] text-gray-600 text-sm'>
-                                                                        Upload recent passport-size photo (Max size: 5MB, Format: JPG, PNG)
-                                                                    </span>
-                                                                </>
+                                                {/* Row 6: Religion, Country & State */}
+                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Label htmlFor='amsT_ReligionId'>
+                                                            Religion <span className='ml-1 text-red-500'>*</span>
+                                                        </Label>
+                                                        <Controller
+                                                            name='amsT_ReligionId'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <Select
+                                                                    key={`rel_${field.value || 'empty'}_${religion?.data?.length || 0}`}
+                                                                    onValueChange={(value) => field.onChange(Number(value))}
+                                                                    value={field.value?.toString() || ''}>
+                                                                    <SelectTrigger
+                                                                        className={cn((errors as any).amsT_ReligionId && 'border-red-500')}>
+                                                                        <SelectValue placeholder='Select religion' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {religionLoading ? (
+                                                                            <SelectItem value='0' disabled>Loading religion...</SelectItem>
+                                                                        ) : religionError ? (
+                                                                            <SelectItem value='error' disabled>Error loading religions</SelectItem>
+                                                                        ) : (
+                                                                            religion?.data?.map((item: any) => (
+                                                                                <SelectItem key={item.ivrmmR_Id} value={item.ivrmmR_Id.toString()}>
+                                                                                    {item.ivrmmR_ReligionName || item.ivrmmR_Name}
+                                                                                </SelectItem>
+                                                                            ))
+                                                                        )}
+                                                                    </SelectContent>
+                                                                </Select>
                                                             )}
-                                                            <input
-                                                                id='student_photo'
-                                                                type='file'
-                                                                className='hidden'
-                                                                accept='image/jpeg,image/jpg,image/png'
-                                                                disabled={studentPhoto?.isUploading || isSubmitting}
-                                                                onChange={(e) => {
-                                                                    const file = e.target.files?.[0];
-                                                                    if (file) {
-                                                                        if (file.size > 5 * 1024 * 1024) {
-                                                                            toast.error('File size must be less than 5MB');
+                                                        />
+                                                        {(errors as any).amsT_ReligionId && <FormError>{(errors as any).amsT_ReligionId.message}</FormError>}
+                                                    </div>
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Label htmlFor='amsT_Nationality'>
+                                                            Country <span className='ml-1 text-red-500'>*</span>
+                                                        </Label>
+                                                        <Controller
+                                                            name='amsT_Nationality'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <Select
+                                                                    key={`country_${field.value || 'empty'}_${country?.data?.length || 0}`}
+                                                                    onValueChange={(value) => field.onChange(Number(value))}
+                                                                    value={field.value?.toString() || ''}>
+                                                                    <SelectTrigger
+                                                                        className={cn((errors as any).amsT_Nationality && 'border-red-500')}>
+                                                                        <SelectValue placeholder='Select country' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {countryLoading ? (
+                                                                            <SelectItem value='0' disabled>Loading countries...</SelectItem>
+                                                                        ) : countryError ? (
+                                                                            <SelectItem value='error' disabled>Error loading countries</SelectItem>
+                                                                        ) : (
+                                                                            country?.data?.map((item: any) => (
+                                                                                <SelectItem key={item.ivrmmC_Id} value={item.ivrmmC_Id.toString()}>
+                                                                                    {item.ivrmmC_CountryName}
+                                                                                </SelectItem>
+                                                                            ))
+                                                                        )}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            )}
+                                                        />
+                                                        {(errors as any).amsT_Nationality && <FormError>{(errors as any).amsT_Nationality.message}</FormError>}
+                                                    </div>
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Label htmlFor='amsT_State'>State</Label>
+                                                        <Controller
+                                                            name='amsT_State'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <Select
+                                                                    key={`state_${field.value || 'empty'}_${studentState?.data?.length || 0}`}
+                                                                    onValueChange={(value) => field.onChange(Number(value))}
+                                                                    value={field.value?.toString() || ''}>
+                                                                    <SelectTrigger className={cn((errors as any).amsT_State && 'border-red-500')}>
+                                                                        <SelectValue
+                                                                            placeholder={studentStateLoading ? 'Loading states...' : 'Select state'}
+                                                                        />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {studentStateLoading ? (
+                                                                            <SelectItem value='0' disabled>Loading states...</SelectItem>
+                                                                        ) : studentStateError ? (
+                                                                            <SelectItem value='error' disabled>Error loading states</SelectItem>
+                                                                        ) : studentState?.data && studentState.data.length > 0 ? (
+                                                                            studentState.data.map((item: any) => (
+                                                                                <SelectItem key={item.ivrmmS_Id} value={item.ivrmmS_Id.toString()}>
+                                                                                    {item.ivrmmS_Name}
+                                                                                </SelectItem>
+                                                                            ))
+                                                                        ) : (
+                                                                            <SelectItem value='0' disabled>No states available</SelectItem>
+                                                                        )}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            )}
+                                                        />
+                                                        {(errors as any).amsT_State && <FormError>{(errors as any).amsT_State.message}</FormError>}
+                                                    </div>
+                                                </div>
+
+                                                {/* Row 7: Caste Category, Caste & Sub Caste */}
+                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Label htmlFor='imCC_Id'>
+                                                            Caste Category <span className='ml-1 text-red-500'>*</span>
+                                                        </Label>
+                                                        <Controller
+                                                            name='imCC_Id'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <Select
+                                                                    key={`category_${field.value || 'empty'}_${(casteCategoryData as any)?.data?.length || 0}`}
+                                                                    onValueChange={(value) => field.onChange(Number(value))}
+                                                                    value={field.value?.toString() || ''}>
+                                                                    <SelectTrigger className={cn((errors as any).imCC_Id && 'border-red-500')}>
+                                                                        <SelectValue placeholder={categoryLoading ? 'Loading...' : 'Select category'} />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {(casteCategoryData as any)?.data?.map((item: any) => (
+                                                                            <SelectItem key={item.imcC_Id || item.imCC_Id} value={(item.imcC_Id || item.imCC_Id).toString()}>
+                                                                                {item.imcC_CategoryName || item.imcC_CategoryName}
+                                                                            </SelectItem>
+                                                                        ))}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            )}
+                                                        />
+                                                        {(errors as any).imCC_Id && <FormError>{(errors as any).imCC_Id.message}</FormError>}
+                                                    </div>
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Label htmlFor='imC_Id'>
+                                                            Caste <span className='ml-1 text-red-500'>*</span>
+                                                        </Label>
+                                                        <Controller
+                                                            name='imC_Id'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <Select
+                                                                    key={`caste_${field.value || 'empty'}_${availableCastes?.length || 0}`}
+                                                                    onValueChange={(value) => field.onChange(Number(value))}
+                                                                    value={field.value?.toString() || ''}
+                                                                    disabled={!currentCategoryId}>
+                                                                    <SelectTrigger className={cn((errors as any).imC_Id && 'border-red-500')}>
+                                                                        <SelectValue placeholder={!currentCategoryId ? 'Select category first' : 'Select caste'} />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {availableCastes?.map((item: any) => (
+                                                                            <SelectItem key={item.imC_Id} value={item.imC_Id.toString()}>
+                                                                                {item.imC_CasteName}
+                                                                            </SelectItem>
+                                                                        ))}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            )}
+                                                        />
+                                                        {(errors as any).imC_Id && <FormError>{(errors as any).imC_Id.message}</FormError>}
+                                                    </div>
+                                                    <InputText
+                                                        label='Sub Caste'
+                                                        id='amsT_SubCasteIMC_Id'
+                                                        placeholder='Enter sub caste'
+                                                        {...register('amsT_SubCasteIMC_Id')}
+                                                        error={errors.amsT_SubCasteIMC_Id?.message}
+                                                    />
+                                                </div>
+
+                                                {/* Tribe (if exists) */}
+                                                <InputText
+                                                    label='Tribe'
+                                                    id='amsT_Tribe'
+                                                    placeholder='Enter tribe'
+                                                    {...register('amsT_Tribe')}
+                                                    error={errors.amsT_Tribe?.message}
+                                                />
+
+                                                {/* Row 9: Birth Place */}
+                                                <InputText
+                                                    label='Birth Place'
+                                                    id='amsT_BirthPlace'
+                                                    placeholder='Enter birth place'
+                                                    {...register('amsT_BirthPlace')}
+                                                    error={errors.amsT_BirthPlace?.message}
+                                                />
+
+                                                {/* Row 10: Birth Certificate No & Caste Certificate No */}
+                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                    <InputText
+                                                        label='Birth Certificate No'
+                                                        id='amsT_BirthCertNO'
+                                                        placeholder='Enter birth certificate number'
+                                                        {...register('amsT_BirthCertNO')}
+                                                        error={errors.amsT_BirthCertNO?.message}
+                                                    />
+                                                    <InputText
+                                                        label='Caste Certificate No'
+                                                        id='amsT_CasteCertiNo'
+                                                        placeholder='Enter caste certificate number'
+                                                        {...register('amsT_CasteCertiNo')}
+                                                        error={errors.amsT_CasteCertiNo?.message}
+                                                    />
+                                                </div>
+
+                                                {/* Other Govt Nos */}
+                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                    <InputText
+                                                        label='Govt Admission No'
+                                                        id='amsT_GovtAdmno'
+                                                        placeholder='Enter govt admission no'
+                                                        {...register('amsT_GovtAdmno')}
+                                                        error={errors.amsT_GovtAdmno?.message}
+                                                    />
+                                                    <InputText
+                                                        label='Income Certificate No'
+                                                        id='amsT_Income'
+                                                        placeholder='Enter income certificate no'
+                                                        {...register('amsT_Income')}
+                                                        error={errors.amsT_Income?.message}
+                                                    />
+                                                </div>
+
+                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                    <InputText
+                                                        label='Ration Card No'
+                                                        id='amsT_ration'
+                                                        placeholder='Enter ration card no'
+                                                        {...register('amsT_ration')}
+                                                        error={errors.amsT_ration?.message}
+                                                    />
+                                                    <InputText
+                                                        label='Student PAN No'
+                                                        id='amsT_StudentPANNo'
+                                                        placeholder='Enter PAN no'
+                                                        {...register('amsT_StudentPANNo')}
+                                                        error={errors.amsT_StudentPANNo?.message}
+                                                    />
+                                                </div>
+
+                                                {/* Row 11: Biometric Id & RF Card No */}
+                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                    <InputText
+                                                        label='Biometric Id'
+                                                        id='amsT_BiometricId'
+                                                        placeholder='Enter biometric ID'
+                                                        {...register('amsT_BiometricId')}
+                                                        error={errors.amsT_BiometricId?.message}
+                                                    />
+                                                    <InputText
+                                                        label='RF Card No'
+                                                        id='amsT_RFCardNo'
+                                                        placeholder='Enter RF card number'
+                                                        {...register('amsT_RFCardNo')}
+                                                        error={errors.amsT_RFCardNo?.message}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {/* Right Column - Secondary Information & Photo (5/12) */}
+                                            <div className='col-span-12 space-y-4 lg:col-span-5'>
+                                                {/* Student Photo Section */}
+                                                <div className='col-span-full w-full'>
+                                                    <div className='rounded-lg border-2 border-blue-200 bg-blue-50 p-4'>
+                                                        <div className='mb-2'>
+                                                            <Label htmlFor='student_photo'>
+                                                                Student Photo <span className='ml-1 text-red-500'>*</span>
+                                                            </Label>
+                                                        </div>
+
+                                                        {!studentPhoto?.amsT_Photoname ? (
+                                                            <label
+                                                                htmlFor='student_photo'
+                                                                className={cn(
+                                                                    'flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-4 py-8 text-center transition-all hover:border-primary hover:bg-white',
+                                                                    studentPhoto?.isUploading
+                                                                        ? 'border-blue-400 bg-blue-100'
+                                                                        : 'border-gray-300 bg-white'
+                                                                )}>
+                                                                {studentPhoto?.isUploading ? (
+                                                                    <div className='flex flex-col items-center gap-2'>
+                                                                        <svg className='h-8 w-8 animate-spin text-primary' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                                                            <circle className='opacity-25' cx='12' cy='12' r='10' strokeWidth='4' stroke='currentColor' />
+                                                                            <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z' />
+                                                                        </svg>
+                                                                        <span className='font-medium text-primary text-sm'>Uploading photo...</span>
+                                                                    </div>
+                                                                ) : (
+                                                                    <>
+                                                                        <svg className='h-12 w-12 text-primary' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                                                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' />
+                                                                        </svg>
+                                                                        <span className='font-medium text-gray-700 text-sm'>Click to upload</span>
+                                                                        <span className='mt-2 text-gray-500 text-xs'>
+                                                                            passport-size photo (Max: 5MB, JPG/PNG)
+                                                                        </span>
+                                                                    </>
+                                                                )}
+                                                                <input
+                                                                    id='student_photo'
+                                                                    type='file'
+                                                                    className='hidden'
+                                                                    accept='image/jpeg,image/jpg,image/png'
+                                                                    disabled={studentPhoto?.isUploading || isSubmitting}
+                                                                    onChange={(e) => {
+                                                                        const file = e.target.files?.[0];
+                                                                        if (file) {
+                                                                            if (file.size > 5 * 1024 * 1024) {
+                                                                                toast.error('File size must be less than 5MB');
+                                                                                e.target.value = '';
+                                                                                return;
+                                                                            }
+                                                                            handleStudentPhotoUpload(file);
                                                                             e.target.value = '';
-                                                                            return;
                                                                         }
-                                                                        handleStudentPhotoUpload(file);
-                                                                        e.target.value = '';
-                                                                    }
-                                                                }}
-                                                            />
-                                                        </label>
-                                                    ) : (
-                                                        <div className='flex w-fit flex-col items-start justify-between gap-2 rounded-lg border border-green-200 bg-green-50 p-4'>
-                                                            <div className='flex items-center gap-4'>
+                                                                    }}
+                                                                />
+                                                            </label>
+                                                        ) : (
+                                                            <div className='flex w-full flex-col items-center gap-4 rounded-lg border border-green-200 bg-green-50 p-4'>
                                                                 <img
                                                                     src={rowData?.amsT_Photoname || studentPhoto.amsT_Photoname}
                                                                     alt='Student'
-                                                                    className='h-20 w-20 rounded-lg border-2 border-green-300 object-cover'
+                                                                    className='h-40 w-40 rounded-lg border-2 border-green-300 object-cover shadow-md'
                                                                 />
-                                                                <div>
-                                                                    <div className='flex items-center gap-2 font-medium text-green-700'>
-                                                                        <Check className='h-5 w-5' />
-                                                                        Uploaded Successfully
-                                                                    </div>
-                                                                    <p className='mt-1 text-green-600 text-sm'>Student photo is ready</p>
+                                                                <div className='flex w-full justify-center gap-2'>
+                                                                    <Button
+                                                                        type='button'
+                                                                        variant='outline'
+                                                                        size='sm'
+                                                                        onClick={() => window.open(studentPhoto.amsT_Photoname, '_blank')}>
+                                                                        <Eye className='mr-2 h-4 w-4' /> View
+                                                                    </Button>
+                                                                    <Button
+                                                                        type='button'
+                                                                        variant='destructive'
+                                                                        size='sm'
+                                                                        disabled={isSubmitting}
+                                                                        onClick={handleStudentPhotoDelete}>
+                                                                        <Trash className='mr-2 h-4 w-4' /> Remove
+                                                                    </Button>
                                                                 </div>
                                                             </div>
-                                                            <div className='flex gap-2'>
-                                                                <Button
-                                                                    type='button'
-                                                                    variant='outline'
-                                                                    size='sm'
-                                                                    onClick={() => window.open(studentPhoto.amsT_Photoname, '_blank')}>
-                                                                    <Eye className='h-4 w-4' />
-                                                                </Button>
-                                                                <Button
-                                                                    type='button'
-                                                                    variant='destructive'
-                                                                    size='sm'
-                                                                    disabled={isSubmitting}
-                                                                    onClick={handleStudentPhotoDelete}>
-                                                                    <Trash className='h-4 w-4' />
-                                                                </Button>
-                                                            </div>
-                                                        </div>
-                                                    )}
-
-                                                    {studentPhotoError && (
-                                                        <div className='mt-3 rounded-md border border-red-200 bg-red-50 p-3'>
-                                                            <p className='flex items-start gap-2 font-medium text-red-700 text-sm'>
-                                                                <span className='mt-0.5 text-red-500'>⚠</span>
-                                                                <span>{studentPhotoError}</span>
-                                                            </p>
-                                                        </div>
-                                                    )}
-
-                                                    {(errors as any).studentPhoto && (
-                                                        <div className='mt-3 rounded-md border border-red-200 bg-red-50 p-3'>
-                                                            <p className='flex items-start gap-2 font-medium text-red-700 text-sm'>
-                                                                <span className='mt-0.5 text-red-500'>⚠</span>
-                                                                <span>{(errors as any).studentPhoto.message}</span>
-                                                            </p>
-                                                        </div>
-                                                    )}
+                                                        )}
+                                                        {studentPhotoError && <p className='mt-2 text-red-500 text-xs'>{studentPhotoError}</p>}
+                                                        {(errors as any).studentPhoto && <p className='mt-2 text-red-500 text-xs'>{(errors as any).studentPhoto.message}</p>}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                        <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
-                                            <InputText
-                                                label='First Name'
-                                                required
-                                                id='amsT_FirstName'
-                                                placeholder='Enter first name'
-                                                {...register('amsT_FirstName')}
-                                                error={errors.amsT_FirstName?.message}
-                                            />
-                                            <InputText
-                                                label='Middle Name'
-                                                id='amsT_MiddleName'
-                                                placeholder='Enter middle name'
-                                                {...register('amsT_MiddleName')}
-                                                error={errors.amsT_MiddleName?.message}
-                                            />
-                                            <InputText
-                                                label='Last Name'
-                                                id='amsT_LastName'
-                                                placeholder='Enter last name'
-                                                {...register('amsT_LastName')}
-                                                error={errors.amsT_LastName?.message}
-                                            />
-                                            <InputText
-                                                label='Registration No'
-                                                required
-                                                id='amsT_RegistrationNo'
-                                                placeholder='Enter registration number'
-                                                {...register('amsT_RegistrationNo')}
-                                                onBlur={(e) => {
-                                                    register('amsT_RegistrationNo').onBlur(e);
-                                                    handleCheckDuplicateRegNo(e.target.value);
-                                                }}
-                                                error={errors.amsT_RegistrationNo?.message}
-                                            />
-                                            <InputText
-                                                label='Admission No'
-                                                required
-                                                id='amsT_AdmissionNo'
-                                                placeholder='Enter admission number'
-                                                {...register('amsT_AdmissionNo')}
-                                                onBlur={(e) => {
-                                                    register('amsT_AdmissionNo').onBlur(e);
-                                                    handleCheckDuplicateAdmissionNo(e.target.value);
-                                                }}
-                                                error={errors.amsT_AdmissionNo?.message}
-                                            />
-                                            <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='asmcL_Id'>
-                                                    Class <span className='ml-1 text-red-500'>*</span>
-                                                </Label>
-                                                <Controller
-                                                    name='asmcL_Id'
-                                                    control={control}
-                                                    render={({ field, fieldState: { error } }) => (
-                                                        <div className='flex flex-col space-y-2'>
-                                                            <Select
-                                                                key={`class_${field.value || 'empty'}_${admissionClass?.data?.length || 0}`}
-                                                                value={field.value?.toString() || ''}
-                                                                onValueChange={(value) => field.onChange(Number(value))}>
-                                                                <SelectTrigger disabled className={cn('w-full', error && 'border-red-500')}>
-                                                                    <SelectValue
-                                                                        placeholder={
-                                                                            admissionClassLoading ? 'Loading classes...' : 'Select a class'
-                                                                        }
-                                                                    />
-                                                                </SelectTrigger>
 
-                                                                <SelectContent>
-                                                                    {admissionClassLoading ? (
-                                                                        <SelectItem value='0' disabled>
-                                                                            Loading classes...
-                                                                        </SelectItem>
-                                                                    ) : admissionClassError ? (
-                                                                        <SelectItem value='error' disabled>
-                                                                            Error loading classes
-                                                                        </SelectItem>
-                                                                    ) : admissionClass?.data && admissionClass.data.length > 0 ? (
-                                                                        admissionClass.data.map((classItem: any) => (
-                                                                            <SelectItem
-                                                                                key={classItem.asmcL_Id}
-                                                                                value={classItem.asmcL_Id.toString()}>
-                                                                                {classItem.asmcL_ClassName}
-                                                                            </SelectItem>
-                                                                        ))
-                                                                    ) : (
-                                                                        <SelectItem value='0' disabled>
-                                                                            No classes available
-                                                                        </SelectItem>
-                                                                    )}
-                                                                </SelectContent>
-                                                            </Select>
-                                                        </div>
-                                                    )}
-                                                />
-
-                                                {errors.asmcL_Id && <FormError>{errors.asmcL_Id.message}</FormError>}
-                                            </div>
-
-                                            <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='asmS_Id'>
-                                                    Section <span className='ml-1 text-red-500'>*</span>
-                                                </Label>
-                                                <Controller
-                                                    name='asmS_Id'
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <Select
-                                                            key={`sec_${field.value || 'empty'}_${sectionData?.data?.length || 0}`}
-                                                            value={field.value?.toString() || ''}
-                                                            onValueChange={(value) => field.onChange(Number(value))} // <-- SEND NUMBER
-                                                            disabled={!classId || classId === 0 || sectionLoading}>
-                                                            <SelectTrigger disabled className={cn(errors.asmS_Id && 'border-red-500')}>
-                                                                <SelectValue
-                                                                    placeholder={sectionLoading ? 'Loading...' : 'Select section'}
-                                                                />
-                                                            </SelectTrigger>
-
-                                                            <SelectContent>
-                                                                {sectionLoading ? (
-                                                                    <SelectItem value='0' disabled>
-                                                                        Loading sections...
-                                                                    </SelectItem>
-                                                                ) : sectionError ? (
-                                                                    <SelectItem value='error' disabled>
-                                                                        Error loading sections
-                                                                    </SelectItem>
-                                                                ) : sectionData?.data && sectionData.data.length > 0 ? (
-                                                                    sectionData.data.map((section: any) => (
-                                                                        <SelectItem
-                                                                            key={section.asmS_Id}
-                                                                            value={section.asmS_Id.toString()}>
-                                                                            {section.asmC_SectionName}
-                                                                        </SelectItem>
-                                                                    ))
-                                                                ) : (
-                                                                    <SelectItem value='0' disabled>
-                                                                        No sections available
-                                                                    </SelectItem>
-                                                                )}
-                                                            </SelectContent>
-                                                        </Select>
-                                                    )}
-                                                />
-
-                                                {errors.asmS_Id && <FormError>{errors.asmS_Id.message}</FormError>}
-                                            </div>
-
-                                            <Controller
-                                                name='amsT_Date'
-                                                control={control}
-                                                render={({ field, fieldState: { error } }) => (
-                                                    <div className='flex flex-col space-y-2'>
-                                                        <Label htmlFor='amsT_Date'>
-                                                            Date of Admission <span className='ml-1 text-red-500'>*</span>
+                                                {/* Age, Gender & Blood Group */}
+                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+                                                    <InputText
+                                                        label='Age'
+                                                        id='pasR_Age'
+                                                        placeholder='Age'
+                                                        type='number'
+                                                        {...register('pasR_Age', { valueAsNumber: true })}
+                                                        error={errors.pasR_Age?.message}
+                                                        disabled
+                                                    />
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Label htmlFor='amsT_Sex'>
+                                                            Gender <span className='ml-1 text-red-500'>*</span>
                                                         </Label>
-
-                                                        <Popover
-                                                            open={openPopover === 'amsT_Date'}
-                                                            onOpenChange={(open) => setOpenPopover(open ? 'amsT_Date' : null)}>
-                                                            <PopoverTrigger asChild>
-                                                                <Button
-                                                                    variant={'outline'}
-                                                                    className={cn(
-                                                                        'w-full justify-start text-left font-normal',
-                                                                        !field.value && 'text-muted-foreground',
-                                                                        error && 'border-red-500'
-                                                                    )}>
-                                                                    <CalendarIcon className='mr-2 h-4 w-4' />
-                                                                    {field.value ? (
-                                                                        format(field.value, 'dd/MM/yyyy')
-                                                                    ) : (
-                                                                        <span>Pick a date</span>
-                                                                    )}
-                                                                </Button>
-                                                            </PopoverTrigger>
-                                                            <PopoverContent className='w-auto p-0' align='start'>
-                                                                <CalendarYear
-                                                                    mode='single'
-                                                                    selected={field.value}
-                                                                    onSelect={(date: Date | undefined) => {
-                                                                        if (date) {
-                                                                            field.onChange(date);
-                                                                            setOpenPopover(null);
-                                                                        }
-                                                                    }}
-                                                                    disabled={(date: Date) =>
-                                                                        date > new Date() || date < new Date('1900-01-01')
-                                                                    }
-                                                                    initialFocus
-                                                                />
-                                                            </PopoverContent>
-                                                        </Popover>
-                                                        {error && <span className='text-red-500 text-sm'>{error.message}</span>}
-                                                    </div>
-                                                )}
-                                            />
-
-                                            <Controller
-                                                name='amsT_DOB'
-                                                control={control}
-                                                render={({ field, fieldState: { error } }) => (
-                                                    <div className='flex flex-col space-y-2'>
-                                                        <Label htmlFor='amsT_DOB'>
-                                                            Date of Birth <span className='ml-1 text-red-500'>*</span>
-                                                        </Label>
-                                                        <Popover
-                                                            open={openPopover === 'amsT_DOB'}
-                                                            onOpenChange={(open) => setOpenPopover(open ? 'amsT_DOB' : null)}>
-                                                            <PopoverTrigger asChild>
-                                                                <Button
-                                                                    variant={'outline'}
-                                                                    className={cn(
-                                                                        'w-full justify-start text-left font-normal',
-                                                                        !field.value && 'text-muted-foreground',
-                                                                        error && 'border-red-500'
-                                                                    )}>
-                                                                    <CalendarIcon className='mr-2 h-4 w-4' />
-                                                                    {field.value ? (
-                                                                        format(field.value, 'dd/MM/yyyy')
-                                                                    ) : (
-                                                                        <span>Pick a date</span>
-                                                                    )}
-                                                                </Button>
-                                                            </PopoverTrigger>
-                                                            <PopoverContent className='w-auto p-0' align='start'>
-                                                                <CalendarYear
-                                                                    mode='single'
-                                                                    selected={field.value}
-                                                                    onSelect={(date: Date | undefined) => {
-                                                                        if (date) {
-                                                                            field.onChange(date);
-                                                                            handleDOBChange(date);
-                                                                            setOpenPopover(null);
-                                                                        }
-                                                                    }}
-                                                                    disabled={(date: Date) =>
-                                                                        date > new Date() || date < new Date('1900-01-01')
-                                                                    }
-                                                                    initialFocus
-                                                                />
-                                                            </PopoverContent>
-                                                        </Popover>
-                                                        {error && <span className='text-red-500 text-sm'>{error.message}</span>}
-                                                    </div>
-                                                )}
-                                            />
-
-                                            {/* Date of Birth in Words - Auto-filled */}
-                                            <InputText
-                                                label='Date of Birth in Words'
-                                                id='amsT_DOB_Words'
-                                                placeholder='Date of birth in words'
-                                                {...register('amsT_DOB_Words')}
-                                                error={errors.amsT_DOB_Words?.message}
-                                                disabled
-                                            />
-
-                                            {/* Age - Auto-calculated */}
-                                            <InputText
-                                                label='Age'
-                                                id='pasR_Age'
-                                                placeholder='Age'
-                                                type='number'
-                                                {...register('pasR_Age', { valueAsNumber: true })}
-                                                error={errors.pasR_Age?.message}
-                                                disabled
-                                            />
-
-                                            <InputText
-                                                label='Birth Place'
-                                                id='amsT_BirthPlace'
-                                                placeholder='Enter birth place'
-                                                {...register('amsT_BirthPlace')}
-                                                error={errors.amsT_BirthPlace?.message}
-                                            />
-
-                                            <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='amsT_ReligionId'>
-                                                    Religion <span className='ml-1 text-red-500'>*</span>
-                                                </Label>
-                                                <Controller
-                                                    name='amsT_ReligionId'
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <Select
-                                                            key={`rel_${field.value || 'empty'}_${religion?.data?.length || 0}`}
-                                                            onValueChange={(value) => {
-                                                                const numVal = Number(value);
-                                                                field.onChange(numVal);
-                                                                // When religion changes, we should ideally clear or refetch caste,
-                                                                // but watch() handles the refetch.
-                                                            }}
-                                                            value={field.value?.toString() || ''}>
-                                                            <SelectTrigger
-                                                                className={cn((errors as any).amsT_ReligionId && 'border-red-500')}>
-                                                                <SelectValue placeholder='Select religion' />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                {religionLoading ? (
-                                                                    <SelectItem value='0' disabled>
-                                                                        Loading religion...
-                                                                    </SelectItem>
-                                                                ) : religionError ? (
-                                                                    <SelectItem value='error' disabled>
-                                                                        Error loading religions
-                                                                    </SelectItem>
-                                                                ) : (
-                                                                    religion?.data?.map((item: any) => (
-                                                                        <SelectItem key={item.ivrmmR_Id} value={item.ivrmmR_Id.toString()}>
-                                                                            {item.ivrmmR_ReligionName || item.ivrmmR_Name}
-                                                                        </SelectItem>
-                                                                    ))
-                                                                )}
-                                                            </SelectContent>
-                                                        </Select>
-                                                    )}
-                                                />
-                                                {(errors as any).amsT_ReligionId && (
-                                                    <FormError>{(errors as any).amsT_ReligionId.message}</FormError>
-                                                )}
-                                            </div>
-
-                                            <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='imC_Id'>
-                                                    Caste <span className='ml-1 text-red-500'>*</span>
-                                                </Label>
-                                                <Controller
-                                                    name='imC_Id'
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                                        <Select
-                                                                            key={`caste_${field.value || 'empty'}_${availableCastes?.length || 0}`}
-                                                                            onValueChange={(value) => field.onChange(Number(value))}
-                                                                            value={field.value?.toString() || ''}
-                                                                            disabled={!currentCategoryId}>
-                                                                            <SelectTrigger className={cn((errors as any).imC_Id && 'border-red-500')}>
-                                                                                <SelectValue
-                                                                                    placeholder={!currentCategoryId ? 'Select category first' : (isCastesLoading && availableCastes.length === 0) ? 'Loading...' : 'Select caste'}
-                                                                                />
-                                                                            </SelectTrigger>
-                                                                            <SelectContent>
-                                                                                {isCastesLoading && availableCastes.length === 0 ? (
-                                                                                    <SelectItem value='0' disabled>
-                                                                                        Loading castes...
-                                                                                    </SelectItem>
-                                                                                ) : (availableCastes || []).length === 0 ? (
-                                                                                    <SelectItem value='0' disabled>
-                                                                                        No castes found
-                                                                                    </SelectItem>
-                                                                                ) : (
-                                                                                    availableCastes?.map((item: any) => (
-                                                                                        <SelectItem key={item.imC_Id} value={item.imC_Id.toString()}>
-                                                                                            {item.imC_CasteName}
-                                                                                        </SelectItem>
-                                                                                    ))
-                                                                                )}
-                                                                            </SelectContent>
-                                                                        </Select>
-                                                    )}
-                                                />
-                                                {(errors as any).imC_Id && <FormError>{(errors as any).imC_Id.message}</FormError>}
-                                            </div>
-
-                                            <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='imCC_Id'>
-                                                    Caste Category <span className='ml-1 text-red-500'>*</span>
-                                                </Label>
-                                                <Controller
-                                                    name='imCC_Id'
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <Select
-                                                            key={`category_${field.value || 'empty'}_${(casteCategoryData as any)?.data?.length || 0}`}
-                                                            onValueChange={(value) => field.onChange(Number(value))}
-                                                            value={field.value?.toString() || ''}>
-                                                            <SelectTrigger
-                                                                className={cn((errors as any).imCC_Id && 'border-red-500')}>
-                                                                <SelectValue
-                                                                    placeholder={
-                                                                        categoryLoading ? 'Loading categories...' : 'Select category'
-                                                                    }
-                                                                />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                {categoryLoading ? (
-                                                                    <SelectItem value='0' disabled>
-                                                                        Loading categories...
-                                                                    </SelectItem>
-                                                                ) : (
-                                                                    (casteCategoryData as any)?.data?.map((item: any) => (
-                                                                        <SelectItem
-                                                                            key={item.imcC_Id || item.imCC_Id}
-                                                                            value={(item.imcC_Id || item.imCC_Id).toString()}>
-                                                                            {item.imcC_CategoryName || item.imCC_CategoryName}
-                                                                        </SelectItem>
-                                                                    ))
-                                                                )}
-                                                            </SelectContent>
-                                                        </Select>
-                                                    )}
-                                                />
-                                                {(errors as any).imCC_Id && (
-                                                    <FormError>{(errors as any).imCC_Id.message}</FormError>
-                                                )}
-                                            </div>
-                                            {/* <InputText
-                                                label='Caste '
-                                                required
-                                                id='imC_Id'
-                                                placeholder='Enter caste category'
-                                                {...register('imC_Id')}
-                                                error={errors.imC_Id?.message}
-                                            /> */}
-                                            <InputText
-                                                label='Sub Caste'
-                                                id='amsT_SubCasteIMC_Id'
-                                                placeholder='Enter sub caste'
-                                                {...register('amsT_SubCasteIMC_Id')}
-                                                error={errors.amsT_SubCasteIMC_Id?.message}
-                                            />
-
-                                            <InputText
-                                                label='Birth Certificate No'
-                                                id='amsT_BirthCertNO'
-                                                placeholder='Enter birth certificate number'
-                                                {...register('amsT_BirthCertNO')}
-                                                error={errors.amsT_BirthCertNO?.message}
-                                            />
-                                            <InputText
-                                                label='Caste Certificate No'
-                                                id='amsT_CasteCertiNo'
-                                                placeholder='Enter caste certificate number'
-                                                {...register('amsT_CasteCertiNo')}
-                                                error={errors.amsT_CasteCertiNo?.message}
-                                            />
-                                            <InputText
-                                                label='Biometric Id'
-                                                id='amsT_BiometricId'
-                                                placeholder='Enter biometric ID'
-                                                {...register('amsT_BiometricId')}
-                                                error={errors.amsT_BiometricId?.message}
-                                            />
-                                            <InputText
-                                                label='RF Card No'
-                                                id='amsT_RFCardNo'
-                                                placeholder='Enter RF card number'
-                                                {...register('amsT_RFCardNo')}
-                                                error={errors.amsT_RFCardNo?.message}
-                                            />
-
-                                            <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='amsT_Sex'>
-                                                    Gender <span className='ml-1 text-red-500'>*</span>
-                                                </Label>
-                                                <Controller
-                                                    name='amsT_Sex'
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <Select
-                                                            key={field.value || 'empty'}
-                                                            onValueChange={(value) => field.onChange(value)}
-                                                            value={field.value?.toString() || ''}>
-                                                            <SelectTrigger>
-                                                                <SelectValue placeholder='Select gender' />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                <SelectItem value='Male'>Male</SelectItem>
-                                                                <SelectItem value='Female'>Female</SelectItem>
-                                                                <SelectItem value='Other'>Other</SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                    )}
-                                                />
-                                                {errors.amsT_Sex && <FormError>{errors.amsT_Sex.message}</FormError>}
-                                            </div>
-
-                                            <InputText
-                                                label='Mother Tongue'
-                                                id='amsT_MotherTongue'
-                                                placeholder='Enter mother tongue'
-                                                {...register('amsT_MotherTongue')}
-                                                error={errors.amsT_MotherTongue?.message}
-                                            />
-                                            <InputText
-                                                label='Languages Spoken'
-                                                id='amsT_LanguageSpoken'
-                                                placeholder='Enter languages'
-                                                {...register('amsT_LanguageSpoken')}
-                                                error={errors.amsT_LanguageSpoken?.message}
-                                            />
-
-                                            <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='amsT_Nationality'>
-                                                    Country <span className='ml-1 text-red-500'>*</span>
-                                                </Label>
-
-                                                <Controller
-                                                    name='amsT_Nationality'
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <Select
-                                                            key={`country_${field.value || 'empty'}_${country?.data?.length || 0}`}
-                                                            onValueChange={(value) => {
-                                                                field.onChange(Number(value));
-                                                            }}
-                                                            value={field.value?.toString() || ''}>
-                                                            <SelectTrigger
-                                                                className={cn((errors as any).amsT_Nationality && 'border-red-500')}>
-                                                                <SelectValue placeholder='Select country' />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                {countryLoading ? (
-                                                                    <SelectItem value='0' disabled>
-                                                                        Loading countries...
-                                                                    </SelectItem>
-                                                                ) : countryError ? (
-                                                                    <SelectItem value='error' disabled>
-                                                                        Error loading countries
-                                                                    </SelectItem>
-                                                                ) : (
-                                                                    country?.data?.map((item: any) => (
-                                                                        <SelectItem key={item.ivrmmC_Id} value={item.ivrmmC_Id.toString()}>
-                                                                            {item.ivrmmC_CountryName}
-                                                                        </SelectItem>
-                                                                    ))
-                                                                )}
-                                                            </SelectContent>
-                                                        </Select>
-                                                    )}
-                                                />
-                                                {(errors as any).amsT_Nationality && (
-                                                    <FormError>{(errors as any).amsT_Nationality.message}</FormError>
-                                                )}
-                                            </div>
-
-                                            <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='amsT_State'>
-                                                    State <span className='ml-1 text-red-500'>*</span>
-                                                </Label>
-                                                <Controller
-                                                    name='amsT_State'
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <Select
-                                                            key={`state_${field.value || 'empty'}_${studentState?.data?.length || 0}`}
-                                                            onValueChange={(value) => field.onChange(Number(value))}
-                                                            value={field.value?.toString() || ''}>
-                                                            <SelectTrigger className={cn((errors as any).amsT_State && 'border-red-500')}>
-                                                                <SelectValue
-                                                                    placeholder={studentStateLoading ? 'Loading states...' : 'Select state'}
-                                                                />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                {studentStateLoading ? (
-                                                                    <SelectItem value='0' disabled>
-                                                                        Loading states...
-                                                                    </SelectItem>
-                                                                ) : studentStateError ? (
-                                                                    <SelectItem value='error' disabled>
-                                                                        Error loading states
-                                                                    </SelectItem>
-                                                                ) : studentState?.data && studentState.data.length > 0 ? (
-                                                                    studentState.data.map((item: any) => (
-                                                                        <SelectItem key={item.ivrmmS_Id} value={item.ivrmmS_Id.toString()}>
-                                                                            {item.ivrmmS_Name}
-                                                                        </SelectItem>
-                                                                    ))
-                                                                ) : (
-                                                                    <SelectItem value='0' disabled>
-                                                                        No states available
-                                                                    </SelectItem>
-                                                                )}
-                                                            </SelectContent>
-                                                        </Select>
-                                                    )}
-                                                />
-                                                {(errors as any).amsT_State && <FormError>{(errors as any).amsT_State.message}</FormError>}
-                                            </div>
-
-                                            <div className='flex flex-col gap-1.5 '>
-                                                <Controller
-                                                    name='amsT_MobileNo'
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <div>
-                                                            <Label htmlFor='amsT_MobileNo'>
-                                                                Mobile No. <span className='text-red-500'>*</span>
-                                                            </Label>
-                                                            <PhoneInput
-                                                                country='in'
-                                                                value={
-                                                                    phoneValues.amsT_MobileNo ??
-                                                                    (field.value != null ? String(field.value) : null)
-                                                                }
-                                                                onChange={(phone: any, countryData: any) =>
-                                                                    handlePhoneChange(phone, countryData, 'amsT_MobileNo')
-                                                                }
-                                                                onBlur={() => trigger('amsT_MobileNo')}
-                                                                inputProps={{
-                                                                    id: 'amsT_MobileNo',
-                                                                    name: 'amsT_MobileNo',
-                                                                    maxLength: 15,
-                                                                    required: false,
-                                                                    style: {
-                                                                        width: '87%',
-                                                                        height: '36px',
-                                                                        marginLeft: '40px',
-                                                                        boxSizing: 'border-box',
-                                                                        borderRadius: '4px',
-                                                                        padding: '16.5px 14px',
-                                                                        fontSize: '16px'
-                                                                    }
-                                                                }}
-                                                                containerClass='w-full'
-                                                                inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
-                                                                enableSearch
-                                                                disableCountryCode={false}
-                                                                enableLongNumbers={true}
-                                                                isValid={true}
-                                                                preserveOrder={['country', 'nationalNumber']}
-                                                            />
-                                                            {phoneExpectedInfo.amsT_MobileNo?.expected && (
-                                                                <span className='mt-1 text-muted-foreground text-xs'>
-                                                                    {`Mobile number must be exactly ${phoneExpectedInfo.amsT_MobileNo.expected} digits for ${phoneExpectedInfo.amsT_MobileNo.name ?? 'selected country'
-                                                                        }`}
-                                                                </span>
+                                                        <Controller
+                                                            name='amsT_Sex'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <Select
+                                                                    key={field.value || 'empty'}
+                                                                    onValueChange={(value) => field.onChange(value)}
+                                                                    value={field.value?.toString() || ''}>
+                                                                    <SelectTrigger>
+                                                                        <SelectValue placeholder='Select gender' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        <SelectItem value='Male'>Male</SelectItem>
+                                                                        <SelectItem value='Female'>Female</SelectItem>
+                                                                        <SelectItem value='Other'>Other</SelectItem>
+                                                                    </SelectContent>
+                                                                </Select>
                                                             )}
-                                                        </div>
-                                                    )}
-                                                />
-                                                {errors.amsT_MobileNo && <FormError>{errors.amsT_MobileNo.message}</FormError>}
-                                            </div>
-
-                                            {/* Hidden legacy primary email (kept in sync with first email field) */}
-                                            <input type='hidden' {...register('amsT_emailId')} />
-
-                                            <div className='flex flex-col gap-1.5'>
-                                                {emailFields.map((field, idx) => {
-                                                    const itemError = (errors as any)?.adm_M_Student_EmailIdDTO?.[idx]?.amsT_emailId
-                                                        ?.message;
-                                                    const fieldName = `adm_M_Student_EmailIdDTO.${idx}.amsT_emailId` as const;
-                                                    return (
-                                                        <div key={field.id} className='flex w-full flex-col gap-1'>
-                                                            <div className='flex items-center gap-2'>
-                                                                <div className='flex-1'>
-                                                                    {idx === 0 && (
-                                                                        <Label htmlFor={String(field.id)}>
-                                                                            Email <span className='ml-1 text-red-500'>*</span>
-                                                                        </Label>
-                                                                    )}
-                                                                    <InputText
-                                                                        {...register(fieldName)}
-                                                                        id={String(field.id)}
-                                                                        label={idx === 0 ? undefined : ''}
-                                                                        placeholder='Enter email'
-                                                                        error={itemError}
-                                                                        required
-                                                                    />
-                                                                </div>
-
-                                                                {/* <div className='mt-1 flex items-center gap-1'>
-                                                                    {emailFields.length < 5 && (
-                                                                        <Button
-                                                                            variant='ghost'
-                                                                            size='sm'
-                                                                            onClick={() => appendEmail({ amsT_emailId: '' })}>
-                                                                            +
-                                                                        </Button>
-                                                                    )}
-
-                                                                    {emailFields.length > 1 && (
-                                                                        <Button
-                                                                            variant='ghost'
-                                                                            size='sm'
-                                                                            onClick={() => {
-                                                                                removeEmail(idx);
-                                                                                if (idx === 0) {
-                                                                                    setTimeout(() => {
-                                                                                        const newFirst =
-                                                                                            (getValues('adm_M_Student_EmailIdDTO') || [])[0]
-                                                                                                ?.amsT_emailId ?? '';
-                                                                                        setValue('amsT_emailId' as any, newFirst);
-                                                                                    }, 0);
-                                                                                }
-                                                                            }}>
-                                                                            -
-                                                                        </Button>
-                                                                    )}
-                                                                </div> */}
-                                                            </div>
-
-                                                            {/* InputText already renders the error; avoid duplicate FormError here */}
-                                                        </div>
-                                                    );
-                                                })}
-
-                                                {/* show legacy primary email error only when no email array items are present */}
-                                                {(!Array.isArray(watchedEmails) || watchedEmails.length === 0) && errors.amsT_emailId && (
-                                                    <FormError>{errors.amsT_emailId.message}</FormError>
-                                                )}
-                                            </div>
-
-                                            <div className='flex flex-col gap-1.5'>
-                                                <Controller
-                                                    name='amsT_AadharNo'
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <MobileNumberInput
-                                                            label='Aadhaar No.'
-                                                            placeholder='Enter Aadhaar No'
-                                                            id='amsT_AadharNo'
-                                                            value={field.value ?? ''}
-                                                            onChange={(value) => field.onChange(value)}
-                                                            type='number'
-                                                            showSpinner={false}
                                                         />
-                                                    )}
-                                                />
-                                                {errors.amsT_AadharNo && <FormError>{errors.amsT_AadharNo.message}</FormError>}
-                                            </div>
+                                                        {errors.amsT_Sex && <FormError>{errors.amsT_Sex.message}</FormError>}
+                                                    </div>
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Label htmlFor='amsT_BloodGroup'>Blood Group</Label>
+                                                        <Controller
+                                                            name='amsT_BloodGroup'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <Select
+                                                                    key={field.value || 'empty'}
+                                                                    onValueChange={(value) => field.onChange(value)}
+                                                                    value={field.value || ''}>
+                                                                    <SelectTrigger>
+                                                                        <SelectValue placeholder='Select' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        <SelectItem value='A+'>A+</SelectItem>
+                                                                        <SelectItem value='A-'>A-</SelectItem>
+                                                                        <SelectItem value='B+'>B+</SelectItem>
+                                                                        <SelectItem value='B-'>B-</SelectItem>
+                                                                        <SelectItem value='AB+'>AB+</SelectItem>
+                                                                        <SelectItem value='AB-'>AB-</SelectItem>
+                                                                        <SelectItem value='O+'>O+</SelectItem>
+                                                                        <SelectItem value='O-'>O-</SelectItem>
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            )}
+                                                        />
+                                                    </div>
+                                                </div>
 
-                                            <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='amsT_BloodGroup'>Blood Group</Label>
+                                                {/* Mother Tongue & Spoken Languages */}
+                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                    <InputText
+                                                        label='Mother Tongue'
+                                                        id='amsT_MotherTongue'
+                                                        placeholder='Enter mother tongue'
+                                                        {...register('amsT_MotherTongue')}
+                                                        error={errors.amsT_MotherTongue?.message}
+                                                    />
+                                                    <InputText
+                                                        label='Languages Spoken'
+                                                        id='amsT_LanguageSpoken'
+                                                        placeholder='Enter languages'
+                                                        {...register('amsT_LanguageSpoken')}
+                                                        error={errors.amsT_LanguageSpoken?.message}
+                                                    />
+                                                </div>
 
-                                                <Controller
-                                                    name='amsT_BloodGroup'
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <Select
-                                                            key={field.value || 'empty'}
-                                                            onValueChange={(value) => field.onChange(value)}
-                                                            value={field.value || ''}>
-                                                            <SelectTrigger>
-                                                                <SelectValue placeholder='Select Blood Group' />
-                                                            </SelectTrigger>
-
-                                                            <SelectContent>
-                                                                <SelectItem value='A+'>A+</SelectItem>
-                                                                <SelectItem value='A-'>A-</SelectItem>
-                                                                <SelectItem value='B+'>B+</SelectItem>
-                                                                <SelectItem value='B-'>B-</SelectItem>
-                                                                <SelectItem value='AB+'>AB+</SelectItem>
-                                                                <SelectItem value='AB-'>AB-</SelectItem>
-                                                                <SelectItem value='O+'>O+</SelectItem>
-                                                                <SelectItem value='O-'>O-</SelectItem>
-                                                                <SelectItem value='A1+ve'>A1+ve</SelectItem>
-                                                                <SelectItem value='A1-ve'>A1-ve</SelectItem>
-                                                                <SelectItem value='B1+ve'>B1+ve</SelectItem>
-                                                                <SelectItem value='B1-ve'>B1-ve</SelectItem>
-                                                                <SelectItem value='A2+ve'>A2+ve</SelectItem>
-                                                                <SelectItem value='A2-ve'>A2-ve</SelectItem>
-                                                                <SelectItem value='A1B+ve'>A1B+ve</SelectItem>
-                                                                <SelectItem value='A2B+ve'>A2B+ve</SelectItem>
-                                                                <SelectItem value='A1B2'>A1B2</SelectItem>
-                                                                <SelectItem value='A1B-ve'>A1B-ve</SelectItem>
-                                                                <SelectItem value='A2B-ve'>A2B-ve</SelectItem>
-                                                                <SelectItem value='Not Available'>Not Available</SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                    )}
-                                                />
-
-                                                {errors.amsT_BloodGroup && <FormError>{errors.amsT_BloodGroup.message}</FormError>}
-                                            </div>
-
-                                            <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='asmcC_Id'>Student Category</Label>
-                                                <Controller
-                                                    name='asmcC_Id'
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <Select
-                                                            key={`cat_${field.value || 'empty'}_${(categoryByClass as any)?.data?.studentCategory?.length || 0}`}
-                                                            onValueChange={(value) => {
-                                                                const val = Number(value);
-                                                                field.onChange(val);
-                                                                // Sync alternative field names
-                                                                setValue('asmcC_Id', val);
-                                                                setValue('studentCategoryId', val);
-                                                            }}
-                                                            value={field.value?.toString() || ''}>
-                                                            <SelectTrigger className={cn(errors.asmcC_Id && 'border-red-500')}>
-                                                                <SelectValue
-                                                                    placeholder={categoryLoading ? 'Loading...' : 'Select category'}
+                                                {/* Aadhaar & Category */}
+                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Controller
+                                                            name='amsT_AadharNo'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <MobileNumberInput
+                                                                    label='Aadhaar No.'
+                                                                    placeholder='Enter Aadhaar No'
+                                                                    id='amsT_AadharNo'
+                                                                    value={field.value ?? ''}
+                                                                    onChange={(value) => field.onChange(value)}
+                                                                    type='number'
+                                                                    showSpinner={false}
                                                                 />
-                                                            </SelectTrigger>
-
-                                                            <SelectContent>
-                                                                {categoryLoading ? (
-                                                                    <SelectItem value='0' disabled>
-                                                                        Loading categories...
-                                                                    </SelectItem>
-                                                                ) : categoryError ? (
-                                                                    <SelectItem value='error' disabled>
-                                                                        Error loading categories
-                                                                    </SelectItem>
-                                                                ) : (
-                                                                    (() => {
-                                                                        const items = (categoryByClass as any)?.data?.studentCategory || [];
-                                                                        if (!items || items.length === 0) {
-                                                                            return (
-                                                                                <SelectItem value='0' disabled>
-                                                                                    No categories available
-                                                                                </SelectItem>
-                                                                            );
-                                                                        }
-                                                                        return items.map((item: any) => (
-                                                                            <SelectItem
-                                                                                key={item.asmcC_Id}
-                                                                                value={String(item.asmcC_Id)}>
+                                                            )}
+                                                        />
+                                                        {errors.amsT_AadharNo && <FormError>{errors.amsT_AadharNo.message}</FormError>}
+                                                    </div>
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Label htmlFor='asmcC_Id'>Student Category</Label>
+                                                        <Controller
+                                                            name='asmcC_Id'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <Select
+                                                                    key={`cat_${field.value || 'empty'}_${(categoryByClass as any)?.data?.studentCategory?.length || 0}`}
+                                                                    onValueChange={(value) => {
+                                                                        const val = Number(value);
+                                                                        field.onChange(val);
+                                                                        setValue('asmcC_Id', val);
+                                                                        setValue('studentCategoryId', val);
+                                                                    }}
+                                                                    value={field.value?.toString() || ''}>
+                                                                    <SelectTrigger>
+                                                                        <SelectValue placeholder='Select category' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {(categoryByClass as any)?.data?.studentCategory?.map((item: any) => (
+                                                                            <SelectItem key={item.asmcC_Id} value={String(item.asmcC_Id)}>
                                                                                 {item.amC_Name}
                                                                             </SelectItem>
-                                                                        ));
-                                                                    })()
-                                                                )}
-                                                            </SelectContent>
-                                                        </Select>
-                                                    )}
-                                                />
-                                                {errors.asmcC_Id && <FormError>{errors.asmcC_Id.message}</FormError>}
-                                            </div>
-
-                                            <div className='col-span-full'>
-                                                <div className='flex items-center gap-6'>
-                                                    <div className='flex items-center space-x-2'>
-                                                        <Checkbox
-                                                            id='amsT_ECSFlag'
-                                                            checked={Number(watch('amsT_ECSFlag')) === 1}
-                                                            onCheckedChange={(checked) => {
-                                                                const val = checked ? 1 : 0;
-                                                                setValue('amsT_ECSFlag', val);
-                                                            }}
+                                                                        ))}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            )}
                                                         />
-                                                        <Label htmlFor='amsT_ECSFlag' className='cursor-pointer'>
-                                                            ECS
-                                                        </Label>
-                                                    </div>
-
-                                                    <div className='flex items-center space-x-2'>
-                                                        <Checkbox
-                                                            id='isEmisBpl'
-                                                            checked={Number(watch('isEmisBpl')) === 1}
-                                                            onCheckedChange={(checked) => {
-                                                                const val = checked ? 1 : 0;
-                                                                setValue('isEmisBpl', val);
-                                                            }}
-                                                        />
-                                                        <Label htmlFor='isEmisBpl' className='cursor-pointer'>
-                                                            EMIS/BPL Card/STS No.
-                                                        </Label>
                                                     </div>
                                                 </div>
 
-                                                {/* EMIS input when checked */}
-                                                {Number(watch('isEmisBpl')) === 1 && (
-                                                    <div className='mt-3 w-1/2'>
+                                                {/* Contact Information */}
+                                                <div className='space-y-4 rounded-lg border border-gray-100 bg-gray-50/50 p-4'>
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Controller
+                                                            name='amsT_MobileNo'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <div>
+                                                                    <Label htmlFor='amsT_MobileNo'>
+                                                                        Mobile No. <span className='text-red-500'>*</span>
+                                                                    </Label>
+                                                                    <PhoneInput
+                                                                        country='in'
+                                                                        value={phoneValues.amsT_MobileNo ?? (field.value != null ? String(field.value) : null)}
+                                                                        onChange={(phone: any, countryData: any) => handlePhoneChange(phone, countryData, 'amsT_MobileNo')}
+                                                                        onBlur={() => trigger('amsT_MobileNo')}
+                                                                        containerClass='w-full'
+                                                                        inputClass='w-full px-4 py-2 rounded border text-sm'
+                                                                        inputProps={{ id: 'amsT_MobileNo', style: { width: '100%', height: '38px', paddingLeft: '48px' } }}
+                                                                    />
+                                                                </div>
+                                                            )}
+                                                        />
+                                                        {errors.amsT_MobileNo && <FormError>{errors.amsT_MobileNo.message}</FormError>}
+                                                    </div>
+
+                                                    <div className='space-y-3'>
+                                                        {emailFields.map((field, idx) => (
+                                                            <div key={field.id} className='flex-1'>
+                                                                {idx === 0 && <Label htmlFor={String(field.id)}>Email Id <span className='text-red-500'>*</span></Label>}
+                                                                <InputText
+                                                                    {...register(`adm_M_Student_EmailIdDTO.${idx}.amsT_emailId` as const)}
+                                                                    id={String(field.id)}
+                                                                    placeholder='Enter email'
+                                                                    error={(errors as any)?.adm_M_Student_EmailIdDTO?.[idx]?.amsT_emailId?.message}
+                                                                    required
+                                                                />
+                                                            </div>
+                                                        ))}
+                                                        {(!Array.isArray(watchedEmails) || watchedEmails.length === 0) && errors.amsT_emailId && (
+                                                            <FormError>{errors.amsT_emailId.message}</FormError>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {/* ECS & EMIS Flags */}
+                                                <div className='flex flex-col gap-4 p-2'>
+                                                    <div className='flex items-center gap-6'>
+                                                        <div className='flex items-center space-x-2'>
+                                                            <Checkbox
+                                                                id='amsT_ECSFlag'
+                                                                checked={Number(watch('amsT_ECSFlag')) === 1}
+                                                                onCheckedChange={(checked) => setValue('amsT_ECSFlag', checked ? 1 : 0)}
+                                                            />
+                                                            <Label htmlFor='amsT_ECSFlag' className='cursor-pointer font-medium'>ECS</Label>
+                                                        </div>
+                                                        <div className='flex items-center space-x-2'>
+                                                            <Checkbox
+                                                                id='isEmisBpl'
+                                                                checked={Number(watch('isEmisBpl')) === 1}
+                                                                onCheckedChange={(checked) => setValue('isEmisBpl', checked ? 1 : 0)}
+                                                            />
+                                                            <Label htmlFor='isEmisBpl' className='cursor-pointer font-medium'>EMIS/BPL/STS</Label>
+                                                        </div>
+                                                    </div>
+
+                                                    {Number(watch('isEmisBpl')) === 1 && (
                                                         <InputText
                                                             label='EMIS / BPL / STS No.'
                                                             required
                                                             id='amsT_BPLCardNo'
-                                                            placeholder='Enter card or STS no.'
+                                                            placeholder='Enter number'
                                                             {...register('amsT_BPLCardNo')}
-                                                            error={errors.amsT_BPLCardNo?.message}
-                                                        />
-                                                    </div>
-                                                )}
-
-                                                {/* ECS details panel */}
-                                                {Number(watch('amsT_ECSFlag')) === 1 && (
-                                                    <div className='mt-4 rounded border border-gray-200 bg-white p-4 shadow-sm'>
-                                                        <div className='flex items-center justify-between'>
-                                                            <h4 className='font-semibold'>ECS STUDENT DETAILS</h4>
-                                                            <Button
-                                                                size='sm'
-                                                                className='w-fit'
-                                                                variant='ghost'
-                                                                onClick={() => setValue('amsT_ECSFlag', 0)}>
-                                                                Close
-                                                            </Button>
-                                                        </div>
-
-                                                        <div className='mt-3 grid grid-cols-1 gap-4 md:grid-cols-2'>
-                                                            <InputText
-                                                                label='Account No.'
-                                                                required
-                                                                id='asecS_AccountNo'
-                                                                placeholder='Account number'
-                                                                {...register('asecS_AccountNo')}
-                                                                error={errors.asecS_AccountNo?.message}
-                                                            />
-
-                                                            <InputText
-                                                                label='Account Holder Name'
-                                                                required
-                                                                id='asecS_AccountHolderName'
-                                                                placeholder='Account holder name'
-                                                                {...register('asecS_AccountHolderName')}
-                                                                error={errors.asecS_AccountHolderName?.message}
-                                                            />
-
-                                                            <InputText
-                                                                label='Bank Name'
-                                                                required
-                                                                id='asecS_BankName'
-                                                                placeholder='Bank name'
-                                                                {...register('asecS_BankName')}
-                                                                error={errors.asecS_BankName?.message}
-                                                            />
-
-                                                            <InputText
-                                                                label='Account Type'
-                                                                required
-                                                                id='asecS_AccountType'
-                                                                placeholder='Savings / Current'
-                                                                {...register('asecS_AccountType')}
-                                                                error={errors.asecS_AccountType?.message}
-                                                            />
-
-                                                            <InputText
-                                                                label='MICR Code'
-                                                                required
-                                                                id='asecS_MICRNo'
-                                                                placeholder='MICR'
-                                                                {...register('asecS_MICRNo')}
-                                                                error={errors.asecS_MICRNo?.message}
-                                                            />
-
-                                                            <InputText
-                                                                label='Branch Name'
-                                                                required
-                                                                id='asecS_Branch'
-                                                                placeholder='Branch name'
-                                                                {...register('asecS_Branch')}
-                                                                error={errors.asecS_Branch?.message}
-                                                            />
-                                                        </div>
-
-                                                        <div className='mt-4 flex justify-end'>
-                                                            <Button
-                                                                onClick={() => setValue('amsT_ECSFlag', 0)}
-                                                                size='sm'
-                                                                className='ml-2 w-fit'>
-                                                                ADD & CLOSE
-                                                            </Button>
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            <InputText
-                                                label='Bank Name'
-                                                id='amsT_BankName'
-                                                placeholder='Bank name'
-                                                {...register('amsT_BankName')}
-                                                error={errors.amsT_BankName?.message}
-                                            />
-                                            <InputText
-                                                label='Branch Name'
-                                                id='amsT_BankBranch'
-                                                placeholder='Branch name'
-                                                {...register('amsT_BankBranch')}
-                                                error={errors.amsT_BankBranch?.message}
-                                            />
-                                            <InputText
-                                                label='Bank Account No.'
-                                                id='amsT_BankAccountNo'
-                                                placeholder='Bank Account Number'
-                                                {...register('amsT_BankAccountNo')}
-                                                error={errors.amsT_BankAccountNo?.message}
-                                            />
-                                            <InputText
-                                                label='Bank IFSC Code.'
-                                                id='amsT_BankIFSCCode'
-                                                placeholder='Bank IFSC Code'
-                                                {...register('amsT_BankIFSCCode')}
-                                                error={errors.amsT_BankIFSCCode?.message}
-                                            />
-
-                                            <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='feeConcessionType'>
-                                                    Fee Concession Type <span className='ml-1 text-red-500'>*</span>
-                                                </Label>
-                                                <Controller
-                                                    name='feeConcessionType'
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <Select
-                                                            key={field.value || 'empty'}
-                                                            onValueChange={(value) => field.onChange(value)}
-                                                            value={field.value?.toString() || ''}>
-                                                            <SelectTrigger>
-                                                                <SelectValue placeholder='Select fee concession type' />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                {concessionLoading ? (
-                                                                    <SelectItem value={'loading'} disabled>
-                                                                        Loading...
-                                                                    </SelectItem>
-                                                                ) : concession?.data && concession.data.length > 0 ? (
-                                                                    concession.data.map((item: any) => (
-                                                                        <SelectItem key={String(item.fmcC_Id)} value={String(item.fmcC_Id)}>
-                                                                            {item.fmcC_ConcessionName}
-                                                                        </SelectItem>
-                                                                    ))
-                                                                ) : (
-                                                                    <SelectItem value={'none'} disabled>
-                                                                        No concession types
-                                                                    </SelectItem>
-                                                                )}
-                                                            </SelectContent>
-                                                        </Select>
-                                                    )}
-                                                />
-                                                {errors.feeConcessionType && <FormError>{errors.feeConcessionType.message}</FormError>}
-                                            </div>
-
-                                            {/* Student TPIN */}
-                                            <InputText
-                                                label='Student TPIN'
-                                                id='amsT_Tpin'
-                                                placeholder='Enter student TPIN'
-                                                {...register('amsT_Tpin')}
-                                                error={errors.amsT_Tpin?.message}
-                                            />
-
-                                            {/* GPS Tracing Id */}
-                                            <InputText
-                                                label='GPS Tracing Id'
-                                                id='amsT_GPSTrackingId'
-                                                placeholder='Enter GPS tracing ID'
-                                                {...register('amsT_GPSTrackingId')}
-                                                error={errors.amsT_GPSTrackingId?.message}
-                                            />
-
-                                            {/* Medium Of Instruction */}
-                                            <InputText
-                                                label='Medium Of Instruction'
-                                                id='amsT_MediumOfInstruction'
-                                                placeholder='Enter medium of instruction'
-                                                {...register('amsT_MediumOfInstruction')}
-                                                error={errors.amsT_MediumOfInstruction?.message}
-                                            />
-
-                                            {/* Subject Group Multi-Select */}
-                                            <div className='flex flex-col gap-1.5'>
-                                                <Label>Elective Subject Groups</Label>
-                                                <Controller
-                                                    name='electivelist_Groups'
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <CustomMultiSelectBox
-                                                            options={electiveOptions}
-                                                            placeholder='Select Groups'
-                                                            value={((field.value as any) || []).map(String)}
-                                                            onChange={field.onChange}
-                                                            height='150px'
-                                                            isSearchRequired
                                                         />
                                                     )}
-                                                />
-                                            </div>
+                                                </div>
 
+                                                {/* Bank Details */}
+                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                    <InputText label='Bank Name' id='amsT_BankName' {...register('amsT_BankName')} />
+                                                    <InputText label='Branch' id='amsT_BankBranch' {...register('amsT_BankBranch')} />
+                                                    <InputText label='Account No' id='amsT_BankAccountNo' {...register('amsT_BankAccountNo')} />
+                                                    <InputText label='IFSC Code' id='amsT_BankIFSCCode' {...register('amsT_BankIFSCCode')} />
+                                                </div>
+
+                                                {/* Fees & Tracking */}
+                                                <div className='flex flex-col gap-1.5'>
+                                                    <Label>Fee Concession Type <span className='text-red-500'>*</span></Label>
+                                                    <Controller
+                                                        name='feeConcessionType'
+                                                        control={control}
+                                                        render={({ field }) => (
+                                                            <Select onValueChange={field.onChange} value={field.value?.toString()}>
+                                                                <SelectTrigger>
+                                                                    <SelectValue placeholder='Select concession' />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    {concession?.data?.map((item: any) => (
+                                                                        <SelectItem key={item.fmcC_Id} value={String(item.fmcC_Id)}>{item.fmcC_ConcessionName}</SelectItem>
+                                                                    ))}
+                                                                </SelectContent>
+                                                            </Select>
+                                                        )}
+                                                    />
+                                                </div>
+
+                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                    <InputText label='Student TPIN' id='amsT_Tpin' {...register('amsT_Tpin')} />
+                                                    <InputText label='GPS Tracing Id' id='amsT_GPSTrackingId' {...register('amsT_GPSTrackingId')} />
+                                                </div>
+
+                                                <InputText label='Medium of Instruction' id='amsT_MediumOfInstruction' {...register('amsT_MediumOfInstruction')} />
+
+                                                {/* <div className='flex flex-col gap-1.5'>
+                                                    <Label>Elective Subject Groups</Label>
+                                                    <Controller
+                                                        name='electivelist_Groups'
+                                                        control={control}
+                                                        render={({ field }) => (
+                                                            <CustomMultiSelectBox
+                                                                options={electiveOptions}
+                                                                placeholder='Select Groups'
+                                                                value={((field.value as any) || []).map(String)}
+                                                                onChange={field.onChange}
+                                                                height='120px'
+                                                                isSearchRequired
+                                                            />
+                                                        )}
+                                                    />
+                                                </div> */}
+                                            </div>
+                                        </div>
+
+                                        <div className='mt-8'>
                                             <SubjectGroupTable
                                                 control={control}
                                                 electiveList={electiveList.filter((e: any) =>
@@ -5778,387 +5491,407 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                 )}
                                 {/* Step 2: Address Information */}
                                 {currentStep === 2 && (
-                                    <div className='space-y-6'>
-                                        <div>
-                                            <h2 className='font-bold text-2xl text-gray-900'>Address Information</h2>
-                                            <p className='mt-1 text-gray-500 text-sm'>
-                                                Please provide residential and permanent address details
-                                            </p>
-                                        </div>
+                                    <div className='card-box'>
+                                        <div className='space-y-6'>
+                                            <div>
+                                                <h2 className='font-bold text-2xl text-gray-900'>Address Information</h2>
+                                                <p className='mt-1 text-gray-500 text-sm'>
+                                                    Please provide student address details
+                                                </p>
+                                            </div>
 
-                                        <div className='space-y-8'>
-                                            <div className='space-y-4'>
-                                                <h3 className='font-semibold text-gray-800 text-lg'>Residential Address</h3>
-                                                <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
-                                                    <InputText
-                                                        label='Street'
-                                                        required
-                                                        id='amsT_ConStreet'
-                                                        placeholder='Enter street'
-                                                        {...register('amsT_ConStreet')}
-                                                        error={errors.amsT_ConStreet?.message}
-                                                    />
-                                                    <InputText
-                                                        label='Area'
-                                                        required
-                                                        id='amsT_ConArea'
-                                                        placeholder='Enter area'
-                                                        {...register('amsT_ConArea')}
-                                                        error={errors.amsT_ConArea?.message}
-                                                    />
-                                                    <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='amsT_ConCountry'>
-                                                            Country <span className='ml-1 text-red-500'>*</span>
-                                                        </Label>
-                                                        <Controller
-                                                            name='amsT_ConCountry'
-                                                            control={control}
-                                                            render={({ field }) => (
-                                                                <Select
-                                                                    key={field.value || 'empty'}
-                                                                    onValueChange={(value) => {
-                                                                        field.onChange(Number(value));
-                                                                    }}
-                                                                    value={field.value?.toString() || ''}>
-                                                                    <SelectTrigger>
-                                                                        <SelectValue placeholder='Select country' />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>
-                                                                        {countryLoading ? (
-                                                                            <SelectItem value='loading' disabled>
-                                                                                Loading...
-                                                                            </SelectItem>
-                                                                        ) : countryError ? (
-                                                                            <SelectItem value='error' disabled>
-                                                                                Error loading
-                                                                            </SelectItem>
-                                                                        ) : (
-                                                                            country?.data?.map((item: any) => (
-                                                                                <SelectItem
-                                                                                    key={item.ivrmmC_Id}
-                                                                                    value={item.ivrmmC_Id.toString()}>
-                                                                                    {item.ivrmmC_CountryName}
-                                                                                </SelectItem>
-                                                                            ))
-                                                                        )}
-                                                                    </SelectContent>
-                                                                </Select>
-                                                            )}
-                                                        />
-                                                        {errors.amsT_ConCountry && <FormError>{errors.amsT_ConCountry.message}</FormError>}
-                                                    </div>
-                                                    <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='amsT_ConState'>
-                                                            State <span className='ml-1 text-red-500'>*</span>
-                                                        </Label>
-                                                        <Controller
-                                                            name='amsT_ConState'
-                                                            control={control}
-                                                            render={({ field }) => (
-                                                                <Select
-                                                                    key={field.value || 'empty'}
-                                                                    onValueChange={(value) => {
-                                                                        field.onChange(Number(value));
-                                                                        setConStateId(value);
-                                                                    }}
-                                                                    value={field.value?.toString() || ''}>
-                                                                    <SelectTrigger>
-                                                                        <SelectValue placeholder='Select state' />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>
-                                                                        {conStateLoading ? (
-                                                                            <SelectItem value='loading' disabled>
-                                                                                Loading...
-                                                                            </SelectItem>
-                                                                        ) : conStateError ? (
-                                                                            <SelectItem value='error' disabled>
-                                                                                Error loading
-                                                                            </SelectItem>
-                                                                        ) : (
-                                                                            conState?.data?.map((item: any) => (
-                                                                                <SelectItem
-                                                                                    key={item.ivrmmS_Id}
-                                                                                    value={item.ivrmmS_Id.toString()}>
-                                                                                    {item.ivrmmS_Name}
-                                                                                </SelectItem>
-                                                                            ))
-                                                                        )}
-                                                                    </SelectContent>
-                                                                </Select>
-                                                            )}
-                                                        />
-                                                        {errors.amsT_ConState && <FormError>{errors.amsT_ConState.message}</FormError>}
-                                                    </div>
+                                            <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
+                                                {/* Residential (Present) Address Details */}
+                                                <div className='space-y-4'>
+                                                    <h3 className='font-semibold text-gray-800 text-lg'>
+                                                        Student Residential Address Details
+                                                    </h3>
 
-                                                    <InputText
-                                                        label='City'
-                                                        required
-                                                        id='amsT_ConCity'
-                                                        placeholder='Enter city'
-                                                        {...register('amsT_ConCity')}
-                                                        error={errors.amsT_ConCity?.message}
-                                                    />
-                                                    <div className='flex flex-col gap-1.5'>
-                                                        <Controller
-                                                            name='amsT_ConPincode'
-                                                            control={control}
-                                                            rules={
-                                                                conZipLength
-                                                                    ? {
-                                                                        minLength: {
-                                                                            value: conZipLength,
-                                                                            message: `Pin code must be ${conZipLength} digits`
-                                                                        },
-                                                                        maxLength: {
-                                                                            value: conZipLength,
-                                                                            message: `Pin code must be ${conZipLength} digits`
-                                                                        }
-                                                                    }
-                                                                    : undefined
-                                                            }
-                                                            render={({ field }) => (
-                                                                <>
-                                                                    <MobileNumberInput
-                                                                        label='Pin Code/Zip Code'
-                                                                        id='amsT_ConPincode'
-                                                                        value={field.value}
-                                                                        onChange={(valueOrEvent: any) => {
-                                                                            // MobileNumberInput forwards the input event; accept either event or string
-                                                                            const raw = valueOrEvent?.target?.value ?? valueOrEvent;
-                                                                            const str = raw == null ? '' : String(raw).replace(/\D/g, '');
-                                                                            const truncated = conZipLength
-                                                                                ? str.slice(0, conZipLength)
-                                                                                : str;
-                                                                            field.onChange(truncated);
-                                                                            // Set/clear a manual validation error so message appears immediately
-                                                                            if (
-                                                                                conZipLength &&
-                                                                                truncated !== '' &&
-                                                                                String(truncated).length !== conZipLength
-                                                                            ) {
-                                                                                setError('amsT_ConPincode', {
-                                                                                    type: 'manual',
-                                                                                    message: `Pin code must be ${conZipLength} digits`
-                                                                                });
-                                                                            } else {
-                                                                                clearErrors('amsT_ConPincode');
-                                                                            }
-                                                                            // Also trigger the resolver-based validation
-                                                                            trigger('amsT_ConPincode');
+                                                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                        <div className='flex flex-col gap-1.5'>
+                                                            <Label htmlFor='amsT_ConStreet'>
+                                                                Street <span className='ml-1 text-red-500'>*</span>
+                                                            </Label>
+                                                            <InputText
+                                                                label=''
+                                                                id='amsT_ConStreet'
+                                                                placeholder='Enter street'
+                                                                {...register('amsT_ConStreet')}
+                                                                error={errors.amsT_ConStreet?.message}
+                                                            />
+                                                        </div>
+                                                        <div className='flex flex-col gap-1.5'>
+                                                            <Label htmlFor='amsT_ConArea'>
+                                                                Area <span className='ml-1 text-red-500'>*</span>
+                                                            </Label>
+                                                            <InputText
+                                                                label=''
+                                                                id='amsT_ConArea'
+                                                                placeholder='Enter area'
+                                                                {...register('amsT_ConArea')}
+                                                                error={errors.amsT_ConArea?.message}
+                                                            />
+                                                        </div>
+                                                        <div className='flex flex-col gap-1.5'>
+                                                            <Label htmlFor='amsT_ConCountry'>
+                                                                Country <span className='ml-1 text-red-500'>*</span>
+                                                            </Label>
+                                                            <Controller
+                                                                name='amsT_ConCountry'
+                                                                control={control}
+                                                                render={({ field }) => (
+                                                                    <Select
+                                                                        key={field.value || 'empty'}
+                                                                        onValueChange={(value) => {
+                                                                            field.onChange(Number(value));
                                                                         }}
-                                                                        minLength={conZipLength}
-                                                                        maxLength={conZipLength}
-                                                                        type='number'
-                                                                        showSpinner={false}
-                                                                    />
-                                                                    {conCountryObj && conZipLength && (
-                                                                        <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {` Pin code must be ${conZipLength} digits for ${conCountryObj.ivrmmC_CountryName}`}
-                                                                        </span>
-                                                                    )}
-                                                                </>
-                                                            )}
+                                                                        value={field.value?.toString() || ''}>
+                                                                        <SelectTrigger>
+                                                                            <SelectValue placeholder='Select country' />
+                                                                        </SelectTrigger>
+                                                                        <SelectContent>
+                                                                            {countryLoading ? (
+                                                                                <SelectItem value='loading' disabled>
+                                                                                    Loading...
+                                                                                </SelectItem>
+                                                                            ) : countryError ? (
+                                                                                <SelectItem value='error' disabled>
+                                                                                    Error loading
+                                                                                </SelectItem>
+                                                                            ) : (
+                                                                                country?.data?.map((item: any) => (
+                                                                                    <SelectItem
+                                                                                        key={item.ivrmmC_Id}
+                                                                                        value={item.ivrmmC_Id.toString()}>
+                                                                                        {item.ivrmmC_CountryName}
+                                                                                    </SelectItem>
+                                                                                ))
+                                                                            )}
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                )}
+                                                            />
+                                                            {errors.amsT_ConCountry && <FormError>{errors.amsT_ConCountry.message}</FormError>}
+                                                        </div>
+                                                        <div className='flex flex-col gap-1.5'>
+                                                            <Label htmlFor='amsT_ConState'>
+                                                                State <span className='ml-1 text-red-500'>*</span>
+                                                            </Label>
+                                                            <Controller
+                                                                name='amsT_ConState'
+                                                                control={control}
+                                                                render={({ field }) => (
+                                                                    <Select
+                                                                        key={field.value || 'empty'}
+                                                                        onValueChange={(value) => {
+                                                                            field.onChange(Number(value));
+                                                                            setConStateId(value);
+                                                                        }}
+                                                                        value={field.value?.toString() || ''}>
+                                                                        <SelectTrigger>
+                                                                            <SelectValue placeholder='Select state' />
+                                                                        </SelectTrigger>
+                                                                        <SelectContent>
+                                                                            {conStateLoading ? (
+                                                                                <SelectItem value='loading' disabled>
+                                                                                    Loading...
+                                                                                </SelectItem>
+                                                                            ) : conStateError ? (
+                                                                                <SelectItem value='error' disabled>
+                                                                                    Error loading
+                                                                                </SelectItem>
+                                                                            ) : (
+                                                                                conState?.data?.map((item: any) => (
+                                                                                    <SelectItem
+                                                                                        key={item.ivrmmS_Id}
+                                                                                        value={item.ivrmmS_Id.toString()}>
+                                                                                        {item.ivrmmS_Name}
+                                                                                    </SelectItem>
+                                                                                ))
+                                                                            )}
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                )}
+                                                            />
+                                                            {errors.amsT_ConState && <FormError>{errors.amsT_ConState.message}</FormError>}
+                                                        </div>
+
+                                                        <InputText
+                                                            label='City'
+                                                            required
+                                                            id='amsT_ConCity'
+                                                            placeholder='Enter city'
+                                                            {...register('amsT_ConCity')}
+                                                            error={errors.amsT_ConCity?.message}
                                                         />
-                                                        {errors.amsT_ConPincode && <FormError>{errors.amsT_ConPincode.message}</FormError>}
+                                                        <div className='flex flex-col gap-1.5'>
+                                                            <Controller
+                                                                name='amsT_ConPincode'
+                                                                control={control}
+                                                                rules={
+                                                                    conZipLength
+                                                                        ? {
+                                                                            minLength: {
+                                                                                value: conZipLength,
+                                                                                message: `Pin code must be ${conZipLength} digits`
+                                                                            },
+                                                                            maxLength: {
+                                                                                value: conZipLength,
+                                                                                message: `Pin code must be ${conZipLength} digits`
+                                                                            }
+                                                                        }
+                                                                        : undefined
+                                                                }
+                                                                render={({ field }) => (
+                                                                    <>
+                                                                        <MobileNumberInput
+                                                                            label='Pin Code/Zip Code'
+                                                                            required
+                                                                            id='amsT_ConPincode'
+                                                                            value={field.value}
+                                                                            onChange={(valueOrEvent: any) => {
+                                                                                // MobileNumberInput forwards the input event; accept either event or string
+                                                                                const raw = valueOrEvent?.target?.value ?? valueOrEvent;
+                                                                                const str = raw == null ? '' : String(raw).replace(/\D/g, '');
+                                                                                const truncated = conZipLength
+                                                                                    ? str.slice(0, conZipLength)
+                                                                                    : str;
+                                                                                field.onChange(truncated);
+                                                                                // Set/clear a manual validation error so message appears immediately
+                                                                                if (
+                                                                                    conZipLength &&
+                                                                                    truncated !== '' &&
+                                                                                    String(truncated).length !== conZipLength
+                                                                                ) {
+                                                                                    setError('amsT_ConPincode', {
+                                                                                        type: 'manual',
+                                                                                        message: `Pin code must be ${conZipLength} digits`
+                                                                                    });
+                                                                                } else {
+                                                                                    clearErrors('amsT_ConPincode');
+                                                                                }
+                                                                                // Also trigger the resolver-based validation
+                                                                                trigger('amsT_ConPincode');
+                                                                            }}
+                                                                            minLength={conZipLength}
+                                                                            maxLength={conZipLength}
+                                                                            type='number'
+                                                                            showSpinner={false}
+                                                                        />
+                                                                        {conCountryObj && conZipLength && (
+                                                                            <span className='mt-1 text-muted-foreground text-xs'>
+                                                                                {` Pin code must be ${conZipLength} digits for ${conCountryObj.ivrmmC_CountryName}`}
+                                                                            </span>
+                                                                        )}
+                                                                    </>
+                                                                )}
+                                                            />
+                                                            {errors.amsT_ConPincode && <FormError>{errors.amsT_ConPincode.message}</FormError>}
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                            {/* Same as Residential Address Checkbox */}
-                                            <div className='flex items-center space-x-2 rounded-lg border border-blue-200 bg-blue-50 p-4'>
-                                                <Checkbox
-                                                    id='sameAsResidential'
-                                                    checked={sameAsResidential}
-                                                    onCheckedChange={handleSameAsResidential}
-                                                />
-                                                <Label
-                                                    htmlFor='sameAsResidential'
-                                                    className='cursor-pointer font-medium text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
-                                                    Same as Residential Address
-                                                </Label>
-                                            </div>
-                                            <div className='space-y-4'>
-                                                <h3 className='font-semibold text-gray-800 text-lg'>Permanent Address</h3>
-                                                <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
-                                                    <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='amsT_PerStreet'>
-                                                            Street {!sameAsResidential && <span className='ml-1 text-red-500'>*</span>}
-                                                        </Label>
-                                                        <InputText
-                                                            label=''
-                                                            id='amsT_PerStreet'
-                                                            placeholder='Enter street'
-                                                            {...register('amsT_PerStreet')}
-                                                            error={errors.amsT_PerStreet?.message}
-                                                            disabled={sameAsResidential}
-                                                        />
-                                                    </div>
-                                                    <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='amsT_PerArea'>
-                                                            Area {!sameAsResidential && <span className='ml-1 text-red-500'>*</span>}
-                                                        </Label>
-                                                        <InputText
-                                                            label=''
-                                                            id='amsT_PerArea'
-                                                            placeholder='Enter area'
-                                                            {...register('amsT_PerArea')}
-                                                            error={errors.amsT_PerArea?.message}
-                                                            disabled={sameAsResidential}
-                                                        />
-                                                    </div>
-                                                    <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='amsT_PerCountry'>
-                                                            Country <span className='ml-1 text-red-500'>*</span>
-                                                        </Label>
-                                                        <Controller
-                                                            name='amsT_PerCountry'
-                                                            control={control}
-                                                            render={({ field }) => (
-                                                                <Select
-                                                                    key={field.value || 'empty'}
-                                                                    onValueChange={(value) => field.onChange(Number(value))}
-                                                                    value={field.value?.toString() || ''}
-                                                                    disabled={sameAsResidential}>
-                                                                    <SelectTrigger>
-                                                                        <SelectValue placeholder='Select country' />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>
-                                                                        {countryLoading ? (
-                                                                            <SelectItem value='loading' disabled>
-                                                                                Loading...
-                                                                            </SelectItem>
-                                                                        ) : countryError ? (
-                                                                            <SelectItem value='error' disabled>
-                                                                                Error loading
-                                                                            </SelectItem>
-                                                                        ) : (
-                                                                            country?.data?.map((item: any) => (
-                                                                                <SelectItem
-                                                                                    key={item.ivrmmC_Id}
-                                                                                    value={item.ivrmmC_Id.toString()}>
-                                                                                    {item.ivrmmC_CountryName}
-                                                                                </SelectItem>
-                                                                            ))
-                                                                        )}
-                                                                    </SelectContent>
-                                                                </Select>
-                                                            )}
-                                                        />
-                                                        {errors.amsT_PerCountry && <FormError>{errors.amsT_PerCountry.message}</FormError>}
-                                                    </div>
-                                                    <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='amsT_PerState'>
-                                                            State <span className='ml-1 text-red-500'>*</span>
-                                                        </Label>
-                                                        <Controller
-                                                            name='amsT_PerState'
-                                                            control={control}
-                                                            render={({ field }) => (
-                                                                <Select
-                                                                    key={field.value || 'empty'}
-                                                                    onValueChange={(value) => {
-                                                                        field.onChange(Number(value));
-                                                                        setPerStateId(value);
-                                                                    }}
-                                                                    value={field.value?.toString() || ''}
-                                                                    disabled={sameAsResidential}>
-                                                                    <SelectTrigger>
-                                                                        <SelectValue placeholder='Select state' />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>
-                                                                        {perStateLoading ? (
-                                                                            <SelectItem value='loading' disabled>
-                                                                                Loading...
-                                                                            </SelectItem>
-                                                                        ) : perStateError ? (
-                                                                            <SelectItem value='error' disabled>
-                                                                                Error loading
-                                                                            </SelectItem>
-                                                                        ) : (
-                                                                            perState?.data?.map((item: any) => (
-                                                                                <SelectItem
-                                                                                    key={item.ivrmmS_Id}
-                                                                                    value={item.ivrmmS_Id.toString()}>
-                                                                                    {item.ivrmmS_Name}
-                                                                                </SelectItem>
-                                                                            ))
-                                                                        )}
-                                                                    </SelectContent>
-                                                                </Select>
-                                                            )}
-                                                        />
-                                                        {errors.amsT_PerState && <FormError>{errors.amsT_PerState.message}</FormError>}
+                                                {/* Permanent Address Details */}
+                                                <div className='space-y-4'>
+                                                    <div className='flex items-center justify-between'>
+                                                        <h3 className='font-semibold text-gray-800 text-lg'>
+                                                            Student Permanent Address Details
+                                                        </h3>
+                                                        <div className='mt-0.5 flex items-center gap-2'>
+                                                            <Checkbox
+                                                                id='same_as_residential'
+                                                                checked={sameAsResidential}
+                                                                onCheckedChange={(checked) => handleSameAsResidential(!!checked)}
+                                                            />
+                                                            <Label
+                                                                htmlFor='same_as_residential'
+                                                                className='font-medium text-gray-600 text-sm'>
+                                                                Same as Residential
+                                                            </Label>
+                                                        </div>
                                                     </div>
 
-                                                    <InputText
-                                                        label='City'
-                                                        id='amsT_PerCity'
-                                                        placeholder='Enter city'
-                                                        {...register('amsT_PerCity')}
-                                                        error={errors.amsT_PerCity?.message}
-                                                        disabled={sameAsResidential}
-                                                    />
-                                                    <div className='flex flex-col gap-1.5'>
-                                                        <Controller
-                                                            name='amsT_PerPincode'
-                                                            control={control}
-                                                            rules={
-                                                                perZipLength
-                                                                    ? {
-                                                                        minLength: {
-                                                                            value: perZipLength,
-                                                                            message: `Pin code must be ${perZipLength} digits`
-                                                                        },
-                                                                        maxLength: {
-                                                                            value: perZipLength,
-                                                                            message: `Pin code must be ${perZipLength} digits`
-                                                                        }
-                                                                    }
-                                                                    : undefined
-                                                            }
-                                                            render={({ field }) => (
-                                                                <>
-                                                                    <MobileNumberInput
-                                                                        label='Pin Code/Zip Code'
-                                                                        id='amsT_PerPincode'
-                                                                        value={field.value}
-                                                                        onChange={(valueOrEvent: any) => {
-                                                                            const raw = valueOrEvent?.target?.value ?? valueOrEvent;
-                                                                            const str = raw == null ? '' : String(raw).replace(/\D/g, '');
-                                                                            const truncated = perZipLength
-                                                                                ? str.slice(0, perZipLength)
-                                                                                : str;
-                                                                            field.onChange(truncated);
-                                                                            // Set/clear a manual validation error so message appears immediately
-                                                                            if (
-                                                                                perZipLength &&
-                                                                                truncated !== '' &&
-                                                                                String(truncated).length !== perZipLength
-                                                                            ) {
-                                                                                setError('amsT_PerPincode', {
-                                                                                    type: 'manual',
-                                                                                    message: `Pin code must be ${perZipLength} digits`
-                                                                                });
-                                                                            } else {
-                                                                                clearErrors('amsT_PerPincode');
-                                                                            }
-                                                                            // Also trigger the resolver-based validation
-                                                                            trigger('amsT_PerPincode');
+                                                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                        <div className='flex flex-col gap-1.5'>
+                                                            <Label htmlFor='amsT_PerStreet'>
+                                                                Street {!sameAsResidential && <span className='ml-1 text-red-500'>*</span>}
+                                                            </Label>
+                                                            <InputText
+                                                                label=''
+                                                                id='amsT_PerStreet'
+                                                                placeholder='Enter street'
+                                                                {...register('amsT_PerStreet')}
+                                                                error={errors.amsT_PerStreet?.message}
+                                                                disabled={sameAsResidential}
+                                                            />
+                                                        </div>
+                                                        <div className='flex flex-col gap-1.5'>
+                                                            <Label htmlFor='amsT_PerArea'>
+                                                                Area {!sameAsResidential && <span className='ml-1 text-red-500'>*</span>}
+                                                            </Label>
+                                                            <InputText
+                                                                label=''
+                                                                id='amsT_PerArea'
+                                                                placeholder='Enter area'
+                                                                {...register('amsT_PerArea')}
+                                                                error={errors.amsT_PerArea?.message}
+                                                                disabled={sameAsResidential}
+                                                            />
+                                                        </div>
+                                                        <div className='flex flex-col gap-1.5'>
+                                                            <Label htmlFor='amsT_PerCountry'>
+                                                                Country <span className='ml-1 text-red-500'>*</span>
+                                                            </Label>
+                                                            <Controller
+                                                                name='amsT_PerCountry'
+                                                                control={control}
+                                                                render={({ field }) => (
+                                                                    <Select
+                                                                        key={field.value || 'empty'}
+                                                                        onValueChange={(value) => field.onChange(Number(value))}
+                                                                        value={field.value?.toString() || ''}
+                                                                        disabled={sameAsResidential}>
+                                                                        <SelectTrigger>
+                                                                            <SelectValue placeholder='Select country' />
+                                                                        </SelectTrigger>
+                                                                        <SelectContent>
+                                                                            {countryLoading ? (
+                                                                                <SelectItem value='loading' disabled>
+                                                                                    Loading...
+                                                                                </SelectItem>
+                                                                            ) : countryError ? (
+                                                                                <SelectItem value='error' disabled>
+                                                                                    Error loading
+                                                                                </SelectItem>
+                                                                            ) : (
+                                                                                country?.data?.map((item: any) => (
+                                                                                    <SelectItem
+                                                                                        key={item.ivrmmC_Id}
+                                                                                        value={item.ivrmmC_Id.toString()}>
+                                                                                        {item.ivrmmC_CountryName}
+                                                                                    </SelectItem>
+                                                                                ))
+                                                                            )}
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                )}
+                                                            />
+                                                            {errors.amsT_PerCountry && <FormError>{errors.amsT_PerCountry.message}</FormError>}
+                                                        </div>
+                                                        <div className='flex flex-col gap-1.5'>
+                                                            <Label htmlFor='amsT_PerState'>
+                                                                State
+                                                            </Label>
+                                                            <Controller
+                                                                name='amsT_PerState'
+                                                                control={control}
+                                                                render={({ field }) => (
+                                                                    <Select
+                                                                        key={field.value || 'empty'}
+                                                                        onValueChange={(value) => {
+                                                                            field.onChange(Number(value));
+                                                                            setPerStateId(value);
                                                                         }}
-                                                                        minLength={perZipLength}
-                                                                        maxLength={perZipLength}
-                                                                        type='number'
-                                                                        showSpinner={false}
-                                                                        disabled={sameAsResidential}
-                                                                    />
-                                                                    {perCountryObj && perZipLength && (
-                                                                        <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {`Pin code must be ${perZipLength} digits for ${perCountryObj.ivrmmC_CountryName}`}
-                                                                        </span>
-                                                                    )}
-                                                                </>
-                                                            )}
+                                                                        value={field.value?.toString() || ''}
+                                                                        disabled={sameAsResidential}>
+                                                                        <SelectTrigger>
+                                                                            <SelectValue placeholder='Select state' />
+                                                                        </SelectTrigger>
+                                                                        <SelectContent>
+                                                                            {perStateLoading ? (
+                                                                                <SelectItem value='loading' disabled>
+                                                                                    Loading...
+                                                                                </SelectItem>
+                                                                            ) : perStateError ? (
+                                                                                <SelectItem value='error' disabled>
+                                                                                    Error loading
+                                                                                </SelectItem>
+                                                                            ) : (
+                                                                                perState?.data?.map((item: any) => (
+                                                                                    <SelectItem
+                                                                                        key={item.ivrmmS_Id}
+                                                                                        value={item.ivrmmS_Id.toString()}>
+                                                                                        {item.ivrmmS_Name}
+                                                                                    </SelectItem>
+                                                                                ))
+                                                                            )}
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                )}
+                                                            />
+                                                            {errors.amsT_PerState && <FormError>{errors.amsT_PerState.message}</FormError>}
+                                                        </div>
+
+                                                        <InputText
+                                                            label='City'
+                                                            id='amsT_PerCity'
+                                                            placeholder='Enter city'
+                                                            {...register('amsT_PerCity')}
+                                                            error={errors.amsT_PerCity?.message}
+                                                            disabled={sameAsResidential}
                                                         />
-                                                        {errors.amsT_PerPincode && <FormError>{errors.amsT_PerPincode.message}</FormError>}
+                                                        <div className='flex flex-col gap-1.5'>
+                                                            <Controller
+                                                                name='amsT_PerPincode'
+                                                                control={control}
+                                                                rules={
+                                                                    perZipLength
+                                                                        ? {
+                                                                            minLength: {
+                                                                                value: perZipLength,
+                                                                                message: `Pin code must be ${perZipLength} digits`
+                                                                            },
+                                                                            maxLength: {
+                                                                                value: perZipLength,
+                                                                                message: `Pin code must be ${perZipLength} digits`
+                                                                            }
+                                                                        }
+                                                                        : undefined
+                                                                }
+                                                                render={({ field }) => (
+                                                                    <>
+                                                                        <MobileNumberInput
+                                                                            label='Pin Code/Zip Code'
+                                                                            id='amsT_PerPincode'
+                                                                            value={field.value}
+                                                                            onChange={(valueOrEvent: any) => {
+                                                                                const raw = valueOrEvent?.target?.value ?? valueOrEvent;
+                                                                                const str = raw == null ? '' : String(raw).replace(/\D/g, '');
+                                                                                const truncated = perZipLength
+                                                                                    ? str.slice(0, perZipLength)
+                                                                                    : str;
+                                                                                field.onChange(truncated);
+                                                                                // Set/clear a manual validation error so message appears immediately
+                                                                                if (
+                                                                                    perZipLength &&
+                                                                                    truncated !== '' &&
+                                                                                    String(truncated).length !== perZipLength
+                                                                                ) {
+                                                                                    setError('amsT_PerPincode', {
+                                                                                        type: 'manual',
+                                                                                        message: `Pin code must be ${perZipLength} digits`
+                                                                                    });
+                                                                                } else {
+                                                                                    clearErrors('amsT_PerPincode');
+                                                                                }
+                                                                                // Also trigger the resolver-based validation
+                                                                                trigger('amsT_PerPincode');
+                                                                            }}
+                                                                            minLength={perZipLength}
+                                                                            maxLength={perZipLength}
+                                                                            type='number'
+                                                                            showSpinner={false}
+                                                                            disabled={sameAsResidential}
+                                                                        />
+                                                                        {perCountryObj && perZipLength && (
+                                                                            <span className='mt-1 text-muted-foreground text-xs'>
+                                                                                {`Pin code must be ${perZipLength} digits for ${perCountryObj.ivrmmC_CountryName}`}
+                                                                            </span>
+                                                                        )}
+                                                                    </>
+                                                                )}
+                                                            />
+                                                            {errors.amsT_PerPincode && <FormError>{errors.amsT_PerPincode.message}</FormError>}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -6168,1157 +5901,1073 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
 
                                 {/* Step 3: Parents Information */}
                                 {currentStep === 3 && (
-                                    <div className='space-y-6'>
-                                        <div>
-                                            <h2 className='font-bold text-2xl text-gray-900'>Parents Information</h2>
-                                            <p className='mt-1 text-gray-500 text-sm'>Please provide father and mother details</p>
-                                        </div>
+                                    <div className='card-box'>
+                                        <div className='space-y-6'>
+                                            <div>
+                                                <h2 className='font-bold text-2xl text-gray-900'>Parents Information</h2>
+                                                <p className='mt-1 text-gray-500 text-sm'>
+                                                    Please provide father and mother details
+                                                </p>
+                                            </div>
+                                            <div className='space-y-8'>
+                                                <div className='space-y-4'>
+                                                    <h3 className='font-semibold text-gray-800 text-lg'>Father Details</h3>
+                                                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                        <div className='col-span-full flex items-center gap-3'>
+                                                            <Controller
+                                                                name='fatherAliveFlag'
+                                                                control={control}
+                                                                render={({ field }) => (
+                                                                    <div className='flex items-center gap-2'>
+                                                                        <Checkbox
+                                                                            id='fatherAliveFlag'
+                                                                            checked={field.value || false}
+                                                                            onCheckedChange={(checked) => {
+                                                                                field.onChange(checked);
+                                                                                if (!checked) {
+                                                                                    setValue('fatherName', undefined as any);
+                                                                                    clearErrors('fatherName');
+                                                                                    setValue('fatherNationality', undefined);
+                                                                                    setValue('motherNationality', undefined);
+                                                                                }
+                                                                            }}
+                                                                        />
+                                                                        <Label htmlFor='fatherAliveFlag' className='font-medium text-gray-700'>
+                                                                            Father is Alive
+                                                                        </Label>
+                                                                    </div>
+                                                                )}
+                                                            />
+                                                        </div>
 
-                                        <div className='space-y-8'>
-                                            <div className='space-y-4'>
-                                                <h3 className='font-semibold text-gray-800 text-lg'>Father Details</h3>
-                                                <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
-                                                    <div className='col-span-full flex items-center gap-3'>
-                                                        <Controller
-                                                            name='fatherAliveFlag'
-                                                            control={control}
-                                                            render={({ field }) => (
-                                                                <div className='flex items-center gap-2'>
-                                                                    <Checkbox
-                                                                        id='fatherAliveFlag'
-                                                                        checked={field.value || false}
-                                                                        onCheckedChange={(checked) => {
-                                                                            field.onChange(checked);
-                                                                            if (!checked) {
-                                                                                setValue('fatherName', undefined as any);
-                                                                                clearErrors('fatherName');
-                                                                                setValue('fatherNationality', undefined);
-                                                                                setValue('motherNationality', undefined);
-                                                                            }
-                                                                        }}
-                                                                    />
-                                                                    <Label htmlFor='fatherAliveFlag' className='font-medium text-gray-700'>
-                                                                        Father is Alive
-                                                                    </Label>
-                                                                </div>
-                                                            )}
-                                                        />
-                                                    </div>
+                                                        {fatherAlive && (
+                                                            <div>
+                                                                <InputText
+                                                                    label='Father Name'
+                                                                    required
+                                                                    id='fatherName'
+                                                                    placeholder='Enter father name'
+                                                                    {...register('fatherName', {
+                                                                        required: fatherAlive ? 'Father Name is required' : false
+                                                                    })}
+                                                                    error={errors.fatherName?.message}
+                                                                />
+                                                            </div>
+                                                        )}
 
-                                                    {fatherAlive && (
-                                                        <div>
+                                                        {!fatherAlive && (
                                                             <InputText
                                                                 label='Father Name'
-                                                                required
                                                                 id='fatherName'
                                                                 placeholder='Enter father name'
                                                                 {...register('fatherName', {
                                                                     required: fatherAlive ? 'Father Name is required' : false
                                                                 })}
                                                                 error={errors.fatherName?.message}
+                                                                disabled
+                                                            />
+                                                        )}
+                                                        <InputText
+                                                            label='Surname'
+                                                            id='fatherSurname'
+                                                            placeholder='Enter surname'
+                                                            {...register('fatherSurname')}
+                                                            error={errors.fatherSurname?.message}
+                                                        />
+
+                                                        <InputText
+                                                            label='Aadhaar No.'
+                                                            id='fatherAadharNo'
+                                                            placeholder='Enter Aadhaar No.'
+                                                            {...register('fatherAadharNo')}
+                                                            error={errors.fatherAadharNo?.message}
+                                                        />
+                                                        <div className='flex flex-col gap-1.5'>
+                                                            <Label htmlFor='asmcL_Id'>Marital Status</Label>
+
+                                                            <Controller
+                                                                name='fatherMaritalStatus'
+                                                                control={control}
+                                                                render={({ field, fieldState: { error } }) => (
+                                                                    <div className='flex flex-col space-y-2'>
+                                                                        <Select
+                                                                            value={field.value?.toString() || ''}
+                                                                            onValueChange={(value) => field.onChange(value)}>
+                                                                            <SelectTrigger className={cn('w-full', error && 'border-red-500')}>
+                                                                                <SelectValue placeholder='Select' />
+                                                                            </SelectTrigger>
+
+                                                                            <SelectContent>
+                                                                                <SelectItem value='Married'>Married</SelectItem>
+                                                                                <SelectItem value='Single father'>Single father</SelectItem>
+                                                                                <SelectItem value='Single mother'>Single mother</SelectItem>
+                                                                                <SelectItem value='Divorced father'>Divorced father</SelectItem>
+                                                                                <SelectItem value='Divorced mother'>Divorced mother</SelectItem>
+                                                                                <SelectItem value='Widow'>Widow</SelectItem>
+                                                                                <SelectItem value='Widower'>Widower</SelectItem>
+                                                                            </SelectContent>
+                                                                        </Select>
+                                                                    </div>
+                                                                )}
+                                                            />
+
+                                                            {errors.fatherMaritalStatus && (
+                                                                <FormError>{errors.fatherMaritalStatus.message}</FormError>
+                                                            )}
+                                                        </div>
+
+                                                        <div className='flex flex-col gap-1.5 '>
+                                                            <Controller
+                                                                name='fatherMobileNumbers'
+                                                                control={control}
+                                                                render={({ field }) => (
+                                                                    <div>
+                                                                        <Label htmlFor='fatherMobileNumbers'>
+                                                                            Mobile No.
+                                                                        </Label>
+                                                                        <PhoneInput
+                                                                            country='in'
+                                                                            value={
+                                                                                phoneValues.fatherMobileNumbers ??
+                                                                                (field.value != null ? String(field.value) : null)
+                                                                            }
+                                                                            onChange={(phone: any, countryData: any) =>
+                                                                                handlePhoneChange(phone, countryData, 'fatherMobileNumbers')
+                                                                            }
+                                                                            onBlur={() => trigger('fatherMobileNumbers')}
+                                                                            inputProps={{
+                                                                                id: 'fatherMobileNumbers',
+                                                                                name: 'fatherMobileNumbers',
+                                                                                maxLength: 25,
+                                                                                required: false,
+                                                                                style: {
+                                                                                    width: '87%',
+                                                                                    height: '36px',
+                                                                                    marginLeft: '40px',
+                                                                                    boxSizing: 'border-box',
+                                                                                    borderRadius: '4px',
+                                                                                    padding: '16.5px 14px',
+                                                                                    fontSize: '16px'
+                                                                                }
+                                                                            }}
+                                                                            containerClass='w-full'
+                                                                            inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+                                                                            enableSearch
+                                                                            disableCountryCode={false}
+                                                                            enableLongNumbers={true}
+                                                                            isValid={true}
+                                                                            preserveOrder={['country', 'nationalNumber']}
+                                                                        />
+                                                                        {phoneExpectedInfo.fatherMobileNumbers?.expected && (
+                                                                            <span className='mt-1 text-muted-foreground text-xs'>
+                                                                                {`Mobile number must be exactly ${phoneExpectedInfo.fatherMobileNumbers.expected} digits for ${phoneExpectedInfo.fatherMobileNumbers.name ??
+                                                                                    'selected country'
+                                                                                    }`}
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                )}
+                                                            />
+                                                            {errors.fatherMobileNumbers && (
+                                                                <FormError>{errors.fatherMobileNumbers.message}</FormError>
+                                                            )}
+                                                        </div>
+
+                                                        <div className='flex flex-col gap-1.5'>
+                                                            <Label>Email-ID</Label>
+                                                            <InputText
+                                                                id='fatherEmailIds'
+                                                                placeholder='Enter Email-ID'
+                                                                {...register('fatherEmailIds')}
+                                                                error={errors.fatherEmailIds?.message}
                                                             />
                                                         </div>
-                                                    )}
 
-                                                    {!fatherAlive && (
                                                         <InputText
-                                                            label='Father Name'
-                                                            id='fatherName'
-                                                            placeholder='Enter father name'
-                                                            {...register('fatherName', {
-                                                                required: fatherAlive ? 'Father Name is required' : false
-                                                            })}
-                                                            error={errors.fatherName?.message}
-                                                            disabled
+                                                            label='Home Phone No'
+                                                            id='fatherHomePhone'
+                                                            placeholder='Enter Home Phone No'
+                                                            {...register('fatherHomePhone')}
+                                                            error={errors.fatherHomePhone?.message}
                                                         />
-                                                    )}
-                                                    <InputText
-                                                        label='Surname'
-                                                        id='fatherSurname'
-                                                        placeholder='Enter surname'
-                                                        {...register('fatherSurname')}
-                                                        error={errors.fatherSurname?.message}
-                                                    />
+                                                        <InputText
+                                                            label='Passing Year'
+                                                            id='amsT_FatherPassingYear'
+                                                            placeholder='Enter Passing Year'
+                                                            {...register('amsT_FatherPassingYear')}
+                                                            error={errors.amsT_FatherPassingYear?.message}
+                                                        />
 
-                                                    <InputText
-                                                        label='Aadhaar No.'
-                                                        id='fatherAadharNo'
-                                                        placeholder='Enter Aadhaar No.'
-                                                        {...register('fatherAadharNo')}
-                                                        error={errors.fatherAadharNo?.message}
-                                                    />
-                                                    <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='asmcL_Id'>Marital Status</Label>
-
-                                                        <Controller
-                                                            name='fatherMaritalStatus'
-                                                            control={control}
-                                                            render={({ field, fieldState: { error } }) => (
-                                                                <div className='flex flex-col space-y-2'>
+                                                        <div className='flex flex-col gap-1.5'>
+                                                            <Label htmlFor='fatherNationality'>
+                                                                Country {fatherAlive && <span className='ml-1 text-red-500'>*</span>}
+                                                            </Label>
+                                                            <Controller
+                                                                name='fatherNationality'
+                                                                control={control}
+                                                                rules={{
+                                                                    required: fatherAlive ? 'Country is required' : false
+                                                                }}
+                                                                render={({ field }) => (
                                                                     <Select
+                                                                        key={field.value || 'empty'}
+                                                                        onValueChange={(value) => field.onChange(value)}
                                                                         value={field.value?.toString() || ''}
-                                                                        onValueChange={(value) => field.onChange(value)}>
-                                                                        <SelectTrigger className={cn('w-full', error && 'border-red-500')}>
-                                                                            <SelectValue placeholder='Select' />
+                                                                        disabled={!fatherAlive}>
+                                                                        <SelectTrigger>
+                                                                            <SelectValue placeholder='Select country' />
                                                                         </SelectTrigger>
-
                                                                         <SelectContent>
-                                                                            <SelectItem value='Married'>Married</SelectItem>
-                                                                            <SelectItem value='Single father'>Single father</SelectItem>
-                                                                            <SelectItem value='Single mother'>Single mother</SelectItem>
-                                                                            <SelectItem value='Divorced father'>Divorced father</SelectItem>
-                                                                            <SelectItem value='Divorced mother'>Divorced mother</SelectItem>
-                                                                            <SelectItem value='Widow'>Widow</SelectItem>
-                                                                            <SelectItem value='Widower'>Widower</SelectItem>
+                                                                            {countryLoading ? (
+                                                                                <SelectItem value='loading' disabled>
+                                                                                    Loading...
+                                                                                </SelectItem>
+                                                                            ) : countryError ? (
+                                                                                <SelectItem value='error' disabled>
+                                                                                    Error loading
+                                                                                </SelectItem>
+                                                                            ) : (
+                                                                                country?.data?.map((item: any) => (
+                                                                                    <SelectItem
+                                                                                        key={item.ivrmmC_Id}
+                                                                                        value={item.ivrmmC_Id.toString()}>
+                                                                                        {item.ivrmmC_CountryName}
+                                                                                    </SelectItem>
+                                                                                ))
+                                                                            )}
                                                                         </SelectContent>
                                                                     </Select>
-                                                                </div>
-                                                            )}
-                                                        />
+                                                                )}
+                                                            />
+                                                            {(errors.fatherNationality ||
+                                                                (fatherAlive && showStep3Errors && !watch('fatherNationality'))) && (
+                                                                    <FormError>
+                                                                        {errors.fatherNationality?.message ?? 'Country is required'}
+                                                                    </FormError>
+                                                                )}
+                                                        </div>
+                                                        <div className='col-span-full space-y-4'>
+                                                            <h3 className='font-semibold text-gray-800 text-lg'>Education Details</h3>
+                                                            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                                <InputText
+                                                                    label=' '
+                                                                    id='FatherEducation'
+                                                                    placeholder='Enter qualification'
+                                                                    {...register('FatherEducation')}
+                                                                    error={errors.FatherEducation?.message}
+                                                                />
+                                                            </div>
+                                                        </div>
 
-                                                        {errors.fatherMaritalStatus && (
-                                                            <FormError>{errors.fatherMaritalStatus.message}</FormError>
-                                                        )}
-                                                    </div>
+                                                        {/* Present Address Details */}
+                                                        <div className='col-span-full space-y-4'>
+                                                            <h3 className='font-semibold text-gray-800 text-lg'>
+                                                                Father Present Address Details
+                                                            </h3>
 
-                                                    <div className='flex flex-col gap-1.5 '>
-                                                        <Controller
-                                                            name='fatherMobileNumbers'
-                                                            control={control}
-                                                            render={({ field }) => (
-                                                                <div>
-                                                                    <Label htmlFor='fatherMobileNumbers'>
-                                                                        Mobile No. <span className='ml-1 text-red-500'>*</span>
-                                                                    </Label>
-                                                                    <PhoneInput
-                                                                        country='in'
-                                                                        value={
-                                                                            phoneValues.fatherMobileNumbers ??
-                                                                            (field.value != null ? String(field.value) : null)
-                                                                        }
-                                                                        onChange={(phone: any, countryData: any) =>
-                                                                            handlePhoneChange(phone, countryData, 'fatherMobileNumbers')
-                                                                        }
-                                                                        onBlur={() => trigger('fatherMobileNumbers')}
-                                                                        inputProps={{
-                                                                            id: 'fatherMobileNumbers',
-                                                                            name: 'fatherMobileNumbers',
-                                                                            maxLength: 25,
-                                                                            required: false,
-                                                                            style: {
-                                                                                width: '87%',
-                                                                                height: '36px',
-                                                                                marginLeft: '40px',
-                                                                                boxSizing: 'border-box',
-                                                                                borderRadius: '4px',
-                                                                                padding: '16.5px 14px',
-                                                                                fontSize: '16px'
-                                                                            }
-                                                                        }}
-                                                                        containerClass='w-full'
-                                                                        inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
-                                                                        enableSearch
-                                                                        disableCountryCode={false}
-                                                                        enableLongNumbers={true}
-                                                                        isValid={true}
-                                                                        preserveOrder={['country', 'nationalNumber']}
-                                                                    />
-                                                                    {phoneExpectedInfo.fatherMobileNumbers?.expected && (
-                                                                        <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.fatherMobileNumbers.expected} digits for ${phoneExpectedInfo.fatherMobileNumbers.name ??
-                                                                                'selected country'
-                                                                                }`}
-                                                                        </span>
-                                                                    )}
-                                                                </div>
-                                                            )}
-                                                        />
-                                                        {errors.fatherMobileNumbers && (
-                                                            <FormError>{errors.fatherMobileNumbers.message}</FormError>
-                                                        )}
-                                                    </div>
+                                                            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                                {/* Address */}
+                                                                <InputText
+                                                                    label='Address'
+                                                                    id='fatherPresentAddress.address'
+                                                                    placeholder='Enter Address'
+                                                                    {...register('fatherPresentAddress.address')}
+                                                                    error={errors.fatherPresentAddress?.address?.message}
+                                                                />
 
-                                                    <div className='flex flex-col gap-1.5'>
-                                                        <Label>Email-ID <span className='ml-1 text-red-500'>*</span></Label>
-                                                        <InputText
-                                                            id='fatherEmailIds'
-                                                            placeholder='Enter Email-ID'
-                                                            {...register('fatherEmailIds')}
-                                                            error={errors.fatherEmailIds?.message}
-                                                        />
-                                                    </div>
+                                                                {/* State */}
+                                                                <div className='flex flex-col gap-1.5'>
+                                                                    <Label htmlFor='fatherPresentAddress.state'>State</Label>
+                                                                    <Controller
+                                                                        name='fatherPresentAddress.state'
+                                                                        control={control}
+                                                                        render={({ field }) => (
+                                                                            <Select
+                                                                                key={field.value || 'empty'}
+                                                                                onValueChange={(value) => field.onChange(Number(value))}
+                                                                                value={field.value?.toString() || ''}>
+                                                                                <SelectTrigger>
+                                                                                    <SelectValue placeholder='Select state' />
+                                                                                </SelectTrigger>
 
-                                                    <InputText
-                                                        label='Home Phone No'
-                                                        id='fatherHomePhone'
-                                                        placeholder='Enter Home Phone No'
-                                                        {...register('fatherHomePhone')}
-                                                        error={errors.fatherHomePhone?.message}
-                                                    />
-                                                    <InputText
-                                                        label='Passing Year'
-                                                        id='amsT_FatherPassingYear'
-                                                        placeholder='Enter Passing Year'
-                                                        {...register('amsT_FatherPassingYear')}
-                                                        error={errors.amsT_FatherPassingYear?.message}
-                                                    />
-
-                                                    <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='fatherNationality'>
-                                                            Country {fatherAlive && <span className='ml-1 text-red-500'>*</span>}
-                                                        </Label>
-                                                        <Controller
-                                                            name='fatherNationality'
-                                                            control={control}
-                                                            rules={{
-                                                                required: fatherAlive ? 'Country is required' : false
-                                                            }}
-                                                            render={({ field }) => (
-                                                                <Select
-                                                                    key={field.value || 'empty'}
-                                                                    onValueChange={(value) => field.onChange(value)}
-                                                                    value={field.value?.toString() || ''}
-                                                                    disabled={!fatherAlive}>
-                                                                    <SelectTrigger>
-                                                                        <SelectValue placeholder='Select country' />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>
-                                                                        {countryLoading ? (
-                                                                            <SelectItem value='loading' disabled>
-                                                                                Loading...
-                                                                            </SelectItem>
-                                                                        ) : countryError ? (
-                                                                            <SelectItem value='error' disabled>
-                                                                                Error loading
-                                                                            </SelectItem>
-                                                                        ) : (
-                                                                            country?.data?.map((item: any) => (
-                                                                                <SelectItem
-                                                                                    key={item.ivrmmC_Id}
-                                                                                    value={item.ivrmmC_Id.toString()}>
-                                                                                    {item.ivrmmC_CountryName}
-                                                                                </SelectItem>
-                                                                            ))
+                                                                                <SelectContent>
+                                                                                    {fatherPresentStateLoading ? (
+                                                                                        <SelectItem value='loading' disabled>
+                                                                                            Loading...
+                                                                                        </SelectItem>
+                                                                                    ) : fatherPresentStateError ? (
+                                                                                        <SelectItem value='error' disabled>
+                                                                                            Error loading
+                                                                                        </SelectItem>
+                                                                                    ) : (
+                                                                                        fatherPresentState?.data?.map((item: any) => (
+                                                                                            <SelectItem
+                                                                                                key={item.ivrmmS_Id}
+                                                                                                value={item.ivrmmS_Id.toString()}>
+                                                                                                {item.ivrmmS_Name}
+                                                                                            </SelectItem>
+                                                                                        ))
+                                                                                    )}
+                                                                                </SelectContent>
+                                                                            </Select>
                                                                         )}
-                                                                    </SelectContent>
-                                                                </Select>
-                                                            )}
-                                                        />
-                                                        {(errors.fatherNationality ||
-                                                            (fatherAlive && showStep3Errors && !watch('fatherNationality'))) && (
-                                                                <FormError>
-                                                                    {errors.fatherNationality?.message ?? 'Country is required'}
-                                                                </FormError>
-                                                            )}
-                                                    </div>
-                                                    <div className='col-span-full space-y-4 md:col-span-2 lg:col-span-3'>
-                                                        <h3 className='font-semibold text-gray-800 text-lg'>Education Details</h3>
-                                                        <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
-                                                            <InputText
-                                                                label=' '
-                                                                id='FatherEducation'
-                                                                placeholder='Enter qualification'
-                                                                {...register('FatherEducation')}
-                                                                error={errors.FatherEducation?.message}
-                                                            />
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Present Address Details */}
-                                                    <div className='col-span-full space-y-4 md:col-span-2 lg:col-span-3'>
-                                                        <h3 className='font-semibold text-gray-800 text-lg'>
-                                                            Father Present Address Details
-                                                        </h3>
-
-                                                        <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
-                                                            {/* Address */}
-                                                            <InputText
-                                                                label='Address'
-                                                                id='fatherPresentAddress.address'
-                                                                placeholder='Enter Address'
-                                                                {...register('fatherPresentAddress.address')}
-                                                                error={errors.fatherPresentAddress?.address?.message}
-                                                            />
-                                                            {/* <div className='flex flex-col gap-1.5'>
-                                                                <Label htmlFor='fatherPresentAddress.country'>
-                                                                    Country <span className='ml-1 text-red-500'>*</span>
-                                                                </Label>
-
-                                                                <Controller
-                                                                    name='fatherPresentAddress.country'
-                                                                    control={control}
-                                                                    render={({ field }) => (
-                                                                        <Select
-                                                                            key={field.value || 'empty'}
-                                                                            onValueChange={(value) => field.onChange(value)}
-                                                                            value={field.value?.toString() || ''}>
-                                                                            <SelectTrigger>
-                                                                                <SelectValue placeholder='Select country' />
-                                                                            </SelectTrigger>
-                                                                            <SelectContent>
-                                                                                {countryLoading ? (
-                                                                                    <SelectItem value='loading' disabled>
-                                                                                        Loading...
-                                                                                    </SelectItem>
-                                                                                ) : countryError ? (
-                                                                                    <SelectItem value='error' disabled>
-                                                                                        Error loading
-                                                                                    </SelectItem>
-                                                                                ) : (
-                                                                                    country?.data?.map((item: any) => (
-                                                                                        <SelectItem
-                                                                                            key={item.ivrmmC_CountryName}
-                                                                                            value={item.ivrmmC_CountryName.toString()}>
-                                                                                            {item.ivrmmC_CountryName}
-                                                                                        </SelectItem>
-                                                                                    ))
-                                                                                )}
-                                                                            </SelectContent>
-                                                                        </Select>
+                                                                    />
+                                                                    {errors.fatherPresentAddress?.state && (
+                                                                        <FormError>{errors.fatherPresentAddress.state.message}</FormError>
                                                                     )}
+                                                                </div>
+
+                                                                {/* City */}
+                                                                <InputText
+                                                                    label='City'
+                                                                    id='fatherPresentAddress.city'
+                                                                    placeholder='Enter city'
+                                                                    {...register('fatherPresentAddress.city')}
+                                                                    error={errors.fatherPresentAddress?.city?.message}
                                                                 />
 
-                                                                {errors.fatherPresentAddress?.country && (
-                                                                    <FormError>{errors.fatherPresentAddress.country.message}</FormError>
-                                                                )}
-                                                            </div> */}
-
-                                                            {/* State */}
-                                                            <div className='flex flex-col gap-1.5'>
-                                                                <Label htmlFor='fatherPresentAddress.state'>State</Label>
-                                                                <Controller
-                                                                    name='fatherPresentAddress.state'
-                                                                    control={control}
-                                                                    render={({ field }) => (
-                                                                        <Select
-                                                                            key={field.value || 'empty'}
-                                                                            onValueChange={(value) => field.onChange(Number(value))}
-                                                                            value={field.value?.toString() || ''}>
-                                                                            <SelectTrigger>
-                                                                                <SelectValue placeholder='Select state' />
-                                                                            </SelectTrigger>
-
-                                                                            <SelectContent>
-                                                                                {fatherPresentStateLoading ? (
-                                                                                    <SelectItem value='loading' disabled>
-                                                                                        Loading...
-                                                                                    </SelectItem>
-                                                                                ) : fatherPresentStateError ? (
-                                                                                    <SelectItem value='error' disabled>
-                                                                                        Error loading
-                                                                                    </SelectItem>
-                                                                                ) : (
-                                                                                    fatherPresentState?.data?.map((item: any) => (
-                                                                                        <SelectItem
-                                                                                            key={item.ivrmmS_Id}
-                                                                                            value={item.ivrmmS_Id.toString()}>
-                                                                                            {item.ivrmmS_Name}
-                                                                                        </SelectItem>
-                                                                                    ))
-                                                                                )}
-                                                                            </SelectContent>
-                                                                        </Select>
-                                                                    )}
-                                                                />
-                                                                {errors.fatherPresentAddress?.state && (
-                                                                    <FormError>{errors.fatherPresentAddress.state.message}</FormError>
-                                                                )}
-                                                            </div>
-
-                                                            {/* City */}
-                                                            <InputText
-                                                                label='City'
-                                                                id='fatherPresentAddress.city'
-                                                                placeholder='Enter city'
-                                                                {...register('fatherPresentAddress.city')}
-                                                                error={errors.fatherPresentAddress?.city?.message}
-                                                            />
-
-                                                            {/* Pincode */}
-                                                            <div className='flex flex-col gap-1.5'>
-                                                                <Controller
-                                                                    name='fatherPresentAddress.pincode'
-                                                                    control={control}
-                                                                    rules={
-                                                                        fatherZipLength
-                                                                            ? {
-                                                                                minLength: {
-                                                                                    value: fatherZipLength,
-                                                                                    message: `Pin code must be ${fatherZipLength} digits`
-                                                                                },
-                                                                                maxLength: {
-                                                                                    value: fatherZipLength,
-                                                                                    message: `Pin code must be ${fatherZipLength} digits`
-                                                                                }
-                                                                            }
-                                                                            : undefined
-                                                                    }
-                                                                    render={({ field }) => (
-                                                                        <>
-                                                                            <MobileNumberInput
-                                                                                label='Pin Code'
-                                                                                id='fatherPresentAddress.pincode'
-                                                                                value={field.value}
-                                                                                onChange={(valueOrEvent) => {
-                                                                                    const raw = valueOrEvent?.target?.value ?? valueOrEvent;
-                                                                                    const str =
-                                                                                        raw == null ? '' : String(raw).replace(/\D/g, '');
-                                                                                    const truncated = fatherZipLength
-                                                                                        ? str.slice(0, fatherZipLength)
-                                                                                        : str;
-                                                                                    field.onChange(truncated);
-
-                                                                                    if (
-                                                                                        fatherZipLength &&
-                                                                                        truncated !== '' &&
-                                                                                        truncated.length !== fatherZipLength
-                                                                                    ) {
-                                                                                        setError('fatherPresentAddress.pincode', {
-                                                                                            type: 'manual',
-                                                                                            message: `Pin code must be ${fatherZipLength} digits`
-                                                                                        });
-                                                                                    } else {
-                                                                                        clearErrors('fatherPresentAddress.pincode');
+                                                                {/* Pincode */}
+                                                                <div className='flex flex-col gap-1.5'>
+                                                                    <Controller
+                                                                        name='fatherPresentAddress.pincode'
+                                                                        control={control}
+                                                                        rules={
+                                                                            fatherZipLength
+                                                                                ? {
+                                                                                    minLength: {
+                                                                                        value: fatherZipLength,
+                                                                                        message: `Pin code must be ${fatherZipLength} digits`
+                                                                                    },
+                                                                                    maxLength: {
+                                                                                        value: fatherZipLength,
+                                                                                        message: `Pin code must be ${fatherZipLength} digits`
                                                                                     }
-
-                                                                                    trigger('fatherPresentAddress.pincode');
-                                                                                }}
-                                                                                minLength={fatherZipLength}
-                                                                                maxLength={fatherZipLength}
-                                                                                type='number'
-                                                                                showSpinner={false}
-                                                                            />
-
-                                                                            {fatherCountryObj && fatherZipLength && (
-                                                                                <span className='mt-1 text-muted-foreground text-xs'>
-                                                                                    {`Pin code must be ${fatherZipLength} digits for ${fatherCountryObj.ivrmmC_CountryName}`}
-                                                                                </span>
-                                                                            )}
-                                                                        </>
-                                                                    )}
-                                                                />
-                                                                {errors.fatherPresentAddress?.pincode && (
-                                                                    <FormError>{errors.fatherPresentAddress.pincode.message}</FormError>
-                                                                )}
-                                                            </div>
-
-                                                            {/* PO */}
-                                                            <InputText
-                                                                label='PO'
-                                                                id='fatherPresentAddress.po'
-                                                                placeholder='Enter PO'
-                                                                {...register('fatherPresentAddress.po')}
-                                                                error={errors.fatherPresentAddress?.po?.message}
-                                                            />
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Permanent Address Details */}
-                                                    <div className='col-span-full space-y-4 md:col-span-2 lg:col-span-3'>
-                                                        <h3 className='font-semibold text-gray-800 text-lg'>
-                                                            Father Permanent Address Details
-                                                        </h3>
-
-                                                        <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
-                                                            {/* Permanent Address */}
-                                                            <InputText
-                                                                label='Permanent Address'
-                                                                id='fatherPermanentAddress.address'
-                                                                placeholder='Enter Permanent Address'
-                                                                {...register('fatherPermanentAddress.address')}
-                                                                error={errors.fatherPermanentAddress?.address?.message}
-                                                            />
-                                                            {/* <div className='flex flex-col gap-1.5'>
-                                                                <Label htmlFor='fatherPermanentAddress.country'>
-                                                                    Country <span className='ml-1 text-red-500'>*</span>
-                                                                </Label>
-
-                                                                <Controller
-                                                                    name='fatherPermanentAddress.country'
-                                                                    control={control}
-                                                                    render={({ field }) => (
-                                                                        <Select
-                                                                            key={field.value || 'empty'}
-                                                                            onValueChange={(value) => field.onChange(value)}
-                                                                            value={field.value?.toString() || ''}>
-                                                                            <SelectTrigger>
-                                                                                <SelectValue placeholder='Select country' />
-                                                                            </SelectTrigger>
-                                                                            <SelectContent>
-                                                                                {countryLoading ? (
-                                                                                    <SelectItem value='loading' disabled>
-                                                                                        Loading...
-                                                                                    </SelectItem>
-                                                                                ) : countryError ? (
-                                                                                    <SelectItem value='error' disabled>
-                                                                                        Error loading
-                                                                                    </SelectItem>
-                                                                                ) : (
-                                                                                    country?.data?.map((item: any) => (
-                                                                                        <SelectItem
-                                                                                            key={item.ivrmmC_CountryName}
-                                                                                            value={item.ivrmmC_CountryName.toString()}>
-                                                                                            {item.ivrmmC_CountryName}
-                                                                                        </SelectItem>
-                                                                                    ))
-                                                                                )}
-                                                                            </SelectContent>
-                                                                        </Select>
-                                                                    )}
-                                                                />
-
-                                                                {errors.fatherPermanentAddress?.country && (
-                                                                    <FormError>{errors.fatherPermanentAddress.country.message}</FormError>
-                                                                )}
-                                                            </div> */}
-
-                                                            {/* Permanent State */}
-                                                            <div className='flex flex-col gap-1.5'>
-                                                                <Label htmlFor='fatherPermanentAddress.state'>Permanent State</Label>
-
-                                                                <Controller
-                                                                    name='fatherPermanentAddress.state'
-                                                                    control={control}
-                                                                    render={({ field }) => (
-                                                                        <Select
-                                                                            key={field.value || 'empty'}
-                                                                            onValueChange={(value) => field.onChange(Number(value))}
-                                                                            value={field.value?.toString() || ''}>
-                                                                            <SelectTrigger>
-                                                                                <SelectValue placeholder='Select state' />
-                                                                            </SelectTrigger>
-
-                                                                            <SelectContent>
-                                                                                {fatherPresentStateLoading ? (
-                                                                                    <SelectItem value='loading' disabled>
-                                                                                        Loading...
-                                                                                    </SelectItem>
-                                                                                ) : fatherPresentStateError ? (
-                                                                                    <SelectItem value='error' disabled>
-                                                                                        Error loading
-                                                                                    </SelectItem>
-                                                                                ) : (
-                                                                                    fatherPresentState?.data?.map((item: any) => (
-                                                                                        <SelectItem
-                                                                                            key={item.ivrmmS_Id}
-                                                                                            value={item.ivrmmS_Id.toString()}>
-                                                                                            {item.ivrmmS_Name}
-                                                                                        </SelectItem>
-                                                                                    ))
-                                                                                )}
-                                                                            </SelectContent>
-                                                                        </Select>
-                                                                    )}
-                                                                />
-
-                                                                {errors.fatherPermanentAddress?.state && (
-                                                                    <FormError>{errors.fatherPermanentAddress.state.message}</FormError>
-                                                                )}
-                                                            </div>
-
-                                                            {/* Permanent City */}
-                                                            <InputText
-                                                                label='Permanent City'
-                                                                id='fatherPermanentAddress.city'
-                                                                placeholder='Enter city'
-                                                                {...register('fatherPermanentAddress.city')}
-                                                                error={errors.fatherPermanentAddress?.city?.message}
-                                                            />
-
-                                                            {/* Permanent Pin Code */}
-                                                            <div className='flex flex-col gap-1.5'>
-                                                                <Controller
-                                                                    name='fatherPermanentAddress.pincode'
-                                                                    control={control}
-                                                                    rules={
-                                                                        fatherZipLength
-                                                                            ? {
-                                                                                minLength: {
-                                                                                    value: fatherZipLength,
-                                                                                    message: `Pin code must be ${fatherZipLength} digits`
-                                                                                },
-                                                                                maxLength: {
-                                                                                    value: fatherZipLength,
-                                                                                    message: `Pin code must be ${fatherZipLength} digits`
                                                                                 }
-                                                                            }
-                                                                            : undefined
-                                                                    }
-                                                                    render={({ field }) => (
-                                                                        <>
-                                                                            <MobileNumberInput
-                                                                                label='Permanent Pin Code'
-                                                                                id='fatherPermanentAddress.pincode'
-                                                                                value={field.value}
-                                                                                onChange={(valOrEvent: any) => {
-                                                                                    const raw = valOrEvent?.target?.value ?? valOrEvent;
-                                                                                    const str =
-                                                                                        raw == null ? '' : String(raw).replace(/\D/g, '');
-                                                                                    const truncated = fatherZipLength
-                                                                                        ? str.slice(0, fatherZipLength)
-                                                                                        : str;
+                                                                                : undefined
+                                                                        }
+                                                                        render={({ field }) => (
+                                                                            <>
+                                                                                <MobileNumberInput
+                                                                                    label='Pin Code'
+                                                                                    id='fatherPresentAddress.pincode'
+                                                                                    value={field.value}
+                                                                                    onChange={(valueOrEvent) => {
+                                                                                        const raw = valueOrEvent?.target?.value ?? valueOrEvent;
+                                                                                        const str =
+                                                                                            raw == null ? '' : String(raw).replace(/\D/g, '');
+                                                                                        const truncated = fatherZipLength
+                                                                                            ? str.slice(0, fatherZipLength)
+                                                                                            : str;
+                                                                                        field.onChange(truncated);
 
-                                                                                    field.onChange(truncated);
+                                                                                        if (
+                                                                                            fatherZipLength &&
+                                                                                            truncated !== '' &&
+                                                                                            truncated.length !== fatherZipLength
+                                                                                        ) {
+                                                                                            setError('fatherPresentAddress.pincode', {
+                                                                                                type: 'manual',
+                                                                                                message: `Pin code must be ${fatherZipLength} digits`
+                                                                                            });
+                                                                                        } else {
+                                                                                            clearErrors('fatherPresentAddress.pincode');
+                                                                                        }
 
-                                                                                    if (
-                                                                                        fatherZipLength &&
-                                                                                        truncated !== '' &&
-                                                                                        truncated.length !== fatherZipLength
-                                                                                    ) {
-                                                                                        setError('fatherPermanentAddress.pincode', {
-                                                                                            type: 'manual',
-                                                                                            message: `Pin code must be ${fatherZipLength} digits`
-                                                                                        });
-                                                                                    } else {
-                                                                                        clearErrors('fatherPermanentAddress.pincode');
+                                                                                        trigger('fatherPresentAddress.pincode');
+                                                                                    }}
+                                                                                    minLength={fatherZipLength}
+                                                                                    maxLength={fatherZipLength}
+                                                                                    type='number'
+                                                                                    showSpinner={false}
+                                                                                />
+
+                                                                                {fatherCountryObj && fatherZipLength && (
+                                                                                    <span className='mt-1 text-muted-foreground text-xs'>
+                                                                                        {`Pin code must be ${fatherZipLength} digits for ${fatherCountryObj.ivrmmC_CountryName}`}
+                                                                                    </span>
+                                                                                )}
+                                                                            </>
+                                                                        )}
+                                                                    />
+                                                                    {errors.fatherPresentAddress?.pincode && (
+                                                                        <FormError>{errors.fatherPresentAddress.pincode.message}</FormError>
+                                                                    )}
+                                                                </div>
+
+                                                                {/* PO */}
+                                                                <InputText
+                                                                    label='PO'
+                                                                    id='fatherPresentAddress.po'
+                                                                    placeholder='Enter PO'
+                                                                    {...register('fatherPresentAddress.po')}
+                                                                    error={errors.fatherPresentAddress?.po?.message}
+                                                                />
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Permanent Address Details */}
+                                                        <div className='col-span-full space-y-4'>
+                                                            <h3 className='font-semibold text-gray-800 text-lg'>
+                                                                Father Permanent Address Details
+                                                            </h3>
+
+                                                            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                                {/* Permanent Address */}
+                                                                <InputText
+                                                                    label='Permanent Address'
+                                                                    id='fatherPermanentAddress.address'
+                                                                    placeholder='Enter Permanent Address'
+                                                                    {...register('fatherPermanentAddress.address')}
+                                                                    error={errors.fatherPermanentAddress?.address?.message}
+                                                                />
+
+                                                                {/* Permanent State */}
+                                                                <div className='flex flex-col gap-1.5'>
+                                                                    <Label htmlFor='fatherPermanentAddress.state'>Permanent State</Label>
+
+                                                                    <Controller
+                                                                        name='fatherPermanentAddress.state'
+                                                                        control={control}
+                                                                        render={({ field }) => (
+                                                                            <Select
+                                                                                key={field.value || 'empty'}
+                                                                                onValueChange={(value) => field.onChange(Number(value))}
+                                                                                value={field.value?.toString() || ''}>
+                                                                                <SelectTrigger>
+                                                                                    <SelectValue placeholder='Select state' />
+                                                                                </SelectTrigger>
+
+                                                                                <SelectContent>
+                                                                                    {fatherPresentStateLoading ? (
+                                                                                        <SelectItem value='loading' disabled>
+                                                                                            Loading...
+                                                                                        </SelectItem>
+                                                                                    ) : fatherPresentStateError ? (
+                                                                                        <SelectItem value='error' disabled>
+                                                                                            Error loading
+                                                                                        </SelectItem>
+                                                                                    ) : (
+                                                                                        fatherPresentState?.data?.map((item: any) => (
+                                                                                            <SelectItem
+                                                                                                key={item.ivrmmS_Id}
+                                                                                                value={item.ivrmmS_Id.toString()}>
+                                                                                                {item.ivrmmS_Name}
+                                                                                            </SelectItem>
+                                                                                        ))
+                                                                                    )}
+                                                                                </SelectContent>
+                                                                            </Select>
+                                                                        )}
+                                                                    />
+
+                                                                    {errors.fatherPermanentAddress?.state && (
+                                                                        <FormError>{errors.fatherPermanentAddress.state.message}</FormError>
+                                                                    )}
+                                                                </div>
+
+                                                                {/* Permanent City */}
+                                                                <InputText
+                                                                    label='Permanent City'
+                                                                    id='fatherPermanentAddress.city'
+                                                                    placeholder='Enter city'
+                                                                    {...register('fatherPermanentAddress.city')}
+                                                                    error={errors.fatherPermanentAddress?.city?.message}
+                                                                />
+
+                                                                {/* Permanent Pin Code */}
+                                                                <div className='flex flex-col gap-1.5'>
+                                                                    <Controller
+                                                                        name='fatherPermanentAddress.pincode'
+                                                                        control={control}
+                                                                        rules={
+                                                                            fatherZipLength
+                                                                                ? {
+                                                                                    minLength: {
+                                                                                        value: fatherZipLength,
+                                                                                        message: `Pin code must be ${fatherZipLength} digits`
+                                                                                    },
+                                                                                    maxLength: {
+                                                                                        value: fatherZipLength,
+                                                                                        message: `Pin code must be ${fatherZipLength} digits`
                                                                                     }
+                                                                                }
+                                                                                : undefined
+                                                                        }
+                                                                        render={({ field }) => (
+                                                                            <>
+                                                                                <MobileNumberInput
+                                                                                    label='Permanent Pin Code'
+                                                                                    id='fatherPermanentAddress.pincode'
+                                                                                    value={field.value}
+                                                                                    onChange={(valOrEvent: any) => {
+                                                                                        const raw = valOrEvent?.target?.value ?? valOrEvent;
+                                                                                        const str =
+                                                                                            raw == null ? '' : String(raw).replace(/\D/g, '');
+                                                                                        const truncated = fatherZipLength
+                                                                                            ? str.slice(0, fatherZipLength)
+                                                                                            : str;
 
-                                                                                    trigger('fatherPermanentAddress.pincode');
-                                                                                }}
-                                                                                minLength={fatherZipLength}
-                                                                                maxLength={fatherZipLength}
-                                                                                type='number'
-                                                                                showSpinner={false}
-                                                                            />
+                                                                                        field.onChange(truncated);
 
-                                                                            {fatherCountryObj && fatherZipLength && (
-                                                                                <span className='mt-1 text-muted-foreground text-xs'>
-                                                                                    {`Pin code must be ${fatherZipLength} digits for ${fatherCountryObj.ivrmmC_CountryName}`}
-                                                                                </span>
-                                                                            )}
-                                                                        </>
+                                                                                        if (
+                                                                                            fatherZipLength &&
+                                                                                            truncated !== '' &&
+                                                                                            truncated.length !== fatherZipLength
+                                                                                        ) {
+                                                                                            setError('fatherPermanentAddress.pincode', {
+                                                                                                type: 'manual',
+                                                                                                message: `Pin code must be ${fatherZipLength} digits`
+                                                                                            });
+                                                                                        } else {
+                                                                                            clearErrors('fatherPermanentAddress.pincode');
+                                                                                        }
+
+                                                                                        trigger('fatherPermanentAddress.pincode');
+                                                                                    }}
+                                                                                    minLength={fatherZipLength}
+                                                                                    maxLength={fatherZipLength}
+                                                                                    type='number'
+                                                                                    showSpinner={false}
+                                                                                />
+
+                                                                                {fatherCountryObj && fatherZipLength && (
+                                                                                    <span className='mt-1 text-muted-foreground text-xs'>
+                                                                                        {`Pin code must be ${fatherZipLength} digits for ${fatherCountryObj.ivrmmC_CountryName}`}
+                                                                                    </span>
+                                                                                )}
+                                                                            </>
+                                                                        )}
+                                                                    />
+
+                                                                    {errors.fatherPermanentAddress?.pincode && (
+                                                                        <FormError>{errors.fatherPermanentAddress.pincode.message}</FormError>
                                                                     )}
+                                                                </div>
+
+                                                                {/* Permanent PS */}
+                                                                <InputText
+                                                                    label='Permanent PS'
+                                                                    id='fatherPermanentAddress.ps'
+                                                                    placeholder='Enter Permanent PS'
+                                                                    {...register('fatherPermanentAddress.ps')}
+                                                                    error={errors.fatherPermanentAddress?.ps?.message}
                                                                 />
 
-                                                                {errors.fatherPermanentAddress?.pincode && (
-                                                                    <FormError>{errors.fatherPermanentAddress.pincode.message}</FormError>
-                                                                )}
+                                                                {/* Permanent PO */}
+                                                                <InputText
+                                                                    label='Permanent PO'
+                                                                    id='fatherPermanentAddress.po'
+                                                                    placeholder='Enter Permanent PO'
+                                                                    {...register('fatherPermanentAddress.po')}
+                                                                    error={errors.fatherPermanentAddress?.po?.message}
+                                                                />
                                                             </div>
-
-                                                            {/* Permanent PS */}
-                                                            <InputText
-                                                                label='Permanent PS'
-                                                                id='fatherPermanentAddress.ps'
-                                                                placeholder='Enter Permanent PS'
-                                                                {...register('fatherPermanentAddress.ps')}
-                                                                error={errors.fatherPermanentAddress?.ps?.message}
-                                                            />
-
-                                                            {/* Permanent PO */}
-                                                            <InputText
-                                                                label='Permanent PO'
-                                                                id='fatherPermanentAddress.po'
-                                                                placeholder='Enter Permanent PO'
-                                                                {...register('fatherPermanentAddress.po')}
-                                                                error={errors.fatherPermanentAddress?.po?.message}
-                                                            />
                                                         </div>
-                                                    </div>
 
-                                                    {/* Office Details */}
-                                                    <div className='col-span-full space-y-4 md:col-span-2 lg:col-span-3'>
-                                                        <h3 className='font-semibold text-gray-800 text-lg'>Office Details</h3>
-                                                        <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
-                                                            <InputText
-                                                                label='Office Address'
-                                                                id='fatherOfficeAddress'
-                                                                placeholder='Enter office address'
-                                                                {...register('fatherOfficeAddress')}
-                                                                error={errors.fatherOfficeAddress?.message}
-                                                            />
+                                                        {/* Office Details */}
+                                                        <div className='col-span-full space-y-4'>
+                                                            <h3 className='font-semibold text-gray-800 text-lg'>Office Details</h3>
+                                                            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                                <InputText
+                                                                    label='Office Address'
+                                                                    id='fatherOfficeAddress'
+                                                                    placeholder='Enter office address'
+                                                                    {...register('fatherOfficeAddress')}
+                                                                    error={errors.fatherOfficeAddress?.message}
+                                                                />
 
-                                                            <div className='flex flex-col gap-1.5 '>
-                                                                <Controller
-                                                                    name='fatherOfficePhone'
-                                                                    control={control}
-                                                                    render={({ field }) => (
-                                                                        <div>
-                                                                            <Label htmlFor='fatherOfficePhone'>
-                                                                                Father Office Phone No.
-                                                                            </Label>
-                                                                            <PhoneInput
-                                                                                country='in'
-                                                                                value={
-                                                                                    phoneValues.fatherOfficePhone ??
-                                                                                    (field.value != null ? String(field.value) : null)
-                                                                                }
-                                                                                onChange={(phone: any, countryData: any) =>
-                                                                                    handlePhoneChange(
-                                                                                        phone,
-                                                                                        countryData,
-                                                                                        'fatherOfficePhone'
-                                                                                    )
-                                                                                }
-                                                                                onBlur={() => trigger('fatherOfficePhone')}
-                                                                                inputProps={{
-                                                                                    id: 'fatherOfficePhone',
-                                                                                    name: 'fatherOfficePhone',
-                                                                                    maxLength: 25,
-                                                                                    required: false,
-                                                                                    style: {
-                                                                                        width: '87%',
-                                                                                        height: '36px',
-                                                                                        marginLeft: '40px',
-                                                                                        boxSizing: 'border-box',
-                                                                                        borderRadius: '4px',
-                                                                                        padding: '16.5px 14px',
-                                                                                        fontSize: '16px'
+                                                                <div className='flex flex-col gap-1.5 '>
+                                                                    <Controller
+                                                                        name='fatherOfficePhone'
+                                                                        control={control}
+                                                                        render={({ field }) => (
+                                                                            <div>
+                                                                                <Label htmlFor='fatherOfficePhone'>
+                                                                                    Father Office Phone No.
+                                                                                </Label>
+                                                                                <PhoneInput
+                                                                                    country='in'
+                                                                                    value={
+                                                                                        phoneValues.fatherOfficePhone ??
+                                                                                        (field.value != null ? String(field.value) : null)
                                                                                     }
-                                                                                }}
-                                                                                containerClass='w-full'
-                                                                                inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
-                                                                                enableSearch
-                                                                                disableCountryCode={false}
-                                                                                enableLongNumbers={true}
-                                                                                isValid={true}
-                                                                                preserveOrder={['country', 'nationalNumber']}
-                                                                            />
-                                                                            {phoneExpectedInfo.fatherOfficePhone?.expected && (
-                                                                                <span className='mt-1 text-muted-foreground text-xs'>
-                                                                                    {`Mobile number must be exactly ${phoneExpectedInfo.fatherOfficePhone.expected} digits for ${phoneExpectedInfo.fatherOfficePhone.name ??
-                                                                                        'selected country'
-                                                                                        }`}
-                                                                                </span>
-                                                                            )}
-                                                                        </div>
+                                                                                    onChange={(phone: any, countryData: any) =>
+                                                                                        handlePhoneChange(
+                                                                                            phone,
+                                                                                            countryData,
+                                                                                            'fatherOfficePhone'
+                                                                                        )
+                                                                                    }
+                                                                                    onBlur={() => trigger('fatherOfficePhone')}
+                                                                                    inputProps={{
+                                                                                        id: 'fatherOfficePhone',
+                                                                                        name: 'fatherOfficePhone',
+                                                                                        maxLength: 25,
+                                                                                        required: false,
+                                                                                        style: {
+                                                                                            width: '87%',
+                                                                                            height: '36px',
+                                                                                            marginLeft: '40px',
+                                                                                            boxSizing: 'border-box',
+                                                                                            borderRadius: '4px',
+                                                                                            padding: '16.5px 14px',
+                                                                                            fontSize: '16px'
+                                                                                        }
+                                                                                    }}
+                                                                                    containerClass='w-full'
+                                                                                    inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+                                                                                    enableSearch
+                                                                                    disableCountryCode={false}
+                                                                                    enableLongNumbers={true}
+                                                                                    isValid={true}
+                                                                                    preserveOrder={['country', 'nationalNumber']}
+                                                                                />
+                                                                                {phoneExpectedInfo.fatherOfficePhone?.expected && (
+                                                                                    <span className='mt-1 text-muted-foreground text-xs'>
+                                                                                        {`Mobile number must be exactly ${phoneExpectedInfo.fatherOfficePhone.expected} digits for ${phoneExpectedInfo.fatherOfficePhone.name ??
+                                                                                            'selected country'
+                                                                                            }`}
+                                                                                    </span>
+                                                                                )}
+                                                                            </div>
+                                                                        )}
+                                                                    />
+                                                                    {errors.fatherOfficePhone && (
+                                                                        <FormError>{errors.fatherOfficePhone.message}</FormError>
                                                                     )}
+                                                                </div>
+
+                                                                <InputText
+                                                                    label='Occupation'
+                                                                    id='fatherOccupation'
+                                                                    placeholder='Enter Occupation'
+                                                                    {...register('fatherOccupation')}
+                                                                    error={errors.fatherOccupation?.message}
                                                                 />
-                                                                {errors.fatherOfficePhone && (
-                                                                    <FormError>{errors.fatherOfficePhone.message}</FormError>
-                                                                )}
+
+                                                                <InputText
+                                                                    label='Designation'
+                                                                    id='fatherDesignation'
+                                                                    placeholder='Enter designation'
+                                                                    {...register('fatherDesignation')}
+                                                                    error={errors.fatherDesignation?.message}
+                                                                />
                                                             </div>
-
-                                                            <InputText
-                                                                label='Occupation'
-                                                                id='fatherOccupation'
-                                                                placeholder='Enter Occupation'
-                                                                {...register('fatherOccupation')}
-                                                                error={errors.fatherOccupation?.message}
-                                                            />
-
-                                                            <InputText
-                                                                label='Designation'
-                                                                id='fatherDesignation'
-                                                                placeholder='Enter designation'
-                                                                {...register('fatherDesignation')}
-                                                                error={errors.fatherDesignation?.message}
-                                                            />
                                                         </div>
-                                                    </div>
 
-                                                    {/* Other's Details */}
-                                                    <div className='col-span-full space-y-4 md:col-span-2 lg:col-span-3'>
-                                                        <h3 className='font-semibold text-gray-800 text-lg'>Other's Details</h3>
-                                                        <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
-                                                            <div className='flex flex-col gap-1.5'>
-                                                                <Label htmlFor='fatherReligionId'>Religion</Label>
-                                                                <Controller
-                                                                    name='fatherReligionId'
-                                                                    control={control}
-                                                                    render={({ field }) => (
-                                                                        <Select
-                                                                            key={field.value || 'empty'}
-                                                                            onValueChange={(value) => field.onChange(Number(value))}
-                                                                            value={field.value?.toString() || ''}>
-                                                                            <SelectTrigger>
-                                                                                <SelectValue placeholder='Select religion' />
-                                                                            </SelectTrigger>
-                                                                            <SelectContent>
-                                                                                {religionLoading ? (
-                                                                                    <SelectItem value='loading' disabled>
-                                                                                        Loading...
-                                                                                    </SelectItem>
-                                                                                ) : religionError ? (
-                                                                                    <SelectItem value='error' disabled>
-                                                                                        Error loading
-                                                                                    </SelectItem>
-                                                                                ) : (
-                                                                                    religion?.data?.map((item: any) => (
-                                                                                        <SelectItem
-                                                                                            key={item.ivrmmR_Id}
-                                                                                            value={item.ivrmmR_Id.toString()}>
-                                                                                            {item.ivrmmR_ReligionName}
+                                                        {/* Other's Details */}
+                                                        <div className='col-span-full space-y-4'>
+                                                            <h3 className='font-semibold text-gray-800 text-lg'>Other's Details</h3>
+                                                            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                                <div className='flex flex-col gap-1.5'>
+                                                                    <Label htmlFor='fatherReligionId'>Religion</Label>
+                                                                    <Controller
+                                                                        name='fatherReligionId'
+                                                                        control={control}
+                                                                        render={({ field }) => (
+                                                                            <Select
+                                                                                key={field.value || 'empty'}
+                                                                                onValueChange={(value) => field.onChange(Number(value))}
+                                                                                value={field.value?.toString() || ''}>
+                                                                                <SelectTrigger>
+                                                                                    <SelectValue placeholder='Select religion' />
+                                                                                </SelectTrigger>
+                                                                                <SelectContent>
+                                                                                    {religionLoading ? (
+                                                                                        <SelectItem value='loading' disabled>
+                                                                                            Loading...
                                                                                         </SelectItem>
-                                                                                    ))
-                                                                                )}
-                                                                            </SelectContent>
-                                                                        </Select>
-                                                                    )}
-                                                                />
-                                                                {errors.fatherReligionId && (
-                                                                    <FormError>{errors.fatherReligionId.message}</FormError>
-                                                                )}
-                                                            </div>
-
-                                                            <div className='flex flex-col gap-1.5'>
-                                                                <Label htmlFor='fatherCasteId'>Father Caste</Label>
-                                                                <Controller
-                                                                    name='fatherCasteId'
-                                                                    control={control}
-                                                                    render={({ field }) => (
-                                                                        <Select
-                                                                            key={`father_caste_${field.value || 'empty'}_${availableCastes?.length || 0}`}
-                                                                            onValueChange={(value) => field.onChange(Number(value))}
-                                                                            value={field.value?.toString() || ''}
-                                                                            disabled={!currentCategoryId}>
-                                                                            <SelectTrigger>
-                                                                                <SelectValue placeholder={!currentCategoryId ? 'Select category first' : (isCastesLoading && availableCastes.length === 0) ? 'Loading...' : 'Select caste'} />
-                                                                            </SelectTrigger>
-                                                                            <SelectContent>
-                                                                                {isCastesLoading && availableCastes.length === 0 ? (
-                                                                                    <SelectItem value='loading' disabled>
-                                                                                        Loading...
-                                                                                    </SelectItem>
-                                                                                ) : (availableCastes || []).length === 0 ? (
-                                                                                    <SelectItem value='none' disabled>
-                                                                                        No castes found
-                                                                                    </SelectItem>
-                                                                                ) : (
-                                                                                    availableCastes?.map((item: any) => (
-                                                                                        <SelectItem
-                                                                                            key={item.imC_Id}
-                                                                                            value={item.imC_Id.toString()}>
-                                                                                            {item.imC_CasteName}
+                                                                                    ) : religionError ? (
+                                                                                        <SelectItem value='error' disabled>
+                                                                                            Error loading
                                                                                         </SelectItem>
-                                                                                    ))
-                                                                                )}
-                                                                            </SelectContent>
-                                                                        </Select>
+                                                                                    ) : (
+                                                                                        religion?.data?.map((item: any) => (
+                                                                                            <SelectItem
+                                                                                                key={item.ivrmmR_Id}
+                                                                                                value={item.ivrmmR_Id.toString()}>
+                                                                                                {item.ivrmmR_ReligionName}
+                                                                                            </SelectItem>
+                                                                                        ))
+                                                                                    )}
+                                                                                </SelectContent>
+                                                                            </Select>
+                                                                        )}
+                                                                    />
+                                                                    {errors.fatherReligionId && (
+                                                                        <FormError>{errors.fatherReligionId.message}</FormError>
                                                                     )}
-                                                                />
-                                                                {errors.fatherCasteId && (
-                                                                    <FormError>{errors.fatherCasteId.message}</FormError>
-                                                                )}
-                                                            </div>
-                                                            <InputText
-                                                                label='Sub Caste '
-                                                                id='fatherSubCaste'
-                                                                placeholder='Enter caste'
-                                                                {...register('fatherSubCaste')}
-                                                                error={errors.fatherSubCaste?.message}
-                                                            />
+                                                                </div>
 
-                                                            <div className='flex flex-col gap-1.5'>
-                                                                <Controller
-                                                                    name='fatherAnnualIncome'
-                                                                    control={control}
-                                                                    render={({ field }) => (
-                                                                        <InputNumber
-                                                                            label='Father Annual Income'
-                                                                            id='fatherAnnualIncome'
-                                                                            value={field.value || 0}
-                                                                            onChange={(value) =>
-                                                                                field.onChange(Number.isNaN(value) ? 0 : value)
-                                                                            }
-                                                                            minValue={0}
-                                                                            maxDigits={15}
-                                                                        />
+                                                                <div className='flex flex-col gap-1.5'>
+                                                                    <Label htmlFor='fatherCasteId'>Father Caste</Label>
+                                                                    <Controller
+                                                                        name='fatherCasteId'
+                                                                        control={control}
+                                                                        render={({ field }) => (
+                                                                            <Select
+                                                                                key={`father_caste_${field.value || 'empty'}_${availableCastes?.length || 0}`}
+                                                                                onValueChange={(value) => field.onChange(Number(value))}
+                                                                                value={field.value?.toString() || ''}
+                                                                                disabled={!currentCategoryId}>
+                                                                                <SelectTrigger>
+                                                                                    <SelectValue placeholder={!currentCategoryId ? 'Select category first' : (isCastesLoading && availableCastes.length === 0) ? 'Loading...' : 'Select caste'} />
+                                                                                </SelectTrigger>
+                                                                                <SelectContent>
+                                                                                    {isCastesLoading && availableCastes.length === 0 ? (
+                                                                                        <SelectItem value='loading' disabled>
+                                                                                            Loading...
+                                                                                        </SelectItem>
+                                                                                    ) : (availableCastes || []).length === 0 ? (
+                                                                                        <SelectItem value='none' disabled>
+                                                                                            No castes found
+                                                                                        </SelectItem>
+                                                                                    ) : (
+                                                                                        availableCastes?.map((item: any) => (
+                                                                                            <SelectItem
+                                                                                                key={item.imC_Id}
+                                                                                                value={item.imC_Id.toString()}>
+                                                                                                {item.imC_CasteName}
+                                                                                            </SelectItem>
+                                                                                        ))
+                                                                                    )}
+                                                                                </SelectContent>
+                                                                            </Select>
+                                                                        )}
+                                                                    />
+                                                                    {errors.fatherCasteId && (
+                                                                        <FormError>{errors.fatherCasteId.message}</FormError>
                                                                     )}
+                                                                </div>
+                                                                <InputText
+                                                                    label='Sub Caste '
+                                                                    id='fatherSubCaste'
+                                                                    placeholder='Enter caste'
+                                                                    {...register('fatherSubCaste')}
+                                                                    error={errors.fatherSubCaste?.message}
                                                                 />
-                                                                {errors.fatherAnnualIncome && (
-                                                                    <FormError>{errors.fatherAnnualIncome.message}</FormError>
-                                                                )}
-                                                            </div>
 
-                                                            <InputText
-                                                                label='Caste Certificate No'
-                                                                id='fatherCasteCertificateNo'
-                                                                placeholder='Enter Caste Certificate No '
-                                                                {...register('fatherCasteCertificateNo')}
-                                                                error={errors.fatherCasteCertificateNo?.message}
-                                                            />
+                                                                <div className='flex flex-col gap-1.5'>
+                                                                    <Controller
+                                                                        name='fatherAnnualIncome'
+                                                                        control={control}
+                                                                        render={({ field }) => (
+                                                                            <InputNumber
+                                                                                label='Father Annual Income'
+                                                                                id='fatherAnnualIncome'
+                                                                                value={field.value || 0}
+                                                                                onChange={(value) =>
+                                                                                    field.onChange(Number.isNaN(value) ? 0 : value)
+                                                                                }
+                                                                                minValue={0}
+                                                                                maxDigits={15}
+                                                                            />
+                                                                        )}
+                                                                    />
+                                                                    {errors.fatherAnnualIncome && (
+                                                                        <FormError>{errors.fatherAnnualIncome.message}</FormError>
+                                                                    )}
+                                                                </div>
 
-                                                            <InputText
-                                                                label='Pan No'
-                                                                id='fatherPAN'
-                                                                placeholder='Enter PAN'
-                                                                {...register('fatherPAN')}
-                                                                error={errors.fatherPAN?.message}
-                                                            />
-                                                            <div className='flex items-center space-x-2'>
-                                                                <Checkbox
-                                                                    id='fatherSelfEmployedFlg'
-                                                                    checked={Boolean(watch('fatherSelfEmployedFlg'))}
-                                                                    onCheckedChange={(checked) => {
-                                                                        setValue('fatherSelfEmployedFlg', checked === true);
-                                                                    }}
+                                                                <InputText
+                                                                    label='Caste Certificate No'
+                                                                    id='fatherCasteCertificateNo'
+                                                                    placeholder='Enter Caste Certificate No '
+                                                                    {...register('fatherCasteCertificateNo')}
+                                                                    error={errors.fatherCasteCertificateNo?.message}
                                                                 />
-                                                                <Label htmlFor='fatherSelfEmployedFlg' className='cursor-pointer'>
-                                                                    Self Employed Flg
-                                                                </Label>
+
+                                                                <InputText
+                                                                    label='Pan No'
+                                                                    id='fatherPAN'
+                                                                    placeholder='Enter PAN'
+                                                                    {...register('fatherPAN')}
+                                                                    error={errors.fatherPAN?.message}
+                                                                />
+                                                                <div className='flex items-center space-x-2'>
+                                                                    <Checkbox
+                                                                        id='fatherSelfEmployedFlg'
+                                                                        checked={Boolean(watch('fatherSelfEmployedFlg'))}
+                                                                        onCheckedChange={(checked) => {
+                                                                            setValue('fatherSelfEmployedFlg', checked === true);
+                                                                        }}
+                                                                    />
+                                                                    <Label htmlFor='fatherSelfEmployedFlg' className='cursor-pointer'>
+                                                                        Self Employed Flg
+                                                                    </Label>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
 
-                                            {/* Mother Details           */}
-                                            <div className='space-y-4'>
-                                                <h3 className='font-semibold text-gray-800 text-lg'>Mother Details</h3>
-                                                <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
-                                                    <div className='col-span-full flex items-center gap-3'>
-                                                        <Controller
-                                                            name='motherAliveFlag'
-                                                            control={control}
-                                                            render={({ field }) => (
-                                                                <div className='flex items-center gap-2'>
-                                                                    <Checkbox
-                                                                        id='motherAliveFlag'
-                                                                        checked={field.value || false}
-                                                                        onCheckedChange={(checked) => {
-                                                                            field.onChange(checked);
-                                                                            if (!checked) {
-                                                                                setValue('motherName', undefined as any);
-                                                                                clearErrors('motherName');
-                                                                                setValue('motherNationality', undefined);
-                                                                            }
-                                                                        }}
-                                                                    />
-                                                                    <Label htmlFor='motherAliveFlag' className='font-medium text-gray-700'>
-                                                                        Mother is Alive
-                                                                    </Label>
-                                                                </div>
-                                                            )}
-                                                        />
-                                                    </div>
+                                                {/* Mother Details */}
+                                                <div className='space-y-4'>
+                                                    <h3 className='font-semibold text-gray-800 text-lg'>Mother Details</h3>
+                                                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                        <div className='col-span-full flex items-center gap-3'>
+                                                            <Controller
+                                                                name='motherAliveFlag'
+                                                                control={control}
+                                                                render={({ field }) => (
+                                                                    <div className='flex items-center gap-2'>
+                                                                        <Checkbox
+                                                                            id='motherAliveFlag'
+                                                                            checked={field.value || false}
+                                                                            onCheckedChange={(checked) => {
+                                                                                field.onChange(checked);
+                                                                                if (!checked) {
+                                                                                    setValue('motherName', undefined as any);
+                                                                                    clearErrors('motherName');
+                                                                                    setValue('motherNationality', undefined);
+                                                                                }
+                                                                            }}
+                                                                        />
+                                                                        <Label htmlFor='motherAliveFlag' className='font-medium text-gray-700'>
+                                                                            Mother is Alive
+                                                                        </Label>
+                                                                    </div>
+                                                                )}
+                                                            />
+                                                        </div>
 
-                                                    {motherAlive && (
-                                                        <div>
+                                                        {motherAlive && (
+                                                            <div>
+                                                                <InputText
+                                                                    label='Mother Name'
+                                                                    required
+                                                                    id='motherName'
+                                                                    placeholder='Enter mother name'
+                                                                    {...register('motherName', {
+                                                                        required: motherAlive ? 'Mother Name is required' : false
+                                                                    })}
+                                                                    error={errors.motherName?.message}
+                                                                />
+                                                            </div>
+                                                        )}
+
+                                                        {!motherAlive && (
                                                             <InputText
                                                                 label='Mother Name'
-                                                                required
                                                                 id='motherName'
                                                                 placeholder='Enter mother name'
                                                                 {...register('motherName', {
                                                                     required: motherAlive ? 'Mother Name is required' : false
                                                                 })}
                                                                 error={errors.motherName?.message}
+                                                                disabled
+                                                            />
+                                                        )}
+                                                        <InputText
+                                                            label='Surname'
+                                                            id='motherSurname'
+                                                            placeholder='Enter surname'
+                                                            {...register('motherSurname')}
+                                                            error={errors.motherSurname?.message}
+                                                        />
+
+                                                        <InputText
+                                                            label='Aadhaar No.'
+                                                            id='motherAadharNo'
+                                                            placeholder='Enter Aadhaar No'
+                                                            {...register('motherAadharNo')}
+                                                            error={errors.motherAadharNo?.message}
+                                                        />
+
+                                                        <div className='flex flex-col gap-1.5'>
+                                                            <Label htmlFor='motherMaritalStatus'>Marital Status</Label>
+                                                            <Controller
+                                                                name='motherMaritalStatus'
+                                                                control={control}
+                                                                render={({ field, fieldState: { error } }) => (
+                                                                    <div className='flex flex-col space-y-2'>
+                                                                        <Select
+                                                                            value={field.value?.toString() || ''}
+                                                                            onValueChange={(value) => field.onChange(value)}>
+                                                                            <SelectTrigger className={cn('w-full', error && 'border-red-500')}>
+                                                                                <SelectValue placeholder='Select' />
+                                                                            </SelectTrigger>
+
+                                                                            <SelectContent>
+                                                                                <SelectItem value='Married'>Married</SelectItem>
+                                                                                <SelectItem value='Single father'>Single father</SelectItem>
+                                                                                <SelectItem value='Single mother'>Single mother</SelectItem>
+                                                                                <SelectItem value='Divorced father'>Divorced father</SelectItem>
+                                                                                <SelectItem value='Divorced mother'>Divorced mother</SelectItem>
+                                                                                <SelectItem value='Widow'>Widow</SelectItem>
+                                                                                <SelectItem value='Widower'>Widower</SelectItem>
+                                                                            </SelectContent>
+                                                                        </Select>
+                                                                    </div>
+                                                                )}
+                                                            />
+
+                                                            {errors.motherMaritalStatus && (
+                                                                <FormError>{errors.motherMaritalStatus.message}</FormError>
+                                                            )}
+                                                        </div>
+
+                                                        <div className='flex flex-col gap-1.5 '>
+                                                            <Controller
+                                                                name='motherMobileNumbers'
+                                                                control={control}
+                                                                render={({ field }) => (
+                                                                    <div>
+                                                                        <Label htmlFor='motherMobileNumbers'>
+                                                                            Mobile No.
+                                                                        </Label>
+                                                                        <PhoneInput
+                                                                            country='in'
+                                                                            value={
+                                                                                phoneValues.motherMobileNumbers ??
+                                                                                (field.value != null ? String(field.value) : null)
+                                                                            }
+                                                                            onChange={(phone: any, countryData: any) =>
+                                                                                handlePhoneChange(phone, countryData, 'motherMobileNumbers')
+                                                                            }
+                                                                            onBlur={() => trigger('motherMobileNumbers')}
+                                                                            inputProps={{
+                                                                                id: 'motherMobileNumbers',
+                                                                                name: 'motherMobileNumbers',
+                                                                                maxLength: 25,
+                                                                                required: false,
+                                                                                style: {
+                                                                                    width: '87%',
+                                                                                    height: '36px',
+                                                                                    marginLeft: '40px',
+                                                                                    boxSizing: 'border-box',
+                                                                                    borderRadius: '4px',
+                                                                                    padding: '16.5px 14px',
+                                                                                    fontSize: '16px'
+                                                                                }
+                                                                            }}
+                                                                            containerClass='w-full'
+                                                                            inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+                                                                            enableSearch
+                                                                            disableCountryCode={false}
+                                                                            enableLongNumbers={true}
+                                                                            isValid={true}
+                                                                            preserveOrder={['country', 'nationalNumber']}
+                                                                        />
+                                                                        {phoneExpectedInfo.motherMobileNumbers?.expected && (
+                                                                            <span className='mt-1 text-muted-foreground text-xs'>
+                                                                                {`Mobile number must be exactly ${phoneExpectedInfo.motherMobileNumbers.expected} digits for ${phoneExpectedInfo.motherMobileNumbers.name ??
+                                                                                    'selected country'
+                                                                                    }`}
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                )}
+                                                            />
+                                                            {errors.motherMobileNumbers && (
+                                                                <FormError>{errors.motherMobileNumbers.message}</FormError>
+                                                            )}
+                                                        </div>
+
+                                                        <div className='flex flex-col gap-1.5'>
+                                                            <Label>Email-ID</Label>
+                                                            <InputText
+                                                                id='motherEmailIds'
+                                                                placeholder='Enter Email-ID'
+                                                                {...register('motherEmailIds')}
+                                                                error={errors.motherEmailIds?.message}
                                                             />
                                                         </div>
-                                                    )}
 
-                                                    {!motherAlive && (
                                                         <InputText
-                                                            label='Mother Name'
-                                                            id='motherName'
-                                                            placeholder='Enter mother name'
-                                                            {...register('motherName', {
-                                                                required: motherAlive ? 'Mother Name is required' : false
-                                                            })}
-                                                            error={errors.motherName?.message}
-                                                            disabled
+                                                            label='Home Phone No'
+                                                            id='motherHomePhone'
+                                                            placeholder='Enter Home Phone No'
+                                                            {...register('motherHomePhone')}
+                                                            error={errors.motherHomePhone?.message}
                                                         />
-                                                    )}
-                                                    <InputText
-                                                        label='Surname'
-                                                        id='motherSurname'
-                                                        placeholder='Enter surname'
-                                                        {...register('motherSurname')}
-                                                        error={errors.motherSurname?.message}
-                                                    />
-
-                                                    <InputText
-                                                        label='Aadhaar No.'
-                                                        id='motherAadharNo'
-                                                        placeholder='Enter Aadhaar No'
-                                                        {...register('motherAadharNo')}
-                                                        error={errors.motherAadharNo?.message}
-                                                    />
-
-                                                    <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='motherMaritalStatus'>Marital Status</Label>
-                                                        <Controller
-                                                            name='motherMaritalStatus'
-                                                            control={control}
-                                                            render={({ field, fieldState: { error } }) => (
-                                                                <div className='flex flex-col space-y-2'>
+                                                        <div className='flex flex-col gap-1.5'>
+                                                            <Label htmlFor='motherNationality'>
+                                                                Country {motherAlive && <span className='ml-1 text-red-500'>*</span>}
+                                                            </Label>
+                                                            <Controller
+                                                                name='motherNationality'
+                                                                control={control}
+                                                                rules={{
+                                                                    required: motherAlive ? 'Country is required' : false
+                                                                }}
+                                                                render={({ field }) => (
                                                                     <Select
+                                                                        key={field.value || 'empty'}
+                                                                        onValueChange={(value) => field.onChange(value)}
                                                                         value={field.value?.toString() || ''}
-                                                                        onValueChange={(value) => field.onChange(value)}>
-                                                                        <SelectTrigger className={cn('w-full', error && 'border-red-500')}>
-                                                                            <SelectValue placeholder='Select' />
+                                                                        disabled={!motherAlive}>
+                                                                        <SelectTrigger>
+                                                                            <SelectValue placeholder='Select country' />
                                                                         </SelectTrigger>
-
                                                                         <SelectContent>
-                                                                            <SelectItem value='Married'>Married</SelectItem>
-                                                                            <SelectItem value='Single father'>Single father</SelectItem>
-                                                                            <SelectItem value='Single mother'>Single mother</SelectItem>
-                                                                            <SelectItem value='Divorced father'>Divorced father</SelectItem>
-                                                                            <SelectItem value='Divorced mother'>Divorced mother</SelectItem>
-                                                                            <SelectItem value='Widow'>Widow</SelectItem>
-                                                                            <SelectItem value='Widower'>Widower</SelectItem>
+                                                                            {countryLoading ? (
+                                                                                <SelectItem value='loading' disabled>
+                                                                                    Loading...
+                                                                                </SelectItem>
+                                                                            ) : countryError ? (
+                                                                                <SelectItem value='error' disabled>
+                                                                                    Error loading
+                                                                                </SelectItem>
+                                                                            ) : (
+                                                                                country?.data?.map((item: any) => (
+                                                                                    <SelectItem
+                                                                                        key={item.ivrmmC_Id}
+                                                                                        value={item.ivrmmC_Id.toString()}>
+                                                                                        {item.ivrmmC_CountryName}
+                                                                                    </SelectItem>
+                                                                                ))
+                                                                            )}
                                                                         </SelectContent>
                                                                     </Select>
-                                                                </div>
-                                                            )}
-                                                        />
-
-                                                        {errors.motherMaritalStatus && (
-                                                            <FormError>{errors.motherMaritalStatus.message}</FormError>
-                                                        )}
-                                                    </div>
-
-                                                    <div className='flex flex-col gap-1.5 '>
-                                                        <Controller
-                                                            name='motherMobileNumbers'
-                                                            control={control}
-                                                            render={({ field }) => (
-                                                                <div>
-                                                                    <Label htmlFor='motherMobileNumbers'>
-                                                                        Mobile No. <span className='ml-1 text-red-500'>*</span>
-                                                                    </Label>
-                                                                    <PhoneInput
-                                                                        country='in'
-                                                                        value={
-                                                                            phoneValues.motherMobileNumbers ??
-                                                                            (field.value != null ? String(field.value) : null)
-                                                                        }
-                                                                        onChange={(phone: any, countryData: any) =>
-                                                                            handlePhoneChange(phone, countryData, 'motherMobileNumbers')
-                                                                        }
-                                                                        onBlur={() => trigger('motherMobileNumbers')}
-                                                                        inputProps={{
-                                                                            id: 'motherMobileNumbers',
-                                                                            name: 'motherMobileNumbers',
-                                                                            maxLength: 25,
-                                                                            required: false,
-                                                                            style: {
-                                                                                width: '87%',
-                                                                                height: '36px',
-                                                                                marginLeft: '40px',
-                                                                                boxSizing: 'border-box',
-                                                                                borderRadius: '4px',
-                                                                                padding: '16.5px 14px',
-                                                                                fontSize: '16px'
-                                                                            }
-                                                                        }}
-                                                                        containerClass='w-full'
-                                                                        inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
-                                                                        enableSearch
-                                                                        disableCountryCode={false}
-                                                                        enableLongNumbers={true}
-                                                                        isValid={true}
-                                                                        preserveOrder={['country', 'nationalNumber']}
-                                                                    />
-                                                                    {phoneExpectedInfo.motherMobileNumbers?.expected && (
-                                                                        <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.motherMobileNumbers.expected} digits for ${phoneExpectedInfo.motherMobileNumbers.name ??
-                                                                                'selected country'
-                                                                                }`}
-                                                                        </span>
-                                                                    )}
-                                                                </div>
-                                                            )}
-                                                        />
-                                                        {errors.motherMobileNumbers && (
-                                                            <FormError>{errors.motherMobileNumbers.message}</FormError>
-                                                        )}
-                                                    </div>
-
-                                                    <div className='flex flex-col gap-1.5'>
-                                                        <Label>Email-ID <span className='ml-1 text-red-500'>*</span></Label>
-                                                        <InputText
-                                                            id='motherEmailIds'
-                                                            placeholder='Enter Email-ID'
-                                                            {...register('motherEmailIds')}
-                                                            error={errors.motherEmailIds?.message}
-                                                        />
-                                                    </div>
-
-                                                    <InputText
-                                                        label='Home Phone No'
-                                                        id='motherHomePhone'
-                                                        placeholder='Enter Home Phone No'
-                                                        {...register('motherHomePhone')}
-                                                        error={errors.motherHomePhone?.message}
-                                                    />
-                                                    <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='motherNationality'>
-                                                            Country {motherAlive && <span className='ml-1 text-red-500'>*</span>}
-                                                        </Label>
-                                                        <Controller
-                                                            name='motherNationality'
-                                                            control={control}
-                                                            rules={{
-                                                                required: motherAlive ? 'Country is required' : false
-                                                            }}
-                                                            render={({ field }) => (
-                                                                <Select
-                                                                    key={field.value || 'empty'}
-                                                                    onValueChange={(value) => field.onChange(value)}
-                                                                    value={field.value?.toString() || ''}
-                                                                    disabled={!motherAlive}>
-                                                                    <SelectTrigger>
-                                                                        <SelectValue placeholder='Select country' />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>
-                                                                        {countryLoading ? (
-                                                                            <SelectItem value='loading' disabled>
-                                                                                Loading...
-                                                                            </SelectItem>
-                                                                        ) : countryError ? (
-                                                                            <SelectItem value='error' disabled>
-                                                                                Error loading
-                                                                            </SelectItem>
-                                                                        ) : (
-                                                                            country?.data?.map((item: any) => (
-                                                                                <SelectItem
-                                                                                    key={item.ivrmmC_Id}
-                                                                                    value={item.ivrmmC_Id.toString()}>
-                                                                                    {item.ivrmmC_CountryName}
-                                                                                </SelectItem>
-                                                                            ))
-                                                                        )}
-                                                                    </SelectContent>
-                                                                </Select>
-                                                            )}
-                                                        />
-                                                        {(errors.motherNationality ||
-                                                            (motherAlive && showStep3Errors && !watch('motherNationality'))) && (
-                                                                <FormError>
-                                                                    {errors.motherNationality?.message ?? 'Country is required'}
-                                                                </FormError>
-                                                            )}
-                                                    </div>
-
-                                                    {/* Education Details */}
-                                                    <div className='col-span-full space-y-4 md:col-span-2 lg:col-span-3'>
-                                                        <h3 className='font-semibold text-gray-800 text-lg'>Education Details</h3>
-                                                        <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
-                                                            <InputText
-                                                                label='Qualification'
-                                                                id='motherQualification'
-                                                                placeholder='Enter qualification'
-                                                                {...register('motherQualification')}
-                                                                error={errors.motherQualification?.message}
+                                                                )}
                                                             />
-
-                                                            <InputText
-                                                                label='Passing Year'
-                                                                id='motherPassingYear'
-                                                                placeholder='Enter Passing Year'
-                                                                {...register('motherPassingYear')}
-                                                                error={errors.motherPassingYear?.message}
-                                                            />
+                                                            {(errors.motherNationality ||
+                                                                (motherAlive && showStep3Errors && !watch('motherNationality'))) && (
+                                                                    <FormError>
+                                                                        {errors.motherNationality?.message ?? 'Country is required'}
+                                                                    </FormError>
+                                                                )}
                                                         </div>
-                                                    </div>
 
-                                                    {/* Mother Present Address Details */}
-                                                    <div className='col-span-full space-y-4 md:col-span-2 lg:col-span-3'>
-                                                        <h3 className='font-semibold text-gray-800 text-lg'>
-                                                            Mother Present Address Details
-                                                        </h3>
+                                                        {/* Education Details */}
+                                                        <div className='col-span-full space-y-4'>
+                                                            <h3 className='font-semibold text-gray-800 text-lg'>Education Details</h3>
+                                                            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                                <InputText
+                                                                    label='Qualification'
+                                                                    id='motherQualification'
+                                                                    placeholder='Enter qualification'
+                                                                    {...register('motherQualification')}
+                                                                    error={errors.motherQualification?.message}
+                                                                />
 
-                                                        <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
-                                                            {/* Address */}
-                                                            <InputText
-                                                                label='Address'
-                                                                id='motherPresentAddress.address'
-                                                                placeholder='Enter Address'
-                                                                {...register('motherPresentAddress.address')}
-                                                                error={errors.motherPresentAddress?.address?.message}
-                                                            />
-                                                            {/* <div className='flex flex-col gap-1.5'>
+                                                                <InputText
+                                                                    label='Passing Year'
+                                                                    id='motherPassingYear'
+                                                                    placeholder='Enter Passing Year'
+                                                                    {...register('motherPassingYear')}
+                                                                    error={errors.motherPassingYear?.message}
+                                                                />
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Mother Present Address Details */}
+                                                        <div className='col-span-full space-y-4'>
+                                                            <h3 className='font-semibold text-gray-800 text-lg'>
+                                                                Mother Present Address Details
+                                                            </h3>
+
+                                                            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                                {/* Address */}
+                                                                <InputText
+                                                                    label='Address'
+                                                                    id='motherPresentAddress.address'
+                                                                    placeholder='Enter Address'
+                                                                    {...register('motherPresentAddress.address')}
+                                                                    error={errors.motherPresentAddress?.address?.message}
+                                                                />
+                                                                {/* <div className='flex flex-col gap-1.5'>
                                                                 <Label htmlFor='motherPresentAddress.country'>
                                                                     Country <span className='ml-1 text-red-500'>*</span>
                                                                 </Label>
@@ -7362,164 +7011,164 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                 )}
                                                             </div> */}
 
-                                                            {/* State */}
-                                                            <div className='flex flex-col gap-1.5'>
-                                                                <Label htmlFor='motherPresentAddress.state'>State</Label>
+                                                                {/* State */}
+                                                                <div className='flex flex-col gap-1.5'>
+                                                                    <Label htmlFor='motherPresentAddress.state'>State</Label>
 
-                                                                <Controller
-                                                                    name='motherPresentAddress.state'
-                                                                    control={control}
-                                                                    render={({ field }) => (
-                                                                        <Select
-                                                                            key={field.value || 'empty'}
-                                                                            onValueChange={(value) => field.onChange(Number(value))}
-                                                                            value={field.value?.toString() || ''}>
-                                                                            <SelectTrigger>
-                                                                                <SelectValue placeholder='Select state' />
-                                                                            </SelectTrigger>
+                                                                    <Controller
+                                                                        name='motherPresentAddress.state'
+                                                                        control={control}
+                                                                        render={({ field }) => (
+                                                                            <Select
+                                                                                key={field.value || 'empty'}
+                                                                                onValueChange={(value) => field.onChange(Number(value))}
+                                                                                value={field.value?.toString() || ''}>
+                                                                                <SelectTrigger>
+                                                                                    <SelectValue placeholder='Select state' />
+                                                                                </SelectTrigger>
 
-                                                                            <SelectContent>
-                                                                                {motherPresentStateLoading ? (
-                                                                                    <SelectItem value='loading' disabled>
-                                                                                        Loading...
-                                                                                    </SelectItem>
-                                                                                ) : motherPresentStateError ? (
-                                                                                    <SelectItem value='error' disabled>
-                                                                                        Error loading
-                                                                                    </SelectItem>
-                                                                                ) : (
-                                                                                    motherPresentState?.data?.map((item: any) => (
-                                                                                        <SelectItem
-                                                                                            key={item.ivrmmS_Id}
-                                                                                            value={item.ivrmmS_Id.toString()}>
-                                                                                            {item.ivrmmS_Name}
+                                                                                <SelectContent>
+                                                                                    {motherPresentStateLoading ? (
+                                                                                        <SelectItem value='loading' disabled>
+                                                                                            Loading...
                                                                                         </SelectItem>
-                                                                                    ))
-                                                                                )}
-                                                                            </SelectContent>
-                                                                        </Select>
+                                                                                    ) : motherPresentStateError ? (
+                                                                                        <SelectItem value='error' disabled>
+                                                                                            Error loading
+                                                                                        </SelectItem>
+                                                                                    ) : (
+                                                                                        motherPresentState?.data?.map((item: any) => (
+                                                                                            <SelectItem
+                                                                                                key={item.ivrmmS_Id}
+                                                                                                value={item.ivrmmS_Id.toString()}>
+                                                                                                {item.ivrmmS_Name}
+                                                                                            </SelectItem>
+                                                                                        ))
+                                                                                    )}
+                                                                                </SelectContent>
+                                                                            </Select>
+                                                                        )}
+                                                                    />
+
+                                                                    {errors.motherPresentAddress?.state && (
+                                                                        <FormError>{errors.motherPresentAddress.state.message}</FormError>
                                                                     )}
+                                                                </div>
+
+                                                                {/* City */}
+                                                                <InputText
+                                                                    label='City'
+                                                                    id='motherPresentAddress.city'
+                                                                    placeholder='Enter city'
+                                                                    {...register('motherPresentAddress.city')}
+                                                                    error={errors.motherPresentAddress?.city?.message}
                                                                 />
 
-                                                                {errors.motherPresentAddress?.state && (
-                                                                    <FormError>{errors.motherPresentAddress.state.message}</FormError>
-                                                                )}
-                                                            </div>
-
-                                                            {/* City */}
-                                                            <InputText
-                                                                label='City'
-                                                                id='motherPresentAddress.city'
-                                                                placeholder='Enter city'
-                                                                {...register('motherPresentAddress.city')}
-                                                                error={errors.motherPresentAddress?.city?.message}
-                                                            />
-
-                                                            {/* Pincode */}
-                                                            <div className='flex flex-col gap-1.5'>
-                                                                <Controller
-                                                                    name='motherPresentAddress.pincode'
-                                                                    control={control}
-                                                                    rules={
-                                                                        motherZipLength
-                                                                            ? {
-                                                                                minLength: {
-                                                                                    value: motherZipLength,
-                                                                                    message: `Pin code must be ${motherZipLength} digits`
-                                                                                },
-                                                                                maxLength: {
-                                                                                    value: motherZipLength,
-                                                                                    message: `Pin code must be ${motherZipLength} digits`
-                                                                                }
-                                                                            }
-                                                                            : undefined
-                                                                    }
-                                                                    render={({ field }) => (
-                                                                        <>
-                                                                            <MobileNumberInput
-                                                                                label='Pin Code'
-                                                                                id='motherPresentAddress.pincode'
-                                                                                value={field.value}
-                                                                                onChange={(valueOrEvent: any) => {
-                                                                                    const raw = valueOrEvent?.target?.value ?? valueOrEvent;
-                                                                                    const str =
-                                                                                        raw == null ? '' : String(raw).replace(/\D/g, '');
-                                                                                    const truncated = motherZipLength
-                                                                                        ? str.slice(0, motherZipLength)
-                                                                                        : str;
-                                                                                    field.onChange(truncated);
-
-                                                                                    if (
-                                                                                        motherZipLength &&
-                                                                                        truncated !== '' &&
-                                                                                        truncated.length !== motherZipLength
-                                                                                    ) {
-                                                                                        setError('motherPresentAddress.pincode', {
-                                                                                            type: 'manual',
-                                                                                            message: `Pin code must be ${motherZipLength} digits`
-                                                                                        });
-                                                                                    } else {
-                                                                                        clearErrors('motherPresentAddress.pincode');
+                                                                {/* Pincode */}
+                                                                <div className='flex flex-col gap-1.5'>
+                                                                    <Controller
+                                                                        name='motherPresentAddress.pincode'
+                                                                        control={control}
+                                                                        rules={
+                                                                            motherZipLength
+                                                                                ? {
+                                                                                    minLength: {
+                                                                                        value: motherZipLength,
+                                                                                        message: `Pin code must be ${motherZipLength} digits`
+                                                                                    },
+                                                                                    maxLength: {
+                                                                                        value: motherZipLength,
+                                                                                        message: `Pin code must be ${motherZipLength} digits`
                                                                                     }
+                                                                                }
+                                                                                : undefined
+                                                                        }
+                                                                        render={({ field }) => (
+                                                                            <>
+                                                                                <MobileNumberInput
+                                                                                    label='Pin Code'
+                                                                                    id='motherPresentAddress.pincode'
+                                                                                    value={field.value}
+                                                                                    onChange={(valueOrEvent: any) => {
+                                                                                        const raw = valueOrEvent?.target?.value ?? valueOrEvent;
+                                                                                        const str =
+                                                                                            raw == null ? '' : String(raw).replace(/\D/g, '');
+                                                                                        const truncated = motherZipLength
+                                                                                            ? str.slice(0, motherZipLength)
+                                                                                            : str;
+                                                                                        field.onChange(truncated);
 
-                                                                                    trigger('motherPresentAddress.pincode');
-                                                                                }}
-                                                                                minLength={motherZipLength}
-                                                                                maxLength={motherZipLength}
-                                                                                type='number'
-                                                                                showSpinner={false}
-                                                                            />
+                                                                                        if (
+                                                                                            motherZipLength &&
+                                                                                            truncated !== '' &&
+                                                                                            truncated.length !== motherZipLength
+                                                                                        ) {
+                                                                                            setError('motherPresentAddress.pincode', {
+                                                                                                type: 'manual',
+                                                                                                message: `Pin code must be ${motherZipLength} digits`
+                                                                                            });
+                                                                                        } else {
+                                                                                            clearErrors('motherPresentAddress.pincode');
+                                                                                        }
 
-                                                                            {motherCountryObj && motherZipLength && (
-                                                                                <span className='mt-1 text-muted-foreground text-xs'>
-                                                                                    {`Pin code must be ${motherZipLength} digits for ${motherCountryObj.ivrmmC_CountryName}`}
-                                                                                </span>
-                                                                            )}
-                                                                        </>
+                                                                                        trigger('motherPresentAddress.pincode');
+                                                                                    }}
+                                                                                    minLength={motherZipLength}
+                                                                                    maxLength={motherZipLength}
+                                                                                    type='number'
+                                                                                    showSpinner={false}
+                                                                                />
+
+                                                                                {motherCountryObj && motherZipLength && (
+                                                                                    <span className='mt-1 text-muted-foreground text-xs'>
+                                                                                        {`Pin code must be ${motherZipLength} digits for ${motherCountryObj.ivrmmC_CountryName}`}
+                                                                                    </span>
+                                                                                )}
+                                                                            </>
+                                                                        )}
+                                                                    />
+
+                                                                    {errors.motherPresentAddress?.pincode && (
+                                                                        <FormError>{errors.motherPresentAddress.pincode.message}</FormError>
                                                                     )}
+                                                                </div>
+
+                                                                {/* PO */}
+                                                                <InputText
+                                                                    label='PO'
+                                                                    id='motherPresentAddress.po'
+                                                                    placeholder='Enter PO'
+                                                                    {...register('motherPresentAddress.po')}
+                                                                    error={errors.motherPresentAddress?.po?.message}
                                                                 />
 
-                                                                {errors.motherPresentAddress?.pincode && (
-                                                                    <FormError>{errors.motherPresentAddress.pincode.message}</FormError>
-                                                                )}
+                                                                {/* PS */}
+                                                                <InputText
+                                                                    label='PS'
+                                                                    id='motherPresentAddress.ps'
+                                                                    placeholder='Enter PS'
+                                                                    {...register('motherPresentAddress.ps')}
+                                                                    error={errors.motherPresentAddress?.ps?.message}
+                                                                />
                                                             </div>
-
-                                                            {/* PO */}
-                                                            <InputText
-                                                                label='PO'
-                                                                id='motherPresentAddress.po'
-                                                                placeholder='Enter PO'
-                                                                {...register('motherPresentAddress.po')}
-                                                                error={errors.motherPresentAddress?.po?.message}
-                                                            />
-
-                                                            {/* PS */}
-                                                            <InputText
-                                                                label='PS'
-                                                                id='motherPresentAddress.ps'
-                                                                placeholder='Enter PS'
-                                                                {...register('motherPresentAddress.ps')}
-                                                                error={errors.motherPresentAddress?.ps?.message}
-                                                            />
                                                         </div>
-                                                    </div>
 
-                                                    {/* Mother Permanent Address Details */}
-                                                    <div className='col-span-full space-y-4 md:col-span-2 lg:col-span-3'>
-                                                        <h3 className='font-semibold text-gray-800 text-lg'>
-                                                            Mother Permanent Address Details
-                                                        </h3>
+                                                        {/* Mother Permanent Address Details */}
+                                                        <div className='col-span-full space-y-4'>
+                                                            <h3 className='font-semibold text-gray-800 text-lg'>
+                                                                Mother Permanent Address Details
+                                                            </h3>
 
-                                                        <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
-                                                            {/* Permanent Address */}
-                                                            <InputText
-                                                                label='Permanent Address'
-                                                                id='motherPermanentAddress.address'
-                                                                placeholder='Enter Permanent Address'
-                                                                {...register('motherPermanentAddress.address')}
-                                                                error={errors.motherPermanentAddress?.address?.message}
-                                                            />
-                                                            {/* <div className='flex flex-col gap-1.5'>
+                                                            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                                {/* Permanent Address */}
+                                                                <InputText
+                                                                    label='Permanent Address'
+                                                                    id='motherPermanentAddress.address'
+                                                                    placeholder='Enter Permanent Address'
+                                                                    {...register('motherPermanentAddress.address')}
+                                                                    error={errors.motherPermanentAddress?.address?.message}
+                                                                />
+                                                                {/* <div className='flex flex-col gap-1.5'>
                                                                 <Label htmlFor='motherPermanentAddress.country'>
                                                                     Country <span className='ml-1 text-red-500'>*</span>
                                                                 </Label>
@@ -7563,575 +7212,37 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                 )}
                                                             </div> */}
 
-                                                            {/* Permanent State */}
-                                                            <div className='flex flex-col gap-1.5'>
-                                                                <Label htmlFor='motherPermanentAddress.state'>Permanent State</Label>
-
-                                                                <Controller
-                                                                    name='motherPermanentAddress.state'
-                                                                    control={control}
-                                                                    render={({ field }) => (
-                                                                        <Select
-                                                                            key={field.value || 'empty'}
-                                                                            onValueChange={(value) => field.onChange(Number(value))}
-                                                                            value={field.value?.toString() || ''}>
-                                                                            <SelectTrigger>
-                                                                                <SelectValue placeholder='Select state' />
-                                                                            </SelectTrigger>
-
-                                                                            <SelectContent>
-                                                                                {motherPresentStateLoading ? (
-                                                                                    <SelectItem value='loading' disabled>
-                                                                                        Loading...
-                                                                                    </SelectItem>
-                                                                                ) : motherPresentStateError ? (
-                                                                                    <SelectItem value='error' disabled>
-                                                                                        Error loading
-                                                                                    </SelectItem>
-                                                                                ) : (
-                                                                                    motherPresentState?.data?.map((item: any) => (
-                                                                                        <SelectItem
-                                                                                            key={item.ivrmmS_Id}
-                                                                                            value={item.ivrmmS_Id.toString()}>
-                                                                                            {item.ivrmmS_Name}
-                                                                                        </SelectItem>
-                                                                                    ))
-                                                                                )}
-                                                                            </SelectContent>
-                                                                        </Select>
-                                                                    )}
-                                                                />
-
-                                                                {errors.motherPermanentAddress?.state && (
-                                                                    <FormError>{errors.motherPermanentAddress.state.message}</FormError>
-                                                                )}
-                                                            </div>
-
-                                                            {/* Permanent City */}
-                                                            <InputText
-                                                                label='Permanent City'
-                                                                id='motherPermanentAddress.city'
-                                                                placeholder='Enter city'
-                                                                {...register('motherPermanentAddress.city')}
-                                                                error={errors.motherPermanentAddress?.city?.message}
-                                                            />
-
-                                                            {/* Permanent Pincode */}
-                                                            <div className='flex flex-col gap-1.5'>
-                                                                <Controller
-                                                                    name='motherPermanentAddress.pincode'
-                                                                    control={control}
-                                                                    rules={
-                                                                        motherZipLength
-                                                                            ? {
-                                                                                minLength: {
-                                                                                    value: motherZipLength,
-                                                                                    message: `Pin code must be ${motherZipLength} digits`
-                                                                                },
-                                                                                maxLength: {
-                                                                                    value: motherZipLength,
-                                                                                    message: `Pin code must be ${motherZipLength} digits`
-                                                                                }
-                                                                            }
-                                                                            : undefined
-                                                                    }
-                                                                    render={({ field }) => (
-                                                                        <>
-                                                                            <MobileNumberInput
-                                                                                label='Permanent Pin Code'
-                                                                                id='motherPermanentAddress.pincode'
-                                                                                placeholder='Enter Pincode'
-                                                                                value={field.value}
-                                                                                onChange={(valueOrEvent: any) => {
-                                                                                    const raw = valueOrEvent?.target?.value ?? valueOrEvent;
-                                                                                    const str =
-                                                                                        raw == null ? '' : String(raw).replace(/\D/g, '');
-                                                                                    const truncated = motherZipLength
-                                                                                        ? str.slice(0, motherZipLength)
-                                                                                        : str;
-
-                                                                                    field.onChange(truncated);
-
-                                                                                    if (
-                                                                                        motherZipLength &&
-                                                                                        truncated !== '' &&
-                                                                                        truncated.length !== motherZipLength
-                                                                                    ) {
-                                                                                        setError('motherPermanentAddress.pincode', {
-                                                                                            type: 'manual',
-                                                                                            message: `Pin code must be ${motherZipLength} digits`
-                                                                                        });
-                                                                                    } else {
-                                                                                        clearErrors('motherPermanentAddress.pincode');
-                                                                                    }
-
-                                                                                    trigger('motherPermanentAddress.pincode');
-                                                                                }}
-                                                                                minLength={motherZipLength}
-                                                                                maxLength={motherZipLength}
-                                                                                type='number'
-                                                                                showSpinner={false}
-                                                                            />
-
-                                                                            {motherCountryObj && motherZipLength && (
-                                                                                <span className='mt-1 text-muted-foreground text-xs'>
-                                                                                    {`Pin code must be ${motherZipLength} digits for ${motherCountryObj.ivrmmC_CountryName}`}
-                                                                                </span>
-                                                                            )}
-                                                                        </>
-                                                                    )}
-                                                                />
-
-                                                                {errors.motherPermanentAddress?.pincode && (
-                                                                    <FormError>{errors.motherPermanentAddress.pincode.message}</FormError>
-                                                                )}
-                                                            </div>
-
-                                                            {/* Permanent PO */}
-                                                            <InputText
-                                                                label='Permanent PO'
-                                                                id='motherPermanentAddress.po'
-                                                                placeholder='Enter Permanent PO'
-                                                                {...register('motherPermanentAddress.po')}
-                                                                error={errors.motherPermanentAddress?.po?.message}
-                                                            />
-
-                                                            {/* Permanent PS */}
-                                                            <InputText
-                                                                label='Permanent PS'
-                                                                id='motherPermanentAddress.ps'
-                                                                placeholder='Enter Permanent PS'
-                                                                {...register('motherPermanentAddress.ps')}
-                                                                error={errors.motherPermanentAddress?.ps?.message}
-                                                            />
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Office Details */}
-                                                    <div className='col-span-full space-y-4 md:col-span-2 lg:col-span-3'>
-                                                        <h3 className='font-semibold text-gray-800 text-lg'>Office Details</h3>
-                                                        <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
-                                                            <InputText
-                                                                label='Office Address'
-                                                                id='motherOfficeAddress'
-                                                                placeholder='Enter office address'
-                                                                {...register('motherOfficeAddress')}
-                                                                error={errors.motherOfficeAddress?.message}
-                                                            />
-
-                                                            <div className='flex flex-col gap-1.5 '>
-                                                                <Controller
-                                                                    name='motherOfficePhone'
-                                                                    control={control}
-                                                                    render={({ field }) => (
-                                                                        <div>
-                                                                            <Label htmlFor='motherOfficePhone'>Mother Office PhNo.</Label>
-                                                                            <PhoneInput
-                                                                                country='in'
-                                                                                value={
-                                                                                    phoneValues.motherOfficePhone ??
-                                                                                    (field.value != null ? String(field.value) : null)
-                                                                                }
-                                                                                onChange={(phone: any, countryData: any) =>
-                                                                                    handlePhoneChange(
-                                                                                        phone,
-                                                                                        countryData,
-                                                                                        'motherOfficePhone'
-                                                                                    )
-                                                                                }
-                                                                                onBlur={() => trigger('motherOfficePhone')}
-                                                                                inputProps={{
-                                                                                    id: 'motherOfficePhone',
-                                                                                    name: 'motherOfficePhone',
-                                                                                    maxLength: 25,
-                                                                                    required: false,
-                                                                                    style: {
-                                                                                        width: '87%',
-                                                                                        height: '36px',
-                                                                                        marginLeft: '40px',
-                                                                                        boxSizing: 'border-box',
-                                                                                        borderRadius: '4px',
-                                                                                        padding: '16.5px 14px',
-                                                                                        fontSize: '16px'
-                                                                                    }
-                                                                                }}
-                                                                                containerClass='w-full'
-                                                                                inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
-                                                                                enableSearch
-                                                                                disableCountryCode={false}
-                                                                                enableLongNumbers={true}
-                                                                                isValid={true}
-                                                                                preserveOrder={['country', 'nationalNumber']}
-                                                                            />
-                                                                            {phoneExpectedInfo.motherOfficePhone?.expected && (
-                                                                                <span className='mt-1 text-muted-foreground text-xs'>
-                                                                                    {`Mobile number must be exactly ${phoneExpectedInfo.motherOfficePhone.expected} digits for ${phoneExpectedInfo.motherOfficePhone.name ??
-                                                                                        'selected country'
-                                                                                        }`}
-                                                                                </span>
-                                                                            )}
-                                                                        </div>
-                                                                    )}
-                                                                />
-                                                                {errors.motherOfficePhone && (
-                                                                    <FormError>{errors.motherOfficePhone.message}</FormError>
-                                                                )}
-                                                            </div>
-
-                                                            <InputText
-                                                                label='Occupation'
-                                                                id='motherOccupation'
-                                                                placeholder='Enter Occupation'
-                                                                {...register('motherOccupation')}
-                                                                error={errors.motherOccupation?.message}
-                                                            />
-
-                                                            <InputText
-                                                                label='Designation'
-                                                                id='motherDesignation'
-                                                                placeholder='Enter designation'
-                                                                {...register('motherDesignation')}
-                                                                error={errors.motherDesignation?.message}
-                                                            />
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Other's Details */}
-                                                    <div className='col-span-full space-y-4 md:col-span-2 lg:col-span-3'>
-                                                        <h3 className='font-semibold text-gray-800 text-lg'>Other's Details</h3>
-                                                        <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
-                                                            <div className='flex flex-col gap-1.5'>
-                                                                <Label htmlFor='motherReligionId'>Religion</Label>
-                                                                <Controller
-                                                                    name='motherReligionId'
-                                                                    control={control}
-                                                                    render={({ field }) => (
-                                                                        <Select
-                                                                            key={field.value || 'empty'}
-                                                                            onValueChange={(value) => field.onChange(Number(value))}
-                                                                            value={field.value?.toString() || ''}>
-                                                                            <SelectTrigger>
-                                                                                <SelectValue placeholder='Select religion' />
-                                                                            </SelectTrigger>
-                                                                            <SelectContent>
-                                                                                {religionLoading ? (
-                                                                                    <SelectItem value='loading' disabled>
-                                                                                        Loading...
-                                                                                    </SelectItem>
-                                                                                ) : religionError ? (
-                                                                                    <SelectItem value='error' disabled>
-                                                                                        Error loading
-                                                                                    </SelectItem>
-                                                                                ) : (
-                                                                                    religion?.data?.map((item: any) => (
-                                                                                        <SelectItem
-                                                                                            key={item.ivrmmR_Id}
-                                                                                            value={item.ivrmmR_Id.toString()}>
-                                                                                            {item.ivrmmR_ReligionName}
-                                                                                        </SelectItem>
-                                                                                    ))
-                                                                                )}
-                                                                            </SelectContent>
-                                                                        </Select>
-                                                                    )}
-                                                                />
-                                                                {errors.motherReligionId && (
-                                                                    <FormError>{errors.motherReligionId.message}</FormError>
-                                                                )}
-                                                            </div>
-
-                                                            <div className='flex flex-col gap-1.5'>
-                                                                <Label htmlFor='motherCasteId'>Mother Caste</Label>
-                                                                <Controller
-                                                                    name='motherCasteId'
-                                                                    control={control}
-                                                                    render={({ field }) => (
-                                                                        <Select
-                                                                            key={`mother_caste_${field.value || 'empty'}_${availableCastes?.length || 0}`}
-                                                                            onValueChange={(value) => field.onChange(Number(value))}
-                                                                            value={field.value?.toString() || ''}
-                                                                            disabled={!currentCategoryId}>
-                                                                            <SelectTrigger>
-                                                                                <SelectValue placeholder={!currentCategoryId ? 'Select category first' : (isCastesLoading && availableCastes.length === 0) ? 'Loading...' : 'Select caste'} />
-                                                                            </SelectTrigger>
-                                                                            <SelectContent>
-                                                                                {isCastesLoading && availableCastes.length === 0 ? (
-                                                                                    <SelectItem value='loading' disabled>
-                                                                                        Loading...
-                                                                                    </SelectItem>
-                                                                                ) : (availableCastes || []).length === 0 ? (
-                                                                                    <SelectItem value='none' disabled>
-                                                                                        No castes found
-                                                                                    </SelectItem>
-                                                                                ) : (
-                                                                                    availableCastes?.map((item: any) => (
-                                                                                        <SelectItem
-                                                                                            key={item.imC_Id}
-                                                                                            value={item.imC_Id.toString()}>
-                                                                                            {item.imC_CasteName}
-                                                                                        </SelectItem>
-                                                                                    ))
-                                                                                )}
-                                                                            </SelectContent>
-                                                                        </Select>
-                                                                    )}
-                                                                />
-                                                                {errors.motherCasteId && (
-                                                                    <FormError>{errors.motherCasteId.message}</FormError>
-                                                                )}
-                                                            </div>
-
-                                                            <InputText
-                                                                label='Sub Caste'
-                                                                id='motherSubCaste'
-                                                                placeholder='Enter sub caste'
-                                                                {...register('motherSubCaste')}
-                                                                error={errors.motherSubCaste?.message}
-                                                            />
-
-                                                            <div className='flex flex-col gap-1.5'>
-                                                                <Controller
-                                                                    name='motherAnnualIncome'
-                                                                    control={control}
-                                                                    render={({ field }) => (
-                                                                        <InputNumber
-                                                                            label='Mother Anuual Income'
-                                                                            id='motherAnnualIncome'
-                                                                            value={field.value || 0}
-                                                                            onChange={(value) =>
-                                                                                field.onChange(Number.isNaN(value) ? 0 : value)
-                                                                            }
-                                                                            minValue={0}
-                                                                            maxDigits={15}
-                                                                        />
-                                                                    )}
-                                                                />
-                                                                {errors.motherAnnualIncome && (
-                                                                    <FormError>{errors.motherAnnualIncome.message}</FormError>
-                                                                )}
-                                                            </div>
-
-                                                            <InputText
-                                                                label='Caste Certificate No'
-                                                                id='motherCasteCertificateNo'
-                                                                placeholder='Enter Caste Certificate No'
-                                                                {...register('motherCasteCertificateNo')}
-                                                                error={errors.motherCasteCertificateNo?.message}
-                                                            />
-
-                                                            <InputText
-                                                                label='Pan No'
-                                                                id='motherPAN'
-                                                                placeholder='Enter PAN'
-                                                                {...register('motherPAN')}
-                                                                error={errors.motherPAN?.message}
-                                                            />
-                                                            <div className='flex items-center space-x-2'>
-                                                                <Checkbox
-                                                                    id='motherSelfEmployedFlg'
-                                                                    checked={Boolean(watch('motherSelfEmployedFlg'))}
-                                                                    onCheckedChange={(checked) => {
-                                                                        setValue('motherSelfEmployedFlg', checked === true);
-                                                                    }}
-                                                                />
-                                                                <Label htmlFor='motherSelfEmployedFlg' className='cursor-pointer'>
-                                                                    Self Employed Flg
-                                                                </Label>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Step 4: Other Information */}
-                                {currentStep === 4 && (
-                                    <div className='space-y-6'>
-                                        <div>
-                                            <h2 className='font-bold text-2xl text-gray-900'>Other Information</h2>
-                                            <p className='mt-1 text-gray-500 text-sm'>
-                                                Sibling details, previous school information, and undertaking
-                                            </p>
-                                        </div>
-                                        <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
-                                            <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='source_ids'>Activities</Label>
-                                                <Controller
-                                                    name='activities'
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <MultiSelect
-                                                            options={[{ label: 'Sports', value: '2' }]}
-                                                            onValueChange={(selectedValues) => {
-                                                                field.onChange(selectedValues);
-                                                                handleActivitySelection(selectedValues);
-                                                            }}
-                                                            defaultValue={selectedActivityItems}
-                                                            value={selectedActivityItems}
-                                                            placeholder='Select Activities'
-                                                            variant='inverted'
-                                                            disabled={sourceLoading}
-                                                        />
-                                                    )}
-                                                />
-                                                {errors.activities && <FormError>{errors.activities.message}</FormError>}
-                                            </div>
-
-                                            <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='source_ids'>Source Details</Label>
-                                                <Controller
-                                                    name='sourceDetails'
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <MultiSelect
-                                                            options={
-                                                                source?.data?.map((data: any) => ({
-                                                                    label: data.pamS_SourceName,
-                                                                    value: data.pamS_Id.toString()
-                                                                })) || []
-                                                            }
-                                                            onValueChange={(selectedValues) => {
-                                                                field.onChange(selectedValues);
-                                                                handleSourceSelection(selectedValues);
-                                                            }}
-                                                            defaultValue={selectedSourceItems.map((data: any) => data.pamS_Id)}
-                                                            value={selectedSourceItems.map((data: any) => data.pamS_Id)}
-                                                            placeholder='Select sources'
-                                                            variant='inverted'
-                                                            disabled={sourceLoading}
-                                                        />
-                                                    )}
-                                                />
-                                                {errors.sourceDetails && <FormError>{errors.sourceDetails.message}</FormError>}
-                                            </div>
-
-                                            <InputTextarea
-                                                label='Achievements'
-                                                id='achievements'
-                                                // placeholder={`Enter Mother's Business`}
-                                                {...register('achievements')}
-                                                error={errors.achievements?.message}
-                                            />
-                                        </div>
-
-                                        {/* Previous School Details Section */}
-                                        <div className='space-y-4'>
-                                            <div className='flex items-center justify-between'>
-                                                <h3 className='font-semibold text-gray-800 text-lg'>Previous School Details</h3>
-
-                                                <Button
-                                                    type='button'
-                                                    variant='outline'
-                                                    size='sm'
-                                                    className='w-fit'
-                                                    onClick={addPreviousSchool}
-                                                    disabled={isSubmitting}>
-                                                    <span className='mr-2'>+</span>
-                                                    Add Previous School Details
-                                                </Button>
-                                            </div>
-
-                                            {previousSchoolFields.length === 0 ? (
-                                                <p className='text-gray-500 text-sm'>No previous school details added.</p>
-                                            ) : (
-                                                <div className='space-y-4'>
-                                                    {previousSchoolFields.map((ps, idx) => (
-                                                        <div key={ps.id} className='rounded-lg border border-gray-200 bg-gray-50 p-4'>
-                                                            {/* Header */}
-                                                            <div className='flex items-center justify-between'>
-                                                                <h4 className='font-medium text-gray-700 text-sm'>
-                                                                    Previous School {idx + 1}
-                                                                </h4>
-
-                                                                <Button
-                                                                    type='button'
-                                                                    variant='outline'
-                                                                    size='sm'
-                                                                    className='w-fit'
-                                                                    onClick={() => removePreviousSchool(idx)}
-                                                                    disabled={isSubmitting}>
-                                                                    Remove
-                                                                </Button>
-                                                            </div>
-
-                                                            {/* Fields */}
-                                                            <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
-                                                                {/* School Name */}
-                                                                <InputText
-                                                                    label='Previous School Name'
-                                                                    placeholder='Enter previous school name'
-                                                                    {...register(`previousSchools.${idx}.schoolName`)}
-                                                                    error={errors.previousSchools?.[idx]?.schoolName?.message}
-                                                                />
-
-                                                                {/* School Type */}
+                                                                {/* Permanent State */}
                                                                 <div className='flex flex-col gap-1.5'>
-                                                                    <Label>School Type</Label>
+                                                                    <Label htmlFor='motherPermanentAddress.state'>Permanent State</Label>
 
                                                                     <Controller
-                                                                        name={`previousSchools.${idx}.schoolTypeId`}
+                                                                        name='motherPermanentAddress.state'
                                                                         control={control}
                                                                         render={({ field }) => (
                                                                             <Select
-                                                                                value={field.value?.toString() || ''}
-                                                                                onValueChange={(val) => {
-                                                                                    const id = Number(val) || 0;
-                                                                                    field.onChange(id);
-                                                                                    const map: Record<number, string> = {
-                                                                                        1: 'Pre-Primary School',
-                                                                                        2: 'Primary School',
-                                                                                        3: 'High School'
-                                                                                    };
-                                                                                    setValue(
-                                                                                        `previousSchools.${idx}.schoolType` as any,
-                                                                                        map[id] ?? ''
-                                                                                    );
-                                                                                }}>
+                                                                                key={field.value || 'empty'}
+                                                                                onValueChange={(value) => field.onChange(Number(value))}
+                                                                                value={field.value?.toString() || ''}>
                                                                                 <SelectTrigger>
-                                                                                    <SelectValue placeholder='Select school type' />
+                                                                                    <SelectValue placeholder='Select state' />
                                                                                 </SelectTrigger>
 
                                                                                 <SelectContent>
-                                                                                    <SelectItem value='1'>Pre-Primary School</SelectItem>
-                                                                                    <SelectItem value='2'>Primary School</SelectItem>
-                                                                                    <SelectItem value='3'>High School</SelectItem>
-                                                                                </SelectContent>
-                                                                            </Select>
-                                                                        )}
-                                                                    />
-                                                                </div>
-
-                                                                {/* Class */}
-                                                                <div className='flex flex-col gap-1.5'>
-                                                                    <Label>Class</Label>
-                                                                    <Controller
-                                                                        name={`previousSchools.${idx}.classId`}
-                                                                        control={control}
-                                                                        render={({ field, fieldState: { error } }) => (
-                                                                            <Select
-                                                                                value={field.value !== undefined ? String(field.value) : ''}
-                                                                                onValueChange={(val) => field.onChange(val)}>
-                                                                                <SelectTrigger className={error && 'border-red-500'}>
-                                                                                    <SelectValue placeholder='Select class' />
-                                                                                </SelectTrigger>
-
-                                                                                <SelectContent>
-                                                                                    {admissionClassLoading ? (
+                                                                                    {motherPresentStateLoading ? (
                                                                                         <SelectItem value='loading' disabled>
                                                                                             Loading...
                                                                                         </SelectItem>
-                                                                                    ) : admissionClassError ? (
+                                                                                    ) : motherPresentStateError ? (
                                                                                         <SelectItem value='error' disabled>
-                                                                                            Error loading classes
+                                                                                            Error loading
                                                                                         </SelectItem>
                                                                                     ) : (
-                                                                                        admissionClass?.data?.map((item: any) => (
+                                                                                        motherPresentState?.data?.map((item: any) => (
                                                                                             <SelectItem
-                                                                                                key={item.asmcL_Id}
-                                                                                                value={item.asmcL_Id.toString()}>
-                                                                                                {item.asmcL_ClassName}
+                                                                                                key={item.ivrmmS_Id}
+                                                                                                value={item.ivrmmS_Id.toString()}>
+                                                                                                {item.ivrmmS_Name}
                                                                                             </SelectItem>
                                                                                         ))
                                                                                     )}
@@ -8139,239 +7250,148 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                             </Select>
                                                                         )}
                                                                     />
-                                                                </div>
 
-                                                                {/* Percentage */}
-                                                                <InputText
-                                                                    label='Percentage'
-                                                                    placeholder='Enter percentage'
-                                                                    {...register(`previousSchools.${idx}.percentage`)}
-                                                                    error={errors.previousSchools?.[idx]?.percentage?.message}
-                                                                />
-
-                                                                {/* Grade */}
-                                                                <InputText
-                                                                    label='Grade'
-                                                                    placeholder='Enter grade'
-                                                                    {...register(`previousSchools.${idx}.grade`)}
-                                                                    error={errors.previousSchools?.[idx]?.grade?.message}
-                                                                />
-
-                                                                {/* Passed Year */}
-                                                                <div className='flex flex-col gap-1.5'>
-                                                                    <Label>Passed Year</Label>
-                                                                    <Controller
-                                                                        name={`previousSchools.${idx}.passedYear`}
-                                                                        control={control}
-                                                                        render={({ field }) => (
-                                                                            <Select
-                                                                                value={field.value != null ? String(field.value) : ''}
-                                                                                onValueChange={(val) => field.onChange(Number(val))}>
-                                                                                <SelectTrigger>
-                                                                                    <SelectValue placeholder='Select passed year' />
-                                                                                </SelectTrigger>
-                                                                                <SelectContent>
-                                                                                    {academicLoading ? (
-                                                                                        <SelectItem value={'loading'} disabled>
-                                                                                            Loading...
-                                                                                        </SelectItem>
-                                                                                    ) : academicYears?.data &&
-                                                                                        academicYears.data.length > 0 ? (
-                                                                                        academicYears.data.map((y: any) => (
-                                                                                            <SelectItem
-                                                                                                key={String(y.asmaY_Id)}
-                                                                                                value={String(y.asmaY_Id)}>
-                                                                                                {y.asmaY_Year}
-                                                                                            </SelectItem>
-                                                                                        ))
-                                                                                    ) : (
-                                                                                        <SelectItem value={'none'} disabled>
-                                                                                            No years
-                                                                                        </SelectItem>
-                                                                                    )}
-                                                                                </SelectContent>
-                                                                            </Select>
-                                                                        )}
-                                                                    />
-                                                                </div>
-
-                                                                <PreviousSchoolRow idx={idx} />
-
-                                                                {/* Address */}
-                                                                <InputText
-                                                                    label='Address'
-                                                                    placeholder='Enter school address'
-                                                                    {...register(`previousSchools.${idx}.address`)}
-                                                                    error={errors.previousSchools?.[idx]?.address?.message}
-                                                                />
-
-                                                                {/* Left Reason */}
-                                                                <InputText
-                                                                    label='Left Reason'
-                                                                    placeholder='Enter reason for leaving'
-                                                                    {...register(`previousSchools.${idx}.leftReason`)}
-                                                                    error={errors.previousSchools?.[idx]?.leftReason?.message}
-                                                                />
-
-                                                                {/* Medium */}
-                                                                <InputText
-                                                                    label='Medium'
-                                                                    placeholder='Enter medium of instruction'
-                                                                    {...register(`previousSchools.${idx}.medium`)}
-                                                                    error={errors.previousSchools?.[idx]?.medium?.message}
-                                                                />
-
-                                                                {/* TC Number */}
-                                                                <InputText
-                                                                    label='TC No'
-                                                                    placeholder='Enter TC number'
-                                                                    {...register(`previousSchools.${idx}.tcNumber`)}
-                                                                    error={errors.previousSchools?.[idx]?.tcNumber?.message}
-                                                                />
-
-                                                                {/* TC Date */}
-                                                                <Controller
-                                                                    name={`previousSchools.${idx}.tcDate`}
-                                                                    control={control}
-                                                                    render={({ field, fieldState: { error } }) => (
-                                                                        <div className='flex flex-col space-y-2'>
-                                                                            <Label>TC Date</Label>
-
-                                                                            <Popover>
-                                                                                <PopoverTrigger asChild>
-                                                                                    <Button
-                                                                                        variant='outline'
-                                                                                        className={cn(
-                                                                                            'w-full justify-start text-left',
-                                                                                            !field.value && 'text-muted-foreground',
-                                                                                            error && 'border-red-500'
-                                                                                        )}>
-                                                                                        <CalendarIcon className='mr-2 h-4 w-4' />
-                                                                                        {field.value &&
-                                                                                            Object.prototype.toString.call(field.value) ===
-                                                                                            '[object Date]' &&
-                                                                                            field.value.getTime()
-                                                                                            ? format(field.value, 'dd/MM/yyyy')
-                                                                                            : 'Select TC date'}
-                                                                                    </Button>
-                                                                                </PopoverTrigger>
-
-                                                                                <PopoverContent>
-                                                                                    <CalendarYear
-                                                                                        mode='single'
-                                                                                        selected={field.value || undefined}
-                                                                                        onSelect={(date) => date && field.onChange(date)}
-                                                                                        disabled={(d) =>
-                                                                                            d > new Date() || d < new Date('1900-01-01')
-                                                                                        }
-                                                                                    />
-                                                                                </PopoverContent>
-                                                                            </Popover>
-
-                                                                            {error && (
-                                                                                <span className='text-red-500 text-sm'>
-                                                                                    {error.message}
-                                                                                </span>
-                                                                            )}
-                                                                        </div>
+                                                                    {errors.motherPermanentAddress?.state && (
+                                                                        <FormError>{errors.motherPermanentAddress.state.message}</FormError>
                                                                     )}
+                                                                </div>
+
+                                                                {/* Permanent City */}
+                                                                <InputText
+                                                                    label='Permanent City'
+                                                                    id='motherPermanentAddress.city'
+                                                                    placeholder='Enter city'
+                                                                    {...register('motherPermanentAddress.city')}
+                                                                    error={errors.motherPermanentAddress?.city?.message}
+                                                                />
+
+                                                                {/* Permanent Pincode */}
+                                                                <div className='flex flex-col gap-1.5'>
+                                                                    <Controller
+                                                                        name='motherPermanentAddress.pincode'
+                                                                        control={control}
+                                                                        rules={
+                                                                            motherZipLength
+                                                                                ? {
+                                                                                    minLength: {
+                                                                                        value: motherZipLength,
+                                                                                        message: `Pin code must be ${motherZipLength} digits`
+                                                                                    },
+                                                                                    maxLength: {
+                                                                                        value: motherZipLength,
+                                                                                        message: `Pin code must be ${motherZipLength} digits`
+                                                                                    }
+                                                                                }
+                                                                                : undefined
+                                                                        }
+                                                                        render={({ field }) => (
+                                                                            <>
+                                                                                <MobileNumberInput
+                                                                                    label='Permanent Pin Code'
+                                                                                    id='motherPermanentAddress.pincode'
+                                                                                    placeholder='Enter Pincode'
+                                                                                    value={field.value}
+                                                                                    onChange={(valueOrEvent: any) => {
+                                                                                        const raw = valueOrEvent?.target?.value ?? valueOrEvent;
+                                                                                        const str =
+                                                                                            raw == null ? '' : String(raw).replace(/\D/g, '');
+                                                                                        const truncated = motherZipLength
+                                                                                            ? str.slice(0, motherZipLength)
+                                                                                            : str;
+
+                                                                                        field.onChange(truncated);
+
+                                                                                        if (
+                                                                                            motherZipLength &&
+                                                                                            truncated !== '' &&
+                                                                                            truncated.length !== motherZipLength
+                                                                                        ) {
+                                                                                            setError('motherPermanentAddress.pincode', {
+                                                                                                type: 'manual',
+                                                                                                message: `Pin code must be ${motherZipLength} digits`
+                                                                                            });
+                                                                                        } else {
+                                                                                            clearErrors('motherPermanentAddress.pincode');
+                                                                                        }
+
+                                                                                        trigger('motherPermanentAddress.pincode');
+                                                                                    }}
+                                                                                    minLength={motherZipLength}
+                                                                                    maxLength={motherZipLength}
+                                                                                    type='number'
+                                                                                    showSpinner={false}
+                                                                                />
+
+                                                                                {motherCountryObj && motherZipLength && (
+                                                                                    <span className='mt-1 text-muted-foreground text-xs'>
+                                                                                        {`Pin code must be ${motherZipLength} digits for ${motherCountryObj.ivrmmC_CountryName}`}
+                                                                                    </span>
+                                                                                )}
+                                                                            </>
+                                                                        )}
+                                                                    />
+
+                                                                    {errors.motherPermanentAddress?.pincode && (
+                                                                        <FormError>{errors.motherPermanentAddress.pincode.message}</FormError>
+                                                                    )}
+                                                                </div>
+
+                                                                {/* Permanent PO */}
+                                                                <InputText
+                                                                    label='Permanent PO'
+                                                                    id='motherPermanentAddress.po'
+                                                                    placeholder='Enter Permanent PO'
+                                                                    {...register('motherPermanentAddress.po')}
+                                                                    error={errors.motherPermanentAddress?.po?.message}
+                                                                />
+
+                                                                {/* Permanent PS */}
+                                                                <InputText
+                                                                    label='Permanent PS'
+                                                                    id='motherPermanentAddress.ps'
+                                                                    placeholder='Enter Permanent PS'
+                                                                    {...register('motherPermanentAddress.ps')}
+                                                                    error={errors.motherPermanentAddress?.ps?.message}
                                                                 />
                                                             </div>
                                                         </div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
 
-                                        {/* GUARDIAN DETAILS Section */}
-                                        <div className='space-y-4'>
-                                            <div className='flex items-center justify-between'>
-                                                <h3 className='font-semibold text-gray-800 text-lg'>GUARDIAN DETAILS</h3>
-
-                                                <Button
-                                                    type='button'
-                                                    variant='outline'
-                                                    size='sm'
-                                                    className='w-fit'
-                                                    onClick={addGuardian}
-                                                    disabled={isSubmitting}>
-                                                    <span className='mr-2'>+</span>
-                                                    Add Guardian
-                                                </Button>
-                                            </div>
-
-                                            {guardianFields.length === 0 ? (
-                                                <p className='text-gray-500 text-sm'>No guardians added yet.</p>
-                                            ) : (
-                                                <div className='space-y-4'>
-                                                    {guardianFields.map((g, idx) => (
-                                                        <div key={g.id} className='rounded-lg border border-gray-200 bg-gray-50 p-4'>
-                                                            <div className='flex items-center justify-between'>
-                                                                <h4 className='font-medium text-gray-700 text-sm'>Guardian {idx + 1}</h4>
-                                                                <div className='flex items-center gap-2'>
-                                                                    <Button
-                                                                        type='button'
-                                                                        variant='ghost'
-                                                                        size='sm'
-                                                                        onClick={() => removeGuardian(idx)}
-                                                                        disabled={isSubmitting || idx === 0}
-                                                                        className={`h-8 w-fit ${idx === 0 ? 'cursor-not-allowed opacity-50' : ''}`}>
-                                                                        Remove
-                                                                    </Button>
-                                                                    <Button
-                                                                        type='button'
-                                                                        variant='outline'
-                                                                        size='sm'
-                                                                        onClick={() => handleSaveGuardian(idx)}
-                                                                        disabled={
-                                                                            isSubmitting ||
-                                                                            guardianPhotos?.[idx]?.isUploading ||
-                                                                            guardianSignatures?.[idx]?.isUploading
-                                                                        }
-                                                                        className='h-8 w-fit'>
-                                                                        <Save className='mr-2 h-4 w-4' />
-                                                                        Save
-                                                                    </Button>
-                                                                </div>
-                                                            </div>
-
-                                                            <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
-                                                                {/* Guardian Name */}
+                                                        {/* Office Details */}
+                                                        <div className='col-span-full space-y-4'>
+                                                            <h3 className='font-semibold text-gray-800 text-lg'>Office Details</h3>
+                                                            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                                                                 <InputText
-                                                                    label='Guardian Name'
-                                                                    placeholder='Enter Guardian Name'
-                                                                    {...register(`guardian.${idx}.guardianName`)}
-                                                                    error={errors.guardian?.[idx]?.guardianName?.message}
+                                                                    label='Office Address'
+                                                                    id='motherOfficeAddress'
+                                                                    placeholder='Enter office address'
+                                                                    {...register('motherOfficeAddress')}
+                                                                    error={errors.motherOfficeAddress?.message}
                                                                 />
 
-                                                                {/* Guardian Phone (PhoneInput) */}
-                                                                <div className='flex flex-col gap-1.5'>
+                                                                <div className='flex flex-col gap-1.5 '>
                                                                     <Controller
-                                                                        name={`guardian.${idx}.guardianPhone`}
+                                                                        name='motherOfficePhone'
                                                                         control={control}
                                                                         render={({ field }) => (
                                                                             <div>
-                                                                                <Label htmlFor={`guardianPhone_${idx}`}>
-                                                                                    Guardian Phone
-                                                                                </Label>
-
+                                                                                <Label htmlFor='motherOfficePhone'>Mother Office PhNo.</Label>
                                                                                 <PhoneInput
                                                                                     country='in'
                                                                                     value={
-                                                                                        phoneValues[`guardian_${idx}_phone`] ??
+                                                                                        phoneValues.motherOfficePhone ??
                                                                                         (field.value != null ? String(field.value) : null)
                                                                                     }
-                                                                                    onChange={(phone, countryData) =>
+                                                                                    onChange={(phone: any, countryData: any) =>
                                                                                         handlePhoneChange(
                                                                                             phone,
                                                                                             countryData,
-                                                                                            `guardian.${idx}.guardianPhone`
+                                                                                            'motherOfficePhone'
                                                                                         )
                                                                                     }
-                                                                                    onBlur={() => trigger(`guardian.${idx}.guardianPhone`)}
+                                                                                    onBlur={() => trigger('motherOfficePhone')}
                                                                                     inputProps={{
-                                                                                        id: `guardianPhone_${idx}`,
-                                                                                        name: `guardian.${idx}.guardianPhone`,
+                                                                                        id: 'motherOfficePhone',
+                                                                                        name: 'motherOfficePhone',
                                                                                         maxLength: 25,
                                                                                         required: false,
                                                                                         style: {
@@ -8392,661 +7412,1293 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                     isValid={true}
                                                                                     preserveOrder={['country', 'nationalNumber']}
                                                                                 />
-
-                                                                                {phoneExpectedInfo?.[`guardian_${idx}_phone`]?.expected && (
+                                                                                {phoneExpectedInfo.motherOfficePhone?.expected && (
                                                                                     <span className='mt-1 text-muted-foreground text-xs'>
-                                                                                        {`Mobile number must be exactly ${phoneExpectedInfo[`guardian_${idx}_phone`]
-                                                                                            .expected
-                                                                                            } digits for ${phoneExpectedInfo[`guardian_${idx}_phone`]
-                                                                                                .name ?? 'selected country'
+                                                                                        {`Mobile number must be exactly ${phoneExpectedInfo.motherOfficePhone.expected} digits for ${phoneExpectedInfo.motherOfficePhone.name ??
+                                                                                            'selected country'
                                                                                             }`}
                                                                                     </span>
                                                                                 )}
                                                                             </div>
                                                                         )}
                                                                     />
-
-                                                                    {errors.guardian?.[idx]?.guardianPhone && (
-                                                                        <FormError>{errors.guardian[idx].guardianPhone?.message}</FormError>
+                                                                    {errors.motherOfficePhone && (
+                                                                        <FormError>{errors.motherOfficePhone.message}</FormError>
                                                                     )}
                                                                 </div>
 
-                                                                {/* Guardian Email */}
                                                                 <InputText
-                                                                    label='Guardian Email'
-                                                                    placeholder='Enter Guardian Email'
-                                                                    {...register(`guardian.${idx}.guardianEmail`)}
-                                                                    error={errors.guardian?.[idx]?.guardianEmail?.message}
+                                                                    label='Occupation'
+                                                                    id='motherOccupation'
+                                                                    placeholder='Enter Occupation'
+                                                                    {...register('motherOccupation')}
+                                                                    error={errors.motherOccupation?.message}
                                                                 />
 
-                                                                {/* Guardian Address */}
                                                                 <InputText
-                                                                    label='Guardian Address'
-                                                                    placeholder='Enter Guardian Address'
-                                                                    {...register(`guardian.${idx}.guardianAddress`)}
-                                                                    error={errors.guardian?.[idx]?.guardianAddress?.message}
+                                                                    label='Designation'
+                                                                    id='motherDesignation'
+                                                                    placeholder='Enter designation'
+                                                                    {...register('motherDesignation')}
+                                                                    error={errors.motherDesignation?.message}
                                                                 />
-
-                                                                {watchedGuardians?.[idx]?.guardianName ? (
-                                                                    <>
-                                                                        <div className='col-span-full flex w-full items-stretch gap-4'>
-                                                                            {/* Photo column */}
-                                                                            <div className='min-w-0 flex-1'>
-                                                                                <div className='flex h-full flex-col justify-between overflow-hidden rounded-lg border-2 border-blue-200 bg-blue-50 p-2'>
-                                                                                    <div>
-                                                                                        <div className='mb-1'>
-                                                                                            <Label>Guardian Photo</Label>
-                                                                                        </div>
-
-                                                                                        {!guardianPhotos?.[idx]?.path ? (
-                                                                                            <label
-                                                                                                className={cn(
-                                                                                                    'flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-2 py-3 text-center transition-all hover:border-primary hover:bg-white',
-                                                                                                    guardianPhotos?.[idx]?.isUploading
-                                                                                                        ? 'border-blue-400 bg-blue-100'
-                                                                                                        : 'border-gray-300 bg-white'
-                                                                                                )}>
-                                                                                                {guardianPhotos?.[idx]?.isUploading ? (
-                                                                                                    <div className='flex flex-col items-center gap-2'>
-                                                                                                        <svg
-                                                                                                            className='h-8 w-8 animate-spin text-primary'
-                                                                                                            fill='none'
-                                                                                                            stroke='currentColor'
-                                                                                                            viewBox='0 0 24 24'>
-                                                                                                            <circle
-                                                                                                                className='opacity-25'
-                                                                                                                cx='12'
-                                                                                                                cy='12'
-                                                                                                                r='10'
-                                                                                                                strokeWidth='4'
-                                                                                                                stroke='currentColor'
-                                                                                                            />
-                                                                                                            <path
-                                                                                                                className='opacity-75'
-                                                                                                                fill='currentColor'
-                                                                                                                d='M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z'
-                                                                                                            />
-                                                                                                        </svg>
-                                                                                                        <span className='font-medium text-primary text-sm'>
-                                                                                                            Uploading photo...
-                                                                                                        </span>
-                                                                                                    </div>
-                                                                                                ) : (
-                                                                                                    <>
-                                                                                                        <svg
-                                                                                                            className='h-12 w-12 text-primary'
-                                                                                                            fill='none'
-                                                                                                            stroke='currentColor'
-                                                                                                            viewBox='0 0 24 24'>
-                                                                                                            <path
-                                                                                                                strokeLinecap='round'
-                                                                                                                strokeLinejoin='round'
-                                                                                                                strokeWidth={2}
-                                                                                                                d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
-                                                                                                            />
-                                                                                                        </svg>
-                                                                                                        <span className='font-medium text-gray-700 text-sm'>
-                                                                                                            Click to upload
-                                                                                                        </span>
-                                                                                                        <span className='mt-1 max-w-[250px] text-gray-600 text-sm'>
-                                                                                                            Upload guardian photo (Max size:
-                                                                                                            5MB, JPG/PNG)
-                                                                                                        </span>
-                                                                                                    </>
-                                                                                                )}
-
-                                                                                                <input
-                                                                                                    type='file'
-                                                                                                    className='hidden'
-                                                                                                    accept='image/jpeg,image/jpg,image/png'
-                                                                                                    disabled={
-                                                                                                        guardianPhotos?.[idx]
-                                                                                                            ?.isUploading || isSubmitting
-                                                                                                    }
-                                                                                                    onChange={(e) => {
-                                                                                                        const file = e.target.files?.[0];
-                                                                                                        if (file) {
-                                                                                                            if (
-                                                                                                                file.size >
-                                                                                                                5 * 1024 * 1024
-                                                                                                            ) {
-                                                                                                                toast.error(
-                                                                                                                    'File size must be less than 5MB'
-                                                                                                                );
-                                                                                                                e.target.value = '';
-                                                                                                                return;
-                                                                                                            }
-                                                                                                            handleGuardianPhotoUpload(
-                                                                                                                idx,
-                                                                                                                file
-                                                                                                            );
-                                                                                                            e.target.value = '';
-                                                                                                        }
-                                                                                                    }}
-                                                                                                />
-                                                                                            </label>
-                                                                                        ) : (
-                                                                                            <div className='flex h-full w-full flex-col items-start justify-start gap-2 overflow-hidden rounded-lg border border-green-200 bg-green-50 p-4'>
-                                                                                                <div className='flex items-center gap-4'>
-                                                                                                    <img
-                                                                                                        src={guardianPhotos[idx].path}
-                                                                                                        alt={`Guardian ${idx + 1}`}
-                                                                                                        className='h-24 w-24 rounded-lg border-2 border-green-300 object-cover'
-                                                                                                    />
-                                                                                                    <div>
-                                                                                                        <div className='flex items-center gap-2 font-medium text-green-700'>
-                                                                                                            <Check className='h-5 w-5' />
-                                                                                                            Uploaded Successfully
-                                                                                                        </div>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                                <div className='flex items-center gap-2'>
-                                                                                                    <Button
-                                                                                                        type='button'
-                                                                                                        variant='outline'
-                                                                                                        size='sm'
-                                                                                                        className='flex h-9 w-9 items-center justify-center p-0'
-                                                                                                        onClick={() =>
-                                                                                                            window.open(
-                                                                                                                guardianPhotos[idx].path,
-                                                                                                                '_blank'
-                                                                                                            )
-                                                                                                        }>
-                                                                                                        <Eye className='h-4 w-4' />
-                                                                                                    </Button>
-                                                                                                    <Button
-                                                                                                        type='button'
-                                                                                                        variant='destructive'
-                                                                                                        size='sm'
-                                                                                                        className='flex h-9 w-9 items-center justify-center p-0'
-                                                                                                        disabled={isSubmitting}
-                                                                                                        onClick={() =>
-                                                                                                            handleGuardianPhotoDelete(idx)
-                                                                                                        }>
-                                                                                                        <Trash className='h-4 w-4' />
-                                                                                                    </Button>
-                                                                                                </div>
-                                                                                            </div>
-                                                                                        )}
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-
-                                                                            {/* Signature column */}
-                                                                            <div className='min-w-0 flex-1'>
-                                                                                <div className='flex h-full flex-col justify-between overflow-hidden rounded-lg border-2 border-blue-200 bg-blue-50 p-2'>
-                                                                                    <div>
-                                                                                        <div className='mb-1'>
-                                                                                            <Label>Guardian Signature</Label>
-                                                                                        </div>
-
-                                                                                        {!guardianSignatures?.[idx]?.path ? (
-                                                                                            <label
-                                                                                                className={cn(
-                                                                                                    'flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-2 py-3 text-center transition-all hover:border-primary hover:bg-white',
-                                                                                                    guardianSignatures?.[idx]?.isUploading
-                                                                                                        ? 'border-blue-400 bg-blue-100'
-                                                                                                        : 'border-gray-300 bg-white'
-                                                                                                )}>
-                                                                                                {guardianSignatures?.[idx]?.isUploading ? (
-                                                                                                    <div className='flex flex-col items-center gap-2'>
-                                                                                                        <svg
-                                                                                                            className='h-8 w-8 animate-spin text-primary'
-                                                                                                            fill='none'
-                                                                                                            stroke='currentColor'
-                                                                                                            viewBox='0 0 24 24'>
-                                                                                                            <circle
-                                                                                                                className='opacity-25'
-                                                                                                                cx='12'
-                                                                                                                cy='12'
-                                                                                                                r='10'
-                                                                                                                strokeWidth='4'
-                                                                                                                stroke='currentColor'
-                                                                                                            />
-                                                                                                            <path
-                                                                                                                className='opacity-75'
-                                                                                                                fill='currentColor'
-                                                                                                                d='M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z'
-                                                                                                            />
-                                                                                                        </svg>
-                                                                                                        <span className='font-medium text-primary text-sm'>
-                                                                                                            Uploading signature...
-                                                                                                        </span>
-                                                                                                    </div>
-                                                                                                ) : (
-                                                                                                    <>
-                                                                                                        <svg
-                                                                                                            className='h-12 w-12 text-primary'
-                                                                                                            fill='none'
-                                                                                                            stroke='currentColor'
-                                                                                                            viewBox='0 0 24 24'>
-                                                                                                            <path
-                                                                                                                strokeLinecap='round'
-                                                                                                                strokeLinejoin='round'
-                                                                                                                strokeWidth={2}
-                                                                                                                d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
-                                                                                                            />
-                                                                                                        </svg>
-                                                                                                        <span className='font-medium text-gray-700 text-sm'>
-                                                                                                            Click to upload
-                                                                                                        </span>
-                                                                                                        <span className='mt-1 max-w-[250px] text-gray-600 text-sm'>
-                                                                                                            Upload guardian signature (Max
-                                                                                                            size: 5MB, JPG/PNG)
-                                                                                                        </span>
-                                                                                                    </>
-                                                                                                )}
-
-                                                                                                <input
-                                                                                                    type='file'
-                                                                                                    className='hidden'
-                                                                                                    accept='image/jpeg,image/jpg,image/png'
-                                                                                                    disabled={
-                                                                                                        guardianSignatures?.[idx]
-                                                                                                            ?.isUploading || isSubmitting
-                                                                                                    }
-                                                                                                    onChange={(e) => {
-                                                                                                        const file = e.target.files?.[0];
-                                                                                                        if (file) {
-                                                                                                            if (
-                                                                                                                file.size >
-                                                                                                                5 * 1024 * 1024
-                                                                                                            ) {
-                                                                                                                toast.error(
-                                                                                                                    'File size must be less than 5MB'
-                                                                                                                );
-                                                                                                                e.target.value = '';
-                                                                                                                return;
-                                                                                                            }
-                                                                                                            handleGuardianSignatureUpload(
-                                                                                                                idx,
-                                                                                                                file
-                                                                                                            );
-                                                                                                            e.target.value = '';
-                                                                                                        }
-                                                                                                    }}
-                                                                                                />
-                                                                                            </label>
-                                                                                        ) : (
-                                                                                            <div className='flex h-full w-full flex-col items-start justify-start gap-2 overflow-hidden rounded-lg border border-green-200 bg-green-50 p-4'>
-                                                                                                <div className='flex items-center gap-4'>
-                                                                                                    <img
-                                                                                                        src={guardianSignatures[idx].path}
-                                                                                                        alt={`Guardian signature ${idx + 1}`}
-                                                                                                        className='h-24 w-40 rounded-lg border-2 border-green-300 object-contain'
-                                                                                                    />
-                                                                                                    <div>
-                                                                                                        <div className='flex items-center gap-2 font-medium text-green-700'>
-                                                                                                            <Check className='h-5 w-5' />
-                                                                                                            Uploaded Successfully
-                                                                                                        </div>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                                <div className='flex items-center gap-2'>
-                                                                                                    <Button
-                                                                                                        type='button'
-                                                                                                        variant='outline'
-                                                                                                        size='sm'
-                                                                                                        className='flex h-9 w-9 items-center justify-center p-0'
-                                                                                                        onClick={() =>
-                                                                                                            window.open(
-                                                                                                                guardianSignatures[idx]
-                                                                                                                    .path,
-                                                                                                                '_blank'
-                                                                                                            )
-                                                                                                        }>
-                                                                                                        <Eye className='h-4 w-4' />
-                                                                                                    </Button>
-                                                                                                    <Button
-                                                                                                        type='button'
-                                                                                                        variant='destructive'
-                                                                                                        size='sm'
-                                                                                                        className='flex h-9 w-9 items-center justify-center p-0'
-                                                                                                        disabled={isSubmitting}
-                                                                                                        onClick={() =>
-                                                                                                            handleGuardianSignatureDelete(
-                                                                                                                idx
-                                                                                                            )
-                                                                                                        }>
-                                                                                                        <Trash className='h-4 w-4' />
-                                                                                                    </Button>
-                                                                                                </div>
-                                                                                            </div>
-                                                                                        )}
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </>
-                                                                ) : null}
                                                             </div>
                                                         </div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
 
-                                        {/* SIBLING DETAILS Section */}
-                                        <div className='space-y-4'>
-                                            <div className='flex items-center justify-between'>
-                                                <h3 className='font-semibold text-gray-800 text-lg'>Sibling Details</h3>
-                                                <Button
-                                                    type='button'
-                                                    variant='outline'
-                                                    size='sm'
-                                                    onClick={addSibling}
-                                                    disabled={isSubmitting}
-                                                    className='w-fit'>
-                                                    <span className='mr-2'>+</span>
-                                                    Add Sibling
-                                                </Button>
-                                            </div>
-
-                                            {siblingFields.length === 0 ? (
-                                                <p className='text-gray-500 text-sm'>
-                                                    No siblings added yet. Click "Add Sibling" to add details.
-                                                </p>
-                                            ) : (
-                                                <div className='space-y-4'>
-                                                    {siblingFields.map((sibling, index) => (
-                                                        <div key={sibling.id} className='rounded-lg border border-gray-200 bg-gray-50 p-4'>
-                                                            <div className='mb-3 flex items-center justify-between'>
-                                                                <h4 className='font-medium text-gray-700 text-sm'>Sibling {index + 1}</h4>
-                                                                <Button
-                                                                    type='button'
-                                                                    variant='ghost'
-                                                                    size='sm'
-                                                                    onClick={() => removeSibling(index)}
-                                                                    disabled={isSubmitting || index === 0}
-                                                                    className={`h-8 w-fit ${index === 0 ? 'cursor-not-allowed opacity-50' : 'bg-error text-white'}`}>
-                                                                    Remove
-                                                                </Button>
-                                                            </div>
-
+                                                        {/* Other's Details */}
+                                                        <div className='col-span-full space-y-4'>
+                                                            <h3 className='font-semibold text-gray-800 text-lg'>Other's Details</h3>
                                                             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                                                                {/* Sibling Name */}
-                                                                <Controller
-                                                                    control={control}
-                                                                    name={`siblings.${index}.name`}
-                                                                    render={({ field }) => (
-                                                                        <InputText
-                                                                            label='Sibling Name'
-                                                                            id={`sibling_name_${index}`}
-                                                                            placeholder='Enter sibling name'
-                                                                            {...field}
-                                                                            error={errors.siblings?.[index]?.name?.message}
-                                                                        />
-                                                                    )}
-                                                                />
-
-                                                                {/* Class Select */}
                                                                 <div className='flex flex-col gap-1.5'>
-                                                                    <Label htmlFor={`classId_${index}`}>Class</Label>
+                                                                    <Label htmlFor='motherReligionId'>Religion</Label>
                                                                     <Controller
-                                                                        name={`siblings.${index}.classId`}
+                                                                        name='motherReligionId'
                                                                         control={control}
-                                                                        render={({ field, fieldState: { error } }) => (
+                                                                        render={({ field }) => (
                                                                             <Select
-                                                                                value={field.value?.toString() || ''}
-                                                                                onValueChange={(value) => field.onChange(Number(value))}>
-                                                                                <SelectTrigger
-                                                                                    className={cn('w-full', error && 'border-red-500')}>
-                                                                                    <SelectValue
-                                                                                        placeholder={
-                                                                                            admissionClassLoading
-                                                                                                ? 'Loading classes...'
-                                                                                                : 'Select a class'
-                                                                                        }
-                                                                                    />
+                                                                                key={field.value || 'empty'}
+                                                                                onValueChange={(value) => field.onChange(Number(value))}
+                                                                                value={field.value?.toString() || ''}>
+                                                                                <SelectTrigger>
+                                                                                    <SelectValue placeholder='Select religion' />
                                                                                 </SelectTrigger>
                                                                                 <SelectContent>
-                                                                                    {admissionClassLoading ? (
+                                                                                    {religionLoading ? (
                                                                                         <SelectItem value='loading' disabled>
                                                                                             Loading...
                                                                                         </SelectItem>
-                                                                                    ) : admissionClassError ? (
+                                                                                    ) : religionError ? (
                                                                                         <SelectItem value='error' disabled>
-                                                                                            Error loading classes
+                                                                                            Error loading
                                                                                         </SelectItem>
-                                                                                    ) : Array.isArray(admissionClass?.data) &&
-                                                                                        admissionClass.data.length > 0 ? (
-                                                                                        admissionClass.data.map((classItem: any) => (
+                                                                                    ) : (
+                                                                                        religion?.data?.map((item: any) => (
                                                                                             <SelectItem
-                                                                                                key={classItem.asmcL_Id}
-                                                                                                value={classItem.asmcL_Id.toString()}>
-                                                                                                {classItem.asmcL_ClassName}
+                                                                                                key={item.ivrmmR_Id}
+                                                                                                value={item.ivrmmR_Id.toString()}>
+                                                                                                {item.ivrmmR_ReligionName}
                                                                                             </SelectItem>
                                                                                         ))
-                                                                                    ) : (
-                                                                                        <SelectItem value='0' disabled>
-                                                                                            No classes available
-                                                                                        </SelectItem>
                                                                                     )}
                                                                                 </SelectContent>
                                                                             </Select>
                                                                         )}
                                                                     />
-                                                                    {errors.siblings?.[index]?.classId && (
-                                                                        <FormError>{errors.siblings[index].classId.message}</FormError>
+                                                                    {errors.motherReligionId && (
+                                                                        <FormError>{errors.motherReligionId.message}</FormError>
                                                                     )}
                                                                 </div>
 
-                                                                {/* Relation */}
-                                                                <Controller
-                                                                    control={control}
-                                                                    name={`siblings.${index}.relation`}
-                                                                    render={({ field }) => (
-                                                                        <InputText
-                                                                            label='Relation'
-                                                                            id={`sibling_relation_${index}`}
-                                                                            placeholder='Enter Relation'
-                                                                            {...field}
-                                                                            error={errors.siblings?.[index]?.relation?.message}
-                                                                        />
+                                                                <div className='flex flex-col gap-1.5'>
+                                                                    <Label htmlFor='motherCasteId'>Mother Caste</Label>
+                                                                    <Controller
+                                                                        name='motherCasteId'
+                                                                        control={control}
+                                                                        render={({ field }) => (
+                                                                            <Select
+                                                                                key={`mother_caste_${field.value || 'empty'}_${availableCastes?.length || 0}`}
+                                                                                onValueChange={(value) => field.onChange(Number(value))}
+                                                                                value={field.value?.toString() || ''}
+                                                                                disabled={!currentCategoryId}>
+                                                                                <SelectTrigger>
+                                                                                    <SelectValue placeholder={!currentCategoryId ? 'Select category first' : (isCastesLoading && availableCastes.length === 0) ? 'Loading...' : 'Select caste'} />
+                                                                                </SelectTrigger>
+                                                                                <SelectContent>
+                                                                                    {isCastesLoading && availableCastes.length === 0 ? (
+                                                                                        <SelectItem value='loading' disabled>
+                                                                                            Loading...
+                                                                                        </SelectItem>
+                                                                                    ) : (availableCastes || []).length === 0 ? (
+                                                                                        <SelectItem value='none' disabled>
+                                                                                            No castes found
+                                                                                        </SelectItem>
+                                                                                    ) : (
+                                                                                        availableCastes?.map((item: any) => (
+                                                                                            <SelectItem
+                                                                                                key={item.imC_Id}
+                                                                                                value={item.imC_Id.toString()}>
+                                                                                                {item.imC_CasteName}
+                                                                                            </SelectItem>
+                                                                                        ))
+                                                                                    )}
+                                                                                </SelectContent>
+                                                                            </Select>
+                                                                        )}
+                                                                    />
+                                                                    {errors.motherCasteId && (
+                                                                        <FormError>{errors.motherCasteId.message}</FormError>
                                                                     )}
+                                                                </div>
+
+                                                                <InputText
+                                                                    label='Sub Caste'
+                                                                    id='motherSubCaste'
+                                                                    placeholder='Enter sub caste'
+                                                                    {...register('motherSubCaste')}
+                                                                    error={errors.motherSubCaste?.message}
                                                                 />
+
+                                                                <div className='flex flex-col gap-1.5'>
+                                                                    <Controller
+                                                                        name='motherAnnualIncome'
+                                                                        control={control}
+                                                                        render={({ field }) => (
+                                                                            <InputNumber
+                                                                                label='Mother Anuual Income'
+                                                                                id='motherAnnualIncome'
+                                                                                value={field.value || 0}
+                                                                                onChange={(value) =>
+                                                                                    field.onChange(Number.isNaN(value) ? 0 : value)
+                                                                                }
+                                                                                minValue={0}
+                                                                                maxDigits={15}
+                                                                            />
+                                                                        )}
+                                                                    />
+                                                                    {errors.motherAnnualIncome && (
+                                                                        <FormError>{errors.motherAnnualIncome.message}</FormError>
+                                                                    )}
+                                                                </div>
+
+                                                                <InputText
+                                                                    label='Caste Certificate No'
+                                                                    id='motherCasteCertificateNo'
+                                                                    placeholder='Enter Caste Certificate No'
+                                                                    {...register('motherCasteCertificateNo')}
+                                                                    error={errors.motherCasteCertificateNo?.message}
+                                                                />
+
+                                                                <InputText
+                                                                    label='Pan No'
+                                                                    id='motherPAN'
+                                                                    placeholder='Enter PAN'
+                                                                    {...register('motherPAN')}
+                                                                    error={errors.motherPAN?.message}
+                                                                />
+                                                                <div className='flex items-center space-x-2'>
+                                                                    <Checkbox
+                                                                        id='motherSelfEmployedFlg'
+                                                                        checked={Boolean(watch('motherSelfEmployedFlg'))}
+                                                                        onCheckedChange={(checked) => {
+                                                                            setValue('motherSelfEmployedFlg', checked === true);
+                                                                        }}
+                                                                    />
+                                                                    <Label htmlFor='motherSelfEmployedFlg' className='cursor-pointer'>
+                                                                        Self Employed Flg
+                                                                    </Label>
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                    ))}
+                                                    </div>
                                                 </div>
-                                            )}
-                                        </div>
-
-                                        {/* Place of Birth Details */}
-                                        <div className='space-y-4'>
-                                            <h3 className='font-semibold text-gray-800 text-lg'>Place of Birth Details</h3>
-                                            <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
-                                                {/* Country */}
-                                                <div className='flex flex-col gap-1.5'>
-                                                    <Label htmlFor='amsT_PlaceOfBirthCountry'>Country</Label>
-                                                    <Controller
-                                                        name='amsT_PlaceOfBirthCountry'
-                                                        control={control}
-                                                        render={({ field }) => (
-                                                            <Select
-                                                                key={field.value || 'empty'}
-                                                                value={field.value?.toString() || ''}
-                                                                onValueChange={(value) => field.onChange(Number(value))}>
-                                                                <SelectTrigger>
-                                                                    <SelectValue placeholder='Select country' />
-                                                                </SelectTrigger>
-                                                                <SelectContent>
-                                                                    {countryLoading ? (
-                                                                        <SelectItem value='loading' disabled>
-                                                                            Loading...
-                                                                        </SelectItem>
-                                                                    ) : countryError ? (
-                                                                        <SelectItem value='error' disabled>
-                                                                            Error loading
-                                                                        </SelectItem>
-                                                                    ) : (
-                                                                        country?.data?.map((item: any) => (
-                                                                            <SelectItem
-                                                                                key={item.ivrmmC_Id}
-                                                                                value={item.ivrmmC_Id.toString()}>
-                                                                                {item.ivrmmC_CountryName}
-                                                                            </SelectItem>
-                                                                        ))
-                                                                    )}
-                                                                </SelectContent>
-                                                            </Select>
-                                                        )}
-                                                    />
-                                                </div>
-
-                                                {/* State */}
-                                                <div className='flex flex-col gap-1.5'>
-                                                    <Label htmlFor='amsT_PlaceOfBirthState'>State</Label>
-                                                    <Controller
-                                                        name='amsT_PlaceOfBirthState'
-                                                        control={control}
-                                                        render={({ field }) => (
-                                                            <Select
-                                                                key={field.value || 'empty'}
-                                                                value={field.value?.toString() || ''}
-                                                                onValueChange={(value) => field.onChange(Number(value))}>
-                                                                <SelectTrigger>
-                                                                    <SelectValue placeholder='Select state' />
-                                                                </SelectTrigger>
-                                                                <SelectContent>
-                                                                    {birthStateLoading ? (
-                                                                        <SelectItem value='loading' disabled>
-                                                                            Loading...
-                                                                        </SelectItem>
-                                                                    ) : birthStateError ? (
-                                                                        <SelectItem value='error' disabled>
-                                                                            Error loading
-                                                                        </SelectItem>
-                                                                    ) : (
-                                                                        birthState?.data?.map((item: any) => (
-                                                                            <SelectItem
-                                                                                key={item.ivrmmS_Id}
-                                                                                value={item.ivrmmS_Id.toString()}>
-                                                                                {item.ivrmmS_Name}
-                                                                            </SelectItem>
-                                                                        ))
-                                                                    )}
-                                                                </SelectContent>
-                                                            </Select>
-                                                        )}
-                                                    />
-                                                </div>
-
-                                                {/* District */}
-                                                <InputText
-                                                    label='District'
-                                                    id='amsT_Distirct'
-                                                    placeholder='Enter District'
-                                                    {...register('amsT_Distirct')}
-                                                    error={errors.amsT_Distirct?.message}
-                                                />
-
-                                                {/* Taluk */}
-                                                <InputText
-                                                    label='Taluk'
-                                                    id='amsT_Taluk'
-                                                    placeholder='Enter Taluk'
-                                                    {...register('amsT_Taluk')}
-                                                    error={errors.amsT_Taluk?.message}
-                                                />
-
-                                                {/* Town */}
-                                                <InputText
-                                                    label='Town'
-                                                    id='amsT_Town'
-                                                    placeholder='Enter Town'
-                                                    {...register('amsT_Town')}
-                                                    error={errors.amsT_Town?.message}
-                                                />
-
-                                                {/* Village */}
-                                                <InputText
-                                                    label='Village'
-                                                    id='amsT_Village'
-                                                    placeholder='Enter Village'
-                                                    {...register('amsT_Village')}
-                                                    error={errors.amsT_Village?.message}
-                                                />
                                             </div>
                                         </div>
+                                    </div>
+                                )}
 
-                                        {/* Siblings Count details */}
-
-                                        <div className='space-y-4'>
-                                            <h3 className='font-semibold text-gray-800 text-lg'>Siblings Count Details</h3>
-
+                                {/* Step 4: Other Information */}
+                                {currentStep === 4 && (
+                                    <div className='card-box'>
+                                        <div className='space-y-6'>
+                                            <div>
+                                                <h2 className='font-bold text-2xl text-gray-900'>Other Information</h2>
+                                                <p className='mt-1 text-gray-500 text-sm'>
+                                                    Sibling details, previous school information, and undertaking
+                                                </p>
+                                            </div>
                                             <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
-                                                <InputText
-                                                    label='No of Siblings'
-                                                    id='amsT_NoOfSiblings'
-                                                    placeholder='Enter No of Siblings'
-                                                    {...register('amsT_NoOfSiblings')}
-                                                    error={errors.amsT_NoOfSiblings?.message}
-                                                />
+                                                <div className='flex flex-col gap-1.5'>
+                                                    <Label htmlFor='source_ids'>Activities</Label>
+                                                    <Controller
+                                                        name='activities'
+                                                        control={control}
+                                                        render={({ field }) => (
+                                                            <MultiSelect
+                                                                options={[{ label: 'Sports', value: '2' }]}
+                                                                onValueChange={(selectedValues) => {
+                                                                    field.onChange(selectedValues);
+                                                                    handleActivitySelection(selectedValues);
+                                                                }}
+                                                                defaultValue={selectedActivityItems}
+                                                                value={selectedActivityItems}
+                                                                placeholder='Select Activities'
+                                                                variant='inverted'
+                                                                disabled={sourceLoading}
+                                                            />
+                                                        )}
+                                                    />
+                                                    {errors.activities && <FormError>{errors.activities.message}</FormError>}
+                                                </div>
 
-                                                <InputText
-                                                    label='No of Siblings in School'
-                                                    id='amsT_NoOfSiblingsSchool'
-                                                    placeholder='Enter No of Siblings in School'
-                                                    {...register('amsT_NoOfSiblingsSchool')}
-                                                    error={errors.amsT_NoOfSiblingsSchool?.message}
-                                                />
+                                                <div className='flex flex-col gap-1.5'>
+                                                    <Label htmlFor='source_ids'>Source Details</Label>
+                                                    <Controller
+                                                        name='sourceDetails'
+                                                        control={control}
+                                                        render={({ field }) => (
+                                                            <MultiSelect
+                                                                options={
+                                                                    source?.data?.map((data: any) => ({
+                                                                        label: data.pamS_SourceName,
+                                                                        value: data.pamS_Id.toString()
+                                                                    })) || []
+                                                                }
+                                                                onValueChange={(selectedValues) => {
+                                                                    field.onChange(selectedValues);
+                                                                    handleSourceSelection(selectedValues);
+                                                                }}
+                                                                defaultValue={selectedSourceItems.map((data: any) => data.pamS_Id)}
+                                                                value={selectedSourceItems.map((data: any) => data.pamS_Id)}
+                                                                placeholder='Select sources'
+                                                                variant='inverted'
+                                                                disabled={sourceLoading}
+                                                            />
+                                                        )}
+                                                    />
+                                                    {errors.sourceDetails && <FormError>{errors.sourceDetails.message}</FormError>}
+                                                </div>
 
-                                                <InputText
-                                                    label='No of Dependencies'
-                                                    id='amsT_NoOfDependencies'
-                                                    placeholder='Enter No of Dependencies'
-                                                    {...register('amsT_NoOfDependencies')}
-                                                    error={errors.amsT_NoOfDependencies?.message}
+                                                <InputTextarea
+                                                    label='Achievements'
+                                                    id='achievements'
+                                                    // placeholder={`Enter Mother's Business`}
+                                                    {...register('achievements')}
+                                                    error={errors.achievements?.message}
                                                 />
+                                            </div>
 
-                                                <InputText
-                                                    label='No of Brothers'
-                                                    id='amsT_Noofbrothers'
-                                                    placeholder='Enter No of Brothers'
-                                                    {...register('amsT_Noofbrothers')}
-                                                    error={errors.amsT_Noofbrothers?.message}
-                                                />
+                                            {/* Previous School Details Section */}
+                                            <div className='space-y-4'>
+                                                <div className='flex items-center justify-between'>
+                                                    <h3 className='font-semibold text-gray-800 text-lg'>Previous School Details</h3>
 
-                                                <InputText
-                                                    label='No of Elder Brothers'
-                                                    id='amsT_NoOfElderBrothers'
-                                                    placeholder='Enter No of Elder Brothers'
-                                                    {...register('amsT_NoOfElderBrothers')}
-                                                    error={errors.amsT_NoOfElderBrothers?.message}
-                                                />
+                                                    <Button
+                                                        type='button'
+                                                        variant='outline'
+                                                        size='sm'
+                                                        className='w-fit'
+                                                        onClick={addPreviousSchool}
+                                                        disabled={isSubmitting}>
+                                                        <span className='mr-2'>+</span>
+                                                        Add Previous School Details
+                                                    </Button>
+                                                </div>
 
-                                                <InputText
-                                                    label='No of Younger Brothers'
-                                                    id='amsT_NoOfYoungerBrothers'
-                                                    placeholder='Enter No of Younger Brothers'
-                                                    {...register('amsT_NoOfYoungerBrothers')}
-                                                    error={errors.amsT_NoOfYoungerBrothers?.message}
-                                                />
+                                                {previousSchoolFields.length === 0 ? (
+                                                    <p className='text-gray-500 text-sm'>No previous school details added.</p>
+                                                ) : (
+                                                    <div className='space-y-4'>
+                                                        {previousSchoolFields.map((ps, idx) => (
+                                                            <div key={ps.id} className='rounded-lg border border-gray-200 bg-gray-50 p-4'>
+                                                                {/* Header */}
+                                                                <div className='flex items-center justify-between'>
+                                                                    <h4 className='font-medium text-gray-700 text-sm'>
+                                                                        Previous School {idx + 1}
+                                                                    </h4>
 
-                                                <InputText
-                                                    label='No of Sisters'
-                                                    id='amsT_Noofsisters'
-                                                    placeholder='Enter No of Sisters'
-                                                    {...register('amsT_Noofsisters')}
-                                                    error={errors.amsT_Noofsisters?.message}
-                                                />
+                                                                    <Button
+                                                                        type='button'
+                                                                        variant='outline'
+                                                                        size='sm'
+                                                                        className='w-fit'
+                                                                        onClick={() => removePreviousSchool(idx)}
+                                                                        disabled={isSubmitting}>
+                                                                        Remove
+                                                                    </Button>
+                                                                </div>
 
-                                                <InputText
-                                                    label='No of Elder Sisters'
-                                                    id='amsT_NoOfElderSisters'
-                                                    placeholder='Enter No of Elder Sisters'
-                                                    {...register('amsT_NoOfElderSisters')}
-                                                    error={errors.amsT_NoOfElderSisters?.message}
-                                                />
+                                                                {/* Fields */}
+                                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
+                                                                    {/* School Name */}
+                                                                    <InputText
+                                                                        label='Previous School Name'
+                                                                        placeholder='Enter previous school name'
+                                                                        {...register(`previousSchools.${idx}.schoolName`)}
+                                                                        error={errors.previousSchools?.[idx]?.schoolName?.message}
+                                                                    />
 
-                                                <InputText
-                                                    label='No of Younger Sisters'
-                                                    id='amsT_NoOfYoungerSisters'
-                                                    placeholder='Enter No of Younger Sisters'
-                                                    {...register('amsT_NoOfYoungerSisters')}
-                                                    error={errors.amsT_NoOfYoungerSisters?.message}
-                                                />
+                                                                    {/* School Type */}
+                                                                    <div className='flex flex-col gap-1.5'>
+                                                                        <Label>School Type</Label>
+
+                                                                        <Controller
+                                                                            name={`previousSchools.${idx}.schoolTypeId`}
+                                                                            control={control}
+                                                                            render={({ field }) => (
+                                                                                <Select
+                                                                                    value={field.value?.toString() || ''}
+                                                                                    onValueChange={(val) => {
+                                                                                        const id = Number(val) || 0;
+                                                                                        field.onChange(id);
+                                                                                        const map: Record<number, string> = {
+                                                                                            1: 'Pre-Primary School',
+                                                                                            2: 'Primary School',
+                                                                                            3: 'High School'
+                                                                                        };
+                                                                                        setValue(
+                                                                                            `previousSchools.${idx}.schoolType` as any,
+                                                                                            map[id] ?? ''
+                                                                                        );
+                                                                                    }}>
+                                                                                    <SelectTrigger>
+                                                                                        <SelectValue placeholder='Select school type' />
+                                                                                    </SelectTrigger>
+
+                                                                                    <SelectContent>
+                                                                                        <SelectItem value='1'>Pre-Primary School</SelectItem>
+                                                                                        <SelectItem value='2'>Primary School</SelectItem>
+                                                                                        <SelectItem value='3'>High School</SelectItem>
+                                                                                    </SelectContent>
+                                                                                </Select>
+                                                                            )}
+                                                                        />
+                                                                    </div>
+
+                                                                    {/* Class */}
+                                                                    <div className='flex flex-col gap-1.5'>
+                                                                        <Label>Class</Label>
+                                                                        <Controller
+                                                                            name={`previousSchools.${idx}.classId`}
+                                                                            control={control}
+                                                                            render={({ field, fieldState: { error } }) => (
+                                                                                <Select
+                                                                                    value={field.value !== undefined ? String(field.value) : ''}
+                                                                                    onValueChange={(val) => field.onChange(val)}>
+                                                                                    <SelectTrigger className={error && 'border-red-500'}>
+                                                                                        <SelectValue placeholder='Select class' />
+                                                                                    </SelectTrigger>
+
+                                                                                    <SelectContent>
+                                                                                        {admissionClassLoading ? (
+                                                                                            <SelectItem value='loading' disabled>
+                                                                                                Loading...
+                                                                                            </SelectItem>
+                                                                                        ) : admissionClassError ? (
+                                                                                            <SelectItem value='error' disabled>
+                                                                                                Error loading classes
+                                                                                            </SelectItem>
+                                                                                        ) : (
+                                                                                            admissionClass?.data?.map((item: any) => (
+                                                                                                <SelectItem
+                                                                                                    key={item.asmcL_Id}
+                                                                                                    value={item.asmcL_Id.toString()}>
+                                                                                                    {item.asmcL_ClassName}
+                                                                                                </SelectItem>
+                                                                                            ))
+                                                                                        )}
+                                                                                    </SelectContent>
+                                                                                </Select>
+                                                                            )}
+                                                                        />
+                                                                    </div>
+
+                                                                    {/* Percentage */}
+                                                                    <InputText
+                                                                        label='Percentage'
+                                                                        placeholder='Enter percentage'
+                                                                        {...register(`previousSchools.${idx}.percentage`)}
+                                                                        error={errors.previousSchools?.[idx]?.percentage?.message}
+                                                                    />
+
+                                                                    {/* Grade */}
+                                                                    <InputText
+                                                                        label='Grade'
+                                                                        placeholder='Enter grade'
+                                                                        {...register(`previousSchools.${idx}.grade`)}
+                                                                        error={errors.previousSchools?.[idx]?.grade?.message}
+                                                                    />
+
+                                                                    {/* Passed Year */}
+                                                                    <div className='flex flex-col gap-1.5'>
+                                                                        <Label>Passed Year</Label>
+                                                                        <Controller
+                                                                            name={`previousSchools.${idx}.passedYear`}
+                                                                            control={control}
+                                                                            render={({ field }) => (
+                                                                                <Select
+                                                                                    value={field.value != null ? String(field.value) : ''}
+                                                                                    onValueChange={(val) => field.onChange(Number(val))}>
+                                                                                    <SelectTrigger>
+                                                                                        <SelectValue placeholder='Select passed year' />
+                                                                                    </SelectTrigger>
+                                                                                    <SelectContent>
+                                                                                        {academicLoading ? (
+                                                                                            <SelectItem value={'loading'} disabled>
+                                                                                                Loading...
+                                                                                            </SelectItem>
+                                                                                        ) : academicYears?.data &&
+                                                                                            academicYears.data.length > 0 ? (
+                                                                                            academicYears.data.map((y: any) => (
+                                                                                                <SelectItem
+                                                                                                    key={String(y.asmaY_Id)}
+                                                                                                    value={String(y.asmaY_Id)}>
+                                                                                                    {y.asmaY_Year}
+                                                                                                </SelectItem>
+                                                                                            ))
+                                                                                        ) : (
+                                                                                            <SelectItem value={'none'} disabled>
+                                                                                                No years
+                                                                                            </SelectItem>
+                                                                                        )}
+                                                                                    </SelectContent>
+                                                                                </Select>
+                                                                            )}
+                                                                        />
+                                                                    </div>
+
+                                                                    <PreviousSchoolRow idx={idx} />
+
+                                                                    {/* Address */}
+                                                                    <InputText
+                                                                        label='Address'
+                                                                        placeholder='Enter school address'
+                                                                        {...register(`previousSchools.${idx}.address`)}
+                                                                        error={errors.previousSchools?.[idx]?.address?.message}
+                                                                    />
+
+                                                                    {/* Left Reason */}
+                                                                    <InputText
+                                                                        label='Left Reason'
+                                                                        placeholder='Enter reason for leaving'
+                                                                        {...register(`previousSchools.${idx}.leftReason`)}
+                                                                        error={errors.previousSchools?.[idx]?.leftReason?.message}
+                                                                    />
+
+                                                                    {/* Medium */}
+                                                                    <InputText
+                                                                        label='Medium'
+                                                                        placeholder='Enter medium of instruction'
+                                                                        {...register(`previousSchools.${idx}.medium`)}
+                                                                        error={errors.previousSchools?.[idx]?.medium?.message}
+                                                                    />
+
+                                                                    {/* TC Number */}
+                                                                    <InputText
+                                                                        label='TC No'
+                                                                        placeholder='Enter TC number'
+                                                                        {...register(`previousSchools.${idx}.tcNumber`)}
+                                                                        error={errors.previousSchools?.[idx]?.tcNumber?.message}
+                                                                    />
+
+                                                                    {/* TC Date */}
+                                                                    <Controller
+                                                                        name={`previousSchools.${idx}.tcDate`}
+                                                                        control={control}
+                                                                        render={({ field, fieldState: { error } }) => (
+                                                                            <div className='flex flex-col space-y-2'>
+                                                                                <Label>TC Date</Label>
+
+                                                                                <Popover>
+                                                                                    <PopoverTrigger asChild>
+                                                                                        <Button
+                                                                                            variant='outline'
+                                                                                            className={cn(
+                                                                                                'w-full justify-start text-left',
+                                                                                                !field.value && 'text-muted-foreground',
+                                                                                                error && 'border-red-500'
+                                                                                            )}>
+                                                                                            <CalendarIcon className='mr-2 h-4 w-4' />
+                                                                                            {field.value &&
+                                                                                                Object.prototype.toString.call(field.value) ===
+                                                                                                '[object Date]' &&
+                                                                                                field.value.getTime()
+                                                                                                ? format(field.value, 'dd/MM/yyyy')
+                                                                                                : 'Select TC date'}
+                                                                                        </Button>
+                                                                                    </PopoverTrigger>
+
+                                                                                    <PopoverContent>
+                                                                                        <CalendarYear
+                                                                                            mode='single'
+                                                                                            selected={field.value || undefined}
+                                                                                            onSelect={(date) => date && field.onChange(date)}
+                                                                                            disabled={(d) =>
+                                                                                                d > new Date() || d < new Date('1900-01-01')
+                                                                                            }
+                                                                                        />
+                                                                                    </PopoverContent>
+                                                                                </Popover>
+
+                                                                                {error && (
+                                                                                    <span className='text-red-500 text-sm'>
+                                                                                        {error.message}
+                                                                                    </span>
+                                                                                )}
+                                                                            </div>
+                                                                        )}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* GUARDIAN DETAILS Section */}
+                                            <div className='space-y-4'>
+                                                <div className='flex items-center justify-between'>
+                                                    <h3 className='font-semibold text-gray-800 text-lg'>GUARDIAN DETAILS</h3>
+
+                                                    <Button
+                                                        type='button'
+                                                        variant='outline'
+                                                        size='sm'
+                                                        className='w-fit'
+                                                        onClick={addGuardian}
+                                                        disabled={isSubmitting}>
+                                                        <span className='mr-2'>+</span>
+                                                        Add Guardian
+                                                    </Button>
+                                                </div>
+
+                                                {guardianFields.length === 0 ? (
+                                                    <p className='text-gray-500 text-sm'>No guardians added yet.</p>
+                                                ) : (
+                                                    <div className='space-y-4'>
+                                                        {guardianFields.map((g, idx) => (
+                                                            <div key={g.id} className='rounded-lg border border-gray-200 bg-gray-50 p-4'>
+                                                                <div className='flex items-center justify-between'>
+                                                                    <h4 className='font-medium text-gray-700 text-sm'>Guardian {idx + 1}</h4>
+                                                                    <div className='flex items-center gap-2'>
+                                                                        <Button
+                                                                            type='button'
+                                                                            variant='ghost'
+                                                                            size='sm'
+                                                                            onClick={() => removeGuardian(idx)}
+                                                                            disabled={isSubmitting || idx === 0}
+                                                                            className={`h-8 w-fit ${idx === 0 ? 'cursor-not-allowed opacity-50' : ''}`}>
+                                                                            Remove
+                                                                        </Button>
+                                                                        <Button
+                                                                            type='button'
+                                                                            variant='outline'
+                                                                            size='sm'
+                                                                            onClick={() => handleSaveGuardian(idx)}
+                                                                            disabled={
+                                                                                isSubmitting ||
+                                                                                guardianPhotos?.[idx]?.isUploading ||
+                                                                                guardianSignatures?.[idx]?.isUploading
+                                                                            }
+                                                                            className='h-8 w-fit'>
+                                                                            <Save className='mr-2 h-4 w-4' />
+                                                                            Save
+                                                                        </Button>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
+                                                                    {/* Guardian Name */}
+                                                                    <InputText
+                                                                        label='Guardian Name'
+                                                                        placeholder='Enter Guardian Name'
+                                                                        {...register(`guardian.${idx}.guardianName`)}
+                                                                        error={errors.guardian?.[idx]?.guardianName?.message}
+                                                                    />
+
+                                                                    {/* Guardian Phone (PhoneInput) */}
+                                                                    <div className='flex flex-col gap-1.5'>
+                                                                        <Controller
+                                                                            name={`guardian.${idx}.guardianPhone`}
+                                                                            control={control}
+                                                                            render={({ field }) => (
+                                                                                <div>
+                                                                                    <Label htmlFor={`guardianPhone_${idx}`}>
+                                                                                        Guardian Phone
+                                                                                    </Label>
+
+                                                                                    <PhoneInput
+                                                                                        country='in'
+                                                                                        value={
+                                                                                            phoneValues[`guardian_${idx}_phone`] ??
+                                                                                            (field.value != null ? String(field.value) : null)
+                                                                                        }
+                                                                                        onChange={(phone, countryData) =>
+                                                                                            handlePhoneChange(
+                                                                                                phone,
+                                                                                                countryData,
+                                                                                                `guardian.${idx}.guardianPhone`
+                                                                                            )
+                                                                                        }
+                                                                                        onBlur={() => trigger(`guardian.${idx}.guardianPhone`)}
+                                                                                        inputProps={{
+                                                                                            id: `guardianPhone_${idx}`,
+                                                                                            name: `guardian.${idx}.guardianPhone`,
+                                                                                            maxLength: 25,
+                                                                                            required: false,
+                                                                                            style: {
+                                                                                                width: '87%',
+                                                                                                height: '36px',
+                                                                                                marginLeft: '40px',
+                                                                                                boxSizing: 'border-box',
+                                                                                                borderRadius: '4px',
+                                                                                                padding: '16.5px 14px',
+                                                                                                fontSize: '16px'
+                                                                                            }
+                                                                                        }}
+                                                                                        containerClass='w-full'
+                                                                                        inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+                                                                                        enableSearch
+                                                                                        disableCountryCode={false}
+                                                                                        enableLongNumbers={true}
+                                                                                        isValid={true}
+                                                                                        preserveOrder={['country', 'nationalNumber']}
+                                                                                    />
+
+                                                                                    {phoneExpectedInfo?.[`guardian_${idx}_phone`]?.expected && (
+                                                                                        <span className='mt-1 text-muted-foreground text-xs'>
+                                                                                            {`Mobile number must be exactly ${phoneExpectedInfo[`guardian_${idx}_phone`]
+                                                                                                .expected
+                                                                                                } digits for ${phoneExpectedInfo[`guardian_${idx}_phone`]
+                                                                                                    .name ?? 'selected country'
+                                                                                                }`}
+                                                                                        </span>
+                                                                                    )}
+                                                                                </div>
+                                                                            )}
+                                                                        />
+
+                                                                        {errors.guardian?.[idx]?.guardianPhone && (
+                                                                            <FormError>{errors.guardian[idx].guardianPhone?.message}</FormError>
+                                                                        )}
+                                                                    </div>
+
+                                                                    {/* Guardian Email */}
+                                                                    <InputText
+                                                                        label='Guardian Email'
+                                                                        placeholder='Enter Guardian Email'
+                                                                        {...register(`guardian.${idx}.guardianEmail`)}
+                                                                        error={errors.guardian?.[idx]?.guardianEmail?.message}
+                                                                    />
+
+                                                                    {/* Guardian Address */}
+                                                                    <InputText
+                                                                        label='Guardian Address'
+                                                                        placeholder='Enter Guardian Address'
+                                                                        {...register(`guardian.${idx}.guardianAddress`)}
+                                                                        error={errors.guardian?.[idx]?.guardianAddress?.message}
+                                                                    />
+
+                                                                    {watchedGuardians?.[idx]?.guardianName ? (
+                                                                        <>
+                                                                            <div className='col-span-full flex w-full items-stretch gap-4'>
+                                                                                {/* Photo column */}
+                                                                                <div className='min-w-0 flex-1'>
+                                                                                    <div className='flex h-full flex-col justify-between overflow-hidden rounded-lg border-2 border-blue-200 bg-blue-50 p-2'>
+                                                                                        <div>
+                                                                                            <div className='mb-1'>
+                                                                                                <Label>Guardian Photo</Label>
+                                                                                            </div>
+
+                                                                                            {!guardianPhotos?.[idx]?.path ? (
+                                                                                                <label
+                                                                                                    className={cn(
+                                                                                                        'flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-2 py-3 text-center transition-all hover:border-primary hover:bg-white',
+                                                                                                        guardianPhotos?.[idx]?.isUploading
+                                                                                                            ? 'border-blue-400 bg-blue-100'
+                                                                                                            : 'border-gray-300 bg-white'
+                                                                                                    )}>
+                                                                                                    {guardianPhotos?.[idx]?.isUploading ? (
+                                                                                                        <div className='flex flex-col items-center gap-2'>
+                                                                                                            <svg
+                                                                                                                className='h-8 w-8 animate-spin text-primary'
+                                                                                                                fill='none'
+                                                                                                                stroke='currentColor'
+                                                                                                                viewBox='0 0 24 24'>
+                                                                                                                <circle
+                                                                                                                    className='opacity-25'
+                                                                                                                    cx='12'
+                                                                                                                    cy='12'
+                                                                                                                    r='10'
+                                                                                                                    strokeWidth='4'
+                                                                                                                    stroke='currentColor'
+                                                                                                                />
+                                                                                                                <path
+                                                                                                                    className='opacity-75'
+                                                                                                                    fill='currentColor'
+                                                                                                                    d='M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z'
+                                                                                                                />
+                                                                                                            </svg>
+                                                                                                            <span className='font-medium text-primary text-sm'>
+                                                                                                                Uploading photo...
+                                                                                                            </span>
+                                                                                                        </div>
+                                                                                                    ) : (
+                                                                                                        <>
+                                                                                                            <svg
+                                                                                                                className='h-12 w-12 text-primary'
+                                                                                                                fill='none'
+                                                                                                                stroke='currentColor'
+                                                                                                                viewBox='0 0 24 24'>
+                                                                                                                <path
+                                                                                                                    strokeLinecap='round'
+                                                                                                                    strokeLinejoin='round'
+                                                                                                                    strokeWidth={2}
+                                                                                                                    d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
+                                                                                                                />
+                                                                                                            </svg>
+                                                                                                            <span className='font-medium text-gray-700 text-sm'>
+                                                                                                                Click to upload
+                                                                                                            </span>
+                                                                                                            <span className='mt-1 max-w-[250px] text-gray-600 text-sm'>
+                                                                                                                Upload guardian photo (Max size:
+                                                                                                                5MB, JPG/PNG)
+                                                                                                            </span>
+                                                                                                        </>
+                                                                                                    )}
+
+                                                                                                    <input
+                                                                                                        type='file'
+                                                                                                        className='hidden'
+                                                                                                        accept='image/jpeg,image/jpg,image/png'
+                                                                                                        disabled={
+                                                                                                            guardianPhotos?.[idx]
+                                                                                                                ?.isUploading || isSubmitting
+                                                                                                        }
+                                                                                                        onChange={(e) => {
+                                                                                                            const file = e.target.files?.[0];
+                                                                                                            if (file) {
+                                                                                                                if (
+                                                                                                                    file.size >
+                                                                                                                    5 * 1024 * 1024
+                                                                                                                ) {
+                                                                                                                    toast.error(
+                                                                                                                        'File size must be less than 5MB'
+                                                                                                                    );
+                                                                                                                    e.target.value = '';
+                                                                                                                    return;
+                                                                                                                }
+                                                                                                                handleGuardianPhotoUpload(
+                                                                                                                    idx,
+                                                                                                                    file
+                                                                                                                );
+                                                                                                                e.target.value = '';
+                                                                                                            }
+                                                                                                        }}
+                                                                                                    />
+                                                                                                </label>
+                                                                                            ) : (
+                                                                                                <div className='flex h-full w-full flex-col items-start justify-start gap-2 overflow-hidden rounded-lg border border-green-200 bg-green-50 p-4'>
+                                                                                                    <div className='flex items-center gap-4'>
+                                                                                                        <img
+                                                                                                            src={guardianPhotos[idx].path}
+                                                                                                            alt={`Guardian ${idx + 1}`}
+                                                                                                            className='h-24 w-24 rounded-lg border-2 border-green-300 object-cover'
+                                                                                                        />
+                                                                                                        <div>
+                                                                                                            <div className='flex items-center gap-2 font-medium text-green-700'>
+                                                                                                                <Check className='h-5 w-5' />
+                                                                                                                Uploaded Successfully
+                                                                                                            </div>
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                    <div className='flex items-center gap-2'>
+                                                                                                        <Button
+                                                                                                            type='button'
+                                                                                                            variant='outline'
+                                                                                                            size='sm'
+                                                                                                            className='flex h-9 w-9 items-center justify-center p-0'
+                                                                                                            onClick={() =>
+                                                                                                                window.open(
+                                                                                                                    guardianPhotos[idx].path,
+                                                                                                                    '_blank'
+                                                                                                                )
+                                                                                                            }>
+                                                                                                            <Eye className='h-4 w-4' />
+                                                                                                        </Button>
+                                                                                                        <Button
+                                                                                                            type='button'
+                                                                                                            variant='destructive'
+                                                                                                            size='sm'
+                                                                                                            className='flex h-9 w-9 items-center justify-center p-0'
+                                                                                                            disabled={isSubmitting}
+                                                                                                            onClick={() =>
+                                                                                                                handleGuardianPhotoDelete(idx)
+                                                                                                            }>
+                                                                                                            <Trash className='h-4 w-4' />
+                                                                                                        </Button>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            )}
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+
+                                                                                {/* Signature column */}
+                                                                                <div className='min-w-0 flex-1'>
+                                                                                    <div className='flex h-full flex-col justify-between overflow-hidden rounded-lg border-2 border-blue-200 bg-blue-50 p-2'>
+                                                                                        <div>
+                                                                                            <div className='mb-1'>
+                                                                                                <Label>Guardian Signature</Label>
+                                                                                            </div>
+
+                                                                                            {!guardianSignatures?.[idx]?.path ? (
+                                                                                                <label
+                                                                                                    className={cn(
+                                                                                                        'flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-2 py-3 text-center transition-all hover:border-primary hover:bg-white',
+                                                                                                        guardianSignatures?.[idx]?.isUploading
+                                                                                                            ? 'border-blue-400 bg-blue-100'
+                                                                                                            : 'border-gray-300 bg-white'
+                                                                                                    )}>
+                                                                                                    {guardianSignatures?.[idx]?.isUploading ? (
+                                                                                                        <div className='flex flex-col items-center gap-2'>
+                                                                                                            <svg
+                                                                                                                className='h-8 w-8 animate-spin text-primary'
+                                                                                                                fill='none'
+                                                                                                                stroke='currentColor'
+                                                                                                                viewBox='0 0 24 24'>
+                                                                                                                <circle
+                                                                                                                    className='opacity-25'
+                                                                                                                    cx='12'
+                                                                                                                    cy='12'
+                                                                                                                    r='10'
+                                                                                                                    strokeWidth='4'
+                                                                                                                    stroke='currentColor'
+                                                                                                                />
+                                                                                                                <path
+                                                                                                                    className='opacity-75'
+                                                                                                                    fill='currentColor'
+                                                                                                                    d='M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z'
+                                                                                                                />
+                                                                                                            </svg>
+                                                                                                            <span className='font-medium text-primary text-sm'>
+                                                                                                                Uploading signature...
+                                                                                                            </span>
+                                                                                                        </div>
+                                                                                                    ) : (
+                                                                                                        <>
+                                                                                                            <svg
+                                                                                                                className='h-12 w-12 text-primary'
+                                                                                                                fill='none'
+                                                                                                                stroke='currentColor'
+                                                                                                                viewBox='0 0 24 24'>
+                                                                                                                <path
+                                                                                                                    strokeLinecap='round'
+                                                                                                                    strokeLinejoin='round'
+                                                                                                                    strokeWidth={2}
+                                                                                                                    d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
+                                                                                                                />
+                                                                                                            </svg>
+                                                                                                            <span className='font-medium text-gray-700 text-sm'>
+                                                                                                                Click to upload
+                                                                                                            </span>
+                                                                                                            <span className='mt-1 max-w-[250px] text-gray-600 text-sm'>
+                                                                                                                Upload guardian signature (Max
+                                                                                                                size: 5MB, JPG/PNG)
+                                                                                                            </span>
+                                                                                                        </>
+                                                                                                    )}
+
+                                                                                                    <input
+                                                                                                        type='file'
+                                                                                                        className='hidden'
+                                                                                                        accept='image/jpeg,image/jpg,image/png'
+                                                                                                        disabled={
+                                                                                                            guardianSignatures?.[idx]
+                                                                                                                ?.isUploading || isSubmitting
+                                                                                                        }
+                                                                                                        onChange={(e) => {
+                                                                                                            const file = e.target.files?.[0];
+                                                                                                            if (file) {
+                                                                                                                if (
+                                                                                                                    file.size >
+                                                                                                                    5 * 1024 * 1024
+                                                                                                                ) {
+                                                                                                                    toast.error(
+                                                                                                                        'File size must be less than 5MB'
+                                                                                                                    );
+                                                                                                                    e.target.value = '';
+                                                                                                                    return;
+                                                                                                                }
+                                                                                                                handleGuardianSignatureUpload(
+                                                                                                                    idx,
+                                                                                                                    file
+                                                                                                                );
+                                                                                                                e.target.value = '';
+                                                                                                            }
+                                                                                                        }}
+                                                                                                    />
+                                                                                                </label>
+                                                                                            ) : (
+                                                                                                <div className='flex h-full w-full flex-col items-start justify-start gap-2 overflow-hidden rounded-lg border border-green-200 bg-green-50 p-4'>
+                                                                                                    <div className='flex items-center gap-4'>
+                                                                                                        <img
+                                                                                                            src={guardianSignatures[idx].path}
+                                                                                                            alt={`Guardian signature ${idx + 1}`}
+                                                                                                            className='h-24 w-40 rounded-lg border-2 border-green-300 object-contain'
+                                                                                                        />
+                                                                                                        <div>
+                                                                                                            <div className='flex items-center gap-2 font-medium text-green-700'>
+                                                                                                                <Check className='h-5 w-5' />
+                                                                                                                Uploaded Successfully
+                                                                                                            </div>
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                    <div className='flex items-center gap-2'>
+                                                                                                        <Button
+                                                                                                            type='button'
+                                                                                                            variant='outline'
+                                                                                                            size='sm'
+                                                                                                            className='flex h-9 w-9 items-center justify-center p-0'
+                                                                                                            onClick={() =>
+                                                                                                                window.open(
+                                                                                                                    guardianSignatures[idx]
+                                                                                                                        .path,
+                                                                                                                    '_blank'
+                                                                                                                )
+                                                                                                            }>
+                                                                                                            <Eye className='h-4 w-4' />
+                                                                                                        </Button>
+                                                                                                        <Button
+                                                                                                            type='button'
+                                                                                                            variant='destructive'
+                                                                                                            size='sm'
+                                                                                                            className='flex h-9 w-9 items-center justify-center p-0'
+                                                                                                            disabled={isSubmitting}
+                                                                                                            onClick={() =>
+                                                                                                                handleGuardianSignatureDelete(
+                                                                                                                    idx
+                                                                                                                )
+                                                                                                            }>
+                                                                                                            <Trash className='h-4 w-4' />
+                                                                                                        </Button>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            )}
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </>
+                                                                    ) : null}
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* SIBLING DETAILS Section */}
+                                            <div className='space-y-4'>
+                                                <div className='flex items-center justify-between'>
+                                                    <h3 className='font-semibold text-gray-800 text-lg'>Sibling Details</h3>
+                                                    <Button
+                                                        type='button'
+                                                        variant='outline'
+                                                        size='sm'
+                                                        onClick={addSibling}
+                                                        disabled={isSubmitting}
+                                                        className='w-fit'>
+                                                        <span className='mr-2'>+</span>
+                                                        Add Sibling
+                                                    </Button>
+                                                </div>
+
+                                                {siblingFields.length === 0 ? (
+                                                    <p className='text-gray-500 text-sm'>
+                                                        No siblings added yet. Click "Add Sibling" to add details.
+                                                    </p>
+                                                ) : (
+                                                    <div className='space-y-4'>
+                                                        {siblingFields.map((sibling, index) => (
+                                                            <div key={sibling.id} className='rounded-lg border border-gray-200 bg-gray-50 p-4'>
+                                                                <div className='mb-3 flex items-center justify-between'>
+                                                                    <h4 className='font-medium text-gray-700 text-sm'>Sibling {index + 1}</h4>
+                                                                    <Button
+                                                                        type='button'
+                                                                        variant='ghost'
+                                                                        size='sm'
+                                                                        onClick={() => removeSibling(index)}
+                                                                        disabled={isSubmitting || index === 0}
+                                                                        className={`h-8 w-fit ${index === 0 ? 'cursor-not-allowed opacity-50' : 'bg-error text-white'}`}>
+                                                                        Remove
+                                                                    </Button>
+                                                                </div>
+
+                                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                                    {/* Sibling Name */}
+                                                                    <Controller
+                                                                        control={control}
+                                                                        name={`siblings.${index}.name`}
+                                                                        render={({ field }) => (
+                                                                            <InputText
+                                                                                label='Sibling Name'
+                                                                                id={`sibling_name_${index}`}
+                                                                                placeholder='Enter sibling name'
+                                                                                {...field}
+                                                                                error={errors.siblings?.[index]?.name?.message}
+                                                                            />
+                                                                        )}
+                                                                    />
+
+                                                                    {/* Class Select */}
+                                                                    <div className='flex flex-col gap-1.5'>
+                                                                        <Label htmlFor={`classId_${index}`}>Class</Label>
+                                                                        <Controller
+                                                                            name={`siblings.${index}.classId`}
+                                                                            control={control}
+                                                                            render={({ field, fieldState: { error } }) => (
+                                                                                <Select
+                                                                                    value={field.value?.toString() || ''}
+                                                                                    onValueChange={(value) => field.onChange(Number(value))}>
+                                                                                    <SelectTrigger
+                                                                                        className={cn('w-full', error && 'border-red-500')}>
+                                                                                        <SelectValue
+                                                                                            placeholder={
+                                                                                                admissionClassLoading
+                                                                                                    ? 'Loading classes...'
+                                                                                                    : 'Select a class'
+                                                                                            }
+                                                                                        />
+                                                                                    </SelectTrigger>
+                                                                                    <SelectContent>
+                                                                                        {admissionClassLoading ? (
+                                                                                            <SelectItem value='loading' disabled>
+                                                                                                Loading...
+                                                                                            </SelectItem>
+                                                                                        ) : admissionClassError ? (
+                                                                                            <SelectItem value='error' disabled>
+                                                                                                Error loading classes
+                                                                                            </SelectItem>
+                                                                                        ) : Array.isArray(admissionClass?.data) &&
+                                                                                            admissionClass.data.length > 0 ? (
+                                                                                            admissionClass.data.map((classItem: any) => (
+                                                                                                <SelectItem
+                                                                                                    key={classItem.asmcL_Id}
+                                                                                                    value={classItem.asmcL_Id.toString()}>
+                                                                                                    {classItem.asmcL_ClassName}
+                                                                                                </SelectItem>
+                                                                                            ))
+                                                                                        ) : (
+                                                                                            <SelectItem value='0' disabled>
+                                                                                                No classes available
+                                                                                            </SelectItem>
+                                                                                        )}
+                                                                                    </SelectContent>
+                                                                                </Select>
+                                                                            )}
+                                                                        />
+                                                                        {errors.siblings?.[index]?.classId && (
+                                                                            <FormError>{errors.siblings[index].classId.message}</FormError>
+                                                                        )}
+                                                                    </div>
+
+                                                                    {/* Relation */}
+                                                                    <Controller
+                                                                        control={control}
+                                                                        name={`siblings.${index}.relation`}
+                                                                        render={({ field }) => (
+                                                                            <InputText
+                                                                                label='Relation'
+                                                                                id={`sibling_relation_${index}`}
+                                                                                placeholder='Enter Relation'
+                                                                                {...field}
+                                                                                error={errors.siblings?.[index]?.relation?.message}
+                                                                            />
+                                                                        )}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Place of Birth Details */}
+                                            <div className='space-y-4'>
+                                                <h3 className='font-semibold text-gray-800 text-lg'>Place of Birth Details</h3>
+                                                <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
+                                                    {/* Country */}
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Label htmlFor='amsT_PlaceOfBirthCountry'>Country</Label>
+                                                        <Controller
+                                                            name='amsT_PlaceOfBirthCountry'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <Select
+                                                                    key={field.value || 'empty'}
+                                                                    value={field.value?.toString() || ''}
+                                                                    onValueChange={(value) => field.onChange(Number(value))}>
+                                                                    <SelectTrigger>
+                                                                        <SelectValue placeholder='Select country' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {countryLoading ? (
+                                                                            <SelectItem value='loading' disabled>
+                                                                                Loading...
+                                                                            </SelectItem>
+                                                                        ) : countryError ? (
+                                                                            <SelectItem value='error' disabled>
+                                                                                Error loading
+                                                                            </SelectItem>
+                                                                        ) : (
+                                                                            country?.data?.map((item: any) => (
+                                                                                <SelectItem
+                                                                                    key={item.ivrmmC_Id}
+                                                                                    value={item.ivrmmC_Id.toString()}>
+                                                                                    {item.ivrmmC_CountryName}
+                                                                                </SelectItem>
+                                                                            ))
+                                                                        )}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            )}
+                                                        />
+                                                    </div>
+
+                                                    {/* State */}
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Label htmlFor='amsT_PlaceOfBirthState'>State</Label>
+                                                        <Controller
+                                                            name='amsT_PlaceOfBirthState'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <Select
+                                                                    key={field.value || 'empty'}
+                                                                    value={field.value?.toString() || ''}
+                                                                    onValueChange={(value) => field.onChange(Number(value))}>
+                                                                    <SelectTrigger>
+                                                                        <SelectValue placeholder='Select state' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {birthStateLoading ? (
+                                                                            <SelectItem value='loading' disabled>
+                                                                                Loading...
+                                                                            </SelectItem>
+                                                                        ) : birthStateError ? (
+                                                                            <SelectItem value='error' disabled>
+                                                                                Error loading
+                                                                            </SelectItem>
+                                                                        ) : (
+                                                                            birthState?.data?.map((item: any) => (
+                                                                                <SelectItem
+                                                                                    key={item.ivrmmS_Id}
+                                                                                    value={item.ivrmmS_Id.toString()}>
+                                                                                    {item.ivrmmS_Name}
+                                                                                </SelectItem>
+                                                                            ))
+                                                                        )}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            )}
+                                                        />
+                                                    </div>
+
+                                                    {/* District */}
+                                                    <InputText
+                                                        label='District'
+                                                        id='amsT_Distirct'
+                                                        placeholder='Enter District'
+                                                        {...register('amsT_Distirct')}
+                                                        error={errors.amsT_Distirct?.message}
+                                                    />
+
+                                                    {/* Taluk */}
+                                                    <InputText
+                                                        label='Taluk'
+                                                        id='amsT_Taluk'
+                                                        placeholder='Enter Taluk'
+                                                        {...register('amsT_Taluk')}
+                                                        error={errors.amsT_Taluk?.message}
+                                                    />
+
+                                                    {/* Town */}
+                                                    <InputText
+                                                        label='Town'
+                                                        id='amsT_Town'
+                                                        placeholder='Enter Town'
+                                                        {...register('amsT_Town')}
+                                                        error={errors.amsT_Town?.message}
+                                                    />
+
+                                                    {/* Village */}
+                                                    <InputText
+                                                        label='Village'
+                                                        id='amsT_Village'
+                                                        placeholder='Enter Village'
+                                                        {...register('amsT_Village')}
+                                                        error={errors.amsT_Village?.message}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {/* Siblings Count details */}
+
+                                            <div className='space-y-4'>
+                                                <h3 className='font-semibold text-gray-800 text-lg'>Siblings Count Details</h3>
+
+                                                <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
+                                                    <InputText
+                                                        label='No of Siblings'
+                                                        id='amsT_NoOfSiblings'
+                                                        placeholder='Enter No of Siblings'
+                                                        {...register('amsT_NoOfSiblings')}
+                                                        error={errors.amsT_NoOfSiblings?.message}
+                                                    />
+
+                                                    <InputText
+                                                        label='No of Siblings in School'
+                                                        id='amsT_NoOfSiblingsSchool'
+                                                        placeholder='Enter No of Siblings in School'
+                                                        {...register('amsT_NoOfSiblingsSchool')}
+                                                        error={errors.amsT_NoOfSiblingsSchool?.message}
+                                                    />
+
+                                                    <InputText
+                                                        label='No of Dependencies'
+                                                        id='amsT_NoOfDependencies'
+                                                        placeholder='Enter No of Dependencies'
+                                                        {...register('amsT_NoOfDependencies')}
+                                                        error={errors.amsT_NoOfDependencies?.message}
+                                                    />
+
+                                                    <InputText
+                                                        label='No of Brothers'
+                                                        id='amsT_Noofbrothers'
+                                                        placeholder='Enter No of Brothers'
+                                                        {...register('amsT_Noofbrothers')}
+                                                        error={errors.amsT_Noofbrothers?.message}
+                                                    />
+
+                                                    <InputText
+                                                        label='No of Elder Brothers'
+                                                        id='amsT_NoOfElderBrothers'
+                                                        placeholder='Enter No of Elder Brothers'
+                                                        {...register('amsT_NoOfElderBrothers')}
+                                                        error={errors.amsT_NoOfElderBrothers?.message}
+                                                    />
+
+                                                    <InputText
+                                                        label='No of Younger Brothers'
+                                                        id='amsT_NoOfYoungerBrothers'
+                                                        placeholder='Enter No of Younger Brothers'
+                                                        {...register('amsT_NoOfYoungerBrothers')}
+                                                        error={errors.amsT_NoOfYoungerBrothers?.message}
+                                                    />
+
+                                                    <InputText
+                                                        label='No of Sisters'
+                                                        id='amsT_Noofsisters'
+                                                        placeholder='Enter No of Sisters'
+                                                        {...register('amsT_Noofsisters')}
+                                                        error={errors.amsT_Noofsisters?.message}
+                                                    />
+
+                                                    <InputText
+                                                        label='No of Elder Sisters'
+                                                        id='amsT_NoOfElderSisters'
+                                                        placeholder='Enter No of Elder Sisters'
+                                                        {...register('amsT_NoOfElderSisters')}
+                                                        error={errors.amsT_NoOfElderSisters?.message}
+                                                    />
+
+                                                    <InputText
+                                                        label='No of Younger Sisters'
+                                                        id='amsT_NoOfYoungerSisters'
+                                                        placeholder='Enter No of Younger Sisters'
+                                                        {...register('amsT_NoOfYoungerSisters')}
+                                                        error={errors.amsT_NoOfYoungerSisters?.message}
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -9054,196 +8706,198 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
 
                                 {/* Step 5: Health and Medical Details */}
                                 {currentStep === 5 && (
-                                    <div className='space-y-6'>
-                                        <div>
-                                            <h2 className='font-bold text-2xl text-gray-900'>Health and Medical Details</h2>
-                                            <p className='mt-1 text-gray-500 text-sm'>Please provide Health details</p>
-                                        </div>
+                                    <div className='card-box'>
+                                        <div className='space-y-6'>
+                                            <div>
+                                                <h2 className='font-bold text-2xl text-gray-900'>Health and Medical Details</h2>
+                                                <p className='mt-1 text-gray-500 text-sm'>Please provide Health details</p>
+                                            </div>
 
-                                        <div className='space-y-8'>
-                                            <div className='space-y-4'>
-                                                {/* <h3 className='font-semibold text-gray-800 text-lg'>Residential Address</h3> */}
-                                                <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
-                                                    <InputText
-                                                        label='Student Illness'
-                                                        id='amsT_Studentillness'
-                                                        placeholder='Enter Student Health'
-                                                        {...register('amsT_Studentillness')}
-                                                        error={errors.amsT_Studentillness?.message}
-                                                    />
-                                                    <InputText
-                                                        label='Medical Complaints'
-                                                        id='amsT_MedicalComplaints'
-                                                        placeholder='Enter Medical Complaints'
-                                                        {...register('amsT_MedicalComplaints')}
-                                                        error={errors.amsT_MedicalComplaints?.message}
-                                                    />
-                                                    <InputText
-                                                        label='Admission Reason'
-                                                        id='amsT_AdmissionReason'
-                                                        placeholder='Enter Admission Reason'
-                                                        {...register('amsT_AdmissionReason')}
-                                                        error={errors.amsT_AdmissionReason?.message}
-                                                    />
-
-                                                    <InputText
-                                                        label='Under Age'
-                                                        id='amsT_UnderAge'
-                                                        placeholder='Enter Under Age'
-                                                        {...register('amsT_UnderAge')}
-                                                        error={errors.amsT_UnderAge?.message}
-                                                    />
-                                                    <InputText
-                                                        label='Boarding'
-                                                        id='amsT_Boarding'
-                                                        placeholder='Enter Boarding'
-                                                        {...register('amsT_Boarding')}
-                                                        error={errors.amsT_Boarding?.message}
-                                                    />
-                                                    <InputText
-                                                        label='Last Playground Attended'
-                                                        id='amsT_LastPlayGrndAttnd'
-                                                        placeholder='Enter Last Playground Attended'
-                                                        {...register('amsT_LastPlayGrndAttnd')}
-                                                        error={errors.amsT_LastPlayGrndAttnd?.message}
-                                                    />
-
-                                                    <InputText
-                                                        label='School DISE Code'
-                                                        id='amsT_SchoolDISECode'
-                                                        placeholder='Enter School DISE Code'
-                                                        {...register('amsT_SchoolDISECode')}
-                                                        error={errors.amsT_SchoolDISECode?.message}
-                                                    />
-                                                    <InputText
-                                                        label='First Language'
-                                                        id='amsT_FirstLanguage'
-                                                        placeholder='Enter First Language'
-                                                        {...register('amsT_FirstLanguage')}
-                                                        error={errors.amsT_FirstLanguage?.message}
-                                                    />
-
-                                                    <InputText
-                                                        label='Second Language'
-                                                        id='amsT_SecondLanguage'
-                                                        placeholder='Enter Second Language'
-                                                        {...register('amsT_SecondLanguage')}
-                                                        error={errors.amsT_SecondLanguage?.message}
-                                                    />
-                                                    <InputText
-                                                        label='Third Language'
-                                                        id='amsT_Thirdlanguage'
-                                                        placeholder='Enter Third Language'
-                                                        {...register('amsT_Thirdlanguage')}
-                                                        error={errors.amsT_Thirdlanguage?.message}
-                                                    />
-
-                                                    <InputText
-                                                        label='Illness Details '
-                                                        id='amsT_Illnessdetails'
-                                                        placeholder='Enter Illness Details '
-                                                        {...register('amsT_Illnessdetails')}
-                                                        error={errors.amsT_Illnessdetails?.message}
-                                                    />
-
-                                                    <InputText
-                                                        label='Other Informations'
-                                                        id='amsT_OtherInformations'
-                                                        placeholder='Enter Other Informations'
-                                                        {...register('amsT_OtherInformations')}
-                                                        error={errors.amsT_OtherInformations?.message}
-                                                    />
-
-                                                    <InputText
-                                                        label='Over Age'
-                                                        id='amsT_OverAge'
-                                                        placeholder='Enter Over Age'
-                                                        {...register('amsT_OverAge')}
-                                                        error={errors.amsT_OverAge?.message}
-                                                    />
-
-                                                    <InputText
-                                                        label='Extra Activity'
-                                                        id='amsT_ExtraActivity'
-                                                        placeholder='Enter Extra Activity'
-                                                        {...register('amsT_ExtraActivity')}
-                                                        error={errors.amsT_ExtraActivity?.message}
-                                                    />
-
-                                                    <InputText
-                                                        label='Staying with'
-                                                        id='amsT_Stayingwith'
-                                                        placeholder='Enter Staying with'
-                                                        {...register('amsT_Stayingwith')}
-                                                        error={errors.amsT_Stayingwith?.message}
-                                                    />
-
-                                                    <InputText
-                                                        label=' Domicile'
-                                                        id='amsT_Domicile'
-                                                        placeholder='Enter Domicile'
-                                                        {...register('amsT_Domicile')}
-                                                        error={errors.amsT_Domicile?.message}
-                                                    />
-
-                                                    <InputText
-                                                        label='Marital Status'
-                                                        id='amsT_MaritalStatus'
-                                                        placeholder='Enter Marital Status'
-                                                        {...register('amsT_MaritalStatus')}
-                                                        error={errors.amsT_MaritalStatus?.message}
-                                                    />
-                                                    <InputTextarea
-                                                        label='Other Residential Address'
-                                                        id='amsT_OtherResidential_Addr'
-                                                        placeholder='Enter Other Residential Address'
-                                                        {...register('amsT_OtherResidential_Addr')}
-                                                        error={errors.amsT_OtherResidential_Addr?.message}
-                                                    />
-                                                    <InputTextarea
-                                                        label=' Other Permanent Address'
-                                                        id='amsT_OtherPermanentAddr'
-                                                        placeholder='Enter Other Permanent Address'
-                                                        {...register('amsT_OtherPermanentAddr')}
-                                                        error={errors.amsT_OtherPermanentAddr?.message}
-                                                    />
-                                                    <div>{/* Empty */}</div>
-
-                                                    <div className='flex items-center space-x-2'>
-                                                        <Checkbox
-                                                            id='amsT_TransferrableJobFlg'
-                                                            checked={Boolean(watch('amsT_TransferrableJobFlg'))}
-                                                            onCheckedChange={(checked) => {
-                                                                setValue('amsT_TransferrableJobFlg', checked === true);
-                                                            }}
+                                            <div className='space-y-8'>
+                                                <div className='space-y-4'>
+                                                    {/* <h3 className='font-semibold text-gray-800 text-lg'>Residential Address</h3> */}
+                                                    <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
+                                                        <InputText
+                                                            label='Student Illness'
+                                                            id='amsT_Studentillness'
+                                                            placeholder='Enter Student Health'
+                                                            {...register('amsT_Studentillness')}
+                                                            error={errors.amsT_Studentillness?.message}
                                                         />
-                                                        <Label htmlFor='amsT_TransferrableJobFlg' className='cursor-pointer'>
-                                                            Transferrable Flag
-                                                        </Label>
-                                                    </div>
-                                                    <div className='flex items-center space-x-2'>
-                                                        <Checkbox
-                                                            id='amsT_VaccinatedFlg'
-                                                            checked={Boolean(watch('amsT_VaccinatedFlg'))}
-                                                            onCheckedChange={(checked) => {
-                                                                setValue('amsT_VaccinatedFlg', checked === true);
-                                                            }}
+                                                        <InputText
+                                                            label='Medical Complaints'
+                                                            id='amsT_MedicalComplaints'
+                                                            placeholder='Enter Medical Complaints'
+                                                            {...register('amsT_MedicalComplaints')}
+                                                            error={errors.amsT_MedicalComplaints?.message}
                                                         />
-                                                        <Label htmlFor='amsT_VaccinatedFlg' className='cursor-pointer'>
-                                                            Vaccinated Flag
-                                                        </Label>
-                                                    </div>
-                                                    <div className='flex items-center space-x-2'>
-                                                        <Checkbox
-                                                            id='amsT_Tcflag'
-                                                            checked={Boolean(watch('amsT_Tcflag'))}
-                                                            onCheckedChange={(checked) => {
-                                                                setValue('amsT_Tcflag', checked === true);
-                                                            }}
+                                                        <InputText
+                                                            label='Admission Reason'
+                                                            id='amsT_AdmissionReason'
+                                                            placeholder='Enter Admission Reason'
+                                                            {...register('amsT_AdmissionReason')}
+                                                            error={errors.amsT_AdmissionReason?.message}
                                                         />
-                                                        <Label htmlFor='amsT_Tcflag' className='cursor-pointer'>
-                                                            TC Flag
-                                                        </Label>
+
+                                                        <InputText
+                                                            label='Under Age'
+                                                            id='amsT_UnderAge'
+                                                            placeholder='Enter Under Age'
+                                                            {...register('amsT_UnderAge')}
+                                                            error={errors.amsT_UnderAge?.message}
+                                                        />
+                                                        <InputText
+                                                            label='Boarding'
+                                                            id='amsT_Boarding'
+                                                            placeholder='Enter Boarding'
+                                                            {...register('amsT_Boarding')}
+                                                            error={errors.amsT_Boarding?.message}
+                                                        />
+                                                        <InputText
+                                                            label='Last Playground Attended'
+                                                            id='amsT_LastPlayGrndAttnd'
+                                                            placeholder='Enter Last Playground Attended'
+                                                            {...register('amsT_LastPlayGrndAttnd')}
+                                                            error={errors.amsT_LastPlayGrndAttnd?.message}
+                                                        />
+
+                                                        <InputText
+                                                            label='School DISE Code'
+                                                            id='amsT_SchoolDISECode'
+                                                            placeholder='Enter School DISE Code'
+                                                            {...register('amsT_SchoolDISECode')}
+                                                            error={errors.amsT_SchoolDISECode?.message}
+                                                        />
+                                                        <InputText
+                                                            label='First Language'
+                                                            id='amsT_FirstLanguage'
+                                                            placeholder='Enter First Language'
+                                                            {...register('amsT_FirstLanguage')}
+                                                            error={errors.amsT_FirstLanguage?.message}
+                                                        />
+
+                                                        <InputText
+                                                            label='Second Language'
+                                                            id='amsT_SecondLanguage'
+                                                            placeholder='Enter Second Language'
+                                                            {...register('amsT_SecondLanguage')}
+                                                            error={errors.amsT_SecondLanguage?.message}
+                                                        />
+                                                        <InputText
+                                                            label='Third Language'
+                                                            id='amsT_Thirdlanguage'
+                                                            placeholder='Enter Third Language'
+                                                            {...register('amsT_Thirdlanguage')}
+                                                            error={errors.amsT_Thirdlanguage?.message}
+                                                        />
+
+                                                        <InputText
+                                                            label='Illness Details '
+                                                            id='amsT_Illnessdetails'
+                                                            placeholder='Enter Illness Details '
+                                                            {...register('amsT_Illnessdetails')}
+                                                            error={errors.amsT_Illnessdetails?.message}
+                                                        />
+
+                                                        <InputText
+                                                            label='Other Informations'
+                                                            id='amsT_OtherInformations'
+                                                            placeholder='Enter Other Informations'
+                                                            {...register('amsT_OtherInformations')}
+                                                            error={errors.amsT_OtherInformations?.message}
+                                                        />
+
+                                                        <InputText
+                                                            label='Over Age'
+                                                            id='amsT_OverAge'
+                                                            placeholder='Enter Over Age'
+                                                            {...register('amsT_OverAge')}
+                                                            error={errors.amsT_OverAge?.message}
+                                                        />
+
+                                                        <InputText
+                                                            label='Extra Activity'
+                                                            id='amsT_ExtraActivity'
+                                                            placeholder='Enter Extra Activity'
+                                                            {...register('amsT_ExtraActivity')}
+                                                            error={errors.amsT_ExtraActivity?.message}
+                                                        />
+
+                                                        <InputText
+                                                            label='Staying with'
+                                                            id='amsT_Stayingwith'
+                                                            placeholder='Enter Staying with'
+                                                            {...register('amsT_Stayingwith')}
+                                                            error={errors.amsT_Stayingwith?.message}
+                                                        />
+
+                                                        <InputText
+                                                            label=' Domicile'
+                                                            id='amsT_Domicile'
+                                                            placeholder='Enter Domicile'
+                                                            {...register('amsT_Domicile')}
+                                                            error={errors.amsT_Domicile?.message}
+                                                        />
+
+                                                        <InputText
+                                                            label='Marital Status'
+                                                            id='amsT_MaritalStatus'
+                                                            placeholder='Enter Marital Status'
+                                                            {...register('amsT_MaritalStatus')}
+                                                            error={errors.amsT_MaritalStatus?.message}
+                                                        />
+                                                        <InputTextarea
+                                                            label='Other Residential Address'
+                                                            id='amsT_OtherResidential_Addr'
+                                                            placeholder='Enter Other Residential Address'
+                                                            {...register('amsT_OtherResidential_Addr')}
+                                                            error={errors.amsT_OtherResidential_Addr?.message}
+                                                        />
+                                                        <InputTextarea
+                                                            label=' Other Permanent Address'
+                                                            id='amsT_OtherPermanentAddr'
+                                                            placeholder='Enter Other Permanent Address'
+                                                            {...register('amsT_OtherPermanentAddr')}
+                                                            error={errors.amsT_OtherPermanentAddr?.message}
+                                                        />
+                                                        <div>{/* Empty */}</div>
+
+                                                        <div className='flex items-center space-x-2'>
+                                                            <Checkbox
+                                                                id='amsT_TransferrableJobFlg'
+                                                                checked={Boolean(watch('amsT_TransferrableJobFlg'))}
+                                                                onCheckedChange={(checked) => {
+                                                                    setValue('amsT_TransferrableJobFlg', checked === true);
+                                                                }}
+                                                            />
+                                                            <Label htmlFor='amsT_TransferrableJobFlg' className='cursor-pointer'>
+                                                                Transferrable Flag
+                                                            </Label>
+                                                        </div>
+                                                        <div className='flex items-center space-x-2'>
+                                                            <Checkbox
+                                                                id='amsT_VaccinatedFlg'
+                                                                checked={Boolean(watch('amsT_VaccinatedFlg'))}
+                                                                onCheckedChange={(checked) => {
+                                                                    setValue('amsT_VaccinatedFlg', checked === true);
+                                                                }}
+                                                            />
+                                                            <Label htmlFor='amsT_VaccinatedFlg' className='cursor-pointer'>
+                                                                Vaccinated Flag
+                                                            </Label>
+                                                        </div>
+                                                        <div className='flex items-center space-x-2'>
+                                                            <Checkbox
+                                                                id='amsT_Tcflag'
+                                                                checked={Boolean(watch('amsT_Tcflag'))}
+                                                                onCheckedChange={(checked) => {
+                                                                    setValue('amsT_Tcflag', checked === true);
+                                                                }}
+                                                            />
+                                                            <Label htmlFor='amsT_Tcflag' className='cursor-pointer'>
+                                                                TC Flag
+                                                            </Label>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -9253,649 +8907,651 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
 
                                 {/* Step 6: Document Upload */}
                                 {currentStep === 6 && (
-                                    <div className='space-y-6'>
-                                        <div>
-                                            <h2 className='font-bold text-2xl text-gray-900'>Document Upload</h2>
-                                            <p className='text-sm *:text-gray-500'>
-                                                Please upload the required documents. Documents marked with{' '}
-                                                <span className='text-red-500'>*</span> are mandatory.
-                                            </p>
-                                            <p className='text-red-500 text-sm'>
-                                                NOTE: All documents uploaded should be self-attested by parents
-                                            </p>
-                                        </div>
-
-                                        {/* Document uploads: users can add files which will be submitted with final form */}
-                                        <div>
-                                            <div className='mb-2 text-gray-600 text-sm'>
-                                                Add documents required by you. Files are stored locally and sent on final submit.
+                                    <div className='card-box'>
+                                        <div className='space-y-6'>
+                                            <div>
+                                                <h2 className='font-bold text-2xl text-gray-900'>Document Upload</h2>
+                                                <p className='text-sm *:text-gray-500'>
+                                                    Please upload the required documents. Documents marked with{' '}
+                                                    <span className='text-red-500'>*</span> are mandatory.
+                                                </p>
+                                                <p className='text-red-500 text-sm'>
+                                                    NOTE: All documents uploaded should be self-attested by parents
+                                                </p>
                                             </div>
 
-                                            {uploadedDocuments.length > 0 && (
-                                                <div className='mt-4 space-y-2'>
-                                                    {uploadedDocuments.map((d) => (
-                                                        <div
-                                                            key={d.amsmD_Id}
-                                                            className='flex items-center justify-between rounded-lg border p-3'>
-                                                            <div className='flex items-center gap-3'>
-                                                                {/(?:jpe?g|png|)$/i.test(String(d.document_Path || '')) ? (
-                                                                    <img
-                                                                        src={d.document_Path}
-                                                                        alt={d.documentName}
-                                                                        className='h-12 w-12 rounded object-cover'
-                                                                    />
-                                                                ) : (
-                                                                    <div className='flex h-12 w-12 items-center justify-center rounded bg-gray-100 text-gray-600'>
+                                            {/* Document uploads: users can add files which will be submitted with final form */}
+                                            <div>
+                                                <div className='mb-2 text-gray-600 text-sm'>
+                                                    Add documents required by you. Files are stored locally and sent on final submit.
+                                                </div>
+
+                                                {uploadedDocuments.length > 0 && (
+                                                    <div className='mt-4 space-y-2'>
+                                                        {uploadedDocuments.map((d) => (
+                                                            <div
+                                                                key={d.amsmD_Id}
+                                                                className='flex items-center justify-between rounded-lg border p-3'>
+                                                                <div className='flex items-center gap-3'>
+                                                                    {/(?:jpe?g|png|)$/i.test(String(d.document_Path || '')) ? (
+                                                                        <img
+                                                                            src={d.document_Path}
+                                                                            alt={d.documentName}
+                                                                            className='h-12 w-12 rounded object-cover'
+                                                                        />
+                                                                    ) : (
+                                                                        <div className='flex h-12 w-12 items-center justify-center rounded bg-gray-100 text-gray-600'>
+                                                                            <svg
+                                                                                className='h-5 w-5'
+                                                                                viewBox='0 0 24 24'
+                                                                                fill='none'
+                                                                                stroke='currentColor'>
+                                                                                <path
+                                                                                    d='M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z'
+                                                                                    strokeWidth='1.5'
+                                                                                    strokeLinecap='round'
+                                                                                    strokeLinejoin='round'
+                                                                                />
+                                                                                <path
+                                                                                    d='M14 2v6h6'
+                                                                                    strokeWidth='1.5'
+                                                                                    strokeLinecap='round'
+                                                                                    strokeLinejoin='round'
+                                                                                />
+                                                                            </svg>
+                                                                        </div>
+                                                                    )}
+
+                                                                    <div>
+                                                                        <div className='font-medium text-sm'>{d.documentName}</div>
+                                                                        <div className='text-gray-500 text-xs'>
+                                                                            {d.file ? `${(d.file.size / 1024 / 1024).toFixed(2)} MB` : ''}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div className='flex gap-2'>
+                                                                    {d.document_Path && (
+                                                                        <Button
+                                                                            type='button'
+                                                                            size='sm'
+                                                                            variant='ghost'
+                                                                            onClick={() => window.open(d.document_Path, '_blank')}
+                                                                            aria-label={`View ${d.documentName}`}>
+                                                                            <Eye className='h-4 w-4' />
+                                                                        </Button>
+                                                                    )}
+                                                                    <Button
+                                                                        type='button'
+                                                                        size='sm'
+                                                                        variant='destructive'
+                                                                        onClick={() =>
+                                                                            handleDocumentDelete(
+                                                                                d.amsmD_Id,
+                                                                                d.document_Path,
+                                                                                d.documentName || 'Document'
+                                                                            )
+                                                                        }
+                                                                        aria-label={`Delete ${d.documentName}`}>
+                                                                        <Trash className='h-4 w-4' />
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Parent photos & signatures (Step 6) - table style upload rows */}
+                                            <div className='overflow-hidden rounded-lg border'>
+                                                <table className='w-full table-fixed'>
+                                                    <thead>
+                                                        <tr className='bg-gray-50'>
+                                                            <th className='px-4 py-3 text-left text-gray-600 text-sm'>Document Name</th>
+                                                            <th className='px-4 py-3 text-left text-gray-600 text-sm'>Status</th>
+                                                            <th className='w-40 px-4 py-3 text-left text-gray-600 text-sm'>Upload</th>
+                                                            <th className='px-4 py-3 text-left text-gray-600 text-sm'>Actions</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {/* Father Photo */}
+                                                        <tr className={`border-t ${fatherPhoto?.path ? 'bg-green-50' : 'bg-amber-50'}`}>
+                                                            <td className='px-4 py-4'>
+                                                                <div className='flex flex-col'>
+                                                                    <span className='font-medium'>Father Photo</span>
+                                                                </div>
+                                                            </td>
+                                                            <td className='px-4 py-4'>
+                                                                {fatherPhoto?.isUploading ? (
+                                                                    <span className='flex items-center gap-2 text-gray-600 text-sm'>
+                                                                        <Spinner size='sm' />
+                                                                        Uploading...
+                                                                    </span>
+                                                                ) : fatherPhoto?.path ? (
+                                                                    <span className='inline-flex items-center gap-2 text-green-700 text-sm'>
                                                                         <svg
-                                                                            className='h-5 w-5'
+                                                                            className='h-4 w-4 text-green-700'
                                                                             viewBox='0 0 24 24'
                                                                             fill='none'
                                                                             stroke='currentColor'>
                                                                             <path
-                                                                                d='M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z'
-                                                                                strokeWidth='1.5'
-                                                                                strokeLinecap='round'
-                                                                                strokeLinejoin='round'
-                                                                            />
-                                                                            <path
-                                                                                d='M14 2v6h6'
-                                                                                strokeWidth='1.5'
+                                                                                d='M20 6L9 17l-5-5'
+                                                                                strokeWidth='2'
                                                                                 strokeLinecap='round'
                                                                                 strokeLinejoin='round'
                                                                             />
                                                                         </svg>
+                                                                        Uploaded
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className='text-gray-500 text-sm'>Not Uploaded</span>
+                                                                )}
+                                                            </td>
+                                                            <td className='w-40 px-4 py-4'>
+                                                                {!fatherPhoto || fatherPhoto.isUploading ? (
+                                                                    <label
+                                                                        className={`flex ${UPLOAD_BOX} cursor-pointer flex-col items-center justify-center rounded-md border-2 border-gray-300 border-dashed bg-white hover:border-primary`}>
+                                                                        <div className='flex flex-col items-center justify-center gap-1'>
+                                                                            <svg
+                                                                                className='h-6 w-6 text-purple-600'
+                                                                                viewBox='0 0 24 24'
+                                                                                fill='none'
+                                                                                stroke='currentColor'>
+                                                                                <path
+                                                                                    strokeLinecap='round'
+                                                                                    strokeLinejoin='round'
+                                                                                    strokeWidth={2}
+                                                                                    d='M12 3v12m0 0l3-3m-3 3l-3-3'
+                                                                                />
+                                                                                <path
+                                                                                    strokeLinecap='round'
+                                                                                    strokeLinejoin='round'
+                                                                                    strokeWidth={2}
+                                                                                    d='M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3'
+                                                                                />
+                                                                            </svg>
+                                                                            <span className='mt-1 text-gray-600 text-xs'>Click to upload</span>
+                                                                        </div>
+                                                                        <input
+                                                                            id='father_photo'
+                                                                            type='file'
+                                                                            className='hidden'
+                                                                            accept='image/jpeg,image/jpg,image/png'
+                                                                            disabled={fatherPhoto?.isUploading || isSubmitting}
+                                                                            onChange={(e) => {
+                                                                                const file = e.target.files?.[0];
+                                                                                if (file) {
+                                                                                    if (file.size > 5 * 1024 * 1024) {
+                                                                                        toast.error('File size must be less than 5MB');
+                                                                                        e.target.value = '';
+                                                                                        return;
+                                                                                    }
+                                                                                    handleFatherPhotoUpload(file);
+                                                                                    e.target.value = '';
+                                                                                }
+                                                                            }}
+                                                                        />
+                                                                    </label>
+                                                                ) : (
+                                                                    <div className='flex items-center gap-2'>
+                                                                        <div
+                                                                            className={`flex ${UPLOAD_BOX} items-center justify-center rounded-md border bg-white`}>
+                                                                            <img
+                                                                                src={fatherPhoto.path}
+                                                                                alt='Father'
+                                                                                className='max-h-full max-w-full object-contain'
+                                                                            />
+                                                                        </div>
                                                                     </div>
                                                                 )}
-
-                                                                <div>
-                                                                    <div className='font-medium text-sm'>{d.documentName}</div>
-                                                                    <div className='text-gray-500 text-xs'>
-                                                                        {d.file ? `${(d.file.size / 1024 / 1024).toFixed(2)} MB` : ''}
-                                                                    </div>
+                                                            </td>
+                                                            <td className='px-4 py-4'>
+                                                                <div className='flex gap-2'>
+                                                                    {fatherPhoto?.path && (
+                                                                        <Button
+                                                                            type='button'
+                                                                            size='sm'
+                                                                            variant='ghost'
+                                                                            onClick={() => window.open(fatherPhoto.path, '_blank')}
+                                                                            aria-label='View father photo'>
+                                                                            <Eye className='h-4 w-4' />
+                                                                        </Button>
+                                                                    )}
+                                                                    {fatherPhoto?.path && (
+                                                                        <Button
+                                                                            type='button'
+                                                                            size='sm'
+                                                                            variant='destructive'
+                                                                            onClick={handleFatherPhotoDelete}
+                                                                            aria-label='Delete father photo'>
+                                                                            <Trash className='h-4 w-4' />
+                                                                        </Button>
+                                                                    )}
                                                                 </div>
-                                                            </div>
-                                                            <div className='flex gap-2'>
-                                                                {d.document_Path && (
-                                                                    <Button
-                                                                        type='button'
-                                                                        size='sm'
-                                                                        variant='ghost'
-                                                                        onClick={() => window.open(d.document_Path, '_blank')}
-                                                                        aria-label={`View ${d.documentName}`}>
-                                                                        <Eye className='h-4 w-4' />
-                                                                    </Button>
+                                                            </td>
+                                                        </tr>
+
+                                                        {/* Father Signature */}
+                                                        <tr className={`border-t ${fatherSignature?.path ? 'bg-green-50' : 'bg-amber-50'}`}>
+                                                            <td className='px-4 py-4'>
+                                                                <div className='flex flex-col'>
+                                                                    <span className='font-medium'>Father Signature</span>
+                                                                </div>
+                                                            </td>
+                                                            <td className='px-4 py-4'>
+                                                                {fatherSignature?.isUploading ? (
+                                                                    <span className='flex items-center gap-2 text-gray-600 text-sm'>
+                                                                        <Spinner size='sm' />
+                                                                        Uploading...
+                                                                    </span>
+                                                                ) : fatherSignature?.path ? (
+                                                                    <span className='inline-flex items-center gap-2 text-green-700 text-sm'>
+                                                                        <svg
+                                                                            className='h-4 w-4 text-green-700'
+                                                                            viewBox='0 0 24 24'
+                                                                            fill='none'
+                                                                            stroke='currentColor'>
+                                                                            <path
+                                                                                d='M20 6L9 17l-5-5'
+                                                                                strokeWidth='2'
+                                                                                strokeLinecap='round'
+                                                                                strokeLinejoin='round'
+                                                                            />
+                                                                        </svg>
+                                                                        Uploaded
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className='text-gray-500 text-sm'>Not Uploaded</span>
                                                                 )}
-                                                                <Button
-                                                                    type='button'
-                                                                    size='sm'
-                                                                    variant='destructive'
-                                                                    onClick={() =>
-                                                                        handleDocumentDelete(
-                                                                            d.amsmD_Id,
-                                                                            d.document_Path,
-                                                                            d.documentName || 'Document'
-                                                                        )
-                                                                    }
-                                                                    aria-label={`Delete ${d.documentName}`}>
-                                                                    <Trash className='h-4 w-4' />
-                                                                </Button>
-                                                            </div>
+                                                            </td>
+                                                            <td className='w-40 px-4 py-4'>
+                                                                {!fatherSignature || fatherSignature.isUploading ? (
+                                                                    <label
+                                                                        className={`flex ${UPLOAD_BOX} cursor-pointer flex-col items-center justify-center rounded-md border-2 border-gray-300 border-dashed bg-white hover:border-primary`}>
+                                                                        <div className='flex flex-col items-center justify-center gap-1'>
+                                                                            <svg
+                                                                                className='h-6 w-6 text-purple-600'
+                                                                                viewBox='0 0 24 24'
+                                                                                fill='none'
+                                                                                stroke='currentColor'>
+                                                                                <path
+                                                                                    strokeLinecap='round'
+                                                                                    strokeLinejoin='round'
+                                                                                    strokeWidth={2}
+                                                                                    d='M12 3v12m0 0l3-3m-3 3l-3-3'
+                                                                                />
+                                                                                <path
+                                                                                    strokeLinecap='round'
+                                                                                    strokeLinejoin='round'
+                                                                                    strokeWidth={2}
+                                                                                    d='M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3'
+                                                                                />
+                                                                            </svg>
+                                                                            <span className='mt-1 text-gray-600 text-xs'>Click to upload</span>
+                                                                        </div>
+                                                                        <input
+                                                                            id='father_signature'
+                                                                            type='file'
+                                                                            className='hidden'
+                                                                            accept='image/jpeg,image/jpg,image/png'
+                                                                            disabled={fatherSignature?.isUploading || isSubmitting}
+                                                                            onChange={(e) => {
+                                                                                const file = e.target.files?.[0];
+                                                                                if (file) {
+                                                                                    if (file.size > 5 * 1024 * 1024) {
+                                                                                        toast.error('File size must be less than 5MB');
+                                                                                        e.target.value = '';
+                                                                                        return;
+                                                                                    }
+                                                                                    handleFatherSignatureUpload(file);
+                                                                                    e.target.value = '';
+                                                                                }
+                                                                            }}
+                                                                        />
+                                                                    </label>
+                                                                ) : (
+                                                                    <div className='flex items-center gap-2'>
+                                                                        <div
+                                                                            className={`flex ${UPLOAD_BOX} items-center justify-center rounded-md border bg-white`}>
+                                                                            <img
+                                                                                src={fatherSignature.path}
+                                                                                alt='Father signature'
+                                                                                className='max-h-full max-w-full object-contain'
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </td>
+                                                            <td className='px-4 py-4'>
+                                                                <div className='flex gap-2'>
+                                                                    {fatherSignature?.path && (
+                                                                        <Button
+                                                                            type='button'
+                                                                            size='sm'
+                                                                            variant='ghost'
+                                                                            onClick={() => window.open(fatherSignature.path, '_blank')}
+                                                                            aria-label='View father signature'>
+                                                                            <Eye className='h-4 w-4' />
+                                                                        </Button>
+                                                                    )}
+                                                                    {fatherSignature?.path && (
+                                                                        <Button
+                                                                            type='button'
+                                                                            size='sm'
+                                                                            variant='destructive'
+                                                                            onClick={handleFatherSignatureDelete}
+                                                                            aria-label='Delete father signature'>
+                                                                            <Trash className='h-4 w-4' />
+                                                                        </Button>
+                                                                    )}
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+
+                                                        {/* Mother Photo */}
+                                                        <tr className={`border-t ${motherPhoto?.path ? 'bg-green-50' : 'bg-amber-50'}`}>
+                                                            <td className='px-4 py-4'>
+                                                                <div className='flex flex-col'>
+                                                                    <span className='font-medium'>Mother Photo</span>
+                                                                </div>
+                                                            </td>
+                                                            <td className='px-4 py-4'>
+                                                                {motherPhoto?.isUploading ? (
+                                                                    <span className='flex items-center gap-2 text-gray-600 text-sm'>
+                                                                        <Spinner size='sm' />
+                                                                        Uploading...
+                                                                    </span>
+                                                                ) : motherPhoto?.path ? (
+                                                                    <span className='inline-flex items-center gap-2 text-green-700 text-sm'>
+                                                                        <svg
+                                                                            className='h-4 w-4 text-green-700'
+                                                                            viewBox='0 0 24 24'
+                                                                            fill='none'
+                                                                            stroke='currentColor'>
+                                                                            <path
+                                                                                d='M20 6L9 17l-5-5'
+                                                                                strokeWidth='2'
+                                                                                strokeLinecap='round'
+                                                                                strokeLinejoin='round'
+                                                                            />
+                                                                        </svg>
+                                                                        Uploaded
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className='text-gray-500 text-sm'>Not Uploaded</span>
+                                                                )}
+                                                            </td>
+                                                            <td className='w-40 px-4 py-4'>
+                                                                {!motherPhoto || motherPhoto.isUploading ? (
+                                                                    <label
+                                                                        className={`flex ${UPLOAD_BOX} cursor-pointer flex-col items-center justify-center rounded-md border-2 border-gray-300 border-dashed bg-white hover:border-primary`}>
+                                                                        <div className='flex flex-col items-center justify-center gap-1'>
+                                                                            <svg
+                                                                                className='h-6 w-6 text-purple-600'
+                                                                                viewBox='0 0 24 24'
+                                                                                fill='none'
+                                                                                stroke='currentColor'>
+                                                                                <path
+                                                                                    strokeLinecap='round'
+                                                                                    strokeLinejoin='round'
+                                                                                    strokeWidth={2}
+                                                                                    d='M12 3v12m0 0l3-3m-3 3l-3-3'
+                                                                                />
+                                                                                <path
+                                                                                    strokeLinecap='round'
+                                                                                    strokeLinejoin='round'
+                                                                                    strokeWidth={2}
+                                                                                    d='M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3'
+                                                                                />
+                                                                            </svg>
+                                                                            <span className='mt-1 text-gray-600 text-xs'>Click to upload</span>
+                                                                        </div>
+                                                                        <input
+                                                                            id='mother_photo'
+                                                                            type='file'
+                                                                            className='hidden'
+                                                                            accept='image/jpeg,image/jpg,image/png'
+                                                                            disabled={motherPhoto?.isUploading || isSubmitting}
+                                                                            onChange={(e) => {
+                                                                                const file = e.target.files?.[0];
+                                                                                if (file) {
+                                                                                    if (file.size > 5 * 1024 * 1024) {
+                                                                                        toast.error('File size must be less than 5MB');
+                                                                                        e.target.value = '';
+                                                                                        return;
+                                                                                    }
+                                                                                    handleMotherPhotoUpload(file);
+                                                                                    e.target.value = '';
+                                                                                }
+                                                                            }}
+                                                                        />
+                                                                    </label>
+                                                                ) : (
+                                                                    <div className='flex items-center gap-2'>
+                                                                        <div
+                                                                            className={`flex ${UPLOAD_BOX} items-center justify-center rounded-md border bg-white`}>
+                                                                            <img
+                                                                                src={motherPhoto.path}
+                                                                                alt='Mother'
+                                                                                className='max-h-full max-w-full object-contain'
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </td>
+                                                            <td className='px-4 py-4'>
+                                                                <div className='flex gap-2'>
+                                                                    {motherPhoto?.path && (
+                                                                        <Button
+                                                                            type='button'
+                                                                            size='sm'
+                                                                            variant='ghost'
+                                                                            onClick={() => window.open(motherPhoto.path, '_blank')}
+                                                                            aria-label='View mother photo'>
+                                                                            <Eye className='h-4 w-4' />
+                                                                        </Button>
+                                                                    )}
+                                                                    {motherPhoto?.path && (
+                                                                        <Button
+                                                                            type='button'
+                                                                            size='sm'
+                                                                            variant='destructive'
+                                                                            onClick={handleMotherPhotoDelete}
+                                                                            aria-label='Delete mother photo'>
+                                                                            <Trash className='h-4 w-4' />
+                                                                        </Button>
+                                                                    )}
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+
+                                                        {/* Mother Signature */}
+                                                        <tr className={`border-t ${motherSignature?.path ? 'bg-green-50' : 'bg-amber-50'}`}>
+                                                            <td className='px-4 py-4'>
+                                                                <div className='flex flex-col'>
+                                                                    <span className='font-medium'>Mother Signature</span>
+                                                                </div>
+                                                            </td>
+                                                            <td className='px-4 py-4'>
+                                                                {motherSignature?.isUploading ? (
+                                                                    <span className='flex items-center gap-2 text-gray-600 text-sm'>
+                                                                        <Spinner size='sm' />
+                                                                        Uploading...
+                                                                    </span>
+                                                                ) : motherSignature?.path ? (
+                                                                    <span className='inline-flex items-center gap-2 text-green-700 text-sm'>
+                                                                        <svg
+                                                                            className='h-4 w-4 text-green-700'
+                                                                            viewBox='0 0 24 24'
+                                                                            fill='none'
+                                                                            stroke='currentColor'>
+                                                                            <path
+                                                                                d='M20 6L9 17l-5-5'
+                                                                                strokeWidth='2'
+                                                                                strokeLinecap='round'
+                                                                                strokeLinejoin='round'
+                                                                            />
+                                                                        </svg>
+                                                                        Uploaded
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className='text-gray-500 text-sm'>Not Uploaded</span>
+                                                                )}
+                                                            </td>
+                                                            <td className='w-40 px-4 py-4'>
+                                                                {!motherSignature || motherSignature.isUploading ? (
+                                                                    <label
+                                                                        className={`flex ${UPLOAD_BOX} cursor-pointer flex-col items-center justify-center rounded-md border-2 border-gray-300 border-dashed bg-white hover:border-primary`}>
+                                                                        <div className='flex flex-col items-center justify-center gap-1'>
+                                                                            <svg
+                                                                                className='h-6 w-6 text-purple-600'
+                                                                                viewBox='0 0 24 24'
+                                                                                fill='none'
+                                                                                stroke='currentColor'>
+                                                                                <path
+                                                                                    strokeLinecap='round'
+                                                                                    strokeLinejoin='round'
+                                                                                    strokeWidth={2}
+                                                                                    d='M12 3v12m0 0l3-3m-3 3l-3-3'
+                                                                                />
+                                                                                <path
+                                                                                    strokeLinecap='round'
+                                                                                    strokeLinejoin='round'
+                                                                                    strokeWidth={2}
+                                                                                    d='M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3'
+                                                                                />
+                                                                            </svg>
+                                                                            <span className='mt-1 text-gray-600 text-xs'>Click to upload</span>
+                                                                        </div>
+                                                                        <input
+                                                                            id='mother_signature'
+                                                                            type='file'
+                                                                            className='hidden'
+                                                                            accept='image/jpeg,image/jpg,image/png'
+                                                                            disabled={motherSignature?.isUploading || isSubmitting}
+                                                                            onChange={(e) => {
+                                                                                const file = e.target.files?.[0];
+                                                                                if (file) {
+                                                                                    if (file.size > 5 * 1024 * 1024) {
+                                                                                        toast.error('File size must be less than 5MB');
+                                                                                        e.target.value = '';
+                                                                                        return;
+                                                                                    }
+                                                                                    handleMotherSignatureUpload(file);
+                                                                                    e.target.value = '';
+                                                                                }
+                                                                            }}
+                                                                        />
+                                                                    </label>
+                                                                ) : (
+                                                                    <div className='flex items-center gap-2'>
+                                                                        <div
+                                                                            className={`flex ${UPLOAD_BOX} items-center justify-center rounded-md border bg-white`}>
+                                                                            <img
+                                                                                src={motherSignature.path}
+                                                                                alt='Mother signature'
+                                                                                className='max-h-full max-w-full object-contain'
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </td>
+                                                            <td className='px-4 py-4'>
+                                                                <div className='flex gap-2'>
+                                                                    {motherSignature?.path && (
+                                                                        <Button
+                                                                            type='button'
+                                                                            size='sm'
+                                                                            variant='ghost'
+                                                                            onClick={() => window.open(motherSignature.path, '_blank')}
+                                                                            aria-label='View mother signature'>
+                                                                            <Eye className='h-4 w-4' />
+                                                                        </Button>
+                                                                    )}
+                                                                    {motherSignature?.path && (
+                                                                        <Button
+                                                                            type='button'
+                                                                            size='sm'
+                                                                            variant='destructive'
+                                                                            onClick={handleMotherSignatureDelete}
+                                                                            aria-label='Delete mother signature'>
+                                                                            <Trash className='h-4 w-4' />
+                                                                        </Button>
+                                                                    )}
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
+                                            {/* Hostel / Transport checkboxes for final submission */}
+                                            <div className='mt-4 flex flex-col gap-3'>
+                                                <div className='flex items-center space-x-6'>
+                                                    <div className='flex items-center space-x-2'>
+                                                        <Controller
+                                                            name='hostelRequired'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <Checkbox
+                                                                    id='hostelRequired'
+                                                                    checked={field.value || false}
+                                                                    onCheckedChange={(checked) => field.onChange(checked === true)}
+                                                                />
+                                                            )}
+                                                        />
+                                                        <Label htmlFor='hostelRequired' className='cursor-pointer'>
+                                                            Hostel Required
+                                                        </Label>
+                                                    </div>
+
+                                                    <div className='flex items-center space-x-2'>
+                                                        <Controller
+                                                            name='transportRequired'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <Checkbox
+                                                                    id='transportRequired'
+                                                                    checked={field.value || false}
+                                                                    onCheckedChange={(checked) => field.onChange(checked === true)}
+                                                                />
+                                                            )}
+                                                        />
+                                                        <Label htmlFor='transportRequired' className='cursor-pointer'>
+                                                            Transport Required
+                                                        </Label>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Upload Summary: show number of selected documents */}
+                                            {uploadedDocuments.length > 0 && (
+                                                <div className='rounded-lg border border-blue-200 bg-blue-50 p-4'>
+                                                    <div className='flex items-start gap-3'>
+                                                        <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-100'>
+                                                            <svg
+                                                                className='h-5 w-5 text-blue-600'
+                                                                fill='none'
+                                                                stroke='currentColor'
+                                                                viewBox='0 0 24 24'>
+                                                                <path
+                                                                    strokeLinecap='round'
+                                                                    strokeLinejoin='round'
+                                                                    strokeWidth={2}
+                                                                    d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+                                                                />
+                                                            </svg>
                                                         </div>
-                                                    ))}
+                                                        <div className='flex-1'>
+                                                            <p className='font-medium text-blue-900 text-sm'>Upload Summary</p>
+                                                            <p className='mt-1 text-blue-700 text-sm'>
+                                                                {uploadedDocuments.length} document(s) selected and will be submitted with the
+                                                                form
+                                                            </p>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             )}
                                         </div>
-
-                                        {/* Parent photos & signatures (Step 6) - table style upload rows */}
-                                        <div className='overflow-hidden rounded-lg border'>
-                                            <table className='w-full table-fixed'>
-                                                <thead>
-                                                    <tr className='bg-gray-50'>
-                                                        <th className='px-4 py-3 text-left text-gray-600 text-sm'>Document Name</th>
-                                                        <th className='px-4 py-3 text-left text-gray-600 text-sm'>Status</th>
-                                                        <th className='w-40 px-4 py-3 text-left text-gray-600 text-sm'>Upload</th>
-                                                        <th className='px-4 py-3 text-left text-gray-600 text-sm'>Actions</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {/* Father Photo */}
-                                                    <tr className={`border-t ${fatherPhoto?.path ? 'bg-green-50' : 'bg-amber-50'}`}>
-                                                        <td className='px-4 py-4'>
-                                                            <div className='flex flex-col'>
-                                                                <span className='font-medium'>Father Photo</span>
-                                                            </div>
-                                                        </td>
-                                                        <td className='px-4 py-4'>
-                                                            {fatherPhoto?.isUploading ? (
-                                                                <span className='flex items-center gap-2 text-gray-600 text-sm'>
-                                                                    <Spinner size='sm' />
-                                                                    Uploading...
-                                                                </span>
-                                                            ) : fatherPhoto?.path ? (
-                                                                <span className='inline-flex items-center gap-2 text-green-700 text-sm'>
-                                                                    <svg
-                                                                        className='h-4 w-4 text-green-700'
-                                                                        viewBox='0 0 24 24'
-                                                                        fill='none'
-                                                                        stroke='currentColor'>
-                                                                        <path
-                                                                            d='M20 6L9 17l-5-5'
-                                                                            strokeWidth='2'
-                                                                            strokeLinecap='round'
-                                                                            strokeLinejoin='round'
-                                                                        />
-                                                                    </svg>
-                                                                    Uploaded
-                                                                </span>
-                                                            ) : (
-                                                                <span className='text-gray-500 text-sm'>Not Uploaded</span>
-                                                            )}
-                                                        </td>
-                                                        <td className='w-40 px-4 py-4'>
-                                                            {!fatherPhoto || fatherPhoto.isUploading ? (
-                                                                <label
-                                                                    className={`flex ${UPLOAD_BOX} cursor-pointer flex-col items-center justify-center rounded-md border-2 border-gray-300 border-dashed bg-white hover:border-primary`}>
-                                                                    <div className='flex flex-col items-center justify-center gap-1'>
-                                                                        <svg
-                                                                            className='h-6 w-6 text-purple-600'
-                                                                            viewBox='0 0 24 24'
-                                                                            fill='none'
-                                                                            stroke='currentColor'>
-                                                                            <path
-                                                                                strokeLinecap='round'
-                                                                                strokeLinejoin='round'
-                                                                                strokeWidth={2}
-                                                                                d='M12 3v12m0 0l3-3m-3 3l-3-3'
-                                                                            />
-                                                                            <path
-                                                                                strokeLinecap='round'
-                                                                                strokeLinejoin='round'
-                                                                                strokeWidth={2}
-                                                                                d='M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3'
-                                                                            />
-                                                                        </svg>
-                                                                        <span className='mt-1 text-gray-600 text-xs'>Click to upload</span>
-                                                                    </div>
-                                                                    <input
-                                                                        id='father_photo'
-                                                                        type='file'
-                                                                        className='hidden'
-                                                                        accept='image/jpeg,image/jpg,image/png'
-                                                                        disabled={fatherPhoto?.isUploading || isSubmitting}
-                                                                        onChange={(e) => {
-                                                                            const file = e.target.files?.[0];
-                                                                            if (file) {
-                                                                                if (file.size > 5 * 1024 * 1024) {
-                                                                                    toast.error('File size must be less than 5MB');
-                                                                                    e.target.value = '';
-                                                                                    return;
-                                                                                }
-                                                                                handleFatherPhotoUpload(file);
-                                                                                e.target.value = '';
-                                                                            }
-                                                                        }}
-                                                                    />
-                                                                </label>
-                                                            ) : (
-                                                                <div className='flex items-center gap-2'>
-                                                                    <div
-                                                                        className={`flex ${UPLOAD_BOX} items-center justify-center rounded-md border bg-white`}>
-                                                                        <img
-                                                                            src={fatherPhoto.path}
-                                                                            alt='Father'
-                                                                            className='max-h-full max-w-full object-contain'
-                                                                        />
-                                                                    </div>
-                                                                </div>
-                                                            )}
-                                                        </td>
-                                                        <td className='px-4 py-4'>
-                                                            <div className='flex gap-2'>
-                                                                {fatherPhoto?.path && (
-                                                                    <Button
-                                                                        type='button'
-                                                                        size='sm'
-                                                                        variant='ghost'
-                                                                        onClick={() => window.open(fatherPhoto.path, '_blank')}
-                                                                        aria-label='View father photo'>
-                                                                        <Eye className='h-4 w-4' />
-                                                                    </Button>
-                                                                )}
-                                                                {fatherPhoto?.path && (
-                                                                    <Button
-                                                                        type='button'
-                                                                        size='sm'
-                                                                        variant='destructive'
-                                                                        onClick={handleFatherPhotoDelete}
-                                                                        aria-label='Delete father photo'>
-                                                                        <Trash className='h-4 w-4' />
-                                                                    </Button>
-                                                                )}
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-
-                                                    {/* Father Signature */}
-                                                    <tr className={`border-t ${fatherSignature?.path ? 'bg-green-50' : 'bg-amber-50'}`}>
-                                                        <td className='px-4 py-4'>
-                                                            <div className='flex flex-col'>
-                                                                <span className='font-medium'>Father Signature</span>
-                                                            </div>
-                                                        </td>
-                                                        <td className='px-4 py-4'>
-                                                            {fatherSignature?.isUploading ? (
-                                                                <span className='flex items-center gap-2 text-gray-600 text-sm'>
-                                                                    <Spinner size='sm' />
-                                                                    Uploading...
-                                                                </span>
-                                                            ) : fatherSignature?.path ? (
-                                                                <span className='inline-flex items-center gap-2 text-green-700 text-sm'>
-                                                                    <svg
-                                                                        className='h-4 w-4 text-green-700'
-                                                                        viewBox='0 0 24 24'
-                                                                        fill='none'
-                                                                        stroke='currentColor'>
-                                                                        <path
-                                                                            d='M20 6L9 17l-5-5'
-                                                                            strokeWidth='2'
-                                                                            strokeLinecap='round'
-                                                                            strokeLinejoin='round'
-                                                                        />
-                                                                    </svg>
-                                                                    Uploaded
-                                                                </span>
-                                                            ) : (
-                                                                <span className='text-gray-500 text-sm'>Not Uploaded</span>
-                                                            )}
-                                                        </td>
-                                                        <td className='w-40 px-4 py-4'>
-                                                            {!fatherSignature || fatherSignature.isUploading ? (
-                                                                <label
-                                                                    className={`flex ${UPLOAD_BOX} cursor-pointer flex-col items-center justify-center rounded-md border-2 border-gray-300 border-dashed bg-white hover:border-primary`}>
-                                                                    <div className='flex flex-col items-center justify-center gap-1'>
-                                                                        <svg
-                                                                            className='h-6 w-6 text-purple-600'
-                                                                            viewBox='0 0 24 24'
-                                                                            fill='none'
-                                                                            stroke='currentColor'>
-                                                                            <path
-                                                                                strokeLinecap='round'
-                                                                                strokeLinejoin='round'
-                                                                                strokeWidth={2}
-                                                                                d='M12 3v12m0 0l3-3m-3 3l-3-3'
-                                                                            />
-                                                                            <path
-                                                                                strokeLinecap='round'
-                                                                                strokeLinejoin='round'
-                                                                                strokeWidth={2}
-                                                                                d='M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3'
-                                                                            />
-                                                                        </svg>
-                                                                        <span className='mt-1 text-gray-600 text-xs'>Click to upload</span>
-                                                                    </div>
-                                                                    <input
-                                                                        id='father_signature'
-                                                                        type='file'
-                                                                        className='hidden'
-                                                                        accept='image/jpeg,image/jpg,image/png'
-                                                                        disabled={fatherSignature?.isUploading || isSubmitting}
-                                                                        onChange={(e) => {
-                                                                            const file = e.target.files?.[0];
-                                                                            if (file) {
-                                                                                if (file.size > 5 * 1024 * 1024) {
-                                                                                    toast.error('File size must be less than 5MB');
-                                                                                    e.target.value = '';
-                                                                                    return;
-                                                                                }
-                                                                                handleFatherSignatureUpload(file);
-                                                                                e.target.value = '';
-                                                                            }
-                                                                        }}
-                                                                    />
-                                                                </label>
-                                                            ) : (
-                                                                <div className='flex items-center gap-2'>
-                                                                    <div
-                                                                        className={`flex ${UPLOAD_BOX} items-center justify-center rounded-md border bg-white`}>
-                                                                        <img
-                                                                            src={fatherSignature.path}
-                                                                            alt='Father signature'
-                                                                            className='max-h-full max-w-full object-contain'
-                                                                        />
-                                                                    </div>
-                                                                </div>
-                                                            )}
-                                                        </td>
-                                                        <td className='px-4 py-4'>
-                                                            <div className='flex gap-2'>
-                                                                {fatherSignature?.path && (
-                                                                    <Button
-                                                                        type='button'
-                                                                        size='sm'
-                                                                        variant='ghost'
-                                                                        onClick={() => window.open(fatherSignature.path, '_blank')}
-                                                                        aria-label='View father signature'>
-                                                                        <Eye className='h-4 w-4' />
-                                                                    </Button>
-                                                                )}
-                                                                {fatherSignature?.path && (
-                                                                    <Button
-                                                                        type='button'
-                                                                        size='sm'
-                                                                        variant='destructive'
-                                                                        onClick={handleFatherSignatureDelete}
-                                                                        aria-label='Delete father signature'>
-                                                                        <Trash className='h-4 w-4' />
-                                                                    </Button>
-                                                                )}
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-
-                                                    {/* Mother Photo */}
-                                                    <tr className={`border-t ${motherPhoto?.path ? 'bg-green-50' : 'bg-amber-50'}`}>
-                                                        <td className='px-4 py-4'>
-                                                            <div className='flex flex-col'>
-                                                                <span className='font-medium'>Mother Photo</span>
-                                                            </div>
-                                                        </td>
-                                                        <td className='px-4 py-4'>
-                                                            {motherPhoto?.isUploading ? (
-                                                                <span className='flex items-center gap-2 text-gray-600 text-sm'>
-                                                                    <Spinner size='sm' />
-                                                                    Uploading...
-                                                                </span>
-                                                            ) : motherPhoto?.path ? (
-                                                                <span className='inline-flex items-center gap-2 text-green-700 text-sm'>
-                                                                    <svg
-                                                                        className='h-4 w-4 text-green-700'
-                                                                        viewBox='0 0 24 24'
-                                                                        fill='none'
-                                                                        stroke='currentColor'>
-                                                                        <path
-                                                                            d='M20 6L9 17l-5-5'
-                                                                            strokeWidth='2'
-                                                                            strokeLinecap='round'
-                                                                            strokeLinejoin='round'
-                                                                        />
-                                                                    </svg>
-                                                                    Uploaded
-                                                                </span>
-                                                            ) : (
-                                                                <span className='text-gray-500 text-sm'>Not Uploaded</span>
-                                                            )}
-                                                        </td>
-                                                        <td className='w-40 px-4 py-4'>
-                                                            {!motherPhoto || motherPhoto.isUploading ? (
-                                                                <label
-                                                                    className={`flex ${UPLOAD_BOX} cursor-pointer flex-col items-center justify-center rounded-md border-2 border-gray-300 border-dashed bg-white hover:border-primary`}>
-                                                                    <div className='flex flex-col items-center justify-center gap-1'>
-                                                                        <svg
-                                                                            className='h-6 w-6 text-purple-600'
-                                                                            viewBox='0 0 24 24'
-                                                                            fill='none'
-                                                                            stroke='currentColor'>
-                                                                            <path
-                                                                                strokeLinecap='round'
-                                                                                strokeLinejoin='round'
-                                                                                strokeWidth={2}
-                                                                                d='M12 3v12m0 0l3-3m-3 3l-3-3'
-                                                                            />
-                                                                            <path
-                                                                                strokeLinecap='round'
-                                                                                strokeLinejoin='round'
-                                                                                strokeWidth={2}
-                                                                                d='M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3'
-                                                                            />
-                                                                        </svg>
-                                                                        <span className='mt-1 text-gray-600 text-xs'>Click to upload</span>
-                                                                    </div>
-                                                                    <input
-                                                                        id='mother_photo'
-                                                                        type='file'
-                                                                        className='hidden'
-                                                                        accept='image/jpeg,image/jpg,image/png'
-                                                                        disabled={motherPhoto?.isUploading || isSubmitting}
-                                                                        onChange={(e) => {
-                                                                            const file = e.target.files?.[0];
-                                                                            if (file) {
-                                                                                if (file.size > 5 * 1024 * 1024) {
-                                                                                    toast.error('File size must be less than 5MB');
-                                                                                    e.target.value = '';
-                                                                                    return;
-                                                                                }
-                                                                                handleMotherPhotoUpload(file);
-                                                                                e.target.value = '';
-                                                                            }
-                                                                        }}
-                                                                    />
-                                                                </label>
-                                                            ) : (
-                                                                <div className='flex items-center gap-2'>
-                                                                    <div
-                                                                        className={`flex ${UPLOAD_BOX} items-center justify-center rounded-md border bg-white`}>
-                                                                        <img
-                                                                            src={motherPhoto.path}
-                                                                            alt='Mother'
-                                                                            className='max-h-full max-w-full object-contain'
-                                                                        />
-                                                                    </div>
-                                                                </div>
-                                                            )}
-                                                        </td>
-                                                        <td className='px-4 py-4'>
-                                                            <div className='flex gap-2'>
-                                                                {motherPhoto?.path && (
-                                                                    <Button
-                                                                        type='button'
-                                                                        size='sm'
-                                                                        variant='ghost'
-                                                                        onClick={() => window.open(motherPhoto.path, '_blank')}
-                                                                        aria-label='View mother photo'>
-                                                                        <Eye className='h-4 w-4' />
-                                                                    </Button>
-                                                                )}
-                                                                {motherPhoto?.path && (
-                                                                    <Button
-                                                                        type='button'
-                                                                        size='sm'
-                                                                        variant='destructive'
-                                                                        onClick={handleMotherPhotoDelete}
-                                                                        aria-label='Delete mother photo'>
-                                                                        <Trash className='h-4 w-4' />
-                                                                    </Button>
-                                                                )}
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-
-                                                    {/* Mother Signature */}
-                                                    <tr className={`border-t ${motherSignature?.path ? 'bg-green-50' : 'bg-amber-50'}`}>
-                                                        <td className='px-4 py-4'>
-                                                            <div className='flex flex-col'>
-                                                                <span className='font-medium'>Mother Signature</span>
-                                                            </div>
-                                                        </td>
-                                                        <td className='px-4 py-4'>
-                                                            {motherSignature?.isUploading ? (
-                                                                <span className='flex items-center gap-2 text-gray-600 text-sm'>
-                                                                    <Spinner size='sm' />
-                                                                    Uploading...
-                                                                </span>
-                                                            ) : motherSignature?.path ? (
-                                                                <span className='inline-flex items-center gap-2 text-green-700 text-sm'>
-                                                                    <svg
-                                                                        className='h-4 w-4 text-green-700'
-                                                                        viewBox='0 0 24 24'
-                                                                        fill='none'
-                                                                        stroke='currentColor'>
-                                                                        <path
-                                                                            d='M20 6L9 17l-5-5'
-                                                                            strokeWidth='2'
-                                                                            strokeLinecap='round'
-                                                                            strokeLinejoin='round'
-                                                                        />
-                                                                    </svg>
-                                                                    Uploaded
-                                                                </span>
-                                                            ) : (
-                                                                <span className='text-gray-500 text-sm'>Not Uploaded</span>
-                                                            )}
-                                                        </td>
-                                                        <td className='w-40 px-4 py-4'>
-                                                            {!motherSignature || motherSignature.isUploading ? (
-                                                                <label
-                                                                    className={`flex ${UPLOAD_BOX} cursor-pointer flex-col items-center justify-center rounded-md border-2 border-gray-300 border-dashed bg-white hover:border-primary`}>
-                                                                    <div className='flex flex-col items-center justify-center gap-1'>
-                                                                        <svg
-                                                                            className='h-6 w-6 text-purple-600'
-                                                                            viewBox='0 0 24 24'
-                                                                            fill='none'
-                                                                            stroke='currentColor'>
-                                                                            <path
-                                                                                strokeLinecap='round'
-                                                                                strokeLinejoin='round'
-                                                                                strokeWidth={2}
-                                                                                d='M12 3v12m0 0l3-3m-3 3l-3-3'
-                                                                            />
-                                                                            <path
-                                                                                strokeLinecap='round'
-                                                                                strokeLinejoin='round'
-                                                                                strokeWidth={2}
-                                                                                d='M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3'
-                                                                            />
-                                                                        </svg>
-                                                                        <span className='mt-1 text-gray-600 text-xs'>Click to upload</span>
-                                                                    </div>
-                                                                    <input
-                                                                        id='mother_signature'
-                                                                        type='file'
-                                                                        className='hidden'
-                                                                        accept='image/jpeg,image/jpg,image/png'
-                                                                        disabled={motherSignature?.isUploading || isSubmitting}
-                                                                        onChange={(e) => {
-                                                                            const file = e.target.files?.[0];
-                                                                            if (file) {
-                                                                                if (file.size > 5 * 1024 * 1024) {
-                                                                                    toast.error('File size must be less than 5MB');
-                                                                                    e.target.value = '';
-                                                                                    return;
-                                                                                }
-                                                                                handleMotherSignatureUpload(file);
-                                                                                e.target.value = '';
-                                                                            }
-                                                                        }}
-                                                                    />
-                                                                </label>
-                                                            ) : (
-                                                                <div className='flex items-center gap-2'>
-                                                                    <div
-                                                                        className={`flex ${UPLOAD_BOX} items-center justify-center rounded-md border bg-white`}>
-                                                                        <img
-                                                                            src={motherSignature.path}
-                                                                            alt='Mother signature'
-                                                                            className='max-h-full max-w-full object-contain'
-                                                                        />
-                                                                    </div>
-                                                                </div>
-                                                            )}
-                                                        </td>
-                                                        <td className='px-4 py-4'>
-                                                            <div className='flex gap-2'>
-                                                                {motherSignature?.path && (
-                                                                    <Button
-                                                                        type='button'
-                                                                        size='sm'
-                                                                        variant='ghost'
-                                                                        onClick={() => window.open(motherSignature.path, '_blank')}
-                                                                        aria-label='View mother signature'>
-                                                                        <Eye className='h-4 w-4' />
-                                                                    </Button>
-                                                                )}
-                                                                {motherSignature?.path && (
-                                                                    <Button
-                                                                        type='button'
-                                                                        size='sm'
-                                                                        variant='destructive'
-                                                                        onClick={handleMotherSignatureDelete}
-                                                                        aria-label='Delete mother signature'>
-                                                                        <Trash className='h-4 w-4' />
-                                                                    </Button>
-                                                                )}
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-
-                                        {/* Hostel / Transport checkboxes for final submission */}
-                                        <div className='mt-4 flex flex-col gap-3'>
-                                            <div className='flex items-center space-x-6'>
-                                                <div className='flex items-center space-x-2'>
-                                                    <Controller
-                                                        name='hostelRequired'
-                                                        control={control}
-                                                        render={({ field }) => (
-                                                            <Checkbox
-                                                                id='hostelRequired'
-                                                                checked={field.value || false}
-                                                                onCheckedChange={(checked) => field.onChange(checked === true)}
-                                                            />
-                                                        )}
-                                                    />
-                                                    <Label htmlFor='hostelRequired' className='cursor-pointer'>
-                                                        Hostel Required
-                                                    </Label>
-                                                </div>
-
-                                                <div className='flex items-center space-x-2'>
-                                                    <Controller
-                                                        name='transportRequired'
-                                                        control={control}
-                                                        render={({ field }) => (
-                                                            <Checkbox
-                                                                id='transportRequired'
-                                                                checked={field.value || false}
-                                                                onCheckedChange={(checked) => field.onChange(checked === true)}
-                                                            />
-                                                        )}
-                                                    />
-                                                    <Label htmlFor='transportRequired' className='cursor-pointer'>
-                                                        Transport Required
-                                                    </Label>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Upload Summary: show number of selected documents */}
-                                        {uploadedDocuments.length > 0 && (
-                                            <div className='rounded-lg border border-blue-200 bg-blue-50 p-4'>
-                                                <div className='flex items-start gap-3'>
-                                                    <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-100'>
-                                                        <svg
-                                                            className='h-5 w-5 text-blue-600'
-                                                            fill='none'
-                                                            stroke='currentColor'
-                                                            viewBox='0 0 24 24'>
-                                                            <path
-                                                                strokeLinecap='round'
-                                                                strokeLinejoin='round'
-                                                                strokeWidth={2}
-                                                                d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
-                                                            />
-                                                        </svg>
-                                                    </div>
-                                                    <div className='flex-1'>
-                                                        <p className='font-medium text-blue-900 text-sm'>Upload Summary</p>
-                                                        <p className='mt-1 text-blue-700 text-sm'>
-                                                            {uploadedDocuments.length} document(s) selected and will be submitted with the
-                                                            form
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
                                     </div>
                                 )}
                             </div>
