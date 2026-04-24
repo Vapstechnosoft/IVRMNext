@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import type { ICumulativeReport, IReportHeader, ISubject } from '@/types/exam/exam-module/report';
-import { Download, Printer,FileSpreadsheetIcon } from 'lucide-react';
+import { FileSpreadsheetIcon, Printer } from 'lucide-react';
 import { useState } from 'react';
 import * as XLSX from 'xlsx';
 
@@ -271,16 +271,16 @@ export default function CumulativeReportGridView({
             <div className='no-print flex items-center justify-between border-orange-400 border-b-2 bg-orange-100 px-4 py-2 text-sm'>
                 <span style={{ fontSize: '25px', fontWeight: '600' }}>GRID VIEW</span>
                 <div className='flex gap-2'>
-                <Button type="submit" onClick={onPrint}  className="hover:bg-orange-800 text-white flex w-fit">
-                        <Printer className="h-4 w-4" />
+                    <Button type='submit' onClick={onPrint} className='flex w-fit text-white hover:bg-orange-800'>
+                        <Printer className='h-4 w-4' />
                         <span>PRINT</span>
                     </Button>
 
-                <Button type="submit"  onClick={exportToExcel} className='hover:bg-orange-800 text-white w-fit'>
-                    <FileSpreadsheetIcon className='h-4 w-4' />
-                    Export to Excel
-                </Button>
-            </div>
+                    <Button type='submit' onClick={exportToExcel} className='w-fit text-white hover:bg-orange-800'>
+                        <FileSpreadsheetIcon className='h-4 w-4' />
+                        Export to Excel
+                    </Button>
+                </div>
             </div>
 
             {/* Report Header */}
@@ -379,8 +379,8 @@ export default function CumulativeReportGridView({
                                             {isAbsent
                                                 ? '-'
                                                 : student.estmP_Percentage
-                                                    ? Number(student.estmP_Percentage).toFixed(1) + '%'
-                                                    : '-'}
+                                                  ? `${Number(student.estmP_Percentage).toFixed(1)}%`
+                                                  : '-'}
                                         </td>
                                         <td className='border border-gray-400 py-2 text-center'>
                                             {isAbsent ? '' : (student.estmP_TotalGrade ?? '-')}

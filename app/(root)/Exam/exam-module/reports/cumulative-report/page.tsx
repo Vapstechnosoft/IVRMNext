@@ -4,16 +4,15 @@ import { useDataTableProps } from '@/components/ui/data-table/generic-data-table
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { GenericDataTable } from '@/components/ui/view-data-table/view-generic-data-table';
 import { getCumulativeReport } from '@/server/exam/exam-module/reports/cumulative-report';
+import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
 import type { ApiSearchparams } from '@/types';
-import type { ICumulativeReport, Institution, IMasterInstitution, IReportHeader, ISubject } from '@/types/exam/exam-module/report';
+import type { ICumulativeReport, IMasterInstitution, IReportHeader, ISubject } from '@/types/exam/exam-module/report';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import CumulativeReportForm from './_components/add-form';
 import CumulativeReportGridView from './_components/columns';
 import CumulativeReportExcel from './_components/cumulative-report-excel';
 import CumulativeReportPrintView from './_components/cumulative-report-printable';
-import { RefreshCw } from 'lucide-react';
-import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
 
 export default function CumulativeReportPage() {
     const [reportData, setReportData] = useState<ICumulativeReport[]>([]);
@@ -84,7 +83,6 @@ export default function CumulativeReportPage() {
                 (a, b) => (a.eyceS_SubjectOrder ?? 999) - (b.eyceS_SubjectOrder ?? 999)
             );
 
-
             const formatted: ICumulativeReport[] = rawList.map((s: any) => {
                 const fullName = [s.amsT_FirstName, s.amsT_MiddleName, s.amsT_LastName].filter(Boolean).join(' ').trim();
 
@@ -111,7 +109,7 @@ export default function CumulativeReportPage() {
                 };
             });
 
-            const first = { ...rawList[0], ...institudtion_data }
+            const first = { ...rawList[0], ...institudtion_data };
             const header: Partial<IReportHeader> = {
                 mI_name: first?.mI_Name ?? 'Vidya Vikasa Vidya Samsthe (R)',
                 yr: first?.asmaY_Year ?? '',
@@ -148,7 +146,7 @@ export default function CumulativeReportPage() {
         if (isReportVisible && printRef.current) {
             printRef.current.scrollIntoView({ behavior: 'smooth' });
         }
-    }, [isReportVisible])
+    }, [isReportVisible]);
 
     // Re-fetch when pagination changes
     useEffect(() => {
@@ -170,57 +168,55 @@ export default function CumulativeReportPage() {
                 <CumulativeReportForm onSuccess={handleReportSuccess} apiSearchParams={searchParams} />
             </CollapsibleSection>
 
-            {
-                isReportVisible && (
-                    <CollapsibleSection title='Grid View' defaultOpen>
-                        <div ref={printRef}>
-                            {/* Print View */}
-                            {institution && (
-                                <CumulativeReportPrintView
-                                    reportData={reportData}
-                                    institution={institution}
-                                    subjects={subjects}
-                                    headerInfo={headerInfo}
-                                    fontSize='medium'
-                                    columnFlags={columnFlags}
-                                />
-                            )}
+            {isReportVisible && (
+                <CollapsibleSection title='Grid View' defaultOpen>
+                    <div ref={printRef}>
+                        {/* Print View */}
+                        {institution && (
+                            <CumulativeReportPrintView
+                                reportData={reportData}
+                                institution={institution}
+                                subjects={subjects}
+                                headerInfo={headerInfo}
+                                fontSize='medium'
+                                columnFlags={columnFlags}
+                            />
+                        )}
 
-                            {/* Screen View */}
-                            <CumulativeReportGridView
+                        {/* Screen View */}
+                        <CumulativeReportGridView
+                            reportData={reportData}
+                            subjects={subjects}
+                            headerInfo={headerInfo}
+                            columnFlags={columnFlags}
+                            onPrint={handlePrint}
+                        />
+
+                        <div className='mt-6 flex justify-end print:hidden'>
+                            <CumulativeReportExcel
                                 reportData={reportData}
                                 subjects={subjects}
                                 headerInfo={headerInfo}
                                 columnFlags={columnFlags}
-                                onPrint={handlePrint}
                             />
-
-                            <div className='mt-6 flex justify-end print:hidden'>
-                                <CumulativeReportExcel
-                                    reportData={reportData}
-                                    subjects={subjects}
-                                    headerInfo={headerInfo}
-                                    columnFlags={columnFlags}
-                                />
-                            </div>
-
-                            <div className='mt-10'>
-                                <GenericDataTable
-                                    isLoading={false}
-                                    {...tableProps}
-                                    columns={[]}
-                                    data={reportData}
-                                    noDataTitle='No results.'
-                                    noDataDescription='No student data matches the selected criteria.'
-                                    showPagination={false}
-                                    onSearchQueryChange={handleApiSearchParms}
-                                    currentApiParams={searchParams}
-                                />
-                            </div>
                         </div>
-                    </CollapsibleSection>
-                )
-            }
-        </div >
+
+                        <div className='mt-10'>
+                            <GenericDataTable
+                                isLoading={false}
+                                {...tableProps}
+                                columns={[]}
+                                data={reportData}
+                                noDataTitle='No results.'
+                                noDataDescription='No student data matches the selected criteria.'
+                                showPagination={false}
+                                onSearchQueryChange={handleApiSearchParms}
+                                currentApiParams={searchParams}
+                            />
+                        </div>
+                    </div>
+                </CollapsibleSection>
+            )}
+        </div>
     );
 }

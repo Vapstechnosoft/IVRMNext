@@ -14,6 +14,7 @@ import type { z } from 'zod';
 type FormFields = z.infer<typeof subjectWiseReportSchema.search>;
 
 import { getSubjectWiseReport } from '@/server/timetable/reports/subjectwisett';
+import { useTimeTableClassDropdown } from '@/hooks/timetable/reports';
 
 interface SubjectWiseFormProps {
     initialData: any;
@@ -24,7 +25,7 @@ interface SubjectWiseFormProps {
 export default function SubjectWiseForm({ initialData, onReportGenerated, onCancel }: SubjectWiseFormProps) {
     const { data: academicyeardata, isLoading: academicyearloading } = useTimeTableAcademicYear();
 
-    const { data: classdropdowndata, isLoading: classloading } = useTimeTableClassDropdownData();
+    const { data: classdropdowndata, isLoading: classloading } = useTimeTableClassDropdown();
 
     const { data: subjectdropdowndata, isLoading: subjectloading } = useSubjectDropDown();
 

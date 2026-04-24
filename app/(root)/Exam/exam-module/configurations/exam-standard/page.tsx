@@ -142,7 +142,6 @@ function ExamStandardPageContent({
     }, [response]);
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            console.log('Submitted Data:', data);
             const payload = {
                 ...data,
                 ExmConfig_NoOfDecimalValues: Number(data.ExmConfig_NoOfDecimalValues),

@@ -53,7 +53,7 @@ const PromotionRemarksSchema = z.object({
 // biome-ignore lint/correctness/noUnusedVariables: <explanation>
 type FormData = z.infer<typeof PromotionRemarksSchema>;
 
-const MI_ID = 30; // You might want to get this from user context or environment
+const _MI_ID = 30; // You might want to get this from user context or environment
 
 /* -------------------------
    Main Component
@@ -96,7 +96,7 @@ function PromotionRemarksContent() {
     const [loadingClasses, setLoadingClasses] = useState(false);
     const [loadingSections, setLoadingSections] = useState(false);
     const [loadingTerms, setLoadingTerms] = useState(false);
-    const [filteredStudents, setFilteredStudents] = useState<IPromotionRemarksGrid[]>([]);
+    const [_filteredStudents, setFilteredStudents] = useState<IPromotionRemarksGrid[]>([]);
 
     const handleRowSelectionChange = useCallback((rows: IPromotionRemarksGrid[]) => {
         setSelectedStudents(rows);
@@ -325,8 +325,6 @@ function PromotionRemarksContent() {
                     estmP_Id: student.estmP_Id || 0,
                     ecT_Id: activeTab === 0 ? selectedTerm! : undefined
                 }));
-
-                console.log('studentList', studentList);
                 setStudents(studentList);
 
                 toast.success('Student data loaded successfully');

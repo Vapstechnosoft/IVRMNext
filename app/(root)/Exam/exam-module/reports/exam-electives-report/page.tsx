@@ -137,7 +137,6 @@ export default function ExamElectivesReportPage() {
 
                         {/* Screen View */}
                         <div className='print:hidden '>
-
                             <ElectiveReportGridView
                                 students={students}
                                 groupList={groupList}

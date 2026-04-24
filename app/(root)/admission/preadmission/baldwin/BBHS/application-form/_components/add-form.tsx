@@ -31,7 +31,7 @@ import {
 import { getIconByName } from '@/lib/lucide-icon-registry';
 import { cn } from '@/lib/utils';
 
-import { addStudentApplicationForm } from '@/server/admission/preadmission/transactions/application_form';
+import { addBBHSStudentApplication } from '@/server/admission/preadmission/transactions/bbhs_student_application';
 import { deleteDocument, uploadDocument } from '@/server/document_upload';
 import type { IPreadmissionClassDropdown } from '@/types/admission/preadmission/transactions';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -114,6 +114,15 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                     pasrpS_LeftYear: '',
                     pasrpS_LeftReason: '',
                     pasrpS_Address: ''
+                }
+            ],
+            guardianDetails: [
+                {
+                    PASRG_GuardianName: '',
+                    PASRG_GuardianRelation: '',
+                    ReportType: '',
+                    PASRG_PhoneOffice: '',
+                    PASRG_GuardianPhoneNo: ''
                 }
             ],
             siblingsDetails: []
@@ -419,6 +428,17 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
             }
 
             setCurrentStep((prev) => Math.min(prev + 1, steps.length));
+        } else {
+            // Show error message when validation fails
+            if (currentStep === 1) {
+                toast.error('Please fill in all required student information fields. Check the form for any errors.');
+            } else if (currentStep === 2) {
+                toast.error('Please fill in all required address fields. Check the form for any errors.');
+            } else if (currentStep === 3) {
+                toast.error('Please fill in all required parent/guardian details (Father Name, Father Nationality, Mother Name, Mother Nationality). Check the form for any errors.');
+            } else if (currentStep === 4) {
+                toast.error('Please complete document uploads. Check the form for any errors.');
+            }
         }
     };
 
@@ -470,53 +490,124 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         }
 
         try {
-            const {
-                pasR_DOB,
-                source_ids,
-                reference_ids,
-                pasR_PerState,
-                pasR_ConCountry,
-                pasR_PerCountry,
-                pasR_ConPincode,
-                pasR_PerPincode,
-                pasA_WillingToContributeFlg,
-                ...filteredData
-            } = data;
+            const formData = getValues();
+
+            // Construct explicit payload to ensure correct types and casing for the backend
             const payload = {
-                ...filteredData,
-                pasR_DOB: format(pasR_DOB, 'yyyy-MM-dd'),
+                // Core Identification
+                ASMAY_Id: activePreadmission?.data?.asmaY_Id || 0,
+                pasR_FirstName: formData.pasR_FirstName || '',
+                pasR_MiddleName: formData.pasR_MiddleName || '',
+                pasR_LastName: formData.pasR_LastName || '',
+                pasR_DOB: formData.pasR_DOB ? format(new Date(formData.pasR_DOB), 'yyyy-MM-dd') : '',
                 pasR_Age: 0,
+                pasR_Sex: formData.pasR_Sex || '',
+                asmcL_Id: Number(formData.asmcL_Id || 0),
+                pasR_emailId: formData.pasR_emailId || '',
+                pasR_MobileNo: formData.pasR_MobileNo || '',
+
+                // Photos
                 pasR_Student_Pic_Path: studentPhoto?.pasR_Student_Pic_Path || '',
                 pasR_FatherPhoto: fatherPhoto?.pasR_FatherPhoto || '',
                 pasR_MotherPhoto: motherPhoto?.pasR_MotherPhoto || '',
-                PASR_PerState: pasR_PerState?.toString() ?? '',
-                PASR_ConCountry: pasR_ConCountry?.toString() ?? '',
-                PASR_PerCountry: pasR_PerCountry?.toString() ?? '',
-                PASR_ConPincode:
-                    pasR_ConPincode === undefined || pasR_ConPincode === null || pasR_ConPincode === '' ? 0 : Number(pasR_ConPincode),
-                PASR_PerPincode:
-                    pasR_PerPincode === undefined || pasR_PerPincode === null || pasR_PerPincode === '' ? 0 : Number(pasR_PerPincode),
+
+                // Additional Info (Step 1)
+                religion_Id: Number(formData.religion_Id || 0),
+                caste_Id: Number(formData.caste_Id || 0),
+                SubCaste_Id: formData.SubCaste_Id ? Number(formData.SubCaste_Id) : 0,
+                pasR_BirthPlace: formData.pasR_BirthPlace || '',
+                pasR_Nationality: formData.pasR_Nationality || '',
+                pasR_MotherTongue: formData.pasR_MotherTongue || '',
+                pasR_TransportReqdFlag: Number(formData.pasR_TransportReqdFlag || 0),
+
+                // Address Information (Step 2)
+                pasR_ConStreet: formData.pasR_ConStreet || '',
+                pasR_ConArea: formData.pasR_ConArea || '',
+                pasR_ConCity: formData.pasR_ConCity || '',
+                PASR_ConState: formData.pasR_ConState ? Number(formData.pasR_ConState) : null,
+                PASR_ConCountry: formData.pasR_ConCountry ? String(formData.pasR_ConCountry) : '',
+                PASR_ConPincode: formData.pasR_ConPincode ? Number(formData.pasR_ConPincode) : 0,
+
+                pasR_PerStreet: formData.pasR_PerStreet || '',
+                pasR_PerArea: formData.pasR_PerArea || '',
+                pasR_PerCity: formData.pasR_PerCity || '',
+                PASR_PerState: formData.pasR_PerState ? String(formData.pasR_PerState) : '',
+                PASR_PerCountry: formData.pasR_PerCountry ? String(formData.pasR_PerCountry) : '',
+                PASR_PerPincode: formData.pasR_PerPincode ? Number(formData.pasR_PerPincode) : 0,
+
+                // Parent Information (Step 3)
+                // Father
+                pasR_FatherName: formData.pasR_FatherName || '',
+                pasR_FatherNationality: formData.pasR_FatherNationality || '',
+                PASR_FatherAadharNo: formData.PASR_FatherAadharNo ? Number(formData.PASR_FatherAadharNo) : null,
+                PASR_FatherReligion: Number(formData.PASR_FatherReligion || 0),
+                PASR_FatherCaste: Number(formData.PASR_FatherCaste || 0),
+                PASR_FatherMobleNo: formData.pasR_FatherMobleNo ? Number(formData.pasR_FatherMobleNo) : null,
+                pasR_FatherEducation: formData.pasR_FatherEducation || '',
+                pasR_FatherOccupation: formData.pasR_FatherOccupation || '',
+                pasR_FatherDesignation: formData.pasR_FatherDesignation || '',
+                PASR_FatherIncome: formData.pasR_FatherIncome ? Number(formData.pasR_FatherIncome) : 0,
+                pasA_FatherInstitution: formData.pasA_FatherInstitution || '',
+                pasA_FatherBusiness: formData.pasA_FatherBusiness || '',
+                pasA_FatherCompany: formData.pasA_FatherCompany || '',
+                pasA_FatherMotherTongue: formData.pasA_FatherMotherTongue || '',
+
+                // Mother
+                pasR_MotherName: formData.pasR_MotherName || '',
+                pasR_MotherNationality: formData.pasR_MotherNationality || '',
+                PASR_MotherAadharNo: formData.PASR_MotherAadharNo ? Number(formData.PASR_MotherAadharNo) : null,
+                PASR_MotherReligion: Number(formData.PASR_MotherReligion || 0),
+                PASR_MotherCaste: Number(formData.PASR_MotherCaste || 0),
+                pasR_MotherMobleNo: formData.pasR_MotherMobleNo || '',
+                pasR_MotherEducation: formData.pasR_MotherEducation || '',
+                pasR_MotherOccupation: formData.pasR_MotherOccupation || '',
+                pasR_MotherDesignation: formData.pasR_MotherDesignation || '',
+                PASR_MotherIncome: formData.pasR_MotherIncome ? Number(formData.pasR_MotherIncome) : 0,
+                pasA_MotherInstitution: formData.pasA_MotherInstitution || '',
+                pasA_MotherBusiness: formData.pasA_MotherBusiness || '',
+                pasA_MotherCompany: formData.pasA_MotherCompany || '',
+                pasA_MotherMotherTongue: formData.pasA_MotherMotherTongue || '',
+                PASR_BloodGroup: formData.PASR_BloodGroup !== undefined ? Number(formData.PASR_BloodGroup) : 0, // Transferable job
+
+                // Combined / Alternate
+                pasR_AltContactNo: formData.pasR_AltContactNo || '',
+                pasR_AltContactEmail: formData.pasR_AltContactEmail || '',
+
+                // Tab 4: Multi-selects
                 selectedSourceDetails: selectedSourceItems.map((item) => ({
                     pamS_Id: item.pamS_Id
                 })),
                 selectedRefrenceDetails: selectedReferenceItems.map((item) => ({
                     pamR_Id: item.pamR_Id
                 })),
-                siblingsDetails: (getValues('siblingsDetails') || []).map((sibling: any) => ({
-                    pasR_Id: sibling.pasR_Id || 0,
-                    pasrS_SchoolName: sibling.pasrS_SchoolName || '',
-                    pasrS_Age: sibling.pasrS_Age || 0,
-                    pasrS_Gender: sibling.pasrS_Gender || '',
-                    pasrS_Institution: sibling.pasrS_Institution || '',
-                    pasrS_DOB: sibling.pasrS_DOB || '',
-                    verrejstatus: sibling.verrejstatus || '',
+
+                // Tab 5: Sibling Details
+                siblingsDetails: (formData.siblingsDetails || []).map((sibling: any) => ({
+                    pasrS_Id: 0,
+                    pasR_Id: 0,
                     pasrS_SiblingsName: sibling.pasrS_SiblingsName || '',
                     pasrS_SiblingsClass: sibling.pasrS_SiblingsClass || '',
                     pasrS_SiblingsAdmissionNo: sibling.pasrS_SiblingsAdmissionNo || '',
-                    pasrS_SiblingsSection: sibling.pasrS_SiblingsSection || ''
+                    pasrS_SiblingsSection: sibling.pasrS_SiblingsSection || '',
+                    pasrS_SchoolName: sibling.pasrS_SchoolName || '',
+                    pasrS_Institution: sibling.pasrS_Institution || '',
+                    pasrS_Age: Number(sibling.pasrS_Age || 0),
+                    pasrS_Gender: sibling.pasrS_Gender || '',
+                    pasrS_DOB: sibling.pasrS_DOB || '',
+                    verrejstatus: sibling.verrejstatus || ''
                 })),
-                // CHANGE THIS: Use array from form data
-                previousSchoolList: (data.previousSchoolDetails || []).map((school: any) => ({
+
+                // Other Info
+                guardianDetails: (formData.guardianDetails || []).map((guardian: any) => ({
+                    pasrG_Id: 0,
+                    pasR_Id: 0,
+                    PASRG_GuardianName: guardian.PASRG_GuardianName || '',
+                    PASRG_GuardianRelation: guardian.PASRG_GuardianRelation || '',
+                    PASRG_PhoneOffice: guardian.PASRG_PhoneOffice || '',
+                    PASRG_GuardianPhoneNo: guardian.PASRG_GuardianPhoneNo || '',
+                    ReportType: guardian.ReportType || ''
+                })),
+                previousSchoolList: (formData.previousSchoolDetails || []).map((school: any) => ({
                     pasrpS_Id: 0,
                     pasR_Id: 0,
                     pasrpS_PrvSchoolName: school.pasrpS_PrvSchoolName || '',
@@ -531,24 +622,29 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                     pasrpS_PreviousMarks: '',
                     pasrpS_ConcOrScholarshipFlg: ''
                 })),
+
+                pasA_AdmittingReason: formData.pasA_AdmittingReason || '',
+                pasA_WillingToContributeFlg: formData.pasA_WillingToContributeFlg === 1 ? 1 : 0,
+                pasA_WillingToContributeRemarks: formData.pasA_WillingToContributeRemarks || '',
+                pasR_UndertakingFlag: formData.pasR_UndertakingFlag === 1 ? 1 : 0,
+
+                // Technical fields
                 examSubjectDTO: [],
                 elesubsubject: [],
                 selectedDocuments: uploadedDocuments.map((doc) => ({
-                    pasrD_Id: doc.pasrD_Id,
-                    pasR_Id: doc.pasR_Id,
-                    amsmD_Id: doc.amsmD_Id,
-                    document_Path: doc.document_Path
+                    pasrD_Id: doc.pasrD_Id || 0,
+                    pasR_Id: doc.pasR_Id || 0,
+                    amsmD_Id: doc.amsmD_Id || 0,
+                    document_Path: doc.document_Path || ''
                 })),
                 PASR_RegistrationNo: '',
-                pasA_WillingToContributeFlg: pasA_WillingToContributeFlg === 1,
                 pasP_Id: 0
             };
 
-            const response = await addStudentApplicationForm(payload);
+            const response = await addBBHSStudentApplication(payload);
 
             if (response.success) {
                 reset();
-                handleReset();
                 onSuccess?.();
             } else {
                 toast.error(response.message);
@@ -556,8 +652,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         } catch (error: any) {
             toast.error(error.message);
         }
-
-        refetchDropdowns();
     };
 
     const handleReset = () => {
@@ -915,12 +1009,24 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
 
     // Add this handler where other form handlers are defined
     const handleDOBChange = (date: Date | undefined) => {
-        console.log('handleDOBChange called with:', date);
-        console.log('masterConfig:', masterConfig);
-        console.log('preadmissionClass:', preadmissionClass);
-
         if (!date || !masterConfig?.data) {
-            console.log('Date or masterConfig missing. Disabling class dropdown.');
+            setIsClassDisabled(true);
+            setFilteredClasses([]);
+            setValue('asmcL_Id', 0);
+            return;
+        }
+
+        // Validate the date
+        if (Number.isNaN(date.getTime())) {
+            setIsClassDisabled(true);
+            setFilteredClasses([]);
+            setValue('asmcL_Id', 0);
+            return;
+        }
+
+        // Ensure date is not in the future
+        const today = new Date();
+        if (date > today) {
             setIsClassDisabled(true);
             setFilteredClasses([]);
             setValue('asmcL_Id', 0);
@@ -928,14 +1034,12 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         }
 
         const allClasses = preadmissionClass?.data || [];
-        console.log('All classes:', allClasses);
 
         const validClasses: IPreadmissionClassDropdown[] = [];
         const invalidClasses: IPreadmissionClassDropdown[] = [];
 
         allClasses.forEach((classItem: IPreadmissionClassDropdown) => {
             const validation = validateAgeForClass(date, classItem, masterConfig.data);
-            console.log(`Validation for class ${classItem.asmcL_ClassName}:`, validation);
             if (validation.isValid) {
                 validClasses.push(classItem);
             } else {
@@ -943,19 +1047,21 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
             }
         });
 
-        console.log('Valid classes:', validClasses);
         setFilteredClasses(validClasses);
 
         if (validClasses.length === 0) {
-            console.log('No eligible classes found.');
             setIneligibleClasses(invalidClasses);
             setShowIneligibleDialog(true);
             setIsClassDisabled(true);
             setValue('asmcL_Id', 0);
         } else {
-            console.log('Eligible classes found. Enabling dropdown.');
             setIsClassDisabled(false);
-            setValue('asmcL_Id', 0);
+
+            // Only reset if current selection is invalid
+            const currentClassId = getValues('asmcL_Id');
+            if (currentClassId !== 0 && !validClasses.some(c => c.asmcL_Id === currentClassId)) {
+                setValue('asmcL_Id', 0);
+            }
         }
     };
 
@@ -966,7 +1072,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
             handleDOBChange(dob);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [watch('pasR_DOB'), masterConfig, preadmissionClass]);
+    }, [watch('pasR_DOB'), masterConfig?.data, preadmissionClass?.data]);
 
     const handleFatherPhotoUpload = async (file: File) => {
         try {
@@ -987,7 +1093,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
 
             const formData = new FormData();
             formData.append('file', file);
-            formData.append('SubContainerName', 'preadmission_student_photo');
+            formData.append('SubContainerName', 'preadmission_father_photo');
 
             const response = await uploadDocument(formData);
 
@@ -1044,7 +1150,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
 
             const formData = new FormData();
             formData.append('file', file);
-            formData.append('SubContainerName', 'preadmission_student_photo');
+            formData.append('SubContainerName', 'preadmission_mother_photo');
 
             const response = await uploadDocument(formData);
 
@@ -1500,7 +1606,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                 country='in'
                                                                 value={
                                                                     phoneValues.pasR_MobileNo ??
-                                                                    (field.value != null ? String(field.value) : null)
+                                                                    (field.value != null ? String(field.value) : '')
                                                                 }
                                                                 onChange={(phone: any, countryData: any) =>
                                                                     handlePhoneChange(phone, countryData, 'pasR_MobileNo')
@@ -2642,7 +2748,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                 />
                                                             )}
                                                         />
-                                                        {errors.fatherSubCaste_Id && <FormError>{errors.fatherSubCaste_Id.message}</FormError>}
+                                                        {errors.PASR_FatherAadharNo && <FormError>{errors.PASR_FatherAadharNo.message}</FormError>}
                                                     </div>
                                                     <div className='flex flex-col gap-1.5'>
                                                         <Label htmlFor='PASR_FatherReligion'>
@@ -2814,7 +2920,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                         country='in'
                                                                         value={
                                                                             phoneValues.pasR_FatherMobleNo ??
-                                                                            (field.value != null ? String(field.value) : null)
+                                                                            (field.value != null ? String(field.value) : '')
                                                                         }
                                                                         onChange={(phone: any, countryData: any) =>
                                                                             handlePhoneChange(phone, countryData, 'pasR_FatherMobleNo')
@@ -3189,7 +3295,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                 </Select>
                                                             )}
                                                         />
-                                                        {errors.PASR_FatherReligion && <FormError>{errors.PASR_FatherReligion.message}</FormError>}
+                                                        {errors.PASR_MotherReligion && <FormError>{errors.PASR_MotherReligion.message}</FormError>}
                                                     </div>
                                                     <div className='flex flex-col gap-1.5'>
                                                         <Label htmlFor='PASR_MotherCaste'>
@@ -3348,7 +3454,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                         country='in'
                                                                         value={
                                                                             phoneValues.pasR_MotherMobleNo ??
-                                                                            (field.value != null ? String(field.value) : null)
+                                                                            (field.value != null ? String(field.value) : '')
                                                                         }
                                                                         onChange={(phone: any, countryData: any) =>
                                                                             handlePhoneChange(phone, countryData, 'pasR_MotherMobleNo')
@@ -3455,7 +3561,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                         country='in'
                                                                         value={
                                                                             phoneValues.pasR_AltContactNo ??
-                                                                            (field.value != null ? String(field.value) : null)
+                                                                            (field.value != null ? String(field.value) : '')
                                                                         }
                                                                         onChange={(phone: any, countryData: any) =>
                                                                             handlePhoneChange(phone, countryData, 'pasR_AltContactNo')
@@ -3981,8 +4087,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                     render={({ field }) => (
                                                         <InputText
                                                             label='Relationship To student'
-                                                            id='previous_class'
-                                                            placeholder='Enter class'
+                                                            id='PASRG_GuardianRelation'
+                                                            placeholder='Enter relationship'
                                                             {...field}
                                                             error={errors.guardianDetails?.[0]?.PASRG_GuardianRelation?.message}
                                                         />
@@ -4007,8 +4113,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                     render={({ field }) => (
                                                         <InputText
                                                             label='Guardian Phone Office:'
-                                                            id='left_year'
-                                                            placeholder='Enter year'
+                                                            id='PASRG_PhoneOffice'
+                                                            placeholder='Enter phone office'
                                                             {...field}
                                                             error={errors.guardianDetails?.[0]?.PASRG_PhoneOffice?.message}
                                                         />
@@ -4020,8 +4126,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                     render={({ field }) => (
                                                         <InputText
                                                             label='Guardian Phone Res:'
-                                                            id='left_reason'
-                                                            placeholder='Enter reason'
+                                                            id='PASRG_GuardianPhoneNo'
+                                                            placeholder='Enter phone res'
                                                             {...field}
                                                             error={errors.guardianDetails?.[0]?.PASRG_GuardianPhoneNo?.message}
                                                         />
@@ -4272,9 +4378,35 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                     ) : (
                                         <Button
                                             type='button'
-                                            onClick={handleSubmit(onSubmit)}
                                             disabled={isSubmitting}
-                                            className='min-w-[160px] transition-all duration-200 hover:scale-105'>
+                                            className='min-w-[160px] bg-blue-600 transition-all duration-200 hover:scale-105 hover:bg-blue-700'
+                                            onClick={(e) => {
+                                                console.log('Submit button clicked. Triggering handleSubmit...');
+                                                handleSubmit(
+                                                    (data) => {
+                                                        console.log('Form validation successful. Data:', data);
+                                                        onSubmit(data);
+                                                    },
+                                                    (errors) => {
+                                                        console.error('Form validation failed. Errors:', errors);
+                                                        const errorFields = Object.keys(errors);
+                                                        toast.error(`Please fix errors in these fields: ${errorFields.join(', ')}`);
+
+                                                        // Highlight where errors are if not on current step
+                                                        if (errorFields.some(field => [
+                                                            'pasR_FirstName', 'pasR_MiddleName', 'pasR_LastName', 'pasR_DOB', 'pasR_MobileNo'
+                                                        ].includes(field))) {
+                                                            toast.info('There are errors in Student Information tab');
+                                                        }
+                                                        if (errorFields.some(field => field.startsWith('pasR_Con') || field.startsWith('pasR_Per'))) {
+                                                            toast.info('There are errors in Address Information tab');
+                                                        }
+                                                        if (errorFields.some(field => field.includes('Father') || field.includes('Mother'))) {
+                                                            toast.info('There are errors in Parents Information tab');
+                                                        }
+                                                    }
+                                                )(e);
+                                            }}>
                                             {isSubmitting ? (
                                                 <span>Saving...</span>
                                             ) : (

@@ -361,7 +361,6 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                 ISMS_Id: ISMS_Id
             });
             const data = Array.isArray(response.data) ? response.data[0] : response.data;
-            console.log('Search response **', data);
 
             if (data === null) {
                 toast.error('This Subject Is Not Mapped With Students');
@@ -608,9 +607,8 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                         const updated = [...prev];
                         updated[existingIndex] = newEntry;
                         return updated;
-                    } else {
-                        return [...prev, newEntry];
                     }
+                    return [...prev, newEntry];
                 });
 
                 return {
@@ -907,9 +905,8 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                 const updated = [...prev];
                 updated[existingIndex] = newEntry;
                 return updated;
-            } else {
-                return [...prev, newEntry];
             }
+            return [...prev, newEntry];
         });
     };
 
@@ -962,9 +959,8 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                 const updated = [...prev];
                 updated[existingIndex] = newEntry;
                 return updated;
-            } else {
-                return [...prev, newEntry];
             }
+            return [...prev, newEntry];
         });
     };
 
@@ -1017,9 +1013,8 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                 const updated = [...prev];
                 updated[existingIndex] = newEntry;
                 return updated;
-            } else {
-                return [...prev, newEntry];
             }
+            return [...prev, newEntry];
         });
     };
 
@@ -1048,9 +1043,11 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
 
         if (!subjectMeta.subsubFlag && !subjectMeta.subexamFlag) {
             return 0; // Simple marks column
-        } else if (subjectMeta.subsubFlag) {
+        }
+        if (subjectMeta.subsubFlag) {
             return subjectMeta.subsubData.length - 1;
-        } else if (subjectMeta.subexamFlag) {
+        }
+        if (subjectMeta.subexamFlag) {
             return subjectMeta.subexamData.length - 1;
         }
         return 0;
@@ -1389,8 +1386,6 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
             saveData.orderflag = verifyflg;
         }
 
-        console.log('Save payload:', saveData);
-
         try {
             const response = await addOrUpdateStudentMarks(saveData);
 
@@ -1573,8 +1568,8 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                                 // Calculate totals
                                 let subsum = 0;
                                 let examsum = 0;
-                                let subOver = false;
-                                let examOver = false;
+                                let _subOver = false;
+                                let _examOver = false;
 
                                 if (subjectMeta.subsubFlag && student.ESTMSS_Marks && typeof student.ESTMSS_Marks === 'object') {
                                     // Calculate sub-subject total
@@ -1583,7 +1578,7 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                                             subsum += Number.parseFloat(markValue);
                                         }
                                     });
-                                    subOver = subsum > subjectMeta.maxMarks;
+                                    _subOver = subsum > subjectMeta.maxMarks;
                                 } else if (subjectMeta.subexamFlag && student.ESTMSS_Marks && typeof student.ESTMSS_Marks === 'object') {
                                     // Calculate sub-exam total
                                     Object.values(student.ESTMSS_Marks).forEach((markValue) => {
@@ -1598,7 +1593,7 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                                             }
                                         });
                                     }
-                                    examOver = examsum > subjectMeta.maxMarks;
+                                    _examOver = examsum > subjectMeta.maxMarks;
                                 } else {
                                     // Simple marks
                                     if (
@@ -1607,7 +1602,7 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                                         !Number.isNaN(Number.parseFloat(student.ESTM_Marks))
                                     ) {
                                         subsum = Number.parseFloat(student.ESTM_Marks);
-                                        subOver = subsum > subjectMeta.maxMarks;
+                                        _subOver = subsum > subjectMeta.maxMarks;
                                     }
                                 }
 

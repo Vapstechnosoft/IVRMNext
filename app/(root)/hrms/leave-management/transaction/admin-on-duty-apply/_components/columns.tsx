@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 
 interface AdminOnDutyApplyColumnsProps {
     onView: (id: number) => void;
-    onDelete: (id: number) => void;
+    onDelete: (row: AdminOnDutyApply) => void;
     onEdit: (row: AdminOnDutyApply) => void;
 }
 
@@ -141,7 +141,7 @@ export const getAdminOnDutyApplyColumns = ({
                         variant='ghost'
                         size='icon'
                         className='h-8 w-8 text-destructive hover:text-destructive hover:bg-red-50'
-                        onClick={() => onDelete(row.original.id)}
+                        onClick={() => onDelete(row.original)}
                         title='Delete'
                     >
                         <Trash2 className='h-4 w-4' />

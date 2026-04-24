@@ -8,7 +8,7 @@ import { masterSubSubjectSchema } from '@/schemas/exam/exam-module/masters';
 import { addOrUpdateMasterSubSubject } from '@/server/exam/exam-module/masters/sus-subject';
 import type { IMasterSubSubject } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Save, RefreshCw } from 'lucide-react';
+import { RefreshCw, Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -88,9 +88,9 @@ export default function UpdateMasterSubSubjectForm({ onSuccess, className = '', 
         setIsLoading(true);
         const timer = setTimeout(() => {
             setIsLoading(false);
-        }, 300)
+        }, 300);
         return () => clearTimeout(timer);
-    }, [row])
+    }, [row]);
 
     if (isLoading) {
         return (

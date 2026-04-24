@@ -5,7 +5,7 @@ import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/ex
 import { FormError } from '@/components/ui/extension/field';
 import { usePromotionalGroupMappedExams } from '@/hooks/exam/exammodule/exam-mapping';
 import { togglePromotionSubjectGroupExams } from '@/server/exam/exam-module/exam-mapping/promotional-setting';
-import type { IPromotionalGroupDetails, IPromotionalGroupMappedExamDetails } from '@/types/exam/exam-module/exam-mapping';
+import type { IPromotionalGroupMappedExamDetails } from '@/types/exam/exam-module/exam-mapping';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -44,7 +44,7 @@ export default function TogglePromotionalGroupMappedExamForm({ rowData, onClose 
         onClose();
     }
 
-    const onSubmit = async (values: ToggleFormFields) => {
+    const onSubmit = async (_values: ToggleFormFields) => {
         try {
             const response = await togglePromotionSubjectGroupExams(rowData.empsgE_Id);
 
@@ -67,8 +67,8 @@ export default function TogglePromotionalGroupMappedExamForm({ rowData, onClose 
                     <input type='hidden' {...register('slNo')} />
 
                     <p>
-                        Are you sure you want to <strong>{isActive ? 'Deactivate' : 'Activate'}</strong> <strong>{rowData.emE_ExamName}</strong>
-                        ?
+                        Are you sure you want to <strong>{isActive ? 'Deactivate' : 'Activate'}</strong>{' '}
+                        <strong>{rowData.emE_ExamName}</strong>?
                     </p>
 
                     <FormError>{errors.slNo?.message}</FormError>

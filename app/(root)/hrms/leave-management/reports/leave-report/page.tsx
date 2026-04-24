@@ -226,6 +226,8 @@ export default function LeaveReportPage() {
                     onReport={handleReport}
                     onCancel={handleClear}
                 />
+                {
+                    rows.length > 0 && (
                 <CollapsibleSection
                     title='Leave Report'
                     description=''
@@ -235,6 +237,7 @@ export default function LeaveReportPage() {
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <GenericDataTable data={rows} columns={leaveReportColumns} totalItems={rows.length} isLoading={false} />
                 </CollapsibleSection>
+                )}
             </div>
         </div>
     );

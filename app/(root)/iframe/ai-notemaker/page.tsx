@@ -28,11 +28,12 @@ export default function AINotemaker() {
 
     // Handlers
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files?.[0]) {
-            const selectedFile = e.target.files[0];
-            const ext = selectedFile.name.split('.').pop()?.toLowerCase();
-            if (ext !== 'pdf' && ext !== 'txt') {
-                toast.error('Currently only PDF and TXT files are supported');
+        const selectedFile = e.target.files?.[0];
+        if (selectedFile) {
+            if (selectedFile.type !== 'application/pdf') {
+                toast.error('Only PDF files are allowed');
+                if (e.target) e.target.value = '';
+                setFile(null);
                 return;
             }
             setFile(selectedFile);
@@ -204,17 +205,17 @@ export default function AINotemaker() {
                                             <Upload className='h-5 w-5 text-primary' />
                                             Source Material
                                         </CardTitle>
-                                        <CardDescription>Upload textbooks (PDF/TXT) to analyze.</CardDescription>
+                                        <CardDescription>Upload textbooks (PDF) to analyze.</CardDescription>
                                     </CardHeader>
                                     <CardContent className='space-y-4'>
                                         <div className='grid w-full items-center gap-1.5 font-semibold text-muted-foreground text-xs uppercase tracking-wider'>
                                             <Label htmlFor='file-upload'>
-                                                Document (PDF/TXT) <span className='text-destructive'>*</span>
+                                                Document (PDF) <span className='text-destructive'>*</span>
                                             </Label>
                                             <Input
                                                 id='file-upload'
                                                 type='file'
-                                                accept='.pdf,.txt'
+                                                accept='.pdf'
                                                 onChange={handleFileChange}
                                                 className='cursor-pointer file:font-semibold file:text-primary'
                                             />

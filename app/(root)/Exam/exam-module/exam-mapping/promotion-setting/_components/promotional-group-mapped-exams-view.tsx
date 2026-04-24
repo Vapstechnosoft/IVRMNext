@@ -39,7 +39,6 @@ function MappedExamsContent({
     const { data: response, isLoading, refetchAll } = usePromotionalGroupMappedExams(rowData.empsG_Id);
 
     useEffect(() => {
-        console.log(response);
         refetchAll();
     }, [rowData, response]);
 

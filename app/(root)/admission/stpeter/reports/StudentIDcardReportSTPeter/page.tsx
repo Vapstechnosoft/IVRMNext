@@ -58,8 +58,9 @@ export default function StudentIDcardReportSTPeterPage() {
         setSelectedStudentIds([]);
         setShowReport(false);
         try {
-            const res = await yearMutation.mutateAsync({ ASMAY_Id: yearId });
-            setClassList(Array.isArray(res?.getClassList) ? res?.getClassList : []);
+            const res = await yearMutation.mutateAsync({ ASMAY_Id: yearId }) as any;
+            const classes = Array.isArray(res) ? res : (Array.isArray(res?.getClassList) ? res?.getClassList : []);
+            setClassList(classes);
         } catch (error) {
             toast.error('Failed to load classes');
         }
@@ -72,8 +73,9 @@ export default function StudentIDcardReportSTPeterPage() {
         setSelectedStudentIds([]);
         setShowReport(false);
         try {
-            const res = await classMutation.mutateAsync({ ASMAY_Id: academicYearId!, ASMCL_Id: cId });
-            setSectionList(Array.isArray(res?.getSectionList) ? res?.getSectionList : []);
+            const res = await classMutation.mutateAsync({ ASMAY_Id: academicYearId!, ASMCL_Id: cId }) as any;
+            const sections = Array.isArray(res) ? res : (Array.isArray(res?.getSectionList) ? res?.getSectionList : []);
+            setSectionList(sections);
         } catch (error) {
             toast.error('Failed to load sections');
         }
@@ -89,8 +91,8 @@ export default function StudentIDcardReportSTPeterPage() {
                 ASMAY_Id: academicYearId!,
                 ASMCL_Id: classId!,
                 ASMS_Id: sId
-            });
-            const students = Array.isArray(res?.getStudentList) ? res?.getStudentList : [];
+            }) as any;
+            const students = Array.isArray(res) ? res : (Array.isArray(res?.getStudentList) ? res?.getStudentList : []);
             setStudentList(students);
             // Default select all
             setSelectedStudentIds(students.map((s: any) => s.amsT_Id));
@@ -110,18 +112,20 @@ export default function StudentIDcardReportSTPeterPage() {
             .map(s => ({ AMST_Id: s.amsT_Id, StudentName: s.studentName }));
 
         try {
-            const res = await reportMutation.mutateAsync({
+            const res = (await reportMutation.mutateAsync({
                 ASMAY_Id: academicYearId,
                 ASMCL_Id: classId,
                 ASMS_Id: sectionId,
                 StudentTempList: studentPayload
-            });
+            })) as any;
 
-            if (Array.isArray(res?.cardData) && res?.cardData?.length > 0) {
-                setReportData(res.cardData);
+            const studentsData = Array.isArray(res?.studentList) ? res.studentList : [];
+
+            if (studentsData.length > 0) {
+                setReportData(studentsData);
                 setShowReport(true);
             } else {
-                toast.error('No ID card data found');
+                toast.error('No student details found');
             }
         } catch (error) {
             toast.error('Error generating report');
@@ -305,9 +309,9 @@ export default function StudentIDcardReportSTPeterPage() {
                             <div key={index} className="id-card-wrapper">
                                 <div className="id-card">
                                     <div className="top-blue">
-                                        <div className="id-year">Identity Card : 2024-2025</div>
+                                        <div className="id-year">Identity Card : {dd.Academic_year}</div>
                                         <div className="school-logo-main">
-                                            <img src="https://dcampusstrg.blob.core.windows.net/files/17/ISM_Attachments/034c34ba-ca51-442c-9eb7-74ec831b17b1.png" alt="St. Peter's School Logo" />
+                                            <img src={dd.MI_logo || "https://dcampusstrg.blob.core.windows.net/files/17/ISM_Attachments/034c34ba-ca51-442c-9eb7-74ec831b17b1.png"} alt="St. Peter's School Logo" />
                                         </div>
                                         <div className="school-subtitle-text">
                                             UNDER THE DIOCESE OF DURGAPUR, (CHURCH OF NORTH INDIA)<br />
@@ -317,16 +321,16 @@ export default function StudentIDcardReportSTPeterPage() {
                                     </div>
 
                                     <div className="photo-container-student">
-                                        <img src={dd.studentphoto || "https://vapsclg.blob.core.windows.net/files/76/NoticeUpload/d120170c-fbbf-48c2-b675-ef8d053a0d03.jpg"} alt="Student Photo" />
+                                        <img src={dd.AMST_Photoname || "https://vapsclg.blob.core.windows.net/files/76/NoticeUpload/d120170c-fbbf-48c2-b675-ef8d053a0d03.jpg"} alt="Student Photo" />
                                     </div>
 
                                     <div className="student-info-grid">
                                         <div className="info-entry"><span className="info-label">Name:</span><span className="info-value font-black text-sm">{dd.studentname}</span></div>
-                                        <div className="info-entry"><span className="info-label">Father's Name:</span><span className="info-value">{dd.fatherName}</span></div>
+                                        <div className="info-entry"><span className="info-label">Father's Name:</span><span className="info-value">{dd.fathername}</span></div>
                                         <div className="info-entry"><span className="info-label">Class:</span><span className="info-value">{dd.ClassName} - {dd.SectionName}</span></div>
-                                        <div className="info-entry"><span className="info-label">Address:</span><span className="info-value line-clamp-2 text-[8px] leading-tight">{dd.pResstreet} {dd.pResPincode}</span></div>
-                                        <div className="info-entry"><span className="info-label">Ph. no.:</span><span className="info-value">{dd.AMST_FatherMobleNo}</span></div>
-                                        <div className="info-entry"><span className="info-label">Blood Gr:</span><span className="info-value text-red-600">{dd.pBloodgroup || 'N/A'}</span></div>
+                                        <div className="info-entry"><span className="info-label">Address:</span><span className="info-value line-clamp-2 text-[8px] leading-tight">{dd.AMST_PerStreet} {dd.AMST_PerPincode}</span></div>
+                                        <div className="info-entry"><span className="info-label">Ph. no.:</span><span className="info-value">{dd.AMST_FatherMobleNo || dd.studentmobile}</span></div>
+                                        <div className="info-entry"><span className="info-label">Blood Gr:</span><span className="info-value text-red-600">{dd.AMST_BloodGroup || 'N/A'}</span></div>
                                     </div>
 
                                     <div className="principal-signature-area">

@@ -52,7 +52,6 @@ function LifeSkillPageContent({
             setOrderModalOpen(true);
             setIsOrderloading(true);
             const response = await getMasterLifeSkillAreaOrderList();
-            console.log(response);
             const skillOrders: ILifeSkillArea[] = Array.isArray(response.data) ? response.data : [];
 
             if (skillOrders.length === 0) {

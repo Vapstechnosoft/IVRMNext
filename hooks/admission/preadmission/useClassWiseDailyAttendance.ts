@@ -71,7 +71,7 @@ export const useClassWiseDailyAttendanceReport = (
                 if (!fromDate) return { data: [] } as any;
                 return getClassWiseDailyAttendanceReport(asmaY_Id, fromDate, asmcL_Id, asmS_Id);
             },
-            enabled: enabled && !!asmaY_Id && !!fromDate && !!asmcL_Id && asmS_Id !== undefined,
+            enabled: enabled && !!asmaY_Id && !!fromDate && !!asmcL_Id && !!asmS_Id,
             staleTime: 0
         }),
         refetchAll: () => {
