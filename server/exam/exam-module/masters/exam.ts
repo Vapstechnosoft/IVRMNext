@@ -41,3 +41,4 @@ export async function getExamAcademicYearDropdown() {
     console.info('getAcademicYearDropdown', url);
     return await api.get<IMasterClassYearlyList[]>('exam', url);
 }
+

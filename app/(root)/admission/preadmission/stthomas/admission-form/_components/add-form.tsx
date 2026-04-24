@@ -496,7 +496,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             const currentMotherCasteId = watch('motherCasteId');
 
             const validCastes = casteByCategory || [];
-            
+
             if (currentCasteId && !validCastes.some((c: any) => Number(c.imC_Id) === Number(currentCasteId))) {
                 setValue('imC_Id' as any, 0);
             }
@@ -636,7 +636,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         };
 
         if (currentStep === 1) {
-            const step1Fields = [
+            const basicValid = [
                 v.amsT_FirstName,
                 v.amsT_RegistrationNo,
                 v.amsT_AdmissionNo,
@@ -647,26 +647,29 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 v.amsT_DOB,
                 v.amsT_ReligionId,
                 v.amsT_Sex,
-                v.amsT_MobileNo,
-                v.amsT_emailId,
                 v.imCC_Id,
                 v.imC_Id,
                 v.feeConcessionType
-            ];
-            const basicValid = step1Fields.every(checkFilled);
+            ].every(checkFilled);
+
+            // Check mobile and email - allowing either root field or first array item
+            const mobile = v.amsT_MobileNo || (v.mobileNos?.[0]?.amsT_MobileNo);
+            const email = v.amsT_emailId || (v.adm_M_Student_EmailIdDTO?.[0]?.amsT_emailId);
+            const contactValid = checkFilled(mobile) && checkFilled(email);
+
             const photoValid = !!studentPhoto?.amsT_Photoname;
 
             let conditionalValid = true;
             if (Number(v.isEmisBpl || 0) === 1 && !checkFilled(v.amsT_BPLCardNo)) conditionalValid = false;
             if (Number(v.amsT_ECSFlag || 0) === 1 && (!checkFilled(v.asecS_AccountNo) || !checkFilled(v.asecS_AccountHolderName) || !checkFilled(v.asecS_BankName))) conditionalValid = false;
 
-            return basicValid && photoValid && conditionalValid;
+            return basicValid && photoValid && conditionalValid && contactValid;
         }
 
         if (currentStep === 2) {
-            const resValid = checkFilled(v.amsT_ConCountry) && checkFilled(v.amsT_ConState);
+            const resValid = checkFilled(v.amsT_ConCountry);
             if (sameAsResidential) return resValid;
-            const perValid = checkFilled(v.amsT_PerCountry) && checkFilled(v.amsT_PerState);
+            const perValid = checkFilled(v.amsT_PerCountry);
             return resValid && perValid;
         }
 
@@ -875,17 +878,29 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 isEmisBpl: !!formData.isEmisBpl,
                 amsT_BPLCardNo: formData.amsT_BPLCardNo ?? '',
                 mobileCountryCode: (() => {
-                    const mobileNos = getValues('mobileNos') as any[];
+                    const mobileNos = (formData.mobileNos ?? getValues('mobileNos')) as any[];
                     return Array.isArray(mobileNos) && mobileNos.length > 0 ? String(mobileNos[0]?.amstsmS_CountryCode ?? '') : '';
                 })(),
                 mobileNumber: (() => {
-                    const mobileNos = getValues('mobileNos') as any[];
+                    const mobileNos = (formData.mobileNos ?? getValues('mobileNos')) as any[];
                     return Array.isArray(mobileNos) && mobileNos.length > 0
                         ? String(mobileNos[0]?.amsT_MobileNo ?? '')
                         : String(formData.amsT_MobileNo ?? '');
                 })(),
                 emailId: (() => {
-                    const emails = formData.adm_M_Student_EmailIdDTO;
+                    const emails = (formData.adm_M_Student_EmailIdDTO ?? getValues('adm_M_Student_EmailIdDTO')) as any[];
+                    return Array.isArray(emails) && emails.length > 0
+                        ? String(emails[0]?.amsT_emailId ?? '')
+                        : String(formData.amsT_emailId ?? '');
+                })(),
+                amsT_MobileNo: (() => {
+                    const mobileNos = (formData.mobileNos ?? getValues('mobileNos')) as any[];
+                    return Array.isArray(mobileNos) && mobileNos.length > 0
+                        ? String(mobileNos[0]?.amsT_MobileNo ?? '')
+                        : String(formData.amsT_MobileNo ?? '');
+                })(),
+                amsT_emailId: (() => {
+                    const emails = (formData.adm_M_Student_EmailIdDTO ?? getValues('adm_M_Student_EmailIdDTO')) as any[];
                     return Array.isArray(emails) && emails.length > 0
                         ? String(emails[0]?.amsT_emailId ?? '')
                         : String(formData.amsT_emailId ?? '');
@@ -1213,7 +1228,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                     'amsT_ConStreet',
                     'amsT_ConArea',
                     'amsT_ConCountry',
-                    'amsT_ConState',
                     'amsT_ConCity',
                     // include pincode fields so their validation runs when moving to next step
                     'amsT_ConPincode',
@@ -1556,7 +1570,14 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                     const formData = getValues();
                     const res = await saveFirstTab({
                         ...formData,
-                        amsT_Photoname: studentPhoto?.amsT_Photoname
+                        amsT_Photoname: studentPhoto?.amsT_Photoname,
+                        mobileNos: (formData.mobileNos || []).map((m: any) => ({
+                            mobileCountryCode: m.amstsmS_CountryCode?.replace('+', '') || '91',
+                            mobileNumber: m.amsT_MobileNo || m.amstsmS_MobileNo || m.mobileNumber
+                        })),
+                        adm_M_Student_EmailIdDTO: (formData.adm_M_Student_EmailIdDTO || []).map((e: any) => ({
+                            emailId: e.amsT_emailId || e.amstE_EmailId || e.emailId
+                        }))
                     });
                     console.debug('[Admission] saveFirstTab response (auto):', res);
                     if (!res?.success) {
@@ -3863,7 +3884,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                 </div>
 
                                                 {/* Row 7: Mobile & Email */}
-                                                <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
+                                                {/* <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                                                     <div className='flex flex-col gap-1.5'>
                                                         <Label htmlFor='amsT_MobileNo'>
                                                             Mobile No. <span className='ml-1 text-red-500'>*</span>
@@ -3891,8 +3912,125 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                             error={errors.amsT_emailId?.message}
                                                         />
                                                     </div>
+                                                </div> */}
+
+                                                <div className='flex flex-col gap-1.5 '>
+                                                    <Controller
+                                                        name='amsT_MobileNo'
+                                                        control={control}
+                                                        render={({ field }) => (
+                                                            <div>
+                                                                <Label htmlFor='amsT_MobileNo'>
+                                                                    Mobile No. <span className='text-red-500'>*</span>
+                                                                </Label>
+                                                                <PhoneInput
+                                                                    country='in'
+                                                                    value={
+                                                                        phoneValues.amsT_MobileNo ??
+                                                                        (field.value != null ? String(field.value) : null)
+                                                                    }
+                                                                    onChange={(phone: any, countryData: any) =>
+                                                                        handlePhoneChange(phone, countryData, 'amsT_MobileNo')
+                                                                    }
+                                                                    onBlur={() => trigger('amsT_MobileNo')}
+                                                                    inputProps={{
+                                                                        id: 'amsT_MobileNo',
+                                                                        name: 'amsT_MobileNo',
+                                                                        maxLength: 15,
+                                                                        required: false,
+                                                                        style: {
+                                                                            width: '87%',
+                                                                            height: '36px',
+                                                                            marginLeft: '40px',
+                                                                            boxSizing: 'border-box',
+                                                                            borderRadius: '4px',
+                                                                            padding: '16.5px 14px',
+                                                                            fontSize: '16px'
+                                                                        }
+                                                                    }}
+                                                                    containerClass='w-full'
+                                                                    inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+                                                                    enableSearch
+                                                                    disableCountryCode={false}
+                                                                    enableLongNumbers={true}
+                                                                    isValid={true}
+                                                                    preserveOrder={['country', 'nationalNumber']}
+                                                                />
+                                                                {phoneExpectedInfo.amsT_MobileNo?.expected && (
+                                                                    <span className='mt-1 text-muted-foreground text-xs'>
+                                                                        {`Mobile number must be exactly ${phoneExpectedInfo.amsT_MobileNo.expected} digits for ${phoneExpectedInfo.amsT_MobileNo.name ?? 'selected country'
+                                                                            }`}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    />
+                                                    {errors.amsT_MobileNo && <FormError>{errors.amsT_MobileNo.message}</FormError>}
                                                 </div>
 
+                                                {/* Hidden legacy primary email (kept in sync with first email field) */}
+                                                <input type='hidden' {...register('amsT_emailId')} />
+
+                                                <div className='flex flex-col gap-1.5'>
+                                                    {emailFields.map((field, idx) => {
+                                                        const itemError = (errors as any)?.adm_M_Student_EmailIdDTO?.[idx]?.amsT_emailId
+                                                            ?.message;
+                                                        const fieldName = `adm_M_Student_EmailIdDTO.${idx}.amsT_emailId` as const;
+                                                        return (
+                                                            <div key={field.id} className='flex w-full flex-col gap-1'>
+                                                                <div className='flex items-center gap-2'>
+                                                                    <div className='flex-1'>
+                                                                        {idx === 0 && <Label htmlFor={String(field.id)}>Email</Label>}
+                                                                        <InputText
+                                                                            {...register(fieldName)}
+                                                                            id={String(field.id)}
+                                                                            placeholder='Enter email'
+                                                                            error={itemError}
+                                                                            required
+                                                                        />
+                                                                    </div>
+
+                                                                    {/* <div className='mt-1 flex items-center gap-1'>
+                                                                    {emailFields.length < 5 && (
+                                                                        <Button
+                                                                            variant='ghost'
+                                                                            size='sm'
+                                                                            onClick={() => appendEmail({ amsT_emailId: '' })}>
+                                                                            +
+                                                                        </Button>
+                                                                    )}
+
+                                                                    {emailFields.length > 1 && (
+                                                                        <Button
+                                                                            variant='ghost'
+                                                                            size='sm'
+                                                                            onClick={() => {
+                                                                                removeEmail(idx);
+                                                                                if (idx === 0) {
+                                                                                    setTimeout(() => {
+                                                                                        const newFirst =
+                                                                                            (getValues('adm_M_Student_EmailIdDTO') || [])[0]
+                                                                                                ?.amsT_emailId ?? '';
+                                                                                        setValue('amsT_emailId' as any, newFirst);
+                                                                                    }, 0);
+                                                                                }
+                                                                            }}>
+                                                                            -
+                                                                        </Button>
+                                                                    )}
+                                                                </div> */}
+                                                                </div>
+
+                                                                {/* InputText already renders the error; avoid duplicate FormError here */}
+                                                            </div>
+                                                        );
+                                                    })}
+
+                                                    {/* show legacy primary email error only when no email array items are present */}
+                                                    {(!Array.isArray(watchedEmails) || watchedEmails.length === 0) && errors.amsT_emailId && (
+                                                        <FormError>{errors.amsT_emailId.message}</FormError>
+                                                    )}
+                                                </div>
                                                 {/* Row 8: ECS & EMIS Checkboxes */}
                                                 <div className='flex items-center gap-6 py-2'>
                                                     <div className='flex items-center space-x-2'>
@@ -4089,7 +4227,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
                                                     <div className='flex flex-col gap-1.5'>
                                                         <Label htmlFor='amsT_ConState'>
-                                                            State <span className='ml-1 text-red-500'>*</span>
+                                                            State
                                                         </Label>
                                                         <Controller
                                                             name='amsT_ConState'
@@ -4208,7 +4346,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
                                                     <div className='flex flex-col gap-1.5'>
                                                         <Label htmlFor='amsT_PerState'>
-                                                            State <span className='ml-1 text-red-500'>*</span>
+                                                            State
                                                         </Label>
                                                         <Controller
                                                             name='amsT_PerState'
