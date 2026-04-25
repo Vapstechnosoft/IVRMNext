@@ -2689,6 +2689,30 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/SRKVS/CumulativeReportSRKVS',
                                             title: 'SRKVS Cumulative Report',
                                             description: 'SRKVS Cumulative Report'
+                                        },
+                                        {
+                                            id: 21033,
+                                            name: 'Calcutta Hall Ticket Report',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/Calcatta/hall-ticket-report',
+                                            title: 'Calcutta Hall Ticket Report',
+                                            description: 'Calcutta Hall Ticket Report'
+                                        },
+                                        {
+                                            id: 21034,
+                                            name: 'VVS Exam Hallticket',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/Calcatta/vvs-exam-hallticket',
+                                            title: 'VVS Exam Hallticket',
+                                            description: 'VVS Exam Hallticket'
+                                        },
+                                        {
+                                            id: 21035,
+                                            name: 'RRPS Exam Hallticket',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/Calcatta/rrps-exam-hallticket',
+                                            title: 'RRPS Exam Hallticket',
+                                            description: 'RRPS Exam Hallticket'
                                         }
                                     ]
                                 }
