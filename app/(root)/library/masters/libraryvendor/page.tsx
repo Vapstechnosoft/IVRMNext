@@ -11,21 +11,22 @@ import { use, useEffect } from 'react';
 import AddMasterVendorForm from './_components/add-form';
 import { masterVendorColumns } from './_components/columns';
 import UpdateMasterVendorForm from './_components/update-form';
+import ToggleMasterVendorForm from './_components/toggle-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-export default function MasterClassPage(props: { searchParams: SearchParams }) {
+export default function LibraryVendorPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error, refetch } = useMasterVendor(searchParams);
 
     return (
         <FormProvider<IMasterVendorList>>
-            <MasterClassPageContent response={response} isLoading={isLoading} error={error} refetch={refetch} />
+            <LibraryVendorPageContent response={response} isLoading={isLoading} error={error} refetch={refetch} />
         </FormProvider>
     );
 }
 
-function MasterClassPageContent({
+function LibraryVendorPageContent({
     response,
     isLoading,
     error,
@@ -158,8 +159,8 @@ function FormSections({ refetch }: { refetch: () => void }) {
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Master Library'
-                        description='Update the Master Library details below'
+                        title='Edit Master Vendor'
+                        description='Update the Master Vendor details below'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -178,9 +179,7 @@ function FormSections({ refetch }: { refetch: () => void }) {
                     </CollapsibleSection>
                 </div>
             )}
-            {/* 
-             {isToggleFormOpen && selectedRow && <ToggleMasterVendorForm rowData={selectedRow} onClose={closeToggleForm} />}
-             */}
+            {isToggleFormOpen && selectedRow && <ToggleMasterVendorForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );
 }

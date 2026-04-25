@@ -638,7 +638,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                     document_Path: doc.document_Path || ''
                 })),
                 PASR_RegistrationNo: '',
-                pasP_Id: 0
+                pasP_Id: 0,
+                AMC_Id: 0
             };
 
             const response = await addBBHSStudentApplication(payload);

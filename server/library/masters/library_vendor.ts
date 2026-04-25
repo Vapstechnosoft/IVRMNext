@@ -16,8 +16,8 @@ export async function addOrUpdateMasterVendor(data: any) {
 }
 
 export async function toggleMasterVendor(id: number) {
-    const url = `/MasterVendor/deactivate/${id}`;
-    return await api.put('library', url);
+    const url = `/MasterVendor/deactiveY/${id}`;
+    return await api.post('library', url);
 }
 
 export async function deleteMasterVendor(id: number) {

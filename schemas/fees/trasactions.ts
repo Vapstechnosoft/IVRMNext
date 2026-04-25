@@ -592,3 +592,145 @@ export const amountEntrySchemastThomas = {
         fmA_Id: deleteIdSchema('fmA_Id')
     })
 };
+
+export const GMthirdPartyTransactionSchema = {
+    addOrUpdate: z
+        .object({
+            fyP_Receipt_No: z.string().optional(),
+            studentType: z.enum(['student', 'other']),
+            academicYearId: z.number().min(1, 'Academic Year is required'),
+
+            // academicYearId: z.number({ message: 'Term is required' }),
+            studentId: z.number().optional(),
+            //studentName: createStringOnlySchema('Student Name', 1, 100).optional(),
+            studentName: z.string().optional(),
+            // groupId: z.number().min(1, 'Group Name is required'),
+            // headId: z.number().min(1, 'Head Name is required'),
+            // amount: z.number({ message: 'Amount is required' }),
+            // amount: z.number().min(0.01, 'Amount is required'),
+            groupId: z.number({ message: 'Group Name is required' }),
+            headId: z.number({ message: ' Head Name is required' }),
+            amount: z.number({ message: 'Amount is required' }),
+            //  groupId: z.number().optional(),
+            //             headId: z.number().optional(),
+            //               amount: z.number().optional(),
+
+            towards: z.string().optional(),
+            //date: z.string().min(1, "Date is required"),
+            date: z.string({ required_error: 'Date is required' }).min(1, ' Date is required'),
+
+            // date: z
+            //   .preprocess((val) => (typeof val === "string" ? new Date(val) : val), z.date({
+            //     required_error: "Date is required",
+            //     invalid_type_error: "Invalid date format",
+            //   })),
+
+            //paymentMode: z.enum(['bank', 'cash', 'rtgsneft', 'card']),
+            paymentMode: z.enum(['B', 'C', 'R', 'S']),
+            bankId: z.number().optional(),
+            chequeDate: z.string().optional(),
+            // chequeNo: z.string().optional(),
+            //chequeNo: z.string().min(13, 'Minimum 13 characters for Cheque Number is required').max(19, 'Cheque Number is too long'),
+            chequeNo: z.string().optional(),
+            bankName: z.string().optional()
+        })
+        .superRefine((data, ctx) => {
+            if (data.paymentMode === 'B') {
+                if (!(typeof data.bankId === 'number' && data.bankId > 0)) {
+                    ctx.addIssue({
+                        code: 'custom',
+                        message: 'Bank Name is required',
+                        path: ['bankId']
+                    });
+                }
+                if (!data.chequeDate || data.chequeDate.trim() === '') {
+                    ctx.addIssue({
+                        code: 'custom',
+                        message: 'Cheque Date is required',
+                        path: ['chequeDate']
+                    });
+                }
+                if (!data.chequeNo || data.chequeNo.trim() === '') {
+                    ctx.addIssue({
+                        code: 'custom',
+                        message: 'Cheque Number is required',
+                        path: ['chequeNo']
+                    });
+                } else if (data.chequeNo.length < 13) {
+                    ctx.addIssue({
+                        code: 'custom',
+                        message: 'Card Number must be at least 13 digits',
+                        path: ['chequeNo']
+                    });
+                } else if (data.chequeNo.length > 19) {
+                    ctx.addIssue({
+                        code: 'custom',
+                        message: 'Card Number cannot exceed 19 digits',
+                        path: ['chequeNo']
+                    });
+                }
+            }
+            if (data.paymentMode === 'R') {
+                if (!data.chequeNo || data.chequeNo.trim() === '') {
+                    ctx.addIssue({
+                        code: 'custom',
+                        message: 'Cheque Number is required',
+                        path: ['chequeNo']
+                    });
+                } else if (data.chequeNo.length < 13) {
+                    ctx.addIssue({
+                        code: 'custom',
+                        message: 'Cheque Number must be at least 13 digits',
+                        path: ['chequeNo']
+                    });
+                } else if (data.chequeNo.length > 19) {
+                    ctx.addIssue({
+                        code: 'custom',
+                        message: 'Cheque Number cannot exceed 19 digits',
+                        path: ['chequeNo']
+                    });
+                }
+            }
+            if (data.paymentMode === 'S') {
+                if (!data.chequeNo || data.chequeNo.trim() === '') {
+                    ctx.addIssue({
+                        code: 'custom',
+                        message: 'Card Number is required',
+                        path: ['chequeNo']
+                    });
+                } else if (data.chequeNo.length < 13) {
+                    ctx.addIssue({
+                        code: 'custom',
+                        message: 'Card Number must be at least 13 digits',
+                        path: ['chequeNo']
+                    });
+                } else if (data.chequeNo.length > 19) {
+                    ctx.addIssue({
+                        code: 'custom',
+                        message: 'Card Number cannot exceed 19 digits',
+                        path: ['chequeNo']
+                    });
+                }
+            }
+            // if (data.studentType === 'other') {
+            //     const value = data.studentName ?? '';
+
+            //     const result = createStringOnlySchema('Student Name', 1, 100)
+            //         .safeParse(value);
+
+            //     if (!result.success) {
+            //         result.error.errors.forEach(err => {
+            //             ctx.addIssue({
+            //                 code: 'custom',
+            //                 message: err.message,
+            //                 path: ['studentName'],
+            //             });
+            //         });
+            //     }
+            // }
+        }),
+
+    delete: z.object({
+        fyptP_Id: deleteIdSchema('fyptP_Id')
+    })
+};

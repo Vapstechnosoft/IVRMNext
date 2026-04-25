@@ -766,7 +766,8 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                     document_Path: toNullOther(doc.document_Path)
                 })),
                 PASR_RegistrationNo: toNullOther((data as any).pasR_RegistrationNo),
-                pasA_WillingToContributeFlg: pasA_WillingToContributeFlg === 1
+                pasA_WillingToContributeFlg: pasA_WillingToContributeFlg === 1,
+                AMC_Id: 0
             };
 
             const response = await addStudentApplicationForm(payload);
