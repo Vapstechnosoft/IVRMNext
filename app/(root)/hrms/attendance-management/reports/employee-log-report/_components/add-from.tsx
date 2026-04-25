@@ -11,6 +11,7 @@ import {
     useReportDepartments,
     useReportDesignations,
     useReportEmployeesByDeptAndDesignation,
+    useReportEmployeesByGroupTypeDeptAndDesignation,
     useReportGroupTypes
 } from '@/hooks/hrms/useReports';
 import { cn } from '@/lib/utils';
@@ -87,11 +88,21 @@ export default function AddEmployeeLogReportForm({
     const deptIds = watchedDepartment.map(Number).filter(Boolean);
     const desigIds = watchedDesignation.map(Number).filter(Boolean);
 
+    console.log("Selected Group Type IDs", groupTypeIds);
+    console.log("Selected Department IDs", deptIds);
+    console.log("Selected Designation IDs", desigIds);
+
     // Cascading Hooks
-    const { data: groupTypesData } = useReportGroupTypes();
-    const { data: departmentsData } = useReportDepartments(groupTypeIds.toString());
-    const { data: designationsData } = useReportDesignations(groupTypeIds.toString(), deptIds.toString());
-    const { data: employeesData } = useReportEmployeesByDeptAndDesignation(deptIds.toString(), desigIds.toString());
+    const { data: groupTypesData, isLoading: isGroupTypesLoading } = useReportGroupTypes();
+    const { data: departmentsData, isLoading: isDepartmentsLoading } = useReportDepartments(groupTypeIds.toString());
+    const { data: designationsData, isLoading: isDesignationsLoading } = useReportDesignations(groupTypeIds.toString(), deptIds.toString());
+    const { data: employeesData, isLoading: isEmployeesLoading } = useReportEmployeesByGroupTypeDeptAndDesignation(
+        groupTypeIds,
+        deptIds,
+        desigIds
+    );
+
+    console.log("employeesData", employeesData);
 
     const groupTypesDataTransformed = useMemo(() => {
         return (
@@ -121,7 +132,7 @@ export default function AddEmployeeLogReportForm({
     }, [designationsData]);
 
     const employeesDataTransformed = useMemo(() => {
-        const list = employeesData?.data || employeesData;
+        const list = employeesData?.data?.employeeNames || employeesData;
         if (!list || !Array.isArray(list)) return [];
 
         return list
@@ -129,21 +140,18 @@ export default function AddEmployeeLogReportForm({
                 const id = emp.HRME_Id || emp.hrmE_Id || emp.id || emp.key;
                 if (id == null) return null;
 
-                const firstName = (emp.HRME_EmployeeFirstName || emp.hrmE_EmployeeFirstName || '').trim();
-                const middleName = (emp.HRME_EmployeeMiddleName || emp.hrmE_EmployeeMiddleName || '').trim();
-                const lastName = (emp.HRME_EmployeeLastName || emp.hrmE_EmployeeLastName || '').trim();
+                // const firstName = (emp.HRME_EmployeeFirstName || emp.hrmE_EmployeeFirstName || '').trim();
+                // const middleName = (emp.HRME_EmployeeMiddleName || emp.hrmE_EmployeeMiddleName || '').trim();
+                // const lastName = (emp.HRME_EmployeeLastName || emp.hrmE_EmployeeLastName || '').trim();
 
-                const employeeName =
-                    [firstName, middleName, lastName].filter(Boolean).join(' ') ||
-                    emp.value ||
-                    emp.employeeName ||
-                    'Unknown Employee';
+                const employeeName = emp.employeeFullName
+                // [firstName, middleName, lastName].filter(Boolean).join(' ') ||
+                // emp.value ||
+                // emp.employeeName ||
+                // 'Unknown Employee';
 
-                const employeeCode =
-                    emp.HRME_EmployeeCode ||
-                    emp.hrmE_EmployeeCode ||
-                    emp.employeeCode ||
-                    id.toString();
+                const employeeCode = id
+
 
                 return {
                     id: Number(id),
@@ -189,11 +197,11 @@ export default function AddEmployeeLogReportForm({
             } else if (data.dateMode === 'Monthly' && data.month && data.year) {
                 select_month = data.month;
                 select_year = data.year;
-                
+
                 // Take today's day number (e.g. 20) and add it to the selected month/year
                 const todayDay = new Date().getDate();
                 const d = new Date(`${data.month} 1, ${data.year}`);
-                
+
                 // Prevent date overflow (e.g. if today is 31st, but they select February)
                 const lastDayOfMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
                 d.setDate(Math.min(todayDay, lastDayOfMonth));
@@ -300,9 +308,10 @@ export default function AddEmployeeLogReportForm({
                                                 setValue('query', '');
                                             }}
                                             defaultValue={field.value || []}
-                                            placeholder='Select Types'
+                                            placeholder={isGroupTypesLoading ? 'Loading...' : 'Select Group Types'}
                                             className={`w-full ${errors.type ? 'border-red-500' : ''}`}
                                             maxHeight={240}
+                                            disabled={isGroupTypesLoading || groupTypesDataTransformed.length === 0}
                                         />
                                     )}
                                 />
@@ -329,9 +338,10 @@ export default function AddEmployeeLogReportForm({
                                                 setValue('query', '');
                                             }}
                                             defaultValue={field.value || []}
-                                            placeholder='Select Departments'
+                                            placeholder={isDepartmentsLoading ? 'Loading...' : 'Select Departments'}
                                             className={`w-full ${errors.department ? 'border-red-500' : ''}`}
                                             maxHeight={240}
+                                            disabled={isDepartmentsLoading || departmentsDataTransformed.length === 0}
                                         />
                                     )}
                                 />
@@ -357,9 +367,10 @@ export default function AddEmployeeLogReportForm({
                                                 setValue('query', '');
                                             }}
                                             defaultValue={field.value || []}
-                                            placeholder='Select Designations'
+                                            placeholder={isDesignationsLoading ? 'Loading...' : 'Select Designations'}
                                             className={`w-full ${errors.designation ? 'border-red-500' : ''}`}
                                             maxHeight={240}
+                                            disabled={isDesignationsLoading || designationsDataTransformed.length === 0}
                                         />
                                     )}
                                 />
@@ -401,16 +412,23 @@ export default function AddEmployeeLogReportForm({
                                         render={({ field }) => (
                                             <Select value={field.value || ''} onValueChange={field.onChange}>
                                                 <SelectTrigger className={errors.query ? 'border-red-500' : ''}>
-                                                    <SelectValue placeholder='Select Employee' />
+                                                    <SelectValue placeholder={isEmployeesLoading ? 'Loading...' : 'Select Employee'} />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {(employeesDataTransformed as any[]).map((emp: any) => {
-                                                        return (
-                                                            <SelectItem key={emp.id} value={emp.id?.toString() || ''}>
-                                                                {emp.employeeName} - [{emp.employeeCode}]
-                                                            </SelectItem>
-                                                        );
-                                                    })}
+                                                    {
+                                                        employeesDataTransformed.length === 0 ? (
+                                                            <div className="p-4 text-center text-sm text-muted-foreground">
+                                                                No employees found for the selected criteria.
+                                                            </div>
+                                                        ) : (employeesDataTransformed as any[]).map((emp: any) => {
+                                                            return (
+                                                                <SelectItem key={emp.id} value={emp.id?.toString() || ''}>
+                                                                    {emp.employeeName} - [{emp.employeeCode}]
+                                                                </SelectItem>
+                                                            );
+                                                        })
+                                                    }
+
                                                 </SelectContent>
                                             </Select>
                                         )}
@@ -467,6 +485,7 @@ export default function AddEmployeeLogReportForm({
                                                 }}
                                                 placeholder='Select date'
                                                 className={errors.date ? 'border-red-500' : ''}
+                                                disabled={[{ after: today }]}
                                             />
                                         )}
                                     />
@@ -572,6 +591,7 @@ export default function AddEmployeeLogReportForm({
                                                     }}
                                                     placeholder='From date'
                                                     className={errors.fromDate ? 'border-red-500' : ''}
+                                                    disabled={[{ after: today }]}
                                                 />
                                             )}
                                         />
@@ -602,9 +622,9 @@ export default function AddEmployeeLogReportForm({
                                                     disabled={
                                                         fromDateObject
                                                             ? [
-                                                                  { before: fromDateObject },
-                                                                  { after: today }
-                                                              ]
+                                                                { before: fromDateObject },
+                                                                { after: today }
+                                                            ]
                                                             : [{ after: today }]
                                                     }
                                                 />
