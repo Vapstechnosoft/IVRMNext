@@ -33,7 +33,7 @@ export async function toggleRequisitionStatus(id: number) {
 
 //save
 export async function saveRequisition(data: any) {
-    const url = `/PC_RequisitionFacade/SaveData`;
+    const url = `/PC_RequisitionFacade/save_or_update_requisition_async`;
     console.log("data", data);
     return await api.post<any>('pettycashandassettracking', url, data);
 }

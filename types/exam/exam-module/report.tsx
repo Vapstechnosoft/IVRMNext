@@ -77,6 +77,7 @@ export interface IExamReportCard {
         estmpS_ObtainedGrade?: string | null;
         estmpS_PassFailFlg?: string | null;
         estmpS_MaxMarks?: number | null;
+        estmpS_MinMarks?: number | null;
     }>;
     estmP_TotalMaxMarks?: number | null;
     estmP_TotalObtMarks?: number | null;
@@ -88,6 +89,17 @@ export interface IExamReportCard {
     classheld?: number | null;
     classatt?: number | null;
     estmP_TotalGradeRemark?: string;
+    amsT_MotherName?: string;
+    amsT_Photoname?: string;
+    asmC_SectionName?: string;
+    asmcL_ClassName?: string;
+    activity_main_list_area?: any[];
+    getstudentwiseactiviteslist?: any[];
+    strudentwisedentalandvision?: any[];
+    stud_work_attendence?: any[];
+    stud_present_attendence?: any[];
+    studentdetailsgraph?: any[];
+    promotion_remarks?: any[];
 }
 
 export interface IExamElectivesReport {

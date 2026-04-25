@@ -50,6 +50,17 @@ export const useDanvantariStudentName = () => {
 
 export const useDanvantariTCDetails = () => {
     return useMutation({
-        mutationFn: (data: { ASMAY_Id: number; AMCST_Id: number; tctemporper: string }) => getDanvantariTCDetails(data)
+        mutationFn: (data: {
+            ASMAY_Id: number;
+            AMCST_Id: number;
+            AMCO_Id: number;
+            AMB_Id: number;
+            AMSE_Id: number;
+            ACMS_Id: number;
+            miId: number;
+            admNo: string;
+            studentName: string;
+            tctemporper: string;
+        }) => getDanvantariTCDetails(data)
     });
 };
