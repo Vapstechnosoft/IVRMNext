@@ -60,23 +60,21 @@ function LibraryVendorPageContent({
                 </div>
 
                 {/* Data Table Section */}
-                <CollapsibleSection
-                    defaultOpen
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<IMasterVendorList>
-                        {...tableProps}
-                        columns={masterVendorColumns}
-                        isLoading={isLoading}
-                        error={error}
-                        columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading Master Vendor...'
-                        noDataTitle='No Records Found'
-                        noDataDescription='Start by adding a new Master Vendor'
-                        errorTitle='Error Loading Data'
-                    />
-                </CollapsibleSection>
+                <div className='rounded-xl border bg-card text-card-foreground shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                    <div className='p-0'>
+                        <GenericDataTable<IMasterVendorList>
+                            {...tableProps}
+                            columns={masterVendorColumns}
+                            isLoading={isLoading}
+                            error={error}
+                            columnPinning={{ right: ['actions'] }}
+                            loadingMessage='Loading Master Vendor...'
+                            noDataTitle='No Records Found'
+                            noDataDescription='Start by adding a new Master Vendor'
+                            errorTitle='Error Loading Data'
+                        />
+                    </div>
+                </div>
 
                 {/* Forms */}
                 <FormSections refetch={refetch} />
@@ -142,18 +140,6 @@ function FormSections({ refetch }: { refetch: () => void }) {
                 </div>
             )}
 
-            {/* Delete Form */}
-            {/* {isDeleteFormOpen && selectedRow && (
-                <DeleteMasterVendorForm
-                    rowData={selectedRow}
-                    onClose={closeDeleteForm}
-                     onSuccess={() => {
-                         handleSuccess();
-                         closeDeleteForm();
-                     }}
-                />
-            )} */}
-
             {/* Edit Form */}
 
             {isEditFormOpen && selectedRow && (
@@ -179,7 +165,16 @@ function FormSections({ refetch }: { refetch: () => void }) {
                     </CollapsibleSection>
                 </div>
             )}
-            {isToggleFormOpen && selectedRow && <ToggleMasterVendorForm rowData={selectedRow} onClose={closeToggleForm} />}
+            {isToggleFormOpen && selectedRow && (
+                <ToggleMasterVendorForm
+                    rowData={selectedRow}
+                    onClose={closeToggleForm}
+                    onSuccess={() => {
+                        handleSuccess();
+                        closeToggleForm();
+                    }}
+                />
+            )}
         </>
     );
 }
