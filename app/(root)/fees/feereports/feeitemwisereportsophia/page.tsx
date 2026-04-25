@@ -56,7 +56,6 @@ export default function FeeItemWiseReportofSophia() {
     const [classes, setClasses] = useState<IFeeClassDropdownList[]>([]);
     const [sections, setSections] = useState<IFeeSectionDropdownList[]>([]);
     const [reportData, setReportData] = useState<any[]>([]);
-    const [showReport, setShowReport] = useState(false);
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const toggleAllstudents = () => {
         if (selectedIds.length === reportData.length) {
@@ -113,7 +112,6 @@ export default function FeeItemWiseReportofSophia() {
     }, [classListResponse, sectionListError]);
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
-        setShowReport(false);
         try {
             const payload = {
                 classlist: data.classwise === true ? [data.classId] : [],
@@ -135,13 +133,11 @@ export default function FeeItemWiseReportofSophia() {
             const responseJson = typeof apiData === 'string' ? JSON.parse(apiData) : apiData;
             if (responseJson?.data) {
                 setReportData(responseJson.data);
-                setShowReport(true);
                 toast.success('Report Generated Successfully');
             }
         } catch (error: any) {
             console.error('Error generating report:', error);
             toast.error(error.message || 'Failed to generate report');
-            setShowReport(false);
         }
     };
 
@@ -344,118 +340,103 @@ export default function FeeItemWiseReportofSophia() {
                                         </Button>
                                     </div>
                                     {reportData.length > 0 && (
-                                        <div className='-mx-8 mt-12 overflow-hidden rounded-lg bg-white shadow-xl'>
+                                        <div className='mx-10'>
                                             {/* Loading State */}
-                                            {showReport ? (
-                                                <div className='p-24 text-center'>
-                                                    <div className='inline-block h-14 w-14 animate-spin rounded-full border-4 border-primary border-t-transparent' />
-                                                    <p className='mt-6 text-lg text-muted-foreground'>Generating report, please wait...</p>
-                                                </div>
-                                            ) : (
-                                                <CollapsibleSection
-                                                    defaultOpen={true}
-                                                    variant='default'
-                                                    size='lg'
-                                                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                                                    <div className='flex items-center justify-between border-b bg-primary/5 px-8 py-6'>
-                                                        <div className='mb-6 text-center'>
-                                                            <h2 className='font-bold text-2xl text-primary'>Fee Item Wise Report</h2>
-                                                        </div>
-                                                        <div className='flex gap-3'>
-                                                            <div className='mb-4 flex justify-end gap-2'>
-                                                                <Button
-                                                                    size='sm'
-                                                                    className='h-8 w-auto px-3 text-xs'
-                                                                    // onClick={handleExportExcel}
-                                                                >
-                                                                    Export Excel
-                                                                </Button>
+                                            <CollapsibleSection
+                                                defaultOpen={true}
+                                                variant='default'
+                                                size='lg'
+                                                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                                                <div className='flex items-center justify-between border-b bg-primary/5 px-8 py-6'>
+                                                    <div className='mb-6 text-center'>
+                                                        <h2 className='font-bold text-2xl text-primary'>Fee Item Wise Report</h2>
+                                                    </div>
+                                                    <div className='flex gap-3'>
+                                                        <div className='mb-4 flex justify-end gap-2'>
+                                                            <Button
+                                                                size='sm'
+                                                                className='h-8 w-auto px-3 text-xs'
+                                                                // onClick={handleExportExcel}
+                                                            >
+                                                                Export Excel
+                                                            </Button>
 
-                                                                <Button
-                                                                    size='sm'
-                                                                    variant='outline'
-                                                                    className='h-8 w-auto px-3 text-xs'
-                                                                    // onClick={handlePrint}
-                                                                >
-                                                                    Print
-                                                                </Button>
-                                                            </div>
+                                                            <Button
+                                                                size='sm'
+                                                                variant='outline'
+                                                                className='h-8 w-auto px-3 text-xs'
+                                                                // onClick={handlePrint}
+                                                            >
+                                                                Print
+                                                            </Button>
                                                         </div>
                                                     </div>
-                                                    <div>
-                                                        {/* Table */}
-                                                        <div className='overflow-x-auto px-8 pb-8'>
-                                                            <table className='w-full border-collapse border border-gray-300 text-sm'>
-                                                                <thead className='bg-primary text-white'>
-                                                                    <tr>
-                                                                        <th className='p-2 text-center'>
+                                                </div>
+                                                <div>
+                                                    {/* Table */}
+                                                    <div className='overflow-x-auto px-8 pb-8'>
+                                                        <table className='w-full border-collapse border border-gray-300 text-sm'>
+                                                            <thead className='bg-primary text-white'>
+                                                                <tr>
+                                                                    <th className='p-2 text-center'>
+                                                                        <Checkbox
+                                                                            checked={
+                                                                                selectedIds.length === reportData.length &&
+                                                                                reportData.length > 0
+                                                                            }
+                                                                            onCheckedChange={toggleAllstudents}
+                                                                        />
+                                                                    </th>
+                                                                    <th className='border px-2 py-2 text-center font-semibold'>Sl No</th>
+                                                                    <th className='border px-2 py-2 text-center font-semibold'>
+                                                                        Item Name
+                                                                    </th>
+                                                                    <th className='border px-2 py-2 text-center font-semibold'>
+                                                                        Actual Amount
+                                                                    </th>
+                                                                    <th className='border px-2 py-2 text-center font-semibold'>
+                                                                        Paid Amount
+                                                                    </th>
+                                                                    <th className='border px-2 py-2 text-center font-semibold'>Fine</th>
+                                                                    <th className='border px-2 py-2 text-center font-semibold'>Discount</th>
+                                                                    <th className='border px-2 py-2 text-center font-semibold'>Excess</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {reportData.map((row, index) => (
+                                                                    <tr
+                                                                        key={row.id}
+                                                                        className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                                                                        <td className='p-2 text-center'>
                                                                             <Checkbox
-                                                                                checked={
-                                                                                    selectedIds.length === reportData.length &&
-                                                                                    reportData.length > 0
-                                                                                }
-                                                                                onCheckedChange={toggleAllstudents}
+                                                                                checked={selectedIds.includes(row.id)}
+                                                                                onCheckedChange={() => toggleRow(row.id)}
                                                                             />
-                                                                        </th>
-                                                                        <th className='border px-2 py-2 text-center font-semibold'>
-                                                                            Sl No
-                                                                        </th>
-                                                                        <th className='border px-2 py-2 text-center font-semibold'>
-                                                                            Admission No
-                                                                        </th>
-                                                                        <th className='border px-2 py-2 text-center font-semibold'>
-                                                                            StudentName
-                                                                        </th>
-                                                                        <th className='border px-2 py-2 text-center font-semibold'>
-                                                                            Class & Division
-                                                                        </th>
-                                                                        <th className='border px-2 py-2 text-center font-semibold'>
-                                                                            PaymentDate
-                                                                        </th>
-                                                                        <th className='border px-2 py-2 text-center font-semibold'>
-                                                                            Roll No.
-                                                                        </th>
-                                                                        <th className='border px-2 py-2 text-center font-semibold'>
-                                                                            TotalPaidAmount
-                                                                        </th>
+                                                                        </td>
+                                                                        <td className='border px-2 py-2 text-center'>{index + 1}</td>
+                                                                        <td className='border px-2 py-2 text-left'>{row.amsT_AdmNo}</td>
+                                                                        <td className='border px-2 py-2 text-right'>
+                                                                            {row.amsT_FirstName || '-'}
+                                                                        </td>
+                                                                        <td className='border px-2 py-2 text-right'>
+                                                                            {row.asmcL_ClassName?.toLocaleString() || '-'}
+                                                                        </td>
+                                                                        <td className='border px-2 py-2 text-right'>
+                                                                            {row.asmC_SectionName?.toLocaleString() || '-'}
+                                                                        </td>
+                                                                        <td className='border px-2 py-2 text-right'>
+                                                                            {row.amaY_RollNo?.toLocaleString() || '-'}
+                                                                        </td>
+                                                                        <td className='border px-2 py-2 text-right'>
+                                                                            {row.fmG_GroupName?.toLocaleString() || '-'}
+                                                                        </td>
                                                                     </tr>
-                                                                </thead>
-                                                                <tbody>
-                                                                    {reportData.map((row, index) => (
-                                                                        <tr
-                                                                            key={row.id}
-                                                                            className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                                                                            <td className='p-2 text-center'>
-                                                                                <Checkbox
-                                                                                    checked={selectedIds.includes(row.id)}
-                                                                                    onCheckedChange={() => toggleRow(row.id)}
-                                                                                />
-                                                                            </td>
-                                                                            <td className='border px-2 py-2 text-center'>{index + 1}</td>
-                                                                            <td className='border px-2 py-2 text-left'>{row.amsT_AdmNo}</td>
-                                                                            <td className='border px-2 py-2 text-right'>
-                                                                                {row.amsT_FirstName || '-'}
-                                                                            </td>
-                                                                            <td className='border px-2 py-2 text-right'>
-                                                                                {row.asmcL_ClassName?.toLocaleString() || '-'}
-                                                                            </td>
-                                                                            <td className='border px-2 py-2 text-right'>
-                                                                                {row.asmC_SectionName?.toLocaleString() || '-'}
-                                                                            </td>
-                                                                            <td className='border px-2 py-2 text-right'>
-                                                                                {row.amaY_RollNo?.toLocaleString() || '-'}
-                                                                            </td>
-                                                                            <td className='border px-2 py-2 text-right'>
-                                                                                {row.fmG_GroupName?.toLocaleString() || '-'}
-                                                                            </td>
-                                                                        </tr>
-                                                                    ))}
-                                                                </tbody>
-                                                            </table>
-                                                        </div>
+                                                                ))}
+                                                            </tbody>
+                                                        </table>
                                                     </div>
-                                                </CollapsibleSection>
-                                            )}
+                                                </div>
+                                            </CollapsibleSection>
                                         </div>
                                     )}
                                 </div>

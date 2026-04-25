@@ -48,7 +48,7 @@ export default function AddMasterVendorForm({ onSuccess, className = '' }: AddMa
                 lmV_VendorName,
                 lmV_Address,
                 lmV_EMailId,
-                lmV_ActiveFlag: true
+                lmV_ActiveFlg: true
             };
 
             // const js = JSON.stringify(payload);
@@ -57,12 +57,12 @@ export default function AddMasterVendorForm({ onSuccess, className = '' }: AddMa
             const response = await addOrUpdateMasterVendor(payload);
 
             if (response.success) {
-                toast.success(response.message || 'Class Category saved successfully');
+                toast.success(response.message || 'Master Vendor saved successfully');
                 reset();
                 refetchAll();
                 onSuccess?.();
             } else {
-                toast.error(response.message || 'Failed to save Class Category');
+                toast.error(response.message || 'Failed to save Master Vendor');
             }
         } catch (error: any) {
             toast.error(error?.message || 'Something went wrong');
@@ -131,7 +131,7 @@ export default function AddMasterVendorForm({ onSuccess, className = '' }: AddMa
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Master Library
+                            Save Master Vendor
                         </div>
                     </Button>
                 </div>

@@ -3,9 +3,9 @@
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
-import { useMasterLibrary } from '@/hooks/library/useMasters';
+import { useMasterVendor } from '@/hooks/library/useMasters';
 import { masterVendorSchema } from '@/schemas/library/masters';
-import { addOrUpdateMasterLibrary } from '@/server/library/masters/master_library';
+import { addOrUpdateMasterVendor } from '@/server/library/masters/library_vendor';
 import type { IMasterVendorList } from '@/types/library/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
@@ -23,7 +23,7 @@ interface UpdateMasterVendorFormProps {
 }
 
 export default function UpdateMasterVendorForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterVendorFormProps) {
-    const { refetchAll } = useMasterLibrary();
+    const { refetchAll } = useMasterVendor();
 
     const {
         register,
@@ -61,7 +61,7 @@ export default function UpdateMasterVendorForm({ onSuccess, className = '', sele
                 lmV_PhoneNo: lmV_PhoneNo
             };
 
-            const response = await addOrUpdateMasterLibrary(payload);
+            const response = await addOrUpdateMasterVendor(payload);
 
             if (response.success) {
                 toast.success(response.message || 'Master Vendor updated successfully');

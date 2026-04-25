@@ -2,6 +2,15 @@
 import { type ApiResponse, api } from '@/lib/apiService';
 import { auth } from '@/lib/auth';
 import type { IDropdown, IUserAccessibleModules, UserNotification } from '@/types';
+import { admissionModule } from './modules/admission';
+import { feesModule } from './modules/fees';
+import { examModule } from './modules/exam';
+import { hrmsModule } from './modules/hrms';
+import { iframeModule } from './modules/iframe';
+import { timetableModule } from './modules/timetable';
+import { libraryModule } from './modules/library';
+import { transportModule } from './modules/transport';
+
 
 export async function getCommonDropdown(name: string) {
     const url = `/v1/common/common_drop_down_list/${name}`;
@@ -52,7 +61,15 @@ export async function getUserAccessibleModules() {
         response = {
             success: true,
             message: 'Data fetched successfully!!',
-            data: [
+            data: [admissionModule,
+                feesModule,
+                examModule,
+                hrmsModule,
+                iframeModule,
+                timetableModule,
+                libraryModule,
+                transportModule,
+
                 {
                     id: 1,
                     name: 'Preadmission',
@@ -1934,6 +1951,22 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/feereports/FeeUserWiseDailyCollectionReport',
                                             title: 'Fee User Wise Daily Collection Report',
                                             description: 'Manage Fee User Wise Daily Collection Report Details'
+                                        },
+                                        {
+                                            id: 399,
+                                            name: 'Fee Cheque Bounce',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/feeChequeBounce',
+                                            title: 'Fee Cheque Bounce',
+                                            description: 'Manage Fee Cheque Bounce Details'
+                                        },
+                                        {
+                                            id: 519,
+                                            name: 'Third Party TransactionGM',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/thirdPartyTransactionGM',
+                                            title: 'Third Party TransactionGM',
+                                            description: 'Manage Third Party TransactionGM'
                                         }
                                     ]
                                 }
@@ -2850,7 +2883,7 @@ export async function getUserAccessibleModules() {
                                             icon: 'FileSearch',
                                             url: '/hrms/ai-ats/resume-checker',
                                             title: 'AI Resume checker',
-                                            description: 'AI-powered resume evaluation and screening'
+                                            description: 'Upload resumes and job descriptions for AI-powered ATS scoring and skill gap analysis.'
                                         }
                                     ]
                                 },
@@ -7339,9 +7372,7 @@ export async function getUserAccessibleModules() {
                                             description: 'View Bank Credit And Debit Reports'
                                         }
                                     ]
-                                },
-
-
+                                }
                             ]
                         }
                     ]

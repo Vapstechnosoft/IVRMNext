@@ -1,12 +1,12 @@
 'use client';
 
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { useBookCirculationReportSearch } from '@/hooks/library/reports/useBookCirculationReport';
-import type { IBookCirculationReportGridData, IBookCirculationReportRequest } from '@/types/library/reports/book-circulation-report';
 import { useState } from 'react';
-import { getColumns } from './_components/columns';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { ReportForm } from './_components/report-form';
+import { getColumns } from './_components/columns';
+import { useBookCirculationReportSearch } from '@/hooks/library/reports/useBookCirculationReport';
+import { IBookCirculationReportGridData, IBookCirculationReportRequest } from '@/types/library/reports/book-circulation-report';
 
 export default function BookCirculationReportPage() {
     const [view, setView] = useState<'form' | 'grid'>('form');
@@ -19,10 +19,11 @@ export default function BookCirculationReportPage() {
         setMemberType(data.AGType); // Store member type to select columns
         searchMutation.mutate(data, {
             onSuccess: (response) => {
-                // setReportData(response.reportlist || []);
-                // if (response.reportlist?.length > 0) {
-                //     setView('grid');
-                // }
+                const list = response.data?.reportlist || [];
+                setReportData(list);
+                if (list.length > 0) {
+                    setView('grid');
+                }
             }
         });
     };
@@ -33,7 +34,8 @@ export default function BookCirculationReportPage() {
                 title='Book Circulation Report: Form'
                 isOpen={view === 'form'}
                 onToggle={() => setView(view === 'form' ? 'grid' : 'form')}
-                defaultOpen={true}>
+                defaultOpen={true}
+            >
                 <ReportForm onSearch={handleSearch} isLoading={searchMutation.isPending} />
             </CollapsibleSection>
 
@@ -41,8 +43,13 @@ export default function BookCirculationReportPage() {
                 <CollapsibleSection
                     title='Book Circulation Report Grid'
                     isOpen={view === 'grid'}
-                    onToggle={() => setView(view === 'grid' ? 'form' : 'grid')}>
-                    <GenericDataTable columns={getColumns(memberType)} data={reportData} isLoading={false} />
+                    onToggle={() => setView(view === 'grid' ? 'form' : 'grid')}
+                >
+                    <GenericDataTable
+                        columns={getColumns(memberType)}
+                        data={reportData}
+                        isLoading={false}
+                    />
                 </CollapsibleSection>
             )}
         </div>

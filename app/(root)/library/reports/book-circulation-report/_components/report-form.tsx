@@ -1,77 +1,65 @@
 'use client';
+import React from 'react';
 
-import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useBookCirculationReportInitialData } from '@/hooks/library/reports/useBookCirculationReport';
-import { cn } from '@/lib/utils';
-import type { IBookCirculationReportRequest } from '@/types/library/reports/book-circulation-report';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { format } from 'date-fns';
-import { Loader2, Search, X } from 'lucide-react';
-import { CalendarIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Loader2, Search, X } from 'lucide-react';
+import { useBookCirculationReportInitialData } from '@/hooks/library/reports/useBookCirculationReport';
+import { IBookCirculationReportRequest, IBookCirculationReportInitialData } from '@/types/library/reports/book-circulation-report';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { CalendarIcon } from 'lucide-react';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { useEffect, useState } from 'react';
 
-const reportFormSchema = z
-    .object({
-        LMAL_Id: z.coerce.number().min(1, 'Library is required'),
-        AGType: z.enum(['Student', 'Staff', 'Guest', 'Department', 'all']),
-        Type: z.string(),
-        TrnType: z.string(),
-        Issuecount: z.boolean().optional(),
-        IssueFromDate: z.date().optional(),
-        IssueToDate: z.date().optional(),
-        Duecount: z.boolean().optional(),
-        DueFromdate: z.date().optional(),
-        DueTodate: z.date().optional(),
-        selectedClasslist: z.array(z.object({ asmcL_Id: z.number() })).optional(),
-        selectedSectionlist: z.array(z.object({ asmS_Id: z.number() })).optional()
-    })
-    .refine(
-        (data) => {
-            if (data.Issuecount) {
-                return !!data.IssueFromDate && !!data.IssueToDate;
-            }
-            return true;
-        },
-        {
-            message: 'Issue dates are required when Issue Date filter is enabled',
-            path: ['IssueFromDate']
-        }
-    )
-    .refine(
-        (data) => {
-            if (data.Duecount) {
-                return !!data.DueFromdate && !!data.DueTodate;
-            }
-            return true;
-        },
-        {
-            message: 'Due dates are required when Due Date filter is enabled',
-            path: ['DueFromdate']
-        }
-    )
-    .refine(
-        (data) => {
-            if (data.AGType === 'Student') {
-                const hasClasses = data.selectedClasslist && data.selectedClasslist.length > 0;
-                const hasSections = data.selectedSectionlist && data.selectedSectionlist.length > 0;
-                return hasClasses && hasSections;
-            }
-            return true;
-        },
-        {
-            message: 'Class and Section are required for Student',
-            path: ['selectedClasslist'] // Highlight class list error, but applies to both
-        }
-    );
+const reportFormSchema = z.object({
+    LMAL_Id: z.coerce.number().min(1, 'Library is required'),
+    AGType: z.enum(['Student', 'Staff', 'Guest', 'Department', 'all']),
+    Type: z.string(),
+    TrnType: z.string(),
+    Issuecount: z.boolean().optional(),
+    IssueFromDate: z.date().optional(),
+    IssueToDate: z.date().optional(),
+    Duecount: z.boolean().optional(),
+    DueFromdate: z.date().optional(),
+    DueTodate: z.date().optional(),
+    selectedClasslist: z.array(z.object({ asmcL_Id: z.number() })).optional(),
+    selectedSectionlist: z.array(z.object({ asmS_Id: z.number() })).optional(),
+}).refine((data) => {
+    if (data.Issuecount) {
+        return !!data.IssueFromDate && !!data.IssueToDate;
+    }
+    return true;
+}, {
+    message: "Select Search date",
+    path: ["IssueToDate"]
+}).refine((data) => {
+    if (data.Duecount) {
+        return !!data.DueFromdate && !!data.DueTodate;
+    }
+    return true;
+}, {
+    message: "Select Search date",
+    path: ["DueTodate"]
+}).refine((data) => {
+    if (data.AGType === 'Student') {
+        const hasClasses = data.selectedClasslist && data.selectedClasslist.length > 0;
+        const hasSections = data.selectedSectionlist && data.selectedSectionlist.length > 0;
+        return hasClasses && hasSections;
+    }
+    return true;
+}, {
+    message: "Select Class and Section",
+    path: ["selectedClasslist"]
+});
 
 type ReportFormValues = z.infer<typeof reportFormSchema>;
 
@@ -81,9 +69,9 @@ interface ReportFormProps {
 }
 
 export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
-    const { data: initialData } = useBookCirculationReportInitialData();
+    const { data: initialData, isLoading: isInitialLoading } = useBookCirculationReportInitialData() as { data: IBookCirculationReportInitialData | undefined, isLoading: boolean };
 
-    // Local state for multi-select
+    // Local state for multi-select to handle UI before sync with form
     const [selectedClasses, setSelectedClasses] = useState<number[]>([]);
     const [selectedSections, setSelectedSections] = useState<number[]>([]);
 
@@ -113,45 +101,36 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
     const issueFromDate = useWatch({ control, name: 'IssueFromDate' });
     const dueFromDate = useWatch({ control, name: 'DueFromdate' });
 
-    // Initialize/Update checkboxes when initial data loads
+    // Initialize checkboxes on load
     useEffect(() => {
-        if (initialData?.classList) {
-            const allClassIds = Array.isArray(initialData.classList) ? initialData.classList.map((c) => c.asmcL_Id) : [];
+        if (initialData?.classList && initialData.classList.length > 0) {
+            const allClassIds = initialData.classList.map(c => c.asmcL_Id);
             setSelectedClasses(allClassIds);
-            setValue('selectedClasslist', Array.isArray(allClassIds) ? allClassIds.map((id) => ({ asmcL_Id: id })) : []);
+            setValue('selectedClasslist', allClassIds.map(id => ({ asmcL_Id: id })));
         }
-        if (initialData?.sectionList) {
-            const allSectionIds = Array.isArray(initialData.sectionList) ? initialData.sectionList.map((s) => s.asmS_Id) : [];
+        if (initialData?.sectionList && initialData.sectionList.length > 0) {
+            const allSectionIds = initialData.sectionList.map(s => s.asmS_Id);
             setSelectedSections(allSectionIds);
-            setValue(
-                'selectedSectionlist',
-                allSectionIds.map((id) => ({ asmS_Id: id }))
-            );
+            setValue('selectedSectionlist', allSectionIds.map(id => ({ asmS_Id: id })));
         }
     }, [initialData, setValue]);
 
     const handleClassToggle = (id: number) => {
         let newSelected = [...selectedClasses];
         if (newSelected.includes(id)) {
-            newSelected = newSelected.filter((i) => i !== id);
+            newSelected = newSelected.filter(i => i !== id);
         } else {
             newSelected.push(id);
         }
         setSelectedClasses(newSelected);
-        setValue(
-            'selectedClasslist',
-            newSelected.map((i) => ({ asmcL_Id: i }))
-        );
+        setValue('selectedClasslist', newSelected.map(i => ({ asmcL_Id: i })));
     };
 
     const handleAllClassesToggle = (checked: boolean) => {
         if (checked && initialData?.classList) {
-            const allIds = Array.isArray(initialData.classList) ? initialData.classList.map((c) => c.asmcL_Id) : [];
+            const allIds = initialData.classList.map(c => c.asmcL_Id);
             setSelectedClasses(allIds);
-            setValue(
-                'selectedClasslist',
-                allIds.map((i) => ({ asmcL_Id: i }))
-            );
+            setValue('selectedClasslist', allIds.map(i => ({ asmcL_Id: i })));
         } else {
             setSelectedClasses([]);
             setValue('selectedClasslist', []);
@@ -161,25 +140,19 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
     const handleSectionToggle = (id: number) => {
         let newSelected = [...selectedSections];
         if (newSelected.includes(id)) {
-            newSelected = newSelected.filter((i) => i !== id);
+            newSelected = newSelected.filter(i => i !== id);
         } else {
             newSelected.push(id);
         }
         setSelectedSections(newSelected);
-        setValue(
-            'selectedSectionlist',
-            newSelected.map((i) => ({ asmS_Id: i }))
-        );
+        setValue('selectedSectionlist', newSelected.map(i => ({ asmS_Id: i })));
     };
 
     const handleAllSectionsToggle = (checked: boolean) => {
         if (checked && initialData?.sectionList) {
-            const allIds = Array.isArray(initialData.sectionList) ? initialData.sectionList.map((s) => s.asmS_Id) : [];
+            const allIds = initialData.sectionList.map(s => s.asmS_Id);
             setSelectedSections(allIds);
-            setValue(
-                'selectedSectionlist',
-                allIds.map((i) => ({ asmS_Id: i }))
-            );
+            setValue('selectedSectionlist', allIds.map(i => ({ asmS_Id: i })));
         } else {
             setSelectedSections([]);
             setValue('selectedSectionlist', []);
@@ -187,192 +160,188 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
     };
 
     const onSubmit = (data: ReportFormValues) => {
-        // Transform dates to string if needed by backend, or types handle it
-        // The interface expects strings, but hook form has dates.
-        // We'll cast/transform in the submit handler prop or just pass simplified obj
         const requestData: IBookCirculationReportRequest = {
             ...data,
             IssueFromDate: data.IssueFromDate ? format(data.IssueFromDate, 'yyyy-MM-dd') : undefined,
             IssueToDate: data.IssueToDate ? format(data.IssueToDate, 'yyyy-MM-dd') : undefined,
             DueFromdate: data.DueFromdate ? format(data.DueFromdate, 'yyyy-MM-dd') : undefined,
-            DueTodate: data.DueTodate ? format(data.DueTodate, 'yyyy-MM-dd') : undefined
+            DueTodate: data.DueTodate ? format(data.DueTodate, 'yyyy-MM-dd') : undefined,
         };
         onSearch(requestData);
     };
 
+    if (isInitialLoading) {
+        return <div className="flex justify-center p-10"><Loader2 className="animate-spin h-10 w-10 text-primary" /></div>;
+    }
+
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-            <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <Card>
                     <CardHeader>
-                        <CardTitle className='text-lg'>Filters</CardTitle>
+                        <CardTitle className="text-lg">Filters</CardTitle>
                     </CardHeader>
-                    <CardContent className='space-y-6'>
+                    <CardContent className="space-y-6">
                         {/* Library */}
                         <div>
-                            <Label>
-                                Library Name <span className='text-red-500'>*</span>
-                            </Label>
+                            <Label>Library Name <span className="text-red-500">*</span></Label>
                             <Select onValueChange={(v) => setValue('LMAL_Id', Number(v))}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder='Select Library' />
+                                    <SelectValue placeholder="Select Library" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {Array.isArray(initialData?.lib_list) &&
-                                        initialData?.lib_list?.map((lib) => (
-                                            <SelectItem key={lib.lmaL_Id} value={lib.lmaL_Id.toString()}>
-                                                {lib.lmaL_LibraryName}
-                                            </SelectItem>
-                                        ))}
+                                    {initialData?.lib_list?.map((lib) => (
+                                        <SelectItem key={lib.lmaL_Id} value={lib.lmaL_Id.toString()}>
+                                            {lib.lmaL_LibraryName}
+                                        </SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
-                            {errors.LMAL_Id && <p className='text-red-500 text-sm'>{errors.LMAL_Id.message}</p>}
+                            {errors.LMAL_Id && <p className="text-sm text-red-500 mt-1">{errors.LMAL_Id.message}</p>}
                         </div>
 
-                        {/* Member Type */}
+                        {/* Member Type - AGType */}
                         <div>
-                            <Label className='mb-2 block'>Member Type</Label>
+                            <Label className="mb-2 block font-semibold">Member Type <span className="text-red-500">*</span></Label>
                             <RadioGroup
-                                defaultValue='Student'
+                                defaultValue="Student"
                                 onValueChange={(v) => setValue('AGType', v as any)}
-                                className='flex flex-wrap gap-4 rounded-md border p-4'>
-                                <div className='flex items-center space-x-2'>
-                                    <RadioGroupItem value='Student' id='r-student' />
-                                    <Label htmlFor='r-student'>Student</Label>
-                                </div>
-                                <div className='flex items-center space-x-2'>
-                                    <RadioGroupItem value='Staff' id='r-staff' />
-                                    <Label htmlFor='r-staff'>Staff</Label>
-                                </div>
-                                <div className='flex items-center space-x-2'>
-                                    <RadioGroupItem value='Guest' id='r-guest' />
-                                    <Label htmlFor='r-guest'>Guest</Label>
-                                </div>
-                                <div className='flex items-center space-x-2'>
-                                    <RadioGroupItem value='Department' id='r-dept' />
-                                    <Label htmlFor='r-dept'>Department</Label>
-                                </div>
+                                className="flex flex-wrap gap-4 p-3 border rounded-md justify-around bg-slate-50"
+                            >
+                                {['Student', 'Staff', 'Guest', 'Department'].map((type) => (
+                                    <div key={type} className="flex items-center space-x-2">
+                                        <RadioGroupItem value={type} id={`r-${type}`} />
+                                        <Label htmlFor={`r-${type}`}>{type}</Label>
+                                    </div>
+                                ))}
                             </RadioGroup>
                         </div>
 
-                        {/* Book Type */}
+                        {/* Book Type - Type */}
                         <div>
-                            <Label className='mb-2 block'>Book Type</Label>
+                            <Label className="mb-2 block font-semibold">Book Type <span className="text-red-500">*</span></Label>
                             <RadioGroup
-                                defaultValue='all'
+                                defaultValue="all"
                                 onValueChange={(v) => setValue('Type', v)}
-                                className='grid grid-cols-2 gap-2 rounded-md border p-4 md:grid-cols-3'>
-                                {['all', 'Issue', 'Reference', 'Issuable', 'ReferenceonlyIssuable', 'ReferenceonlyNon-Issuable'].map(
-                                    (type) => (
-                                        <div key={type} className='flex items-center space-x-2'>
-                                            <RadioGroupItem value={type} id={`bt-${type}`} />
-                                            <Label htmlFor={`bt-${type}`}>{type === 'all' ? 'ALL' : type}</Label>
-                                        </div>
-                                    )
-                                )}
+                                className="grid grid-cols-2 md:grid-cols-2 gap-2 p-3 border rounded-md bg-slate-50"
+                            >
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="all" id="bt-all" />
+                                    <Label htmlFor="bt-all">ALL</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="Issue" id="bt-Issue" />
+                                    <Label htmlFor="bt-Issue">Issue</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="Reference" id="bt-Reference" />
+                                    <Label htmlFor="bt-Reference">Reference</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="Issuable" id="bt-Issuable" />
+                                    <Label htmlFor="bt-Issuable">Issuable</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="NotIssuable" id="bt-NotIssuable" />
+                                    <Label htmlFor="bt-NotIssuable">Not Issuable</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="ReferenceonlyIssuable" id="bt-RefIssuable" />
+                                    <Label htmlFor="bt-RefIssuable">Ref only Issuable</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="ReferenceonlyNon-Issuable" id="bt-RefNonIssuable" />
+                                    <Label htmlFor="bt-RefNonIssuable">Ref only Non-Issuable</Label>
+                                </div>
                             </RadioGroup>
                         </div>
 
-                        {/* Transaction Status */}
+                        {/* Transaction Status - TrnType */}
                         <div>
-                            <Label className='mb-2 block'>Transaction Status</Label>
+                            <Label className="mb-2 block font-semibold">Transaction Status <span className="text-red-500">*</span></Label>
                             <RadioGroup
-                                defaultValue='all'
+                                defaultValue="all"
                                 onValueChange={(v) => setValue('TrnType', v)}
-                                className='flex gap-4 rounded-md border p-4'>
-                                <div className='flex items-center space-x-2'>
-                                    <RadioGroupItem value='all' id='t-all' />
-                                    <Label htmlFor='t-all'>ALL</Label>
+                                className="flex gap-4 p-3 border rounded-md justify-around bg-slate-50"
+                            >
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="all" id="t-all" />
+                                    <Label htmlFor="t-all">ALL</Label>
                                 </div>
-                                <div className='flex items-center space-x-2'>
-                                    <RadioGroupItem value='Issue' id='t-issue' />
-                                    <Label htmlFor='t-issue'>Issue</Label>
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="Issue" id="t-issue" />
+                                    <Label htmlFor="t-issue">Issue</Label>
                                 </div>
-                                <div className='flex items-center space-x-2'>
-                                    <RadioGroupItem value='Return' id='t-return' />
-                                    <Label htmlFor='t-return'>Return</Label>
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="Return" id="t-return" />
+                                    <Label htmlFor="t-return">Return</Label>
                                 </div>
                             </RadioGroup>
                         </div>
+
                     </CardContent>
                 </Card>
 
-                <div className='space-y-6'>
+                <div className="space-y-6">
                     {/* Student Filters */}
                     {agType === 'Student' && (
                         <Card>
                             <CardHeader>
-                                <CardTitle className='text-lg'>Student Filters</CardTitle>
+                                <CardTitle className="text-lg">Student Filters</CardTitle>
                             </CardHeader>
-                            <CardContent className='space-y-4'>
+                            <CardContent className="space-y-4">
                                 {/* Class Selection */}
                                 <div>
-                                    <Label>
-                                        Class Name <span className='text-red-500'>*</span>
-                                    </Label>
-                                    <div className='h-40 space-y-2 overflow-y-auto rounded-md border p-2'>
-                                        <div className='flex items-center space-x-2 border-b pb-2'>
+                                    <Label>Class Name <span className="text-red-500">*</span></Label>
+                                    <div className="border rounded-md p-2 h-40 overflow-y-auto space-y-2 bg-white">
+                                        <div className="flex items-center space-x-2 pb-2 border-b">
                                             <Checkbox
-                                                id='cls-all'
-                                                checked={
-                                                    Array.isArray(initialData?.classList) &&
-                                                    initialData?.classList?.length === selectedClasses.length
-                                                }
+                                                id="cls-all"
+                                                checked={initialData?.classList?.length === selectedClasses.length && initialData?.classList?.length > 0}
                                                 onCheckedChange={(checked) => handleAllClassesToggle(checked as boolean)}
                                             />
-                                            <Label htmlFor='cls-all' className='font-bold'>
-                                                All
-                                            </Label>
+                                            <Label htmlFor="cls-all" className="font-bold">All</Label>
                                         </div>
-                                        {Array.isArray(initialData?.classList) &&
-                                            initialData?.classList?.map((cls) => (
-                                                <div key={cls.asmcL_Id} className='flex items-center space-x-2'>
-                                                    <Checkbox
-                                                        id={`cls-${cls.asmcL_Id}`}
-                                                        checked={selectedClasses.includes(cls.asmcL_Id)}
-                                                        onCheckedChange={() => handleClassToggle(cls.asmcL_Id)}
-                                                    />
-                                                    <Label htmlFor={`cls-${cls.asmcL_Id}`}>{cls.asmcL_ClassName}</Label>
-                                                </div>
-                                            ))}
+                                        {initialData?.classList?.map((cls) => (
+                                            <div key={cls.asmcL_Id} className="flex items-center space-x-2">
+                                                <Checkbox
+                                                    id={`cls-${cls.asmcL_Id}`}
+                                                    checked={selectedClasses.includes(cls.asmcL_Id)}
+                                                    onCheckedChange={() => handleClassToggle(cls.asmcL_Id)}
+                                                />
+                                                <Label htmlFor={`cls-${cls.asmcL_Id}`}>{cls.asmcL_ClassName}</Label>
+                                            </div>
+                                        ))}
                                     </div>
-                                    {errors.selectedClasslist && <p className='text-red-500 text-sm'>{errors.selectedClasslist.message}</p>}
+                                    {(errors.selectedClasslist || (errors as any).selectedClasslist?.root) &&
+                                        <p className="text-sm text-red-500 mt-1">Select Class</p>
+                                    }
                                 </div>
 
                                 {/* Section Selection */}
                                 <div>
-                                    <Label>
-                                        Section Name <span className='text-red-500'>*</span>
-                                    </Label>
-                                    <div className='h-40 space-y-2 overflow-y-auto rounded-md border p-2'>
-                                        <div className='flex items-center space-x-2 border-b pb-2'>
+                                    <Label>Section Name <span className="text-red-500">*</span></Label>
+                                    <div className="border rounded-md p-2 h-40 overflow-y-auto space-y-2 bg-white">
+                                        <div className="flex items-center space-x-2 pb-2 border-b">
                                             <Checkbox
-                                                id='sec-all'
-                                                checked={
-                                                    Array.isArray(initialData?.sectionList) &&
-                                                    initialData?.sectionList?.length === selectedSections.length
-                                                }
+                                                id="sec-all"
+                                                checked={initialData?.sectionList?.length === selectedSections.length && initialData?.sectionList?.length > 0}
                                                 onCheckedChange={(checked) => handleAllSectionsToggle(checked as boolean)}
                                             />
-                                            <Label htmlFor='sec-all' className='font-bold'>
-                                                All
-                                            </Label>
+                                            <Label htmlFor="sec-all" className="font-bold">All</Label>
                                         </div>
-                                        {Array.isArray(initialData?.sectionList) &&
-                                            initialData?.sectionList?.map((sec) => (
-                                                <div key={sec.asmS_Id} className='flex items-center space-x-2'>
-                                                    <Checkbox
-                                                        id={`sec-${sec.asmS_Id}`}
-                                                        checked={selectedSections.includes(sec.asmS_Id)}
-                                                        onCheckedChange={() => handleSectionToggle(sec.asmS_Id)}
-                                                    />
-                                                    <Label htmlFor={`sec-${sec.asmS_Id}`}>{sec.asmC_SectionName}</Label>
-                                                </div>
-                                            ))}
+                                        {initialData?.sectionList?.map((sec) => (
+                                            <div key={sec.asmS_Id} className="flex items-center space-x-2">
+                                                <Checkbox
+                                                    id={`sec-${sec.asmS_Id}`}
+                                                    checked={selectedSections.includes(sec.asmS_Id)}
+                                                    onCheckedChange={() => handleSectionToggle(sec.asmS_Id)}
+                                                />
+                                                <Label htmlFor={`sec-${sec.asmS_Id}`}>{sec.asmC_SectionName}</Label>
+                                            </div>
+                                        ))}
                                     </div>
-                                    {errors.selectedSectionlist && (
-                                        <p className='text-red-500 text-sm'>{errors.selectedSectionlist.message}</p>
-                                    )}
+                                    {errors.selectedSectionlist && <p className="text-sm text-red-500 mt-1">{errors.selectedSectionlist.message}</p>}
                                 </div>
                             </CardContent>
                         </Card>
@@ -381,84 +350,103 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                     {/* Date Filters */}
                     <Card>
                         <CardHeader>
-                            <CardTitle className='text-lg'>Date Filters</CardTitle>
+                            <CardTitle className="text-lg">Date Filters</CardTitle>
                         </CardHeader>
-                        <CardContent className='space-y-4'>
+                        <CardContent className="space-y-4">
                             {/* Issue Date */}
-                            <div className='space-y-2'>
-                                <div className='flex items-center space-x-2'>
+                            <div className="space-y-2">
+                                <div className="flex items-center space-x-2">
                                     <Checkbox
-                                        id='issue-count'
+                                        id="issue-count"
                                         checked={issueCount}
-                                        onCheckedChange={(c) => setValue('Issuecount', c as boolean)}
+                                        onCheckedChange={(c) => {
+                                            setValue('Issuecount', c as boolean);
+                                        }}
                                     />
-                                    <Label htmlFor='issue-count'>Issue Date</Label>
+                                    <Label htmlFor="issue-count">Issue Date</Label>
                                 </div>
-                                {issueCount && (
-                                    <div className='flex gap-2'>
-                                        <div className='flex-1'>
-                                            <CalendarDatePicker
-                                                date={issueFromDate}
-                                                setDate={(d) => setValue('IssueFromDate', d)}
-                                                placeholder='From Date'
-                                            />
-                                        </div>
-                                        <div className='flex-1'>
-                                            <CalendarDatePicker
-                                                date={watch('IssueToDate')}
-                                                setDate={(d) => setValue('IssueToDate', d)}
-                                                placeholder='To Date'
-                                                minDate={issueFromDate}
-                                            />
-                                        </div>
+
+                                <div className="flex gap-2">
+                                    <div className="flex-1 space-y-1">
+                                        <span className="text-xs text-muted-foreground">From</span>
+                                        <CalendarDatePicker
+                                            date={issueFromDate}
+                                            setDate={(d) => setValue('IssueFromDate', d)}
+                                            placeholder="From Date"
+                                            disabled={!issueCount}
+                                        />
                                     </div>
-                                )}
-                                {errors.IssueFromDate && <p className='text-red-500 text-sm'>{errors.IssueFromDate.message}</p>}
+                                    <div className="flex-1 space-y-1">
+                                        <span className="text-xs text-muted-foreground">To</span>
+                                        <CalendarDatePicker
+                                            date={watch('IssueToDate')}
+                                            setDate={(d) => setValue('IssueToDate', d)}
+                                            placeholder="To Date"
+                                            minDate={issueFromDate}
+                                            disabled={!issueCount}
+                                        />
+                                    </div>
+                                </div>
+                                {errors.IssueToDate && <p className="text-sm text-red-500">{errors.IssueToDate.message}</p>}
                             </div>
 
                             {/* Due Date */}
-                            <div className='space-y-2'>
-                                <div className='flex items-center space-x-2'>
+                            <div className="space-y-2">
+                                <div className="flex items-center space-x-2">
                                     <Checkbox
-                                        id='due-count'
+                                        id="due-count"
                                         checked={dueCount}
                                         onCheckedChange={(c) => setValue('Duecount', c as boolean)}
                                     />
-                                    <Label htmlFor='due-count'>Due Date</Label>
+                                    <Label htmlFor="due-count">Due Date</Label>
                                 </div>
-                                {dueCount && (
-                                    <div className='flex gap-2'>
-                                        <div className='flex-1'>
-                                            <CalendarDatePicker
-                                                date={dueFromDate}
-                                                setDate={(d) => setValue('DueFromdate', d)}
-                                                placeholder='From Date'
-                                            />
-                                        </div>
-                                        <div className='flex-1'>
-                                            <CalendarDatePicker
-                                                date={watch('DueTodate')}
-                                                setDate={(d) => setValue('DueTodate', d)}
-                                                placeholder='To Date'
-                                                minDate={dueFromDate}
-                                            />
-                                        </div>
+                                <div className="flex gap-2">
+                                    <div className="flex-1 space-y-1">
+                                        <span className="text-xs text-muted-foreground">From</span>
+                                        <CalendarDatePicker
+                                            date={dueFromDate}
+                                            setDate={(d) => setValue('DueFromdate', d)}
+                                            placeholder="From Date"
+                                            disabled={!dueCount}
+                                        />
                                     </div>
-                                )}
-                                {errors.DueFromdate && <p className='text-red-500 text-sm'>{errors.DueFromdate.message}</p>}
+                                    <div className="flex-1 space-y-1">
+                                        <span className="text-xs text-muted-foreground">To</span>
+                                        <CalendarDatePicker
+                                            date={watch('DueTodate')}
+                                            setDate={(d) => setValue('DueTodate', d)}
+                                            placeholder="To Date"
+                                            minDate={dueFromDate}
+                                            disabled={!dueCount}
+                                        />
+                                    </div>
+                                </div>
+                                {errors.DueTodate && <p className="text-sm text-red-500">{errors.DueTodate.message}</p>}
                             </div>
                         </CardContent>
                     </Card>
                 </div>
             </div>
 
-            <div className='flex justify-center gap-4'>
-                <Button type='submit' disabled={isLoading}>
-                    {isLoading ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Search className='mr-2 h-4 w-4' />}
+            <div className="flex justify-center gap-4">
+                <Button type="submit" disabled={isLoading}>
+                    {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
                     Report
                 </Button>
-                <Button type='button' variant='destructive' onClick={() => reset()}>
-                    <X className='mr-2 h-4 w-4' />
+                <Button type="button" variant="destructive" onClick={() => {
+                    reset({
+                        AGType: 'Student',
+                        Type: 'all',
+                        TrnType: 'all',
+                        Issuecount: false,
+                        Duecount: false,
+                        selectedClasslist: [],
+                        selectedSectionlist: []
+                    });
+                    setSelectedClasses([]);
+                    setSelectedSections([]);
+                }}>
+                    <X className="mr-2 h-4 w-4" />
                     Cancel
                 </Button>
             </div>
@@ -466,29 +454,31 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
     );
 };
 
-function CalendarDatePicker({
-    date,
-    setDate,
-    placeholder,
-    minDate
-}: { date?: Date; setDate: (d?: Date) => void; placeholder: string; minDate?: Date }) {
+function CalendarDatePicker({ date, setDate, placeholder, minDate, disabled }: { date?: Date, setDate: (d?: Date) => void, placeholder: string, minDate?: Date, disabled?: boolean }) {
     return (
         <Popover>
             <PopoverTrigger asChild>
-                <Button variant={'outline'} className={cn('w-full justify-start text-left font-normal', !date && 'text-muted-foreground')}>
-                    <CalendarIcon className='mr-2 h-4 w-4' />
-                    {date ? format(date, 'PPP') : <span>{placeholder}</span>}
+                <Button
+                    variant={"outline"}
+                    className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !date && "text-muted-foreground"
+                    )}
+                    disabled={disabled}
+                >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {date ? format(date, "dd/MM/yyyy") : <span>{placeholder}</span>}
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className='w-auto p-0'>
+            <PopoverContent className="w-auto p-0">
                 <Calendar
-                    mode='single'
+                    mode="single"
                     selected={date}
                     onSelect={setDate}
                     initialFocus
-                    disabled={(date) => (minDate ? date < minDate : false)}
+                    disabled={(date) => minDate ? date < minDate : false}
                 />
             </PopoverContent>
         </Popover>
-    );
+    )
 }
