@@ -2866,7 +2866,7 @@ export async function getUserAccessibleModules() {
                                             icon: 'FileSearch',
                                             url: '/hrms/ai-ats/resume-checker',
                                             title: 'AI Resume checker',
-                                            description: 'AI-powered resume evaluation and screening'
+                                            description: 'Upload resumes and job descriptions for AI-powered ATS scoring and skill gap analysis.'
                                         }
                                     ]
                                 },
