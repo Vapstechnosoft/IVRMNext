@@ -242,8 +242,37 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
                             selectedRefrenceDetails: (resp?.student_refrences || resp?.studentReference || []).map((r: any) => ({
                                 pamR_Id: String(r.pamR_Id)
                             })),
-                            siblingsDetails: resp?.student_siblings || [],
-                            previousSchoolDetails: resp?.previous_schools || [],
+                            siblingsDetails: (resp?.student_siblings || []).map((s: any) => ({
+                                pasrS_Id: s.pasrS_Id,
+                                pasrS_SiblingsName: s.pasrS_SiblingsName,
+                                pasrS_SiblingsClass: s.pasrS_SiblingsClass,
+                                pasrS_SiblingsAdmissionNo: s.pasrS_SiblingsAdmissionNo,
+                                pasrS_SiblingsSection: s.pasrS_SiblingsSection,
+                                pasrS_SchoolName: s.pasrS_SchoolName,
+                                pasrS_Institution: s.pasrS_Institution,
+                                pasrS_Age: s.pasrS_Age,
+                                pasrS_Gender: s.pasrS_Gender,
+                                pasrS_DOB: s.pasrS_DOB,
+                                verrejstatus: s.verrejstatus
+                            })),
+                            guardianDetails: (resp?.student_guardians || []).map((g: any) => ({
+                                pasrG_Id: g.pasrG_Id,
+                                PASRG_GuardianName: g.pasrG_GuardianName || g.PASRG_GuardianName,
+                                PASRG_GuardianRelation: g.pasrG_GuardianRelation || g.PASRG_GuardianRelation,
+                                PASRG_PhoneOffice: g.pasrG_PhoneOffice || g.PASRG_PhoneOffice,
+                                PASRG_GuardianPhoneNo: g.pasrG_GuardianPhoneNo || g.PASRG_GuardianPhoneNo,
+                                ReportType: g.reportType || g.ReportType
+                            })),
+                            SubCaste_Id: Number(student.SubCaste_Id || resp.SubCaste_Id || student.subCaste_Id || 0),
+                            previousSchoolDetails: (resp?.previous_schools || []).map((p: any) => ({
+                                pasrpS_Id: p.pasrpS_Id,
+                                pasrpS_PrvSchoolName: p.pasrpS_PrvSchoolName,
+                                pasrpS_PreviousClass: p.pasrpS_PreviousClass,
+                                pasrpS_Board: p.pasrpS_Board,
+                                pasrpS_LeftYear: p.pasrpS_LeftYear,
+                                pasrpS_LeftReason: p.pasrpS_LeftReason,
+                                pasrpS_Address: p.pasrpS_Address
+                            })),
                             selectedDocuments: (resp?.student_documents || []).map((d: any) => ({
                                 pasrD_Id: d.pasrD_Id,
                                 pasR_Id: d.pasR_Id,
