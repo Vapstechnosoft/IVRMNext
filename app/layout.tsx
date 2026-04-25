@@ -10,6 +10,7 @@ import localFont from 'next/font/local';
 import NextTopLoader from 'nextjs-toploader';
 import type * as React from 'react';
 import { Toaster } from 'sonner';
+import Script from 'next/script';
 
 const geistSans = localFont({
     src: '../public/fonts/GeistVF.woff',
@@ -42,6 +43,19 @@ export default async function RootLayout({ children }: Readonly<RootLayoutProps>
                 suppressHydrationWarning
                 className={cn('min-h-screen min-w-[360px] bg-layout font-sans antialiased', geistSans.variable, geistMono.variable)}>
                 <NextTopLoader color='#4F39F6' showSpinner={false} height={3} speed={300} />
+                {/* Google Analytics */}
+                <Script
+                    src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID || 'G-TBVN7YQYEG'}`}
+                    strategy="afterInteractive"
+                />
+                <Script id="google-analytics" strategy="afterInteractive">
+                    {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${process.env.NEXT_PUBLIC_GA_ID || 'G-TBVN7YQYEG'}');
+          `}
+                </Script>
                 <Providers session={session}>
                     {children}
                     {session && (
