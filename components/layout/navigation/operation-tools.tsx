@@ -35,6 +35,7 @@ export function OperationTools() {
 
     const filteredModules = React.useMemo(() => {
         if (!accessibleModules?.data) return [];
+        console.log("accessibleModules", accessibleModules);
         return accessibleModules.data.filter((module) =>
             module.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
             module.name !== "AI Edge"

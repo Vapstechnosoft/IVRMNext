@@ -57,13 +57,20 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
         defaultValues: {
             allorindi: 'A',
             optradio: 'S',
-            asmaY_Id: undefined,
-            asmcL_Id: undefined,
-            asmS_Id: undefined,
+            asmaY_Id: 0,
+            asmcL_Id: 0,
+            asmS_Id: 0,
             date: new Date(),
-            amsT_Id: undefined,
+            amsT_Id: 0,
         },
     });
+
+    const handleFormError = (errors: any) => {
+        const firstError = Object.values(errors)[0] as any;
+        if (firstError?.message) {
+            toast.error(firstError.message);
+        }
+    };
 
     const watchAllOrIndi = form.watch('allorindi');
     const watchAcademicYear = form.watch('asmaY_Id');
@@ -150,7 +157,7 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit, handleFormError)} className="space-y-6">
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Filter Type */}

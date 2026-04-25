@@ -29,7 +29,7 @@ export async function getSalaryCertificateReport(data: salaryCertificateRequest)
 export async function getSalaryCertificateEmployees(data: salaryCertificateEmployeesRequest) {
     try {
         const response = await api.post<any>('hrms', '/api/ReportEmployeeSalaryDetails/emp_dropdown_for_salary_certificate_by_month_year', data);
-        if(response.success) return { success: true, data: response.data };
+        if(response.success) return { success: true, data: response.data,message: response.message };
         return { success: false, message: response.message };
     } catch (error: any) {
         return { success: false, message: error.message }

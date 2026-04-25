@@ -42,9 +42,16 @@ export function useEmployeeInOutReport(searchParams?: ApiSearchparams) {
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_INOUT_REPORT, searchParams ?? {}],
-            queryFn: async () => getEmployeeInOutReport({} as any, searchParams),
+            queryFn: async () => {
+                const payload = {
+                    from_date: searchParams?.fromDate ? String(searchParams.fromDate).split('T')[0] : '',
+                    to_date: searchParams?.toDate ? String(searchParams.toDate).split('T')[0] : '',
+                    hrme_ids: searchParams?.employee ? String(searchParams.employee).split(',').map(Number) : []
+                };
+                return getEmployeeInOutReport(payload);
+            },
             staleTime: 0,
-            enabled: false
+            enabled: !!searchParams?.fromDate && !!searchParams?.toDate
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
@@ -70,6 +77,7 @@ export function useEmployeeAbsentReport(searchParams?: ApiSearchparams) {
                     hrme_ids: (searchParams?.employee as string) || '0',
                     type: 'absent'
                 };
+                // Debug log for request payload
                 return getEmployeeMonthlyReport(payload, searchParams);
             },
             staleTime: 0,
@@ -127,9 +135,9 @@ export function useEmployeeMonthlyReport(searchParams?: ApiSearchparams) {
                     hrme_ids: (searchParams?.employee as string) || '0',
                     type: 'monthly'
                 };
-                return getEmployeeMonthlyReport(payload, searchParams);
+                return getEmployeeMonthlyReport(payload, { ...searchParams });
             },
-            staleTime: 0,
+            staleTime: 5 * 60 * 1000,
             enabled: !!searchParams?.fromDate && !!searchParams?.toDate
         }),
         refetchAll: () => {

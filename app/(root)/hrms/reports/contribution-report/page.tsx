@@ -71,7 +71,7 @@ export default function ContributionReportPage() {
 }
 
 function ContributionReportContent() {
-  const [reportData, setReportData] = useState<any[] | null>(null);
+  const [reportData, setReportData] = useState<any | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [headers, setHeaders] = useState<any[]>([]);
   const [headerLoading, setHeaderLoading] = useState(false);
@@ -79,6 +79,7 @@ function ContributionReportContent() {
     any[]
   >([]);
   const [institution, setInstitution] = useState<any>(null);
+  const [resetKey, setResetKey] = useState(0);
   const tableRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -256,8 +257,10 @@ function ContributionReportContent() {
             hrmD_Ids: watchedDepartment.join(","),
             hrmgT_Ids: watchedGroupType.join(","),
             monthBetweenDates: watchedMonthBetweenDates,
-            hreS_Month:watchedMonthBetweenDates === "Month" ? watchedMonth : "",
-            hreS_Year:watchedMonthBetweenDates === "Month"
+            hreS_Month:
+              watchedMonthBetweenDates === "Month" ? watchedMonth : "",
+            hreS_Year:
+              watchedMonthBetweenDates === "Month"
                 ? yearOptions.find((item: any) => item.value === watchedYear)
                     ?.label || ""
                 : "",
@@ -360,15 +363,13 @@ function ContributionReportContent() {
       earningHead:
         data.earningDeduction === "Earning"
           ? data.earningHead === "all"
-            ? earningDropdownOptions.map((item: any) => item.hrmeD_Id).join(",")
+            ? 999
             : Number(data.earningHead)
           : 0,
       deductionHead:
         data.earningDeduction === "Deduction"
           ? data.deductionHead === "all"
-            ? deductionDropdownOptions
-                .map((item: any) => item.hrmeD_Id)
-                .join(",")
+            ? 999
             : Number(data.deductionHead)
           : 0,
     };
@@ -378,11 +379,12 @@ function ContributionReportContent() {
     setIsSearching(true);
     try {
       const res = await getContributionReport(payload);
-      if (res.success) {
+      if (res.success && res.data.employees?.length > 0) {
+        console.log("Report API response :", res);
         setReportData(res.data);
         toast.success("Report generated successfully!");
       } else {
-        toast.error(res.message || "Failed to generate report");
+        toast.error(res.message || "No data found for the selected criteria");
         setReportData(null);
       }
     } catch (error: any) {
@@ -394,8 +396,23 @@ function ContributionReportContent() {
   };
 
   const handleCancel = () => {
-    reset();
+    reset({
+      groupType: [],
+      department: [],
+      designation: [],
+      earningDeduction: "Earning",
+      earningHead: "",
+      deductionHead: "",
+      monthBetweenDates: "Month",
+      month: "",
+      year: "",
+      fromDate: undefined,
+      toDate: undefined,
+      formatType: "Format2",
+      employee: 0,
+    });
     setReportData(null);
+    setResetKey((prev) => prev + 1);
   };
 
   const handleExport = () => {
@@ -460,7 +477,7 @@ function ContributionReportContent() {
         });
       });
 
-      exportData = reportData.map((row: any, i: number) => {
+      exportData = reportData?.employees?.map((row: any, i: number) => {
         const item: any = {
           index: i + 1,
           employeeCode: row.employeeCode,
@@ -574,7 +591,7 @@ function ContributionReportContent() {
   ]);
 
   const processedGridData = useMemo(() => {
-    return reportData || [];
+    return reportData?.employees || [];
   }, [reportData]);
 
   return (
@@ -592,12 +609,12 @@ function ContributionReportContent() {
                 }
 
                 #printable-report {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                }
-            }
+                  position: absolute;
+                  top: 0;
+                  left: 0;
+                  width: 100%;
+              }
+            
             `}
       </style>
       <div className="container min-h-screen space-y-4 p-2">
@@ -614,6 +631,7 @@ function ContributionReportContent() {
                   Group Type <span className="text-destructive">*</span>
                 </Label>
                 <Controller
+                  key={resetKey}
                   name="groupType"
                   control={control}
                   render={({ field }) => (
@@ -634,6 +652,7 @@ function ContributionReportContent() {
                   Department <span className="text-destructive">*</span>
                 </Label>
                 <Controller
+                  key={resetKey}
                   name="department"
                   control={control}
                   render={({ field }) => (
@@ -654,6 +673,7 @@ function ContributionReportContent() {
                   Designation <span className="text-destructive">*</span>
                 </Label>
                 <Controller
+                  key={resetKey}
                   name="designation"
                   control={control}
                   render={({ field }) => (
@@ -709,6 +729,7 @@ function ContributionReportContent() {
                       Earning Head <span className="text-destructive">*</span>
                     </Label>
                     <Controller
+                      key={resetKey}
                       name="earningHead"
                       control={control}
                       render={({ field }) => (
@@ -754,6 +775,7 @@ function ContributionReportContent() {
                       Deduction Head <span className="text-destructive">*</span>
                     </Label>
                     <Controller
+                    key={resetKey}
                       name="deductionHead"
                       control={control}
                       render={({ field }) => (
@@ -799,6 +821,7 @@ function ContributionReportContent() {
             <div className="rounded-md border bg-slate-50 p-4 dark:bg-slate-900/50">
               <div className="mb-4 flex justify-center">
                 <Controller
+                  
                   name="monthBetweenDates"
                   control={control}
                   render={({ field }) => (
@@ -838,6 +861,7 @@ function ContributionReportContent() {
                       Month <span className="text-destructive">*</span>
                     </Label>
                     <Controller
+                    key={resetKey}
                       name="month"
                       control={control}
                       render={({ field }) => (
@@ -872,6 +896,7 @@ function ContributionReportContent() {
                       Year <span className="text-destructive">*</span>
                     </Label>
                     <Controller
+                    key={resetKey}
                       name="year"
                       control={control}
                       render={({ field }) => (
@@ -909,6 +934,7 @@ function ContributionReportContent() {
                       From Date <span className="text-destructive">*</span>
                     </Label>
                     <Controller
+                    key={resetKey}
                       name="fromDate"
                       control={control}
                       render={({ field }) => (
@@ -927,6 +953,7 @@ function ContributionReportContent() {
                       To Date <span className="text-destructive">*</span>
                     </Label>
                     <Controller
+                    key={resetKey}
                       name="toDate"
                       control={control}
                       render={({ field }) => (
@@ -983,24 +1010,26 @@ function ContributionReportContent() {
                       Employee <span className="text-destructive">*</span>
                     </Label>
                     <Controller
+                    key={resetKey}
                       name="employee"
                       control={control}
                       render={({ field }) => (
                         <Select
-                          onValueChange={field.onChange}
+                          onValueChange={(val) => field.onChange(Number(val))}
                           value={field.value?.toString()}
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Select Employee" />
                           </SelectTrigger>
                           <SelectContent>
-                            {employeesDataTransformed.map(
-                              (item: any, index: number) => (
-                                <SelectItem key={item.id} value={item.id}>
-                                  {item.employeeName}
-                                </SelectItem>
-                              ),
-                            )}
+                            {employeesDataTransformed.map((item: any) => (
+                              <SelectItem
+                                key={item.id}
+                                value={item.id.toString()}
+                              >
+                                {item.employeeName}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       )}
@@ -1035,16 +1064,16 @@ function ContributionReportContent() {
           </form>
         </CollapsibleSection>
 
-        {reportData && (
+        {reportData && reportData?.employees?.length > 0 && (
           <div ref={tableRef}>
             <CollapsibleSection
               title="Employee Contribution Report Details"
               defaultOpen={true}
-              className="border shadow-md"
+              className=" shadow-md"
               rightElement={
-                <div>
+                <div className="flex gap-4">
                   <Button
-                    variant="outline"
+                    variant="destructive"
                     size="sm"
                     onClick={handleExport}
                     className="gap-2"
@@ -1053,7 +1082,7 @@ function ContributionReportContent() {
                     Export to Excel
                   </Button>
                   <Button
-                    variant="outline"
+                    variant="destructive"
                     size="sm"
                     onClick={handlePrint}
                     className="gap-2"
@@ -1061,19 +1090,35 @@ function ContributionReportContent() {
                     <Printer className="h-4 w-4" />
                     Print
                   </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleCancel}
+                  >
+                    <X className="h-4 w-4" />
+                    Cancel
+                  </Button>
                 </div>
               }
             >
-              <div className="h-[500px] overflow-y-auto" id="printable-report">
-                <div className="h-[200px] w-full">
-                  <img
-                    src={institution?.mI_Logo}
-                    alt="logo"
-                    className="h-full w-full object-contain"
-                  />
+              <div
+                className="h-[500px] overflow-y-auto print:h-auto print:overflow-visible"
+                id="printable-report"
+              >
+                <div className="w-full">
+                  <p className="text-center font-bold text-2xl">
+                    {institution?.mI_Name}
+                  </p>
+                  <p className="text-center font-semibold">
+                    {institution?.mI_Address1} , {institution?.mI_Address2} ,{" "}
+                    {institution?.mI_Address3}, {institution?.mI_Pincode}
+                  </p>
+                  <p className="text-center font-semibold">
+                    {institution?.mI_Address3}, {institution?.mI_Pincode}
+                  </p>
                 </div>
                 <div className="text-center">
-                  <h2 className="font-bold text-2xl">
+                  <h2 className="font-bold text-xl mt-8">
                     Employee Contribution Report
                   </h2>
                 </div>
@@ -1083,13 +1128,11 @@ function ContributionReportContent() {
                   totalItems={processedGridData.length}
                   isLoading={false}
                   showViewOptions={false}
-                  showSearchColumns={false}
-                  showExportOptions={false}
-                  maxSelectableRows={0}
-                  manualPagination={false}
-                  manualSorting={false}
-                  manualFiltering={false}
-                  scrollable
+                  isSearchRequired={false}
+                  isPaginationRequired={false}
+                  manualPagination={true}
+                  // scrollable={true}
+                  // maxHeight="600px"
                 />
               </div>
             </CollapsibleSection>

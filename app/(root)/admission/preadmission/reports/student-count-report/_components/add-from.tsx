@@ -37,10 +37,6 @@ export default function AddStudentCountReportForm({
     searchParams,
     onFilterChange
 }: AddStudentCountReportFormProps) {
-    const [reportType, setReportType] = useState<string>('2');
-    const [rangeType, setRangeType] = useState<string>('between');
-    const [fromDate, setFromDate] = useState<string>('');
-    const [toDate, setToDate] = useState<string>('');
     const [results, setResults] = useState<Array<any>>([]);
     const queryClient = useQueryClient();
 
@@ -48,11 +44,28 @@ export default function AddStudentCountReportForm({
         handleSubmit,
         control,
         reset,
+        watch,
+        setValue,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterStudentCountReportSchema.addOrUpdate),
-        mode: 'onChange'
+        mode: 'onChange',
+        defaultValues: {
+            report_type: '2',
+            range_type: 'between',
+            from_date: '',
+            to_date: '',
+            asmaY_Id: 0,
+            asmcL_Id: 0
+        }
     });
+
+    const watchReportType = watch('report_type');
+    const watchRangeType = watch('range_type');
+    const watchFromDate = watch('from_date');
+    const watchToDate = watch('to_date');
+    const watchAsmayId = watch('asmaY_Id');
+    const watchAsmclId = watch('asmcL_Id');
 
     const {
         data: academicYear,
@@ -69,12 +82,12 @@ export default function AddStudentCountReportForm({
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {
             const payload = {
-                type: rangeType,
-                report_type: Number(reportType),
-                from_date: rangeType === 'between' && fromDate ? new Date(fromDate).toISOString() : new Date().toISOString(),
-                to_date: rangeType === 'between' && toDate ? new Date(toDate).toISOString() : new Date().toISOString(),
-                asmay_id: data.asmaY_Id || 0,
-                asmcl_id: data.asmcL_Id || 0
+                type: 1, // Default type from schema
+                report_type: Number(data.report_type),
+                from_date: data.range_type === 'between' && data.from_date ? new Date(data.from_date).toISOString() : new Date().toISOString(),
+                to_date: data.range_type === 'between' && data.to_date ? new Date(data.to_date).toISOString() : new Date().toISOString(),
+                asmaY_Id: data.asmaY_Id || 0,
+                asmcL_Id: data.asmcL_Id || 0
             };
 
             toast.loading('Searching...', { id: 'search-loading' });
@@ -134,38 +147,49 @@ export default function AddStudentCountReportForm({
         }
     };
 
+    const handleFormError = (errors: any) => {
+        const firstError = Object.values(errors)[0] as any;
+        if (firstError?.message) {
+            toast.error(firstError.message);
+        }
+    };
+
     const handleReset = () => {
         reset();
-        setReportType('2');
-        setRangeType('between');
         if (onFilterChange) {
             onFilterChange({}, true);
         }
     };
     return (
         <div className={`${className}`}>
-            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+            <form onSubmit={handleSubmit(onSubmit, handleFormError)} className='space-y-6'>
                 <div className='space-y-4'>
                     <div className='rounded-lg bg-white p-6 shadow'>
                         <div className='grid grid-cols-1 items-center gap-10 lg:grid-cols-3'>
                             {/* Left column - report select */}
                             <div className='col-span-1'>
                                 <Label className='mb-2 block font-medium text-gray-700 text-sm'>Select Report Type</Label>
-                                <Select onValueChange={(v) => setReportType(v)} defaultValue={reportType}>
-                                    <SelectTrigger className='w-full'>
-                                        <SelectValue placeholder='Select report type' />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value='1'>Registered list</SelectItem>
-                                        <SelectItem value='2'>Registered but not filled application form</SelectItem>
-                                        <SelectItem value='3'>Registered and filled application form</SelectItem>
-                                        <SelectItem value='4'>Registration payment done list (Application datewise)</SelectItem>
-                                        <SelectItem value='5'>Registration payment not done list</SelectItem>
-                                        <SelectItem value='6'>Partial/Admission payment done list</SelectItem>
-                                        <SelectItem value='7'>Sibling students list (Paid Students)</SelectItem>
-                                        <SelectItem value='8'>Transferred student (Admission Confirm)</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                <Controller
+                                    name="report_type"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <Select onValueChange={field.onChange} value={field.value}>
+                                            <SelectTrigger className='w-full'>
+                                                <SelectValue placeholder='Select report type' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value='1'>Registered list</SelectItem>
+                                                <SelectItem value='2'>Registered but not filled application form</SelectItem>
+                                                <SelectItem value='3'>Registered and filled application form</SelectItem>
+                                                <SelectItem value='4'>Registration payment done list (Application datewise)</SelectItem>
+                                                <SelectItem value='5'>Registration payment not done list</SelectItem>
+                                                <SelectItem value='6'>Partial/Admission payment done list</SelectItem>
+                                                <SelectItem value='7'>Sibling students list (Paid Students)</SelectItem>
+                                                <SelectItem value='8'>Transferred student (Admission Confirm)</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                                />
                                 <p className='mt-2 text-primary text-xs'>Registered students who completed the application form</p>
                             </div>
 
@@ -173,83 +197,111 @@ export default function AddStudentCountReportForm({
                             <div className='col-span-1'>
                                 <Label className='mb-2 block font-medium text-gray-700 text-sm'>Select Range</Label>
                                 <div className='mb-3 flex items-center gap-6'>
-                                    <RadioGroup
-                                        value={rangeType}
-                                        onValueChange={(v) => {
-                                            setRangeType(v);
-                                            setReportType(v === 'yearwise' ? '1' : '2');
-                                        }}
-                                        className='flex items-center gap-4'>
-                                        <div className='flex items-center gap-2'>
-                                            <RadioGroupItem value='yearwise' id='rg-year' />
-                                            <label htmlFor='rg-year' className='text-sm'>
-                                                Year wise
-                                            </label>
-                                        </div>
-                                        <div className='flex items-center gap-2'>
-                                            <RadioGroupItem value='between' id='rg-between' />
-                                            <label htmlFor='rg-between' className='text-sm'>
-                                                Between Dates
-                                            </label>
-                                        </div>
-                                    </RadioGroup>
+                                    <Controller
+                                        name="range_type"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <RadioGroup
+                                                value={field.value}
+                                                onValueChange={(v) => {
+                                                    field.onChange(v);
+                                                    if (v === 'yearwise') {
+                                                        setValue('report_type', '1');
+                                                    } else {
+                                                        setValue('report_type', '2');
+                                                    }
+                                                }}
+                                                className='flex items-center gap-4'>
+                                                <div className='flex items-center gap-2'>
+                                                    <RadioGroupItem value='yearwise' id='rg-year' />
+                                                    <label htmlFor='rg-year' className='text-sm'>
+                                                        Year wise
+                                                    </label>
+                                                </div>
+                                                <div className='flex items-center gap-2'>
+                                                    <RadioGroupItem value='between' id='rg-between' />
+                                                    <label htmlFor='rg-between' className='text-sm'>
+                                                        Between Dates
+                                                    </label>
+                                                </div>
+                                            </RadioGroup>
+                                        )}
+                                    />
                                 </div>
 
-                                {rangeType === 'between' && (
+                                {watchRangeType === 'between' && (
                                     <div className='flex gap-2'>
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button
-                                                    type='button'
-                                                    variant='outline'
-                                                    className={cn(
-                                                        'w-full justify-start text-left font-normal',
-                                                        !fromDate && 'text-muted-foreground'
-                                                    )}>
-                                                    <CalendarIcon className='mr-2 h-4 w-4' />
-                                                    {fromDate ? format(new Date(fromDate), 'dd/MM/yyyy') : 'From date'}
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className='w-auto p-0' align='start'>
-                                                <CalendarYear
-                                                    mode='single'
-                                                    selected={fromDate ? new Date(fromDate) : undefined}
-                                                    onSelect={(date: Date | undefined) => setFromDate(date?.toISOString() ?? '')}
-                                                    captionLayout='dropdown'
-                                                    fromYear={2000}
-                                                    toYear={2050}
-                                                />
-                                            </PopoverContent>
-                                        </Popover>
+                                        <Controller
+                                            name="from_date"
+                                            control={control}
+                                            render={({ field }) => (
+                                                <div className="flex flex-col gap-1 w-full">
+                                                    <Popover>
+                                                        <PopoverTrigger asChild>
+                                                            <Button
+                                                                type='button'
+                                                                variant='outline'
+                                                                className={cn(
+                                                                    'w-full justify-start text-left font-normal',
+                                                                    !field.value && 'text-muted-foreground'
+                                                                )}>
+                                                                <CalendarIcon className='mr-2 h-4 w-4' />
+                                                                {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'From date'}
+                                                            </Button>
+                                                        </PopoverTrigger>
+                                                        <PopoverContent className='w-auto p-0' align='start'>
+                                                            <CalendarYear
+                                                                mode='single'
+                                                                selected={field.value ? new Date(field.value) : undefined}
+                                                                onSelect={(date: Date | undefined) => field.onChange(date?.toISOString() ?? '')}
+                                                                captionLayout='dropdown'
+                                                                fromYear={2000}
+                                                                toYear={2050}
+                                                            />
+                                                        </PopoverContent>
+                                                    </Popover>
+                                                    {errors.from_date && <FormError>{errors.from_date.message}</FormError>}
+                                                </div>
+                                            )}
+                                        />
 
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button
-                                                    type='button'
-                                                    variant='outline'
-                                                    className={cn(
-                                                        'w-full justify-start text-left font-normal',
-                                                        !toDate && 'text-muted-foreground'
-                                                    )}>
-                                                    <CalendarIcon className='mr-2 h-4 w-4' />
-                                                    {toDate ? format(new Date(toDate), 'dd/MM/yyyy') : 'To date'}
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className='w-auto p-0' align='start'>
-                                                <CalendarYear
-                                                    mode='single'
-                                                    selected={toDate ? new Date(toDate) : undefined}
-                                                    onSelect={(date: Date | undefined) => setToDate(date?.toISOString() ?? '')}
-                                                    captionLayout='dropdown'
-                                                    fromYear={2000}
-                                                    toYear={2050}
-                                                />
-                                            </PopoverContent>
-                                        </Popover>
+                                        <Controller
+                                            name="to_date"
+                                            control={control}
+                                            render={({ field }) => (
+                                                <div className="flex flex-col gap-1 w-full">
+                                                    <Popover>
+                                                        <PopoverTrigger asChild>
+                                                            <Button
+                                                                type='button'
+                                                                variant='outline'
+                                                                className={cn(
+                                                                    'w-full justify-start text-left font-normal',
+                                                                    !field.value && 'text-muted-foreground'
+                                                                )}>
+                                                                <CalendarIcon className='mr-2 h-4 w-4' />
+                                                                {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'To date'}
+                                                            </Button>
+                                                        </PopoverTrigger>
+                                                        <PopoverContent className='w-auto p-0' align='start'>
+                                                            <CalendarYear
+                                                                mode='single'
+                                                                selected={field.value ? new Date(field.value) : undefined}
+                                                                onSelect={(date: Date | undefined) => field.onChange(date?.toISOString() ?? '')}
+                                                                captionLayout='dropdown'
+                                                                fromYear={2000}
+                                                                toYear={2050}
+                                                            />
+                                                        </PopoverContent>
+                                                    </Popover>
+                                                    {errors.to_date && <FormError>{errors.to_date.message}</FormError>}
+                                                </div>
+                                            )}
+                                        />
                                     </div>
                                 )}
 
-                                {rangeType === 'yearwise' && (
+                                {watchRangeType === 'yearwise' && (
                                     <div className='group flex flex-col gap-1.5'>
                                         <Label aria-label='academic-year' htmlFor='asmaY_Id'>
                                             Academic Year <span className='ml-1 text-red-500'>*</span>
@@ -292,11 +344,11 @@ export default function AddStudentCountReportForm({
                                     </div>
                                 )}
                             </div>
-                            {reportType &&
+                            {watchReportType &&
                                 ![
                                     '1', // Registered list
                                     '2' // Registered but not filled application form
-                                ].includes(reportType) && (
+                                ].includes(watchReportType) && (
                                     <div className='group flex flex-col gap-1.5'>
                                         <Label aria-label='Class' htmlFor='asmcL_Id'>
                                             Class <span className='ml-1 text-red-500'>*</span>

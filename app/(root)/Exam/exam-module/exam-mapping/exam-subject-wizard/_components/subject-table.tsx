@@ -451,7 +451,7 @@ export default function SubjectTableWithValidation({
             const field = mapZodIssuePathToField(issue.path);
             if (!field) {
                 // fallback: put generic message under eyceS_MaxMarks to show something
-                rowErrors['eyceS_MaxMarks'] = issue.message;
+                rowErrors.eyceS_MaxMarks = issue.message;
             } else {
                 rowErrors[field] = issue.message;
             }

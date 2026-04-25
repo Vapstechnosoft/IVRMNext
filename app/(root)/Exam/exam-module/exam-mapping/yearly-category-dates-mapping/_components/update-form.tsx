@@ -26,7 +26,7 @@ interface UpdateFormProps {
 }
 
 export default function UpdateYearlyCategoryDatesMapping({ selectedRow, onSuccess }: UpdateFormProps) {
-    const orgId = 30;
+    const _orgId = 30;
 
     const methods = useForm<FormFields>({
         resolver: zodResolver(yearlyCategoryDatesMappingSchema.addOrUpdate),

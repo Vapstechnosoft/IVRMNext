@@ -12,8 +12,8 @@ export const ContributionReportPageSchema = z.object({
     monthBetweenDates: z.enum(['Month', 'BetweenDates']).optional(),
     month: z.string().optional(),
     year: z.string().optional(),
-    fromDate: z.string().optional(),
-    toDate: z.string().optional(),
+    fromDate: z.date().optional(),
+    toDate: z.date().optional(),
 
     formatType: z.enum(['Format1', 'Format2']).optional(),
     employee: z.number().optional(),
@@ -73,7 +73,7 @@ export const ContributionReportPageSchema = z.object({
     }
 
     // ✅ Format2 → Employee required
-    if (data.formatType === 'Format2' && !data.employee) {
+    if (data.formatType === 'Format1' && !data.employee) {
         ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: "Employee is required",

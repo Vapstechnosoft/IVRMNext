@@ -620,7 +620,7 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
                                     control={control}
                                     name='ecT_TermStartDate'
                                     render={({ field, fieldState }) => (
-                                        <DateField field={field} fieldState={fieldState} label='Term Start Date' />
+                                        <DateField field={field} fieldState={fieldState} label='Term Start Date' required={true} />
                                     )}
                                 />
 
@@ -633,6 +633,7 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
                                             fieldState={fieldState}
                                             label='Term End Date'
                                             fromDate={new Date(methods.watch('ecT_TermStartDate'))}
+                                            required={true}
                                         />
                                     )}
                                 />
@@ -645,6 +646,7 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
                                             fieldState={fieldState}
                                             label='Term Publish Date'
                                             fromDate={new Date(methods.watch('ecT_TermEndDate'))}
+                                            required={true}
                                         />
                                     )}
                                 />

@@ -83,7 +83,8 @@ export const ADMISSION_QUERY_KEYS = {
     ADMISSION_FORM_DETAILS: 'admission_form_details',
     ADMISSION_FORM_ONCHANGE_CLASS: 'admission_form_onchange_class',
     ADMISSION_FORM_ONCHANGE_STREAM: 'admission_form_onchange_stream',
-    ADMISSION_FORM_CASTE_BY_CATEGORY: 'admission_form_caste_by_category'
+    ADMISSION_FORM_CASTE_BY_CATEGORY: 'admission_form_caste_by_category',
+    OVER_ALL_VIEW_REPORT: 'over_all_view_report'
 };
 
 export const PREADMISSION_QUERY_KEYS = {
@@ -282,7 +283,21 @@ export const FEES_QUERY_KEYS = {
     FEE_STUDENT_TERM_WISE_PAID_SECTION_YEAR_DROP: 'fee_student_term_wise_paid_section_drop',
     FEE_STUDENT_TERM_WISE_PAID_TERM_LIST: 'fee_student_term_wise_paid_term_list',
     FEE_FEE_RECEIPT_REPORT_LOGO: 'fee_fee_receipt_report_logo',
-    FEE_CATEGORY_DROPDOWNS: 'fee_category_dropdown'
+    FEE_CATEGORY_DROPDOWNS: 'fee_category_dropdown',
+    FEE_STUDENT_DROPDOWNS: 'fee_student_dropdown',
+    FEE_HEAD_DROPDOWNS: 'fee_head_dropdown',
+    FEE_USER_WISE_DAILY_COLLECTION_REPORT: 'fee_user_wise_daily_collection_report',
+    FEE_CHEQUE_BOUNCE_ACADEMIC_YEAR: 'fee_cheque_bounce_academic_year',
+    FEE_CHEQUE_BOUNCE_DROPDOWNS: 'fee_cheque_bounce_dropdowns',
+    FEE_CHEQUE_BOUNCE_CLASSES: 'fee_cheque_bounce_classes',
+    FEE_CHEQUE_BOUNCE_SECTIONS: 'fee_cheque_bounce_sections',
+    FEE_CHEQUE_BOUNCE_STUDENTS: 'fee_cheque_bounce_students',
+    FEE_CHEQUE_BOUNCE_RECEIPTS: 'fee_cheque_bounce_receipts',
+    FEE_INCOME_TAX_REPORT_ACADEMIC_YEAR: 'fee_income_tax_report_academic_year',
+    FEE_INCOME_TAX_REPORT_CLASS: 'fee_income_tax_report_class',
+    FEE_INCOME_TAX_REPORT_SECTION: 'fee_income_tax_report_section',
+    FEE_INCOME_TAX_REPORT_STUDENTS: 'fee_income_tax_report_students',
+    FEE_INCOME_TAX_REPORT_RESULT: 'fee_income_tax_report_result'
 };
 
 export const EXAM_QUERY_KEYS = {
@@ -331,6 +346,7 @@ export const EXAM_QUERY_KEYS = {
     SUB_BOTH_MAPPED_VIEW: 'SUB_SUBJECTS_SUB_EXAMS_MAPPED_LIST',
 
     LIFE_SKILLS: 'life-skills',
+    LIFE_SkILLS_DROPDOWN: 'life-skills-dropdown',
     LIFE_SKILLS_AREA: 'life-skills-area',
     LIFE_SKILLS_MAPPING: 'life-skills-mapping',
     LIFE_SKILLS_AREA_MAPPING: 'life-skills-area-mapping',
@@ -346,7 +362,9 @@ export const EXAM_QUERY_KEYS = {
     PROMOTIONAL_SETTING_GRID: 'promotional-setting-grid',
     PROMOTIONAL_SETTING_DETAILS: 'promotional-setting-details',
     PROMOTIONAL_GROUP_DETAILS: 'promotional-group-details',
-    PROMOTIONAL_GROUP_MAPPED_EXAMS_DETAILS: 'promotional-group-mapped-exams-details'
+    PROMOTIONAL_GROUP_MAPPED_EXAMS_DETAILS: 'promotional-group-mapped-exams-details',
+    EXAM_TT_SESSION_MASTER: 'exam_tt_session_master',
+    EXAM_TT_TRANS_SETTINGS: 'exam_tt_trans_settings'
 };
 
 export const HRMS_QUERY_KEYS = {
@@ -471,6 +489,7 @@ export const HRMS_QUERY_KEYS = {
     LEAVE_REPORT: 'leave_leave_report',
     OVERALL_REPORT: 'leave_overall_report',
     UNAUTHORIZED_LEAVE_COUNT_REPORT: 'leave_unauthorized_leave_count_report',
+    LATE_LEAVE_REPORT: 'leave_late_leave_report',
     // Leave Management Transactions
     LEAVE_CREDIT: 'leave_leave_credit',
     LEAVE_CREDIT_TRANSACTION: 'leave_leave_credit_transaction',
@@ -519,7 +538,7 @@ export const HOSTEL_QUERY_KEYS = {
     MESS_MENU_GRID_LIST: 'MESS_MENU_DATA',
     MATER_ROOM_GRID_LIST: 'master-room-list',
     MASTER_ROOM_DROPDOWN_LIST: 'master-room-dropdown-list',
-    HOSTEL_GUEST_ALLOTMENT_LIST: 'hostel_guest_allotment_list_',
+    HOSTEL_GUEST_ALLOTMENT_LIST: 'hostel_guest_allotment_list_'
 };
 export const LIBRARY_QUERY_KEYS = {
     MASTER_LIBRARY_LIST_DATA: 'master_library_list_data',

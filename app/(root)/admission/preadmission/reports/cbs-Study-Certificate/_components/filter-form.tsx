@@ -29,6 +29,7 @@ import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
 
 interface FilterFormProps {
     initialData: any;
@@ -53,13 +54,13 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
             allorindi: 'A',
             optradio: 'S',
             character: '0',
-            asmaY_Id: undefined,
-            asmcL_Id: undefined,
-            asmS_Id: undefined,
+            asmaY_Id: 0,
+            asmcL_Id: 0,
+            asmS_Id: 0,
             boardType: 'ICSE',
             charType: 'satisfactory',
             date: new Date(),
-            amsT_Id: undefined,
+            amsT_Id: 0,
             address_opt: 'address_per',
             paretsnamefather: '0',
         },
@@ -135,6 +136,13 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
         // searchMutation and yearChangeMutation are stable from useMutation
     ]);
 
+    const handleFormError = (errors: any) => {
+        const firstError = Object.values(errors)[0] as any;
+        if (firstError?.message) {
+            toast.error(firstError.message);
+        }
+    };
+
     const handleFormReset = () => {
         reset();
         setStudentList([]);
@@ -149,7 +157,7 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
 
     return (
         <Form {...form}>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit, handleFormError)} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
 
                     {/* LEFT COLUMN */}
@@ -247,6 +255,7 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                                                         ))}
                                                     </SelectContent>
                                                 </Select>
+                                                <FormMessage />
                                             </div>
                                         </FormItem>
                                     )}
@@ -272,6 +281,7 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                                                         ))}
                                                     </SelectContent>
                                                 </Select>
+                                                <FormMessage />
                                             </div>
                                         </FormItem>
                                     )}

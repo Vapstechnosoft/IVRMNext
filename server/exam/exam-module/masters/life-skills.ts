@@ -47,6 +47,11 @@ export async function getMasterLifeSkillAreas(searchParams?: ApiSearchparams) {
     return await api.get<ILifeSkillArea>('exam', url);
 }
 
+export async function getMasterLifeSkillAreasDropdown() {
+    const url = '/MasterLifeSkillFacade/get_master_life_skill_Area_dropdown';
+    return await api.get<ILifeSkillArea>('exam', url);
+}
+
 export async function getMasterLifeSkillAreaOrderList() {
     const url = '/MasterLifeSkillFacade/get_master_life_skill_Area_Order_List';
     return await api.get<ILifeSkillArea>('exam', url);

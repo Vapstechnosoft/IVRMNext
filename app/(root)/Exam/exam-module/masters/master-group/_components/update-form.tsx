@@ -12,7 +12,7 @@ import { masterSubjectGroupSchema } from '@/schemas/exam/exam-module/masters';
 import { addOrUpdateMasterSubjectGroup } from '@/server/exam/exam-module/masters/subject-group';
 import type { IMasterSubjectGroup, IMasterSubjectGroupDetails } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, RefreshCw } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -125,98 +125,96 @@ export default function MasterSubjectGroupUpdateForm({ initialData, onSuccess, c
         }
     };
 
-    return (
-        isLoading ? (
-            <div className='flex h-64 items-center justify-center'>
-                <div className='text-center'>
-                    <RefreshCw className='mx-auto h-8 w-8 animate-spin text-primary' />
-                    <p className='mt-2 text-gray-600 text-sm'>Loading data...</p>
-                </div>
+    return isLoading ? (
+        <div className='flex h-64 items-center justify-center'>
+            <div className='text-center'>
+                <RefreshCw className='mx-auto h-8 w-8 animate-spin text-primary' />
+                <p className='mt-2 text-gray-600 text-sm'>Loading data...</p>
             </div>
-        ) : (
-            <form onSubmit={handleSubmit(onSubmit)} className={`space-y-6 ${className}`}>
-                {/* Group Info */}
-                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                    <InputText label='Group Name' required {...register('emG_GroupName')} error={errors.emG_GroupName?.message} />
-                    <InputText
-                        label='Total Subjects'
-                        type='number'
-                        required
-                        {...register('emG_TotSubjects', { valueAsNumber: true })}
-                        error={errors.emG_TotSubjects?.message}
-                    />
-                    <InputText
-                        label='Max Applicable Subjects'
-                        type='number'
-                        required
-                        {...register('emG_MaxAplSubjects', { valueAsNumber: true })}
-                        error={errors.emG_MaxAplSubjects?.message}
-                    />
-                    <InputText
-                        label='Min Applicable Subjects'
-                        type='number'
-                        required
-                        {...register('emG_MinAplSubjects', { valueAsNumber: true })}
-                        error={errors.emG_MinAplSubjects?.message}
-                    />
-                    <InputText
-                        label='Best Off Subjects'
-                        type='number'
-                        required
-                        {...register('emG_BestOff', { valueAsNumber: true })}
-                        error={errors.emG_BestOff?.message}
-                    />
-                </div>
+        </div>
+    ) : (
+        <form onSubmit={handleSubmit(onSubmit)} className={`space-y-6 ${className}`}>
+            {/* Group Info */}
+            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                <InputText label='Group Name' required {...register('emG_GroupName')} error={errors.emG_GroupName?.message} />
+                <InputText
+                    label='Total Subjects'
+                    type='number'
+                    required
+                    {...register('emG_TotSubjects', { valueAsNumber: true })}
+                    error={errors.emG_TotSubjects?.message}
+                />
+                <InputText
+                    label='Max Applicable Subjects'
+                    type='number'
+                    required
+                    {...register('emG_MaxAplSubjects', { valueAsNumber: true })}
+                    error={errors.emG_MaxAplSubjects?.message}
+                />
+                <InputText
+                    label='Min Applicable Subjects'
+                    type='number'
+                    required
+                    {...register('emG_MinAplSubjects', { valueAsNumber: true })}
+                    error={errors.emG_MinAplSubjects?.message}
+                />
+                <InputText
+                    label='Best Off Subjects'
+                    type='number'
+                    required
+                    {...register('emG_BestOff', { valueAsNumber: true })}
+                    error={errors.emG_BestOff?.message}
+                />
+            </div>
 
-                {/* Subjects Table */}
-                <CollapsibleSection title='Select Subjects' defaultOpen>
-                    <DataStateHandler
-                        isLoading={false}
-                        error={null}
-                        success={!!allSubjects}
-                        dataLength={allSubjects?.length ?? 0}
-                        errorMessage='Failed to load subjects'
-                        loadingMessage='Loading subjects...'
-                        noDataTitle='No Subjects Found'
-                        noDataDescription='Please add or fetch subjects to display here.'>
-                        <SimpleSubjectTable
-                            allSubjects={allSubjects}
-                            preselectedSubjects={selectedSubjects}
-                            maxSelectableRows={maxSubjects}
-                            onSelectionChange={setSelectedSubjects}
-                        />
-                    </DataStateHandler>
-                </CollapsibleSection>
+            {/* Subjects Table */}
+            <CollapsibleSection title='Select Subjects' defaultOpen>
+                <DataStateHandler
+                    isLoading={false}
+                    error={null}
+                    success={!!allSubjects}
+                    dataLength={allSubjects?.length ?? 0}
+                    errorMessage='Failed to load subjects'
+                    loadingMessage='Loading subjects...'
+                    noDataTitle='No Subjects Found'
+                    noDataDescription='Please add or fetch subjects to display here.'>
+                    <SimpleSubjectTable
+                        allSubjects={allSubjects}
+                        preselectedSubjects={selectedSubjects}
+                        maxSelectableRows={maxSubjects}
+                        onSelectionChange={setSelectedSubjects}
+                    />
+                </DataStateHandler>
+            </CollapsibleSection>
 
-                {/* Actions */}
-                <div className='flex w-fit items-center justify-center gap-3'>
-                    <Button
-                        type='button'
-                        variant='outline'
-                        onClick={() => {
-                            reset({
-                                emG_Id: initialData?.emG_Id || 0,
-                                emG_GroupName: initialData?.emG_GroupName || '',
-                                emG_TotSubjects: initialData?.emG_TotSubjects || 0,
-                                emG_MaxAplSubjects: initialData?.emG_MaxAplSubjects || 1,
-                                emG_MinAplSubjects: initialData?.emG_MinAplSubjects || 1,
-                                emG_BestOff: initialData?.emG_BestOff || 0,
-                                subject_list: []
-                            });
+            {/* Actions */}
+            <div className='flex w-fit items-center justify-center gap-3'>
+                <Button
+                    type='button'
+                    variant='outline'
+                    onClick={() => {
+                        reset({
+                            emG_Id: initialData?.emG_Id || 0,
+                            emG_GroupName: initialData?.emG_GroupName || '',
+                            emG_TotSubjects: initialData?.emG_TotSubjects || 0,
+                            emG_MaxAplSubjects: initialData?.emG_MaxAplSubjects || 1,
+                            emG_MinAplSubjects: initialData?.emG_MinAplSubjects || 1,
+                            emG_BestOff: initialData?.emG_BestOff || 0,
+                            subject_list: []
+                        });
 
-                            // Reset selected subjects to the original ones loaded
-                            const normalizedGroupSubjects = normalizeSubjects(groupSubjectsResponse?.data);
-                            setSelectedSubjects(normalizedGroupSubjects);
-                        }}>
-                        Reset
-                    </Button>
+                        // Reset selected subjects to the original ones loaded
+                        const normalizedGroupSubjects = normalizeSubjects(groupSubjectsResponse?.data);
+                        setSelectedSubjects(normalizedGroupSubjects);
+                    }}>
+                    Reset
+                </Button>
 
-                    <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting} loadingText='Updating...'>
-                        Update
-                    </Button>
-                </div>
-            </form>
-        )
+                <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting} loadingText='Updating...'>
+                    Update
+                </Button>
+            </div>
+        </form>
     );
 }
 

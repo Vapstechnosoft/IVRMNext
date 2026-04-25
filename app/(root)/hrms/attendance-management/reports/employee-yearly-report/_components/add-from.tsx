@@ -13,11 +13,13 @@ import {
     useReportDepartments,
     useReportDesignations,
     useReportEmployeesByDeptAndDesignation,
+    useReportEmployeesByGroupTypeDeptAndDesignation,
     useReportGroupTypes
 } from '@/hooks/hrms/useReports';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
+import { addMonths } from 'date-fns';
 import { Save } from 'lucide-react';
 import { Label } from 'react-aria-components';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
@@ -71,6 +73,7 @@ export default function AddEmployeeYearlyReportForm({
         reset,
         watch,
         clearErrors,
+        setValue,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(employeeYearlyReportFilterSchema),
@@ -88,19 +91,26 @@ export default function AddEmployeeYearlyReportForm({
     });
 
     const allOrIndividualValue = watch('allOrIndividual');
+    const fromDateValue = watch('fromDate');
 
     const watchedType = watch('type') || [];
     const watchedDepartment = watch('department') || [];
     const watchedDesignation = watch('designation') || [];
 
+    const fromDateObject = fromDateValue ? new Date(fromDateValue) : undefined;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     const groupTypeIds = useMemo(() => watchedType.map(Number).filter(Boolean), [watchedType]);
     const deptIds = useMemo(() => watchedDepartment.map(Number).filter(Boolean), [watchedDepartment]);
     const desigIds = useMemo(() => watchedDesignation.map(Number).filter(Boolean), [watchedDesignation]);
 
-    const { data: groupTypesData } = useReportGroupTypes();
-    const { data: departmentsData } = useReportDepartments(groupTypeIds.join(','));
-    const { data: designationsData } = useReportDesignations(groupTypeIds.join(','), deptIds.join(','));
-    const { data: employeesData } = useReportEmployeesByDeptAndDesignation(deptIds.join(','), desigIds.join(','));
+    const { data: groupTypesData, isLoading: isGroupTypesLoading } = useReportGroupTypes();
+    const { data: departmentsData, isLoading: isDepartmentsLoading } = useReportDepartments(groupTypeIds.join(','));
+    const { data: designationsData, isLoading: isDesignationsLoading } = useReportDesignations(groupTypeIds.join(','), deptIds.join(','));
+    const { data: employeesData, isLoading: isEmployeesLoading } = useReportEmployeesByGroupTypeDeptAndDesignation(groupTypeIds, deptIds, desigIds);
+
+    console.log("employeesData", employeesData);
 
     const groupTypesDataTransformed = useMemo(() => {
         return (
@@ -130,7 +140,7 @@ export default function AddEmployeeYearlyReportForm({
     }, [designationsData]);
 
     const employeesDataTransformed = useMemo(() => {
-        const list = employeesData?.data || employeesData;
+        const list = employeesData?.data?.employeeNames || employeesData;
         if (!list || !Array.isArray(list)) return [];
 
         return list
@@ -138,21 +148,10 @@ export default function AddEmployeeYearlyReportForm({
                 const id = emp.HRME_Id || emp.hrmE_Id || emp.id || emp.key;
                 if (id == null) return null;
 
-                const firstName = (emp.HRME_EmployeeFirstName || emp.hrmE_EmployeeFirstName || '').trim();
-                const middleName = (emp.HRME_EmployeeMiddleName || emp.hrmE_EmployeeMiddleName || '').trim();
-                const lastName = (emp.HRME_EmployeeLastName || emp.hrmE_EmployeeLastName || '').trim();
+                const employeeName = emp.employeeFullName
 
-                const employeeName =
-                    [firstName, middleName, lastName].filter(Boolean).join(' ') ||
-                    emp.value ||
-                    emp.employeeName ||
-                    'Unknown Employee';
+                const employeeCode = id
 
-                const employeeCode =
-                    emp.HRME_EmployeeCode ||
-                    emp.hrmE_EmployeeCode ||
-                    emp.employeeCode ||
-                    id.toString();
 
                 return {
                     id: Number(id),
@@ -276,9 +275,10 @@ export default function AddEmployeeYearlyReportForm({
                                             }))}
                                             onValueChange={(values) => field.onChange(values)}
                                             defaultValue={field.value || []}
-                                            placeholder='Select Types'
+                                            placeholder={isGroupTypesLoading ? 'Loading...' : 'Select Group Types'}
                                             className={`w-full ${errors.type ? 'border-red-500' : ''}`}
                                             maxHeight={240}
+                                            disabled={isGroupTypesLoading || groupTypesDataTransformed.length === 0}
                                         />
                                     )}
                                 />
@@ -301,9 +301,10 @@ export default function AddEmployeeYearlyReportForm({
                                             }))}
                                             onValueChange={(values) => field.onChange(values)}
                                             defaultValue={field.value || []}
-                                            placeholder='Select Departments'
+                                            placeholder={isDepartmentsLoading ? 'Loading...' : 'Select Departments'}
                                             className={`w-full ${errors.department ? 'border-red-500' : ''}`}
                                             maxHeight={240}
+                                            disabled={isDepartmentsLoading || departmentsDataTransformed.length === 0}
                                         />
                                     )}
                                 />
@@ -326,9 +327,10 @@ export default function AddEmployeeYearlyReportForm({
                                             }))}
                                             onValueChange={(values) => field.onChange(values)}
                                             defaultValue={field.value || []}
-                                            placeholder='Select Designations'
+                                            placeholder={isDesignationsLoading ? 'Loading...' : 'Select Designations'}
                                             className={`w-full ${errors.designation ? 'border-red-500' : ''}`}
                                             maxHeight={240}
+                                            disabled={isDesignationsLoading || designationsDataTransformed.length === 0}
                                         />
                                     )}
                                 />
@@ -373,11 +375,18 @@ export default function AddEmployeeYearlyReportForm({
                                                     <SelectValue placeholder='Select Employee' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {employeesDataTransformed.map((emp: any) => (
-                                                        <SelectItem key={emp.id} value={String(emp.id)}>
-                                                            {emp.employeeName} - [{emp.employeeCode}]
-                                                        </SelectItem>
-                                                    ))}
+                                                    {
+                                                        employeesDataTransformed.length === 0 ? (
+                                                            <div className="p-4 text-center text-sm text-muted-foreground">
+                                                                No employees found for the selected criteria.
+                                                            </div>
+                                                        ) : employeesDataTransformed.map((emp: any) => (
+                                                            <SelectItem key={emp.id} value={String(emp.id)}>
+                                                                {emp.employeeName} - [{emp.employeeCode}]
+                                                            </SelectItem>
+                                                        ))
+                                                    }
+
                                                 </SelectContent>
                                             </Select>
                                         )}
@@ -403,12 +412,19 @@ export default function AddEmployeeYearlyReportForm({
                                                     const month = String(date.getMonth() + 1).padStart(2, '0');
                                                     const day = String(date.getDate()).padStart(2, '0');
                                                     field.onChange(`${year}-${month}-${day}`);
+                                                    const nextMonthDate = addMonths(date, 1);
+                                                    const nextYear = nextMonthDate.getFullYear();
+                                                    const nextMonth = String(nextMonthDate.getMonth() + 1).padStart(2, '0');
+                                                    const nextDay = String(nextMonthDate.getDate()).padStart(2, '0');
+                                                    // setValue('toDate', `${nextYear}-${nextMonth}-${nextDay}`);
                                                 } else {
                                                     field.onChange('');
+                                                    setValue('toDate', '');
                                                 }
                                             }}
                                             placeholder='From date'
                                             className={errors.fromDate ? 'border-red-500' : ''}
+                                            disabled={[{ after: today }]}
                                         />
                                     )}
                                 />
@@ -438,6 +454,14 @@ export default function AddEmployeeYearlyReportForm({
                                             }}
                                             placeholder='To date'
                                             className={errors.toDate ? 'border-red-500' : ''}
+                                            disabled={
+                                                fromDateObject
+                                                    ? [
+                                                        { before: fromDateObject },
+                                                        { after: today }
+                                                    ]
+                                                    : [{ after: today }]
+                                            }
                                         />
                                     )}
                                 />

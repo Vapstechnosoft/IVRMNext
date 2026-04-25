@@ -14,10 +14,10 @@ export const ndaKeys = {
 /**
  * Hook to fetch student and configuration details
  */
-export const useNdaStudentProfileDetails = () => {
+export const useNdaStudentProfileDetails = (updateFlag = false) => {
     return useQuery({
-        queryKey: ndaKeys.details(),
-        queryFn: () => getNdaStudentProfileDetails(),
+        queryKey: [...ndaKeys.details(), updateFlag],
+        queryFn: () => updateFlag ? getNdaSiblingDetails(updateFlag) : getNdaStudentProfileDetails(),
         staleTime: 1000 * 60 * 5, // 5 minutes
     });
 };

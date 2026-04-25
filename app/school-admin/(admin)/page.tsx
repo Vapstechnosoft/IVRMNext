@@ -40,15 +40,19 @@ import {
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { GetChairmanDashBoardFeesdata, getDashboardCounts } from '@/server/dashboards/chairman-dashboard';
 
 // --- Data & Constants ---
 
-const statsData = [
-    { title: 'Applications', value: '1,528', icon: FileText, gradient: 'from-blue-600 to-indigo-600', badgeIcon: Briefcase, url: '/admission/preadmission/reports/admission-register' },
-    { title: 'Students', value: '6,302', icon: Users, gradient: 'from-orange-500 to-amber-600', badgeIcon: UserCircle, url: '/admission/preadmission/reports/class-wise-student-details' },
-    { title: 'Teachers', value: '208', icon: GraduationCap, gradient: 'from-teal-500 to-emerald-600', badgeIcon: Building2, url: '/hrms/employee' },
-    { title: 'Fee Collection', value: '₹4,35,500', icon: Wallet, gradient: 'from-purple-600 to-violet-600', badgeIcon: CreditCard, url: '/fees/feereports/feeconsolidatedreport' },
-];
+export interface StatItem {
+    title: string;
+    value: string | number;
+    icon: any;
+    gradient: string;
+    badgeIcon: any;
+    url?: string;
+}
 
 const performanceData = [
     { name: 'Mon', value: 30 },
@@ -97,7 +101,7 @@ const events = [
 
 // --- Sub-Components ---
 
-const StatCard = ({ item }: { item: typeof statsData[0] }) => {
+const StatCard = ({ item }: { item: StatItem }) => {
     const CardContentUI = (
         <Card className="border-none shadow-lg rounded-2xl overflow-hidden group cursor-pointer hover:scale-[1.01] transition-all duration-500 card-premium">
             <CardContent className="p-0 flex h-full">
@@ -140,6 +144,56 @@ const SectionHeader = ({ title, showViewAll = true }: { title: string, showViewA
 );
 
 export default function AdminDashboardPage() {
+    const [dashboardData, setDashboardData] = useState<any>(null);
+    const [feeDetailsData, setFeeDetailsData] = useState<any[]>([]);
+    const [totalFeeCollected, setTotalFeeCollected] = useState<number>(0);
+
+    React.useEffect(() => {
+        const fetchData = async () => {
+            console.log('fetching preadmission data');
+            try {
+                const response = await getDashboardCounts();
+                const feesResponse = await GetChairmanDashBoardFeesdata(231);
+                console.log('preadmission data raw response', response);
+
+                // If the response has a data property (nested wrapper), use it, otherwise use the response itself
+                const finalData = response?.data ? response.data : response;
+
+                console.log('preadmission final data', finalData);
+                setDashboardData(finalData);
+
+                // Format fees data specifically for the FeeDetailsChart
+                const feesDataArray = feesResponse?.data || [];
+                if (Array.isArray(feesDataArray)) {
+                    console.log('feesDataArray', feesDataArray);
+
+                    const totalCollected = feesDataArray.reduce((acc: number, curr: any) => acc + (curr.callected || 0), 0);
+                    setTotalFeeCollected(totalCollected);
+
+                    const mappedFees = feesDataArray.map((item: any) => ({
+                        name: item.classname || 'Unknown',
+                        Collected: item.callected || 0,
+                        Receivable: item.receivable || 0,
+                        Balance: item.ballance || 0
+                    }));
+                    setFeeDetailsData(mappedFees);
+                    console.log('mappedFees', mappedFees);
+                }
+            } catch (error) {
+                console.error('Error fetching dashboard counts:', error);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    const statsData: StatItem[] = [
+        { title: 'Applications', value: dashboardData?.applicationsCount ?? 0, icon: FileText, gradient: 'from-blue-600 to-indigo-600', badgeIcon: Briefcase, url: '/admission/preadmission/reports/admission-register' },
+        { title: 'Students', value: dashboardData?.studentCount ?? 0, icon: Users, gradient: 'from-orange-500 to-amber-600', badgeIcon: UserCircle, url: '/admission/preadmission/reports/class-wise-student-details' },
+        { title: 'Teachers', value: '208', icon: GraduationCap, gradient: 'from-teal-500 to-emerald-600', badgeIcon: Building2, url: '/hrms/employee' },
+        { title: 'Fee Collection', value: `₹${totalFeeCollected.toLocaleString('en-IN')}`, icon: Wallet, gradient: 'from-purple-600 to-violet-600', badgeIcon: CreditCard, url: '/fees/feereports/feeconsolidatedreport' },
+    ];
+
     return (
         <div className="space-y-6 pb-12 animate-in fade-in duration-700">
             {/* Top Bar */}

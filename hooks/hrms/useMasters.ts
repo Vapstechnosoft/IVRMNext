@@ -74,7 +74,7 @@ import { getMasterSpecialization, getMasterSpecializationById } from '@/server/h
 import type { ApiSearchparams } from '@/types';
 import type { MasterEarningsDeductionsInput } from '@/types/hrms/master-earnings-deductions';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { getLeave, getLeaveNameCodeDropdown } from '@/server/hrms/master-dropdown';
+import { getEmployees, getFinancialYearDropdown, getLeave, getLeaveNameCodeDropdown } from '@/server/hrms/master-dropdown';
 // ============================================================================
 // DEPARTMENT
 // ============================================================================
@@ -979,4 +979,28 @@ export function useMasterLeaveDropdown() {
             });
         }
     }), [query, queryClient]);
+}
+
+/**
+ * Hook for Get Employees
+ */
+
+export function useGetEmployees() {
+    return useQuery({
+        queryKey: ['login-based-departments'],
+        queryFn: () => getEmployees(),
+        staleTime: 1000 * 60 * 5
+    });
+}
+
+/**
+ * Hook for Financial Year Dropdown
+ */
+
+export function useFinancialYearDropdown() {
+    return useQuery({
+        queryKey: ['financial-year-dropdown'],
+        queryFn: () => getFinancialYearDropdown(),
+        staleTime: 1000 * 60 * 5
+    });
 }

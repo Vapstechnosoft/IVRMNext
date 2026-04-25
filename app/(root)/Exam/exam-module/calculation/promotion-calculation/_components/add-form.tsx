@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
-import { getExamCalculation } from '@/server/exam/exam-module/calculation/exam-mark-calculation';
+import { promotionCalculationSchemaSchema } from '@/schemas/exam/exam-module/promotion-calculation';
+import { promotionCalculation } from '@/server/exam/exam-module/calculation/promotion-calculation';
 import {
     getClassDropDownByAcademicYearlist,
-    getExamsDropDownByAcademicYearandClassandSectionlist,
     getSectionsDropDownByAcademicYearandClasslist
 } from '@/server/exam/exam-module/reports/cumulative-report';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -19,8 +19,6 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 import FeedbackModal from './feedback-modal';
 import NotEnteredSubjectsModal from './not-entered-subjects-modal';
-import { promotionCalculationSchemaSchema } from '@/schemas/exam/exam-module/promotion-calculation';
-import { promotionCalculation } from '@/server/exam/exam-module/calculation/promotion-calculation';
 
 type FormFields = z.infer<typeof promotionCalculationSchemaSchema.addOrUpdate>;
 
@@ -35,7 +33,7 @@ export default function ExamMarksCalculationForm() {
         defaultValues: {
             asmaY_Id: 0,
             asmcL_Id: 0,
-            asmS_Id: 0,
+            asmS_Id: 0
         }
     });
 
@@ -44,7 +42,7 @@ export default function ExamMarksCalculationForm() {
 
     const selectedYear = useWatch({ control, name: 'asmaY_Id' });
     const selectedClass = useWatch({ control, name: 'asmcL_Id' });
-    const selectedSection = useWatch({ control, name: 'asmS_Id' });
+    const _selectedSection = useWatch({ control, name: 'asmS_Id' });
 
     const [academicYears, setAcademicYears] = useState<any[]>([]);
     const [classes, setClasses] = useState<any[]>([]);
@@ -107,7 +105,7 @@ export default function ExamMarksCalculationForm() {
                 setSelectedInfo({
                     asmaY_Year: academicYears.find((y) => y.asmaY_Id === data.asmaY_Id)?.asmaY_Year,
                     asmcL_ClassName: classes.find((c) => c.asmcL_Id === data.asmcL_Id)?.asmcL_ClassName,
-                    asmC_SectionName: sections.find((s) => s.asmS_Id === data.asmS_Id)?.asmC_SectionName,
+                    asmC_SectionName: sections.find((s) => s.asmS_Id === data.asmS_Id)?.asmC_SectionName
                 });
                 setShowNotEnteredModal(true);
             } else {

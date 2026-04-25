@@ -12,8 +12,9 @@ import {
     getSectionsDropDownByAcademicYearandClasslist
 } from '@/server/exam/exam-module/reports/cumulative-report';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Calculator, RotateCcw } from 'lucide-react';
+import { Loader2, Calculator, RotateCcw } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import LoadingModal from './loading-modal';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 // biome-ignore lint/style/useImportType: <explanation>
@@ -122,9 +123,7 @@ export default function ExamMarksCalculationForm() {
 
     const onSubmit = async (data: FormFields) => {
         try {
-            console.log(data.asmS_Id, data.asmcL_Id, data.asmaY_Id, data.emE_Id);
             const response = await getExamCalculation(data.asmaY_Id, data.asmcL_Id, data.asmS_Id, data.emE_Id);
-            console.log('response', response);
 
             // Handle API response based on C# implementation
             if (response.success) {
@@ -301,7 +300,7 @@ export default function ExamMarksCalculationForm() {
 
                             <div className='flex justify-center gap-4'>
                                 <Button type='submit' disabled={isSubmitting} className='min-w-[160px]'>
-                                    <Calculator className='mr-2 h-4 w-4' />
+                                    {isSubmitting ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Calculator className='mr-2 h-4 w-4' />}
                                     {isSubmitting ? 'Calculating...' : 'Calculation'}
                                 </Button>
                                 <Button type='button' variant='outline' onClick={handleCancel}>
@@ -313,6 +312,7 @@ export default function ExamMarksCalculationForm() {
                     </FormProvider>
                 </div>
             </div>
+            <LoadingModal open={isSubmitting} />
         </>
     );
 }

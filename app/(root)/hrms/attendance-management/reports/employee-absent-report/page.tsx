@@ -23,6 +23,7 @@ export default function EmployeeAbsentReportPage(props: {
     const { data: response, isLoading, error } = useEmployeeAbsentReport(resolvedSearchParams);
     const [lastToastId, setLastToastId] = useState<string | number | null>(null);
 
+    console.log("response", response);
     // Toast notifications based on request state
     useEffect(() => {
         if (isLoading) {
@@ -33,10 +34,12 @@ export default function EmployeeAbsentReportPage(props: {
                 toast.dismiss(lastToastId);
                 setLastToastId(null);
             }
-            
+
             if (error) {
                 toast.error('Failed to generate report');
             } else if (response?.data) {
+
+                console.log('Report data:', response.data); // Debug log for response data
                 if (response.data.length > 0) {
                     toast.success(`Successfully generated report with ${response.data.length} records`);
                 } else if (resolvedSearchParams?.fromDate) {
@@ -242,7 +245,7 @@ function EmployeeAbsentReportPageContent({
                                     <GenericDataTable<EmployeeAbsentReportRow>
                                         {...tableProps}
                                         columns={employeeAbsentReportColumns}
-                                        isLoading={false}
+                                        isLoading={isLoading}
                                         error={error}
                                         showViewOptions={false}
                                         columnPinning={{ left: ['hrme_id'], right: ['actions'] }}

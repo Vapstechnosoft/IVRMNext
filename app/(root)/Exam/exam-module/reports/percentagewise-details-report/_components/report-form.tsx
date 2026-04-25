@@ -17,7 +17,7 @@ import {
 } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
 import { getAcademicYearDropdown } from '@/server/fees/masters/class_yearly_category';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { FileSpreadsheet, Loader2, Printer } from 'lucide-react';
+import { FileSpreadsheet, Printer } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -63,7 +63,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
     const selectedYear = watch('ASMAY_Id');
     const selectedCategory = watch('EMCA_Id');
     const selectedClass = watch('ASMCL_Id');
-    const selectedSection = watch('ASMS_Id');
+    const _selectedSection = watch('ASMS_Id');
 
     const [loadingCategories, setLoadingCategories] = useState(false);
     const [loadingClasses, setLoadingClasses] = useState(false);
@@ -168,14 +168,13 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
 
     const onSubmit = async (data: PercentageWiseDetailsReportSchema) => {
         setLoading(true);
-        
+
         try {
             const classId = data.qualification_type === 'all' ? 0 : data.ASMCL_Id;
             const sectionId = data.qualification_type === 'all' ? 0 : data.ASMS_Id;
 
             const selected_Year = academicYears.find((y: any) => y.asmaY_Id === Number(data.ASMAY_Id))?.asmaY_Year;
-            const select_Exam = exams.find((e:any) => e.emE_Id === Number(data.EME_Id))?.emE_ExamName
-
+            const select_Exam = exams.find((e: any) => e.emE_Id === Number(data.EME_Id))?.emE_ExamName;
 
             const payload = {
                 mI_Id: 0, // usually institution id (set from session later if needed)
@@ -198,15 +197,13 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
                 report_type: data.qualification_type,
                 percent: data.percent
             };
-            console.log('payload', payload);
             const response = await getReportDetails(payload);
-            console.log('response', response);
 
             if (response.success) {
                 if (response.data.length === 0) {
                     toast.info('No records found');
                 }
-                onReportGenerated(response, {selected_Year, select_Exam});
+                onReportGenerated(response, { selected_Year, select_Exam });
             } else {
                 toast.error(response.message || 'Failed to generate report');
             }

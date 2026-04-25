@@ -1,4 +1,11 @@
 import { FEES_QUERY_KEYS } from '@/constants/query-keys';
+import {
+    getAcademicDropDownDetails,
+    getClassDropDownDetails,
+    getSectionDropDownDetails,
+    getStudentDropDownDetails,
+    getTaxReport
+} from '@/server/fees/reports/FeeIncomeTax_Report';
 import { getClassDropDown } from '@/server/fees/reports/daily_fee_collection_report';
 import {
     FeesTermDropDownForReports,
@@ -20,8 +27,11 @@ import {
     getFeeInstallmentReportHeadDropdown,
     getFeeInstallmentReportTermDropdown
 } from '@/server/fees/reports/fee_installment_report';
+import { getStudentDropDown } from '@/server/fees/reports/fee_it_report_ukschool';
 import { getfeeMonths } from '@/server/fees/reports/fee_monthendReport';
 import { getFeeReceiptLogo } from '@/server/fees/reports/fee_receipt_report';
+import { getFeeHeadDropDown } from '@/server/fees/reports/fee_refund_report_gmvps';
+import { getUserWiseDailyCollectionReport } from '@/server/fees/reports/fee_userwise_daily_collections';
 import { getFeesInstallmentDropDown, getFeesTranasctionInstallmentDropDown } from '@/server/fees/reports/fee_yearlyCollectionReport';
 import {
     getFeesTermDropDownforStudentTermWiseReport,
@@ -29,7 +39,12 @@ import {
     getFeesTermWiseReportSectionList,
     gettermwiseAcademicYeardropdown
 } from '@/server/fees/reports/feestudenttermwisepaidReport';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import type {
+    IFeeIncomeTaxReportPayload,
+    IFeeIncomeTaxSectionPayload,
+    IFeeIncomeTaxStudentPayload
+} from '@/types/fees/reports/FeeIncomeTax_Report';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const useFeeDefaulterReport = () => {
     const queryClient = useQueryClient();
@@ -471,4 +486,130 @@ export const useCategoryDropDown = () => {
             });
         }
     };
+};
+
+export const useStudentDropDown = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_STUDENT_DROPDOWNS],
+            queryFn: async () => getStudentDropDown(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_STUDENT_DROPDOWNS]
+            });
+        }
+    };
+};
+
+export const useFeeHeadDropDown = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_HEAD_DROPDOWNS],
+            queryFn: async () => getFeeHeadDropDown(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_HEAD_DROPDOWNS]
+            });
+        }
+    };
+};
+
+export const useFeeAcademicYearReport = (payload: IFeeIncomeTaxSectionPayload) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_DEFAULTER_REPORT, 'academic-year', payload],
+            queryFn: async () => getAcademicDropDownDetails(payload),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_DEFAULTER_REPORT, 'academic-year', payload]
+            });
+        }
+    };
+};
+
+//class
+export const useFeeclassYearReport = (payload: IFeeIncomeTaxSectionPayload) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_DEFAULTER_REPORT, 'class', payload],
+            queryFn: async () => getClassDropDownDetails(payload),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_DEFAULTER_REPORT, 'class', payload]
+            });
+        }
+    };
+};
+
+//section
+export const useFeeSectionYearReport = (payload: IFeeIncomeTaxSectionPayload) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_DEFAULTER_REPORT, 'section', payload],
+            queryFn: async () => getSectionDropDownDetails(payload),
+            enabled: !!payload.asmaY_Id && !!payload.asmcL_Id,
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_DEFAULTER_REPORT, 'section', payload]
+            });
+        }
+    };
+};
+
+//student
+export const useFeeStudentsYearReport = (payload: IFeeIncomeTaxStudentPayload) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_DEFAULTER_REPORT, 'student', payload],
+            queryFn: async () => getStudentDropDownDetails(payload),
+            enabled: !!payload.asmaY_Id && !!payload.asmcL_Id && !!payload.amsC_Id,
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_DEFAULTER_REPORT, 'student', payload]
+            });
+        }
+    };
+};
+
+//tax report
+export const useFeeTaxReport = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (payload: IFeeIncomeTaxReportPayload) => getTaxReport(payload),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_DEFAULTER_REPORT, 'fee-tax-report']
+            });
+        }
+    });
+};
+
+export const useUserWiseDailyCollectionReport = () => {
+    return useMutation({
+        mutationFn: (data: any) => getUserWiseDailyCollectionReport(data) // Using any or specific interface as needed
+    });
 };

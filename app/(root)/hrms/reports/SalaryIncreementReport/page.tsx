@@ -6,7 +6,6 @@ import { format } from 'date-fns';
 import { useMutation } from '@tanstack/react-query';
 import { getSalaryIncrementReport } from '@/server/hrms/reports/salary-increment-report';
 import { useLeaveYearDropdown } from '@/hooks/hrms/useMasters';
-import { useEmployeesForNoticeBoard } from '@/hooks/upload/transactions/use-notice-board';
 import { SalaryIncrementFilters, type SalaryIncrementFilters as SalaryIncrementFiltersType, type SalaryIncrementErrors } from './_components/filters';
 import { columns } from './_components/columns';
 import { DataTable } from '@/components/ui/data-table/data-table';
@@ -15,6 +14,7 @@ import { FileSpreadsheet, FileText, Printer } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Button } from '@/components/ui/button';
+import { useGetEmployees } from '@/hooks/hrms/useMasters';
 
 const MONTH_LIST = [
     { ivrM_Month_Id: 1, ivrM_Month_Name: 'January' },
@@ -45,7 +45,7 @@ export default function SalaryIncrementReportPage() {
 
     const [reportData, setReportData] = useState<any[]>([]);
 
-    const { data: employeesData, isLoading: isLoadingEmployees } = useEmployeesForNoticeBoard();
+    const { data: employeesData, isLoading: isLoadingEmployees } = useGetEmployees();
     const { data: yearsData, isLoading: isLoadingYears } = useLeaveYearDropdown();
 
     console.log("employeesData", employeesData)

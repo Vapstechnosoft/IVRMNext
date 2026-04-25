@@ -52,14 +52,14 @@ function FormSections({
                 size='md'
                 className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
                 <div className='relative'>
-                    <Button
+                    {/* <Button
                         type='button'
                         onClick={closeAddForm}
                         variant='ghost'
                         size='sm'
                         className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                         <X className='h-4 w-4 text-destructive' /> Close
-                    </Button>
+                    </Button> */}
                     <AddHolidayReportForm
                         onSuccess={closeAddForm}
                         onReportData={onReportData}
