@@ -1951,6 +1951,22 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/feereports/FeeUserWiseDailyCollectionReport',
                                             title: 'Fee User Wise Daily Collection Report',
                                             description: 'Manage Fee User Wise Daily Collection Report Details'
+                                        },
+                                        {
+                                            id: 399,
+                                            name: 'Fee Cheque Bounce',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/feeChequeBounce',
+                                            title: 'Fee Cheque Bounce',
+                                            description: 'Manage Fee Cheque Bounce Details'
+                                        },
+                                        {
+                                            id: 519,
+                                            name: 'Third Party TransactionGM',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/thirdPartyTransactionGM',
+                                            title: 'Third Party TransactionGM',
+                                            description: 'Manage Third Party TransactionGM'
                                         }
                                     ]
                                 }
@@ -7356,9 +7372,7 @@ export async function getUserAccessibleModules() {
                                             description: 'View Bank Credit And Debit Reports'
                                         }
                                     ]
-                                },
-
-
+                                }
                             ]
                         }
                     ]

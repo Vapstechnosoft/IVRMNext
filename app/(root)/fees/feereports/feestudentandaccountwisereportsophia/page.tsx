@@ -13,7 +13,7 @@ import { FormError } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Input } from '@/components/ui/input';
 import { feeStudentandAccountWiseReportSophia } from '@/schemas/fees/reports';
-import { getInstallmentReportDetails } from '@/server/fees/reports/fee_installment_report';
+import { feeClassWiseDueListreportSophia } from '@/server/fees/reports/sophia_reports';
 import type { IFeeClassDropdownList, IFeeSectionDropdownList } from '@/types/fees/reports/reports';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
@@ -119,16 +119,22 @@ export default function FeeStudentandAccountwiseReportofSophia() {
         setShowReport(false);
         try {
             const payload = {
-                academicYearId: data.academicYearId,
-                classId: data.classId,
-                sectionId: data.sectionId,
-                classwise: data.classwise,
-                fromDate: data.fromDate,
-                toDate: data.toDate
+                classlist: data.classwise === true ? [data.classId] : [],
+                sectionlist: data.classwise === true ? [data.sectionId] : [],
+                fromdate: data.dateWise === true ? data.fromDate : '',
+                todate: data.dateWise === true ? data.toDate : '',
+                fmT_Ids: [],
+                customflag: 'ACCOUNTWISE',
+                asmaY_Id: data.academicYearId,
+                radioval: '',
+                active: 0,
+                deactive: 0,
+                left: 0
             };
 
-            const apiData = await getInstallmentReportDetails(payload);
-
+            const apiData = await feeClassWiseDueListreportSophia(payload);
+            // biome-ignore lint/suspicious/noConsoleLog: <explanation>
+            console.log('apiData', apiData);
             const responseJson = typeof apiData === 'string' ? JSON.parse(apiData) : apiData;
             if (responseJson?.data) {
                 setReportData(responseJson.data);
@@ -140,10 +146,6 @@ export default function FeeStudentandAccountwiseReportofSophia() {
             toast.error(error.message || 'Failed to generate report');
             setShowReport(false);
         }
-
-        setTimeout(() => {
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-        }, 100);
     };
 
     return (
