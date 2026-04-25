@@ -75,9 +75,15 @@ function EmployeeMonthlyReportPageContent({
 
     // Data Processing
     const processedData = useMemo(() => {
-        if (!response?.data || !Array.isArray(response.data)) return [];
+        if (!response) return [];
+        
+        const rawData = Array.isArray(response?.data) 
+            ? response.data 
+            : (response?.data?.$values ? response.data.$values : (Array.isArray(response) ? response : []));
+            
+        if (!Array.isArray(rawData) || rawData.length === 0) return [];
 
-        const employees = response.data.map((emp: any) => {
+        const employees = rawData.map((emp: any) => {
             let attendance = {};
             if (typeof emp.attendance_data === 'string' && emp.attendance_data) {
                 try {
@@ -125,10 +131,14 @@ function EmployeeMonthlyReportPageContent({
 
     // Columns Generation
     const columns = useMemo(() => {
-        if (!response?.data || !Array.isArray(response.data)) return employeeMonthlyReportBaseColumns;
+        const rawData = Array.isArray(response?.data) 
+            ? response.data 
+            : (response?.data?.$values ? response.data.$values : (Array.isArray(response) ? response : []));
+            
+        if (!Array.isArray(rawData) || rawData.length === 0) return employeeMonthlyReportBaseColumns;
 
         if (isFormatOne) {
-            const employees = response.data.map((emp: any) => ({
+            const employees = rawData.map((emp: any) => ({
                 ecode: emp.ecode,
                 ename: emp.ename,
                 hrme_id: emp.hrme_id
@@ -138,7 +148,7 @@ function EmployeeMonthlyReportPageContent({
 
         // Collect all unique dates
         const allDatesSet = new Set<string>();
-        response.data.forEach((emp: any) => {
+        rawData.forEach((emp: any) => {
             let attendance = {};
             if (typeof emp.attendance_data === 'string' && emp.attendance_data) {
                 try {
@@ -250,7 +260,7 @@ function EmployeeMonthlyReportPageContent({
             <div className='container space-y-4 p-1'>
                 <FormSections searchParams={searchParams} />
 
-                {response?.data?.length > 0 && (
+                {processedData?.length > 0 && (
 
                     <CollapsibleSection defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
                         {selectedRows.length > 0 && (
