@@ -34,20 +34,23 @@ export default function AddMasterVendorForm({ onSuccess, className = '' }: AddMa
             lmV_MobileNo: '',
             lmV_VendorName: '',
             lmV_Address: '',
-            lmV_EMailId: ''
+            lmV_EMailId: '',
+            lmV_PhoneNo: ''
         }
     });
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const { lmV_MobileNo, lmV_VendorName, lmV_Address, lmV_EMailId } = data;
+            const { lmV_MobileNo, lmV_VendorName, lmV_Address, lmV_EMailId, lmV_PhoneNo } = data;
 
             const payload = {
-                IMCC_ID: 0,
+                lmV_Id: 0,
+                mI_Id: 0,
                 lmV_MobileNo,
                 lmV_VendorName,
                 lmV_Address,
                 lmV_EMailId,
+                lmV_PhoneNo: "",
                 lmV_ActiveFlg: true
             };
 
@@ -56,7 +59,7 @@ export default function AddMasterVendorForm({ onSuccess, className = '' }: AddMa
 
             const response = await addOrUpdateMasterVendor(payload);
 
-            if (response.success) {
+            if (response?.success) {
                 toast.success(response.message || 'Master Vendor saved successfully');
                 reset();
                 refetchAll();
@@ -69,7 +72,15 @@ export default function AddMasterVendorForm({ onSuccess, className = '' }: AddMa
         }
     };
 
-    const handleReset = () => reset();
+    const handleReset = () => {
+        reset({
+            lmV_MobileNo: '',
+            lmV_VendorName: '',
+            lmV_Address: '',
+            lmV_EMailId: '',
+            lmV_PhoneNo: ''
+        });
+    };
 
     return (
         <div className={className}>
@@ -80,17 +91,16 @@ export default function AddMasterVendorForm({ onSuccess, className = '' }: AddMa
                         label='Vendor Name'
                         required
                         id='lmV_VendorName'
+                        onKeyDown={(e) => {
+                            if (e.key.length === 1 && !/^[a-zA-Z\s]$/.test(e.key)) {
+                                e.preventDefault();
+                            }
+                        }}
                         {...register('lmV_VendorName')}
                         error={errors.lmV_VendorName?.message}
                     />
 
-                    <InputText
-                     label='Email Id'
-                     id='lmV_EMailId'
-                      {...register('lmV_EMailId')}
-                       error={errors.lmV_EMailId?.message} />
-
-
+                    <InputText label='Email Id' id='lmV_EMailId' {...register('lmV_EMailId')} error={errors.lmV_EMailId?.message} />
                 </div>
 
                 {/* Row 2 */}
@@ -99,16 +109,27 @@ export default function AddMasterVendorForm({ onSuccess, className = '' }: AddMa
                         label='Mobile No'
                         required
                         id='lmV_MobileNo'
+                        onKeyDown={(e) => {
+                            if (e.key.length === 1 && !/^[0-9]$/.test(e.key)) {
+                                e.preventDefault();
+                            }
+                        }}
+                        maxLength={10}
                         {...register('lmV_MobileNo')}
                         error={errors.lmV_MobileNo?.message}
                     />
 
-                    <InputText label='Vendor Address' id='lmV_Address' {...register('lmV_Address')} error={errors.lmV_Address?.message} />
-                </div>
-
-                {/* Row 3 */}
-                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                    <InputText label='Phone No' id='lmV_PhoneNo' {...register('lmV_PhoneNo')} error={errors.lmV_PhoneNo?.message} />
+                    <InputText
+                        label='Vendor Address'
+                        id='lmV_Address'
+                        onKeyDown={(e) => {
+                            if (e.key.length === 1 && !/^[a-zA-Z0-9\s]$/.test(e.key)) {
+                                e.preventDefault();
+                            }
+                        }}
+                        {...register('lmV_Address')}
+                        error={errors.lmV_Address?.message}
+                    />
                 </div>
 
                 {errors.root && <FormError>{errors.root.message}</FormError>}
