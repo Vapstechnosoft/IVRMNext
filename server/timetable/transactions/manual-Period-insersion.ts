@@ -48,5 +48,6 @@ export async function getSectionsByClass(asmcL_Id: number): Promise<Section[]> {
 
 export async function getClassDetailsByacademicyrandcategoty(asmay_id: number, TTMC_Id: number) {
     const url = `/MasterDayFacade/ClassDataByAcademicyrandCategory/${asmay_id}/${TTMC_Id}`;
+    console.log('url', url);
     return await api.get<ClassDropdownDatamanualPeriodInsertion[]>('timetable', url);
 }
