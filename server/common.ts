@@ -7392,6 +7392,59 @@ export async function getUserAccessibleModules() {
                             ]
                         },
                         {
+                            id: 800267,
+                            name: 'Interaction',
+                            icon: 'BookOpen',
+                            sub_menu: [
+                                {
+                                    id: 800267,
+                                    name: 'Transaction',
+                                    icon: 'FileBarChart',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'IVRM Interaction',
+                                            icon: 'BookOpenText',
+                                            url: '/StaffPortal/Interactions/IVRM_Interactions',
+                                            title: 'IVRM Interaction',
+                                            description: 'IVRM Interaction'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'NDA IVRM Interaction',
+                                            icon: 'BookOpenText',
+                                            url: '/StaffPortal/Interactions/NDA_IVRM_Interactions',
+                                            title: 'NDA IVRM Interaction',
+                                            description: 'NDA IVRM Interaction'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'SCS Interaction',
+                                            icon: 'BookOpenText',
+                                            url: '/StaffPortal/Interactions/SCS_IVRM_Interactions',
+                                            title: 'SCS Interaction',
+                                            description: 'SCS Interaction'
+                                        },
+                                    ]
+                                },
+                                {
+                                    id: 80019,
+                                    name: 'Reports',
+                                    icon: 'FileBarChart',
+                                    pages: [
+                                        {
+                                            id: 2,
+                                            name: 'School Staff Period Transaction Report',
+                                            icon: 'BookOpenText',
+                                            url: '/lesson-planner/lesson-planner-module/reports/school-staff-period-transaction-report',
+                                            title: 'School Staff Period Transaction Report',
+                                            description: 'School Staff Period Transaction Report'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
                             id: 80020,
                             name: 'Client Spcefic pages',
                             icon: 'BookOpen',
@@ -7505,28 +7558,58 @@ export async function getUserAccessibleModules() {
                         },
 
                         {
-                            id: 2,
+                            id: 800267,
                             name: 'Interaction',
-                            icon: 'MessageSquare',
+                            icon: 'BookOpen',
                             sub_menu: [
                                 {
-                                    id: 40001,
-                                    name: 'Student Interactions ',
-                                    icon: 'MessageSquare',
+                                    id: 800267,
+                                    name: 'Transaction',
+                                    icon: 'FileBarChart',
                                     pages: [
                                         {
-                                            id: 40001,
-                                            name: 'Interactions',
-                                            icon: 'MessageSquare',
-                                            url: '/StudentPortal/student-dashboard/Interaction/IVRM_Interaction/Interaction',
-                                            title: 'Interactions',
-                                            description: 'Interact with Staff and Students'
+                                            id: 1,
+                                            name: 'IVRM Interaction',
+                                            icon: 'BookOpenText',
+                                            url: '/StudentPortal/Interactions/IVRM_Interactions',
+                                            title: 'IVRM Interaction',
+                                            description: 'IVRM Interaction'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'NDA IVRM Interaction',
+                                            icon: 'BookOpenText',
+                                            url: '/StudentPortal/Interactions/NDA_IVRM_Interactions',
+                                            title: 'NDA IVRM Interaction',
+                                            description: 'NDA IVRM Interaction'
+                                        }
+                                        // {
+                                        //     id: 3,
+                                        //     name: 'SCS Interaction',
+                                        //     icon: 'BookOpenText',
+                                        //     url: '/StudentPortal/Interactions/SCS_IVRM_Interactions',
+                                        //     title: 'SCS Interaction',
+                                        //     description: 'SCS Interaction'
+                                        // },
+                                    ]
+                                },
+                                {
+                                    id: 80019,
+                                    name: 'Reports',
+                                    icon: 'FileBarChart',
+                                    pages: [
+                                        {
+                                            id: 2,
+                                            name: 'School Staff Period Transaction Report',
+                                            icon: 'BookOpenText',
+                                            url: '/lesson-planner/lesson-planner-module/reports/school-staff-period-transaction-report',
+                                            title: 'School Staff Period Transaction Report',
+                                            description: 'School Staff Period Transaction Report'
                                         }
                                     ]
                                 }
                             ]
                         },
-
                         {
                             id: 3,
                             name: 'Admission',

@@ -17,7 +17,7 @@ const nextConfig: NextConfig = {
     productionBrowserSourceMaps: false,
     experimental: {
         serverActions: {
-            bodySizeLimit: '5mb'
+            bodySizeLimit: '500mb'
         }
     },
     images: {
