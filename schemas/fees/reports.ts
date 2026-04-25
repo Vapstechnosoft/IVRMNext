@@ -716,3 +716,62 @@ export const feeCollectionReportVVVS = z.object({
     fromDate: z.string().min(1, 'From Date is required'),
     toDate: z.string().min(1, 'To Date is required')
 });
+
+export const feeIncomeTaxReportSchema = z.object({
+    asmaY_Id: z.number({ required_error: 'Academic Year is required' }),
+    asmcL_Id: z.number({ required_error: 'Class is required' }),
+    asmS_Id: z.number({ required_error: 'Section is required' }),
+    amst_Id: z.number({ required_error: 'Student is required' })
+});
+
+export const feeUserWiseDailyCollectionReportSchema = z
+    .object({
+        type: z.enum(['STW', 'TCW']).default('STW'), // Student Wise or Total Collection
+        ASMAY: z.number().min(1, 'Academic Year is required'),
+        groupIds: z.array(z.number()).min(1, 'Select at least one Group'),
+        fromDate: z.string().min(1, 'From Date is required'),
+        toDate: z.string().min(1, 'To Date is required')
+    })
+    .superRefine((data, ctx) => {
+        const fromDate = new Date(data.fromDate);
+        const toDate = new Date(data.toDate);
+        if (fromDate > toDate) {
+            ctx.addIssue({
+                path: ['fromDate'],
+                message: 'From date should not be greater than to date',
+                code: z.ZodIssueCode.custom
+            });
+        }
+    });
+
+export const feeDemandRegisterReportGMVPSSchema = z.object({
+    report: z.enum(['All', 'Individual']).default('All'),
+    rpttyp: z.enum(['All', 'Individual']).default('Individual'),
+    reportdate: z.enum(['transdate', 'settdate', 'SettledOnline']).default('transdate'),
+    asmaY_Id: z.number().min(1, { message: 'Academic Year is required' }),
+    asmcL_Id: z.number().min(1, { message: 'Class Name is required' }),
+    asms_Id: z.number().min(1, { message: 'Section Name is required' }),
+    groupIds: z.array(z.number()).min(1, { message: 'Select at least one Group' }),
+    chequeDate: z.boolean().default(false),
+    acdmyr: z.boolean().default(false),
+    headwise: z.boolean().default(false),
+    paymentwise: z.boolean().default(false),
+    fromDate: z.string().min(1, { message: 'From Date is required' }),
+    toDate: z.string().min(1, { message: 'To Date is required' }),
+    enableAllClasses: z.boolean().default(false),
+    Fmc_allorsudentorother: z.enum(['all', 'stud', 'preadm', 'other', 'Trpt', 'thirdparty', 'multiplepaymentmode']).default('all'),
+    Fmc_allorcorddorop: z.enum(['All', 'C', 'B', 'O', 'Ecs', 'S', 'R', 'BT', 'U']).default('All'),
+    storedTrans: z.boolean().default(false),
+    thirdPartyTrans: z.boolean().default(false),
+    pdaTrans: z.boolean().default(false)
+});
+
+export const feeChequeBounceSchema = z.object({
+    asmaY_Id: z.number({ required_error: 'Academic Year is required' }),
+    asmcL_Id: z.number({ required_error: 'Class is required' }),
+    asmS_Id: z.number({ required_error: 'Section is required' }),
+    amst_Id: z.number({ required_error: 'Student is required' }),
+    FYP_ID: z.string().min(1, 'Receipt No is required'),
+    FCB_DATE: z.date({ required_error: 'Date is required' }),
+    FCB_Remarks: z.string().optional()
+});

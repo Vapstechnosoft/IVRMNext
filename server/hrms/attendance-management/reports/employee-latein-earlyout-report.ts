@@ -21,12 +21,11 @@ export async function getEmployeeLateInEarlyOutReport(filters?: EmployeeLateInEa
         const okDateFrom = filters.fromDate && r.date ? new Date(r.date) >= new Date(filters.fromDate) : true;
         const okDateTo = filters.toDate && r.date ? new Date(r.date) <= new Date(filters.toDate) : true;
         const okQuery =
-            filters.allOrIndividual === 'Individual' && filters.query
+            filters.allOrIndividual === 'Individual' && filters.query && filters.query.length > 0
                 ? filters.codeOrName === 'Code'
-                    ? filters.query.includes(String(r.employeeCode || r.employee_code || ''))
-                    : filters.query.some((q) =>
-                        (r.employeeName || r.user_name || '').toLowerCase().includes(q.toLowerCase())
-                    ) : true;
+                    ? (r.employeeCode || r.employee_code || '').toLowerCase().includes(filters.query.toLowerCase())
+                    : (r.employeeName || r.user_name || '').toLowerCase().includes(filters.query.toLowerCase())
+                : true;
         const okMode = filters.mode
             ? filters.mode === 'Late By'
                 ? !!(r.lateBy || r.late_by)

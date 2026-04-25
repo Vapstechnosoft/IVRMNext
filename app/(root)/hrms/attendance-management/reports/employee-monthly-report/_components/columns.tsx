@@ -103,7 +103,7 @@ export const getDynamicDateColumns = (dates: string[]): ColumnDef<MonthlyRow>[] 
     return dates.sort().map((date) => ({
         accessorKey: `attendance_${date}`,
         header: ({ column }) => (
-            <DataTableColumnHeader column={column} title={format(parseISO(date), 'dd')} className='min-w-[40px] text-center' />
+            <DataTableColumnHeader column={column} title={format(parseISO(date), 'dd MMM yyyy')} className='min-w-[40px] text-center' />
         ),
         cell: ({ row }) => (
             <div className='text-center uppercase'>

@@ -1,8 +1,9 @@
 'use client';
+import React from 'react';
 
+import { ColumnDef } from '@tanstack/react-table';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import type { IBookCirculationReportGridData } from '@/types/library/reports/book-circulation-report';
-import type { ColumnDef } from '@tanstack/react-table';
+import { IBookCirculationReportGridData } from '@/types/library/reports/book-circulation-report';
 import { format } from 'date-fns';
 
 const SharedColumns: ColumnDef<IBookCirculationReportGridData>[] = [
@@ -15,7 +16,7 @@ const SharedColumns: ColumnDef<IBookCirculationReportGridData>[] = [
             const continuousIndex = pageIndex * pageSize + row.index + 1;
             return <div>{continuousIndex}</div>;
         },
-        enableHiding: true,
+        enableHiding: true, // Use enableHiding as per user code, but enableSorting false
         enableSorting: false
     },
     {
@@ -179,10 +180,9 @@ export const getColumns = (memberType: string): ColumnDef<IBookCirculationReport
     }
 
     // Combine: Shared + Specific + Status/Dates
-    // Adjust order if necessary. Legacy:
-    // Student: SlNo, Title, Acc, BookType?, AdmNo, Name, Class, Sec, Roll, Status, Issue, Due, Return, LateDays, Fine...
-    // The legacy order is a bit mixed. I'll stick to a logical grouping:
-    // Shared Info -> Specific Member Info -> Dates/Status -> Fines
-
-    return [...SharedColumns, ...specificColumns, ...StatusDateColumns];
+    return [
+        ...SharedColumns,
+        ...specificColumns,
+        ...StatusDateColumns
+    ];
 };

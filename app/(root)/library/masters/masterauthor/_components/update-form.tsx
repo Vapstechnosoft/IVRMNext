@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
-import { useMasterLibrary } from '@/hooks/library/useMasters';
+import { useLibraryMasterAuthor } from '@/hooks/library/useMasters';
 import { masterAuthorSchema } from '@/schemas/library/masters';
 import { addOrUpdateMasterAuthor } from '@/server/library/masters/master_author';
 import type { IMasterAuthorList } from '@/types/library/masters/masters';
@@ -23,7 +23,7 @@ interface UpdateMasterAuthorFormProps {
 }
 
 export default function UpdateMasterAuthorForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterAuthorFormProps) {
-    const { refetchAll } = useMasterLibrary();
+    const { refetchAll } = useLibraryMasterAuthor();
 
     const {
         register,
@@ -53,28 +53,10 @@ export default function UpdateMasterAuthorForm({ onSuccess, className = '', sele
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const {
-                lmaU_AuthorFirstName,
-                lmaU_AuthorMiddleName,
-                lmaU_AuthorLastName,
-                lmaU_MobileNo,
-                lmaU_Address,
-                lmaU_EmailId,
-                lmaU_PhoneNo,
-                lmaU_ActiveFlg
-            } = data;
-
             const payload = {
-                mI_Id: 30,
-                lmaU_Id: row.lmaU_Id,
-                lmaU_AuthorFirstName,
-                lmaU_AuthorMiddleName,
-                lmaU_AuthorLastName,
-                lmaU_MobileNo,
-                lmaU_Address,
-                lmaU_EmailId,
-                lmaU_PhoneNo,
-                lmaU_ActiveFlg
+                ...data,
+                mI_Id: row.mI_Id || 30,
+                lmaU_Id: row.lmaU_Id
             };
 
             const response = await addOrUpdateMasterAuthor(payload);
@@ -99,9 +81,55 @@ export default function UpdateMasterAuthorForm({ onSuccess, className = '', sele
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <InputText
-                            label='FirstName'
-                            {...register('lmaU_AuthorFirstName', {})}
+                            label='Author Name'
+                            required
+                            id='lmaU_AuthorFirstName'
+                            {...register('lmaU_AuthorFirstName')}
                             error={errors.lmaU_AuthorFirstName?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        />
+
+                        <InputText
+                            label='Email Id'
+                            id='lmaU_EmailId'
+                            {...register('lmaU_EmailId')}
+                            error={errors.lmaU_EmailId?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        />
+                    </div>
+
+                    {errors.root && <FormError>{errors.root.message}</FormError>}
+                </div>
+
+                <div className='space-y-4'>
+                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                        <InputText
+                            label='Mobile No'
+                            id='lmaU_MobileNo'
+                            {...register('lmaU_MobileNo')}
+                            error={errors.lmaU_MobileNo?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        />
+
+                        <InputText
+                            label='Author Address'
+                            id='lmaU_Address'
+                            {...register('lmaU_Address')}
+                            error={errors.lmaU_Address?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        />
+                    </div>
+
+                    {errors.root && <FormError>{errors.root.message}</FormError>}
+                </div>
+
+                <div className='space-y-4'>
+                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                        <InputText
+                            label='Phone No'
+                            id='lmaU_PhoneNo'
+                            {...register('lmaU_PhoneNo')}
+                            error={errors.lmaU_PhoneNo?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                     </div>

@@ -1,11 +1,12 @@
 'use client';
 
+import { getStatusBadge } from '@/components/extras/helpers/helper';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
-//import { useFormContext } from '@/components/ui/form/form-provider';
+import { useFormContext } from '@/components/ui/form/form-provider';
 import type { IMasterCategoryList } from '@/types/library/masters/masters';
 import type { ColumnDef } from '@tanstack/react-table';
-//import { useCallback } from 'react';
+import { useCallback } from 'react';
 
 export const masterCategoryColumns: ColumnDef<IMasterCategoryList>[] = [
     {
@@ -36,6 +37,11 @@ export const masterCategoryColumns: ColumnDef<IMasterCategoryList>[] = [
         cell: ({ row }) => <div>{row.getValue('lmC_BNBFlg')}</div>
     },
     {
+        accessorKey: 'lmC_ActiveFlag',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
+        cell: ({ row }) => getStatusBadge(row.getValue('lmC_ActiveFlag') === true ? 'yes' : 'no')
+    },
+    {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start' />,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />,
@@ -44,16 +50,16 @@ export const masterCategoryColumns: ColumnDef<IMasterCategoryList>[] = [
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IMasterCategoryList }) {
-    // const { openDeleteForm, openEditForm } = useFormContext<IMasterCategoryList>();
+    const { openToggleForm } = useFormContext<IMasterCategoryList>();
 
-    // const handleDelete = useCallback((data: IMasterCategoryList) => openDeleteForm(data), [openDeleteForm]);
-    // const handleEdit = useCallback((data: IMasterCategoryList) => openEditForm(data), [openEditForm]);
+    const handleToggle = useCallback((data: IMasterCategoryList) => openToggleForm(data), [openToggleForm]);
+
     return (
         <ActionButtons
             rowData={rowData}
-            buttons={{ edit: false, toggle: false, delete: true }}
-            //onDelete={handleDelete}
-            //  onEdit={handleEdit}
+            buttons={{ edit: false, toggle: true, delete: false }}
+            onToggle={handleToggle}
+            toggleConditionKey='lmC_ActiveFlag'
         />
     );
 }

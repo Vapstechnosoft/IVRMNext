@@ -416,7 +416,7 @@ export const employeeLateInEarlyOutReportFilterSchema = z
             required_error: 'All/Individual selection is required'
         }),
         codeOrName: z.enum(['Code', 'Name']).optional(),
-        query: z.array(z.string()).optional(),
+        query: z.string().optional(),
         fromDate: z.string().min(1, 'From Date is required'),
         toDate: z.string().min(1, 'To Date is required'),
         mode: z.enum(['Late By', 'Early Out', 'Late In Early Out'], {
@@ -524,7 +524,7 @@ export const employeeMonthlyReportFilterSchema = z
         allOrIndividual: z.enum(['All', 'Individual'], {
             required_error: 'All/Individual selection is required'
         }),
-        employeeIds: z.array(z.string()).optional(),
+        employeeIds: z.string().optional(),
         fromDate: z.string().min(1, 'From Date is required'),
         toDate: z.string().min(1, 'To Date is required'),
         reportOptions: z.array(z.enum(['Total Working Days', 'Show Holiday Punch', 'Format One', 'Date Of Joining', 'Total Absent Days'])).optional()
@@ -617,7 +617,7 @@ export const employeeAbsentReportFilterSchema = z
         allOrIndividual: z.enum(['All', 'Individual'], {
             required_error: 'All/Individual selection is required'
         }),
-        employeeIds: z.array(z.string()).optional(),
+        employeeIds: z.string().optional(),
         fromDate: z.string().min(1, 'From Date is required'),
         toDate: z.string().min(1, 'To Date is required')
     })

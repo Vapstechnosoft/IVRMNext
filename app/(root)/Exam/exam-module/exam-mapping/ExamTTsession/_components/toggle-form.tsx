@@ -37,7 +37,7 @@ export default function ToggleExamTTSessionForm({
                     refetchAll();
                     onClose();
                 } else {
-                    toast.error(response?.message || 'Failed to update status');
+                    toast.error('Failed to update status');
                 }
             } catch (error) {
                 toast.error('An error occurred while updating status');

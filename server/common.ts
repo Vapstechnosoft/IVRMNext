@@ -2,6 +2,15 @@
 import { type ApiResponse, api } from '@/lib/apiService';
 import { auth } from '@/lib/auth';
 import type { IDropdown, IUserAccessibleModules, UserNotification } from '@/types';
+import { admissionModule } from './modules/admission';
+import { feesModule } from './modules/fees';
+import { examModule } from './modules/exam';
+import { hrmsModule } from './modules/hrms';
+import { iframeModule } from './modules/iframe';
+import { timetableModule } from './modules/timetable';
+import { libraryModule } from './modules/library';
+import { transportModule } from './modules/transport';
+
 
 export async function getCommonDropdown(name: string) {
     const url = `/v1/common/common_drop_down_list/${name}`;
@@ -52,7 +61,15 @@ export async function getUserAccessibleModules() {
         response = {
             success: true,
             message: 'Data fetched successfully!!',
-            data: [
+            data: [admissionModule,
+                feesModule,
+                examModule,
+                hrmsModule,
+                iframeModule,
+                timetableModule,
+                libraryModule,
+                transportModule,
+
                 {
                     id: 1,
                     name: 'Preadmission',
@@ -1537,14 +1554,6 @@ export async function getUserAccessibleModules() {
                                     name: 'Transactions',
                                     icon: 'BadgeIndianRupee',
                                     pages: [
-                                        //   {
-                                        //     id: 55555,
-                                        //     name: 'Fee Amount Entry',
-                                        //     icon: 'BadgeIndianRupee',
-                                        //     url: '/fees/transactions/feeamountentrystthomas',
-                                        //     title: 'Fee Amount Entry',
-                                        //     description: 'Manage Fee Amount Entry Details'
-                                        // },
                                         {
                                             id: 40,
                                             name: 'Fee Amount Entry',
@@ -1816,6 +1825,148 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/feereports/feedefaulterreportstthomas',
                                             title: 'Fee Defaulter Report',
                                             description: 'Manage Fee Defaulter Report Details'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+
+                {
+                    id: 90001,
+                    name: 'Fees Client',
+                    icon: 'UserRoundPlus',
+                    menu: [
+                        {
+                            id: 51,
+                            name: 'Client Specific Fee Reports',
+                            icon: 'Settings',
+                            sub_menu: [
+                                {
+                                    id: 111,
+                                    name: 'Fee Reports',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 601,
+                                            name: 'Fee ClassWise Due List Report Sophia',
+                                            icon: 'Settings',
+                                            url: '/fees/feereports/feeclasswiseduelistreportsophia',
+                                            title: 'Fee ClassWise Due List Report Sophia',
+                                            description: 'Fee ClassWise Due List Report Sophia'
+                                        },
+                                        {
+                                            id: 602,
+                                            name: 'Fee Item Wise Report Sophia',
+                                            icon: 'Settings',
+                                            url: '/fees/feereports/feeitemwisereportsophia',
+                                            title: 'Fee Item Wise Report Sophia',
+                                            description: 'Fee Item Wise Report Sophia'
+                                        },
+                                        {
+                                            id: 603,
+                                            name: 'Fee Student and Account Wise Report Sophia',
+                                            icon: 'Settings',
+                                            url: '/fees/feereports/feestudentandaccountwisereportsophia',
+                                            title: 'Fee Student and Account Wise Report Sophia',
+                                            description: 'Fee Student and Account Wise Report Sophia'
+                                        },
+                                        {
+                                            id: 604,
+                                            name: 'Fee Collection Report VVVS',
+                                            icon: 'Settings',
+                                            url: '/fees/feereports/feecollectionreportvvvs',
+                                            title: 'Fee Collection Report VVVS',
+                                            description: 'Fee Collection Report VVVS'
+                                        },
+                                        {
+                                            id: 605,
+                                            name: 'Fee IT Report UK Public School',
+                                            icon: 'Settings',
+                                            url: '/fees/feereports/feeitreportukschool',
+                                            title: 'Fee IT Report UK Public School',
+                                            description: 'Fee IT Report UK Public School'
+                                        },
+                                        {
+                                            id: 606,
+                                            name: 'Fee Refund Report GMVPS',
+                                            icon: 'Settings',
+                                            url: '/fees/feereports/feerefundreportgmvps',
+                                            title: 'Fee Refund Report GMVPS',
+                                            description: 'Fee Refund Report GMVPS'
+                                        },
+                                        {
+                                            id: 607,
+                                            name: 'Fee Defaulter Report STTHOMAS',
+                                            icon: 'Settings',
+                                            url: '/fees/feereports/feedefaulterreportstthomas',
+                                            title: 'Fee Defaulter Report STTHOMAS',
+                                            description: 'Fee Defaulter Report STTHOMAS'
+                                        },
+                                        {
+                                            id: 519,
+                                            name: 'Fee Transaction STTHOMAS',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/feetransactionstthomas',
+                                            title: 'Fee Transaction STTHOMAS',
+                                            description: 'Fee Transaction STTHOMAS'
+                                        },
+                                        {
+                                            id: 55555,
+                                            name: 'Fee Amount Entry STTHOMAS',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/feeamountentrystthomas',
+                                            title: 'Fee Amount Entry STTHOMAS',
+                                            description: 'Manage Fee Amount Entry Details STTHOMAS'
+                                        },
+                                        {
+                                            id: 519,
+                                            name: 'Fee Head Wise Report Calcaltta',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/headwisereport',
+                                            title: 'Fee Head Wise Report Calcaltta',
+                                            description: 'Fee Head Wise Report Calcaltta'
+                                        },
+                                        {
+                                            id: 507,
+                                            name: 'Master Student Fee Group Mapping (Vishwadarshana Society)',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/masters/StudentFeeGroupMappingVishwa',
+                                            title: 'Master Student Fee Group Mapping (Vishwadarshana Society)',
+                                            description: 'Manage Master Student Fee Group Mapping Details'
+                                        },
+                                        {
+                                            id: 10028,
+                                            name: 'Fee IncomeTax Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feeIncomeTax_Report',
+                                            title: 'Fee IncomeTax Report',
+                                            description: 'Manage Fee IncomeTax Report Details'
+                                        },
+                                        {
+                                            id: 10029,
+                                            name: 'Fee User Wise Daily Collection Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/FeeUserWiseDailyCollectionReport',
+                                            title: 'Fee User Wise Daily Collection Report',
+                                            description: 'Manage Fee User Wise Daily Collection Report Details'
+                                        },
+                                        {
+                                            id: 399,
+                                            name: 'Fee Cheque Bounce',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/feeChequeBounce',
+                                            title: 'Fee Cheque Bounce',
+                                            description: 'Manage Fee Cheque Bounce Details'
+                                        },
+                                        {
+                                            id: 519,
+                                            name: 'Third Party TransactionGM',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/thirdPartyTransactionGM',
+                                            title: 'Third Party TransactionGM',
+                                            description: 'Manage Third Party TransactionGM'
                                         }
                                     ]
                                 }
@@ -2756,7 +2907,7 @@ export async function getUserAccessibleModules() {
                                             icon: 'FileSearch',
                                             url: '/hrms/ai-ats/resume-checker',
                                             title: 'AI Resume checker',
-                                            description: 'AI-powered resume evaluation and screening'
+                                            description: 'Upload resumes and job descriptions for AI-powered ATS scoring and skill gap analysis.'
                                         }
                                     ]
                                 },
@@ -7227,128 +7378,25 @@ export async function getUserAccessibleModules() {
                                             url: '/pettycash/PcRequisitionReport',
                                             title: 'Pc Requisition Report',
                                             description: 'View Pc Requisition Reports'
+                                        },
+                                        {
+                                            id: 60321231,
+                                            name: 'Income Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/pettycash/incomereport',
+                                            title: 'Income Report',
+                                            description: 'View Income Reports'
+                                        },
+                                        {
+                                            id: 60321232,
+                                            name: 'Bank Credit And Debit Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/pettycash/BankCopyReportVVVS',
+                                            title: 'Bank Credit And Debit Report',
+                                            description: 'View Bank Credit And Debit Reports'
                                         }
                                     ]
                                 }
-
-                                // {
-                                //     id: 4,
-                                //     name: 'Transactions',
-                                //     icon: 'Clock',
-                                //     pages: [
-                                //         {
-                                //             id: 1,
-                                //             name: 'Class Section Time Table Report',
-                                //             icon: 'Clock',
-                                //             url: '/timetable/transactions/class-section-report/class-section-report',
-                                //             title: 'Class Section Time Table Report',
-                                //             description: 'View and generate class-wise timetable grids'
-                                //         },
-                                //         {
-                                //             id: 2,
-                                //             name: 'Deputation',
-                                //             icon: 'Clock',
-                                //             url: '/timetable/transactions/deputation',
-                                //             title: 'Deputation',
-                                //             description: 'ABSENT STAFF ALLOTMENT DETAILS'
-                                //         },
-                                //         {
-                                //             id: 3,
-                                //             name: 'Manual Period Insertion',
-                                //             icon: 'Clock',
-                                //             url: '/timetable/transactions/manual-Period-insersion',
-                                //             title: 'Manual Period Insertion',
-                                //             description: 'ABSENT STAFF ALLOTMENT DETAILS'
-                                //         },
-                                //         {
-                                //             id: 4,
-                                //             name: 'Staff Period Transfer',
-                                //             icon: 'Clock',
-                                //             url: '/timetable/transactions/staff-Periods-Transfer',
-                                //             title: 'Staff Period Transfer',
-                                //             description: 'Transfer Staff Periods Between Classes and Sections'
-                                //         },
-                                //         {
-                                //             id: 5,
-                                //             name: 'Staff Replacement Existing To New',
-                                //             icon: 'Clock',
-                                //             url: '/timetable/transactions/staff-replacement-existing-to-new',
-                                //             title: 'Staff Replacement Existing To New',
-                                //             description: 'Replacing staff Existing To New'
-                                //         },
-                                //         {
-                                //             id: 6,
-                                //             name: 'Staff Replacement In Their TimeTable',
-                                //             icon: 'Clock',
-                                //             url: '/timetable/transactions/staff-replacement-In-their-timeTable',
-                                //             title: 'Staff Replacement In Their TimeTable',
-                                //             description: 'Staff Replacement In Their TimeTable'
-                                //         },
-                                //         {
-                                //             id: 7,
-                                //             name: 'Staff Replacement In Unallocated Period',
-                                //             icon: 'Clock',
-                                //             url: '/timetable/transactions/staff-replacement-in-unallocated-period',
-                                //             title: 'Staff Replacement In Unallocated Period',
-                                //             description: 'Staff Replacement In Unallocated Period'
-                                //         },
-                                //         {
-                                //             id: 8,
-                                //             name: 'Time Table Generation',
-                                //             icon: 'Clock',
-                                //             url: '/timetable/transactions/time-table-generation',
-                                //             title: 'Time Table Generation',
-                                //             description: 'Time Table Generation'
-                                //         }
-                                //     ]
-                                // },
-                                // {
-                                //     id: 2,
-                                //     name: 'Reports',
-                                //     icon: 'Clock',
-                                //     pages: [
-                                //         {
-                                //             id: 1,
-                                //             name: 'Consolidated Report',
-                                //             icon: 'Clock',
-                                //             url: '/timetable/reports/consolidated',
-                                //             title: 'Consolidated Report',
-                                //             description: 'TimeTable Consolidated Report'
-                                //         },
-                                //         {
-                                //             id: 2,
-                                //             name: 'Class Wise TimeTable',
-                                //             icon: 'Clock',
-                                //             url: '/timetable/reports/classwisett',
-                                //             title: 'Class Wise TimeTable',
-                                //             description: 'Class Wise TimeTable Report'
-                                //         },
-                                //         {
-                                //             id: 3,
-                                //             name: 'Subject Wise TimeTable',
-                                //             icon: 'Clock',
-                                //             url: '/timetable/reports/subjectwisett',
-                                //             title: 'Subject Wise TimeTable',
-                                //             description: 'Subject Wise TimeTable Report'
-                                //         },
-                                //         {
-                                //             id: 4,
-                                //             name: 'Staff Wise TimeTable',
-                                //             icon: 'Clock',
-                                //             url: '/timetable/reports/staffwisett',
-                                //             title: 'Staff Wise TimeTable',
-                                //             description: 'Staff Wise TimeTable Report'
-                                //         },
-                                //         {
-                                //             id: 5,
-                                //             name: 'Deputation Report',
-                                //             icon: 'Clock',
-                                //             url: '/timetable/reports/deputationreport',
-                                //             title: 'Deputation Report',
-                                //             description: 'Deputation Report'
-                                //         }
-                                //     ]
-                                // }
                             ]
                         }
                     ]

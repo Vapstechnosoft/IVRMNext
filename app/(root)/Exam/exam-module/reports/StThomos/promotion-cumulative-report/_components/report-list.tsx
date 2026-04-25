@@ -24,9 +24,9 @@ export const ReportList = ({ data, params }: ReportListProps) => {
         St_ThomosTotal = []
     } = data || {};
 
-    const handlePrint = useReactToPrint({
-        content: () => printRef.current
-    });
+    // const handlePrint = useReactToPrint({
+    //     content: () => printRef.current
+    // });
 
     const handleExportExcel = () => {
         const tableElement = printRef.current?.querySelector('table');
@@ -225,9 +225,9 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                     <Button variant='outline' size='sm' onClick={handleExportExcel} className='flex items-center gap-2'>
                         <FileDown className='h-4 w-4' /> Excel
                     </Button>
-                    <Button variant='default' size='sm' onClick={handlePrint} className='flex items-center gap-2'>
+                    {/* <Button variant='default' size='sm' onClick={handlePrint} className='flex items-center gap-2'>
                         <Printer className='h-4 w-4' /> Print
-                    </Button>
+                    </Button> */}
                 </div>
             </div>
             <CardContent className='p-6'>

@@ -50,7 +50,7 @@ export default function ToggleMasterVendorForm({ rowData, onClose }: ToggleMaste
                 toast.error(response.message);
             }
         } catch (error: any) {
-            toast.error(error.message);
+            toast.error(typeof error === 'string' ? error : error?.message || 'An unknown error occurred.');
         }
     };
 

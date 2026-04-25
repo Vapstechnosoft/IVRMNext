@@ -26,8 +26,8 @@ interface AddHolidayReportFormProps {
 
 export default function AddHolidayReportForm({ onSuccess, className = '', onReportData, onReset }: AddHolidayReportFormProps) {
 
-    const { data: leaveYearData } = useLeaveYearDropdown();
-    const { data: holidayTypeData, error: holidayTypeError, status: holidayTypeStatus } = useEmployeeShiftMappingHolidayTypes();
+    const { data: leaveYearData,isLoading: isLeaveYearLoading } = useLeaveYearDropdown();
+    const { data: holidayTypeData, error: holidayTypeError, status: holidayTypeStatus, isLoading: isHolidayTypeLoading } = useEmployeeShiftMappingHolidayTypes();
 
     useEffect(() => {
         if (holidayTypeStatus === 'error') {
@@ -133,8 +133,8 @@ export default function AddHolidayReportForm({ onSuccess, className = '', onRepo
                                     control={control}
                                     render={({ field }) => (
                                         <Select value={field.value || undefined} onValueChange={field.onChange}>
-                                            <SelectTrigger className={errors.hrmlY_Id ? 'border-red-500' : ''}>
-                                                <SelectValue placeholder='Select Calendar Year' />
+                                            <SelectTrigger className={errors.hrmlY_Id ? 'border-red-500' : ''} disabled={isLeaveYearLoading || leaveYearOptions.length === 0}>
+                                                <SelectValue placeholder={isLeaveYearLoading ? 'Loading...' : 'Select Calendar Year'} />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {leaveYearOptions.map((opt: any) => (
@@ -159,9 +159,9 @@ export default function AddHolidayReportForm({ onSuccess, className = '', onRepo
                                     name='fohwdT_Id'
                                     control={control}
                                     render={({ field }) => (
-                                        <Select value={field.value || undefined} onValueChange={field.onChange}>
+                                        <Select value={field.value || undefined} onValueChange={field.onChange} disabled={isHolidayTypeLoading || holidayTypeOptions.length === 0}>
                                             <SelectTrigger className={errors.fohwdT_Id ? 'border-red-500' : ''}>
-                                                <SelectValue placeholder='Select Holiday Type' />
+                                                <SelectValue placeholder={isHolidayTypeLoading ? 'Loading...' : 'Select Holiday Type'} />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {holidayTypeOptions.map((type: any) => (

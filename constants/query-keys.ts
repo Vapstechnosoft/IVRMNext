@@ -285,7 +285,19 @@ export const FEES_QUERY_KEYS = {
     FEE_FEE_RECEIPT_REPORT_LOGO: 'fee_fee_receipt_report_logo',
     FEE_CATEGORY_DROPDOWNS: 'fee_category_dropdown',
     FEE_STUDENT_DROPDOWNS: 'fee_student_dropdown',
-    FEE_HEAD_DROPDOWNS: 'fee_head_dropdown'
+    FEE_HEAD_DROPDOWNS: 'fee_head_dropdown',
+    FEE_USER_WISE_DAILY_COLLECTION_REPORT: 'fee_user_wise_daily_collection_report',
+    FEE_CHEQUE_BOUNCE_ACADEMIC_YEAR: 'fee_cheque_bounce_academic_year',
+    FEE_CHEQUE_BOUNCE_DROPDOWNS: 'fee_cheque_bounce_dropdowns',
+    FEE_CHEQUE_BOUNCE_CLASSES: 'fee_cheque_bounce_classes',
+    FEE_CHEQUE_BOUNCE_SECTIONS: 'fee_cheque_bounce_sections',
+    FEE_CHEQUE_BOUNCE_STUDENTS: 'fee_cheque_bounce_students',
+    FEE_CHEQUE_BOUNCE_RECEIPTS: 'fee_cheque_bounce_receipts',
+    FEE_INCOME_TAX_REPORT_ACADEMIC_YEAR: 'fee_income_tax_report_academic_year',
+    FEE_INCOME_TAX_REPORT_CLASS: 'fee_income_tax_report_class',
+    FEE_INCOME_TAX_REPORT_SECTION: 'fee_income_tax_report_section',
+    FEE_INCOME_TAX_REPORT_STUDENTS: 'fee_income_tax_report_students',
+    FEE_INCOME_TAX_REPORT_RESULT: 'fee_income_tax_report_result'
 };
 
 export const EXAM_QUERY_KEYS = {
