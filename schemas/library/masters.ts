@@ -187,7 +187,7 @@ export const masterTimeSlabSchema = {
             mI_Id: z.number().optional(),
             lfsE_UserType: z.string().min(1, 'User Type is required'),
             lfsE_SlabTypeFlg: z.string().min(1, 'Slab Type is required'),
-            lfsE_PerDayFlg: z.number().optional().default(0),
+            lfsE_PerDayFlg: z.coerce.number().optional().default(0),
             lfsE_FromDay: z.coerce.number().min(0, 'From Day must be at least 0'),
             lfsE_ToDay: z.coerce.number().optional(),
             lfsE_Amount: z.coerce.number().min(0, 'Amount must be at least 0'),
@@ -206,7 +206,7 @@ export const masterTimeSlabSchema = {
             }
         ),
     delete: z.object({
-        lfsE_Id: z.number()
+        lfsE_Id: z.coerce.number()
     })
 };
 

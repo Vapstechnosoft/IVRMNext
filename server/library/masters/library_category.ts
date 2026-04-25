@@ -17,8 +17,13 @@ export async function addOrUpdateMasterCategory(data: any) {
 }
 
 export async function toggleMasterCategory(id: number) {
-    const url = `/MasterCategory/deactivate/${id}`;
-    return await api.put('library', url);
+    try {
+        const url = `/MasterCategory/toggle/`;
+        return await api.put('library', url, { LMC_Id: id });
+    } catch (e: any) {
+        console.error("toggleMasterCategory backend error:", e);
+        throw e;
+    }
 }
 
 export async function deleteMasterCategory(id: number) {

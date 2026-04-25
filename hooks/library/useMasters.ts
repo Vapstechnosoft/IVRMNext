@@ -11,7 +11,7 @@ import { getMasterLibraryList } from '@/server/library/masters/master_library';
 import { getMasterPublisherList } from '@/server/library/masters/master_publisher';
 import { getMasterSubjectList, getparentsubjectdropdown } from '@/server/library/masters/master_subject';
 import { getMasterRackDetails } from '@/server/library/masters/rack-details';
-import { getMasterTimeSlab } from '@/server/library/masters/time-slab';
+import { getMasterTimeSlab, getMasterTimeSlabList } from '@/server/library/masters/time-slab';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -173,6 +173,23 @@ export function useMasterTimeSlab(searchParams?: ApiSearchparams) {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: ['MASTER_TIME_SLAB']
+            });
+        }
+    };
+}
+
+export function useMasterTimeSlabList(searchParams?: ApiSearchparams) {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: ['MASTER_TIME_SLAB_LIST', searchParams ?? {}],
+            queryFn: async () => getMasterTimeSlabList(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: ['MASTER_TIME_SLAB_LIST']
             });
         }
     };

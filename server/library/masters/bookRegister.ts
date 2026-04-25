@@ -31,8 +31,8 @@ export async function saveBookRegister(data: BookRegisterPayload) {
     try {
         const payload = {
             ...data,
-            LMB_EntryDate: new Date(data.LMB_EntryDate).toISOString(),
-            Purchase_Date: new Date(data.Purchase_Date).toISOString()
+            lmB_EntryDate: new Date(data.lmB_EntryDate).toISOString(),
+            purchase_Date: new Date(data.purchase_Date).toISOString()
         };
 
         const response = await api.post<any>('library', `${BASE_URL}Savedata`, payload);
