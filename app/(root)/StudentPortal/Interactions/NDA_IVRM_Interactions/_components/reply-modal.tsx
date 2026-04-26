@@ -263,7 +263,7 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
             <DialogContent className="max-w-5xl p-0 overflow-hidden border-none shadow-2xl rounded-3xl h-[90vh] flex flex-col">
-                <DialogHeader className="bg-primary p-6 text-white shrink-0">
+                <DialogHeader className="bg-[#1e40af] p-6 text-white shrink-0">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-md">

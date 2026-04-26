@@ -23,9 +23,8 @@ export function InteractionContainer({ initialData }: InteractionContainerProps)
     const [showFeedback, setShowFeedback] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
-    // In StudentPortal, we explicitly force the role to Student.
-    const roleFlg = 'Student';
-    const isStudent = true;
+    const roleFlg = interactionsData.roletype?.[0]?.ivrmrT_Role || 'Student';
+    const isStudent = roleFlg === 'Student' || roleFlg === 'Staff'; // In StudentPortal, we usually want student logic even for testing staff
 
     // Refresh inbox data
     const refreshData = useCallback(async () => {
@@ -72,13 +71,37 @@ export function InteractionContainer({ initialData }: InteractionContainerProps)
     };
 
     return (
-        <Card className="overflow-hidden border shadow-md rounded-none bg-white">
-            <div className="bg-[#1e40af] px-4 py-2 flex items-center justify-between">
-                <h2 className="text-white text-[11px] font-black tracking-widest uppercase">Interactions</h2>
-                <div className="h-4 w-4 bg-white/20 rounded-sm" />
+        <Card className="overflow-hidden border shadow-sm rounded-none bg-white min-h-[600px]">
+            <div className="bg-[#1e40af] px-4 py-2.5 flex items-center justify-between border-b border-white/10">
+                <div className="flex items-center gap-2">
+                    <div className="h-3 w-3 bg-white/40 rounded-full animate-pulse" />
+                    <h2 className="text-white text-[11px] font-black tracking-[0.2em] uppercase">Interactions</h2>
+                </div>
+                <div className="flex gap-1">
+                    <div className="h-1 w-4 bg-white/20 rounded-full" />
+                    <div className="h-1 w-8 bg-white/40 rounded-full" />
+                </div>
             </div>
             <CardContent className="p-0">
                 <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
+                    <div className="bg-[#f8fafc] border-b">
+                        <TabsList className="h-10 w-full justify-start gap-0 bg-transparent p-0 rounded-none">
+                            <TabsTrigger
+                                value="inbox"
+                                className="h-10 px-8 text-[11px] font-black uppercase tracking-tight data-[state=active]:bg-[#1e40af] data-[state=active]:text-white rounded-none border-r text-slate-500 transition-all"
+                            >
+                                Inbox
+                            </TabsTrigger>
+
+                            <TabsTrigger
+                                value="individual"
+                                className="h-10 px-8 text-[11px] font-black uppercase tracking-tight data-[state=active]:bg-[#1e40af] data-[state=active]:text-white rounded-none border-r text-slate-500 transition-all"
+                            >
+                                Compose
+                            </TabsTrigger>
+                        </TabsList>
+                    </div>
+
                     <div className="p-4 relative min-h-[500px]">
                         {isLoading && (
                             <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/20 backdrop-blur-[1px]">
@@ -94,17 +117,6 @@ export function InteractionContainer({ initialData }: InteractionContainerProps)
                             />
                         </TabsContent>
 
-                        <TabsContent value="group" className="mt-0 outline-none">
-                            <ComposeTab
-                                data={interactionsData}
-                                mode="Group"
-                                onCancel={() => setActiveTab('inbox')}
-                                onSuccess={() => {
-                                    setActiveTab('inbox');
-                                    refreshData();
-                                }}
-                            />
-                        </TabsContent>
 
                         <TabsContent value="individual" className="mt-0 outline-none">
                             <ComposeTab
@@ -126,9 +138,9 @@ export function InteractionContainer({ initialData }: InteractionContainerProps)
                     isOpen={showFeedback}
                     onClose={() => setShowFeedback(false)}
                     questions={feedbackData.questions}
-                    options={feedbackData.options} 
-                    roleFlg={roleFlg} 
-                    userhrmE_Id={initialData.userhrmE_Id ?? 0} 
+                    options={feedbackData.options}
+                    roleFlg={roleFlg}
+                    userhrmE_Id={initialData.userhrmE_Id ?? 0}
                 />
             )}
         </Card>

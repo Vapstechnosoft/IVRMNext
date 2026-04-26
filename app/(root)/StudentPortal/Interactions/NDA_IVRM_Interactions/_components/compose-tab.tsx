@@ -9,21 +9,21 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { 
+import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
     DialogFooter
 } from '@/components/ui/dialog';
-import { 
-    Send, 
-    X, 
-    Plus, 
-    Paperclip, 
-    Loader2, 
-    User, 
-    Users, 
+import {
+    Send,
+    X,
+    Plus,
+    Paperclip,
+    Loader2,
+    User,
+    Users,
     Search,
     GraduationCap,
     School,
@@ -36,9 +36,9 @@ import {
     Eye,
     Download
 } from 'lucide-react';
-import { 
-    getRecipientsByRole, 
-    getNDASectionsForInteraction, 
+import {
+    getRecipientsByRole,
+    getNDASectionsForInteraction,
     getStudentsForInteraction,
     saveInteractionData
 } from '@/server/staff-portal/interactions';
@@ -67,22 +67,25 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
     const [recipients, setRecipients] = useState<IRecipient[]>([]);
     const [sections, setSections] = useState<any[]>([]);
     const [students, setStudents] = useState<IRecipient[]>([]);
-    
+
     const [selectedClass, setSelectedClass] = useState<string>('');
     const [selectedSection, setSelectedSection] = useState<string>('');
     const [selectedRecipientId, setSelectedRecipientId] = useState<string>('');
     const [selectedGroupItems, setSelectedGroupItems] = useState<number[]>([]);
-    
+
     const [subject, setSubject] = useState('');
     const [message, setMessage] = useState('');
-    const [selectedYear, setSelectedYear] = useState<string>(data.allacademicyear?.[0]?.asmaY_Id?.toString() || '');
+    const [selectedYear, setSelectedYear] = useState<string>(() => {
+        const activeYear = data.allacademicyear?.find(y => y.is_Active || y.asmaY_ActiveFlag === 1);
+        return activeYear?.asmaY_Id?.toString() || data.allacademicyear?.[0]?.asmaY_Id?.toString() || '';
+    });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isLoadingDetails, setIsLoadingDetails] = useState(false);
-    
+
     const [files, setFiles] = useState<{ name: string; file: File | null; path?: string }[]>([{ name: '', file: null }]);
     const [searchTerm, setSearchTerm] = useState('');
     const [currentTime, setCurrentTime] = useState(new Date());
-    
+
     // Preview state
     const [previewFile, setPreviewFile] = useState<{ url: string; name: string; type: string } | null>(null);
     const [xlsxPreviewData, setXlsxPreviewData] = useState<any[][] | null>(null);
@@ -93,8 +96,8 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
         return () => clearInterval(timer);
     }, []);
 
-    const roleFlg = 'Student';
-    const isStudentRole = true;
+    const roleFlg = data.roletype?.[0]?.ivrmrT_Role || 'Student';
+    const isStudentRole = roleFlg === 'Student' || roleFlg === 'Staff';
     const config = data.configflag?.[0] || {};
 
     const availableUserTypes = useMemo(() => {
@@ -102,7 +105,7 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
             const types = [];
             if (data.chatwithstudent !== false) types.push({ id: 'Student', label: 'Student' });
             if (data.chatwithstaff !== false) types.push({ id: 'Teachers', label: 'Teachers' });
-            
+
             if (mode === 'Individual' && data.chatwithstaff !== false) {
                 if (config.ivrmgC_EnableHODIntFlg) types.push({ id: 'HOD', label: 'HOD' });
                 types.push({ id: 'Principal', label: 'Principal' });
@@ -112,11 +115,10 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
             return types;
         } else {
             const types = [];
-            // Safely default to true if the config flag is undefined or missing
-            if (config.ivrmgC_EnableSTSUBTIntFlg !== false) types.push({ id: 'SubjectTeacher', label: 'Subject Teacher' });
-            if (config.ivrmgC_EnableSTCTIntFlg !== false) types.push({ id: 'ClassTeacher', label: 'Class Teacher' });
-            if (config.ivrmgC_EnableSTHODIntFlg) types.push({ id: 'HOD', label: 'HOD' }); // HOD usually explicit
-            if (config.ivrmgC_EnableSTPrincipalIntFlg !== false) types.push({ id: 'Principal', label: 'Principal' });
+            types.push({ id: 'SubjectTeacher', label: 'Subject Teacher' });
+            types.push({ id: 'ClassTeacher', label: 'Class Teacher' });
+            if (config.ivrmgC_EnableSTHODIntFlg) types.push({ id: 'HOD', label: 'HOD' });
+            types.push({ id: 'Principal', label: 'Principal' });
             return types;
         }
     }, [isStudentRole, data, config, mode]);
@@ -128,25 +130,37 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
             try {
                 const res = await getRecipientsByRole(roleFlg, userFlag, Number(selectedYear));
                 if (res.success && res.data) {
-                    const detailList = Array.isArray(res.data) ? res.data : (res.data.getdetails || []);
-                    // Deduplicate and group by HRME_Id, concatenating subject names
-                    const groupedRecipients = Object.values(detailList.reduce((acc: any, curr: any) => {
-                        const id = curr.HRME_Id || curr.AMST_Id; // Safe fallback for students
-                        if (!id) return acc;
-                        if (!acc[id]) {
-                            acc[id] = { ...curr };
-                        } else if (curr.ISMS_SubjectName) {
-                            if (!acc[id].ISMS_SubjectName) {
-                                acc[id].ISMS_SubjectName = curr.ISMS_SubjectName;
-                            } else if (!acc[id].ISMS_SubjectName.includes(curr.ISMS_SubjectName)) {
-                                acc[id].ISMS_SubjectName += `, ${curr.ISMS_SubjectName}`;
-                            }
+                    const dataObj = res.data as any;
+                    let detailList = Array.isArray(dataObj) ? dataObj : (dataObj.getdetails || []);
+
+                    // Handle JSON-serialized filter data if present (special case for some flags like ClassTeacher)
+                    const rawData = Array.isArray(dataObj) ? dataObj : (dataObj.getdetails || dataObj.data || []);
+                    if (Array.isArray(rawData) && rawData.length > 0 && rawData[0].IVRM_Interaction_filter) {
+                        try {
+                            detailList = JSON.parse(rawData[0].IVRM_Interaction_filter);
+                        } catch (e) {
+                            console.error('Failed to parse IVRM_Interaction_filter:', e);
                         }
-                        return acc;
-                    }, {}));
-                    setRecipients(groupedRecipients as any[]);
+                    }
+
+                    // Precision deduplication to ensure frontend matches backend record count exactly
+                    const uniqueList: any[] = [];
+                    const seenKeys = new Set();
+                    detailList.forEach((item: any) => {
+                        const id = item.HRME_Id || item.AMST_Id || item.ASMCL_Id || 'no-id';
+                        const className = item.ASMCL_ClassName || item.classname || 'no-class';
+                        const sectionName = item.ASMC_SectionName || item.sectionname || 'no-section';
+                        const key = `${id}-${className}-${sectionName}`;
+
+                        if (!seenKeys.has(key)) {
+                            seenKeys.add(key);
+                            uniqueList.push(item);
+                        }
+                    });
+
+                    setRecipients(uniqueList);
                 } else {
-                     setRecipients([]);
+                    setRecipients([]);
                 }
             } catch (error) {
                 toast.error('Failed to load recipients');
@@ -155,7 +169,7 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
             }
         };
         fetchDetails();
-        
+
         setSelectedClass('');
         setSections([]);
         setSelectedSection('');
@@ -163,12 +177,12 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
         setSelectedRecipientId('');
         setSelectedGroupItems([]);
     }, [userFlag, selectedYear, roleFlg]);
-    
+
     const classList = useMemo(() => {
         if (userFlag !== 'Student') return [];
         const uniqueClasses: any[] = [];
         const seenIds = new Set();
-        
+
         recipients.forEach((item: any) => {
             if (item.ASMCL_Id && !seenIds.has(item.ASMCL_Id)) {
                 seenIds.add(item.ASMCL_Id);
@@ -182,7 +196,7 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
         setSelectedClass(classId);
         setSelectedSection('');
         setStudents([]);
-        
+
         setIsLoadingDetails(true);
         try {
             const res = await getNDASectionsForInteraction(Number(classId), Number(selectedYear), roleFlg);
@@ -204,7 +218,20 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
             const res = await getStudentsForInteraction(Number(selectedClass), Number(sectionId));
             if (res.success && res.data) {
                 const studentList = Array.isArray(res.data) ? res.data : (res.data.get_student || []);
-                setStudents(studentList);
+
+                // Deduplicate students
+                const uniqueStudents: any[] = [];
+                const seenStudentIds = new Set();
+                studentList.forEach((s: any) => {
+                    if (s.AMST_Id && !seenStudentIds.has(s.AMST_Id)) {
+                        seenStudentIds.add(s.AMST_Id);
+                        uniqueStudents.push(s);
+                    } else if (!s.AMST_Id) {
+                        uniqueStudents.push(s);
+                    }
+                });
+
+                setStudents(uniqueStudents);
             }
         } catch (error) {
             toast.error('Failed to load students');
@@ -224,7 +251,7 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
     };
 
     const toggleItemSelection = (id: number) => {
-        setSelectedGroupItems(prev => 
+        setSelectedGroupItems(prev =>
             prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
         );
     };
@@ -245,7 +272,7 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
         if (fileObj.file) {
             const url = URL.createObjectURL(fileObj.file);
             setPreviewFile({ url, name: fileObj.name, type: fileObj.file.type });
-            
+
             // Handle XLSX Parsing
             if (fileObj.name.toLowerCase().endsWith('.xlsx') || fileObj.name.toLowerCase().endsWith('.xls')) {
                 const reader = new FileReader();
@@ -337,7 +364,7 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                 if (userFlag === 'Student') {
                     toId = Number(selectedRecipientId);
                     payload.arrayStudent = [{ AMST_Id: toId }];
-                } else if (userFlag === 'Teachers' || userFlag === 'SubjectTeacher') {
+                } else if (userFlag === 'Teachers' || userFlag === 'SubjectTeacher' || userFlag === 'ClassTeacher' || userFlag === 'Principal' || userFlag === 'HOD') {
                     toId = Number(selectedRecipientId);
                     payload.arrayTeachers = [{ HRME_Id: toId }];
                 } else {
@@ -362,44 +389,46 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
         }
     };
 
-    const filteredRecipientsList = recipients.filter(r => 
+    const filteredRecipientsList = recipients.filter(r =>
         (r.EmpName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (r.HRME_EmployeeCode || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const filteredStudentsList = students.filter(s => 
+    const filteredStudentsList = students.filter(s =>
         (s.studentName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (s.AMST_AdmNo || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
-        <div className="space-y-6 max-w-5xl mx-auto animate-in fade-in duration-500 pb-12">
-            {/* Header Status */}
-            <div className="flex items-center justify-between px-2">
+        <div className="space-y-4 max-w-5xl mx-auto animate-in fade-in duration-500 pb-8">
+            {/* Header Status - Simplified */}
+            <div className="flex items-center justify-between border-b border-[#1e40af]/10 pb-2">
                 <div className="flex items-center gap-2">
-                    <div className="h-4 w-4 rounded-full bg-primary animate-pulse" />
-                    <h2 className="text-xl font-bold tracking-tight text-foreground/80">Compose Interaction</h2>
+                    <h2 className="text-[11px] font-black tracking-[0.15em] text-[#1e40af] uppercase">Compose New Interaction</h2>
                 </div>
-                <Badge variant="outline" className="px-4 py-1.5 rounded-full bg-muted/30 border-primary/20 text-xs font-bold gap-2">
-                    <Calendar className="h-3.5 w-3.5 text-primary" />
-                    {format(new Date(), 'dd/MM/yyyy')} 
-                    <span className="opacity-20">|</span>
-                    <Clock className="h-3.5 w-3.5 text-primary" />
-                    {format(currentTime, 'hh:mm a')}
-                </Badge>
+                <div className="flex items-center gap-4 text-[9px] font-black uppercase tracking-tight text-slate-400">
+                    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-sm bg-slate-100 border text-slate-500">
+                        <Calendar className="h-2.5 w-2.5" />
+                        {format(new Date(), 'dd/MM/yyyy')}
+                    </div>
+                    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-sm bg-slate-100 border text-slate-500">
+                        <Clock className="h-2.5 w-2.5" />
+                        {format(currentTime, 'hh:mm a')}
+                    </div>
+                </div>
             </div>
 
             {/* Selection Form Card - Centered Labels like Legacy */}
             <Card className="border shadow-sm bg-background/50 backdrop-blur-sm overflow-hidden">
                 <CardContent className="p-8 space-y-6 max-w-3xl mx-auto">
                     {/* User Type Selection */}
-                    <RadioGroup 
-                        value={userFlag} 
+                    <RadioGroup
+                        value={userFlag}
                         onValueChange={setUserFlag}
                         className="flex flex-wrap items-center justify-center gap-8 py-2"
                     >
-                        {availableUserTypes.map((type) => (
-                            <div key={type.id} className="flex items-center space-x-2">
+                        {availableUserTypes.map((type, idx) => (
+                            <div key={type.id || idx} className="flex items-center space-x-2">
                                 <RadioGroupItem value={type.id} id={type.id} className="border-primary" />
                                 <Label htmlFor={type.id} className="text-sm font-bold cursor-pointer hover:text-primary transition-colors">
                                     {type.label}
@@ -418,8 +447,8 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                                     <SelectValue placeholder="Select Year" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {data.allacademicyear?.map((year) => (
-                                        <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>
+                                    {data.allacademicyear?.filter(year => year.asmaY_Id).map((year, idx) => (
+                                        <SelectItem key={year.asmaY_Id || idx} value={year.asmaY_Id.toString()}>
                                             {year.asmaY_Year}
                                         </SelectItem>
                                     ))}
@@ -436,8 +465,8 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                                             <SelectValue placeholder="Select Class" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {classList.map((cls: any) => (
-                                                <SelectItem key={cls.ASMCL_Id} value={cls.ASMCL_Id.toString()}>
+                                            {classList.filter(cls => cls.ASMCL_Id).map((cls: any, idx) => (
+                                                <SelectItem key={cls.ASMCL_Id || idx} value={cls.ASMCL_Id.toString()}>
                                                     {cls.ASMCL_ClassName}
                                                 </SelectItem>
                                             ))}
@@ -451,8 +480,8 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                                             <SelectValue placeholder="Select Section" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {sections.map((sec: any) => (
-                                                <SelectItem key={sec.asmS_Id} value={sec.asmS_Id.toString()}>
+                                            {sections.filter(sec => sec.asmS_Id).map((sec: any, idx) => (
+                                                <SelectItem key={sec.asmS_Id || idx} value={sec.asmS_Id.toString()}>
                                                     {sec.asmC_SectionName}
                                                 </SelectItem>
                                             ))}
@@ -467,11 +496,16 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                                                 <SelectValue placeholder="Select Student" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {students.map((s) => (
-                                                    <SelectItem key={s.AMST_Id} value={s.AMST_Id?.toString() || ''}>
-                                                        {s.studentName}
-                                                    </SelectItem>
-                                                ))}
+                                                {students.filter(s => s.AMST_Id).map((s, idx) => {
+                                                    const className = s.ASMCL_ClassName || (s as any).classname || (s as any).ClassName;
+                                                    const sectionName = s.ASMC_SectionName || (s as any).sectionname || (s as any).SectionName;
+                                                    const context = (className || sectionName) ? ` (${className || ''}${className && sectionName ? ' - ' : ''}${sectionName || ''})` : '';
+                                                    return (
+                                                        <SelectItem key={s.AMST_Id || idx} value={s.AMST_Id?.toString() || `student-${idx}`}>
+                                                            {idx + 1}. {s.studentName}{context}
+                                                        </SelectItem>
+                                                    );
+                                                })}
                                             </SelectContent>
                                         </Select>
                                     ) : (
@@ -493,11 +527,25 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                                         <SelectValue placeholder={`Select ${userFlag.toLowerCase()}`} />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {recipients.map((r) => (
-                                            <SelectItem key={r.HRME_Id} value={r.HRME_Id?.toString() || ''}>
-                                                {r.EmpName} {r.ISMS_SubjectName ? `(${r.ISMS_SubjectName})` : ''}
-                                            </SelectItem>
-                                        ))}
+                                        {recipients.filter(r => r.HRME_Id || r.AMST_Id).map((r, idx) => {
+                                            const name = r.EmpName || r.studentName;
+                                            const sub = r.HRME_EmployeeCode || r.AMST_AdmNo;
+                                            const className = r.ASMCL_ClassName || (r as any).classname || (r as any).ClassName;
+                                            const sectionName = r.ASMC_SectionName || (r as any).sectionname || (r as any).SectionName;
+                                            const subjectName = r.ISMS_SubjectName || (r as any).subjectname || (r as any).SubjectName;
+
+                                            const contextArr = [];
+                                            if (className) contextArr.push(className);
+                                            if (sectionName) contextArr.push(sectionName);
+                                            if (subjectName) contextArr.push(subjectName);
+                                            const context = contextArr.length > 0 ? ` - ${contextArr.join(' - ')}` : '';
+
+                                            return (
+                                                <SelectItem key={(r.HRME_Id || r.AMST_Id || idx).toString()} value={(r.HRME_Id || r.AMST_Id || 0).toString()}>
+                                                    {idx + 1}. {name}{sub ? ` (${sub})` : ''}{context}
+                                                </SelectItem>
+                                            );
+                                        })}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -518,16 +566,16 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                             <div className="flex items-center gap-4">
                                 <div className="relative w-48">
                                     <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                                    <Input 
-                                        className="h-8 pl-8 text-xs font-medium bg-background border shadow-none" 
+                                    <Input
+                                        className="h-8 pl-8 text-xs font-medium bg-background border shadow-none"
                                         placeholder="Filter list..."
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                     />
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <Checkbox 
-                                        id="sel-all" 
+                                    <Checkbox
+                                        id="sel-all"
                                         checked={(userFlag === 'Student' ? students : recipients).length > 0 && selectedGroupItems.length === (userFlag === 'Student' ? students : recipients).length}
                                         onCheckedChange={(checked) => handleSelectAll(checked === true)}
                                     />
@@ -537,13 +585,13 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                         </div>
                         <ScrollArea className="h-[250px] border rounded-lg bg-background">
                             <div className="p-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                                {(userFlag === 'Student' ? filteredStudentsList : filteredRecipientsList).map(item => {
+                                {(userFlag === 'Student' ? filteredStudentsList : filteredRecipientsList).map((item, idx) => {
                                     const id = userFlag === 'Student' ? item.AMST_Id! : item.HRME_Id!;
                                     const name = userFlag === 'Student' ? item.studentName : item.EmpName;
                                     const sub = userFlag === 'Student' ? item.AMST_AdmNo : item.HRME_EmployeeCode;
                                     return (
-                                        <div 
-                                            key={id} 
+                                        <div
+                                            key={`${id}-${idx}`}
                                             className={cn(
                                                 "flex items-center gap-3 p-2 rounded-md border text-xs font-medium cursor-pointer transition-colors",
                                                 selectedGroupItems.includes(id) ? "bg-primary/5 border-primary" : "hover:bg-muted/50"
@@ -552,8 +600,15 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                                         >
                                             <Checkbox checked={selectedGroupItems.includes(id)} />
                                             <div className="flex flex-col min-w-0">
-                                                <span className="truncate block">{name}</span>
-                                                <span className="text-[10px] text-muted-foreground font-bold">{sub}</span>
+                                                <span className="truncate block">
+                                                    {idx + 1}. {name}
+                                                    {sub && <span className="text-muted-foreground font-bold ml-1">({sub})</span>}
+                                                </span>
+                                                <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-[9px] font-black uppercase tracking-tight text-blue-600/60 mt-0.5">
+                                                    {item.ASMCL_ClassName && <span>{item.ASMCL_ClassName}</span>}
+                                                    {item.ASMC_SectionName && <span><span className="mx-1 opacity-40">|</span>{item.ASMC_SectionName}</span>}
+                                                    {item.ISMS_SubjectName && <span><span className="mx-1 opacity-40">|</span>{item.ISMS_SubjectName}</span>}
+                                                </div>
                                             </div>
                                         </div>
                                     );
@@ -577,14 +632,14 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                         <div className="flex gap-6">
                             <Label className="w-20 pt-2 text-sm font-bold text-right shrink-0">Subject : <span className="text-red-500">*</span></Label>
                             <div className="flex-1 space-y-4">
-                                <Input 
-                                    className="h-10 text-sm font-medium border focus-visible:ring-primary/20" 
+                                <Input
+                                    className="h-10 text-sm font-medium border focus-visible:ring-primary/20"
                                     placeholder="Interaction Subject"
                                     value={subject}
                                     onChange={(e) => setSubject(e.target.value)}
                                 />
-                                <Textarea 
-                                    className="min-h-[160px] text-sm font-medium border resize-none p-4" 
+                                <Textarea
+                                    className="min-h-[160px] text-sm font-medium border resize-none p-4"
                                     placeholder="Message details..."
                                     value={message}
                                     onChange={(e) => setMessage(e.target.value)}
@@ -594,16 +649,16 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
 
                         {/* Action Buttons inside the card logic */}
                         <div className="flex items-center justify-end gap-3 pt-4 border-t">
-                            <Button 
-                                className="bg-primary hover:bg-primary/90 rounded-md font-bold px-8" 
+                            <Button
+                                className="bg-primary hover:bg-primary/90 rounded-md font-bold px-8"
                                 disabled={isSubmitting}
                                 onClick={handleSubmit}
                             >
                                 {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}
                                 SEND
                             </Button>
-                            <Button 
-                                variant="outline" 
+                            <Button
+                                variant="outline"
                                 className="bg-orange-500 hover:bg-orange-600 text-white border-none rounded-md font-bold px-8"
                                 onClick={onCancel}
                             >
@@ -632,9 +687,9 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                                         <td className="px-4 py-2 border-r relative">
                                             <Button size="sm" variant="outline" className="h-7 w-full text-[10px] font-bold bg-primary/90 text-white border-none shadow-sm cursor-pointer relative overflow-hidden">
                                                 Browse
-                                                <input 
-                                                    type="file" 
-                                                    className="absolute inset-0 opacity-0 cursor-pointer" 
+                                                <input
+                                                    type="file"
+                                                    className="absolute inset-0 opacity-0 cursor-pointer"
                                                     onChange={(e) => handleFileChange(idx, e)}
                                                 />
                                             </Button>
@@ -648,9 +703,9 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                                         </td>
                                         <td className="px-4 py-2 text-center border-r">
                                             {file.name ? (
-                                                <Button 
-                                                    variant="ghost" 
-                                                    size="icon" 
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
                                                     className="h-6 w-6 text-primary hover:bg-primary/10"
                                                     onClick={() => handleViewFile(file)}
                                                 >
@@ -660,18 +715,18 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                                         </td>
                                         <td className="px-4 py-2 text-center">
                                             <div className="flex items-center justify-center gap-1">
-                                                <Button 
-                                                    variant="ghost" 
-                                                    size="icon" 
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
                                                     className="h-6 w-6 text-primary hover:bg-primary/10 rounded-sm border"
                                                     onClick={addNewFile}
                                                 >
                                                     <Plus className="h-3.5 w-3.5" />
                                                 </Button>
                                                 {files.length > 1 && (
-                                                    <Button 
-                                                        variant="ghost" 
-                                                        size="icon" 
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
                                                         className="h-6 w-6 text-red-500 hover:bg-red-50 rounded-sm border"
                                                         onClick={() => removeFile(idx)}
                                                     >
@@ -699,9 +754,9 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                 <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-0 overflow-hidden rounded-2xl border-none shadow-2xl">
                     <DialogHeader className="p-6 bg-primary text-white flex-row items-center justify-between space-y-0">
                         <DialogTitle className="text-lg font-bold truncate pr-8">{previewFile?.name}</DialogTitle>
-                        <Button 
-                            variant="ghost" 
-                            size="icon" 
+                        <Button
+                            variant="ghost"
+                            size="icon"
                             className="h-8 w-8 text-white hover:bg-white/20 rounded-full"
                             onClick={() => setPreviewFile(null)}
                         >
@@ -711,9 +766,9 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                     <div className="flex-1 overflow-auto bg-muted/20 p-8 flex items-center justify-center min-h-[300px]">
                         {previewFile?.url && (
                             previewFile.type?.startsWith('video/') ? (
-                                <video 
-                                    src={previewFile.url} 
-                                    controls 
+                                <video
+                                    src={previewFile.url}
+                                    controls
                                     className="max-w-full max-h-full rounded-lg shadow-xl"
                                     autoPlay
                                 />
@@ -722,17 +777,17 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                                     <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center">
                                         <FileText className="h-10 w-10 text-primary" />
                                     </div>
-                                    <audio 
-                                        src={previewFile.url} 
-                                        controls 
+                                    <audio
+                                        src={previewFile.url}
+                                        controls
                                         className="w-full"
                                         autoPlay
                                     />
                                     <p className="text-sm font-bold text-muted-foreground">{previewFile.name}</p>
                                 </div>
                             ) : previewFile.type === 'application/pdf' ? (
-                                <iframe 
-                                    src={previewFile.url} 
+                                <iframe
+                                    src={previewFile.url}
                                     className="w-full h-full min-h-[600px] border-none rounded-lg"
                                     title={previewFile.name}
                                 />
@@ -772,17 +827,17 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                                         <Badge variant="outline" className="text-[9px] bg-blue-50 text-blue-700 border-blue-200">DOCX CONTENT</Badge>
                                     </div>
                                     <ScrollArea className="flex-1 w-full overflow-auto bg-white">
-                                        <div 
+                                        <div
                                             className="p-10 prose prose-sm max-w-none prose-slate"
                                             dangerouslySetInnerHTML={{ __html: docxPreviewHtml }}
                                         />
                                     </ScrollArea>
                                 </div>
                             ) : previewFile.type?.startsWith('image/') ? (
-                                <img 
-                                    src={previewFile.url} 
-                                    alt={previewFile.name} 
-                                    className="max-w-full max-h-full object-contain rounded-lg shadow-xl" 
+                                <img
+                                    src={previewFile.url}
+                                    alt={previewFile.name}
+                                    className="max-w-full max-h-full object-contain rounded-lg shadow-xl"
                                 />
                             ) : (
                                 <div className="flex flex-col items-center gap-6 w-full max-w-md bg-background p-10 rounded-2xl shadow-xl border">
@@ -793,7 +848,7 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                                         <h4 className="font-bold">Document Preview Unavailable</h4>
                                         <p className="text-xs text-muted-foreground">This file type ({previewFile.name.split('.').pop()?.toUpperCase()}) cannot be viewed directly in the browser.</p>
                                     </div>
-                                    <Button 
+                                    <Button
                                         className="w-full h-12 bg-primary hover:bg-primary/90 font-bold gap-2"
                                         onClick={handleDownloadPreview}
                                     >
@@ -805,22 +860,22 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                         )}
                     </div>
                     <DialogFooter className="p-6 bg-background border-t gap-3">
-                        <Button 
-                            variant="outline" 
+                        <Button
+                            variant="outline"
                             className="rounded-full px-6 font-bold"
                             onClick={() => setPreviewFile(null)}
                         >
                             Close
                         </Button>
-                        <Button 
+                        <Button
                             className="rounded-full px-8 bg-primary hover:bg-primary/90 font-black gap-2 shadow-lg shadow-primary/20"
                             onClick={handleDownloadPreview}
                         >
                             <Download className="h-4 w-4" />
-                            {previewFile?.type?.startsWith('video/') ? 'Download Video' : 
-                             previewFile?.type?.startsWith('audio/') ? 'Download Audio' : 
-                             previewFile?.type?.startsWith('image/') ? 'Download Image' :
-                             previewFile?.type === 'application/pdf' ? 'Download PDF' : 'Download File'}
+                            {previewFile?.type?.startsWith('video/') ? 'Download Video' :
+                                previewFile?.type?.startsWith('audio/') ? 'Download Audio' :
+                                    previewFile?.type?.startsWith('image/') ? 'Download Image' :
+                                        previewFile?.type === 'application/pdf' ? 'Download PDF' : 'Download File'}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

@@ -66,7 +66,33 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
             try {
                 const res = await getRecipientsByRole(roleFlg, userFlag, Number(selectedYear));
                 if (res.success && res.data) {
-                    setRecipients(res.data.getdetails || []);
+                    let detailList = (res.data as any).getdetails || (Array.isArray(res.data) ? res.data : []);
+                    
+                    const rawData = (res.data as any).data || res.data;
+                    if (Array.isArray(rawData) && rawData.length > 0 && rawData[0].IVRM_Interaction_filter) {
+                        try {
+                            detailList = JSON.parse(rawData[0].IVRM_Interaction_filter);
+                        } catch (e) {
+                            console.error('Failed to parse IVRM_Interaction_filter:', e);
+                        }
+                    }
+
+                    // Deduplicate recipients
+                    const uniqueRecipients: any[] = [];
+                    const seenRecipientIds = new Set();
+                    detailList.forEach((item: any) => {
+                        const id = item.HRME_Id || item.AMST_Id || item.ASMCL_Id;
+                        if (id) {
+                            if (!seenRecipientIds.has(id)) {
+                                seenRecipientIds.add(id);
+                                uniqueRecipients.push(item);
+                            }
+                        } else {
+                            uniqueRecipients.push(item);
+                        }
+                    });
+
+                    setRecipients(uniqueRecipients);
                 }
             } catch (error) {
                 toast.error('Failed to load recipients');
@@ -109,7 +135,21 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
         try {
             const res = await getStudentsForInteraction(Number(selectedClass), Number(sectionId));
             if (res.success && res.data) {
-                setStudents(res.data.get_student || []);
+                const studentList = res.data.get_student || [];
+                
+                // Deduplicate students
+                const uniqueStudents: any[] = [];
+                const seenStudentIds = new Set();
+                studentList.forEach((s: any) => {
+                    if (s.AMST_Id && !seenStudentIds.has(s.AMST_Id)) {
+                        seenStudentIds.add(s.AMST_Id);
+                        uniqueStudents.push(s);
+                    } else if (!s.AMST_Id) {
+                        uniqueStudents.push(s);
+                    }
+                });
+                
+                setStudents(uniqueStudents);
             }
         } catch (error) {
             toast.error('Failed to load students');
@@ -222,7 +262,7 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                                 <SelectValue placeholder="Select Academic Year" />
                             </SelectTrigger>
                             <SelectContent>
-                                {data.allacademicyear?.map((year) => (
+                                {data.allacademicyear?.filter(year => year.asmaY_Id).map((year) => (
                                     <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>
                                         {year.asmaY_Year}
                                     </SelectItem>
@@ -274,7 +314,7 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                                             <SelectValue placeholder="Select Class" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {recipients.map((cls: any) => (
+                                            {recipients.filter((cls: any) => cls.ASMCL_Id).map((cls: any) => (
                                                 <SelectItem key={cls.ASMCL_Id} value={cls.ASMCL_Id.toString()}>
                                                     {cls.ASMCL_ClassName}
                                                 </SelectItem>
@@ -293,7 +333,7 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                                             <SelectValue placeholder="Select Section" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {sections.map((sec: any) => (
+                                            {sections.filter(sec => sec.asmS_Id).map((sec: any) => (
                                                 <SelectItem key={sec.asmS_Id} value={sec.asmS_Id.toString()}>
                                                     {sec.asmC_SectionName}
                                                 </SelectItem>
@@ -384,11 +424,11 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                                                 <SelectValue placeholder="Select Individual" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {(userFlag === 'student' ? students : recipients).map((item) => {
+                                                {(userFlag === 'student' ? students : recipients).filter(item => (userFlag === 'student' ? item.AMST_Id : item.HRME_Id)).map((item, idx) => {
                                                     const id = userFlag === 'student' ? item.AMST_Id! : item.HRME_Id!;
                                                     const name = userFlag === 'student' ? item.studentName : item.EmpName;
                                                     return (
-                                                        <SelectItem key={id} value={id.toString()}>
+                                                        <SelectItem key={id || idx} value={id?.toString() || `item-${idx}`}>
                                                             {name} {item.AMST_AdmNo ? `(${item.AMST_AdmNo})` : ''}
                                                         </SelectItem>
                                                     );

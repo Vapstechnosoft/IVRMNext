@@ -3,9 +3,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
-import { InboxTab } from '@/app/(root)/StaffPortal/Interactions/IVRM_Interactions/_components/inbox-tab';
-import { ComposeTab } from '@/app/(root)/StaffPortal/Interactions/IVRM_Interactions/_components/compose-tab';
-import { FeedbackModal } from '@/app/(root)/StaffPortal/Interactions/IVRM_Interactions/_components/feedback-modal';
+import { InboxTab } from './inbox-tab';
+import { ComposeTab } from './compose-tab';
+import { FeedbackModal } from './feedback-modal';
 import { loadFeedbackQuestions, getInitialInteractions } from '@/server/staff-portal/interactions';
 import type { IInteractionsInitialData, IFeedbackQuestion, IFeedbackOption } from '@/types/staff-portal/interactions';
 
@@ -23,8 +23,8 @@ export function InteractionContainer({ initialData }: InteractionContainerProps)
     const [showFeedback, setShowFeedback] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
-    const roleFlg = interactionsData.roletype?.[0]?.ivrmrT_Role || 'Staff';
-    const isStudent = roleFlg === 'Student';
+    const roleFlg = interactionsData.roletype?.[0]?.ivrmrT_Role || 'Student';
+    const isStudent = true; // Force Student Portal logic
 
     // Refresh inbox data
     const refreshData = useCallback(async () => {
@@ -48,13 +48,29 @@ export function InteractionContainer({ initialData }: InteractionContainerProps)
             try {
                 const response = await loadFeedbackQuestions('Interaction');
                 if (response.success && response.data && response.data.feedbackquestion?.length > 0) {
-                    const mappedQuestions = response.data.feedbackquestion.map(q => ({
-                        ...q,
-                        feedbackoptiondata: (response.data as any).feedbackoption.filter((o: any) => o.fmqE_Id === q.fmqE_Id)
-                    }));
+                    const rawQuestions = response.data.feedbackquestion || [];
+                    const allOptions = (response.data as any).feedbackoption || [];
+                    const uniqueQuestions = rawQuestions.reduce((acc: any[], q: any) => {
+                        if (q.fmqE_Id && !acc.some(existing => existing.fmqE_Id === q.fmqE_Id)) {
+                            // Deduplicate options for this specific question
+                            const questionOptions = allOptions.filter((o: any) => o.fmqE_Id === q.fmqE_Id);
+                            const uniqueOptions = questionOptions.reduce((oAcc: any[], oCurr: any) => {
+                                if (oCurr.fmoP_Id && !oAcc.some(oExisting => oExisting.fmoP_Id === oCurr.fmoP_Id)) {
+                                    oAcc.push(oCurr);
+                                }
+                                return oAcc;
+                            }, []);
+
+                            acc.push({
+                                ...q,
+                                feedbackoptiondata: uniqueOptions
+                            });
+                        }
+                        return acc;
+                    }, []);
                     setFeedbackData({
-                        questions: mappedQuestions,
-                        options: (response.data as any).feedbackoption
+                        questions: uniqueQuestions,
+                        options: allOptions
                     });
                     setShowFeedback(true);
                 }
@@ -71,45 +87,30 @@ export function InteractionContainer({ initialData }: InteractionContainerProps)
     };
 
     return (
-        <Card className="overflow-hidden border-none bg-background/50 shadow-xl backdrop-blur-sm">
+        <Card className="overflow-hidden border shadow-lg rounded-none">
+            <div className="bg-white border-b border-orange-400 border-t-2 border-t-orange-400 px-4 py-2 flex items-center justify-between">
+                <h2 className="text-[11px] font-black uppercase tracking-[0.2em] text-[#1e40af]">
+                    INTERACTIONS
+                </h2>
+                <div className="h-0.5 w-6 bg-slate-200"></div>
+            </div>
             <CardContent className="p-0">
                 <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
-                    <div className="border-b bg-muted/30 px-6 pt-6">
-                        <TabsList className="h-12 w-full justify-start gap-2 bg-transparent p-0">
+                    <div className="bg-slate-50 border-b px-2 py-2">
+                        <TabsList className="h-8 justify-start gap-0 bg-transparent p-0 rounded-none border border-slate-200">
                             <TabsTrigger
                                 value="inbox"
-                                className="relative h-12 rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none"
+                                className="h-8 rounded-none border-r border-slate-200 bg-white px-6 text-[10px] font-black uppercase tracking-wider text-[#1e40af] shadow-none transition-all data-[state=active]:bg-[#1e40af] data-[state=active]:text-white data-[state=active]:shadow-none"
                             >
-                                <Inbox className="mr-2 h-4 w-4" />
                                 Inbox
                             </TabsTrigger>
 
-                            {!isStudent ? (
-                                <>
-                                    <TabsTrigger
-                                        value="group"
-                                        className="relative h-12 rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none"
-                                    >
-                                        <Users className="mr-2 h-4 w-4" />
-                                        Group Interaction
-                                    </TabsTrigger>
-                                    <TabsTrigger
-                                        value="individual"
-                                        className="relative h-12 rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none"
-                                    >
-                                        <User className="mr-2 h-4 w-4" />
-                                        Individual Interaction
-                                    </TabsTrigger>
-                                </>
-                            ) : (
-                                <TabsTrigger
-                                    value="individual"
-                                    className="relative h-12 rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none"
-                                >
-                                    <Send className="mr-2 h-4 w-4" />
-                                    Compose
-                                </TabsTrigger>
-                            )}
+                            <TabsTrigger
+                                value="individual"
+                                className="h-8 rounded-none bg-white px-6 text-[10px] font-black uppercase tracking-wider text-[#1e40af] shadow-none transition-all data-[state=active]:bg-[#1e40af] data-[state=active]:text-white data-[state=active]:shadow-none"
+                            >
+                                Compose
+                            </TabsTrigger>
                         </TabsList>
                     </div>
 

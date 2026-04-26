@@ -29,14 +29,15 @@ import {
     getRecipientsByRole,
     getSectionsForInteraction,
     getStudentsForInteraction,
-    saveInteractionData
+    saveInteraction
 } from '@/server/staff-portal/interactions';
 import { uploadDocument } from '@/server/document_upload';
-import type { IInteractionsInitialData, IRecipient, ISaveInteractionDataRequest, IFILESLISTdata } from '@/types/staff-portal/interactions';
+import type { IInteractionsInitialData, IRecipient } from '@/types/staff-portal/interactions';
 
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { format } from 'date-fns';
 
 interface ComposeTabProps {
     data: IInteractionsInitialData;
@@ -62,8 +63,9 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isLoadingDetails, setIsLoadingDetails] = useState(false);
 
-    const [files, setFiles] = useState<{ name: string; file: File | null; path?: string }[]>([{ name: '', file: null }]);
+    const [file, setFile] = useState<{ name: string; file: File | null; path?: string } | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [isMounted, setIsMounted] = useState(false);
 
     const roleFlg = data.roletype?.[0]?.ivrmrT_Role || 'Staff';
     const isStudentRole = roleFlg === 'Student';
@@ -74,7 +76,7 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
         if (!isStudentRole) {
             const types = [];
             if (data.chatwithstudent !== false) types.push({ id: 'Student', label: 'Student', icon: <GraduationCap className="h-4 w-4" /> });
-            if (data.chatwithstaff !== false) types.push({ id: 'Teachers', label: 'Teacher', icon: <User className="h-4 w-4" /> });
+            if (data.chatwithstaff !== false) types.push({ id: 'Teachers', label: 'Teachers', icon: <User className="h-4 w-4" /> });
 
             if (mode === 'Individual' && data.chatwithstaff !== false) {
                 if (config.ivrmgC_EnableHODIntFlg) types.push({ id: 'HOD', label: 'HOD', icon: <Users className="h-4 w-4" /> });
@@ -95,6 +97,11 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
         }
     }, [isStudentRole, data, config, mode]);
 
+    // Mount check for hydration
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
     // Recipient selection logic - matches legacy getdetail
     useEffect(() => {
         if (!userFlag || !selectedYear) return;
@@ -103,7 +110,22 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
             try {
                 const res = await getRecipientsByRole(roleFlg, userFlag, Number(selectedYear));
                 if (res.success && res.data) {
-                    setRecipients(res.data.getdetails || []);
+                    // Handle JSON-serialized filter data if present (special case for Student flag)
+                    let details = (res.data as any).getdetails || [];
+
+                    // The backend sometimes returns a serialized JSON string in a 'data' array
+                    const rawData = (res.data as any).data || res.data;
+                    if (Array.isArray(rawData) && rawData.length > 0 && rawData[0].IVRM_Interaction_filter) {
+                        try {
+                            details = JSON.parse(rawData[0].IVRM_Interaction_filter);
+                        } catch (e) {
+                            console.error('Failed to parse IVRM_Interaction_filter:', e);
+                        }
+                    } else if (Array.isArray(rawData) && !details.length) {
+                        details = rawData;
+                    }
+
+                    setRecipients(details || []);
                 } else {
                     toast.error(res.message || 'No recipients found for this type');
                     setRecipients([]);
@@ -150,7 +172,9 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
         try {
             const res = await getSectionsForInteraction(Number(classId), Number(selectedYear), roleFlg);
             if (res.success && res.data) {
-                setSections(res.data.sectionList || []);
+                // Handle different backend structures (sectionList vs direct data array)
+                const sectionList = (res.data as any).sectionList || (Array.isArray(res.data) ? res.data : []);
+                setSections(sectionList);
             }
         } catch (error) {
             toast.error('Failed to load sections');
@@ -166,7 +190,9 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
         try {
             const res = await getStudentsForInteraction(Number(selectedClass), Number(sectionId));
             if (res.success && res.data) {
-                setStudents(res.data.get_student || []);
+                // Handle different backend structures (get_student vs direct data array)
+                const studentList = (res.data as any).get_student || (Array.isArray(res.data) ? res.data : []);
+                setStudents(studentList);
             }
         } catch (error) {
             toast.error('Failed to load students');
@@ -191,17 +217,34 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
         );
     };
 
-    const handleFileChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0] || null;
-        if (file) {
-            const newFiles = [...files];
-            newFiles[index] = { name: file.name, file: file };
-            setFiles(newFiles);
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const selectedFile = e.target.files?.[0] || null;
+        if (selectedFile) {
+            setFile({ name: selectedFile.name, file: selectedFile });
         }
     };
 
-    const addNewFile = () => setFiles([...files, { name: '', file: null }]);
-    const removeFile = (index: number) => setFiles(files.filter((_, i) => i !== index));
+    const removeFile = () => setFile(null);
+
+    const viewFile = () => {
+        if (file?.file) {
+            const url = URL.createObjectURL(file.file);
+            window.open(url, '_blank');
+        }
+    };
+
+    const downloadFile = () => {
+        if (file?.file) {
+            const url = URL.createObjectURL(file.file);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = file.name;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    };
 
     const handleSubmit = async () => {
         if (!userFlag || !subject || !message) {
@@ -215,7 +258,6 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
         }
 
         if (mode === 'Individual' && !selectedRecipientId && !['HOD', 'Principal', 'AS', 'ClassTeacher'].includes(userFlag)) {
-            // For some roles, it might be auto-selected (like first HOD in list)
             if (recipients.length === 0) {
                 toast.error('No recipients available');
                 return;
@@ -224,50 +266,45 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
 
         setIsSubmitting(true);
         try {
-            // Upload files first - matches legacy UploadImgs pattern
-            const uploadedFiles: IFILESLISTdata[] = [];
-            for (const fileObj of files) {
-                if (fileObj.file) {
-                    const formData = new FormData();
-                    formData.append('file', fileObj.file);
-                    const uploadRes = await uploadDocument(formData);
-                    if (uploadRes.success && uploadRes.data) {
-                        uploadedFiles.push({
-                            ISMID_Filename: fileObj.name,
-                            ISMID_Filepath: uploadRes.data
-                        });
-                    }
+            // Upload file if present
+            let uploadedFilePath = '';
+            if (file && file.file) {
+                const formData = new FormData();
+                formData.append('file', file.file);
+                const uploadRes = await uploadDocument(formData);
+                if (uploadRes.success && uploadRes.data) {
+                    uploadedFilePath = uploadRes.data;
                 }
             }
 
-            const payload: ISaveInteractionDataRequest = {
-                ISMINT_GroupOrIndFlg: mode,
-                ISMINT_Subject: subject,
-                ISMINT_Interaction: message,
-                ISMINT_MACAddress: '00-00-00-00-00-00', // Placeholder as per common patterns
-                ISMINT_ISPIPAddress: '127.0.0.1',
+            let toId = 0;
+            if (mode === 'Individual') {
+                if (selectedRecipientId) {
+                    toId = Number(selectedRecipientId);
+                } else if (!['HOD', 'Principal', 'AS', 'ClassTeacher'].includes(userFlag)) {
+                    toId = recipients[0]?.HRME_Id || 0;
+                }
+            }
+
+            const payload: any = {
                 userflag: userFlag,
                 roleflg: roleFlg,
-                ISTINT_ToId: 0,
+                isminT_GroupOrIndFlg: mode,
+                isminT_Subject: subject,
+                isminT_Interaction: message,
+                images_paths: uploadedFilePath ? [uploadedFilePath] : [],
+                isminT_MACAddress: '00:1A:2B:3C:4D:5E', // As per latest user requirement
+                isminT_ISPIPAddress: '192.168.1.100',   // As per latest user requirement
                 transnumbconfigurationsettingsss: {
-                    IMN_AutoManualFlag: "Auto",
-                    IMN_DuplicatesFlag: "No",
-                    IMN_Flag: isStudentRole ? "InteractionStudent" : "InteractionStaff",
-                    IMN_PrefixAcadYearCode: true,
-                    IMN_PrefixParticular: "INT",
-                    IMN_SuffixAcadYearCode: false,
-                    IMN_SuffixParticular: "",
-                    IMN_WidthNumeric: "6",
-                    IMN_ZeroPrefixFlag: "Yes",
-                    IMN_RestartNumFlag: "Yearly",
-                    ASMAY_Id: Number(selectedYear)
-                },
-                FILESLISTdata: uploadedFiles,
-                images_paths: uploadedFiles.map(f => f.ISMID_Filepath)
+                    imN_AutoManualFlag: "Auto"
+                }
             };
 
-            // Recipient mapping logic (legacy parity)
-            if (mode === 'Group') {
+            // Recipient mapping logic based on user examples
+            if (mode === 'Individual') {
+                payload.istinT_ToId = toId;
+            } else {
+                // Group Mode: Use arrays
                 if (userFlag === 'Student') {
                     payload.arrayStudent = students
                         .filter(s => selectedGroupItems.includes(s.AMST_Id!))
@@ -277,27 +314,12 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                         .filter(r => selectedGroupItems.includes(r.HRME_Id!))
                         .map(r => ({ HRME_Id: r.HRME_Id! }));
                 }
-            } else {
-                let toId = 0;
-                if (userFlag === 'Student') {
-                    toId = Number(selectedRecipientId);
-                    payload.arrayStudent = [{ AMST_Id: toId }];
-                } else if (userFlag === 'Teachers' || userFlag === 'SubjectTeacher') {
-                    toId = Number(selectedRecipientId);
-                    payload.arrayTeachers = [{ HRME_Id: toId }];
-                } else {
-                    // Single choice or auto-selected role (HOD, Principal etc)
-                    toId = recipients[0]?.HRME_Id || 0;
-                    if (selectedRecipientId) toId = Number(selectedRecipientId);
-                    payload.arrayTeachers = [{ HRME_Id: toId }];
-                }
-                payload.ISTINT_ToId = toId;
             }
 
-            const res = await saveInteractionData(payload);
+            const res = await saveInteraction(payload);
 
-            if (res.success && res.data?.returnval) {
-                toast.success('Interaction sent successfully');
+            if (res.success) {
+                toast.success(res.message || 'Interaction sent successfully');
                 onSuccess();
             } else {
                 toast.error(res.message || 'Failed to send interaction');
@@ -320,334 +342,260 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
     );
 
     return (
-        <div className="flex flex-col gap-10">
-            <div className="grid gap-8 lg:grid-cols-2">
-                <div className="flex flex-col gap-6 rounded-2xl border bg-accent/5 p-8 shadow-sm">
-                    <div className="space-y-6">
-                        <div className="space-y-3">
-                            <Label className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                                <Calendar className="h-4 w-4" /> Academic Year
-                            </Label>
-                            <Select value={selectedYear} onValueChange={setSelectedYear}>
-                                <SelectTrigger className="h-12 bg-background font-bold border-2">
-                                    <SelectValue placeholder="Select Academic Year" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {data.allacademicyear?.map((year) => (
-                                        <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()} className="font-medium">
-                                            {year.asmaY_Year}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <div className="space-y-3">
-                            <Label className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                                <Search className="h-4 w-4" /> Interaction With
-                            </Label>
-                            <div className="p-1 rounded-xl bg-muted/30 border-2 border-dashed">
-                                <RadioGroup
-                                    value={userFlag}
-                                    onValueChange={setUserFlag}
-                                    className="grid grid-cols-2 gap-2"
-                                >
-                                    {availableUserTypes.map((type) => (
-                                        <Label
-                                            key={type.id}
-                                            className={cn(
-                                                "flex cursor-pointer items-center gap-3 rounded-lg border-2 p-3 transition-all hover:bg-background/80 group",
-                                                userFlag === type.id ? "border-primary bg-background shadow-md shadow-primary/10" : "border-transparent opacity-60 grayscale-[0.5] hover:opacity-100 hover:grayscale-0"
-                                            )}
-                                        >
-                                            <RadioGroupItem value={type.id} className="sr-only" />
-                                            <div className={cn(
-                                                "p-2 rounded-md transition-colors",
-                                                userFlag === type.id ? "bg-primary text-white" : "bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary"
-                                            )}>
-                                                {type.icon}
-                                            </div>
-                                            <span className="text-xs font-bold leading-tight">{type.label}</span>
-                                        </Label>
-                                    ))}
-                                </RadioGroup>
+        <div className="flex flex-col gap-6 py-4">
+            {/* Recipient Selection Box */}
+            <div className={cn(
+                "mx-auto w-full max-w-4xl border border-slate-200 bg-white p-6 shadow-sm rounded-none",
+                isSubmitting && "opacity-50 pointer-events-none"
+            )}>
+                <div className="flex flex-col items-center gap-6">
+                    {/* Radio Group for Role Selection - Centered like legacy */}
+                    <RadioGroup
+                        value={userFlag}
+                        onValueChange={setUserFlag}
+                        className="grid grid-cols-2 sm:flex sm:flex-wrap justify-center items-center gap-x-8 gap-y-4 max-w-xl mx-auto"
+                    >
+                        {availableUserTypes.map((type) => (
+                            <div key={type.id} className="flex items-center space-x-2">
+                                <RadioGroupItem value={type.id} id={`role-${type.id}`} className="h-4 w-4 border-[#1e40af] text-[#1e40af]" />
+                                <Label htmlFor={`role-${type.id}`} className="text-[11px] font-semibold text-slate-600 cursor-pointer">
+                                    {type.label}
+                                </Label>
                             </div>
-                        </div>
-                    </div>
+                        ))}
+                    </RadioGroup>
 
-                    {userFlag === 'Student' && (
-                        <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label className="text-[11px] font-black uppercase text-muted-foreground ml-1">Class</Label>
-                                    <Select value={selectedClass} onValueChange={handleClassChange}>
-                                        <SelectTrigger className="h-11 bg-background font-bold">
-                                            <SelectValue placeholder="Class" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {classList.map((cls: any) => (
-                                                <SelectItem key={cls.ASMCL_Id} value={cls.ASMCL_Id.toString()} className="font-bold">
-                                                    {cls.ASMCL_ClassName}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                    {/* Dependent Dropdowns - Sentence Case Labels */}
+                    <div className="grid w-full max-w-2xl gap-4 border-t pt-8 mt-2">
+                        {userFlag === 'Student' && (
+                            <>
+                                <div className="flex items-center gap-4">
+                                    <Label className="w-32 text-right text-[11px] font-bold text-slate-500">Class :*</Label>
+                                    <select
+                                        className="flex-1 h-9 border border-slate-300 rounded-none px-3 text-[12px] focus:border-[#1e40af] outline-none transition-all"
+                                        value={selectedClass}
+                                        onChange={(e) => handleClassChange(e.target.value)}
+                                    >
+                                        <option value="">Select Class</option>
+                                        {classList.filter(cls => cls.ASMCL_Id != null).map((cls: any) => (
+                                            <option key={cls.ASMCL_Id} value={cls.ASMCL_Id.toString()}>{cls.ASMCL_ClassName}</option>
+                                        ))}
+                                    </select>
                                 </div>
-                                <div className="space-y-2">
-                                    <Label className="text-[11px] font-black uppercase text-muted-foreground ml-1">Section</Label>
-                                    <Select
+                                <div className="flex items-center gap-4">
+                                    <Label className="w-32 text-right text-[11px] font-bold text-slate-500">Section :*</Label>
+                                    <select
+                                        className="flex-1 h-9 border border-slate-300 rounded-none px-3 text-[12px] focus:border-[#1e40af] outline-none transition-all disabled:opacity-50"
                                         value={selectedSection}
-                                        onValueChange={handleSectionChange}
+                                        onChange={(e) => handleSectionChange(e.target.value)}
                                         disabled={!selectedClass}
                                     >
-                                        <SelectTrigger className="h-11 bg-background font-bold">
-                                            <SelectValue placeholder="Section" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {sections.map((sec: any) => (
-                                                <SelectItem key={sec.asmS_Id} value={sec.asmS_Id.toString()} className="font-bold">
-                                                    {sec.asmC_SectionName}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                        <option value="">Select Section</option>
+                                        {sections.filter(sec => sec.asmS_Id != null).map((sec: any) => (
+                                            <option key={sec.asmS_Id} value={sec.asmS_Id.toString()}>{sec.asmC_SectionName}</option>
+                                        ))}
+                                    </select>
                                 </div>
-                            </div>
-                        </div>
-                    )}
+                            </>
+                        )}
 
-                    <div className="relative mt-2 min-h-[300px] flex flex-col gap-4">
-                        {isLoadingDetails ? (
-                            <div className="flex flex-col flex-1 items-center justify-center py-20 gap-4">
-                                <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                                <p className="text-xs font-bold text-primary animate-pulse tracking-widest uppercase">Fetching Details...</p>
+                        {mode === 'Individual' ? (
+                            <div className="flex items-center gap-4">
+                                <Label className="w-32 text-right text-[11px] font-bold text-slate-500">
+                                    {userFlag === 'Student' ? 'Student' : (userFlag || 'Recipient')} :*
+                                </Label>
+                                <select
+                                    className="flex-1 h-9 border border-slate-300 rounded-none px-3 text-[12px] focus:border-[#1e40af] outline-none transition-all disabled:opacity-50"
+                                    value={selectedRecipientId}
+                                    onChange={(e) => setSelectedRecipientId(e.target.value)}
+                                    disabled={!userFlag || (userFlag === 'Student' && !selectedSection)}
+                                >
+                                    <option value="">Select {userFlag || 'Recipient'}</option>
+                                    {(userFlag === 'Student' ? filteredStudentsList : filteredRecipientsList).filter(item => (userFlag === 'Student' ? item.AMST_Id : item.HRME_Id) != null).map((item) => {
+                                        const id = userFlag === 'Student' ? item.AMST_Id! : item.HRME_Id!;
+                                        const name = userFlag === 'Student' ? item.studentName : item.EmpName;
+                                        const sub = (userFlag === 'Student' ? item.AMST_AdmNo : item.HRME_EmployeeCode);
+                                        return (
+                                            <option key={id} value={id.toString()}>
+                                                {name} {sub ? `(${sub})` : ''}
+                                            </option>
+                                        );
+                                    })}
+                                </select>
                             </div>
-                        ) : !userFlag ? (
-                            <div className="flex flex-col flex-1 items-center justify-center text-muted-foreground/30 py-20">
-                                <Users className="mb-4 h-16 w-16" />
-                                <p className="text-sm font-black uppercase tracking-widest">Select a user type to begin</p>
-                            </div>
-                        ) : mode === 'Group' ? (
-                            <div className="bg-card rounded-2xl border p-4 shadow-inner space-y-4">
-                                <div className="flex items-center justify-between gap-4">
-                                    <div className="relative flex-1">
-                                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                        <Input
-                                            placeholder="Quick filter..."
-                                            className="h-10 pl-9 text-xs font-bold bg-muted/20 border-none rounded-full"
-                                            value={searchTerm}
-                                            onChange={(e) => setSearchTerm(e.target.value)}
-                                        />
-                                    </div>
-                                    <div className="flex items-center gap-3 px-3">
+                        ) : (
+                            <div className="flex flex-col gap-4 border border-slate-200 p-4">
+                                <div className="flex items-center justify-between border-b border-slate-100 pb-2 mb-2">
+                                    <div className="flex items-center gap-2">
                                         <Checkbox
                                             id="select-all"
-                                            className="h-5 w-5 rounded-md"
+                                            checked={(userFlag === 'Student' ? students : recipients).length > 0 && selectedGroupItems.length === (userFlag === 'Student' ? students : recipients).length}
                                             onCheckedChange={handleSelectAll}
-                                            checked={
-                                                (userFlag === 'Student' ? students : recipients).length > 0 &&
-                                                selectedGroupItems.length === (userFlag === 'Student' ? students : recipients).length
-                                            }
+                                            className="h-4 w-4 border-[#1e40af] data-[state=checked]:bg-[#1e40af]"
                                         />
-                                        <Label htmlFor="select-all" className="text-sm font-black uppercase cursor-pointer">All</Label>
+                                        <Label htmlFor="select-all" className="text-[11px] font-bold text-slate-500 cursor-pointer">SELECT ALL</Label>
+                                    </div>
+                                    <div className="relative w-48">
+                                        <Input
+                                            placeholder="Search..."
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                            className="h-7 text-[10px] rounded-none border-slate-200 pl-7 focus-visible:ring-0"
+                                        />
+                                        <Search className="absolute left-2 top-1.5 h-3.5 w-3.5 text-slate-400" />
                                     </div>
                                 </div>
-
-                                <ScrollArea className="h-[280px] pr-4">
-                                    <div className="grid gap-2 pr-2">
-                                        {(userFlag === 'Student' ? filteredStudentsList : filteredRecipientsList).map((item) => {
+                                <ScrollArea className="h-64 pr-4">
+                                    <div className="space-y-1">
+                                        {(userFlag === 'Student' ? filteredStudentsList : filteredRecipientsList).filter(item => (userFlag === 'Student' ? item.AMST_Id : item.HRME_Id) != null).map((item) => {
                                             const id = userFlag === 'Student' ? item.AMST_Id! : item.HRME_Id!;
                                             const name = userFlag === 'Student' ? item.studentName : item.EmpName;
                                             const sub = (userFlag === 'Student' ? item.AMST_AdmNo : item.HRME_EmployeeCode);
                                             return (
-                                                <div
-                                                    key={id}
-                                                    className={cn(
-                                                        "group flex items-center justify-between gap-3 rounded-xl border-2 p-3 transition-all cursor-pointer",
-                                                        selectedGroupItems.includes(id)
-                                                            ? "bg-primary/[0.08] border-primary shadow-sm"
-                                                            : "bg-background border-transparent hover:border-muted-foreground/20"
-                                                    )}
-                                                    onClick={() => toggleItemSelection(id)}
-                                                >
-                                                    <div className="flex items-center gap-3">
-                                                        <Checkbox checked={selectedGroupItems.includes(id)} className="h-4 w-4 data-[state=checked]:bg-primary" />
-                                                        <div className="flex flex-col">
-                                                            <span className="text-xs font-black tracking-tight">{name}</span>
-                                                            <span className="text-[10px] font-bold text-muted-foreground opacity-70 uppercase tracking-tighter">
-                                                                {sub}
-                                                                {userFlag !== 'Student' && (item as any).ASMCL_ClassName && ` | ${(item as any).ASMCL_ClassName}`}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                    {selectedGroupItems.includes(id) && (
-                                                        <Badge className="bg-primary hover:bg-primary shadow-none h-5 px-1.5 text-[9px] font-black uppercase">Selected</Badge>
-                                                    )}
+                                                <div key={id} className="flex items-center gap-3 py-1 hover:bg-slate-50 px-2 transition-colors">
+                                                    <Checkbox
+                                                        id={`item-${id}`}
+                                                        checked={selectedGroupItems.includes(id)}
+                                                        onCheckedChange={() => toggleItemSelection(id)}
+                                                        className="h-3.5 w-3.5 border-slate-400 data-[state=checked]:bg-[#1e40af] data-[state=checked]:border-[#1e40af]"
+                                                    />
+                                                    <Label htmlFor={`item-${id}`} className="text-[11px] text-slate-600 cursor-pointer flex-1">
+                                                        {name} <span className="text-slate-400 font-normal">({sub})</span>
+                                                    </Label>
                                                 </div>
                                             );
                                         })}
-                                    </div>
-                                </ScrollArea>
-                            </div>
-                        ) : (
-                            <div className="space-y-4">
-                                {['Principal', 'HOD', 'AS', 'EC', 'ClassTeacher'].includes(userFlag) ? (
-                                    <div className="rounded-2xl bg-primary/5 p-6 border-2 border-primary/20 flex flex-col gap-4 animate-in zoom-in-95 duration-300">
-                                        <div className="flex items-center gap-4">
-                                            <div className="bg-primary p-4 rounded-2xl text-white shadow-lg shadow-primary/30">
-                                                <User className="h-6 w-6" />
-                                            </div>
-                                            <div>
-                                                <p className="text-[11px] font-black uppercase text-primary tracking-widest opacity-70">Assigned Recipient</p>
-                                                <p className="text-xl font-black tracking-tighter">
-                                                    {recipients.length > 0 ? recipients[0].EmpName : `Searching ${userFlag}...`}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        {recipients.length > 1 && (
-                                            <ScrollArea className="max-h-[150px] mt-2 border-t pt-4">
-                                                <div className="grid gap-2">
-                                                    {recipients.map(r => (
-                                                        <Button
-                                                            variant="ghost"
-                                                            key={r.HRME_Id}
-                                                            className={cn(
-                                                                "justify-start font-bold h-10 rounded-lg",
-                                                                (selectedRecipientId === r.HRME_Id?.toString() || (!selectedRecipientId && recipients[0].HRME_Id === r.HRME_Id)) && "bg-primary/10 text-primary"
-                                                            )}
-                                                            onClick={() => setSelectedRecipientId(r.HRME_Id?.toString() || '')}
-                                                        >
-                                                            {r.EmpName}
-                                                        </Button>
-                                                    ))}
-                                                </div>
-                                            </ScrollArea>
+                                        {(userFlag === 'Student' ? students : recipients).length === 0 && (
+                                            <div className="text-center py-8 text-slate-400 text-[11px]">No items found</div>
                                         )}
                                     </div>
-                                ) : (
-                                    <div className="space-y-3">
-                                        <Label className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                                            <User className="h-4 w-4" /> Select Individual
-                                        </Label>
-                                        <Select value={selectedRecipientId} onValueChange={setSelectedRecipientId}>
-                                            <SelectTrigger className="h-12 bg-background font-bold border-2">
-                                                <SelectValue placeholder={`Select ${userFlag}`} />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {(userFlag === 'Student' ? students : recipients).map((item) => {
-                                                    const id = userFlag === 'Student' ? item.AMST_Id! : item.HRME_Id!;
-                                                    const name = userFlag === 'Student' ? item.studentName : item.EmpName;
-                                                    const sub = (userFlag === 'Student' ? item.AMST_AdmNo : item.HRME_EmployeeCode);
-                                                    return (
-                                                        <SelectItem key={id} value={id.toString()} className="font-bold">
-                                                            {name} {sub ? `(${sub})` : ''}
-                                                        </SelectItem>
-                                                    );
-                                                })}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                )}
+                                </ScrollArea>
                             </div>
                         )}
                     </div>
                 </div>
-
-                <div className="flex flex-col gap-8">
-                    <div className="flex flex-col gap-6">
-                        <div className="space-y-3">
-                            <Label className="text-sm font-bold uppercase tracking-wider text-muted-foreground ml-1">Interaction Subject</Label>
-                            <Input
-                                placeholder="What is this about?"
-                                className="h-14 bg-background px-6 text-lg font-black tracking-tight border-2 focus-visible:ring-primary/20"
-                                value={subject}
-                                onChange={(e) => setSubject(e.target.value)}
-                            />
-                        </div>
-                        <div className="space-y-3">
-                            <Label className="text-sm font-bold uppercase tracking-wider text-muted-foreground ml-1">Detailed Message</Label>
-                            <Textarea
-                                placeholder="Type your message here..."
-                                className="min-h-[250px] resize-none bg-background p-6 text-sm font-medium leading-relaxed border-2 focus-visible:ring-primary/20"
-                                value={message}
-                                onChange={(e) => setMessage(e.target.value)}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="space-y-4">
-                        <Label className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2 ml-1">
-                            <Paperclip className="h-4 w-4" /> Files & Attachments
-                        </Label>
-                        <div className="grid gap-3 p-4 rounded-2xl bg-muted/20 border-2 border-dashed">
-                            {files.map((file, idx) => (
-                                <div key={idx} className="flex items-center gap-3 animate-in slide-in-from-left-2 duration-200">
-                                    <div className="relative flex-1 group">
-                                        <div className="flex h-12 w-full items-center justify-between rounded-xl border-2 bg-background px-4 py-2 text-sm font-bold shadow-sm transition-all group-hover:border-primary/50 group-hover:shadow-md">
-                                            <span className="truncate max-w-[250px] text-muted-foreground group-hover:text-foreground">
-                                                {file.name || 'Click to browse or drag file...'}
-                                            </span>
-                                            <Input
-                                                type="file"
-                                                className="absolute inset-0 opacity-0 cursor-pointer"
-                                                onChange={(e) => handleFileChange(idx, e)}
-                                            />
-                                            {!file.name && <Plus className="h-5 w-5 text-primary opacity-40 group-hover:opacity-100" />}
-                                            {file.name && <UserCheck className="h-5 w-5 text-primary" />}
-                                        </div>
-                                    </div>
-                                    {files.length > 1 && (
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-12 w-12 rounded-xl text-destructive hover:bg-destructive/10"
-                                            onClick={() => removeFile(idx)}
-                                        >
-                                            <X className="h-5 w-5" />
-                                        </Button>
-                                    )}
-                                    {idx === files.length - 1 && (
-                                        <Button
-                                            variant="outline"
-                                            size="icon"
-                                            className="h-12 w-12 rounded-xl border-2 border-primary/20 text-primary hover:bg-primary hover:text-white"
-                                            onClick={addNewFile}
-                                        >
-                                            <Plus className="h-5 w-5" />
-                                        </Button>
-                                    )}
-                                </div>
-                            ))}
-                            <p className="text-[10px] font-bold text-muted-foreground/60 uppercase text-center mt-2 tracking-widest">
-                                Accepted: jpg, jpeg, png, doc, ppt, excel, pdf
-                            </p>
-                        </div>
-                    </div>
-                </div>
             </div>
 
-            <div className="flex h-24 items-center justify-between border-t bg-muted/10 px-10 -mx-10 -mb-10 rounded-b-3xl">
-                <Button variant="ghost" onClick={onCancel} disabled={isSubmitting} className="font-bold text-muted-foreground uppercase tracking-widest">
-                    Discard Draft
-                </Button>
-                <Button
-                    size="lg"
-                    className="min-w-[220px] h-14 rounded-2xl font-black text-lg shadow-xl shadow-primary/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
-                    onClick={handleSubmit}
-                    disabled={isSubmitting || !userFlag}
-                >
-                    {isSubmitting ? (
-                        <>
-                            <Loader2 className="mr-3 h-6 w-6 animate-spin" />
-                            Sending...
-                        </>
-                    ) : (
-                        <>
-                            <Send className="mr-3 h-5 w-5" />
-                            Send Interaction
-                        </>
-                    )}
-                </Button>
+            {/* Message Area */}
+            <div className="mx-auto w-full max-w-4xl border border-[#1e40af]/30 bg-white shadow-md rounded-none overflow-hidden">
+                {/* Legacy Header */}
+                <div className="border-t-2 border-t-orange-400 bg-slate-50 px-4 py-2 flex items-center justify-between border-b border-orange-200">
+                    <h3 className="text-[11px] font-black uppercase tracking-wider text-[#1e40af]">
+                        NEW MESSAGE
+                    </h3>
+                    <div className="flex items-center gap-2 text-[10px] font-black text-slate-400">
+                        {isMounted ? format(new Date(), 'dd/MM/yyyy hh:mm a') : '   /  /     :   '}
+                    </div>
+                </div>
+
+                <div className="p-8 space-y-6">
+                    <div className="flex gap-4">
+                        <Label className="w-32 text-right text-[11px] font-black uppercase text-slate-600 mt-2.5">Subject :*</Label>
+                        <Input
+                            placeholder="Interaction Subject"
+                            className="flex-1 h-10 border-slate-300 rounded-none bg-white text-[12px] focus-visible:ring-0 focus-visible:border-[#1e40af]"
+                            value={subject}
+                            onChange={(e) => setSubject(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="flex gap-4">
+                        <Label className="w-32 text-right text-[11px] font-black uppercase text-slate-600 mt-2.5">Message :*</Label>
+                        <Textarea
+                            placeholder="Message"
+                            className="flex-1 min-h-[180px] border-slate-300 rounded-none bg-white text-[12px] resize-none focus-visible:ring-0 focus-visible:border-[#1e40af]"
+                            value={message}
+                            onChange={(e) => setMessage(e.target.value)}
+                        />
+                    </div>
+
+                    {/* Single File Upload in Legacy Style */}
+                    <div className="flex flex-col gap-3 ml-36">
+                        <div className="flex items-center gap-4">
+                            <div className="relative group">
+                                <Button
+                                    className="h-8 rounded-none bg-[#1e40af] px-4 text-[11px] font-bold uppercase tracking-wider hover:bg-[#1e3abf] flex items-center gap-2"
+                                >
+                                    {file ? 'Change File' : 'Browse'}
+                                    <Send className="h-3.5 w-3.5 rotate-[270deg]" />
+                                </Button>
+                                <input
+                                    type="file"
+                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                    onChange={handleFileChange}
+                                />
+                            </div>
+
+                            {file && (
+                                <div className="flex items-center gap-3">
+                                    <span className="text-[11px] font-bold text-[#1e40af] truncate max-w-[200px]">
+                                        {file.name}
+                                    </span>
+                                    <div className="flex items-center gap-1">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => {
+                                                if (file?.file) {
+                                                    const ext = file.name.split('.').pop()?.toLowerCase();
+                                                    if (['docx', 'doc', 'xlsx', 'xls', 'pptx', 'ppt'].includes(ext || '')) {
+                                                        toast.info('Excel/Word files will be downloaded for viewing');
+                                                        const url = URL.createObjectURL(file.file);
+                                                        const a = document.createElement('a');
+                                                        a.href = url;
+                                                        a.download = file.name;
+                                                        a.click();
+                                                        URL.revokeObjectURL(url);
+                                                    } else {
+                                                        const url = URL.createObjectURL(file.file);
+                                                        window.open(url, '_blank');
+                                                    }
+                                                }
+                                            }}
+                                            className="h-7 px-2 text-[#1e40af] hover:text-blue-700 hover:bg-blue-50 text-[10px] font-bold uppercase"
+                                        >
+                                            View
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={downloadFile}
+                                            className="h-7 px-2 text-[#1e40af] hover:text-blue-700 hover:bg-blue-50 text-[10px] font-bold uppercase"
+                                        >
+                                            Download
+                                        </Button>
+                                        <button onClick={removeFile} className="text-red-500 hover:text-red-700 ml-1">
+                                            <X className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                        <p className="text-[10px] font-bold text-red-600 mt-1">
+                            Accept File: jpg, jpeg, png, doc, ppt, excel, pdf
+                        </p>
+                    </div>
+                </div>
+
+                {/* Legacy Footer Buttons */}
+                <div className="bg-slate-50 border-t border-slate-100 p-6 flex justify-center gap-4">
+                    <Button
+                        className="h-10 min-w-[120px] rounded-none bg-[#1e40af] text-[12px] font-black uppercase tracking-wider hover:bg-[#1e3abf] shadow-sm flex items-center gap-2"
+                        onClick={handleSubmit}
+                        disabled={isSubmitting}
+                    >
+                        {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                        SEND
+                    </Button>
+                    <Button
+                        className="h-10 min-w-[120px] rounded-none bg-orange-600 text-[12px] font-black uppercase tracking-wider hover:bg-orange-700 shadow-sm flex items-center gap-2"
+                        onClick={onCancel}
+                        disabled={isSubmitting}
+                    >
+                        <X className="h-4 w-4" />
+                        CANCEL
+                    </Button>
+                </div>
             </div>
         </div>
     );

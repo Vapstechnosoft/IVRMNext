@@ -3,8 +3,8 @@ import { InteractionContainer } from './_components/interaction-container';
 import { Card, CardContent } from '@/components/ui/card';
 
 export const metadata = {
-    title: 'NDA Interactions | Staff Portal',
-    description: 'Manage and view interactions for NDA portal.',
+    title: 'NDA Interactions | Student Portal',
+    description: 'Manage and view interactions for NDA student portal.',
 };
 
 export default async function NDAIVRMInteractionsPage() {
@@ -24,10 +24,10 @@ export default async function NDAIVRMInteractionsPage() {
     }
 
     return (
-        <div className="flex flex-col gap-6 p-4 md:p-6 lg:p-8">
-            <div className="flex flex-col gap-1">
-                <h1 className="text-3xl font-bold tracking-tight text-primary">NDA Interactions</h1>
-                <p className="text-muted-foreground">Stay connected with students, teachers, and administration (NDA).</p>
+        <div className="flex flex-col gap-4 p-4 md:p-6">
+            <div className="flex flex-col gap-0.5 border-b-2 border-primary/10 pb-2">
+                <h1 className="text-xl font-black tracking-tight text-[#1e1b4b] uppercase">NDA Interaction</h1>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">Notre Dame Academy Student Interaction Portal</p>
             </div>
 
             <InteractionContainer initialData={response.data} />

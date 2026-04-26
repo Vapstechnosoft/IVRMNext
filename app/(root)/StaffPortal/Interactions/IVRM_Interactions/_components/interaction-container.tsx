@@ -71,16 +71,21 @@ export function InteractionContainer({ initialData }: InteractionContainerProps)
     };
 
     return (
-        <Card className="overflow-hidden border-none bg-background/50 shadow-xl backdrop-blur-sm">
+        <Card className="overflow-hidden border shadow-lg rounded-none">
+            <div className="bg-white border-b border-orange-400 border-t-2 border-t-orange-400 px-4 py-2 flex items-center justify-between">
+                <h2 className="text-[11px] font-black uppercase tracking-[0.2em] text-[#1e40af]">
+                    INTERACTIONS
+                </h2>
+                <div className="h-0.5 w-6 bg-slate-200"></div>
+            </div>
             <CardContent className="p-0">
                 <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
-                    <div className="border-b bg-muted/30 px-6 pt-6">
-                        <TabsList className="h-12 w-full justify-start gap-2 bg-transparent p-0">
+                    <div className="bg-slate-50 border-b px-2 py-2">
+                        <TabsList className="h-8 justify-start gap-0 bg-transparent p-0 rounded-none border border-slate-200">
                             <TabsTrigger
                                 value="inbox"
-                                className="relative h-12 rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none"
+                                className="h-8 rounded-none border-r border-slate-200 bg-white px-6 text-[10px] font-black uppercase tracking-wider text-[#1e40af] shadow-none transition-all data-[state=active]:bg-[#1e40af] data-[state=active]:text-white data-[state=active]:shadow-none"
                             >
-                                <Inbox className="mr-2 h-4 w-4" />
                                 Inbox
                             </TabsTrigger>
 
@@ -88,25 +93,22 @@ export function InteractionContainer({ initialData }: InteractionContainerProps)
                                 <>
                                     <TabsTrigger
                                         value="group"
-                                        className="relative h-12 rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none"
+                                        className="h-8 rounded-none border-r border-slate-200 bg-white px-6 text-[10px] font-black uppercase tracking-wider text-[#1e40af] shadow-none transition-all data-[state=active]:bg-[#1e40af] data-[state=active]:text-white data-[state=active]:shadow-none"
                                     >
-                                        <Users className="mr-2 h-4 w-4" />
-                                        Group Interaction
+                                        Group
                                     </TabsTrigger>
                                     <TabsTrigger
                                         value="individual"
-                                        className="relative h-12 rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none"
+                                        className="h-8 rounded-none bg-white px-6 text-[10px] font-black uppercase tracking-wider text-[#1e40af] shadow-none transition-all data-[state=active]:bg-[#1e40af] data-[state=active]:text-white data-[state=active]:shadow-none"
                                     >
-                                        <User className="mr-2 h-4 w-4" />
-                                        Individual Interaction
+                                        Individual
                                     </TabsTrigger>
                                 </>
                             ) : (
                                 <TabsTrigger
                                     value="individual"
-                                    className="relative h-12 rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none"
+                                    className="h-8 rounded-none bg-white px-6 text-[10px] font-black uppercase tracking-wider text-[#1e40af] shadow-none transition-all data-[state=active]:bg-[#1e40af] data-[state=active]:text-white data-[state=active]:shadow-none"
                                 >
-                                    <Send className="mr-2 h-4 w-4" />
                                     Compose
                                 </TabsTrigger>
                             )}

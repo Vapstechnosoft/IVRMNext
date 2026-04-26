@@ -65,6 +65,8 @@ export interface IRecipient {
     tck?: boolean;
     stuck?: boolean;
     Selected?: boolean;
+    ASMCL_ClassName?: string;
+    ASMC_SectionName?: string;
 }
 
 export interface IFeedbackOption {

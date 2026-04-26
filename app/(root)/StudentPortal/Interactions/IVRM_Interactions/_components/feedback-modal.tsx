@@ -114,7 +114,7 @@ export function FeedbackModal({ isOpen, onClose, questions, options, roleFlg, us
                 <ScrollArea className="flex-1 px-10 py-10">
                     <div className="flex flex-col gap-14 py-4">
                         {questions.map((q, idx) => (
-                            <div key={q.fmqE_Id} className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700" style={{ animationDelay: `${idx * 150}ms` }}>
+                            <div key={`${q.fmqE_Id || 'q'}-${idx}`} className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700" style={{ animationDelay: `${idx * 150}ms` }}>
                                 <div className="space-y-3">
                                     <h3 className="text-xl font-black leading-tight flex items-start gap-4">
                                         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary text-[12px] text-white font-black shadow-lg shadow-primary/20 mt-0.5">
@@ -134,9 +134,9 @@ export function FeedbackModal({ isOpen, onClose, questions, options, roleFlg, us
                                         className="grid grid-cols-2 gap-4"
                                         onValueChange={(val) => handleOptionSelect(q.fmqE_Id, Number(val))}
                                     >
-                                        {q.feedbackoptiondata.map((opt) => (
+                                        {q.feedbackoptiondata.map((opt, oIdx) => (
                                             <Label 
-                                                key={opt.fmoP_Id}
+                                                key={`${opt.fmoP_Id || 'opt'}-${oIdx}`}
                                                 className={cn(
                                                     "flex cursor-pointer items-center gap-4 rounded-2xl border-2 p-5 transition-all duration-300",
                                                     responses[q.fmqE_Id]?.optionId === opt.fmoP_Id 

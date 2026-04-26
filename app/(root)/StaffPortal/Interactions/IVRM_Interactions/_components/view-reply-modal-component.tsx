@@ -29,11 +29,12 @@ import {
     Calendar,
     Target,
     X,
-    Download
+    Download,
+    Trash2
 } from 'lucide-react';
-import { fetchThread, saveInteractionReply } from '@/server/staff-portal/interactions';
+import { fetchThread, saveInteractionReply, deleteInteractionReply } from '@/server/staff-portal/interactions';
 import { uploadDocument } from '@/server/document_upload';
-import type { IMessage, ISaveReplyRequest, IFILESLISTdata } from '@/types/staff-portal/interactions';
+import type { IMessage } from '@/types/staff-portal/interactions';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -62,10 +63,11 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id 
         try {
             const res = await fetchThread(message.ISMINT_Id);
             if (res.success && res.data) {
-                setThread(res.data.viewmessage || []);
+                // Handle different backend response structures (viewmessage vs replylist)
+                const threadData = res.data.viewmessage?.length ? res.data.viewmessage : (res.data.replylist || []);
+                setThread(threadData);
                 
                 // Parity logic: if data was loaded successfully, reply should be visible 
-                // based on permissions checked in legacy reply function
                 setReplyVisible(true); 
             }
         } catch (error) {
@@ -90,35 +92,30 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id 
 
         setIsSubmitting(true);
         try {
-            // Upload files
-            const uploadedFiles: IFILESLISTdata[] = [];
-            for (const fileObj of files) {
-                if (fileObj.file) {
-                    const formData = new FormData();
-                    formData.append('file', fileObj.file);
-                    const uploadRes = await uploadDocument(formData);
-                    if (uploadRes.success && uploadRes.data) {
-                        uploadedFiles.push({
-                            ISMID_Filename: fileObj.name,
-                            ISMID_Filepath: uploadRes.data
-                        });
-                    }
+            // Upload files (supporting single file for consistency with compose)
+            let uploadedFilePath = '';
+            if (files.length > 0 && files[0].file) {
+                const formData = new FormData();
+                formData.append('file', files[0].file);
+                const uploadRes = await uploadDocument(formData);
+                if (uploadRes.success && uploadRes.data) {
+                    uploadedFilePath = uploadRes.data;
                 }
             }
 
-            const payload: ISaveReplyRequest = {
-                ismint_Id: message.ISMINT_Id,
-                istint_Interaction: replyText,
-                roleflg: roleFlg,
-                istint_ComposedByFlg: roleFlg,
-                istint_Id: 0,
-                images_paths: uploadedFiles.map(f => f.ISMID_Filepath)
+            const payload: any = {
+                isminT_Id: message.ISMINT_Id,
+                istinT_Interaction: replyText,
+                images_paths: uploadedFilePath ? [uploadedFilePath] : [],
+                isminT_MACAddress: '00-14-22-01-23-45', // As per user requirement
+                isminT_ISPIPAddress: '192.168.1.1'      // As per user requirement
             };
 
             const res = await saveInteractionReply(payload);
-            if (res.success && res.data?.returnval) {
-                toast.success('Reply sent successfully');
+            if (res.success) {
+                toast.success(res.message || 'Reply sent successfully');
                 setReplyText('');
+                setFiles([]); // Clear files
                 loadThread();
             } else {
                 toast.error(res.message || 'Failed to send reply');
@@ -129,10 +126,25 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id 
             setIsSubmitting(false);
         }
     };
+    
+    const handleDeleteReply = async (id: number) => {
+        if (!confirm('Are you sure you want to delete this reply?')) return;
+        try {
+            const res = await deleteInteractionReply(id);
+            if (res.success) {
+                toast.success('Reply deleted');
+                loadThread();
+            } else {
+                toast.error(res.message || 'Failed to delete');
+            }
+        } catch (error) {
+            toast.error('Error deleting reply');
+        }
+    };
 
     const handleFileView = (url: string) => {
         if (!url) return;
-        const ext = url.split('.').pop()?.toLowerCase();
+        const ext = url?.split('.').pop()?.toLowerCase();
         
         if (['doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx'].includes(ext || '')) {
             window.open(`https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(url)}`, '_blank');
@@ -159,7 +171,7 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id 
     };
 
     const getFileIcon = (url: string) => {
-        const ext = url.split('.').pop()?.toLowerCase();
+        const ext = url?.split('.').pop()?.toLowerCase();
         if (['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(ext || '')) return <FileImage className="h-4 w-4" />;
         if (['mp4', 'mkv', 'avi'].includes(ext || '')) return <Video className="h-4 w-4" />;
         if (['mp3', 'wav'].includes(ext || '')) return <Music className="h-4 w-4" />;
@@ -167,9 +179,9 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id 
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0] || null;
-        if (file) {
-            setFiles(prev => [...prev, { name: file.name, file: file }]);
+        const selectedFile = e.target.files?.[0] || null;
+        if (selectedFile) {
+            setFiles([{ name: selectedFile.name, file: selectedFile }]);
         }
     };
 
@@ -217,63 +229,62 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id 
                                 <table className="w-full text-left border-collapse">
                                     <thead className="bg-[#1e40af] text-white">
                                         <tr>
-                                            <th className="px-4 py-2 text-[11px] font-black uppercase tracking-wider border-r border-[#3b82f6]/30 text-center w-[60px]">SL NO</th>
-                                            <th className="px-4 py-2 text-[11px] font-black uppercase tracking-wider border-r border-[#3b82f6]/30 text-center">Interaction</th>
-                                            <th className="px-4 py-2 text-[11px] font-black uppercase tracking-wider border-r border-[#3b82f6]/30 text-center w-[120px]">Image</th>
-                                            <th className="px-4 py-2 text-[11px] font-black uppercase tracking-wider border-r border-[#3b82f6]/30 text-center w-[150px]">Reply By</th>
-                                            <th className="px-4 py-2 text-[11px] font-black uppercase tracking-wider text-center w-[180px]">Date</th>
+                                            <th className="px-4 py-3 text-[11px] font-black uppercase tracking-wider border-r border-blue-400/30 text-center w-[60px]">SL NO</th>
+                                            <th className="px-4 py-3 text-[11px] font-black uppercase tracking-wider border-r border-blue-400/30 text-center">Interaction</th>
+                                            <th className="px-4 py-3 text-[11px] font-black uppercase tracking-wider border-r border-blue-400/30 text-center w-[120px]">Attachment</th>
+                                            <th className="px-4 py-3 text-[11px] font-black uppercase tracking-wider border-r border-blue-400/30 text-center w-[150px]">Reply By</th>
+                                            <th className="px-4 py-3 text-[11px] font-black uppercase tracking-wider border-r border-blue-400/30 text-center w-[180px]">Date</th>
+                                            <th className="px-4 py-3 text-[11px] font-black uppercase tracking-wider text-center w-[80px]">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody className="text-[12px] font-bold text-slate-600">
-                                        {/* Original Message First */}
-                                        <tr className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                                            <td className="px-4 py-4 text-center border-r border-slate-100 italic text-slate-400">1</td>
-                                            <td className="px-4 py-4 border-r border-slate-100 leading-relaxed font-medium">
-                                                {message.ISMINT_Interaction}
-                                            </td>
-                                            <td className="px-4 py-4 border-r border-slate-100 text-center">
-                                                {message.ISMINT_Attachment && (
-                                                    <button 
-                                                        onClick={() => setPreviewUrl(message.ISMINT_Attachment!)}
-                                                        className="inline-flex p-2 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition-colors"
-                                                    >
-                                                        <Paperclip className="h-4 w-4" />
-                                                    </button>
-                                                )}
-                                            </td>
-                                            <td className="px-4 py-4 border-r border-slate-100 text-center text-[11px] uppercase tracking-tighter">
-                                                {message.Sender}
-                                            </td>
-                                            <td className="px-4 py-4 text-center text-[11px] text-slate-500">
-                                                {format(new Date(message.ISMINT_DateTime), 'dd/MM/yyyy hh:mm a')}
-                                            </td>
-                                        </tr>
-
-                                        {/* Replies */}
-                                        {thread.map((item: any, idx: number) => (
-                                            <tr key={idx} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                                                <td className="px-4 py-4 text-center border-r border-slate-100 italic text-slate-400">{idx + 2}</td>
-                                                <td className="px-4 py-4 border-r border-slate-100 leading-relaxed font-medium">
-                                                    {item.ISTINT_Interaction}
-                                                </td>
-                                                <td className="px-4 py-4 border-r border-slate-100 text-center">
-                                                    {item.ISTINT_Attachment && (
-                                                        <button 
-                                                            onClick={() => setPreviewUrl(item.ISTINT_Attachment)}
-                                                            className="inline-flex p-2 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition-colors"
-                                                        >
-                                                            {getFileIcon(item.ISTINT_Attachment)}
-                                                        </button>
-                                                    )}
-                                                </td>
-                                                <td className="px-4 py-4 border-r border-slate-100 text-center text-[11px] uppercase tracking-tighter">
-                                                    {item.Sender || (item.ISTINT_ComposedById === loggedInHrmeId ? 'You' : 'Staff')}
-                                                </td>
-                                                <td className="px-4 py-4 text-center text-[11px] text-slate-500">
-                                                    {format(new Date(item.ISTINT_DateTime), 'dd/MM/yyyy hh:mm a')}
-                                                </td>
-                                            </tr>
-                                        ))}
+                                        {/* Dynamic Thread Records from Backend */}
+                                        {thread.map((item: any, idx: number) => {
+                                            const isMyReply = item.ISTINT_ComposedById === loggedInHrmeId;
+                                            return (
+                                                <tr key={idx} className="border-b border-slate-100 hover:bg-slate-50/80 transition-colors">
+                                                    <td className="px-4 py-4 text-center border-r border-slate-100 italic text-slate-400 bg-slate-50/30 font-black tracking-widest">{idx + 1}</td>
+                                                    <td className="px-4 py-4 border-r border-slate-100 leading-relaxed font-medium">
+                                                        {item.ISTINT_Interaction || item.ISMINT_Interaction}
+                                                    </td>
+                                                    <td className="px-4 py-4 border-r border-slate-100 text-center">
+                                                        {(item.ISTINT_Attachment || item.ISMINT_Attachment) && (
+                                                            <button 
+                                                                onClick={() => {
+                                                                    const url = item.ISTINT_Attachment || item.ISMINT_Attachment;
+                                                                    const ext = url?.split('.').pop()?.toLowerCase();
+                                                                    if (['docx', 'doc', 'xlsx', 'xls', 'pptx', 'ppt'].includes(ext || '')) {
+                                                                        window.open(`https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(url)}`, '_blank');
+                                                                    } else {
+                                                                        setPreviewUrl(url);
+                                                                    }
+                                                                }}
+                                                                className="inline-flex p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all shadow-sm"
+                                                            >
+                                                                {getFileIcon(item.ISTINT_Attachment || item.ISMINT_Attachment || '')}
+                                                            </button>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-4 py-4 border-r border-slate-100 text-center text-[10px] uppercase tracking-tighter font-black text-slate-500">
+                                                        {item.Sender || (isMyReply ? 'You' : 'Staff')}
+                                                    </td>
+                                                    <td className="px-4 py-4 border-r border-slate-100 text-center text-[11px] text-slate-400">
+                                                        {(item.ISTINT_DateTime || item.ISMINT_DateTime) ? format(new Date(item.ISTINT_DateTime || item.ISMINT_DateTime), 'dd/MM/yyyy hh:mm a') : ''}
+                                                    </td>
+                                                    <td className="px-4 py-4 text-center">
+                                                        {isMyReply && (
+                                                            <button 
+                                                                onClick={() => handleDeleteReply(item.ISTINT_Id)}
+                                                                className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                                                title="Delete Reply"
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </button>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
                                     </tbody>
                                 </table>
                             </div>
@@ -301,10 +312,54 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id 
                                 <div className="flex grow flex-col gap-2">
                                     <div className="flex flex-wrap gap-2">
                                         {files.map((f, i) => (
-                                            <Badge key={i} variant="secondary" className="gap-2 px-3 py-1">
-                                                {f.name}
-                                                <X className="h-3 w-3 cursor-pointer" onClick={() => setFiles(prev => prev.filter((_, idx) => idx !== i))} />
-                                            </Badge>
+                                            <div key={i} className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-sm border border-slate-200">
+                                                <span className="text-[11px] font-bold text-slate-600 truncate max-w-[150px]">{f.name}</span>
+                                                <div className="flex items-center gap-1 border-l border-slate-300 pl-2 ml-1">
+                                                    <button 
+                                                        onClick={() => {
+                                                            if (f.file) {
+                                                                const ext = f.name.split('.').pop()?.toLowerCase();
+                                                                if (['docx', 'doc', 'xlsx', 'xls', 'pptx', 'ppt'].includes(ext || '')) {
+                                                                    toast.info('Excel/Word files will be downloaded for viewing');
+                                                                    const url = URL.createObjectURL(f.file);
+                                                                    const a = document.createElement('a');
+                                                                    a.href = url;
+                                                                    a.download = f.name;
+                                                                    a.click();
+                                                                    URL.revokeObjectURL(url);
+                                                                } else {
+                                                                    const url = URL.createObjectURL(f.file);
+                                                                    window.open(url, '_blank');
+                                                                }
+                                                            }
+                                                        }}
+                                                        className="text-[10px] font-black uppercase text-[#1e40af] hover:underline"
+                                                    >
+                                                        View
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => {
+                                                            if (f.file) {
+                                                                const url = URL.createObjectURL(f.file);
+                                                                const a = document.createElement('a');
+                                                                a.href = url;
+                                                                a.download = f.name;
+                                                                document.body.appendChild(a);
+                                                                a.click();
+                                                                document.body.removeChild(a);
+                                                                URL.revokeObjectURL(url);
+                                                            }
+                                                        }}
+                                                        className="text-[10px] font-black uppercase text-[#1e40af] hover:underline"
+                                                    >
+                                                        Download
+                                                    </button>
+                                                    <X 
+                                                        className="h-3 w-3 cursor-pointer text-red-500 hover:text-red-700 ml-1" 
+                                                        onClick={() => setFiles(prev => prev.filter((_, idx) => idx !== i))} 
+                                                    />
+                                                </div>
+                                            </div>
                                         ))}
                                     </div>
                                     <Button variant="ghost" size="sm" className="h-10 text-[10px] font-black uppercase tracking-widest gap-3 rounded-full hover:bg-primary/5 hover:text-primary transition-colors relative w-fit">
@@ -333,13 +388,21 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id 
             <Dialog open={!!previewUrl} onOpenChange={() => setPreviewUrl(null)}>
                 <DialogContent className="max-w-4xl p-0 bg-transparent border-none shadow-none flex flex-col items-center">
                     <div className="relative group w-full flex flex-col items-center gap-6">
-                        <div className="relative rounded-2xl overflow-hidden bg-white/10 backdrop-blur-md p-1 shadow-2xl">
+                        <div className="relative rounded-2xl overflow-hidden bg-white/10 backdrop-blur-md p-1 shadow-2xl flex flex-col items-center w-full max-w-3xl">
                              {previewUrl && (
-                                <img 
-                                    src={previewUrl} 
-                                    alt="Preview" 
-                                    className="max-h-[70vh] w-auto rounded-xl object-contain shadow-inner"
-                                />
+                                previewUrl.toLowerCase().endsWith('.pdf') ? (
+                                    <iframe 
+                                        src={`${previewUrl}#toolbar=0`} 
+                                        className="w-full h-[70vh] rounded-xl border-none shadow-inner bg-white"
+                                        title="PDF Preview"
+                                    />
+                                ) : (
+                                    <img 
+                                        src={previewUrl} 
+                                        alt="Preview" 
+                                        className="max-h-[70vh] w-auto rounded-xl object-contain shadow-inner"
+                                    />
+                                )
                              )}
                         </div>
                         <div className="flex items-center gap-4">
@@ -348,7 +411,7 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id 
                                 className="bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-md px-8 rounded-full font-black uppercase tracking-widest gap-3 h-12 shadow-xl"
                             >
                                 <Download className="h-5 w-5" />
-                                Download Image
+                                Download File
                             </Button>
                             <Button 
                                 onClick={() => setPreviewUrl(null)}

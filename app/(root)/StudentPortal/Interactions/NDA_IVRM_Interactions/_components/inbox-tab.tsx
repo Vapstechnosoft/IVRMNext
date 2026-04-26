@@ -3,13 +3,13 @@
 import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { 
-    Inbox, 
-    RefreshCcw, 
-    User, 
-    Users, 
-    MessageSquare, 
-    Send, 
+import {
+    Inbox,
+    RefreshCcw,
+    User,
+    Users,
+    MessageSquare,
+    Send,
     Search,
     ChevronDown,
     ChevronUp,
@@ -39,186 +39,218 @@ interface InboxTabProps {
 }
 
 export function InboxTab({ data, onRefresh, roleFlg }: InboxTabProps) {
-    const [searchFrom, setSearchFrom] = useState('');
-    const [searchClass, setSearchClass] = useState('');
-    const [searchSection, setSearchSection] = useState('');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [expandedIds, setExpandedIds] = useState<number[]>([]);
     const [selectedMessage, setSelectedMessage] = useState<IMessage | null>(null);
     const [showReplyModal, setShowReplyModal] = useState(false);
 
     const rawMessages = data.result || data.getinboxmsg || [];
-    const readFlags = data.result1 || data.getinboxmsg_readflg || [];
+    const readFlags = [...(data.result1 || []), ...(data.getinboxmsg_readflg || [])];
 
     // Group messages by ISMINT_Id to ensure only one item per thread is shown in the inbox
     const messages = rawMessages.reduce((acc: IMessage[], curr: IMessage) => {
         // Find existing interaction in our accumulator
         const existingIndex = acc.findIndex(m => m.ISMINT_Id === curr.ISMINT_Id);
-        const flag = readFlags.find(f => f.ISMINT_Id === curr.ISMINT_Id);
-        
-        // Extract Admission No from various possible field variants
-        const admNo = curr.AMST_AdmNo || (curr as any).AMST_AdmissionNo || (curr as any).amst_admno;
-
-        const msgWithFlag = { 
-            ...curr, 
-            ISTINT_ReadFlg: flag ? flag.ISTINT_ReadFlg : 0,
-            AMST_AdmNo: admNo
-        };
 
         if (existingIndex === -1) {
             // New interaction, add it
-            acc.push(msgWithFlag);
+            acc.push(curr);
         } else {
             // Duplicate ISMINT_Id found (likely a reply or multiple attachment record)
             // Replace existing if current ISTINT_Id is newer
             const existingId = acc[existingIndex].ISTINT_Id || 0;
             const currentId = curr.ISTINT_Id || 0;
-            
+
             if (currentId > existingId) {
-                acc[existingIndex] = msgWithFlag;
+                acc[existingIndex] = curr;
             }
         }
         return acc;
     }, []);
 
     const isMessageRead = (msg: IMessage) => {
-        return msg.ISTINT_ReadFlg === 1;
+        const flag = readFlags.find(f => (f.ISMINT_Id === msg.ISMINT_Id) || ((f as any).ismint_Id === msg.ISMINT_Id));
+        const readFlg = flag ? flag.ISTINT_ReadFlg : msg.ISTINT_ReadFlg;
+        return Number(readFlg) === 1;
     };
 
-    const filteredMessages = messages.filter(msg => {
-        const matchFrom = (msg.Sender || '').toLowerCase().includes(searchFrom.toLowerCase());
-        const matchClass = (msg.Classname || '').toLowerCase().includes(searchClass.toLowerCase());
-        const matchSection = (msg.Sectionname || '').toLowerCase().includes(searchSection.toLowerCase());
-        return matchFrom && matchClass && matchSection;
-    });
+    const filteredMessages = messages.filter(msg =>
+        (msg.ISMINT_Subject?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (msg.Sender?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (msg.Receiver?.toLowerCase() || '').includes(searchTerm.toLowerCase())
+    );
 
-    const openReply = async (msg: IMessage) => {
+    const toggleExpand = async (msg: IMessage) => {
+        const id = msg.ISTINT_Id;
         const isRead = isMessageRead(msg);
-        if (!isRead) {
+
+        if (expandedIds.includes(id)) {
+            setExpandedIds(expandedIds.filter(i => i !== id));
+        } else {
+            setExpandedIds([...expandedIds, id]);
+            // Mark as seen if unread
             try {
-                await markMessageAsRead(msg.ISTINT_Id);
+                const res = await markMessageAsRead(id);
+                if (res.success) {
+                    onRefresh(); // Refresh flags
+                }
             } catch (error) {
                 console.error('Error marking as read:', error);
             }
         }
+    };
+
+    const handleDelete = async (msg: IMessage) => {
+        if (!confirm('Are you sure you want to delete this interaction?')) return;
+
+        try {
+            const res = await deleteInteraction({ ISMINT_Id: msg.ISMINT_Id, ISTINT_Id: msg.ISTINT_Id });
+            if (res.success) {
+                toast.success(res.message || 'Interaction deleted successfully');
+                onRefresh();
+            } else {
+                toast.error(res.message || 'Failed to delete interaction');
+            }
+        } catch (error) {
+            toast.error('An error occurred during deletion');
+        }
+    };
+
+    const openReply = async (msg: IMessage) => {
         setSelectedMessage(msg);
         setShowReplyModal(true);
+        try {
+            const res = await markMessageAsRead(msg.ISTINT_Id);
+            if (res.success) {
+                onRefresh();
+            }
+        } catch (error) {
+            console.error('Error marking as read:', error);
+        }
     };
 
     return (
-        <div className="flex flex-col gap-6">
-            {/* Legacy Style Header with Count Badge and Yellow Border */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b-2 border-[#fbbf24] pb-3 pt-2">
+        <div className="flex flex-col gap-4">
+            {/* Legacy Style Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#1e40af]/10 pb-3 pt-0">
                 <div className="flex flex-col gap-0.5">
                     <div className="flex items-center gap-2">
-                        <h2 className="text-[14px] font-black uppercase tracking-wider text-[#1e40af]">
-                            MESSAGE INBOX 
+                        <h2 className="text-[11px] font-black uppercase tracking-[0.15em] text-[#1e40af]">
+                            MESSAGE INBOX
                         </h2>
-                        <span className="flex h-6 px-1.5 min-w-[24px] items-center justify-center rounded-sm bg-[#1e40af] text-[10px] font-black text-white shadow-sm">
-                            {filteredMessages.length}
-                        </span>
+                        <div className="flex h-4 px-1.5 min-w-[20px] items-center justify-center rounded-sm bg-[#1e40af] text-[9px] font-black text-white">
+                            {messages.length}
+                        </div>
                     </div>
-                    <p className="text-[10px] font-black uppercase tracking-tight text-[#2563eb] mt-0.5">
+                    <p className="text-[9px] font-black uppercase tracking-widest text-[#3b82f6] opacity-80">
                         BLUE COLOUR ON INTERACTION SAYS UNREAD
                     </p>
                 </div>
 
-                <div className="flex flex-col md:items-end gap-1">
-                    <div className="flex items-center gap-2 text-[10px] font-black uppercase text-slate-500/80">
-                        <RefreshCcw className="h-3 w-3 cursor-pointer hover:rotate-180 transition-all duration-500 text-slate-400" onClick={onRefresh} />
-                        {format(new Date(), 'MM/dd/yyyy hh:mm a')}
+                <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-tight text-slate-400">
+                        <RefreshCcw className="h-3 w-3 cursor-pointer hover:rotate-180 transition-all duration-500 text-slate-300" onClick={onRefresh} />
+                        <span className="opacity-60">{format(new Date(), 'dd/MM/yyyy hh:mm a')}</span>
+                    </div>
+                    <div className="relative group">
+                        <Search className="absolute left-3 top-1/2 h-3 w-3 -translate-y-1/2 text-slate-300 group-hover:text-[#1e40af] transition-colors" />
+                        <input
+                            className="h-8 w-[200px] rounded-none border border-slate-200 bg-slate-50/50 pl-8 pr-3 text-[10px] font-bold placeholder:text-slate-300 focus:bg-white focus:ring-1 focus:ring-[#1e40af]/10 transition-all outline-none"
+                            placeholder="Search messages..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
                     </div>
                 </div>
             </div>
 
-            {/* Triple Search Filters - Matches Legacy Layout */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="relative">
-                    <input 
-                        className="h-10 w-full rounded-none border border-slate-300 bg-white px-3 text-[11px] font-bold placeholder:text-slate-400 focus:outline-none focus:border-blue-500 transition-all"
-                        placeholder="Search by From Username..."
-                        value={searchFrom}
-                        onChange={(e) => setSearchFrom(e.target.value)}
-                    />
-                </div>
-                <div className="relative">
-                    <input 
-                        className="h-10 w-full rounded-none border border-slate-300 bg-white px-3 text-[11px] font-bold placeholder:text-slate-400 focus:outline-none focus:border-blue-500 transition-all"
-                        placeholder="Search by Classname..."
-                        value={searchClass}
-                        onChange={(e) => setSearchClass(e.target.value)}
-                    />
-                </div>
-                <div className="relative">
-                    <input 
-                        className="h-10 w-full rounded-none border border-slate-300 bg-white px-3 text-[11px] font-bold placeholder:text-slate-400 focus:outline-none focus:border-blue-500 transition-all"
-                        placeholder="Search by Sectionname..."
-                        value={searchSection}
-                        onChange={(e) => setSearchSection(e.target.value)}
-                    />
-                </div>
-            </div>
-
-            {/* Legacy List Items */}
-            <div className="flex flex-col gap-3">
+            {/* Legacy Style List */}
+            <div className="flex flex-col border border-muted/60 rounded-none overflow-hidden bg-white shadow-sm">
                 {filteredMessages.length === 0 ? (
-                    <div className="p-20 text-center text-[11px] font-black uppercase tracking-[0.2em] text-slate-300 bg-slate-50/50 border border-dashed border-slate-200">
-                        NO MESSAGES FOUND IN YOUR INBOX
+                    <div className="p-12 text-center text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40 bg-muted/5">
+                        No messages found in your inbox
                     </div>
                 ) : (
                     filteredMessages.map((msg, index) => {
+                        const isExpanded = expandedIds.includes(msg.ISTINT_Id);
                         const isRead = isMessageRead(msg);
                         const isComposedByMe = msg.ISMINT_ComposedById === data.userhrmE_Id;
 
                         return (
-                            <div 
-                                key={`${msg.ISMINT_Id}`}
-                                onClick={() => openReply(msg)}
+                            <div
+                                key={`${msg.ISMINT_Id || 'msg'}-${index}`}
                                 className={cn(
-                                    "relative flex items-center p-4 bg-white border shadow-sm cursor-pointer hover:shadow-md transition-all",
-                                    !isRead ? "border-l-4 border-l-blue-600" : "border-slate-200"
+                                    "group flex flex-col border-b last:border-b-0 transition-colors cursor-pointer",
+                                    isRead ? "bg-white" : "bg-blue-50/20"
                                 )}
                             >
-                                {/* Sl No */}
-                                <div className="w-10 shrink-0 text-[11px] font-bold text-slate-400">
-                                    {index + 1}
-                                </div>
-
-                                {/* User Icon */}
-                                <div className="shrink-0 mx-4">
-                                    <div className="h-8 w-8 rounded-full bg-slate-50 flex items-center justify-center">
-                                        <User className="h-4 w-4 text-green-600" />
-                                    </div>
-                                </div>
-
-                                {/* Subject */}
-                                <div className="flex-1 min-w-0 pr-4">
-                                    <h3 className={cn(
-                                        "text-[12px] font-black truncate",
-                                        !isRead ? "text-[#1e40af]" : "text-slate-600"
-                                    )}>
-                                        {msg.ISMINT_Subject}
-                                    </h3>
-                                </div>
-
-                                {/* Metadata and Status Icon */}
-                                <div className="flex items-center gap-12">
-                                    <div className="hidden lg:flex items-center text-[10px] font-black text-slate-600 gap-2 uppercase tracking-tighter">
-                                        <span>{isComposedByMe ? `To:${msg.Receiver}` : `From:${msg.Sender}`}</span>
-                                        {msg.Classname && <span>Class: <span className="text-slate-900">{msg.Classname}</span></span>}
-                                        {msg.Sectionname && <span>Section: <span className="text-slate-900">{msg.Sectionname}</span></span>}
-                                        {msg.AMST_AdmNo && <span>ADM NO: <span className="text-slate-900">{msg.AMST_AdmNo}</span></span>}
+                                <div
+                                    className="flex items-center p-2.5 gap-4 hover:bg-slate-50 relative"
+                                    onClick={() => toggleExpand(msg)}
+                                >
+                                    {/* Left Status Icon - Green User in legacy */}
+                                    <div className="flex shrink-0 items-center justify-center h-6 w-6 rounded-sm bg-[#22c55e]">
+                                        <User className="h-4 w-4 text-white" />
                                     </div>
 
-                                    <div className="shrink-0 p-2">
+                                    {/* Middle Subject */}
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className={cn(
+                                            "text-[11px] truncate uppercase tracking-tight transition-colors",
+                                            isRead ? "font-bold text-black" : "font-black text-[#1e40af]"
+                                        )}>
+                                            {msg.ISMINT_Subject}
+                                        </h3>
+                                    </div>
+
+                                    {/* Sender/Receiver Info - Right Aligned in legacy */}
+                                    <div className="hidden sm:flex items-center justify-end min-w-[180px] text-[10px] font-bold text-slate-500 uppercase pr-4 italic">
+                                        {isComposedByMe ? `To:${msg.Receiver}` : `From:${msg.Sender}`}
+                                    </div>
+
+                                    {/* Right Message Icon - Blue icon in legacy */}
+                                    <div className="flex shrink-0 items-center justify-center h-8 w-8">
                                         {isComposedByMe ? (
-                                            <Send className="h-5 w-5 text-blue-400" />
+                                            <Send className="h-4 w-4 text-[#3b82f6]" />
                                         ) : (
                                             <Mail className={cn(
-                                                "h-5 w-5 hover:scale-110 transition-transform",
-                                                !isRead ? "text-[#1e40af]" : "text-slate-300"
+                                                "h-4 w-4 transition-colors",
+                                                isRead ? "text-slate-200" : "text-[#1e40af]"
                                             )} />
                                         )}
                                     </div>
                                 </div>
+
+                                {/* Expanded Content logic like screenshot */}
+                                {isExpanded && (
+                                    <div className="flex items-center justify-between px-14 py-3 bg-slate-50/50 border-t border-slate-50">
+                                        <div className="text-[11px] font-bold text-slate-500 italic max-w-2xl px-2">
+                                            {msg.ISTINT_Interaction || msg.ISMINT_Interaction}
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    openReply(msg);
+                                                }}
+                                                className="flex items-center gap-1.5 text-[10px] font-black text-[#1e40af] hover:underline uppercase tracking-tight"
+                                            >
+                                                <MessageSquare className="h-3 w-3" />
+                                                View & Reply
+                                            </button>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleDelete(msg);
+                                                }}
+                                                className="p-1 px-1.5 text-sky-500 hover:bg-sky-100 rounded-sm transition-all"
+                                                title="Delete"
+                                            >
+                                                <Trash2 className="h-3.5 w-3.5" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         );
                     })
@@ -226,7 +258,7 @@ export function InboxTab({ data, onRefresh, roleFlg }: InboxTabProps) {
             </div>
 
             {showReplyModal && selectedMessage && (
-                <ViewReplyModal 
+                <ViewReplyModal
                     isOpen={showReplyModal}
                     onClose={() => {
                         setShowReplyModal(false);
