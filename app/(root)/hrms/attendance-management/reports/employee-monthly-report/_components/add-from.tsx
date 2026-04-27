@@ -12,6 +12,7 @@ import {
     useReportDepartments,
     useReportDesignations,
     useReportEmployeesByDeptAndDesignation,
+    useReportEmployeesByGroupTypeDeptAndDesignation,
     useReportGroupTypes
 } from '@/hooks/hrms/useReports';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -61,7 +62,7 @@ export default function AddEmployeeMonthlyReportForm({
             department: [],
             designation: [],
             allOrIndividual: 'All',
-            employeeIds: [],
+            employeeIds: '',
             fromDate: '',
             toDate: '',
             reportOptions: []
@@ -82,10 +83,10 @@ export default function AddEmployeeMonthlyReportForm({
     const deptIds = useMemo(() => watchedDepartment.map(Number).filter(Boolean), [watchedDepartment]);
     const desigIds = useMemo(() => watchedDesignation.map(Number).filter(Boolean), [watchedDesignation]);
 
-    const { data: groupTypesData } = useReportGroupTypes();
-    const { data: departmentsData } = useReportDepartments(groupTypeIds.join(','));
-    const { data: designationsData } = useReportDesignations(groupTypeIds.join(','), deptIds.join(','));
-    const { data: employeesData } = useReportEmployeesByDeptAndDesignation(deptIds.join(','), desigIds.join(','));
+    const { data: groupTypesData, isLoading: isGroupTypesLoading } = useReportGroupTypes();
+    const { data: departmentsData, isLoading: isDepartmentsLoading } = useReportDepartments(groupTypeIds.join(','));
+    const { data: designationsData, isLoading: isDesignationsLoading } = useReportDesignations(groupTypeIds.join(','), deptIds.join(','));
+    const { data: employeesData, isLoading: isEmployeesLoading } = useReportEmployeesByGroupTypeDeptAndDesignation(groupTypeIds, deptIds, desigIds);
 
     const groupTypesDataTransformed = useMemo(() => {
         return (
@@ -115,7 +116,7 @@ export default function AddEmployeeMonthlyReportForm({
     }, [designationsData]);
 
     const employeesDataTransformed = useMemo(() => {
-        const list = employeesData?.data || employeesData;
+        const list = employeesData?.data?.employeeNames || employeesData;
         if (!list || !Array.isArray(list)) return [];
 
         return list
@@ -123,21 +124,9 @@ export default function AddEmployeeMonthlyReportForm({
                 const id = emp.HRME_Id || emp.hrmE_Id || emp.id || emp.key;
                 if (id == null) return null;
 
-                const firstName = (emp.HRME_EmployeeFirstName || emp.hrmE_EmployeeFirstName || '').trim();
-                const middleName = (emp.HRME_EmployeeMiddleName || emp.hrmE_EmployeeMiddleName || '').trim();
-                const lastName = (emp.HRME_EmployeeLastName || emp.hrmE_EmployeeLastName || '').trim();
+                const employeeName = emp.employeeFullName
 
-                const employeeName =
-                    [firstName, middleName, lastName].filter(Boolean).join(' ') ||
-                    emp.value ||
-                    emp.employeeName ||
-                    'Unknown Employee';
-
-                const employeeCode =
-                    emp.HRME_EmployeeCode ||
-                    emp.hrmE_EmployeeCode ||
-                    emp.employeeCode ||
-                    id.toString();
+                const employeeCode = id
 
                 return {
                     id: Number(id),
@@ -153,7 +142,7 @@ export default function AddEmployeeMonthlyReportForm({
             // Determine comma-separated employee IDs
             let hrmeIds = '0';
             if (data.allOrIndividual === 'Individual' && data.employeeIds && data.employeeIds.length > 0) {
-                hrmeIds = data.employeeIds.join(',');
+                hrmeIds = data.employeeIds.toString();
             } else if (data.allOrIndividual === 'All') {
                 const allIds = employeesDataTransformed.map((emp: any) => emp.id).join(',');
                 hrmeIds = allIds || '0';
@@ -166,7 +155,10 @@ export default function AddEmployeeMonthlyReportForm({
                 type: 'monthly'
             };
 
+            console.log("Submitting with payload:", payload);
+
             const response = await getEmployeeMonthlyReport(payload, searchParams);
+            console.log("API response:", response);
 
             if (response.success) {
                 toast.success(response.message || 'Report generated successfully');
@@ -175,9 +167,11 @@ export default function AddEmployeeMonthlyReportForm({
                 const params = new URLSearchParams();
                 params.set('fromDate', data.fromDate);
                 params.set('toDate', data.toDate);
-                params.set('employee', hrmeIds);
+                if (hrmeIds && hrmeIds.length < 1500) {
+                    params.set('employee', hrmeIds);
+                }
                 params.set('allOrIndividual', data.allOrIndividual);
-                
+
                 // Add MultiSelect params
                 data.type.forEach(t => params.append('type', t));
                 data.department.forEach(d => params.append('department', d));
@@ -188,17 +182,29 @@ export default function AddEmployeeMonthlyReportForm({
 
                 router.push(`${pathname}?${params.toString()}`);
 
-                // Update cache with the new reportOptions so page.tsx can read it
-                queryClient.setQueryData([HRMS_QUERY_KEYS.EMPLOYEE_MONTHLY_REPORT, {
+                const nextSearchParams: Record<string, string | string[]> = {
                     fromDate: data.fromDate,
                     toDate: data.toDate,
-                    employee: hrmeIds,
-                    allOrIndividual: data.allOrIndividual,
-                    type: data.type,
-                    department: data.department,
-                    designation: data.designation,
-                    reportOptions: data.reportOptions
-                }], {
+                    allOrIndividual: data.allOrIndividual
+                };
+                if (hrmeIds && hrmeIds.length < 1500) {
+                    nextSearchParams.employee = hrmeIds;
+                }
+
+                if (data.type.length === 1) nextSearchParams.type = data.type[0];
+                else if (data.type.length > 1) nextSearchParams.type = data.type;
+
+                if (data.department.length === 1) nextSearchParams.department = data.department[0];
+                else if (data.department.length > 1) nextSearchParams.department = data.department;
+
+                if (data.designation.length === 1) nextSearchParams.designation = data.designation[0];
+                else if (data.designation.length > 1) nextSearchParams.designation = data.designation;
+
+                if (data.reportOptions && data.reportOptions.length === 1) nextSearchParams.reportOptions = data.reportOptions[0];
+                else if (data.reportOptions && data.reportOptions.length > 1) nextSearchParams.reportOptions = data.reportOptions;
+
+                // Update cache with the new reportOptions so page.tsx can read it
+                queryClient.setQueryData([HRMS_QUERY_KEYS.EMPLOYEE_MONTHLY_REPORT, nextSearchParams], {
                     ...response,
                     reportOptions: data.reportOptions || []
                 });
@@ -218,7 +224,7 @@ export default function AddEmployeeMonthlyReportForm({
             department: [],
             designation: [],
             allOrIndividual: 'All',
-            employeeIds: [],
+            employeeIds: '',
             fromDate: '',
             toDate: '',
             reportOptions: []
@@ -249,9 +255,10 @@ export default function AddEmployeeMonthlyReportForm({
                                             }))}
                                             onValueChange={(values) => field.onChange(values)}
                                             defaultValue={field.value || []}
-                                            placeholder='Select Types'
+                                            placeholder={isGroupTypesLoading ? 'Loading...' : 'Select Group Types'}
                                             className={`w-full ${errors.type ? 'border-red-500' : ''}`}
                                             maxHeight={240}
+                                            disabled={isGroupTypesLoading || groupTypesDataTransformed.length === 0}
                                         />
                                     )}
                                 />
@@ -274,9 +281,10 @@ export default function AddEmployeeMonthlyReportForm({
                                             }))}
                                             onValueChange={(values) => field.onChange(values)}
                                             defaultValue={field.value || []}
-                                            placeholder='Select Departments'
+                                            placeholder={isDepartmentsLoading ? 'Loading...' : 'Select Departments'}
                                             className={`w-full ${errors.department ? 'border-red-500' : ''}`}
                                             maxHeight={240}
+                                            disabled={isDepartmentsLoading || departmentsDataTransformed.length === 0}
                                         />
                                     )}
                                 />
@@ -299,9 +307,10 @@ export default function AddEmployeeMonthlyReportForm({
                                             }))}
                                             onValueChange={(values) => field.onChange(values)}
                                             defaultValue={field.value || []}
-                                            placeholder='Select Designations'
+                                            placeholder={isDesignationsLoading ? 'Loading...' : 'Select Designations'}
                                             className={`w-full ${errors.designation ? 'border-red-500' : ''}`}
                                             maxHeight={240}
+                                            disabled={isDesignationsLoading || designationsDataTransformed.length === 0}
                                         />
                                     )}
                                 />
@@ -337,7 +346,7 @@ export default function AddEmployeeMonthlyReportForm({
                                     <Label className='mb-2 block font-medium text-gray-700 text-sm'>
                                         Employee <span className='ml-1 text-red-500'>*</span>
                                     </Label>
-                                    <Controller
+                                    {/* <Controller
                                         name='employeeIds'
                                         control={control}
                                         render={({ field }) => (
@@ -352,6 +361,33 @@ export default function AddEmployeeMonthlyReportForm({
                                                 className={`w-full ${errors.employeeIds ? 'border-red-500' : ''}`}
                                                 maxHeight={240}
                                             />
+                                        )}
+                                    /> */}
+                                    <Controller
+                                        name='employeeIds'
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Select value={field.value || ''} onValueChange={field.onChange}>
+                                                <SelectTrigger className={errors.employeeIds ? 'border-red-500' : ''}>
+                                                    <SelectValue placeholder='Select Employee' />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {
+                                                        employeesDataTransformed.length === 0 ? (
+                                                            <div className="p-4 text-center text-sm text-muted-foreground">
+                                                                No employees found for the selected criteria.
+                                                            </div>
+                                                        ) : (employeesDataTransformed as any[]).map((emp: any) => {
+                                                            return (
+                                                                <SelectItem key={emp.id} value={emp.id?.toString() || ''}>
+                                                                    {emp.employeeName} - [{emp.employeeCode}]
+                                                                </SelectItem>
+                                                            );
+                                                        })
+                                                    }
+
+                                                </SelectContent>
+                                            </Select>
                                         )}
                                     />
                                     {errors.employeeIds && <FormError>{errors.employeeIds.message}</FormError>}
@@ -387,6 +423,7 @@ export default function AddEmployeeMonthlyReportForm({
                                             }}
                                             placeholder='From date'
                                             className={errors.fromDate ? 'border-red-500' : ''}
+                                            disabled={[{ after: today }]}
                                         />
                                     )}
                                 />
@@ -419,9 +456,9 @@ export default function AddEmployeeMonthlyReportForm({
                                             disabled={
                                                 fromDateObject
                                                     ? [
-                                                          { before: fromDateObject },
-                                                          { after: today }
-                                                      ]
+                                                        { before: fromDateObject },
+                                                        { after: today }
+                                                    ]
                                                     : [{ after: today }]
                                             }
                                         />
