@@ -90,7 +90,7 @@ export const BookRegisterColumns: ColumnDef<BookRegisterPayload>[] = [
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: BookRegisterPayload }) {
-    const { openToggleForm, openEditForm } = useFormContext<BookRegisterPayload>();
+    const { openToggleForm, openEditForm, openCopyForm } = useFormContext<BookRegisterPayload>();
 
     const handleToggle = useCallback(
         (data: BookRegisterPayload) => {
@@ -101,12 +101,17 @@ function ActionButtonsCell({ rowData }: { rowData: BookRegisterPayload }) {
 
     const handleEdit = useCallback((data: BookRegisterPayload) => openEditForm(data), [openEditForm]);
 
+    const handleCopy = useCallback((data: BookRegisterPayload) => {
+        openCopyForm(data);
+    }, [openCopyForm]);
+
     return (
         <ActionButtons
             rowData={rowData}
-            buttons={{ edit: true, toggle: true, delete: false }}
+            buttons={{ edit: true, toggle: true, delete: false, copy: true }}
             onToggle={handleToggle}
             onEdit={handleEdit}
+            onCopy={handleCopy}
             toggleConditionKey='mB_ActiveFlag'
             className='justify-start'
         />
