@@ -2864,7 +2864,48 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/Calcatta/rrps-exam-hallticket',
                                             title: 'RRPS Exam Hallticket',
                                             description: 'RRPS Exam Hallticket'
+                                        },
+                                        {
+                                            id: 21036,
+                                            name: 'ABV Exam Hallticket',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/Calcatta/abv-exam-hallticket',
+                                            title: 'ABV Exam Hallticket',
+                                            description: 'ABV Exam Hallticket'
+                                        },
+                                        {
+                                            id: 21037,
+                                            name: 'Carmel Exam Hallticket',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/Calcatta/cramel-exam-hallticket',
+                                            title: 'Carmel Exam Hallticket',
+                                            description: 'Carmel Exam Hallticket'
+                                        },
+                                        {
+                                            id: 21038,
+                                            name: 'GMVPS Exam Hallticket',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/Calcatta/gmvps-exam-hallticket',
+                                            title: 'GMVPS Exam Hallticket',
+                                            description: 'GMVPS Exam Hallticket'
+                                        },
+                                        {
+                                            id: 21039,
+                                            name: 'UKPS Exam Hallticket',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/Calcatta/ukps-exam-hallticket',
+                                            title: 'UKPS Exam Hallticket',
+                                            description: 'UKPS Exam Hallticket'
+                                        },
+                                        {
+                                            id: 21040,
+                                            name: 'Baldwin Exam Hallticket',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/Calcatta/baldwin-exam-hallticket',
+                                            title: 'Baldwin Exam Hallticket',
+                                            description: 'Baldwin Exam Hallticket'
                                         }
+
                                     ]
                                 }
                             ]
