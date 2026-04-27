@@ -14,6 +14,7 @@ interface FormContextType<T = any> {
     isFacilityViewOpen: boolean;
     isWardenViewOpen: boolean;
     isDocumentViewOpen: boolean;
+    isCopyFormOpen: boolean;
     selectedRow: T | null;
 
     // Actions
@@ -37,6 +38,8 @@ interface FormContextType<T = any> {
     closeWardenView: () => void;
     openDocumentView: (row: T) => void;
     closeDocumentView: () => void;
+    openCopyForm: (row: T) => void;
+    closeCopyForm: () => void;
     closeAllForms: () => void;
 
     // Refs for scrolling
@@ -69,6 +72,7 @@ export function FormProvider<T = any>({
     const [isFacilityViewOpen, setIsFacilityViewOpen] = useState(false);
     const [isWardenViewOpen, setIsWardenViewOpen] = useState(false);
     const [isDocumentViewOpen, setIsDocumentViewOpen] = useState(false);
+    const [isCopyFormOpen, setIsCopyFormOpen] = useState(false);
     const [selectedRow, setSelectedRow] = useState<T | null>(null);
 
     const addFormRef = useRef<HTMLDivElement>(null);
@@ -108,6 +112,7 @@ export function FormProvider<T = any>({
         setIsFacilityViewOpen(false);
         setIsWardenViewOpen(false);
         setIsDocumentViewOpen(false);
+        setIsCopyFormOpen(false);
         setSelectedRow(null);
         scrollToTop();
     }, [scrollToTop]);
@@ -252,6 +257,21 @@ export function FormProvider<T = any>({
         scrollToTop();
     }, [scrollToTop]);
 
+    const openCopyForm = useCallback(
+        (row: T) => {
+            closeAllForms();
+            setSelectedRow(row);
+            setIsCopyFormOpen(true);
+        },
+        [closeAllForms]
+    );
+
+    const closeCopyForm = useCallback(() => {
+        setIsCopyFormOpen(false);
+        setSelectedRow(null);
+        scrollToTop();
+    }, [scrollToTop]);
+
     return (
         <FormContext.Provider
             value={{
@@ -265,6 +285,7 @@ export function FormProvider<T = any>({
                 isFacilityViewOpen,
                 isWardenViewOpen,
                 isDocumentViewOpen,
+                isCopyFormOpen,
                 selectedRow,
                 openAddForm,
                 closeAddForm,
@@ -286,6 +307,8 @@ export function FormProvider<T = any>({
                 closeWardenView,
                 openDocumentView,
                 closeDocumentView,
+                openCopyForm,
+                closeCopyForm,
                 closeAllForms,
                 addFormRef,
                 editFormRef

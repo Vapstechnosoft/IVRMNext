@@ -11,40 +11,42 @@ import { useCallback } from 'react';
 export const BookRegisterColumns: ColumnDef<BookRegisterPayload>[] = [
     {
         id: 'slNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl. No' className='w-full pl-6' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl. No' className='w-full pl-4' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
             const continuousIndex = pageIndex * pageSize + row.index + 1;
-            return <div className='w-full pl-6'>{continuousIndex}</div>;
+            return <div className='w-full pl-4'>{continuousIndex}</div>;
         },
+        size: 70,
         enableSorting: false,
         enableHiding: false
     },
     {
-        accessorKey: 'lmB_BookTitle',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Book Title' />,
-        cell: ({ row }) => <div>{row.getValue('lmB_BookTitle')}</div>
-    },
-    {
         accessorKey: 'lmbanO_AccessionNo',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Accession No' />,
-        cell: ({ row }) => <div>{row.getValue('lmbanO_AccessionNo')}</div>
+        cell: ({ row }) => <div>{row.getValue('lmbanO_AccessionNo')}</div>,
+        size: 100
+    },
+    {
+        accessorKey: 'lmB_BookTitle',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Book Title' />,
+        cell: ({ row }) => <div className='min-w-[150px]'>{row.getValue('lmB_BookTitle')}</div>
     },
     {
         accessorKey: 'lmP_PublisherName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Publisher Name' />,
-        cell: ({ row }) => <div>{row.getValue('lmP_PublisherName')}</div>
+        cell: ({ row }) => <div>{row.getValue('lmP_PublisherName') || '-'}</div>
     },
     {
-        accessorKey: 'lmD_DepartmentName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Dept Name' />,
-        cell: ({ row }) => <div>{row.getValue('lmD_DepartmentName')}</div>
+        accessorKey: 'authoR_FullName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Author Name' />,
+        cell: ({ row }) => <div>{row.getValue('authoR_FullName') || '-'}</div>
     },
     {
-        accessorKey: 'lmS_SubjectName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Subject Name' />,
-        cell: ({ row }) => <div>{row.getValue('lmS_SubjectName')}</div>
+        accessorKey: 'lmC_CategoryName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Category Name' />,
+        cell: ({ row }) => <div>{row.getValue('lmC_CategoryName') || '-'}</div>
     },
     {
         accessorKey: 'lmL_LanguageName',
@@ -53,13 +55,8 @@ export const BookRegisterColumns: ColumnDef<BookRegisterPayload>[] = [
     },
     {
         accessorKey: 'lmrA_RackName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Rack Name' />,
-        cell: ({ row }) => <div>{row.getValue('lmrA_RackName')}</div>
-    },
-    {
-        accessorKey: 'authoR_FullName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Author Name' />,
-        cell: ({ row }) => <div>{row.getValue('authoR_FullName')}</div>
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Rack name' />,
+        cell: ({ row }) => <div>{row.getValue('lmrA_RackName') || '-'}</div>
     },
     {
         accessorKey: 'lmbanO_AvialableStatus',
@@ -83,24 +80,17 @@ export const BookRegisterColumns: ColumnDef<BookRegisterPayload>[] = [
         }
     },
     {
-        accessorKey: 'mB_ActiveFlag',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Active' />,
-        cell: ({ row }) => {
-            const isActive = row.getValue('mB_ActiveFlag') as boolean;
-            return <Badge variant={isActive ? 'default' : 'destructive'}>{isActive ? 'Active' : 'Inactive'}</Badge>;
-        }
-    },
-    {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Action' className='text-start' />,
         accessorFn: (row: any) => row,
         enableSorting: false,
-        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
+        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />,
+        size: 150
     }
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: BookRegisterPayload }) {
-    const { openToggleForm, openEditForm } = useFormContext<BookRegisterPayload>();
+    const { openToggleForm, openEditForm, openCopyForm } = useFormContext<BookRegisterPayload>();
 
     const handleToggle = useCallback(
         (data: BookRegisterPayload) => {
@@ -111,13 +101,19 @@ function ActionButtonsCell({ rowData }: { rowData: BookRegisterPayload }) {
 
     const handleEdit = useCallback((data: BookRegisterPayload) => openEditForm(data), [openEditForm]);
 
+    const handleCopy = useCallback((data: BookRegisterPayload) => {
+        openCopyForm(data);
+    }, [openCopyForm]);
+
     return (
         <ActionButtons
             rowData={rowData}
-            buttons={{ edit: true, toggle: true, delete: false }}
+            buttons={{ edit: true, toggle: true, delete: false, copy: true }}
             onToggle={handleToggle}
             onEdit={handleEdit}
-            toggleConditionKey='mB_ActiveFlag' // Changed from LMB_ActiveFlag to mB_ActiveFlag
+            onCopy={handleCopy}
+            toggleConditionKey='mB_ActiveFlag'
+            className='justify-start'
         />
     );
 }

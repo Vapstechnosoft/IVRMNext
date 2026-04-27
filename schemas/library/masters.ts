@@ -37,40 +37,32 @@ export const masterVendorSchema = {
         lmV_VendorName: z
             .string({ required_error: 'Vendor Name is required' })
             .trim()
-            .min(2, 'Vendor Name must be at least 2 characters')
+            .min(3, 'Vendor Name must be at least 3 characters')
             .max(100, 'Vendor Name cannot exceed 100 characters')
-            .regex(/^[A-Za-z\s.&]+$/, 'Only letters, spaces, . and & allowed'),
+            .regex(/^[A-Za-z\s]+$/, 'Only letters and spaces allowed'),
 
         lmV_MobileNo: z
-            .string()
+            .string({ required_error: 'Mobile Number is required' })
             .trim()
-            .regex(/^[6-9]\d{9}$/, 'Invalid Indian mobile number'),
+            .regex(/^\d{10}$/, 'Mobile Number must be exactly 10 digits'),
 
         lmV_Address: z
-            .string()
+            .string({ required_error: 'Address is required' })
             .trim()
-            .refine(
-                (val) => val === '' || (val.length >= 5 && val.length <= 200 && /^[A-Za-z0-9\s#]+$/.test(val)),
-                'Address must be 5–200 characters and can contain letters, numbers, spaces and # only'
-            ),
+            .min(3, 'Address must be at least 3 characters')
+            .max(200, 'Address cannot exceed 200 characters')
+            .regex(/^[A-Za-z0-9\s]+$/, 'Only letters, numbers, and spaces allowed'),
 
         lmV_EMailId: z
-            .string()
+            .string({ required_error: 'Email is required' })
             .trim()
-            .refine((val) => val === '' || z.string().email().safeParse(val).success, 'Invalid email address'),
+            .min(5, 'Email must be at least 5 characters')
+            .email('Invalid email address'),
 
         lmV_PhoneNo: z
-            .string()
+            .string({ required_error: 'Phone Number is required' })
             .trim()
-            .refine(
-                (val) =>
-                    val === '' ||
-                    z
-                        .string()
-                        .regex(/^\d{10,15}$/)
-                        .safeParse(val).success,
-                'Phone Number must contain 10–15 digits'
-            )
+            .regex(/^\d{10}$/, 'Phone Number must be exactly 10 digits')
     }),
 
     delete: z.object({

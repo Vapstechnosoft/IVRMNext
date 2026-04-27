@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 import type { BookRegisterPayload } from '@/types/library/masters/bookRegister';
 import { format } from 'date-fns';
 import { CalendarIcon, Eye, Loader2, Trash, Upload } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
 import { uploadDocument, deleteDocument } from '@/server/document_upload';
 import { toast } from 'sonner';
@@ -25,11 +25,25 @@ export default function TabBookDetails({ dropdownData }: { dropdownData: any }) 
 
     const lmB_StudentPhoto = useWatch({ control, name: 'lmB_StudentPhoto' });
 
+    // Debugging to help identify the correct keys if they change
+    useEffect(() => {
+        if (dropdownData) {
+            console.log('Book Register Dropdown Data:', dropdownData);
+        }
+    }, [dropdownData]);
+
+    // Flexible list access to handle potential casing differences from backend
+    const categoryList = dropdownData?.categorylist || dropdownData?.categoryList || [];
+    const deptList = dropdownData?.deptlist || dropdownData?.deptList || [];
+    const subjectList = dropdownData?.subjectlist || dropdownData?.subjectList || [];
+    const libList = dropdownData?.liblist || dropdownData?.libList || [];
+
     return (
         <div className='flex flex-col gap-6 lg:flex-row'>
             <div className='grid flex-1 grid-cols-1 gap-4 md:grid-cols-2'>
+                {/* Left Column Fields */}
                 <InputText label='Book Title' required {...register('lmB_BookTitle')} error={errors.lmB_BookTitle?.message} />
-                <InputText label='Subtitle' {...register('mB_Subtitle')} error={errors.mB_Subtitle?.message} />
+                <InputText label='Sub-Title' {...register('mB_Subtitle')} error={errors.mB_Subtitle?.message} />
 
                 <div className='flex flex-col gap-1.5'>
                     <Label>
@@ -56,9 +70,66 @@ export default function TabBookDetails({ dropdownData }: { dropdownData: any }) 
                     {errors.lmB_BookType && <FormError>{errors.lmB_BookType.message}</FormError>}
                 </div>
 
+                <InputText label='Book No' {...register('lmB_BookNo')} error={errors.lmB_BookNo?.message} />
+
+                <div className='flex flex-col gap-1.5'>
+                    <Label>Binding-Type</Label>
+                    <Controller
+                        control={control}
+                        name='binding_Type'
+                        render={({ field }) => (
+                            <Select onValueChange={field.onChange} value={field.value || undefined}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder='Select Binding Type' />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value='Perfect Bound'>Perfect Bound</SelectItem>
+                                    <SelectItem value='Hardbound'>Hardbound</SelectItem>
+                                    <SelectItem value='Spiral'>Spiral</SelectItem>
+                                    <SelectItem value='Stitched'>Stitched</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
+                    {errors.binding_Type && <FormError>{errors.binding_Type.message}</FormError>}
+                </div>
+
+                <InputText label='Book ISBN NO' {...register('lmB_ISBNNo')} error={errors.lmB_ISBNNo?.message} />
+                <InputText label='Call No' {...register('mB_Call_No')} error={errors.mB_Call_No?.message} />
+                <InputText label='Class No' {...register('lmB_ClassNo')} error={errors.lmB_ClassNo?.message} />
+                <InputText label='Pages' type='number' {...register('mB_Pages')} error={errors.mB_Pages?.message} />
+
+                {/* Right Column Fields */}
                 <div className='flex flex-col gap-1.5'>
                     <Label>
-                        Category <span className='text-red-500'>*</span>
+                        Department <span className='text-red-500'>*</span>
+                    </Label>
+                    <Controller
+                        control={control}
+                        name='lmD_Id'
+                        render={({ field }) => (
+                            <Select
+                                onValueChange={(val) => field.onChange(Number(val))}
+                                value={field.value ? field.value.toString() : undefined}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder='Select Department' />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {deptList.map((item: any) => (
+                                        <SelectItem key={item.lmD_Id} value={item.lmD_Id.toString()}>
+                                            {item.lmD_DepartmentName}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
+                    {errors.lmD_Id && <FormError>{errors.lmD_Id.message}</FormError>}
+                </div>
+
+                <div className='flex flex-col gap-1.5'>
+                    <Label>
+                        Category Name <span className='text-red-500'>*</span>
                     </Label>
                     <Controller
                         control={control}
@@ -71,7 +142,7 @@ export default function TabBookDetails({ dropdownData }: { dropdownData: any }) 
                                     <SelectValue placeholder='Select Category' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {dropdownData?.categorylist?.map((item: any) => (
+                                    {categoryList.map((item: any) => (
                                         <SelectItem key={item.lmC_Id} value={item.lmC_Id.toString()}>
                                             {item.lmC_CategoryName}
                                         </SelectItem>
@@ -98,7 +169,7 @@ export default function TabBookDetails({ dropdownData }: { dropdownData: any }) 
                                     <SelectValue placeholder='Select Subject' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {dropdownData?.subjectlist?.map((item: any) => (
+                                    {subjectList.map((item: any) => (
                                         <SelectItem key={item.lmS_Id} value={item.lmS_Id.toString()}>
                                             {item.lmS_SubjectName}
                                         </SelectItem>
@@ -109,35 +180,6 @@ export default function TabBookDetails({ dropdownData }: { dropdownData: any }) 
                     />
                     {errors.lmS_Id && <FormError>{errors.lmS_Id.message}</FormError>}
                 </div>
-
-                <div className='flex flex-col gap-1.5'>
-                    <Label>
-                        Department <span className='text-red-500'>*</span>
-                    </Label>
-                    <Controller
-                        control={control}
-                        name='lmD_Id'
-                        render={({ field }) => (
-                            <Select
-                                onValueChange={(val) => field.onChange(Number(val))}
-                                value={field.value ? field.value.toString() : undefined}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder='Select Department' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {dropdownData?.deptlist?.map((item: any) => (
-                                        <SelectItem key={item.lmD_Id} value={item.lmD_Id.toString()}>
-                                            {item.lmD_DepartmentName}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        )}
-                    />
-                    {errors.lmD_Id && <FormError>{errors.lmD_Id.message}</FormError>}
-                </div>
-
-                <InputText label='ISBN No' required {...register('lmB_ISBNNo')} error={errors.lmB_ISBNNo?.message} />
 
                 <div className='flex flex-col gap-1.5'>
                     <Label>
@@ -171,13 +213,15 @@ export default function TabBookDetails({ dropdownData }: { dropdownData: any }) 
                     {errors.lmB_EntryDate && <FormError>{errors.lmB_EntryDate.message}</FormError>}
                 </div>
 
-                <InputText label='Published Year' required {...register('lmB_PublishedYear')} error={errors.lmB_PublishedYear?.message} />
-
+                <InputText label='Publish-Year' {...register('lmB_PublishedYear')} error={errors.lmB_PublishedYear?.message} />
                 <InputText label='Edition' {...register('lmB_Edition')} error={errors.lmB_Edition?.message} />
+                <InputText label='Volume No' {...register('lmB_VolNo')} error={errors.lmB_VolNo?.message} />
+                <InputText label='Book KeyFactor' {...register('lmBkf_KeyFactor')} error={errors.lmBkf_KeyFactor?.message} />
+                <InputText label='Book PageNo' {...register('lmBkf_PageNo')} error={errors.lmBkf_PageNo?.message} />
 
                 <div className='flex flex-col gap-1.5'>
                     <Label>
-                        Library <span className='text-red-500'>*</span>
+                        Library Name <span className='text-red-500'>*</span>
                     </Label>
                     <Controller
                         control={control}
@@ -190,7 +234,7 @@ export default function TabBookDetails({ dropdownData }: { dropdownData: any }) 
                                     <SelectValue placeholder='Select Library' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {dropdownData?.liblist?.map((item: any) => (
+                                    {libList.map((item: any) => (
                                         <SelectItem key={item.lmaL_Id} value={item.lmaL_Id.toString()}>
                                             {item.lmaL_LibraryName}
                                         </SelectItem>
@@ -205,10 +249,10 @@ export default function TabBookDetails({ dropdownData }: { dropdownData: any }) 
 
             <div className='flex w-full flex-col gap-4 lg:w-64'>
                 <PhotoUploadBox
-                    label='Student Photo'
+                    label='Book Photo'
                     value={lmB_StudentPhoto}
                     onChange={(val) => setValue('lmB_StudentPhoto', val)}
-                    subContainer='library_student_photo'
+                    subContainer='library_book_photo'
                 />
             </div>
         </div>

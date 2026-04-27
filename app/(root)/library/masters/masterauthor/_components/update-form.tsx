@@ -123,20 +123,7 @@ export default function UpdateMasterAuthorForm({ onSuccess, className = '', sele
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
-                <div className='space-y-4'>
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        <InputText
-                            label='Phone No'
-                            id='lmaU_PhoneNo'
-                            {...register('lmaU_PhoneNo')}
-                            error={errors.lmaU_PhoneNo?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-                    </div>
-
-                    {/* Root Error */}
-                    {errors.root && <FormError>{errors.root.message}</FormError>}
-                </div>
+              
 
                 {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
