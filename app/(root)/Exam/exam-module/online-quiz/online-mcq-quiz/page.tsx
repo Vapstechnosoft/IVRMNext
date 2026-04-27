@@ -3,6 +3,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -41,6 +42,7 @@ export default function OnlineMcqQuizPage() {
 
     // Publish Config
     const [publishConfig, setPublishConfig] = useState({
+        academicYearId: '',
         targetClass: '',
         targetSection: '',
         duration: '30',
@@ -819,7 +821,7 @@ export default function OnlineMcqQuizPage() {
                                                     <Checkbox 
                                                         id="select-all" 
                                                         checked={selectedStudentIds.length === studentsList.length && studentsList.length > 0}
-                                                        onCheckedChange={(v) => handleSelectAll(!!v)}
+                                                        onCheckedChange={(v: boolean | "indeterminate") => handleSelectAll(!!v)}
                                                     />
                                                     <Label htmlFor="select-all" className="cursor-pointer font-black text-slate-600 text-xs uppercase tracking-wider">Select All</Label>
                                                 </div>
@@ -839,7 +841,7 @@ export default function OnlineMcqQuizPage() {
                                                         <Checkbox 
                                                             id={`student-${student.amst_Id}`}
                                                             checked={selectedStudentIds.includes(student.amst_Id)}
-                                                            onCheckedChange={(v) => handleStudentSelect(student.amst_Id, !!v)}
+                                                            onCheckedChange={(v: boolean | "indeterminate") => handleStudentSelect(student.amst_Id, !!v)}
                                                             className="h-5 w-5 rounded-md"
                                                         />
                                                         <Label 

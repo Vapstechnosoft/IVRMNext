@@ -2,40 +2,40 @@
 
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
-import { toggleMasterfeeconfig } from '@/server/fees/configuration/feeconfiguration';
+import { toggleLostBookRecord } from '@/server/library/transactions/lost-book';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-interface ToggleMasterFeesConfigFormProps {
-    configId: number; // fmC_Id or asmay_id
-    isActive: boolean; // current status
-    configName?: string; // optional display name
+interface ToggleLostBookFormProps {
+    configId: number; 
+    isActive: boolean; 
+    configName?: string; 
     onClose: () => void;
-    onSuccess?: () => void; // to refetch parent table
+    onSuccess?: () => void; 
 }
 
-export default function ToggleMasterFeesConfigForm({
+export default function ToggleLostBookForm({
     configId,
     isActive,
-    configName = 'this configuration',
+    configName = 'this record',
     onClose,
     onSuccess
-}: ToggleMasterFeesConfigFormProps) {
+}: ToggleLostBookFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleToggle = async () => {
         if (!configId) {
-            toast.error('Invalid configuration ID');
+            toast.error('Invalid record ID');
             return;
         }
 
         try {
             setIsSubmitting(true);
 
-            const response = await toggleMasterfeeconfig(30);
+            const response = await toggleLostBookRecord(configId);
 
             if (response.success) {
-                toast.success(response.message || `Configuration ${isActive ? 'deactivated' : 'activated'} successfully`);
+                toast.success(response.message || `Record ${isActive ? 'deactivated' : 'activated'} successfully`);
                 onSuccess?.();
                 onClose();
             } else {
@@ -55,7 +55,7 @@ export default function ToggleMasterFeesConfigForm({
     };
 
     return (
-        <AdaptiveDialog title='Toggle Configuration Status' isOpen={true} onClose={closeDialog}>
+        <AdaptiveDialog title='Toggle Record Status' isOpen={true} onClose={closeDialog}>
             <div className='flex flex-col gap-6'>
                 <AdaptiveBody className='space-y-4'>
                     <p className='text-muted-foreground text-sm'>
@@ -64,7 +64,7 @@ export default function ToggleMasterFeesConfigForm({
                         <span className='font-medium text-foreground'>"{configName}"</span>?
                     </p>
                     <p className='text-muted-foreground text-xs'>
-                        This will {isActive ? 'stop' : 'allow'} fee transactions for this academic year configuration.
+                        This will {isActive ? 'deactivate' : 'activate'} the lost book record.
                     </p>
                 </AdaptiveBody>
 

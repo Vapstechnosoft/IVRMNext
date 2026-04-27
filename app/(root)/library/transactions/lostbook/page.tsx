@@ -37,26 +37,17 @@ function LostBookPageContent({
     error: any;
     refetch: () => void;
 }) {
-    const { openAddForm } = useFormContext<ILostBookList>();
     const tableProps = useDataTableProps(response);
 
     return (
         <div className='min-h-screen'>
-            <div className='container space-y-4 p-1'>
+            <div className='container space-y-8 p-1'>
                 {/* Header */}
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
                     <div className='space-y-1'>
                         <h1 className='font-bold text-2xl tracking-tight'>Lost Book Management</h1>
                         <p className='text-muted-foreground'>Manage lost/damaged books and fines collection</p>
                     </div>
-
-                    <Button
-                        type='button'
-                        onClick={openAddForm}
-                        className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                        <Plus className='mr-2 h-4 w-4' />
-                        Add Lost Book
-                    </Button>
                 </div>
 
                 {/* Data Table Section */}
@@ -73,62 +64,54 @@ function LostBookPageContent({
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading Lost Books...'
                         noDataTitle='No Records Found'
-                        noDataDescription='Start by adding a new lost book record'
+                        noDataDescription='No lost book records found in the system'
                         errorTitle='Error Loading Data'
                     />
                 </CollapsibleSection>
 
-                {/* Forms */}
-                <FormSections refetch={refetch} />
-            </div>
-        </div>
-    );
-}
-
-function FormSections({ refetch }: { refetch: () => void }) {
-    const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
-        useFormContext<ILostBookList>();
-
-    useEffect(() => {
-        if (isEditFormOpen && !selectedRow) {
-            console.error('FormSections: Edit form open but selectedRow is undefined');
-        }
-    }, [isEditFormOpen, selectedRow]);
-
-    return (
-        <>
-            {/* Add Form */}
-            {isAddFormOpen && (
-                <div ref={addFormRef}>
+                {/* Add New Lost Book Form (Always Visible) */}
+                <div className='mt-8'>
                     <CollapsibleSection
                         title='Add New Lost Book'
                         description='Mark book as lost/damaged and collect fine'
                         defaultOpen
                         variant='outline'
                         size='md'
-                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                        <div className='relative'>
-                            <Button
-                                type='button'
-                                onClick={closeAddForm}
-                                variant='ghost'
-                                size='sm'
-                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                <X className='h-4 w-4 text-destructive' /> Close
-                            </Button>
-                            {
-                                <AddLostBookForm
-                                    onSuccess={() => {
-                                        refetch();
-                                        closeAddForm();
-                                    }}
-                                />
-                            }
-                        </div>
+                        className='shadow-lg duration-300 bg-card'>
+                        <AddLostBookForm
+                            onSuccess={() => {
+                                refetch();
+                            }}
+                        />
                     </CollapsibleSection>
                 </div>
-            )}
 
+                {/* Forms (Edit/Toggle/Delete) */}
+                <FormSections refetch={refetch} />
+            </div>
+        </div>
+    );
+}
+
+import DeleteLostBookForm from './_components/delete-form';
+import ToggleLostBookForm from './_components/toggle-form';
+
+function FormSections({ refetch }: { refetch: () => void }) {
+    const { 
+        isEditFormOpen, isToggleFormOpen, isDeleteFormOpen,
+        selectedRow, 
+        closeEditForm, closeToggleForm, closeDeleteForm,
+        editFormRef 
+    } = useFormContext<ILostBookList>();
+
+    useEffect(() => {
+        if ((isEditFormOpen || isToggleFormOpen || isDeleteFormOpen) && !selectedRow) {
+            console.error('FormSections: Form open but selectedRow is undefined');
+        }
+    }, [isEditFormOpen, isToggleFormOpen, isDeleteFormOpen, selectedRow]);
+
+    return (
+        <>
             {/* Edit Form */}
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
@@ -138,7 +121,7 @@ function FormSections({ refetch }: { refetch: () => void }) {
                         defaultOpen={true}
                         variant='outline'
                         size='md'
-                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'>
+                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300 fixed inset-x-4 top-20 z-50 max-w-4xl mx-auto bg-background'>
                         <div className='relative'>
                             <Button
                                 type='button'
@@ -157,7 +140,34 @@ function FormSections({ refetch }: { refetch: () => void }) {
                             />
                         </div>
                     </CollapsibleSection>
+                    <div className='fixed inset-0 bg-black/20 z-40' onClick={closeEditForm} />
                 </div>
+            )}
+
+            {/* Toggle Form */}
+            {isToggleFormOpen && selectedRow && (
+                <ToggleLostBookForm
+                    configId={selectedRow.lmbanO_Id}
+                    isActive={selectedRow.lmB_ActiveFlag ?? true}
+                    configName={selectedRow.lmB_BookTitle}
+                    onClose={closeToggleForm}
+                    onSuccess={() => {
+                        refetch();
+                        closeToggleForm();
+                    }}
+                />
+            )}
+
+            {/* Delete Form */}
+            {isDeleteFormOpen && selectedRow && (
+                <DeleteLostBookForm
+                    rowData={selectedRow}
+                    onClose={closeDeleteForm}
+                    onSuccess={() => {
+                        refetch();
+                        closeDeleteForm();
+                    }}
+                />
             )}
         </>
     );

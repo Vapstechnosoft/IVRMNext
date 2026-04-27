@@ -117,21 +117,7 @@ export default function AddMasterPublisherForm({ onSuccess, className = '' }: Ad
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
-                <div className='space-y-4'>
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        <InputText
-                            label='Phone No:'
-                            id='lmP_PhoneNo'
-                            placeholder='Enter phone number'
-                            {...register('lmP_PhoneNo')}
-                            error={errors.lmP_PhoneNo?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-                    </div>
 
-                    {/* Root Error */}
-                    {errors.root && <FormError>{errors.root.message}</FormError>}
-                </div>
 
                 {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
