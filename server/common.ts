@@ -142,11 +142,11 @@ export async function getUserAccessibleModules() {
                                     pages: [
                                         {
                                             id: 7,
-                                            name: 'student Count Report',
+                                            name: 'Student Count Report',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/reports/student-count-report',
-                                            title: 'student Count Report',
-                                            description: 'student Count Report'
+                                            title: 'Student Count Report',
+                                            description: 'Student Count Report'
                                         },
                                         {
                                             id: 8,
@@ -934,14 +934,7 @@ export async function getUserAccessibleModules() {
                                             title: 'BCEH Study Certificate',
                                             description: 'BCEH Study Certificate'
                                         },
-                                        {
-                                            id: 64,
-                                            name: 'BBHS Student Application Form',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/baldwin/BBHS/application-form',
-                                            title: 'BBHS Student Application Form',
-                                            description: 'BBHS Student Application Form'
-                                        },
+
                                         {
                                             id: 65,
                                             name: 'Student tc custom report',
