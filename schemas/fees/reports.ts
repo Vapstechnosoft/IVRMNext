@@ -747,7 +747,7 @@ export const feeUserWiseDailyCollectionReportSchema = z
 export const feeDemandRegisterReportGMVPSSchema = z.object({
     report: z.enum(['All', 'Individual']).default('All'),
     rpttyp: z.enum(['All', 'Individual']).default('Individual'),
-    reportdate: z.enum(['transdate', 'settdate', 'SettledOnline']).default('transdate'),
+    reportdate: z.enum(['As On Date', 'Between Date']).default('As On Date'),
     asmaY_Id: z.number().min(1, { message: 'Academic Year is required' }),
     asmcL_Id: z.number().min(1, { message: 'Class Name is required' }),
     asms_Id: z.number().min(1, { message: 'Section Name is required' }),
@@ -756,14 +756,16 @@ export const feeDemandRegisterReportGMVPSSchema = z.object({
     acdmyr: z.boolean().default(false),
     headwise: z.boolean().default(false),
     paymentwise: z.boolean().default(false),
+    detailed: z.boolean().default(false),
+    grandTotal: z.boolean().default(false),
+    active: z.boolean().default(false),
+    deactive: z.boolean().default(false),
+    left: z.boolean().default(false),
+    total: z.boolean().default(false),
+    userSelection: z.boolean().default(false),
+    newAdmissionStudent: z.boolean().default(false),
     fromDate: z.string().min(1, { message: 'From Date is required' }),
-    toDate: z.string().min(1, { message: 'To Date is required' }),
-    enableAllClasses: z.boolean().default(false),
-    Fmc_allorsudentorother: z.enum(['all', 'stud', 'preadm', 'other', 'Trpt', 'thirdparty', 'multiplepaymentmode']).default('all'),
-    Fmc_allorcorddorop: z.enum(['All', 'C', 'B', 'O', 'Ecs', 'S', 'R', 'BT', 'U']).default('All'),
-    storedTrans: z.boolean().default(false),
-    thirdPartyTrans: z.boolean().default(false),
-    pdaTrans: z.boolean().default(false)
+    toDate: z.string().min(1, { message: 'To Date is required' })
 });
 
 export const feeChequeBounceSchema = z.object({
