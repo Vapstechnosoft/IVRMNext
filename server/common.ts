@@ -3429,7 +3429,7 @@ export async function getUserAccessibleModules() {
                                 }
                             ]
                         },
-                        // ,
+                        
                         // {
                         //     id: 2,
                         //     name: 'Recruitment',
@@ -3448,148 +3448,148 @@ export async function getUserAccessibleModules() {
                         //                     title: 'Master Job',
                         //                     description: 'Manage Job Positions'
                         //                 },
-                        //                 {
-                        //                     id: 2,
-                        //                     name: 'Master Location',
-                        //                     icon: 'MapPin',
-                        //                     url: '/hrms/recruitment/masters/master-location',
-                        //                     title: 'Master Location',
-                        //                     description: 'Manage Locations'
-                        //                 },
-                        //                 {
-                        //                     id: 3,
-                        //                     name: 'Master Position',
-                        //                     icon: 'Target',
-                        //                     url: '/hrms/recruitment/masters/master-position',
-                        //                     title: 'Master Position',
-                        //                     description: 'Manage Positions'
-                        //                 },
-                        //                 {
-                        //                     id: 4,
-                        //                     name: 'Master Position Type',
-                        //                     icon: 'Tag',
-                        //                     url: '/hrms/recruitment/masters/master-positionType',
-                        //                     title: 'Master Position Type',
-                        //                     description: 'Manage Position Types'
-                        //                 },
-                        //                 {
-                        //                     id: 5,
-                        //                     name: 'Master Priority',
-                        //                     icon: 'Flag',
-                        //                     url: '/hrms/recruitment/masters/master-priority',
-                        //                     title: 'Master Priority',
-                        //                     description: 'Manage Priority Levels'
-                        //                 }
+                        //                 // {
+                        //                 //     id: 2,
+                        //                 //     name: 'Master Location',
+                        //                 //     icon: 'MapPin',
+                        //                 //     url: '/hrms/recruitment/masters/master-location',
+                        //                 //     title: 'Master Location',
+                        //                 //     description: 'Manage Locations'
+                        //                 // },
+                        //                 // {
+                        //                 //     id: 3,
+                        //                 //     name: 'Master Position',
+                        //                 //     icon: 'Target',
+                        //                 //     url: '/hrms/recruitment/masters/master-position',
+                        //                 //     title: 'Master Position',
+                        //                 //     description: 'Manage Positions'
+                        //                 // },
+                        //                 // {
+                        //                 //     id: 4,
+                        //                 //     name: 'Master Position Type',
+                        //                 //     icon: 'Tag',
+                        //                 //     url: '/hrms/recruitment/masters/master-positionType',
+                        //                 //     title: 'Master Position Type',
+                        //                 //     description: 'Manage Position Types'
+                        //                 // },
+                        //                 // {
+                        //                 //     id: 5,
+                        //                 //     name: 'Master Priority',
+                        //                 //     icon: 'Flag',
+                        //                 //     url: '/hrms/recruitment/masters/master-priority',
+                        //                 //     title: 'Master Priority',
+                        //                 //     description: 'Manage Priority Levels'
+                        //                 // }
                         //             ]
                         //         },
-                        //         {
-                        //             id: 2,
-                        //             name: 'Transactions',
-                        //             icon: 'FileText',
-                        //             pages: [
-                        //                 {
-                        //                     id: 1,
-                        //                     name: 'Add Candidate',
-                        //                     icon: 'UserPlus',
-                        //                     url: '/hrms/recruitment/transaction/add-candidate',
-                        //                     title: 'Add Candidate',
-                        //                     description: 'Add New Candidates'
-                        //                 },
-                        //                 {
-                        //                     id: 2,
-                        //                     name: 'Add Candidate Interview',
-                        //                     icon: 'Calendar',
-                        //                     url: '/hrms/recruitment/transaction/add-candidate-interview',
-                        //                     title: 'Add Candidate Interview',
-                        //                     description: 'Add Candidate Interview'
-                        //                 },
-                        //                 {
-                        //                     id: 3,
-                        //                     name: 'Candidate Interview List',
-                        //                     icon: 'List',
-                        //                     url: '/hrms/recruitment/transaction/candidate-interview-list',
-                        //                     title: 'Candidate Interview List',
-                        //                     description: 'View All Candidate Interviews'
-                        //                 },
-                        //                 {
-                        //                     id: 4,
-                        //                     name: 'Interviewer Feedback',
-                        //                     icon: 'MessageSquare',
-                        //                     url: '/hrms/recruitment/transaction/interviewer-feedback',
-                        //                     title: 'Interviewer Feedback',
-                        //                     description: 'Manage Interviewer Feedback'
-                        //                 },
-                        //                 {
-                        //                     id: 5,
-                        //                     name: 'Job List',
-                        //                     icon: 'Briefcase',
-                        //                     url: '/hrms/recruitment/transaction/job-list',
-                        //                     title: 'Job List',
-                        //                     description: 'View All Jobs'
-                        //                 },
-                        //                 {
-                        //                     id: 6,
-                        //                     name: 'Job Posting List',
-                        //                     icon: 'FileText',
-                        //                     url: '/hrms/recruitment/transaction/job-posting-list',
-                        //                     title: 'Job Posting List',
-                        //                     description: 'View All Job Postings'
-                        //                 }
-                        //             ]
-                        //         },
-                        //         // {
-                        //         //     id: 3,
-                        //         //     name: 'MRF Approval',
-                        //         //     icon: 'CheckSquare',
-                        //         //     pages: [
-                        //         //         {
-                        //         //             id: 1,
-                        //         //             name: 'MRF Requisition Form',
-                        //         //             icon: 'FileCheck',
-                        //         //             url: '/hrms/recruitment/mrf-approval/mrf-requisition-form',
-                        //         //             title: 'MRF Requisition Form',
-                        //         //             description: 'Approve MRF Requests'
-                        //         //         }
-                        //         //     ]
-                        //         // },
-                        //         // {
-                        //         //     id: 4,
-                        //         //     name: 'Feedback',
-                        //         //     icon: 'MessageSquare',
-                        //         //     pages: [
-                        //         //         {
-                        //         //             id: 1,
-                        //         //             name: 'Candidate Feedback',
-                        //         //             icon: 'Star',
-                        //         //             url: '/hrms/recruitment/feedback/candidate-feedback',
-                        //         //             title: 'Candidate Feedback',
-                        //         //             description: 'Record Candidate Feedback'
-                        //         //         }
-                        //         //     ]
-                        //         // },
-                        //         {
-                        //             id: 5,
-                        //             name: 'Reports',
-                        //             icon: 'FileText',
-                        //             pages: [
-                        //                 {
-                        //                     id: 1,
-                        //                     name: 'Candidate Report',
-                        //                     icon: 'Users',
-                        //                     url: '/hrms/recruitment/reports/candidate-report',
-                        //                     title: 'Candidate Report',
-                        //                     description: 'Candidate Summary Report'
-                        //                 },
-                        //                 {
-                        //                     id: 2,
-                        //                     name: 'Interview Report',
-                        //                     icon: 'ClipboardList',
-                        //                     url: '/hrms/recruitment/reports/interview-report',
-                        //                     title: 'Interview Report',
-                        //                     description: 'Interview Summary Report'
-                        //                 }
-                        //             ]
-                        //         }
+                                // {
+                                //     id: 2,
+                                //     name: 'Transactions',
+                                //     icon: 'FileText',
+                                //     pages: [
+                                //         {
+                                //             id: 1,
+                                //             name: 'Add Candidate',
+                                //             icon: 'UserPlus',
+                                //             url: '/hrms/recruitment/transaction/add-candidate',
+                                //             title: 'Add Candidate',
+                                //             description: 'Add New Candidates'
+                                //         },
+                                //         {
+                                //             id: 2,
+                                //             name: 'Add Candidate Interview',
+                                //             icon: 'Calendar',
+                                //             url: '/hrms/recruitment/transaction/add-candidate-interview',
+                                //             title: 'Add Candidate Interview',
+                                //             description: 'Add Candidate Interview'
+                                //         },
+                                //         {
+                                //             id: 3,
+                                //             name: 'Candidate Interview List',
+                                //             icon: 'List',
+                                //             url: '/hrms/recruitment/transaction/candidate-interview-list',
+                                //             title: 'Candidate Interview List',
+                                //             description: 'View All Candidate Interviews'
+                                //         },
+                                //         {
+                                //             id: 4,
+                                //             name: 'Interviewer Feedback',
+                                //             icon: 'MessageSquare',
+                                //             url: '/hrms/recruitment/transaction/interviewer-feedback',
+                                //             title: 'Interviewer Feedback',
+                                //             description: 'Manage Interviewer Feedback'
+                                //         },
+                                //         {
+                                //             id: 5,
+                                //             name: 'Job List',
+                                //             icon: 'Briefcase',
+                                //             url: '/hrms/recruitment/transaction/job-list',
+                                //             title: 'Job List',
+                                //             description: 'View All Jobs'
+                                //         },
+                                //         {
+                                //             id: 6,
+                                //             name: 'Job Posting List',
+                                //             icon: 'FileText',
+                                //             url: '/hrms/recruitment/transaction/job-posting-list',
+                                //             title: 'Job Posting List',
+                                //             description: 'View All Job Postings'
+                                //         }
+                                //     ]
+                                // },
+                                // {
+                                //     id: 3,
+                                //     name: 'MRF Approval',
+                                //     icon: 'CheckSquare',
+                                //     pages: [
+                                //         {
+                                //             id: 1,
+                                //             name: 'MRF Requisition Form',
+                                //             icon: 'FileCheck',
+                                //             url: '/hrms/recruitment/mrf-approval/mrf-requisition-form',
+                                //             title: 'MRF Requisition Form',
+                                //             description: 'Approve MRF Requests'
+                                //         }
+                                //     ]
+                                // },
+                                // {
+                                //     id: 4,
+                                //     name: 'Feedback',
+                                //     icon: 'MessageSquare',
+                                //     pages: [
+                                //         {
+                                //             id: 1,
+                                //             name: 'Candidate Feedback',
+                                //             icon: 'Star',
+                                //             url: '/hrms/recruitment/feedback/candidate-feedback',
+                                //             title: 'Candidate Feedback',
+                                //             description: 'Record Candidate Feedback'
+                                //         }
+                                //     ]
+                                // },
+                                // {
+                                //     id: 5,
+                                //     name: 'Reports',
+                                //     icon: 'FileText',
+                                //     pages: [
+                                //         {
+                                //             id: 1,
+                                //             name: 'Candidate Report',
+                                //             icon: 'Users',
+                                //             url: '/hrms/recruitment/reports/candidate-report',
+                                //             title: 'Candidate Report',
+                                //             description: 'Candidate Summary Report'
+                                //         },
+                                //         {
+                                //             id: 2,
+                                //             name: 'Interview Report',
+                                //             icon: 'ClipboardList',
+                                //             url: '/hrms/recruitment/reports/interview-report',
+                                //             title: 'Interview Report',
+                                //             description: 'Interview Summary Report'
+                                //         }
+                                //     ]
+                                // }
                         //     ]
                         // },
                         {

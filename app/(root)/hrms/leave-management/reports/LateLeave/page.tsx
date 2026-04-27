@@ -742,8 +742,9 @@ export default function LateLeavePage() {
                     </div>
                 </CollapsibleSection>
             ) :
-                <div className="flex items-center justify-center h-64">
+                <div className="flex items-center flex-col justify-center h-64">
                     <Loader2 className="w-8 h-8 animate-spin text-violet-600" />
+                    <span className="ml-2 text-slate-500">Loading applied leave report...</span>
                 </div>
             }
             {/* Delete Confirmation Modal */}
