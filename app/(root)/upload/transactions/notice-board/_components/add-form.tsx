@@ -255,15 +255,15 @@ export default function AddNoticeBoardForm({
 
             const result = await saveNoticeBoardDetail(payload);
             if (result?.success) {
-                toast.success(result.message || 'Notice sent successfully.');
+                toast.success(result.message || 'Notice sent successfully');
                 onSuccess();
                 reset();
             } else {
-                toast.error(result?.message || 'Failed to send notice.');
+                toast.error(result?.message || 'Failed to send notice');
             }
         } catch (error: any) {
             console.error('Save Error:', error);
-            toast.error(error?.message || 'Error occurred while sending notice.');
+            toast.error(error?.message || error || 'Error occurred while sending notice');
         }
     };
 

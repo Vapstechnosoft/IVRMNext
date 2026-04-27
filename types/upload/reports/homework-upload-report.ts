@@ -33,35 +33,35 @@ export interface IHomeWorkAttachmentResponse {
     attachementlist: IHomeWorkAttachment[];
 }
 export interface IHomeWorkDetails {
-    asmcL_ClassName: string;
-    asmcL_Id: number;
-    asmC_SectionName: string;
-    asmS_Id: number;
-    ismS_SubjectName: string;
-    ismS_Id: number;
-    icW_Id: number;
-    icW_Content: string;
-    icW_Topic: string;
-    icW_SubTopic: string;
-    icW_FromDate: string; // ISO date string
-    icW_ToDate: string; // ISO date string
-    icW_ActiveFlag: boolean;
-    icW_Assignment: string | null;
-    icW_TeachingAid: string | null;
-    icW_Evaluation: string | null;
-    icW_Attachment: string | null;
-    icW_FilePath: string | null;
-    mI_Id: number;
-    asmaY_Id: number;
-    ihW_AssignmentNo: string | number | null;
-    ihW_Attachment: string | null;
-    ihW_Assignment: string | null;
-    ihW_Date: string | null; // ISO date string or null
-    ihW_Topic: string | null;
-    ihW_ActiveFlag: boolean | null;
-    ihW_Id: number | null;
-    ivrmuL_Id: number | null;
-    ihW_FilePath: string | null;
+    ASMCL_ClassName: string;
+    ASMCL_Id: number;
+    ASMC_SectionName: string;
+    ASMS_Id: number;
+    ISMS_SubjectName: string;
+    ISMS_Id: number;
+    ICW_Id: number;
+    ICW_Content: string;
+    ICW_Topic: string;
+    ICW_SubTopic: string;
+    ICW_FromDate: string; // ISO date string
+    ICW_ToDate: string; // ISO date string
+    ICW_ActiveFlag: boolean;
+    ICW_Assignment: string | null;
+    ICW_TeachingAid: string | null;
+    ICW_Evaluation: string | null;
+    ICW_Attachment: string | null;
+    ICW_FilePath: string | null;
+    MI_Id: number;
+    ASMAY_Id: number;
+    IHW_AssignmentNo: string | number | null;
+    IHW_Attachment: string | null;
+    IHW_Assignment: string | null;
+    IHW_Date: string | null; // ISO date string or null
+    IHW_Topic: string | null;
+    IHW_ActiveFlag: boolean | null;
+    IHW_Id: number | null;
+    IVRMUL_Id: number | null;
+    IHW_FilePath: string | null;
     createdDate?: string;
     createdTime?: string;
     FilesCount?: number;
