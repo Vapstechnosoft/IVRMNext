@@ -1985,25 +1985,25 @@ export async function getUserAccessibleModules() {
                                     pages: [
                                         {
                                             id: 300,
-                                            name: 'OMR Mark Sheet Evaluation',
+                                            name: 'OMR Sheet Evaluator',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/omr-evaluation/omr-mark-sheet-evaluation',
-                                            title: 'OMR mark sheet evaluation',
+                                            title: 'OMR Sheet Evaluator',
                                             description: 'Evaluate OMR mark sheets'
                                         }
                                     ]
                                 },
                                 {
                                     id: 1000,
-                                    name: 'ONLINE QUIZ',
+                                    name: 'AI MCQ QUIZ',
                                     icon: 'Trophy',
                                     pages: [
                                         {
                                             id: 1001,
-                                            name: 'Online MCQ Quiz',
+                                            name: 'AI MCQ Quiz',
                                             icon: 'Trophy',
                                             url: '/Exam/exam-module/online-quiz/online-mcq-quiz',
-                                            title: 'Online MCQ Quiz',
+                                            title: 'AI MCQ Quiz',
                                             description: 'Conduct and manage online MCQ quizzes'
                                         }
                                     ]
@@ -8062,10 +8062,10 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 40015,
-                                            name: 'Online MCQ Quiz',
+                                            name: 'AI MCQ Quiz',
                                             icon: 'FileQuestion',
                                             url: '/StudentPortal/student-dashboard/Exam/OnlineMcqQuiz',
-                                            title: 'Online MCQ Quiz',
+                                            title: 'AI MCQ Quiz',
                                             description: 'Take and view results of online MCQ assessments'
                                         }
                                     ]
