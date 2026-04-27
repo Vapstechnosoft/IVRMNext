@@ -5,10 +5,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DatePicker } from '@/components/ui/date-picker';
 import { useLibLostBookReportInitialData } from '@/hooks/library/reports/useLibLostBookReport';
 import type { ILibLostBookReportRequest } from '@/types/library/reports/lib-lost-book-report';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Search, RotateCcw } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -30,7 +31,7 @@ const formSchema = z
             return true;
         },
         {
-            message: "From Date and To Date are required when 'Between Date' is selected",
+            message: "Both dates are required when date range is enabled",
             path: ['Fromdate']
         }
     );
@@ -42,13 +43,11 @@ interface ReportFormProps {
 
 export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
     const { data: initialData, isLoading: isInitialLoading } = useLibLostBookReportInitialData();
-    const [isDateEnabled, setIsDateEnabled] = useState(false);
 
     const {
         control,
         handleSubmit,
         watch,
-        setValue,
         formState: { errors },
         reset
     } = useForm<z.infer<typeof formSchema>>({
@@ -60,11 +59,7 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
         }
     });
 
-    const datewised = watch('datewised');
-
-    useEffect(() => {
-        setIsDateEnabled(datewised);
-    }, [datewised]);
+    const isDateEnabled = watch('datewised');
 
     const onSubmit = (values: z.infer<typeof formSchema>) => {
         onSearch({
@@ -75,135 +70,175 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-            <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
-                {/* Library Selection */}
-                <div className='space-y-2'>
-                    <Label>
-                        Library Name <span className='text-red-500'>*</span>
-                    </Label>
-                    <Controller
-                        control={control}
-                        name='LMAL_Id'
-                        render={({ field }) => (
-                            <Select onValueChange={field.onChange} value={field.value?.toString()}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder='Select Library' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {initialData?.lib_list?.map((item) => (
-                                        <SelectItem key={item.lmaL_Id} value={item.lmaL_Id.toString()}>
-                                            {item.lmaL_LibraryName}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        )}
-                    />
-                    {errors.LMAL_Id && <p className='text-red-500 text-sm'>{errors.LMAL_Id.message}</p>}
+        <form onSubmit={handleSubmit(onSubmit)} className='mx-auto max-w-4xl space-y-8 p-4'>
+            <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
+                {/* Left Side - Selections */}
+                <div className='space-y-6'>
+                    <div className='space-y-2'>
+                        <Label className='text-sm font-semibold'>
+                            Library Name <span className='text-red-500'>*</span>
+                        </Label>
+                        <Controller
+                            control={control}
+                            name='LMAL_Id'
+                            render={({ field }) => (
+                                <Select onValueChange={field.onChange} value={field.value?.toString()}>
+                                    <SelectTrigger className='h-10'>
+                                        <SelectValue placeholder='Select Library' />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {initialData?.lib_list?.map((item) => (
+                                            <SelectItem key={item.lmaL_Id} value={item.lmaL_Id.toString()}>
+                                                {item.lmaL_LibraryName}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        />
+                        {errors.LMAL_Id && <p className='text-xs text-destructive'>{errors.LMAL_Id.message}</p>}
+                    </div>
+
+                    <div className='flex flex-wrap gap-4'>
+                        <div className='flex-1 space-y-3 rounded-lg border bg-card p-4 shadow-sm'>
+                            <Label className='text-xs font-bold uppercase tracking-wider text-muted-foreground'>Entity Type</Label>
+                            <Controller
+                                control={control}
+                                name='BNBFlg'
+                                render={({ field }) => (
+                                    <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className='flex space-x-6'>
+                                        <div className='flex items-center space-x-2'>
+                                            <RadioGroupItem value='Book' id='r-book' />
+                                            <Label htmlFor='r-book' className='font-normal'>BOOK</Label>
+                                        </div>
+                                        <div className='flex items-center space-x-2'>
+                                            <RadioGroupItem value='Non-Book' id='r-nonbook' />
+                                            <Label htmlFor='r-nonbook' className='font-normal'>NON-BOOK</Label>
+                                        </div>
+                                    </RadioGroup>
+                                )}
+                            />
+                        </div>
+
+                        <div className='flex-1 space-y-3 rounded-lg border bg-card p-4 shadow-sm'>
+                            <Label className='text-xs font-bold uppercase tracking-wider text-muted-foreground'>Book Purpose</Label>
+                            <Controller
+                                control={control}
+                                name='BookType'
+                                render={({ field }) => (
+                                    <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className='flex space-x-6'>
+                                        <div className='flex items-center space-x-2'>
+                                            <RadioGroupItem value='Issue' id='r-issue' />
+                                            <Label htmlFor='r-issue' className='font-normal'>ISSUE</Label>
+                                        </div>
+                                        <div className='flex items-center space-x-2'>
+                                            <RadioGroupItem value='Reference' id='r-reference' />
+                                            <Label htmlFor='r-reference' className='font-normal'>REFERENCE</Label>
+                                        </div>
+                                    </RadioGroup>
+                                )}
+                            />
+                        </div>
+                    </div>
                 </div>
 
-                {/* Book / Non-Book Radio */}
-                <div className='space-y-2 rounded-md border p-4'>
-                    <Controller
-                        control={control}
-                        name='BNBFlg'
-                        render={({ field }) => (
-                            <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className='flex flex-row space-x-4'>
-                                <div className='flex items-center space-x-2'>
-                                    <RadioGroupItem value='Book' id='r-book' />
-                                    <Label htmlFor='r-book'>BOOK</Label>
-                                </div>
-                                <div className='flex items-center space-x-2'>
-                                    <RadioGroupItem value='Non-Book' id='r-nonbook' />
-                                    <Label htmlFor='r-nonbook'>NON-BOOK</Label>
-                                </div>
-                            </RadioGroup>
-                        )}
-                    />
-                </div>
+                {/* Right Side - Date Filter */}
+                <div className='flex flex-col space-y-4 rounded-lg border bg-muted/30 p-6'>
+                    <div className='flex items-center justify-between border-b pb-3'>
+                        <div className='flex items-center space-x-3'>
+                            <Controller
+                                control={control}
+                                name='datewised'
+                                render={({ field }) => (
+                                    <Checkbox 
+                                        checked={field.value} 
+                                        onCheckedChange={field.onChange} 
+                                        id='datewised'
+                                        className='h-5 w-5'
+                                    />
+                                )}
+                            />
+                            <Label htmlFor='datewised' className='text-sm font-semibold cursor-pointer'>
+                                Between Entry Date
+                            </Label>
+                        </div>
+                    </div>
 
-                {/* Issue / Reference Radio */}
-                <div className='space-y-2 rounded-md border p-4'>
-                    <Controller
-                        control={control}
-                        name='BookType'
-                        render={({ field }) => (
-                            <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className='flex flex-row space-x-4'>
-                                <div className='flex items-center space-x-2'>
-                                    <RadioGroupItem value='Issue' id='r-issue' />
-                                    <Label htmlFor='r-issue'>ISSUE</Label>
-                                </div>
-                                <div className='flex items-center space-x-2'>
-                                    <RadioGroupItem value='Reference' id='r-reference' />
-                                    <Label htmlFor='r-reference'>REFERENCE</Label>
-                                </div>
-                            </RadioGroup>
-                        )}
-                    />
+                    {isDateEnabled && (
+                        <div className='grid grid-cols-1 gap-4 pt-2 animate-in fade-in slide-in-from-top-2 duration-300'>
+                            <div className='space-y-2'>
+                                <Label className='text-xs font-medium'>From Date</Label>
+                                <Controller
+                                    control={control}
+                                    name='Fromdate'
+                                    render={({ field }) => (
+                                        <DatePicker
+                                            date={field.value}
+                                            setDate={field.onChange}
+                                            placeholder='Select From Date'
+                                        />
+                                    )}
+                                />
+                            </div>
+
+                            <div className='space-y-2'>
+                                <Label className='text-xs font-medium'>To Date</Label>
+                                <Controller
+                                    control={control}
+                                    name='ToDate'
+                                    render={({ field }) => (
+                                        <DatePicker
+                                            date={field.value}
+                                            setDate={field.onChange}
+                                            placeholder='Select To Date'
+                                        />
+                                    )}
+                                />
+                            </div>
+                            {(errors.Fromdate || errors.ToDate) && (
+                                <p className='text-xs text-destructive mt-1 font-medium'>
+                                    {errors.Fromdate?.message || errors.ToDate?.message}
+                                </p>
+                            )}
+                        </div>
+                    )}
+                    {!isDateEnabled && (
+                        <div className='flex h-32 items-center justify-center rounded border border-dashed text-sm text-muted-foreground bg-background/50'>
+                            Select checkbox to filter by date
+                        </div>
+                    )}
                 </div>
             </div>
 
-            <div className='grid grid-cols-1 items-end gap-6 rounded-md border bg-muted/20 p-4 md:grid-cols-3'>
-                {/* Checkbox */}
-                <div className='flex items-center space-x-2 pb-2'>
-                    <Controller
-                        control={control}
-                        name='datewised'
-                        render={({ field }) => <Checkbox checked={field.value} onCheckedChange={field.onChange} id='datewised' />}
-                    />
-                    <Label htmlFor='datewised'>Between Date (Entry Date)</Label>
-                </div>
-
-                {/* From Date */}
-                <div className='space-y-2'>
-                    <Label>From Date</Label>
-                    {/* <Controller
-                        control={control}
-                        name="Fromdate"
-                        render={({ field }) => (
-                            <DatePickerWithYear
-                                date={field.value}
-                                setDate={field.onChange}
-                                placeholder="Select Date"
-                                disabled={(date) => !isDateEnabled || date > new Date() || date < new Date('1900-01-01')}
-                            />
-                        )}
-                    /> */}
-                    {errors.Fromdate && <p className='text-red-500 text-sm'>{errors.Fromdate.message}</p>}
-                </div>
-
-                {/* To Date */}
-                <div className='space-y-2'>
-                    <Label>To Date</Label>
-                    {/* <Controller
-                        control={control}
-                        name="ToDate"
-                        render={({ field }) => (
-                            <DatePickerWithYear
-                                date={field.value}
-                                setDate={field.onChange}
-                                placeholder="Select Date"
-                                disabled={(date) => !isDateEnabled || date > new Date() || date < new Date('1900-01-01')}
-                            />
-                        )}
-                    /> */}
-                    {errors.ToDate && <p className='text-red-500 text-sm'>{errors.ToDate.message}</p>}
-                </div>
-            </div>
-
-            <div className='flex justify-center gap-2'>
-                <Button type='submit' disabled={isLoading || isInitialLoading}>
+            {/* Action Buttons */}
+            <div className='flex items-center justify-center gap-4 pt-4'>
+                <Button 
+                    type='submit' 
+                    size='lg'
+                    className='min-w-[140px] shadow-md hover:shadow-lg transition-all duration-200'
+                    disabled={isLoading || isInitialLoading}
+                >
                     {isLoading ? (
                         <>
                             <Loader2 className='mr-2 h-4 w-4 animate-spin' />
                             Generating...
                         </>
                     ) : (
-                        'Report'
+                        <>
+                            <Search className='mr-2 h-4 w-4' />
+                            Report
+                        </>
                     )}
                 </Button>
-                <Button type='button' variant='destructive' onClick={() => reset()}>
+                <Button 
+                    type='button' 
+                    variant='outline' 
+                    size='lg'
+                    className='min-w-[140px]'
+                    onClick={() => reset()}
+                    disabled={isLoading}
+                >
+                    <RotateCcw className='mr-2 h-4 w-4' />
                     Cancel
                 </Button>
             </div>

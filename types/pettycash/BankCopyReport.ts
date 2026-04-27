@@ -1,9 +1,9 @@
 export interface IBankCopyReportSummary {
-    Month: string;
-    TotalDebit: number;
-    TotalCredit: number;
-    IVRM_Month_Id: number;
-    ASMAY_Year: string;
+    month: string;
+    totalDebit: number;
+    totalCredit: number;
+    ivrM_Month_Id: number;
+    asmaY_Year: string;
 }
 
 export interface IBankCopyReportDetail {

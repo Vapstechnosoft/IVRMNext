@@ -89,10 +89,10 @@ export default function AddEmployeeInOutReportForm({
     console.log('Selected Department IDs:', deptIds);
     console.log('Selected Designation IDs:', desigIds);
 
-    const { data: groupTypesData } = useReportGroupTypes();
-    const { data: departmentsData } = useReportDepartments(groupTypeIds.toString());
-    const { data: designationsData } = useReportDesignations(groupTypeIds.toString(), deptIds.toString());
-    const { data: employeesData } = useReportEmployeesByGroupTypeDeptAndDesignation(groupTypeIds, deptIds, desigIds);
+    const { data: groupTypesData, isLoading: isGroupTypesLoading } = useReportGroupTypes();
+    const { data: departmentsData, isLoading: isDepartmentsLoading } = useReportDepartments(groupTypeIds.toString());
+    const { data: designationsData, isLoading: isDesignationsLoading } = useReportDesignations(groupTypeIds.toString(), deptIds.toString());
+    const { data: employeesData, isLoading: isEmployeesLoading } = useReportEmployeesByGroupTypeDeptAndDesignation(groupTypeIds, deptIds, desigIds);
 
     const groupTypesDataTransformed = useMemo(() => {
         return (
@@ -289,9 +289,10 @@ export default function AddEmployeeInOutReportForm({
                                             }))}
                                             onValueChange={(values) => field.onChange(values)}
                                             defaultValue={field.value || []}
-                                            placeholder='Select Types'
+                                            placeholder={`${isGroupTypesLoading ? 'Loading...' : 'Select Group Types'}`}
                                             className={`w-full ${errors.type ? 'border-red-500' : ''}`}
                                             maxHeight={240}
+                                            disabled={isGroupTypesLoading || groupTypesDataTransformed.length === 0}
                                         />
                                     )}
                                 />
@@ -314,9 +315,10 @@ export default function AddEmployeeInOutReportForm({
                                             }))}
                                             onValueChange={(values) => field.onChange(values)}
                                             defaultValue={field.value || []}
-                                            placeholder='Select Departments'
+                                            placeholder={`${isDepartmentsLoading ? 'Loading...' : 'Select Departments'}`}
                                             className={`w-full ${errors.department ? 'border-red-500' : ''}`}
                                             maxHeight={240}
+                                            disabled={isDepartmentsLoading || departmentsDataTransformed.length === 0}
                                         />
                                     )}
                                 />
@@ -339,9 +341,10 @@ export default function AddEmployeeInOutReportForm({
                                             }))}
                                             onValueChange={(values) => field.onChange(values)}
                                             defaultValue={field.value || []}
-                                            placeholder='Select Designations'
+                                            placeholder={`${isDesignationsLoading ? 'Loading...' : 'Select Designations'}`}
                                             className={`w-full ${errors.designation ? 'border-red-500' : ''}`}
                                             maxHeight={240}
+                                            disabled={isDesignationsLoading || designationsDataTransformed.length === 0}
                                         />
                                     )}
                                 />
@@ -383,14 +386,19 @@ export default function AddEmployeeInOutReportForm({
                                         render={({ field }) => (
                                             <Select value={field.value} onValueChange={field.onChange}>
                                                 <SelectTrigger className={errors.query ? 'border-red-500' : ''}>
-                                                    <SelectValue placeholder='Select Employee' />
+                                                    <SelectValue placeholder={`${isEmployeesLoading ? 'Loading...' : 'Select Employee'}`} />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {employeesDataTransformed.map((emp: any) => (
-                                                        <SelectItem key={emp.id} value={String(emp.id)}>
-                                                            {emp.employeeName} - [{emp.employeeCode}]
-                                                        </SelectItem>
-                                                    ))}
+                                                    {
+                                                        employeesDataTransformed.length === 0 ? (
+                                                            <div className='p-4 text-center text-sm text-gray-500'>No employees found</div>
+                                                        ) : employeesDataTransformed.map((emp: any) => (
+                                                            <SelectItem key={emp.id} value={String(emp.id)}>
+                                                                {emp.employeeName} - [{emp.employeeCode}]
+                                                            </SelectItem>
+                                                        ))
+                                                    }
+
                                                 </SelectContent>
                                             </Select>
                                         )}
@@ -431,6 +439,7 @@ export default function AddEmployeeInOutReportForm({
                                             }}
                                             placeholder='From date'
                                             className={errors.fromDate ? 'border-red-500' : ''}
+
                                         />
                                     )}
                                 />
@@ -453,7 +462,7 @@ export default function AddEmployeeInOutReportForm({
                                                     ? [
                                                         { before: fromDateObject },
                                                         { after: effectiveToDateMax }
-                                                      ]
+                                                    ]
                                                     : [{ after: today }]
                                             }
                                             setDate={(date) => {

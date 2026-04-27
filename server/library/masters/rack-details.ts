@@ -5,9 +5,8 @@ import type { ApiSearchparams } from '@/types';
 
 export async function getMasterRackDetails(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    // Trying RackDetailsFacade as RackDetails failed.
-    const url = `/RackDetailsFacade/getdetails/2?${urlParams}`;
-    const response = await api.get<any[]>('library', url);
+    const url = `/RackDetails/get-master-rack-list?${urlParams}`;
+    const response = await api.get<any>('library', url);
     return response;
 }
 
