@@ -11,7 +11,10 @@ export const noticeBoardSchema = z
         intB_EndDate: z.date({ required_error: 'End Date is required' }),
         intB_DisplayDate: z.date().optional().nullable(),
         intB_DispalyDisableFlg: z.boolean().default(false),
-        intB_ActiveFlag: z.boolean().default(true),
+        intB_ActiveFlag: z.any().default(true),
+        intB_ToStaffFlg: z.any().optional(),
+        intB_ToStudentFlg: z.any().optional(),
+        FilesCount: z.number().optional().default(0),
 
         // File/URL Attachments
         intB_FilePath_Array: z
