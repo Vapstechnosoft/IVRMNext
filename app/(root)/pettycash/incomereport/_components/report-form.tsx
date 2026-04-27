@@ -35,6 +35,7 @@ export default function PDAReportForm({
     showReportButtons
 }: PDAReportFormProps) {
     const { data: yearList } = useAcademicYearList();
+    console.log(yearList, "academic year")
 
     const {
         control,
@@ -52,15 +53,11 @@ export default function PDAReportForm({
     });
 
     const yearsRaw = yearList?.data;
-    const years: any[] = Array.isArray(yearsRaw) 
-        ? yearsRaw 
+    const years: any[] = Array.isArray(yearsRaw)
+        ? yearsRaw
         : (yearsRaw as any)?.acayyearbind || (yearsRaw as any)?.$values || [];
 
-    useEffect(() => {
-        if (years.length > 0 && !getValues('ASMAY_Id')) {
-            setValue('ASMAY_Id', years[0].asmaY_Id.toString());
-        }
-    }, [years, setValue, getValues]);
+
 
     function onSubmit(values: PDAFormValues) {
         onSearch(values);
@@ -118,7 +115,7 @@ export default function PDAReportForm({
 
             {/* Actions */}
             <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-4 border-t border-purple-50">
-                <div className="flex flex-wrap items-center gap-4 w-full md:w-auto">
+                <div className="flex items-center gap-4 whitespace-nowrap">
                     <Button
                         onClick={handleSubmit(onSubmit)}
                         className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white px-6 h-10 rounded-md font-bold shadow-md transition-all active:scale-95"

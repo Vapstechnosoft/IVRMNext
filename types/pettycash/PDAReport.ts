@@ -1,10 +1,8 @@
 export interface IPDAReportIncome {
-    amsT_Id: number;
-    fyP_Id: number;
     payment_Mode: string;
-    cashAmount: number;
-    bankAmount: number;
     fyP_Tot_Amount: number;
+    cashAmount?: number;
+    bankAmount?: number;
 }
 
 export interface IPDAReportExpense {
@@ -12,9 +10,16 @@ export interface IPDAReportExpense {
     pcreqtndeT_Amount: number;
 }
 
+export interface IPDAReportSummary {
+    pcreqtndeT_Amount: number;
+}
+
 export interface IPDAReportResponse {
-    income: IPDAReportIncome[];
-    expense: IPDAReportExpense[];
+    incomereport?: IPDAReportIncome[];
+    expensereport?: IPDAReportExpense[];
+    fhwR_searchdatalist?: IPDAReportSummary[];
+    income?: IPDAReportIncome[];
+    expense?: IPDAReportExpense[];
 }
 
 export interface IPDAReportParams {
@@ -22,3 +27,4 @@ export interface IPDAReportParams {
     From_Date: string;
     To_Date?: string;
 }
+

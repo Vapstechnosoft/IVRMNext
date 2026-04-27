@@ -13,22 +13,15 @@ export const incomeColumns: ColumnDef<IPDAReportIncome>[] = [
     {
         accessorKey: 'payment_Mode',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Particulars' />,
-        cell: ({ row }) => <div className='font-medium text-xs'>{row.getValue('payment_Mode')}</div>,
-    },
-    {
-        accessorKey: 'cashAmount',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Cash Amount' />,
-        cell: ({ row }) => <div className='text-right text-xs'>{Number(row.getValue('cashAmount')).toFixed(2)}</div>,
-    },
-    {
-        accessorKey: 'bankAmount',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Bank Amount' />,
-        cell: ({ row }) => <div className='text-right text-xs'>{Number(row.getValue('bankAmount')).toFixed(2)}</div>,
+        cell: ({ row }) => <div className='font-medium text-xs'>{row.original.payment_Mode || (row.original as any).Payment_Mode}</div>,
     },
     {
         accessorKey: 'fyP_Tot_Amount',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Total Amount' />,
-        cell: ({ row }) => <div className='text-right font-bold text-xs'>{Number(row.getValue('fyP_Tot_Amount')).toFixed(2)}</div>,
+        cell: ({ row }) => {
+            const amount = row.original.fyP_Tot_Amount ?? (row.original as any).FYP_Tot_Amount ?? row.original.cashAmount ?? 0;
+            return <div className='text-right font-bold text-xs'>{Number(amount).toFixed(2)}</div>;
+        },
     },
 ];
 
@@ -41,11 +34,15 @@ export const expenseColumns: ColumnDef<IPDAReportExpense>[] = [
     {
         accessorKey: 'particular',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Particulars' />,
-        cell: ({ row }) => <div className='font-medium text-xs'>{row.getValue('particular')}</div>,
+        cell: ({ row }) => <div className='font-medium text-xs'>{row.original.particular || (row.original as any).Particular}</div>,
     },
     {
         accessorKey: 'pcreqtndeT_Amount',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Amount' />,
-        cell: ({ row }) => <div className='text-right font-bold text-xs'>{Number(row.getValue('pcreqtndeT_Amount')).toFixed(2)}</div>,
+        cell: ({ row }) => {
+            const amount = row.original.pcreqtndeT_Amount ?? (row.original as any).PCREQTNDET_Amount ?? 0;
+            return <div className='text-right font-bold text-xs'>{Number(amount).toFixed(2)}</div>;
+        },
     },
 ];
+
