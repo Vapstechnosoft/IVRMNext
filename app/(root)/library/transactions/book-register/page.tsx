@@ -10,6 +10,7 @@ import { Plus, X } from 'lucide-react';
 import { use, useEffect } from 'react';
 import BookRegisterForm from './_components/BookRegisterForm';
 import { BookRegisterColumns } from './_components/columns';
+import AddBookCopyForm from './_components/AddBookCopyForm';
 //import ToggleBookRegisterForm from './_components/toggle-form';
 //import UpdateBookRegisterForm from './_components/update-form';
 
@@ -92,10 +93,12 @@ function FormSections({ refetch }: { refetch: () => void }) {
         isAddFormOpen,
         isEditFormOpen,
         isToggleFormOpen,
+        isCopyFormOpen,
         selectedRow,
         closeAddForm,
         closeToggleForm,
         closeEditForm,
+        closeCopyForm,
         addFormRef,
         editFormRef
     } = useFormContext<BookRegisterPayload>();
@@ -182,6 +185,14 @@ function FormSections({ refetch }: { refetch: () => void }) {
                     </CollapsibleSection>
                 </div>
             )}
+
+            {/* Copy/Add Copies Form (Popup) */}
+            <AddBookCopyForm 
+                isOpen={isCopyFormOpen}
+                onClose={closeCopyForm}
+                bookData={selectedRow}
+                onSuccess={handleSuccess}
+            />
         </>
     );
 }

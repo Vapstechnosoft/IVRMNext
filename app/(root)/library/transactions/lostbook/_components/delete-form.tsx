@@ -2,80 +2,71 @@
 
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
-import { deleteFeeConcession } from '@/server/fees/trasactions/FeeConcession';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { deleteLostBookRecord } from '@/server/library/transactions/lost-book';
+import type { ILostBookList } from '@/types/library/transactions/transactions';
+import { useState } from 'react';
 import { toast } from 'sonner';
-import { z } from 'zod';
 
-type DeleteFormFields = {
-    fsC_Id: number;
-};
-
-interface DeleteFeeConcessionFormProps {
-    rowData: any;
+interface DeleteLostBookFormProps {
+    rowData: ILostBookList;
     onClose: () => void;
-    onSuccess: () => void;
+    onSuccess?: () => void;
 }
 
-export default function DeleteFeeConcessionForm({ rowData, onClose, onSuccess }: DeleteFeeConcessionFormProps) {
-    const {
-        handleSubmit,
-        formState: { isSubmitting },
-        reset
-    } = useForm<DeleteFormFields>({
-        resolver: zodResolver(
-            z.object({
-                fsC_Id: z.number().optional()
-            })
-        )
-    });
+export default function DeleteLostBookForm({ rowData, onClose, onSuccess }: DeleteLostBookFormProps) {
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const closeDialog = () => {
-        reset();
-        onClose();
-    };
+    const handleDelete = async () => {
+        if (!rowData.lmbanO_Id) {
+            toast.error('Invalid record ID');
+            return;
+        }
 
-    const onSubmit = async () => {
         try {
-            const fsC_Id = rowData.fsC_Id;
-            const response = await deleteFeeConcession(fsC_Id);
+            setIsSubmitting(true);
+            const response = await deleteLostBookRecord(rowData.lmbanO_Id);
 
             if (response.success) {
-                toast.success(response.message || 'Concession deleted successfully');
-                onSuccess();
-                closeDialog();
+                toast.success(response.message || 'Record deleted successfully');
+                onSuccess?.();
+                onClose();
             } else {
-                toast.error(response.message || 'Failed to delete');
+                toast.error(response.message || 'Failed to delete record');
             }
         } catch (error: any) {
-            toast.error(error.message || 'Something went wrong');
+            toast.error(error?.message || 'Something went wrong');
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
-    const studentName = [rowData.studentName].filter(Boolean).join(' ');
-
     return (
-        <AdaptiveDialog title='Toggle Lost Book Transaction' isOpen={true} onClose={closeDialog}>
-            <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
-                <AdaptiveBody className='flex flex-col gap-5'>
-                    <p>
-                        Are you sure you want to delete the Fee concession for <strong>{studentName || 'this student'}</strong>?
-                    </p>
+        <AdaptiveDialog title='Delete Lost Book Record' isOpen={true} onClose={onClose}>
+            <div className='flex flex-col gap-6'>
+                <AdaptiveBody className='space-y-4'>
                     <p className='text-muted-foreground text-sm'>
-                        This action <strong>cannot be undone</strong>.
+                        Are you sure you want to delete the lost book record for{' '}
+                        <span className='font-medium text-foreground'>"{rowData.lmB_BookTitle}"</span>?
+                    </p>
+                    <p className='text-red-500 text-xs font-semibold'>
+                        This action cannot be undone.
                     </p>
                 </AdaptiveBody>
 
                 <AdaptiveFooter>
-                    <Button variant='secondary' onClick={closeDialog} type='button' disabled={isSubmitting}>
+                    <Button variant='secondary' onClick={onClose} disabled={isSubmitting} type='button'>
                         Cancel
                     </Button>
-                    <Button type='submit' variant='destructive' isLoading={isSubmitting}>
-                        Delete Permanently
+                    <Button
+                        onClick={handleDelete}
+                        isLoading={isSubmitting}
+                        disabled={isSubmitting}
+                        variant='destructive'
+                        className='min-w-28'>
+                        Delete
                     </Button>
                 </AdaptiveFooter>
-            </form>
+            </div>
         </AdaptiveDialog>
     );
 }

@@ -15,6 +15,7 @@ interface FormContextType<T = any> {
     isWardenViewOpen: boolean;
     isDocumentViewOpen: boolean;
     isMarksEntryOpen: boolean;
+    isCopyFormOpen: boolean;
     selectedRow: T | null;
 
     // Actions
@@ -40,6 +41,8 @@ interface FormContextType<T = any> {
     closeDocumentView: () => void;
     openMarksEntry: (row: T) => void;
     closeMarksEntry: () => void;
+    openCopyForm: (row: T) => void;
+    closeCopyForm: () => void;
     closeAllForms: () => void;
 
     // Refs for scrolling
@@ -73,6 +76,7 @@ export function FormProvider<T = any>({
     const [isWardenViewOpen, setIsWardenViewOpen] = useState(false);
     const [isDocumentViewOpen, setIsDocumentViewOpen] = useState(false);
     const [isMarksEntryOpen, setIsMarksEntryOpen] = useState(false);
+    const [isCopyFormOpen, setIsCopyFormOpen] = useState(false);
     const [selectedRow, setSelectedRow] = useState<T | null>(null);
 
     const addFormRef = useRef<HTMLDivElement>(null);
@@ -113,6 +117,7 @@ export function FormProvider<T = any>({
         setIsWardenViewOpen(false);
         setIsDocumentViewOpen(false);
         setIsMarksEntryOpen(false);
+        setIsCopyFormOpen(false);
         setSelectedRow(null);
         scrollToTop();
     }, [scrollToTop]);
@@ -266,8 +271,23 @@ export function FormProvider<T = any>({
         [closeAllForms]
     );
 
+    const openCopyForm = useCallback(
+        (row: T) => {
+            closeAllForms();
+            setSelectedRow(row);
+            setIsCopyFormOpen(true);
+        },
+        [closeAllForms]
+    );
+
     const closeMarksEntry = useCallback(() => {
         setIsMarksEntryOpen(false);
+        setSelectedRow(null);
+        scrollToTop();
+    }, [scrollToTop]);
+
+    const closeCopyForm = useCallback(() => {
+        setIsCopyFormOpen(false);
         setSelectedRow(null);
         scrollToTop();
     }, [scrollToTop]);
@@ -286,6 +306,7 @@ export function FormProvider<T = any>({
                 isWardenViewOpen,
                 isDocumentViewOpen,
                 isMarksEntryOpen,
+                isCopyFormOpen,
                 selectedRow,
                 openAddForm,
                 closeAddForm,
@@ -309,6 +330,8 @@ export function FormProvider<T = any>({
                 closeDocumentView,
                 openMarksEntry,
                 closeMarksEntry,
+                openCopyForm,
+                closeCopyForm,
                 closeAllForms,
                 addFormRef,
                 editFormRef
