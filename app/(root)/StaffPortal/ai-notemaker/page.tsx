@@ -18,7 +18,7 @@ export default function AINotemaker() {
     // State
     const [file, setFile] = useState<File | null>(null);
     const [activeTab, setActiveTab] = useState('upload');
-    const [chapter, setChapter] = useState<string>('');
+    const [chapter, setChapter] = useState<string>('1');
     const [generateSummary, setGenerateSummary] = useState<boolean>(true);
     const [generateNotes, setGenerateNotes] = useState<boolean>(true);
     const [isLoading, setIsLoading] = useState(false);
@@ -226,11 +226,14 @@ export default function AINotemaker() {
                                             </Label>
                                             <Input
                                                 id='chapter'
-                                                placeholder="e.g. 1"
+                                                type='number'
+                                                placeholder='e.g. 1'
                                                 value={chapter}
                                                 onChange={(e) => setChapter(e.target.value)}
                                                 className='h-10'
+                                                min='1'
                                             />
+                                            <p className='normal-case font-normal text-[10px] text-muted-foreground'>Please enter chapter numbers only</p>
                                         </div>
                                     </CardContent>
                                 </Card>
