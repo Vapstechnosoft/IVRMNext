@@ -2,12 +2,12 @@
 'use client';
 
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import type { ILostBookList } from '@/types/library/transactions/transactions';
 import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
-import { Edit, Trash2 } from 'lucide-react';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
+import { useCallback } from 'react';
 
 export const lostBookColumns: ColumnDef<ILostBookList>[] = [
     {
@@ -38,7 +38,7 @@ export const lostBookColumns: ColumnDef<ILostBookList>[] = [
     },
     {
         accessorKey: 'lmbanO_AvialableStatus',
-        header: 'Status',
+        header: 'Book Status',
         cell: ({ row }) => {
             const status = row.getValue('lmbanO_AvialableStatus') as string;
             return (
@@ -58,10 +58,17 @@ export const lostBookColumns: ColumnDef<ILostBookList>[] = [
     },
     {
         accessorKey: 'lmbanO_ModeOfPayment',
-        header: 'Payment Mode',
+        header: 'Payment',
         cell: ({ row }) => {
             const mode = row.getValue('lmbanO_ModeOfPayment') as string;
             return <Badge variant='secondary'>{mode}</Badge>;
+        }
+    },
+    {
+        accessorKey: 'lmbanO_LostDamagedReason',
+        header: 'Reason',
+        cell: ({ row }) => {
+            return <div className='max-w-xs truncate'>{row.getValue('lmbanO_LostDamagedReason') || '-'}</div>;
         }
     },
     {
@@ -74,54 +81,63 @@ export const lostBookColumns: ColumnDef<ILostBookList>[] = [
     },
     {
         accessorKey: 'borrowerType',
-        header: 'Borrower Type',
+        header: 'Status',
         cell: ({ row }) => {
             const book = row.original;
             let type = '';
             if (book.std) type = 'Student';
-            else if (book.staff)
-                type = 'Staff'; // Changed to lowercase
-            else if (book.dept) type = 'Department'; // Changed to lowercase
+            else if (book.staff) type = 'Staff';
+            else if (book.dept) type = 'Department';
 
-            return type ? <Badge variant='outline'>{type}</Badge> : '-';
+            return type ? <Badge variant='outline' className='bg-blue-50 text-blue-700 border-blue-200'>{type}</Badge> : '-';
         }
     },
     {
         accessorKey: 'borrowerName',
-        header: 'Borrower Name',
+        header: 'Name',
         cell: ({ row }) => {
             const book = row.original;
             let name = '';
-            if (book.std) name = book.std;
+            if (book.std) {
+                name = book.std.includes(':') ? book.std.split(':')[0].trim() : book.std;
+            }
             else if (book.staff) name = book.staff;
             else if (book.dept) name = book.dept;
 
-            return <div>{name || '-'}</div>;
+            return <div className='font-medium text-gray-700'>{name || '-'}</div>;
         }
     },
     {
         id: 'actions',
         header: 'Actions',
-        cell: ({ row }) => {
-            const { openEditForm, openDeleteForm } = useFormContext<ILostBookList>();
-            const book = row.original;
-
-            return (
-                <div className='flex items-center gap-2'>
-                    <Button variant='ghost' size='sm' onClick={() => openEditForm(book)} title='Edit'>
-                        <Edit className='h-4 w-4' />
-                    </Button>
-                    <Button
-                        variant='ghost'
-                        size='sm'
-                        onClick={() => openDeleteForm(book)}
-                        title='Delete'
-                        className='text-red-600 hover:bg-red-50 hover:text-red-700'>
-                        <Trash2 className='h-4 w-4' />
-                    </Button>
-                </div>
-            );
-        },
+        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />,
         size: 120
     }
 ];
+
+function ActionButtonsCell({ rowData }: { rowData: ILostBookList }) {
+    const { openEditForm, openDeleteForm, openToggleForm } = useFormContext<ILostBookList>();
+
+    const handleEdit = useCallback(() => {
+        openEditForm(rowData);
+    }, [openEditForm, rowData]);
+
+    const handleDelete = useCallback(() => {
+        openDeleteForm(rowData);
+    }, [openDeleteForm, rowData]);
+
+    const handleToggle = useCallback(() => {
+        openToggleForm(rowData);
+    }, [openToggleForm, rowData]);
+
+    return (
+        <ActionButtons
+            rowData={rowData}
+            buttons={{ edit: true, toggle: true, delete: true }}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onToggle={handleToggle}
+            toggleConditionKey='lmB_ActiveFlag'
+        />
+    );
+}

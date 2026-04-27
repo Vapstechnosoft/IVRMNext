@@ -152,6 +152,7 @@ function AdminOnDutyApplyPageContent() {
                                             <X className='h-4 w-4 text-destructive ' /> Close
                                         </Button>
                                         <ApplyLeaveForm
+                                            key={editingRow ? `edit-${editingRow.id}` : 'add'}
                                             editingRow={editingRow}
                                             onSuccess={() => {
                                                 refetchAll();
