@@ -41,7 +41,14 @@ export default function OnlineMcqQuizPage() {
     const [quizData, setQuizData] = useState<any>(null);
 
     // Publish Config
-    const [publishConfig, setPublishConfig] = useState({
+    const [publishConfig, setPublishConfig] = useState<{
+        academicYearId: string;
+        targetClass: string;
+        targetSection: string;
+        duration: string;
+        activeFrom: string;
+        activeTo: string;
+    }>({
         academicYearId: '',
         targetClass: '',
         targetSection: '',
@@ -200,7 +207,7 @@ export default function OnlineMcqQuizPage() {
             const yrs = academicDropdownData.data.map((y: any) => ({ asmaY_Id: y.asmaY_Id, asmaY_Year: y.asmaY_Year }));
             setAcademicYears(yrs);
             if (yrs.length > 0 && !publishConfig.academicYearId) {
-                setPublishConfig(prev => ({ ...prev, academicYearId: yrs[0].asmaY_Id }));
+                setPublishConfig(prev => ({ ...prev, academicYearId: String(yrs[0].asmaY_Id) }));
             }
         }
     }, [academicDropdownData, publishConfig.academicYearId]);
@@ -318,9 +325,9 @@ export default function OnlineMcqQuizPage() {
                     duration: publishConfig.duration,
                     difficulty: difficulty,
                     studentIds: selectedStudentIds,
-                    academicYearId: publishConfig.academicYearId,
-                    classId: publishConfig.targetClass,
-                    sectionId: publishConfig.targetSection
+                    academicYearId: Number(publishConfig.academicYearId),
+                    classId: Number(publishConfig.targetClass),
+                    sectionId: Number(publishConfig.targetSection)
                 })
             });
 
@@ -748,7 +755,7 @@ export default function OnlineMcqQuizPage() {
                                             <Label className="ml-1 font-black text-slate-400 text-sm uppercase tracking-widest after:ml-0.5 after:text-red-500 after:content-['*']">Academic Year</Label>
                                             <Select
                                                 value={publishConfig.academicYearId ? String(publishConfig.academicYearId) : ''}
-                                                onValueChange={(v) => setPublishConfig({ ...publishConfig, academicYearId: v, targetClass: '', targetSection: '' })}
+                                                onValueChange={(v: string) => setPublishConfig({ ...publishConfig, academicYearId: v, targetClass: '', targetSection: '' })}
                                             >
                                                 <SelectTrigger className='h-16 rounded-2xl border-none bg-slate-50 px-8 font-black'>
                                                     <SelectValue placeholder="Select Year" />
@@ -769,7 +776,7 @@ export default function OnlineMcqQuizPage() {
                                             <Label className="ml-1 font-black text-slate-400 text-sm uppercase tracking-widest after:ml-0.5 after:text-red-500 after:content-['*']">Class</Label>
                                             <Select
                                                 value={publishConfig.targetClass ? String(publishConfig.targetClass) : ''}
-                                                onValueChange={(v) => setPublishConfig({ ...publishConfig, targetClass: v, targetSection: '' })}
+                                                onValueChange={(v: string) => setPublishConfig({ ...publishConfig, targetClass: v, targetSection: '' })}
                                                 disabled={!publishConfig.academicYearId || loadingClasses}
                                             >
                                                 <SelectTrigger className='h-16 rounded-2xl border-none bg-slate-50 px-8 font-black'>
@@ -790,7 +797,7 @@ export default function OnlineMcqQuizPage() {
                                             <Label className="ml-1 font-black text-slate-400 text-sm uppercase tracking-widest after:ml-0.5 after:text-red-500 after:content-['*']">Section</Label>
                                             <Select
                                                 value={publishConfig.targetSection ? String(publishConfig.targetSection) : ''}
-                                                onValueChange={(v) => setPublishConfig({ ...publishConfig, targetSection: v })}
+                                                onValueChange={(v: string) => setPublishConfig({ ...publishConfig, targetSection: v })}
                                                 disabled={!publishConfig.targetClass || loadingSections}
                                             >
                                                 <SelectTrigger className='h-16 rounded-2xl border-none bg-slate-50 px-8 font-black'>
