@@ -182,7 +182,7 @@ export default function AddLostBookForm({ onSuccess, onCancel, className = '' }:
                     <SelectContent>
                         {bookOptions.length > 0 ? (
                             bookOptions.map((book) => (
-                                <SelectItem key={book.lmbanO_Id} value={book.lmbanO_Id.toString()}>
+                                <SelectItem key={book.lmbanO_Id || Math.random()} value={book.lmbanO_Id?.toString() || ''}>
                                     {book.lmbanO_AccessionNo} :: {book.lmB_BookTitle}
                                 </SelectItem>
                             ))
@@ -204,11 +204,17 @@ export default function AddLostBookForm({ onSuccess, onCancel, className = '' }:
                         <SelectValue placeholder={authorOptions.length === 0 ? 'Select book first' : 'Select author...'} />
                     </SelectTrigger>
                     <SelectContent>
-                        {authorOptions.map((author) => (
-                            <SelectItem key={author.id} value={author.id.toString()}>
-                                {author.name}
-                            </SelectItem>
-                        ))}
+                        {authorOptions.map((author) => {
+                            if (!author) return null;
+                            const authorId = (author as any).id || (author as any).lmbanO_Id;
+                            const authorName = (author as any).name || (author as any).authorName;
+
+                            return (
+                                <SelectItem key={authorId || Math.random()} value={authorId?.toString() || ''}>
+                                    {authorName}
+                                </SelectItem>
+                            );
+                        })}
                     </SelectContent>
                 </Select>
             </div>

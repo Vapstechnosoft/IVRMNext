@@ -3,119 +3,127 @@
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
-import { useMasterLibrary } from '@/hooks/library/useMasters';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useMasterCategoryListData } from '@/hooks/library/useMasters';
 import { masterCategorySchema } from '@/schemas/library/masters';
-import { addOrUpdateMasterLibrary } from '@/server/library/masters/master_library';
+import { addOrUpdateMasterCategory } from '@/server/library/masters/library_category';
 import type { IMasterCategoryList } from '@/types/library/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { useEffect } from 'react';
-import { type SubmitHandler, useForm } from 'react-hook-form';
+import { type SubmitHandler, useForm, Controller } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
 type FormFields = z.infer<typeof masterCategorySchema.addOrUpdate>;
 
-interface UpdateMasterClassFormProps {
+interface UpdateMasterCategoryFormProps {
     onSuccess?: () => void;
     className?: string;
     selectedRow: IMasterCategoryList;
 }
 
-export default function UpdateMasterClassForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterClassFormProps) {
-    const { refetchAll } = useMasterLibrary();
+export default function UpdateMasterCategoryForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterCategoryFormProps) {
+    const { refetchAll } = useMasterCategoryListData();
 
     const {
         register,
         handleSubmit,
         reset,
+        control,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterCategorySchema.addOrUpdate),
-        mode: 'onChange'
+        mode: 'onChange',
+        values: row ? {
+            lmC_Id: row.lmC_Id,
+            lmC_CategoryName: row.lmC_CategoryName,
+            lmC_CategoryCode: row.lmC_CategoryCode,
+            lmC_BNBFlg: row.lmC_BNBFlg
+        } : undefined
     });
-
-    useEffect(() => {
-        if (row) {
-            reset({
-                lmC_Id: row.lmC_Id,
-                lmC_CategoryName: row.lmC_CategoryName
-            });
-        }
-    }, [row, reset]);
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const { lmC_CategoryName } = data;
-
             const payload = {
-                mI_Id: 30,
                 lmC_Id: row.lmC_Id,
-                lmC_CategoryName: lmC_CategoryName
+                mI_Id: 0,
+                lmC_CategoryName: data.lmC_CategoryName,
+                lmC_CategoryCode: data.lmC_CategoryCode,
+                lmC_BNBFlg: data.lmC_BNBFlg,
+                createdDate: new Date().toISOString(),
+                updatedDate: new Date().toISOString(),
+                lmC_ActiveFlag: true
             };
 
-            const response = await addOrUpdateMasterLibrary(payload);
+            const response = await addOrUpdateMasterCategory(payload);
 
-            if (response.success) {
-                toast.success(response.message || 'Master Library updated successfully');
+            if (response?.success) {
+                toast.success(response.message || 'Category updated successfully');
                 refetchAll();
                 onSuccess?.();
             } else {
-                toast.error(response.message || 'Failed to update Master Library');
+                toast.error(response.message || 'Failed to update category');
             }
         } catch (error: any) {
             toast.error(error?.message || 'Something went wrong');
         }
     };
 
-    const handleReset = () => reset();
+    const handleReset = () => {
+        if (row) {
+            reset({
+                lmC_Id: row.lmC_Id,
+                lmC_CategoryName: '',
+                lmC_CategoryCode: '',
+                lmC_BNBFlg: 'Book'
+            });
+        }
+    };
 
     return (
         <div className={className}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        {/* <InputText
-                            label='Class Category Code'
-                            required
-                            id='fmcC_ClassCategoryCode'
-                            {...register('fmcC_ClassCategoryCode')}
-                            error={errors.fmcC_ClassCategoryCode?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
+                    <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                         <InputText
-                            label='Class Category Name'
+                            label='Category Name'
                             required
-                            id='fmcC_ClassCategoryName'
-                            {...register('fmcC_ClassCategoryName')}
-                            error={errors.fmcC_ClassCategoryName?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        /> */}
-
-                        <InputText
-                            label='Class Category Name'
-                            required
-                            id='fmcC_ClassCategoryName'
-                            onKeyDown={(e) => {
-                                const allowed = /^[A-Za-z]$/;
-
-                                if (e.key.length === 1 && !allowed.test(e.key)) {
-                                    e.preventDefault();
-                                }
-                            }}
-                            {...register('lmC_CategoryName', {
-                                required: 'Category Name is required',
-                                pattern: {
-                                    value: /^[A-Za-z]+$/,
-                                    message: 'Only letters allowed'
-                                }
-                            })}
+                            id='lmC_CategoryName'
+                            placeholder='Enter Category name'
+                            {...register('lmC_CategoryName')}
                             error={errors.lmC_CategoryName?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
+
+                        <InputText
+                            label='Category Code'
+                            required
+                            id='lmC_CategoryCode'
+                            placeholder='Enter Category code'
+                            {...register('lmC_CategoryCode')}
+                            error={errors.lmC_CategoryCode?.message}
+                        />
+
+                        <div className='space-y-2'>
+                            <label className='text-sm font-medium'>Category Type <span className="text-red-500">*</span></label>
+                            <Controller
+                                name='lmC_BNBFlg'
+                                control={control}
+                                render={({ field }) => (
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select Type' />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value='Book'>Book</SelectItem>
+                                            <SelectItem value='Non Book'>Non Book</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                            {errors.lmC_BNBFlg && <FormError>{errors.lmC_BNBFlg.message}</FormError>}
+                        </div>
                     </div>
 
-                    {/* Root Error */}
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
@@ -126,18 +134,18 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                         variant='outline'
                         onClick={handleReset}
                         disabled={isSubmitting}
-                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                        Reset
+                        className='order-2 w-fit sm:order-1 transition-all duration-200 hover:scale-105'>
+                        Clear
                     </Button>
                     <Button
                         type='submit'
                         disabled={isSubmitting}
-                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
+                        className='order-1 w-fit sm:order-2 transition-all duration-200 hover:scale-105'
                         isLoading={isSubmitting}
-                        loadingText='Saving...'>
+                        loadingText='Updating...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Update Class Category
+                            Update Master Category
                         </div>
                     </Button>
                 </div>

@@ -2,6 +2,15 @@
 import { type ApiResponse, api } from '@/lib/apiService';
 import { auth } from '@/lib/auth';
 import type { IDropdown, IUserAccessibleModules, UserNotification } from '@/types';
+import { admissionModule } from './modules/admission';
+import { feesModule } from './modules/fees';
+import { examModule } from './modules/exam';
+import { hrmsModule } from './modules/hrms';
+import { iframeModule } from './modules/iframe';
+import { timetableModule } from './modules/timetable';
+import { libraryModule } from './modules/library';
+import { transportModule } from './modules/transport';
+
 
 export async function getCommonDropdown(name: string) {
     const url = `/v1/common/common_drop_down_list/${name}`;
@@ -52,7 +61,15 @@ export async function getUserAccessibleModules() {
         response = {
             success: true,
             message: 'Data fetched successfully!!',
-            data: [
+            data: [admissionModule,
+                feesModule,
+                examModule,
+                hrmsModule,
+                iframeModule,
+                timetableModule,
+                libraryModule,
+                transportModule,
+
                 {
                     id: 1,
                     name: 'Preadmission',
@@ -1927,6 +1944,22 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/feereports/FeeUserWiseDailyCollectionReport',
                                             title: 'Fee User Wise Daily Collection Report',
                                             description: 'Manage Fee User Wise Daily Collection Report Details'
+                                        },
+                                        {
+                                            id: 399,
+                                            name: 'Fee Cheque Bounce',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/feeChequeBounce',
+                                            title: 'Fee Cheque Bounce',
+                                            description: 'Manage Fee Cheque Bounce Details'
+                                        },
+                                        {
+                                            id: 519,
+                                            name: 'Third Party TransactionGM',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/thirdPartyTransactionGM',
+                                            title: 'Third Party TransactionGM',
+                                            description: 'Manage Third Party TransactionGM'
                                         }
                                     ]
                                 }
@@ -2843,7 +2876,7 @@ export async function getUserAccessibleModules() {
                                             icon: 'FileSearch',
                                             url: '/hrms/ai-ats/resume-checker',
                                             title: 'AI Resume checker',
-                                            description: 'AI-powered resume evaluation and screening'
+                                            description: 'Upload resumes and job descriptions for AI-powered ATS scoring and skill gap analysis.'
                                         }
                                     ]
                                 },
@@ -7332,9 +7365,7 @@ export async function getUserAccessibleModules() {
                                             description: 'View Bank Credit And Debit Reports'
                                         }
                                     ]
-                                },
-
-
+                                }
                             ]
                         }
                     ]
@@ -7695,6 +7726,59 @@ export async function getUserAccessibleModules() {
                             ]
                         },
                         {
+                            id: 800267,
+                            name: 'Interaction',
+                            icon: 'BookOpen',
+                            sub_menu: [
+                                {
+                                    id: 800267,
+                                    name: 'Transaction',
+                                    icon: 'FileBarChart',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'IVRM Interaction',
+                                            icon: 'BookOpenText',
+                                            url: '/StaffPortal/Interactions/IVRM_Interactions',
+                                            title: 'IVRM Interaction',
+                                            description: 'IVRM Interaction'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'NDA IVRM Interaction',
+                                            icon: 'BookOpenText',
+                                            url: '/StaffPortal/Interactions/NDA_IVRM_Interactions',
+                                            title: 'NDA IVRM Interaction',
+                                            description: 'NDA IVRM Interaction'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'SCS Interaction',
+                                            icon: 'BookOpenText',
+                                            url: '/StaffPortal/Interactions/SCS_IVRM_Interactions',
+                                            title: 'SCS Interaction',
+                                            description: 'SCS Interaction'
+                                        },
+                                    ]
+                                },
+                                {
+                                    id: 80019,
+                                    name: 'Reports',
+                                    icon: 'FileBarChart',
+                                    pages: [
+                                        {
+                                            id: 2,
+                                            name: 'School Staff Period Transaction Report',
+                                            icon: 'BookOpenText',
+                                            url: '/lesson-planner/lesson-planner-module/reports/school-staff-period-transaction-report',
+                                            title: 'School Staff Period Transaction Report',
+                                            description: 'School Staff Period Transaction Report'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
                             id: 80020,
                             name: 'Client Spcefic pages',
                             icon: 'BookOpen',
@@ -7808,28 +7892,58 @@ export async function getUserAccessibleModules() {
                         },
 
                         {
-                            id: 2,
+                            id: 800267,
                             name: 'Interaction',
-                            icon: 'MessageSquare',
+                            icon: 'BookOpen',
                             sub_menu: [
                                 {
-                                    id: 40001,
-                                    name: 'Student Interactions ',
-                                    icon: 'MessageSquare',
+                                    id: 800267,
+                                    name: 'Transaction',
+                                    icon: 'FileBarChart',
                                     pages: [
                                         {
-                                            id: 40001,
-                                            name: 'Interactions',
-                                            icon: 'MessageSquare',
-                                            url: '/StudentPortal/student-dashboard/Interaction/IVRM_Interaction/Interaction',
-                                            title: 'Interactions',
-                                            description: 'Interact with Staff and Students'
+                                            id: 1,
+                                            name: 'IVRM Interaction',
+                                            icon: 'BookOpenText',
+                                            url: '/StudentPortal/Interactions/IVRM_Interactions',
+                                            title: 'IVRM Interaction',
+                                            description: 'IVRM Interaction'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'NDA IVRM Interaction',
+                                            icon: 'BookOpenText',
+                                            url: '/StudentPortal/Interactions/NDA_IVRM_Interactions',
+                                            title: 'NDA IVRM Interaction',
+                                            description: 'NDA IVRM Interaction'
+                                        }
+                                        // {
+                                        //     id: 3,
+                                        //     name: 'SCS Interaction',
+                                        //     icon: 'BookOpenText',
+                                        //     url: '/StudentPortal/Interactions/SCS_IVRM_Interactions',
+                                        //     title: 'SCS Interaction',
+                                        //     description: 'SCS Interaction'
+                                        // },
+                                    ]
+                                },
+                                {
+                                    id: 80019,
+                                    name: 'Reports',
+                                    icon: 'FileBarChart',
+                                    pages: [
+                                        {
+                                            id: 2,
+                                            name: 'School Staff Period Transaction Report',
+                                            icon: 'BookOpenText',
+                                            url: '/lesson-planner/lesson-planner-module/reports/school-staff-period-transaction-report',
+                                            title: 'School Staff Period Transaction Report',
+                                            description: 'School Staff Period Transaction Report'
                                         }
                                     ]
                                 }
                             ]
                         },
-
                         {
                             id: 3,
                             name: 'Admission',

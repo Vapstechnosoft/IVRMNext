@@ -3,14 +3,13 @@
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
-
-import { useMasterLibrary } from '@/hooks/library/useMasters';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useMasterCategoryListData } from '@/hooks/library/useMasters';
 import { masterCategorySchema } from '@/schemas/library/masters';
-
-import { addOrUpdateMasterLibrary } from '@/server/library/masters/master_library';
+import { addOrUpdateMasterCategory } from '@/server/library/masters/library_category';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { type SubmitHandler, useForm } from 'react-hook-form';
+import { type SubmitHandler, useForm, Controller } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
@@ -22,52 +21,62 @@ interface AddMasterCategoryFormProps {
 }
 
 export default function AddMasterCategoryForm({ onSuccess, className = '' }: AddMasterCategoryFormProps) {
-    //const { refetchAll: refetchMasterCasteCategoryCode } = useMasterLibrary();
-
-    const { refetchAll } = useMasterLibrary();
+    const { refetchAll } = useMasterCategoryListData();
 
     const {
         register,
         handleSubmit,
         reset,
+        control,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterCategorySchema.addOrUpdate),
-        mode: 'onChange'
+        mode: 'onChange',
+        defaultValues: {
+            lmC_CategoryName: '',
+            lmC_CategoryCode: '',
+            lmC_BNBFlg: 'Book'
+        }
     });
 
-    const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
+    const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const { lmC_CategoryName, lmC_CategoryCode, lmC_BNBFlg } = data;
             const payload = {
-                IMCC_ID: 0,
-                lmC_CategoryName: lmC_CategoryName,
-                lmC_CategoryCode: lmC_CategoryCode,
-                lmC_BNBFlg: lmC_BNBFlg
+                lmC_Id: 0,
+                mI_Id: 0,
+                lmC_CategoryName: data.lmC_CategoryName,
+                lmC_CategoryCode: data.lmC_CategoryCode,
+                lmC_BNBFlg: data.lmC_BNBFlg,
+                createdDate: new Date().toISOString(),
+                updatedDate: new Date().toISOString(),
+                lmC_ActiveFlag: true
             };
 
-            const response = await addOrUpdateMasterLibrary(payload);
+            const response = await addOrUpdateMasterCategory(payload);
 
-            if (response.success) {
-                toast.success(response.message);
+            if (response?.success) {
+                toast.success(response.message || 'Category saved successfully');
                 reset();
-                //refetchMasterCasteCategoryCode();
                 refetchAll();
                 onSuccess?.();
             } else {
-                toast.error(response.message);
+                toast.error(response.message || 'Failed to save category');
             }
         } catch (error: any) {
-            toast.error(error.message);
+            toast.error(error?.message || 'Something went wrong');
         }
     };
 
     const handleReset = () => {
-        reset();
+        reset({
+            lmC_CategoryName: '',
+            lmC_CategoryCode: '',
+            lmC_BNBFlg: 'Book'
+        });
     };
 
     return (
-        <div className={`${className}`}>
+        <div className={className}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
@@ -78,7 +87,6 @@ export default function AddMasterCategoryForm({ onSuccess, className = '' }: Add
                             placeholder='Enter Category name'
                             {...register('lmC_CategoryName')}
                             error={errors.lmC_CategoryName?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
 
                         <InputText
@@ -88,20 +96,29 @@ export default function AddMasterCategoryForm({ onSuccess, className = '' }: Add
                             placeholder='Enter Category code'
                             {...register('lmC_CategoryCode')}
                             error={errors.lmC_CategoryCode?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-                        <InputText
-                            label='Category Type '
-                            required
-                            id='lmC_BNBFlg'
-                            placeholder='Enter Category name'
-                            {...register('lmC_BNBFlg')}
-                            error={errors.lmC_BNBFlg?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
+
+                        <div className='space-y-2'>
+                            <label className='text-sm font-medium'>Category Type <span className="text-red-500">*</span></label>
+                            <Controller
+                                name='lmC_BNBFlg'
+                                control={control}
+                                render={({ field }) => (
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select Type' />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value='Book'>Book</SelectItem>
+                                            <SelectItem value='Non Book'>Non Book</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                            {errors.lmC_BNBFlg && <FormError>{errors.lmC_BNBFlg.message}</FormError>}
+                        </div>
                     </div>
 
-                    {/* Root Error */}
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
@@ -112,13 +129,13 @@ export default function AddMasterCategoryForm({ onSuccess, className = '' }: Add
                         variant='outline'
                         onClick={handleReset}
                         disabled={isSubmitting}
-                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                        className='order-2 w-fit sm:order-1 transition-all duration-200 hover:scale-105'>
                         Reset
                     </Button>
                     <Button
                         type='submit'
                         disabled={isSubmitting}
-                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
+                        className='order-1 w-fit sm:order-2 transition-all duration-200 hover:scale-105'
                         isLoading={isSubmitting}
                         loadingText='Saving...'>
                         <div className='flex items-center'>

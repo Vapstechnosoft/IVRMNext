@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
-import { useMasterTimeSlab } from '@/hooks/library/useMasters';
+import { useMasterTimeSlabList } from '@/hooks/library/useMasters';
 import { masterTimeSlabSchema } from '@/schemas/library/masters';
 import { deactivateMasterTimeSlab } from '@/server/library/masters/time-slab';
 import type { IMasterTimeSlab } from '@/types/library/masters/time-slab';
@@ -20,7 +20,7 @@ interface ToggleTimeSlabFormProps {
 }
 
 export default function ToggleTimeSlabForm({ rowData, onClose }: ToggleTimeSlabFormProps) {
-    const { refetchAll } = useMasterTimeSlab();
+    const { refetchAll } = useMasterTimeSlabList();
     const isActive = rowData.lfsE_ActiveFlg;
 
     const {
@@ -40,8 +40,7 @@ export default function ToggleTimeSlabForm({ rowData, onClose }: ToggleTimeSlabF
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const payload = { ...rowData, lfsE_Id: rowData.lfsE_Id };
-            const response = await deactivateMasterTimeSlab(payload);
+            const response = await deactivateMasterTimeSlab(rowData.lfsE_Id);
 
             if (response.success) {
                 toast.success(response.message || 'Record Status Updated Successfully!!!');

@@ -88,9 +88,9 @@ export default function AddMasterRackForm({ onSuccess, className = '', subjectLi
                             name='lmS_Id'
                             render={({ field }) => (
                                 <div className='flex flex-col gap-1.5'>
-                                    {/* <label className='text-sm font-medium'>
+                                    <label className='text-sm font-medium'>
                                         Subject Name <span className='text-red-500'>*</span>
-                                    </label> */}
+                                    </label>
                                     <Select
                                         onValueChange={(value) => field.onChange(Number(value))}
                                         value={field.value ? String(field.value) : undefined}>
@@ -113,12 +113,12 @@ export default function AddMasterRackForm({ onSuccess, className = '', subjectLi
                     </div>
                     <div className='grid grid-cols-1'>
                         <div className='flex flex-col gap-1.5'>
-                            {/* <label className='text-sm font-medium'>
-                                Location 
-                            </label> */}
+                            <label className='text-sm font-medium'>
+                                Location <span className='text-red-500'>*</span>
+                            </label>
                             <textarea
                                 className={`flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.lmrA_Location ? 'border-red-500' : ''}`}
-                                placeholder='Address'
+                                placeholder='Location'
                                 {...register('lmrA_Location')}
                             />
                             {errors.lmrA_Location && <span className='text-red-500 text-sm'>{errors.lmrA_Location.message}</span>}
