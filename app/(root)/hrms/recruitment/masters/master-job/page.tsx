@@ -1,76 +1,66 @@
-// Refactored by automation script on 2025-10-28T15:40:35.878Z
-// TODO: Complete refactoring by:
-// 1. Import columns from _components/columns.tsx
-// 2. Import form from _components/job-form.tsx
-// 3. Extract column definitions and form to the respective files
-// 4. Update handlers to use the new structure
 'use client';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { FormError } from '@/components/ui/extension/field';
+import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
-import type { ColumnDef } from '@tanstack/react-table';
-import { Edit, MoreHorizontal, Plus, RefreshCw, Save, Trash2, X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-import { type SubmitHandler, useForm } from 'react-hook-form';
+import { useGetMasterJobGrid, useSaveOrUpdateJob, useGetMasterLocationDropDown } from '@/hooks/hrms/recruitment/masters/useMasters';
+import { Plus, RefreshCw, Save, X } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { type SubmitHandler, useForm, Controller } from 'react-hook-form';
 import { toast } from 'sonner';
-interface MasterJob extends BaseEntity {
-    jobCode: string;
-    jobTitle: string;
-    jobLocation: string;
-    isActive: boolean;
-}
-type MasterJobForm = {
-    jobCode: string;
-    jobTitle: string;
-    jobLocation: string;
-    isActive: boolean;
-};
-const jobLocations = ['Bangalore', 'coimbatore', 'Chennai', 'Mumbai', 'Delhi', 'Hyderabad', 'Pune', 'Kolkata'];
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { getMasterJobColumns } from './_components/columns';
+import ToggleMasterJobModal from './_components/toggle-modal';
+import type { MasterJob } from './_components/columns';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { recruitmentMasterJobSchema } from '@/schemas/hrms/recruitment/masters';
+import type { z } from 'zod';
+
+type MasterJobForm = z.infer<typeof recruitmentMasterJobSchema>;
 export default function MasterJobPage() {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
-    const [jobs, setJobs] = useState<MasterJob[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isToggleOpen, setIsToggleOpen] = useState(false);
+    const [selectedJob, setSelectedJob] = useState<MasterJob | null>(null);
     const formRef = useRef<HTMLDivElement>(null);
-    const jobDB = createLocalCrud<MasterJob>('master:job');
+
+    const { data: masterGridData, isLoading: masterGridLoading, refetchAll: masterGridRefetch } = useGetMasterJobGrid();
+    const { data: locationData, isLoading: locationLoading } = useGetMasterLocationDropDown();
+    const { mutateAsync: saveMutation, isPending: isSubmitting } = useSaveOrUpdateJob();
+
+
+    const locations = locationData?.data || [];
+
     const {
         register,
+        control,
         handleSubmit,
         reset,
         setValue,
-        watch,
-        formState: { errors, isSubmitting }
+        formState: { errors }
     } = useForm<MasterJobForm>({
+        resolver: zodResolver(recruitmentMasterJobSchema),
         mode: 'onChange',
         defaultValues: {
-            isActive: true
+            hrmJ_Id: 0,
+            hrmJ_JobCode: '',
+            hrmJ_JobTiTle: '',
+            hrmlO_Id: undefined,
+            hrC_Id: 0
         }
     });
-    const jobLocation = watch('jobLocation');
-    // Load data on component mount
-    useEffect(() => {
-        loadJobs();
-    }, []);
-    const loadJobs = () => {
-        try {
-            setJobs(jobDB.list());
-        } catch (_error) {
-            toast.error('Failed to load jobs');
-        } finally {
-            setIsLoading(false);
-        }
-    };
+
     const handleAddClick = () => {
         setIsFormOpen(true);
         setEditingId(null);
-        reset({ isActive: true });
+        reset({
+            hrmJ_Id: 0,
+            hrmJ_JobCode: '',
+            hrmJ_JobTiTle: '',
+            hrmlO_Id: undefined,
+            hrC_Id: 0
+        });
         // Scroll to form after state update
         setTimeout(() => {
             formRef.current?.scrollIntoView({
@@ -79,32 +69,51 @@ export default function MasterJobPage() {
             });
         }, 100);
     };
+
     const handleFormClose = () => {
         setIsFormOpen(false);
         setEditingId(null);
-        reset({ isActive: true });
+        reset({
+            hrmJ_Id: 0,
+            hrmJ_JobCode: '',
+            hrmJ_JobTiTle: '',
+            hrmlO_Id: undefined,
+            hrC_Id: 0
+        });
     };
+
     const onSubmit: SubmitHandler<MasterJobForm> = async (data: MasterJobForm) => {
+        console.log("data----", data);
         try {
-            if (editingId) {
-                jobDB.update(editingId, data);
-                toast.success('Job updated successfully');
+            const payload = {
+                ...data,
+                hrmJ_Id: editingId || 0,
+                hrmJ_Posted: new Date().toISOString().split('T')[0],
+                hrC_Id: 0
+            };
+
+            const result = await saveMutation(payload);
+            if (result.success) {
+                toast.success(editingId ? 'Job updated successfully' : 'Job created successfully');
+                handleFormClose();
+                masterGridRefetch();
             } else {
-                jobDB.create(data as Omit<MasterJob, 'id' | 'createdAt'>);
-                toast.success('Job created successfully');
+                toast.error(result.message || 'Operation failed');
             }
-            loadJobs();
-            handleFormClose();
         } catch (error: any) {
             toast.error(error.message || 'Operation failed');
         }
     };
+
     const handleEdit = (job: MasterJob) => {
-        setEditingId(job.id);
-        setValue('jobCode', job.jobCode);
-        setValue('jobTitle', job.jobTitle);
-        setValue('jobLocation', job.jobLocation);
-        setValue('isActive', job.isActive);
+        setEditingId(job.hrmJ_Id);
+        reset({
+            hrmJ_Id: job.hrmJ_Id,
+            hrmJ_JobCode: job.hrmJ_JobCode,
+            hrmJ_JobTiTle: job.hrmJ_JobTiTle,
+            hrmlO_Id: job.hrmlO_Id,
+            hrC_Id: job.hrC_Id
+        });
         setIsFormOpen(true);
         // Scroll to form after state update
         setTimeout(() => {
@@ -114,20 +123,17 @@ export default function MasterJobPage() {
             });
         }, 100);
     };
-    const handleDelete = (id: number) => {
-        try {
-            jobDB.remove(id);
-            toast.success('Job deleted successfully');
-            loadJobs();
-        } catch (_error: any) {
-            toast.error('Failed to delete job');
-        }
+
+    const handleToggle = (job: MasterJob) => {
+        setSelectedJob(job);
+        setIsToggleOpen(true);
     };
+
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 {/* Header */}
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
+                <div className='flex flex-col gap-4 justify-end md:flex-row md:items-center md:justify-end'>
                     <Button
                         type='button'
                         onClick={handleAddClick}
@@ -137,17 +143,30 @@ export default function MasterJobPage() {
                         Add Master Job
                     </Button>
                 </div>
-                {/* Data Table Section - Collapsible but default open */}
                 <CollapsibleSection
-                    // title='Master Jobs Data'
-                    // description='View, search, and manage all job positions in the system'
                     defaultOpen={true}
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
                     headerClassName=''>
-                    <JobTable jobs={jobs} isLoading={isLoading} onEdit={handleEdit} onDelete={handleDelete} />
+                    <GenericDataTable
+                        data={masterGridData?.data || []}
+                        columns={getMasterJobColumns({ onEdit: handleEdit, onToggle: handleToggle })}
+                        isLoading={masterGridLoading}
+                        totalItems={masterGridData?.data.length || 0}
+                        showViewOptions={false}
+
+                    />
+
                 </CollapsibleSection>
+                {selectedJob && (
+                    <ToggleMasterJobModal
+                        isOpen={isToggleOpen}
+                        rowData={selectedJob}
+                        onClose={() => setIsToggleOpen(false)}
+                        onSuccess={masterGridRefetch}
+                    />
+                )}
                 {/* Add Form Section - Conditionally Rendered */}
                 {isFormOpen && (
                     <div ref={formRef} className='slide-in-from-top-4 animate-in duration-300'>
@@ -174,50 +193,54 @@ export default function MasterJobPage() {
                                             <InputText
                                                 label='Job Code'
                                                 required
-                                                id='jobCode'
-                                                {...register('jobCode', { required: 'Job Code is required' })}
-                                                error={errors.jobCode?.message}
+                                                id='hrmJ_JobCode'
+                                                {...register('hrmJ_JobCode')}
+                                                error={errors.hrmJ_JobCode?.message}
                                                 className='transition-colors focus:ring-2 focus:ring-primary/20'
                                             />
                                             <InputText
                                                 label='Job Title'
                                                 required
-                                                id='jobTitle'
-                                                {...register('jobTitle', { required: 'Job Title is required' })}
-                                                error={errors.jobTitle?.message}
+                                                id='hrmJ_JobTiTle'
+                                                {...register('hrmJ_JobTiTle')}
+                                                error={errors.hrmJ_JobTiTle?.message}
                                                 className='transition-colors focus:ring-2 focus:ring-primary/20'
                                             />
                                         </div>
                                         <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
-                                            <div className='space-y-2'>
-                                                <span className='font-medium text-sm'>
-                                                    Job Location <span className='text-red-500'>*</span>
-                                                </span>
-                                                <Select value={jobLocation || ''} onValueChange={(value) => setValue('jobLocation', value)}>
-                                                    <SelectTrigger className={errors.jobLocation ? 'border-red-500' : ''}>
-                                                        <SelectValue placeholder='--Select--' />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {jobLocations.map((location) => (
-                                                            <SelectItem key={location} value={location}>
-                                                                {location}
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                                {!jobLocation && (
-                                                    <input
-                                                        type='hidden'
-                                                        {...register('jobLocation', {
-                                                            required: 'Job Location is required'
-                                                        })}
-                                                    />
-                                                )}
-                                                {errors.jobLocation && <FormError>{errors.jobLocation.message}</FormError>}
+                                            <div className='group flex flex-col gap-1.5'>
+                                                <Label htmlFor='hrmlO_Id'>
+                                                    Job Location <span className='text-destructive'>*</span>
+                                                </Label>
+                                                <Controller
+                                                    name='hrmlO_Id'
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <Select
+                                                            onValueChange={(value) => field.onChange(Number(value))}
+                                                            value={field.value ? String(field.value) : ''}>
+                                                            <SelectTrigger id='hrmlO_Id' disabled={locationLoading}>
+                                                                <SelectValue placeholder={locationLoading ? 'Loading...' : 'Select Location'} />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {
+                                                                    locations?.length === 0 ? (
+                                                                        <div className='text-center text-muted-foreground'>No locations found.</div>
+                                                                    ) : (
+                                                                        locations?.map((location: any) => (
+                                                                            <SelectItem key={location.hrmlO_Id} value={String(location.hrmlO_Id)}>
+                                                                                {location.hrmlO_LocationName}
+                                                                            </SelectItem>
+                                                                        ))
+                                                                    )}
+                                                            </SelectContent>
+                                                        </Select>
+                                                    )}
+                                                />
+                                                {errors.hrmlO_Id && <FormError>{errors.hrmlO_Id.message}</FormError>}
                                             </div>
                                         </div>
-                                        {/* Root Error */}
-                                        {errors.root && <FormError>{errors.root.message}</FormError>}
+                                       
                                     </div>
                                     {/* Action Buttons */}
                                     <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
@@ -254,69 +277,4 @@ export default function MasterJobPage() {
             </div>
         </div>
     );
-}
-interface JobTableProps {
-    jobs: MasterJob[];
-    isLoading: boolean;
-    onEdit: (job: MasterJob) => void;
-    onDelete: (id: number) => void;
-}
-function JobTable({ jobs, isLoading, onEdit, onDelete }: JobTableProps) {
-    const jobColumns: ColumnDef<MasterJob>[] = [
-        {
-            accessorKey: 'jobCode',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Job Code' />,
-            cell: ({ row }) => <div className='font-medium'>{row.getValue('jobCode')}</div>
-        },
-        {
-            accessorKey: 'jobTitle',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Job Title' />,
-            cell: ({ row }) => <div>{row.getValue('jobTitle')}</div>
-        },
-        {
-            accessorKey: 'jobLocation',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Job Location' />,
-            cell: ({ row }) => <div>{row.getValue('jobLocation')}</div>
-        },
-        {
-            accessorKey: 'isActive',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
-            cell: ({ row }) => {
-                const isActive = row.getValue('isActive') as boolean;
-                return <Badge variant={isActive ? 'default' : 'secondary'}>{isActive ? 'Active' : 'Inactive'}</Badge>;
-            }
-        },
-        {
-            id: 'actions',
-            header: 'Actions',
-            cell: ({ row }) => {
-                const job = row.original;
-                return (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant='ghost' className='h-8 w-8 p-0'>
-                                <MoreHorizontal className='h-4 w-4' />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align='end'>
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <Button variant='ghost' size='sm' onClick={() => onEdit(job)} className='w-full justify-start'>
-                                <Edit className='mr-2 h-4 w-4' />
-                                Edit
-                            </Button>
-                            <Button
-                                variant='ghost'
-                                size='sm'
-                                onClick={() => onDelete(job.id)}
-                                className='w-full justify-start text-red-600 hover:text-red-900'>
-                                <Trash2 className='mr-2 h-4 w-4' />
-                                Delete
-                            </Button>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                );
-            }
-        }
-    ];
-    return <GenericDataTable isLoading={isLoading} columns={jobColumns} data={jobs} totalItems={jobs.length} showViewOptions={true} />;
 }

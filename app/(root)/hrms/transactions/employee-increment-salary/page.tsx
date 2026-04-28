@@ -19,6 +19,7 @@ import { useEmployeesForNoticeBoard } from '@/hooks/upload/transactions/use-noti
 import { getHeadDropdown } from '@/server/hrms/hrmsConfig/transaction/salary-updation';
 import { getEmployeeIncrementColumns } from './_components/columns';
 import { Badge } from '@/components/ui/badge';
+import { useGetEmployees } from '@/hooks/hrms/useMasters';
 
 export default function EmployeeIncrementSalaryPage() {
     const [heads, setHeads] = useState<any[]>([]);
@@ -26,7 +27,9 @@ export default function EmployeeIncrementSalaryPage() {
     const [isFormOpen, setIsFormOpen] = useState(false);
 
     // Fetch Employees using existing hook
-    const { data: employeesData, isLoading: isEmployeesLoading } = useEmployeesForNoticeBoard();
+    const { data: employeesData, isLoading: isEmployeesLoading } = useGetEmployees();
+
+    console.log("🚀 ~ EmployeeIncrementSalaryPage ~ employeesData:", employeesData)
 
     // Fetch Heads
     useEffect(() => {
