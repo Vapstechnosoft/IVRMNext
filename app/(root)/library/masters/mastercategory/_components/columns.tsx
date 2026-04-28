@@ -4,9 +4,12 @@ import { getStatusBadge } from '@/components/extras/helpers/helper';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
+import { useMasterCategoryListData } from '@/hooks/library/useMasters';
 import type { IMasterCategoryList } from '@/types/library/masters/masters';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
+import { Switch } from '@/components/ui/switch';
+import { toast } from 'sonner';
 
 export const masterCategoryColumns: ColumnDef<IMasterCategoryList>[] = [
     {
@@ -38,6 +41,12 @@ export const masterCategoryColumns: ColumnDef<IMasterCategoryList>[] = [
         cell: ({ row }) => <div className='min-w-[100px]'>{row.getValue('lmC_BNBFlg')}</div>
     },
     {
+        accessorKey: 'lmC_ActiveFlag',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
+        cell: ({ row }) => <StatusToggleCell rowData={row.original} />,
+        size: 100
+    },
+    {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='pl-2' />,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />,
@@ -45,6 +54,23 @@ export const masterCategoryColumns: ColumnDef<IMasterCategoryList>[] = [
         enableSorting: false
     }
 ];
+
+function StatusToggleCell({ rowData }: { rowData: IMasterCategoryList }) {
+    const { openToggleForm } = useFormContext<IMasterCategoryList>();
+
+    return (
+        <div className='flex items-center space-x-2'>
+            <Switch
+                checked={rowData.lmC_ActiveFlag}
+                onCheckedChange={() => openToggleForm(rowData)}
+                aria-label='Toggle status'
+            />
+            <span className={`text-xs font-medium ${rowData.lmC_ActiveFlag ? 'text-green-600' : 'text-red-600'}`}>
+                {rowData.lmC_ActiveFlag ? 'Active' : 'Inactive'}
+            </span>
+        </div>
+    );
+}
 
 function ActionButtonsCell({ rowData }: { rowData: IMasterCategoryList }) {
     const { openToggleForm, openEditForm } = useFormContext<IMasterCategoryList>();
@@ -55,7 +81,7 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterCategoryList }) {
     return (
         <ActionButtons
             rowData={rowData}
-            buttons={{ edit: true, toggle: true, delete: false }}
+            buttons={{ edit: true, toggle: false, delete: false }}
             onToggle={handleToggle}
             onEdit={handleEdit}
             toggleConditionKey='lmC_ActiveFlag'
