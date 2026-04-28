@@ -86,14 +86,14 @@ export interface EmployeeDetails {
 export interface OnDutyLeaveSaveRequest {
     MI_Id?: number;
     UserId?: number;
-    hrelaP_Id?: number;
-    hrmE_Id: number;
-    hrmL_LeaveType: string;
-    hrelaP_LeaveReason: string;
-    hrelaP_FromDate: string;
-    hrelaP_ToDate: string;
-    hrelT_SupportingDocument?: string;
-    hrelaP_TotalDays: number;
-    hrelapD_InTime: string;
-    hrelapD_OutTime: string;
+    HRELAP_Id?: number;
+    HRME_Id: number;
+    HRML_LeaveType: string;
+    HRELAP_FromDate: string;
+    HRELAP_ToDate: string;
+    HRELAP_TotalDays: number;
+    HRELAP_LeaveReason: string;
+    HRELAPD_InTime: string;
+    HRELAPD_OutTime: string;
+    HRELT_SupportingDocument?: string;
 }
