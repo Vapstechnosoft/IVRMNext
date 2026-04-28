@@ -7568,14 +7568,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Verify Homework',
                                             description: 'Verify Homework'
                                         },
-                                        {
-                                            id: 80011,
-                                            name: 'Homework Upload Report',
-                                            icon: 'MessageSquare',
-                                            url: '/StaffPortal/Upload/homework-upload-report',
-                                            title: 'Home Work Upload Report',
-                                            description: 'Homework Upload Report'
-                                        },
+                                        // {
+                                        //     id: 80011,
+                                        //     name: 'Homework Upload Report',
+                                        //     icon: 'MessageSquare',
+                                        //     url: '/StaffPortal/Upload/homework-upload-report',
+                                        //     title: 'Home Work Upload Report',
+                                        //     description: 'Homework Upload Report'
+                                        // },
 
                                         {
                                             id: 80013,
