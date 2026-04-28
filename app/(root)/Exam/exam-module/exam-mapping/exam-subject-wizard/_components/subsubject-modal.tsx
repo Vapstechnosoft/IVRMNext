@@ -63,10 +63,10 @@ const SubSubjectRow = React.memo(
         const [localEntry, setLocalEntry] = useState<string>(row.eycessS_MarksEntryMax?.toString() || '');
         const [localExemptedPer, setLocalExemptedPer] = useState<string>(row.eycessS_ExemptedPer?.toString() || '');
 
-        const maxDebounceRef = useRef<NodeJS.Timeout>();
-        const minDebounceRef = useRef<NodeJS.Timeout>();
-        const entryDebounceRef = useRef<NodeJS.Timeout>();
-        const exemptedPerDebounceRef = useRef<NodeJS.Timeout>();
+        const maxDebounceRef = useRef<NodeJS.Timeout | null>(null);
+        const minDebounceRef = useRef<NodeJS.Timeout | null>(null);
+        const entryDebounceRef = useRef<NodeJS.Timeout | null>(null);
+        const exemptedPerDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
         // Handle checkbox change
         const handleCheckboxChange = (checked: boolean) => {

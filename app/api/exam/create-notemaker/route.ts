@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Groq from 'groq-sdk';
-// biome-ignore lint/style/useNodejsImportProtocol: <explanation>
-import { Readable } from 'stream';
+// Use node:stream for better compatibility with modern Node environments in Next.js 15
+import { Readable } from 'node:stream';
 
+// Next.js 15 Route Handler Configuration
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const maxDuration = 300;
 
 // Initialize Groq client
 const groq = new Groq({
@@ -97,9 +100,11 @@ export async function POST(req: NextRequest) {
     try {
         log('Start processing request');
 
-        // Lazy load modules
-        const busboy = require('busboy');
-        const pdf = require('pdf-parse/lib/pdf-parse.js');
+        // Dynamic imports for Node.js modules
+        const busboyModule = await import('busboy');
+        const busboy = busboyModule.default || busboyModule;
+        const pdfModule = await import('pdf-parse/lib/pdf-parse.js');
+        const pdf = pdfModule.default || pdfModule;
 
         if (!req.body) {
             return NextResponse.json({ error: 'No request body' }, { status: 400 });
