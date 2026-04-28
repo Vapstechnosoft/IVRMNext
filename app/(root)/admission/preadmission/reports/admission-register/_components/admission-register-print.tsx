@@ -2,7 +2,7 @@
 
 import { format } from 'date-fns';
 import React from 'react';
-import { FIELD_CONFIG } from './columns';
+import { FIELD_CONFIG, formatDate } from './columns';
 
 interface AdmissionRegisterPrintProps {
     data: any[];
@@ -20,15 +20,6 @@ export const AdmissionRegisterPrint = React.forwardRef<HTMLDivElement, Admission
                 </div>
             );
         }
-
-        const formatDate = (date: unknown): string => {
-            if (typeof date !== 'string' || !date) return 'N/A';
-            try {
-                return format(new Date(date), 'dd-MM-yyyy');
-            } catch {
-                return 'N/A';
-            }
-        };
 
         return (
             <div ref={ref} className='print-preview-container bg-white text-black min-h-full w-full'>
