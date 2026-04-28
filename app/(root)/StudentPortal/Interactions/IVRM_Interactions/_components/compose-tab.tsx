@@ -36,8 +36,8 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import * as XLSX from 'xlsx';
-// @ts-ignore
-import mammoth from 'mammoth';
+// mammoth will be imported dynamically to avoid build-time resolution issues
+
 import {
     getRecipientsByRole,
     getSectionsForInteraction,
@@ -303,6 +303,9 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                 reader.onload = async (e) => {
                     const arrayBuffer = e.target?.result as ArrayBuffer;
                     try {
+                        // @ts-expect-error mammoth lacks proper TypeScript definitions for dynamic imports
+                        const mammothModule = await import('mammoth');
+                        const mammoth = mammothModule.default || mammothModule;
                         const result = await mammoth.convertToHtml({ arrayBuffer });
                         setDocxPreviewHtml(result.value);
                     } catch (err) {

@@ -212,13 +212,33 @@ export default function AINotemaker() {
                                             <Label htmlFor='file-upload'>
                                                 Document (PDF) <span className='text-destructive'>*</span>
                                             </Label>
-                                            <Input
-                                                id='file-upload'
-                                                type='file'
-                                                accept='.pdf'
-                                                onChange={handleFileChange}
-                                                className='cursor-pointer file:font-semibold file:text-primary'
-                                            />
+                                            {file ? (
+                                                <div className="flex items-center justify-between p-3 rounded-lg border bg-primary/5 border-primary/20">
+                                                    <div className="flex items-center gap-3">
+                                                        <FileText className="h-5 w-5 text-primary" />
+                                                        <div className="flex flex-col">
+                                                            <span className="text-sm font-bold text-slate-900 line-clamp-1">{file.name}</span>
+                                                            <span className="text-[10px] text-muted-foreground">{(file.size / 1024 / 1024).toFixed(2)} MB</span>
+                                                        </div>
+                                                    </div>
+                                                    <Button 
+                                                        variant="ghost" 
+                                                        size="sm" 
+                                                        onClick={() => setFile(null)}
+                                                        className="h-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                                    >
+                                                        Change
+                                                    </Button>
+                                                </div>
+                                            ) : (
+                                                <Input
+                                                    id='file-upload'
+                                                    type='file'
+                                                    accept='.pdf'
+                                                    onChange={handleFileChange}
+                                                    className='cursor-pointer file:font-semibold file:text-primary'
+                                                />
+                                            )}
                                         </div>
 
                                         <div className='grid w-full items-center gap-1.5 pt-2 font-semibold text-muted-foreground text-xs uppercase tracking-wider'>

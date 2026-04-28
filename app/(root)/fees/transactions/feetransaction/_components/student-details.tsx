@@ -2,7 +2,7 @@
 import { Button } from '@/components/ui/button';
 import { useFeeStudentCurrentAcademicDetails } from '@/hooks/fees/useTrasactions';
 import { X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface StudentProfileModalProps {
     isOpen: boolean;
@@ -106,7 +106,7 @@ const tabs = [
     { id: 'library', label: 'Library Details' }
 ];
 
-export default function StudentProfileModal({ isOpen, onClose, asmay_Id, amst_Id }: StudentProfileModalProps): JSX.Element | null {
+export default function StudentProfileModal({ isOpen, onClose, asmay_Id, amst_Id }: StudentProfileModalProps): React.ReactNode | null {
     const [activeTab, setActiveTab] = useState('academic');
     const [studentJoinedDetails, setStudentJoinedDetails] = useState<StudentDetailsFromFeeTransaction[]>([]);
     const [academicDetails, setAcademicDetails] = useState<AcademicDetailsFromFeeTransaction[]>([]);
