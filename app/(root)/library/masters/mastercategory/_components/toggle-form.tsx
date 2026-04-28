@@ -2,78 +2,51 @@
 
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
-import { FormError } from '@/components/ui/extension/field';
-import { useMasterLibrary } from '@/hooks/library/useMasters';
-import { masterLibrarySchema } from '@/schemas/library/masters';
-import { toggleMasterLibrary } from '@/server/library/masters/master_library';
-import type { IMasterLibraryList } from '@/types/library/masters/masters';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { type SubmitHandler, useForm } from 'react-hook-form';
+import { useMasterCategoryListData } from '@/hooks/library/useMasters';
+import { toggleMasterCategory } from '@/server/library/masters/library_category';
+import type { IMasterCategoryList } from '@/types/library/masters/masters';
 import { toast } from 'sonner';
-import type { z } from 'zod';
 
-type FormFields = z.infer<typeof masterLibrarySchema.delete>;
-
-interface toggleMasterLibraryFormProps {
-    rowData: IMasterLibraryList;
+interface ToggleMasterCategoryFormProps {
+    rowData: IMasterCategoryList;
     onClose: () => void;
 }
 
-export default function ToggleMasterLibraryForm({ rowData, onClose }: toggleMasterLibraryFormProps) {
-    const { refetchAll } = useMasterLibrary();
-    const isActive = rowData.lmaL_ActiveFlag;
+export default function ToggleMasterCategoryForm({ rowData, onClose }: ToggleMasterCategoryFormProps) {
+    const { refetchAll } = useMasterCategoryListData();
+    const isActive = rowData.lmC_ActiveFlag;
 
-    const {
-        register,
-        handleSubmit,
-        reset,
-        formState: { errors, isSubmitting }
-    } = useForm<FormFields>({
-        resolver: zodResolver(masterLibrarySchema.delete),
-        mode: 'onChange'
-    });
-
-    function closeDialog() {
-        onClose();
-        reset();
-    }
-
-    const onSubmit: SubmitHandler<FormFields | any> = async () => {
+    const handleToggle = async () => {
         try {
-            const response = await toggleMasterLibrary(Number(rowData.lmaL_Id));
+            const response = await toggleMasterCategory(rowData.lmC_Id);
 
-            if (response.success) {
-                toast.success(response.message);
+            if (response?.success) {
+                toast.success(response.message || 'Status updated successfully');
                 refetchAll();
-                closeDialog();
+                onClose();
             } else {
-                toast.error(response.message);
+                toast.error(response.message || 'Failed to update status');
             }
         } catch (error: any) {
-            toast.error(error.message);
+            toast.error(error?.message || 'An error occurred');
         }
     };
 
     return (
-        <AdaptiveDialog title='Toggle Library Master' isOpen={true} onClose={closeDialog}>
-            <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
-                <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden' {...register('lmaL_Id')} defaultValue={rowData.lmaL_Id} />
-                    <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.lmaL_LibraryName}</strong>?
-                    </p>
-                    <FormError>{errors.lmaL_Id?.message}</FormError>
-                    <FormError>{errors.root?.message}</FormError>
-                </AdaptiveBody>
-                <AdaptiveFooter>
-                    <Button variant='secondary' onClick={closeDialog} type='button'>
-                        Cancel
-                    </Button>
-                    <Button type='submit' isLoading={isSubmitting} variant={isActive ? 'destructive' : 'default'}>
-                        {isActive ? 'Deactivate' : 'Activate'}
-                    </Button>
-                </AdaptiveFooter>
-            </form>
+        <AdaptiveDialog title='Toggle Master Category' isOpen={true} onClose={onClose}>
+            <AdaptiveBody>
+                <p>
+                    Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.lmC_CategoryName}</strong>?
+                </p>
+            </AdaptiveBody>
+            <AdaptiveFooter>
+                <Button variant='outline' onClick={onClose}>
+                    Cancel
+                </Button>
+                <Button variant={isActive ? 'destructive' : 'default'} onClick={handleToggle}>
+                    {isActive ? 'Deactivate' : 'Activate'}
+                </Button>
+            </AdaptiveFooter>
         </AdaptiveDialog>
     );
 }

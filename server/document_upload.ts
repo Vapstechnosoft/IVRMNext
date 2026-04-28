@@ -3,8 +3,12 @@
 import { api } from '@/lib/apiService';
 
 export async function uploadDocument(data: any) {
-    const url = '/document_upload/upload_document';
-    return await api.postMultipart<string>('preadmission', url, data);
+    try {
+        const url = '/document_upload/upload_document';
+        return await api.postMultipart<string>('preadmission', url, data);
+    } catch (error: any) {
+        return { success: false, message: error.message || String(error), data: null };
+    }
 }
 
 export async function deleteDocument(blobUrl: string) {

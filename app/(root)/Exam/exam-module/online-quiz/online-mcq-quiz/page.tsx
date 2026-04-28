@@ -3,6 +3,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -12,10 +13,17 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { cn } from '@/lib/utils';
+import {
+    GetLoginPrivilegeClassesDropdown,
+    GetLoginPrivilegeSectionsDropdown,
+} from '@/server/exam/exam-module/marks-entry/exam-marks-entry';
+import { getStudentList } from '@/server/exam/exam-module/exam-mapping/student-transaction-cce';
 import { AnimatePresence, motion } from 'framer-motion';
 import { BarChart3, CheckCircle2, FileText, Plus, Sparkles, Trophy, Upload, Wand2, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import CountUp from 'react-countup';
 import { toast } from 'sonner';
 
 export default function OnlineMcqQuizPage() {
@@ -34,6 +42,7 @@ export default function OnlineMcqQuizPage() {
 
     // Publish Config
     const [publishConfig, setPublishConfig] = useState({
+        academicYearId: '',
         targetClass: '',
         targetSection: '',
         duration: '30',
@@ -107,6 +116,23 @@ export default function OnlineMcqQuizPage() {
     const [publishedQuizzes, setPublishedQuizzes] = useState<any[]>([]);
     const [selectedAnalytics, setSelectedAnalytics] = useState<any>(null);
     const [_isLoadingAnalytics, setIsLoadingAnalytics] = useState(false);
+    const [dashboardStats, setDashboardStats] = useState({
+        activeQuizzes: 0,
+        totalSubmissions: 0,
+        averageScore: 0
+    });
+
+    // Dropdown Data
+    const { data: academicDropdownData, isLoading: loadingAcademic } = useAcademicYearDropdown();
+    const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
+    const [classes, setClasses] = useState<{ asmcL_Id: number; asmcL_ClassName: string }[]>([]);
+    const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
+
+    const [loadingClasses, setLoadingClasses] = useState(false);
+    const [loadingSections, setLoadingSections] = useState(false);
+    const [studentsList, setStudentsList] = useState<any[]>([]);
+    const [loadingStudents, setLoadingStudents] = useState(false);
+    const [selectedStudentIds, setSelectedStudentIds] = useState<number[]>([]);
 
     // Initial load from local storage
     useEffect(() => {
@@ -114,9 +140,170 @@ export default function OnlineMcqQuizPage() {
         if (saved) setPublishedQuizzes(JSON.parse(saved));
     }, []);
 
+    // Calculate Dynamic Stats
+    useEffect(() => {
+        const calculateStats = async () => {
+            if (publishedQuizzes.length === 0) {
+                setDashboardStats({
+                    activeQuizzes: 0,
+                    totalSubmissions: 0,
+                    averageScore: 0
+                });
+                return;
+            }
+
+            try {
+                let totalSubmissions = 0;
+                let totalScoreSum = 0;
+                let quizzesWithAttempts = 0;
+
+                // Fetch analytics for each quiz to aggregate
+                // In a production app, this should be a single bulk API call
+                const analyticsPromises = publishedQuizzes.map(quiz =>
+                    fetch(`/api/exam/teacher-analytics/${quiz.id}`)
+                        .then(res => res.ok ? res.json() : null)
+                        .catch(() => null)
+                );
+
+                const results = await Promise.all(analyticsPromises);
+
+                results.forEach(data => {
+                    if (data && typeof data.attempts === 'number') {
+                        totalSubmissions += data.attempts;
+                        if (data.attempts > 0 && typeof data.average_score === 'number') {
+                            totalScoreSum += data.average_score;
+                            quizzesWithAttempts++;
+                        }
+                    }
+                });
+
+                const avgScore = quizzesWithAttempts > 0 
+                    ? Math.round(totalScoreSum / quizzesWithAttempts) 
+                    : 0;
+
+                setDashboardStats({
+                    activeQuizzes: publishedQuizzes.length,
+                    totalSubmissions: totalSubmissions,
+                    averageScore: avgScore
+                });
+            } catch (error) {
+                console.error("Error calculating dashboard stats:", error);
+            }
+        };
+
+        calculateStats();
+    }, [publishedQuizzes]);
+
+    // Load Academic Years
+    useEffect(() => {
+        if (academicDropdownData?.data && Array.isArray(academicDropdownData.data)) {
+            const yrs = academicDropdownData.data.map((y: any) => ({ asmaY_Id: y.asmaY_Id, asmaY_Year: y.asmaY_Year }));
+            setAcademicYears(yrs);
+            if (yrs.length > 0 && !publishConfig.academicYearId) {
+                setPublishConfig(prev => ({ ...prev, academicYearId: yrs[0].asmaY_Id }));
+            }
+        }
+    }, [academicDropdownData, publishConfig.academicYearId]);
+
+    // Load Privileged Classes
+    useEffect(() => {
+        if (!publishConfig.academicYearId) return;
+
+        const fetchClasses = async () => {
+            setLoadingClasses(true);
+            try {
+                const res = await GetLoginPrivilegeClassesDropdown(Number(publishConfig.academicYearId));
+                setClasses(Array.isArray(res?.data) ? res.data : []);
+            } catch (err) {
+                console.error(err);
+                toast.error('Failed to load privileged classes');
+            } finally {
+                setLoadingClasses(false);
+            }
+        };
+
+        fetchClasses();
+    }, [publishConfig.academicYearId]);
+
+    // Load Privileged Sections
+    useEffect(() => {
+        if (!publishConfig.academicYearId || !publishConfig.targetClass) return;
+
+        const fetchSections = async () => {
+            setLoadingSections(true);
+            try {
+                const res = await GetLoginPrivilegeSectionsDropdown(
+                    Number(publishConfig.academicYearId),
+                    Number(publishConfig.targetClass)
+                );
+                setSections(Array.isArray(res?.data) ? res.data : []);
+            } catch (err) {
+                console.error(err);
+                toast.error('Failed to load privileged sections');
+            } finally {
+                setLoadingSections(false);
+            }
+        };
+
+        fetchSections();
+    }, [publishConfig.academicYearId, publishConfig.targetClass]);
+
+    // Load Students
+    useEffect(() => {
+        if (!publishConfig.academicYearId || !publishConfig.targetClass || !publishConfig.targetSection) {
+            setStudentsList([]);
+            setSelectedStudentIds([]);
+            return;
+        }
+
+        const fetchStudents = async () => {
+            setLoadingStudents(true);
+            try {
+                const params = {
+                    ASMAY_Id: Number(publishConfig.academicYearId),
+                    ASMCL_Id: Number(publishConfig.targetClass),
+                    ASMS_Id: Number(publishConfig.targetSection)
+                };
+                const res = await getStudentList(params);
+                const students = Array.isArray(res?.data) ? res.data : [];
+                setStudentsList(students);
+                // Default select all
+                setSelectedStudentIds(students.map((s: any) => s.amst_Id));
+            } catch (err) {
+                console.error(err);
+                toast.error('Failed to load students');
+            } finally {
+                setLoadingStudents(false);
+            }
+        };
+
+        fetchStudents();
+    }, [publishConfig.academicYearId, publishConfig.targetClass, publishConfig.targetSection]);
+
+    const handleSelectAll = (checked: boolean) => {
+        if (checked) {
+            setSelectedStudentIds(studentsList.map((s: any) => s.amst_Id));
+        } else {
+            setSelectedStudentIds([]);
+        }
+    };
+
+    const handleStudentSelect = (studentId: number, checked: boolean) => {
+        if (checked) {
+            setSelectedStudentIds(prev => [...prev, studentId]);
+        } else {
+            setSelectedStudentIds(prev => prev.filter(id => id !== studentId));
+        }
+    };
+
     const handleFinalSend = async () => {
         if (!publishConfig.targetClass || !publishConfig.targetSection) {
             toast.error('Please select both Class and Section');
+            return;
+        }
+
+        if (selectedStudentIds.length === 0) {
+            toast.error('Please select at least one student');
             return;
         }
 
@@ -129,7 +316,11 @@ export default function OnlineMcqQuizPage() {
                     title: quizData?.title || 'AI Assessment',
                     questions: quizData?.questions,
                     duration: publishConfig.duration,
-                    difficulty: difficulty
+                    difficulty: difficulty,
+                    studentIds: selectedStudentIds,
+                    academicYearId: publishConfig.academicYearId,
+                    classId: publishConfig.targetClass,
+                    sectionId: publishConfig.targetSection
                 })
             });
 
@@ -143,7 +334,8 @@ export default function OnlineMcqQuizPage() {
                 class: publishConfig.targetClass,
                 section: publishConfig.targetSection,
                 link: data.exam_link,
-                questionsCount: quizData?.questions.length
+                questionsCount: quizData?.questions.length,
+                studentCount: selectedStudentIds.length
             };
 
             const updatedList = [newQuiz, ...publishedQuizzes];
@@ -341,9 +533,9 @@ export default function OnlineMcqQuizPage() {
                             {/* Stats Grid */}
                             <div className='grid grid-cols-1 gap-6 md:grid-cols-3'>
                                 {[
-                                    { label: 'Active Quizzes', value: publishedQuizzes.length.toString().padStart(2, '0'), icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-50' },
-                                    { label: 'Total Submissions', value: '450', icon: BarChart3, color: 'text-blue-500', bg: 'bg-blue-50' },
-                                    { label: 'Average Class Score', value: '78%', icon: Sparkles, color: 'text-orange-500', bg: 'bg-orange-50' },
+                                    { label: 'Active Quizzes', value: dashboardStats.activeQuizzes, icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-50', suffix: '' },
+                                    { label: 'Total Submissions', value: dashboardStats.totalSubmissions, icon: BarChart3, color: 'text-blue-500', bg: 'bg-blue-50', suffix: '' },
+                                    { label: 'Average Class Score', value: dashboardStats.averageScore, icon: Sparkles, color: 'text-orange-500', bg: 'bg-orange-50', suffix: '%' },
                                 ].map((stat, idx) => (
                                     <Card key={idx} className='group overflow-hidden rounded-[2rem] border-none bg-white shadow-sm transition-all duration-500 hover:shadow-xl'>
                                         <CardContent className="p-8">
@@ -353,7 +545,9 @@ export default function OnlineMcqQuizPage() {
                                                 </div>
                                                 <div>
                                                     <p className='font-black text-[11px] text-slate-400 uppercase tracking-[0.2em]'>{stat.label}</p>
-                                                    <p className='font-black text-3xl text-slate-800 tracking-tight'>{stat.value}</p>
+                                                    <p className='font-black text-3xl text-slate-800 tracking-tight'>
+                                                        <CountUp end={stat.value} duration={2} suffix={stat.suffix} preserveValue={true} />
+                                                    </p>
                                                 </div>
                                             </div>
                                         </CardContent>
@@ -551,32 +745,123 @@ export default function OnlineMcqQuizPage() {
                                 <CardContent className='space-y-10 p-12 pt-0'>
                                     <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
                                         <div className="space-y-4">
+                                            <Label className="ml-1 font-black text-slate-400 text-sm uppercase tracking-widest after:ml-0.5 after:text-red-500 after:content-['*']">Academic Year</Label>
+                                            <Select
+                                                value={publishConfig.academicYearId ? String(publishConfig.academicYearId) : ''}
+                                                onValueChange={(v) => setPublishConfig({ ...publishConfig, academicYearId: v, targetClass: '', targetSection: '' })}
+                                            >
+                                                <SelectTrigger className='h-16 rounded-2xl border-none bg-slate-50 px-8 font-black'>
+                                                    <SelectValue placeholder="Select Year" />
+                                                </SelectTrigger>
+                                                <SelectContent className="rounded-2xl">
+                                                    {loadingAcademic ? (
+                                                        <SelectItem value="loading">Loading...</SelectItem>
+                                                    ) : academicYears.map(y => (
+                                                        <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>{y.asmaY_Year}</SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </div>
+
+                                    <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
+                                        <div className="space-y-4">
                                             <Label className="ml-1 font-black text-slate-400 text-sm uppercase tracking-widest after:ml-0.5 after:text-red-500 after:content-['*']">Class</Label>
-                                            <Select onValueChange={(v) => setPublishConfig({ ...publishConfig, targetClass: v })}>
+                                            <Select
+                                                value={publishConfig.targetClass ? String(publishConfig.targetClass) : ''}
+                                                onValueChange={(v) => setPublishConfig({ ...publishConfig, targetClass: v, targetSection: '' })}
+                                                disabled={!publishConfig.academicYearId || loadingClasses}
+                                            >
                                                 <SelectTrigger className='h-16 rounded-2xl border-none bg-slate-50 px-8 font-black'>
                                                     <SelectValue placeholder="Select Class" />
                                                 </SelectTrigger>
                                                 <SelectContent className="rounded-2xl">
-                                                    <SelectItem value="10">Class 10</SelectItem>
-                                                    <SelectItem value="11">Class 11</SelectItem>
-                                                    <SelectItem value="12">Class 12</SelectItem>
+                                                    {loadingClasses ? (
+                                                        <SelectItem value="loading">Loading classes...</SelectItem>
+                                                    ) : classes.length === 0 ? (
+                                                        <SelectItem value="none" disabled>No privileged classes found</SelectItem>
+                                                    ) : classes.map(c => (
+                                                        <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>{c.asmcL_ClassName}</SelectItem>
+                                                    ))}
                                                 </SelectContent>
                                             </Select>
                                         </div>
                                         <div className="space-y-4">
                                             <Label className="ml-1 font-black text-slate-400 text-sm uppercase tracking-widest after:ml-0.5 after:text-red-500 after:content-['*']">Section</Label>
-                                            <Select onValueChange={(v) => setPublishConfig({ ...publishConfig, targetSection: v })}>
+                                            <Select
+                                                value={publishConfig.targetSection ? String(publishConfig.targetSection) : ''}
+                                                onValueChange={(v) => setPublishConfig({ ...publishConfig, targetSection: v })}
+                                                disabled={!publishConfig.targetClass || loadingSections}
+                                            >
                                                 <SelectTrigger className='h-16 rounded-2xl border-none bg-slate-50 px-8 font-black'>
                                                     <SelectValue placeholder="Select Section" />
                                                 </SelectTrigger>
                                                 <SelectContent className="rounded-2xl">
-                                                    <SelectItem value="A">Section A</SelectItem>
-                                                    <SelectItem value="B">Section B</SelectItem>
-                                                    <SelectItem value="C">Section C</SelectItem>
+                                                    {loadingSections ? (
+                                                        <SelectItem value="loading">Loading sections...</SelectItem>
+                                                    ) : sections.length === 0 ? (
+                                                        <SelectItem value="none" disabled>No privileged sections found</SelectItem>
+                                                    ) : sections.map(s => (
+                                                        <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>{s.asmC_SectionName}</SelectItem>
+                                                    ))}
                                                 </SelectContent>
                                             </Select>
                                         </div>
                                     </div>
+
+                                    {/* Student List Section */}
+                                    {studentsList.length > 0 && (
+                                        <div className="space-y-4 rounded-[2rem] border border-slate-100 bg-slate-50/50 p-8">
+                                            <div className="flex items-center justify-between">
+                                                <div className="space-y-1">
+                                                    <h3 className="font-black text-slate-800 text-lg tracking-tight">Select Students</h3>
+                                                    <p className="text-slate-500 text-sm">{selectedStudentIds.length} of {studentsList.length} students selected</p>
+                                                </div>
+                                                <div className="flex items-center gap-2 rounded-xl bg-white px-4 py-2 shadow-sm">
+                                                    <Checkbox 
+                                                        id="select-all" 
+                                                        checked={selectedStudentIds.length === studentsList.length && studentsList.length > 0}
+                                                        onCheckedChange={(v: boolean | "indeterminate") => handleSelectAll(!!v)}
+                                                    />
+                                                    <Label htmlFor="select-all" className="cursor-pointer font-black text-slate-600 text-xs uppercase tracking-wider">Select All</Label>
+                                                </div>
+                                            </div>
+
+                                            <div className="grid max-h-[300px] grid-cols-1 gap-3 overflow-y-auto pr-2 md:grid-cols-2 lg:grid-cols-3">
+                                                {studentsList.map((student) => (
+                                                    <div 
+                                                        key={student.amst_Id} 
+                                                        className={cn(
+                                                            "flex items-center gap-3 rounded-2xl border-2 p-4 transition-all duration-300",
+                                                            selectedStudentIds.includes(student.amst_Id) 
+                                                                ? "border-indigo-100 bg-white shadow-md ring-1 ring-indigo-50" 
+                                                                : "border-transparent bg-slate-100/50 opacity-60 hover:opacity-100"
+                                                        )}
+                                                    >
+                                                        <Checkbox 
+                                                            id={`student-${student.amst_Id}`}
+                                                            checked={selectedStudentIds.includes(student.amst_Id)}
+                                                            onCheckedChange={(v: boolean | "indeterminate") => handleStudentSelect(student.amst_Id, !!v)}
+                                                            className="h-5 w-5 rounded-md"
+                                                        />
+                                                        <Label 
+                                                            htmlFor={`student-${student.amst_Id}`}
+                                                            className="cursor-pointer font-bold text-slate-700 text-sm leading-tight"
+                                                        >
+                                                            {student.student_Name}
+                                                        </Label>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {loadingStudents && (
+                                        <div className="flex flex-col items-center justify-center space-y-4 rounded-[2rem] border-2 border-dashed border-slate-100 bg-slate-50/30 py-12">
+                                            <div className="h-10 w-10 animate-spin rounded-full border-4 border-indigo-100 border-t-indigo-500" />
+                                            <p className="font-black text-slate-400 text-xs uppercase tracking-widest">Loading Student Roster...</p>
+                                        </div>
+                                    )}
 
                                     <div className='grid grid-cols-1 gap-8 md:grid-cols-3'>
                                         <div className="space-y-4">

@@ -29,8 +29,6 @@ export default function EmployeeIncrementSalaryPage() {
     // Fetch Employees using existing hook
     const { data: employeesData, isLoading: isEmployeesLoading } = useGetEmployees();
 
-    console.log("🚀 ~ EmployeeIncrementSalaryPage ~ employeesData:", employeesData)
-
     // Fetch Heads
     useEffect(() => {
         const fetchHeads = async () => {

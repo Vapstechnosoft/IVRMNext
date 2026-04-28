@@ -11,16 +11,28 @@ export async function getMasterVendorList(searchParams?: ApiSearchparams) {
 }
 
 export async function addOrUpdateMasterVendor(data: any) {
-    const url = '/MasterVendor/add-or-update/';
-    return await api.post<any>('library', url, data);
+    try {
+        const url = '/MasterVendor/add-or-update/';
+        return await api.post<any>('library', url, data);
+    } catch (error: any) {
+        return { success: false, message: error?.message || 'An error occurred during save' };
+    }
 }
 
 export async function toggleMasterVendor(id: number) {
-    const url = `/MasterVendor/deactivate/${id}`;
-    return await api.put('library', url);
+    try {
+        const url = `/MasterVendor/toggle?LMV_Id=${id}`;
+        return await api.put('library', url);
+    } catch (error: any) {
+        return { success: false, message: error?.message || 'An error occurred during toggle' };
+    }
 }
 
 export async function deleteMasterVendor(id: number) {
-    const url = `/MasterVendor/delete/${id}`;
-    return await api.delete('library', url);
+    try {
+        const url = `/MasterVendor/delete/${id}`;
+        return await api.delete('library', url);
+    } catch (error: any) {
+        return { success: false, message: error?.message || 'An error occurred during delete' };
+    }
 }

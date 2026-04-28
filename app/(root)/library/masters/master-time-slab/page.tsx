@@ -3,7 +3,7 @@
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useMasterTimeSlab } from '@/hooks/library/useMasters';
+import { useMasterTimeSlab, useMasterTimeSlabList } from '@/hooks/library/useMasters';
 import type { IMasterTimeSlab } from '@/types/library/masters/time-slab';
 import { X } from 'lucide-react';
 import { use } from 'react';
@@ -17,28 +17,37 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function MasterTimeSlabPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error, refetchAll } = useMasterTimeSlab(searchParams);
+    const { data: response, isLoading, error, refetchAll } = useMasterTimeSlabList(searchParams);
+    const { data: onloaddata } = useMasterTimeSlab();
 
     return (
         <FormProvider<IMasterTimeSlab>>
-            <MasterTimeSlabPageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
+            <MasterTimeSlabPageContent
+                response={response}
+                onloaddata={onloaddata}
+                isLoading={isLoading}
+                error={error}
+                refetchAll={refetchAll}
+            />
         </FormProvider>
     );
 }
 
 function MasterTimeSlabPageContent({
     response,
+    onloaddata,
     isLoading,
     error,
     refetchAll
 }: {
     response: any;
+    onloaddata: any;
     isLoading: boolean;
     error: any;
     refetchAll: any;
 }) {
     const { isEditFormOpen, selectedRow, closeEditForm } = useFormContext<IMasterTimeSlab>();
-    const tableProps = useDataTableProps(response, { dataKey: 'alldata' });
+    const tableProps = useDataTableProps(response, { dataKey: 'data' });
 
     return (
         <div className='min-h-screen'>
@@ -62,10 +71,10 @@ function MasterTimeSlabPageContent({
                                     className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                     <X className='h-4 w-4 text-destructive' /> Cancel
                                 </Button>
-                                <UpdateMasterTimeSlabForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                                <UpdateMasterTimeSlabForm selectedRow={selectedRow} onloaddata={onloaddata} onSuccess={closeEditForm} />
                             </>
                         ) : (
-                            <AddMasterTimeSlabForm />
+                            <AddMasterTimeSlabForm onloaddata={onloaddata} />
                         )}
                     </div>
                 </CollapsibleSection>

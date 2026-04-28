@@ -22,6 +22,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { addMonths } from "date-fns";
 import { toast } from "sonner";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface AddEmployeeAbsentReportFormProps {
     onSuccess?: () => void;
@@ -37,7 +38,7 @@ export default function AddEmployeeAbsentReportForm({
     const router = useRouter();
     const pathname = usePathname();
     const [isSubmittingManual, setIsSubmittingManual] = useState(false);
-    const [resetkey,setResetKey] = useState(0);
+    const [resetkey, setResetKey] = useState(0);
 
     const {
         handleSubmit,
@@ -54,7 +55,7 @@ export default function AddEmployeeAbsentReportForm({
             department: [],
             designation: [],
             allOrIndividual: "All",
-            employeeIds: [],
+            employeeIds: '',
             fromDate: "",
             toDate: "",
         },
@@ -117,21 +118,27 @@ export default function AddEmployeeAbsentReportForm({
         [designationsData],
     );
 
-    const empOptions = useMemo(
-        () =>
-            employeesData?.data?.employeeNames?.map((e: any) => {
-                const fullName =
-                    e.employeeFullName ||
-                    e.hrme_employee_first_name ||
-                    e.hrmE_EmployeeFirstName ||
-                    "";
+    const employeesDataTransformed = useMemo(() => {
+        const list = employeesData?.data?.employeeNames || employeesData;
+        if (!list || !Array.isArray(list)) return [];
+
+        return list
+            .map((emp: any) => {
+                const id = emp.HRME_Id || emp.hrmE_Id || emp.id || emp.key;
+                if (id == null) return null;
+
+                const employeeName = emp.employeeFullName
+
+                const employeeCode = id
+
                 return {
-                    label: e.value || fullName || "Unknown Employee",
-                    value: String(e.key || e.hrme_id || e.hrmE_Id),
+                    id: Number(id),
+                    employeeCode,
+                    employeeName
                 };
-            }) || [],
-        [employeesData],
-    );
+            })
+            .filter(Boolean);
+    }, [employeesData]);
 
     // Handle cascading resets
     useEffect(() => {
@@ -141,7 +148,7 @@ export default function AddEmployeeAbsentReportForm({
         if (selectedDepts.length === 0) setValue("designation", []);
     }, [selectedDepts, setValue]);
     useEffect(() => {
-        if (selectedDesigs.length === 0) setValue("employeeIds", []);
+        if (selectedDesigs.length === 0) setValue("employeeIds", '');
     }, [selectedDesigs, setValue]);
 
     const fromDateObject = fromDateValue ? new Date(fromDateValue) : undefined;
@@ -162,9 +169,9 @@ export default function AddEmployeeAbsentReportForm({
             // Map employee IDs based on selection
             let hrme_ids = "0";
             if (values.allOrIndividual === "Individual" && values.employeeIds) {
-                hrme_ids = values.employeeIds.join(",");
-            } else if (values.allOrIndividual === "All" && empOptions.length > 0) {
-                hrme_ids = empOptions.map((o: { value: string }) => o.value).join(",");
+                hrme_ids = values.employeeIds.toString();
+            } else if (values.allOrIndividual === "All" && employeesDataTransformed.length > 0) {
+                hrme_ids = employeesDataTransformed.map((emp: any) => emp.id).join(",");
             }
             params.set("employee", hrme_ids);
 
@@ -188,7 +195,7 @@ export default function AddEmployeeAbsentReportForm({
             department: [],
             designation: [],
             allOrIndividual: "All",
-            employeeIds: [],
+            employeeIds: '',
             fromDate: "",
             toDate: "",
         });
@@ -205,7 +212,7 @@ export default function AddEmployeeAbsentReportForm({
                         Group Type <span className="text-red-500">*</span>
                     </Label>
                     <Controller
-                    key={resetkey}
+                        key={resetkey}
                         name="type"
                         control={control}
                         render={({ field }) => (
@@ -214,8 +221,9 @@ export default function AddEmployeeAbsentReportForm({
                                 onValueChange={(values) => field.onChange(values)}
                                 defaultValue={field.value || []}
                                 placeholder={isTypesLoading ? "Loading..." : "Select Group Types"}
-                                className={`w-full ${errors.type ? "border-red-500" : ""}`}
+                                className={`w-full ${errors.type ? "border-red-500" : ""} ${isTypesLoading || typeOptions.length === 0 ? "cursor-not-allowed" : ""}`}
                                 maxHeight={240}
+                                disabled={isTypesLoading || typeOptions.length === 0}
                             />
                         )}
                     />
@@ -228,7 +236,7 @@ export default function AddEmployeeAbsentReportForm({
                         Department <span className="text-red-500">*</span>
                     </Label>
                     <Controller
-                    key={resetkey}
+                        key={resetkey}
                         name="department"
                         control={control}
                         render={({ field }) => (
@@ -237,8 +245,9 @@ export default function AddEmployeeAbsentReportForm({
                                 onValueChange={(values) => field.onChange(values)}
                                 defaultValue={field.value || []}
                                 placeholder={isDeptLoading ? "Loading..." : "Select Departments"}
-                                className={`w-full ${errors.department ? "border-red-500" : ""}`}
+                                className={`w-full ${errors.department ? "border-red-500" : ""} ${isDeptLoading || deptOptions.length === 0 ? "cursor-not-allowed" : ""}`}
                                 maxHeight={240}
+                                disabled={isDeptLoading || deptOptions.length === 0}
                             />
                         )}
                     />
@@ -253,7 +262,7 @@ export default function AddEmployeeAbsentReportForm({
                         Designation <span className="text-red-500">*</span>
                     </Label>
                     <Controller
-                    key={resetkey}
+                        key={resetkey}
                         name="designation"
                         control={control}
                         render={({ field }) => (
@@ -262,8 +271,9 @@ export default function AddEmployeeAbsentReportForm({
                                 onValueChange={(values) => field.onChange(values)}
                                 defaultValue={field.value || []}
                                 placeholder={isDesigLoading ? "Loading..." : "Select Designations"}
-                                className={`w-full ${errors.designation ? "border-red-500" : ""}`}
+                                className={`w-full ${errors.designation ? "border-red-500" : ""} ${isDesigLoading || desigOptions.length === 0 ? "cursor-not-allowed" : ""}`}
                                 maxHeight={240}
+                                disabled={isDesigLoading || desigOptions.length === 0}
                             />
                         )}
                     />
@@ -279,7 +289,7 @@ export default function AddEmployeeAbsentReportForm({
                     <div className="space-y-3">
                         <Label className="block text-sm font-medium">Employee Filter</Label>
                         <Controller
-                        key={resetkey}
+                            key={resetkey}
                             name="allOrIndividual"
                             control={control}
                             render={({ field }) => (
@@ -313,7 +323,7 @@ export default function AddEmployeeAbsentReportForm({
                             <Label className="block text-sm font-medium">
                                 Select Employees <span className="text-red-500">*</span>
                             </Label>
-                            <Controller
+                            {/* <Controller
                             key={resetkey}
                                 name="employeeIds"
                                 control={control}
@@ -328,6 +338,33 @@ export default function AddEmployeeAbsentReportForm({
                                         disabled={selectedDesigs.length === 0}
                                         className={errors.employeeIds ? "border-red-500" : ""}
                                     />
+                                )}
+                            /> */}
+                            <Controller
+                                name='employeeIds'
+                                control={control}
+                                render={({ field }) => (
+                                    <Select value={field.value || ''} onValueChange={field.onChange}>
+                                        <SelectTrigger className={errors.employeeIds ? 'border-red-500' : ''}>
+                                            <SelectValue placeholder={isEmpLoading ? 'Loading...' : 'Select Employee'} />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {
+                                                employeesDataTransformed.length === 0 ? (
+                                                    <div className="p-4 text-center text-sm text-muted-foreground">
+                                                        No employees found for the selected criteria.
+                                                    </div>
+                                                ) : (employeesDataTransformed as any[]).map((emp: any) => {
+                                                    return (
+                                                        <SelectItem key={emp.id} value={emp.id?.toString() || ''}>
+                                                            {emp.employeeName} - [{emp.employeeCode}]
+                                                        </SelectItem>
+                                                    );
+                                                })
+                                            }
+
+                                        </SelectContent>
+                                    </Select>
                                 )}
                             />
                             {errors.employeeIds && (
@@ -344,7 +381,7 @@ export default function AddEmployeeAbsentReportForm({
                             From Date <span className="text-red-500">*</span>
                         </Label>
                         <Controller
-                        key={resetkey}
+                            key={resetkey}
                             name="fromDate"
                             control={control}
                             render={({ field }) => (
@@ -367,6 +404,7 @@ export default function AddEmployeeAbsentReportForm({
                                     }}
                                     placeholder="Select From Date"
                                     className={errors.fromDate ? "border-red-500" : ""}
+                                    disabled={[{ after: today }]}
                                 />
                             )}
                         />
@@ -380,7 +418,7 @@ export default function AddEmployeeAbsentReportForm({
                             To Date <span className="text-red-500">*</span>
                         </Label>
                         <Controller
-                        key={resetkey}
+                            key={resetkey}
                             name="toDate"
                             control={control}
                             render={({ field }) => (
@@ -394,9 +432,9 @@ export default function AddEmployeeAbsentReportForm({
                                     disabled={
                                         fromDateObject
                                             ? [
-                                                  { before: fromDateObject },
-                                                  { after: today }
-                                              ]
+                                                { before: fromDateObject },
+                                                { after: today }
+                                            ]
                                             : [{ after: today }]
                                     }
                                 />
@@ -421,7 +459,7 @@ export default function AddEmployeeAbsentReportForm({
                     type="submit"
                     className="bg-primary px-8 text-primary-foreground shadow-md transition-all hover:translate-y-[-1px] hover:shadow-lg"
                     disabled={isSubmitting || isTypesLoading}
-                   
+
                 >
                     {
                         isSubmitting ? (
