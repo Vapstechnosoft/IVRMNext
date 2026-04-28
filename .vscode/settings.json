@@ -8,5 +8,6 @@
     "cSpell.words": [
         "Challen",
         "Swal"
-    ]
+    ],
+    "css.lint.unknownAtRules": "ignore"
 }
