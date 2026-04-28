@@ -243,7 +243,7 @@ export default function AddHomeWorkForm({ onSuccess }: AddHomeWorkFormProps) {
                     name='asmaY_Id'
                     render={({ field, fieldState }) => (
                         <div>
-                            <Label>Academic Year <span className='text-red-500'>*</span></Label>
+                            <Label className='font-bold'>Academic Year <span className='text-red-500'>*</span></Label>
                             <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                 <SelectTrigger><SelectValue placeholder='Select Year' /></SelectTrigger>
                                 <SelectContent>
@@ -262,7 +262,7 @@ export default function AddHomeWorkForm({ onSuccess }: AddHomeWorkFormProps) {
                     name='asmcL_Id'
                     render={({ field, fieldState }) => (
                         <div>
-                            <Label>Class <span className='text-red-500'>*</span></Label>
+                            <Label className='font-bold'>Class <span className='text-red-500'>*</span></Label>
                             <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                 <SelectTrigger><SelectValue placeholder='Select Class' /></SelectTrigger>
                                 <SelectContent>
@@ -281,9 +281,8 @@ export default function AddHomeWorkForm({ onSuccess }: AddHomeWorkFormProps) {
                     control={control}
                     render={({ field, fieldState }) => (
                         <div className='grow space-y-2'>
+                            <Label className='font-bold'>Section <span className='text-red-500'>*</span></Label>
                             <CustomMultiSelectBox
-                                label='Section'
-                                isRequired
                                 options={sections.map((s) => ({ label: s.asmC_SectionName, value: s.asmS_Id.toString() }))}
                                 value={field.value?.map((v: any) => v.asmS_Id.toString()) || []}
                                 onChange={(vals: string[]) => field.onChange(vals.map((v) => ({ asmS_Id: Number(v) })))}
@@ -299,7 +298,7 @@ export default function AddHomeWorkForm({ onSuccess }: AddHomeWorkFormProps) {
                     name='ismS_Id'
                     render={({ field, fieldState }) => (
                         <div>
-                            <Label>Subject <span className='text-red-500'>*</span></Label>
+                            <Label className='font-bold'>Subject <span className='text-red-500'>*</span></Label>
                             <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                 <SelectTrigger><SelectValue placeholder='Select Subject' /></SelectTrigger>
                                 <SelectContent>
@@ -318,7 +317,7 @@ export default function AddHomeWorkForm({ onSuccess }: AddHomeWorkFormProps) {
                     name='ihW_Topic'
                     render={({ field, fieldState }) => (
                         <div>
-                            <Label>Topic <span className='text-red-500'>*</span></Label>
+                            <Label className='font-bold'>Topic <span className='text-red-500'>*</span></Label>
                             <Input {...field} value={field.value ?? ''} placeholder='Enter Topic' maxLength={50} />
                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                         </div>
@@ -330,7 +329,7 @@ export default function AddHomeWorkForm({ onSuccess }: AddHomeWorkFormProps) {
                     name='ihW_Date'
                     render={({ field, fieldState }) => (
                         <div className='flex flex-col'>
-                            <Label>H.W Date <span className='text-red-500'>*</span></Label>
+                            <Label className='font-bold'>H.W Date <span className='text-red-500'>*</span></Label>
                             <Popover>
                                 <PopoverTrigger asChild>
                                     <Button variant='outline' className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
@@ -358,7 +357,7 @@ export default function AddHomeWorkForm({ onSuccess }: AddHomeWorkFormProps) {
                     name='ihW_AssignmentNo'
                     render={({ field }) => (
                         <div>
-                            <Label>Assignment No</Label>
+                            <Label className='font-bold'>Assignment No</Label>
                             <Input {...field} value={field.value || ''} placeholder='Enter Assignment Number' />
                         </div>
                     )}
@@ -366,7 +365,7 @@ export default function AddHomeWorkForm({ onSuccess }: AddHomeWorkFormProps) {
             </div>
 
             <div>
-                <Label>Assignment</Label>
+                <Label className='font-bold'>Assignment</Label>
                 <Controller
                     control={control}
                     name='ihW_Assignment'
@@ -380,11 +379,11 @@ export default function AddHomeWorkForm({ onSuccess }: AddHomeWorkFormProps) {
                     <table className='w-full table-auto border-collapse border text-sm'>
                         <thead className='bg-blue-50'>
                             <tr>
-                                <th className='w-12 border p-2 text-center'>SL NO</th>
-                                <th className='border p-2 text-center'>Upload File</th>
-                                <th className='border p-2 text-center'>File Name</th>
-                                <th className='w-16 border p-2 text-center'>View</th>
-                                <th className='w-16 border p-2 text-center'>Action</th>
+                                <th className='w-12 border p-2 text-center font-bold'>SL NO</th>
+                                <th className='border p-2 text-center font-bold'>Upload File</th>
+                                <th className='border p-2 text-center font-bold'>File Name</th>
+                                <th className='w-16 border p-2 text-center font-bold'>View</th>
+                                <th className='w-16 border p-2 text-center font-bold'>Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -443,7 +442,7 @@ export default function AddHomeWorkForm({ onSuccess }: AddHomeWorkFormProps) {
 
             <div className='flex items-center space-x-2'>
                 <Checkbox id='add-checklink' checked={showUrlSection} onCheckedChange={(c) => setShowUrlSection(c as boolean)} />
-                <Label htmlFor='add-checklink'>If URL</Label>
+                <Label htmlFor='add-checklink' className='font-bold'>If URL</Label>
             </div>
 
             {showUrlSection && (
@@ -453,10 +452,10 @@ export default function AddHomeWorkForm({ onSuccess }: AddHomeWorkFormProps) {
                         <table className='w-full table-auto border-collapse border text-sm'>
                             <thead className='bg-blue-50'>
                                 <tr>
-                                    <th className='w-12 border p-2 text-center'>SL NO</th>
-                                    <th className='border p-2 text-center'>URL</th>
-                                    <th className='w-16 border p-2 text-center'>View</th>
-                                    <th className='w-16 border p-2 text-center'>Action</th>
+                                    <th className='w-12 border p-2 text-center font-bold'>SL NO</th>
+                                    <th className='border p-2 text-center font-bold'>URL</th>
+                                    <th className='w-16 border p-2 text-center font-bold'>View</th>
+                                    <th className='w-16 border p-2 text-center font-bold'>Action</th>
                                 </tr>
                             </thead>
                             <tbody>

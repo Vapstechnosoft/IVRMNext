@@ -9,7 +9,7 @@ import {
     viewClassWorkAttachments
 } from '@/server/upload/transactions/ivrm-classwork/server-action';
 import type { IClassWorkDetails } from '@/types/upload/reports/classwork-upload-report';
-import { Plus, X, List, Eye, Loader2 } from 'lucide-react';
+import { Plus, X, Eye, Loader2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -38,10 +38,10 @@ export default function ClassWorkPage() {
             const response: any = await fetchInitialData();
             if (response && response.success) {
                 setInitialData(response.data);
-                
+
                 let processedList: IClassWorkDetails[] = [];
                 const gridData = response.data?.homeworkgridlist;
-                
+
                 if (gridData && gridData.length > 0 && gridData[0].IVRM_ClassHomeworkGrid_List) {
                     try {
                         processedList = JSON.parse(gridData[0].IVRM_ClassHomeworkGrid_List);
@@ -49,10 +49,10 @@ export default function ClassWorkPage() {
                         console.error('Failed to parse grid data', e);
                     }
                 }
-                
+
                 // If the grid list is empty in homeworkgridlist, check if there's a direct classwork list
                 if (processedList.length === 0 && response.data?.classwork) {
-                  processedList = response.data.classwork;
+                    processedList = response.data.classwork;
                 }
 
                 setClassWorkList(processedList);
@@ -106,7 +106,7 @@ export default function ClassWorkPage() {
             try {
                 const response: any = await viewClassWorkAttachments(row.icW_Id!);
                 const list = response.data || response.attachementlist || (Array.isArray(response) ? response : []);
-                
+
                 if (list && list.length > 0) {
                     setAttachments(list);
                     setIsAttachmentOpen(true);
@@ -140,16 +140,23 @@ export default function ClassWorkPage() {
                         setSelectedRow(null);
                     }}
                     className={cn(
-                        'h-11 px-6 rounded-xl font-bold transition-all duration-300 shadow-lg hover:shadow-blue-200 flex items-center gap-2',
-                        isAddMode ? 'bg-slate-800 hover:bg-slate-900 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-wide'
+                        'w-fit px-3 py-1 text-sm bg-blue-600 hover:bg-blue-700 text-white shadow-md transition-all duration-200 hover:scale-105 flex items-center gap-1',
+                        isAddMode && 'bg-gray-700 hover:bg-gray-800'
                     )}
                 >
                     {isAddMode ? (
-                        <><X className='h-5 w-5' /> Close Form</>
+                        <>
+                            <X className="h-4 w-4" />
+                            Close
+                        </>
                     ) : (
-                        <><Plus className='h-5 w-5' /> Add ClassWork</>
+                        <>
+                            <Plus className="h-4 w-4" />
+                            Add ClassWork
+                        </>
                     )}
                 </Button>
+
             </div>
 
             {isAddMode && (
@@ -199,20 +206,15 @@ export default function ClassWorkPage() {
 
             <div className='bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-200'>
                 {/* Legacy-style Header Bar */}
-                <div className='bg-[#3b82f6] px-8 py-5 flex items-center justify-between'>
+                <div className=' px-8 py-5 flex items-center justify-between'>
                     <div className='flex items-center gap-6'>
-                        <h2 className='text-white font-black text-lg tracking-wider uppercase'>Classwork Details</h2>
+                        <h1 className='text-black font-black text-lg tracking-wider '>Classwork Details</h1>
                         <div className='flex items-center bg-white/20 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/30 shadow-inner'>
-                            <span className='text-white/80 text-[10px] font-bold uppercase tracking-widest mr-2'>Total Records</span>
-                            <span className='text-white font-black text-sm'>{processedGrid.length}</span>
+                            <span className='text-black/80 text-[10px] font-bold uppercase tracking-widest mr-2'>Total Records</span>
+                            <span className='text-black font-black text-sm'>{processedGrid.length}</span>
                         </div>
                     </div>
-                    <div className='flex items-center gap-3'>
-                         {/* Optional Search or Actions here */}
-                         <div className='h-8 w-8 rounded-full bg-white/10 flex items-center justify-center cursor-pointer hover:bg-white/20 transition-colors'>
-                            <List className='h-4 w-4 text-white' />
-                         </div>
-                    </div>
+
                 </div>
 
                 <div className='p-1'>

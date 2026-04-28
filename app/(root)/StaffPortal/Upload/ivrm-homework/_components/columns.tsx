@@ -13,45 +13,45 @@ import { Badge } from '@/components/ui/badge';
 export const homeWorkColumns: ColumnDef<IHomeWorkDetails>[] = [
     {
         id: 'slno',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='SLNO' className='text-xs font-black text-black justify-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='SLNO' className=' font-bold text-black justify-center' />,
         cell: ({ row }) => {
-            return <div className='text-xs text-black text-center'>{row.index + 1}</div>;
+            return <div className=' text-black text-center'>{row.index + 1}</div>;
         },
         enableSorting: false,
         enableHiding: false
     },
     {
         accessorKey: 'ISMS_SubjectName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Subject' className='text-xs font-black uppercase text-black justify-left' />,
-        cell: ({ row }) => <div className='text-xs'>{row.getValue('ISMS_SubjectName')}</div>
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Subject' className=' font-bold uppercase text-black justify-left' />,
+        cell: ({ row }) => <div className=''>{row.getValue('ISMS_SubjectName')}</div>
     },
 
     {
         accessorKey: 'ASMCL_ClassName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Class' className='text-xs font-black uppercase text-black justify-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Class' className=' font-bold uppercase text-black justify-center' />,
         cell: ({ row }) => <div className='text-center'>{row.getValue('ASMCL_ClassName')}</div>
     },
     {
         accessorKey: 'ASMC_SectionName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Section' className='text-xs font-black uppercase text-black justify-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Section' className=' font-bold uppercase text-black justify-center' />,
         cell: ({ row }) => <div className='text-center'>{row.getValue('ASMC_SectionName')}</div>
     },
     {
         accessorKey: 'IHW_Topic',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Topic' className='text-xs font-black uppercase text-black justify-left' />,
-        cell: ({ row }) => <div className='text-xs uppercase'>{row.getValue('IHW_Topic')}</div>
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Topic' className=' font-bold uppercase text-black justify-left' />,
+        cell: ({ row }) => <div className=' uppercase'>{row.getValue('IHW_Topic')}</div>
     },
     {
         id: 'updateDateTime',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Update Date / Time' className='text-xs font-black text-black justify-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Update Date / Time' className=' font-bold text-black justify-center' />,
         cell: ({ row }) => {
             // Usually empty in legacy if not specifically provided as UpdatedDate
-            return <div className='text-xs text-center'>---</div>;
+            return <div className=' text-center'>---</div>;
         }
     },
     {
         accessorKey: 'IHW_Assignment',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Assignment' className='text-xs font-black uppercase text-black justify-left' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Assignment' className=' font-bold uppercase text-black justify-left' />,
         cell: ({ row }) => (
             <div
                 className='w-[200px] whitespace-normal break-all line-clamp-2 md:w-[250px]'
@@ -63,7 +63,7 @@ export const homeWorkColumns: ColumnDef<IHomeWorkDetails>[] = [
     },
     {
         accessorKey: 'IHW_Date',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Homework Date' className='text-xs font-black uppercase text-black justify-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Homework Date' className=' font-bold uppercase text-black justify-center' />,
         cell: ({ row }) => {
             const date = row.getValue('IHW_Date');
             if (!date) return <div className='text-center'>---</div>;
@@ -76,12 +76,12 @@ export const homeWorkColumns: ColumnDef<IHomeWorkDetails>[] = [
     },
     {
         id: 'attachment',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Attachment' className='text-xs font-black uppercase text-black justify-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Attachment' className=' font-bold uppercase text-black justify-center' />,
         cell: ({ row }) => <AttachmentCell rowData={row.original} />
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Status' className='text-xs font-black uppercase text-black justify-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className=' font-bold uppercase text-black justify-center' />,
         cell: ({ row }) => <StatusCell rowData={row.original} />
     }
 ];

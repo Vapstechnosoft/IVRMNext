@@ -72,7 +72,7 @@ export const classWorkColumns = ({
             header: ({ column }) => <DataTableColumnHeader column={column} title='Start Date' className='text-xs font-black uppercase text-black justify-center' />,
             cell: ({ row }) => {
                 const date = row.getValue('icW_FromDate');
-                return <div className='text-[11px] font-bold text-center text-blue-600'>{date ? format(new Date(date as string), 'dd-MM-yyyy') : '---'}</div>;
+                return <div className='text-[11px] font-bold text-center text-black'>{date ? format(new Date(date as string), 'dd-MM-yyyy') : '---'}</div>;
             }
         },
         {
@@ -80,7 +80,7 @@ export const classWorkColumns = ({
             header: ({ column }) => <DataTableColumnHeader column={column} title='End Date' className='text-xs font-black uppercase text-black justify-center' />,
             cell: ({ row }) => {
                 const date = row.getValue('icW_ToDate');
-                return <div className='text-[11px] font-bold text-center text-blue-600'>{date ? format(new Date(date as string), 'dd-MM-yyyy') : '---'}</div>;
+                return <div className='text-[11px] font-bold text-center text-black'>{date ? format(new Date(date as string), 'dd-MM-yyyy') : '---'}</div>;
             }
         },
         {
