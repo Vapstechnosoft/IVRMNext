@@ -95,7 +95,25 @@ export const noticeBoardSchema = z
             message: 'Display Date must be less than or equal to End Date',
             path: ['intB_DisplayDate']
         }
-    );
+    )
+    .superRefine((data, ctx) => {
+        if (data.check_student) {
+            if (!data.asmcL_Id || data.asmcL_Id.length === 0) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: "Class name is required",
+                    path: ['asmcL_Id'],
+                });
+            }
+            if (!data.asmS_Id || data.asmS_Id.length === 0) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: "Section name is required",
+                    path: ['asmS_Id'],
+                });
+            }
+        }
+    });
 
 export type INoticeBoard = z.infer<typeof noticeBoardSchema>;
 

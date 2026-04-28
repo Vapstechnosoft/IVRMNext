@@ -2131,6 +2131,14 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/masters/life-skills-area',
                                             title: 'Life Skills Area',
                                             description: 'Manage Life Skills Area Details'
+                                        },
+                                        {
+                                            id: 204,
+                                            name: 'Baldwin Master Time Table Session',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/masters/exam-tt-session-master',
+                                            title: 'Baldwin Master Time Table Session',
+                                            description: 'Manage Baldwin Master Time Table Session Details'
                                         }
                                     ]
                                 },
@@ -2258,6 +2266,30 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/exam-mapping/ExamTTTransSettings',
                                             title: 'Exam TT Transaction Settings',
                                             description: 'Manage Exam Time Table Transaction Settings'
+                                        },
+                                        {
+                                            id: 98,
+                                            name: 'Baldwin Exam TT Trans Settings',
+                                            icon: 'CalendarClock',
+                                            url: '/Exam/exam-module/exam-mapping/ExamTTTransSettings',
+                                            title: 'Baldwin Exam Time Table Settings',
+                                            description: 'Manage Baldwin Exam Time Table Settings'
+                                        },
+                                        {
+                                            id: 99,
+                                            name: 'Amrutha Bharathi Exam TT Trans Settings',
+                                            icon: 'CalendarClock',
+                                            url: '/Exam/exam-module/exam-mapping/ExamTTTransSettings',
+                                            title: 'Amrutha Bharathi School Exam Time Table Settings',
+                                            description: 'Manage Amrutha Bharathi School Exam Time Table Settings'
+                                        },
+                                        {
+                                            id: 100,
+                                            name: 'Hithachinthana School Exam TT Trans Settings',
+                                            icon: 'CalendarClock',
+                                            url: '/Exam/exam-module/exam-mapping/ExamTTTransSettings',
+                                            title: 'Hithachinthana School Exam Time Table Settings',
+                                            description: 'Manage Hithachinthana School Exam Time Table Settings'
                                         }
                                     ]
                                 },
@@ -2857,7 +2889,48 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/Calcatta/rrps-exam-hallticket',
                                             title: 'RRPS Exam Hallticket',
                                             description: 'RRPS Exam Hallticket'
+                                        },
+                                        {
+                                            id: 21036,
+                                            name: 'ABV Exam Hallticket',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/Calcatta/abv-exam-hallticket',
+                                            title: 'ABV Exam Hallticket',
+                                            description: 'ABV Exam Hallticket'
+                                        },
+                                        {
+                                            id: 21037,
+                                            name: 'Carmel Exam Hallticket',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/Calcatta/cramel-exam-hallticket',
+                                            title: 'Carmel Exam Hallticket',
+                                            description: 'Carmel Exam Hallticket'
+                                        },
+                                        {
+                                            id: 21038,
+                                            name: 'GMVPS Exam Hallticket',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/Calcatta/gmvps-exam-hallticket',
+                                            title: 'GMVPS Exam Hallticket',
+                                            description: 'GMVPS Exam Hallticket'
+                                        },
+                                        {
+                                            id: 21039,
+                                            name: 'UKPS Exam Hallticket',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/Calcatta/ukps-exam-hallticket',
+                                            title: 'UKPS Exam Hallticket',
+                                            description: 'UKPS Exam Hallticket'
+                                        },
+                                        {
+                                            id: 21040,
+                                            name: 'Baldwin Exam Hallticket',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/Calcatta/baldwin-exam-hallticket',
+                                            title: 'Baldwin Exam Hallticket',
+                                            description: 'Baldwin Exam Hallticket'
                                         }
+
                                     ]
                                 }
                             ]
