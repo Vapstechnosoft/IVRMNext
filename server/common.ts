@@ -2635,6 +2635,14 @@ export async function getUserAccessibleModules() {
                                             description: 'GMVPS_Vidyaniketan I-VIII Report Card'
                                         },
                                         {
+                                            id: 21100,
+                                            name: 'GMVPS Report Card IX',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/GMVPS/gmvps-progresscard-IX',
+                                            title: 'GMVPS Report Card IX',
+                                            description: 'GMVPS Report Card IX'
+                                        },
+                                        {
                                             id: 21004,
                                             name: 'StThomos_Report Card IX',
                                             icon: 'BookOpen',
