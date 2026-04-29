@@ -5,23 +5,38 @@ import type { ApiSearchparams } from '@/types';
 import type { IMasterCategoryList } from '@/types/library/masters/masters';
 
 export async function getMasterCategoryList(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'lmC_CategoryName,lmC_CategoryCode');
-    const url = `/MasterCategory/master-books-category-list?${urlParams}`;
-
-    return await api.get<IMasterCategoryList[]>('library', url);
+    try {
+        const urlParams = getSearchParamsUrl(searchParams ?? {}, 'lmC_CategoryName,lmC_CategoryCode');
+        const url = `/MasterCategory/master-books-category-list?${urlParams}`;
+        return await api.get<any>('library', url);
+    } catch (error: any) {
+        return { success: false, message: error?.message || 'Failed to fetch categories', data: [] };
+    }
 }
 
 export async function addOrUpdateMasterCategory(data: any) {
-    const url = '/MasterCategory/add-or-update/';
-    return await api.post<any>('library', url, data);
+    try {
+        const url = '/MasterCategory/add-or-update/';
+        return await api.post<any>('library', url, data);
+    } catch (error: any) {
+        return { success: false, message: error?.message || 'Failed to save category' };
+    }
 }
 
 export async function toggleMasterCategory(id: number) {
-    const url = `/MasterCategory/deactivate/${id}`;
-    return await api.put('library', url);
+    try {
+        const url = `/MasterCategory/toggle/${id}`;
+        return await api.put('library', url, {});
+    } catch (error: any) {
+        return { success: false, message: error?.message || error?.toString() || 'Failed to toggle category' };
+    }
 }
 
 export async function deleteMasterCategory(id: number) {
-    const url = `/MasterCategory/toggle-master-category?id=${id}`;
-    return await api.delete('fees', url);
+    try {
+        const url = `/MasterCategory/delete?id=${id}`;
+        return await api.delete('library', url);
+    } catch (error: any) {
+        return { success: false, message: error?.message || 'Failed to delete category' };
+    }
 }

@@ -12,7 +12,7 @@ import { useLeaveYearDropdown } from '@/hooks/hrms/useMasters';
 import {
     useDepartmentSalaryReport, useReportDepartments, useReportDesignations, useReportGroupTypes
 } from '@/hooks/hrms/useReports';
-import { Printer, RefreshCw, Search } from 'lucide-react';
+import { Printer, RefreshCw, Search, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -23,7 +23,7 @@ export default function DepartmentSalaryReportPage() {
     useEffect(() => setIsClient(true), []);
 
     // Form
-    const { control, handleSubmit, watch, setValue } = useForm({
+    const { control, handleSubmit, watch, setValue, reset } = useForm({
         defaultValues: {
             year: '',
             month: '',
@@ -32,6 +32,11 @@ export default function DepartmentSalaryReportPage() {
             designation: [] as string[],
         }
     });
+
+    const handleCancel = () => {
+        reset();
+        setReportData(null);
+    };
 
     const watchedGroupType = watch('groupType');
     const watchedDepartment = watch('department');
@@ -67,11 +72,13 @@ export default function DepartmentSalaryReportPage() {
 
     // Watch for success
     useEffect(() => {
-        // biome-ignore lint/complexity/useOptionalChain: <explanation>
-        if (reportResult && reportResult.data && reportResult.data.departmentSalaryDetails) {
-            setReportData(reportResult.data);
-        } else if (reportResult) {
-            setReportData(null);
+        if (reportResult) {
+            if (reportResult.data?.departmentSalaryDetails?.length > 0) {
+                setReportData(reportResult.data);
+            } else {
+                setReportData(null);
+                toast.info('No Data Found');
+            }
         }
     }, [reportResult]);
 
@@ -203,7 +210,7 @@ export default function DepartmentSalaryReportPage() {
                             <Label>Department <span className='text-red-500'>*</span></Label>
                             <Controller name='department' control={control} render={({ field }) => (
                                 <MultiSelect
-                                    options={[{ label: 'All', value: 'All' }, ...(departmentsData?.data || []).map((d: any) => ({ label: d.HRMD_DepartmentName || d.hrmD_DepartmentName, value: d.HRMD_Id?.toString() || d.hrmD_Id?.toString() || '' }))]}
+                                    options={[ ...(departmentsData?.data || []).map((d: any) => ({ label: d.HRMD_DepartmentName || d.hrmD_DepartmentName, value: d.HRMD_Id?.toString() || d.hrmD_Id?.toString() || '' }))]}
                                     onValueChange={field.onChange}
                                     defaultValue={field.value}
                                     placeholder="Select Department"
@@ -217,7 +224,7 @@ export default function DepartmentSalaryReportPage() {
                             <Label>Designation <span className='text-red-500'>*</span></Label>
                             <Controller name='designation' control={control} render={({ field }) => (
                                 <MultiSelect
-                                    options={[{ label: 'All', value: 'All' }, ...(designationsData?.data || []).map((d: any) => ({ label: d.HRMDES_DesignationName || d.hrmdeS_DesignationName, value: d.HRMDES_Id?.toString() || d.hrmdeS_Id?.toString() || '' }))]}
+                                    options={[ ...(designationsData?.data || []).map((d: any) => ({ label: d.HRMDES_DesignationName || d.hrmdeS_DesignationName, value: d.HRMDES_Id?.toString() || d.hrmdeS_Id?.toString() || '' }))]}
                                     onValueChange={field.onChange}
                                     defaultValue={field.value}
                                     placeholder="Select Designation"
@@ -227,8 +234,17 @@ export default function DepartmentSalaryReportPage() {
                         </div>
                     </div>
 
-                    <div className='flex justify-end pt-4'>
-                        <Button type='submit' disabled={isLoadingReport}>
+                    <div className='flex justify-end pt-4 gap-2'>
+                        <Button
+                            type='button'
+                            variant='outline'
+                            onClick={handleCancel}
+                            disabled={isLoadingReport}
+                            className='w-32 border-orange-500 text-orange-600 hover:bg-orange-50 transition-all rounded-xl'>
+                            <X className='mr-2 h-4 w-4' />
+                            CANCEL
+                        </Button>
+                        <Button type='submit' disabled={isLoadingReport} className='w-40 transition-all rounded-xl'>
                             {isLoadingReport ? <RefreshCw className='h-4 w-4 animate-spin mr-2' /> : <Search className='h-4 w-4 mr-2' />}
                             Generate Report
                         </Button>

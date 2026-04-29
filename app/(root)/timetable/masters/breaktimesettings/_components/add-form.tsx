@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { breakTimeSettingsSchema } from '@/schemas/timetable/masters';
 import { getMaximumPeriodsCount, saveBreakTimeSettings } from '@/server/timetable/masters/breaktimesettings';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
 import { CheckSquare, Save, Square } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
@@ -73,15 +74,6 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
     } = useAcademicYearDropDownMasterDayClasswise();
 
     const {
-        data: categoryList,
-        isLoading: categoryLoading,
-        error: categoryError,
-        refetchAll: categoryRefetch
-    } = useCategtoryDropDownMasterDayClasswise();
-
-    // const { data: classData, isLoading: classloading, error: classError, refetchAll: classRefetch } = useClassDropDownMasterDayClasswise();
-
-    const {
         data: Masterdaydata,
         isLoading: masterdaydataloading,
         error: masterdaydataError,
@@ -98,10 +90,7 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(breakTimeSettingsSchema.addOrUpdate),
-        mode: 'onChange',
-        defaultValues: {
-            // Defaults if needed
-        }
+        mode: 'onChange'
     });
 
     const watchedAcademicYear = watch('asmay_id');
@@ -111,6 +100,19 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
 
     const academicyear = watch('asmay_id');
     const category = watch('ttmC_Id');
+
+    const {
+        data: categoryList,
+        isLoading: categoryLoading,
+        error: categoryError,
+        refetchAll: categoryRefetch
+    } = useCategtoryDropDownMasterDayClasswise({ enabled: !!watchedAcademicYear });
+
+    useEffect(() => {
+        if (!watchedAcademicYear) {
+            setValue('ttmC_Id', undefined as any);
+        }
+    }, [watchedAcademicYear, setValue]);
 
     // Fetch classes when academic year or category changes
     useEffect(() => {
@@ -441,12 +443,18 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
                 return;
             }
 
+            const formatTime = (date: Date) => format(date, 'h:mm a');
+
             const payload = {
                 TTMB_Id: 0,
-                TTMB_BreakName: data.ttmB_BreakName,
-                TTMB_BreakStartTime: data.ttmB_BreakStartTime,
-                TTMB_BreakEndTime: data.ttmB_BreakEndTime,
+                ASMAY_Id: data.asmay_id,
+                TTMC_Id: data.ttmC_Id,
+                ArrayClassList: data.calssids.map((id: string) => ({ asmcL_Id: Number(id) })),
+                ArrayDayList: data.dayids.map((id: string) => ({ ttmD_Id: Number(id) })),
                 TTMB_AfterPeriod: data.ttmB_AfterPeriod,
+                TTMB_BreakName: data.ttmB_BreakName,
+                TTMB_BreakStartTime: formatTime(data.ttmB_BreakStartTime),
+                TTMB_BreakEndTime: formatTime(data.ttmB_BreakEndTime),
                 ArraybeforeperiodsList: selectedBeforePeriods.map((p) => ({ TTPeriodnameB: p })),
                 ArrayafterperiodsList: selectedAfterPeriods.map((p) => ({ TTPeriodnameA: p })),
                 TTMB_ActiveFlag: true
@@ -456,7 +464,6 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
             if (response.success) {
                 toast.success(response.message);
                 reset();
-                // Reset period selections
                 setSelectedBeforePeriods([]);
                 setSelectedAfterPeriods([]);
                 refetchAll();
@@ -688,7 +695,11 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
                                             <SelectValue placeholder='Select Category' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {categoryLoading ? (
+                                            {!watchedAcademicYear ? (
+                                                <SelectItem value='none' disabled>
+                                                    Please select Academic Year first
+                                                </SelectItem>
+                                            ) : categoryLoading ? (
                                                 <SelectItem value='loading' disabled>
                                                     Loading CategoryData
                                                 </SelectItem>
@@ -734,7 +745,7 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
                                                 : 'border-gray-300 hover:border-primary/40'
                                         )}>
                                         {day_ids.length === (daySearch.trim() ? filteredDayIds.length : Masterdaydata.data.length) &&
-                                        day_ids.length ? (
+                                            day_ids.length ? (
                                             <CheckSquare className='h-4 w-4 text-primary' />
                                         ) : (
                                             <Square className='h-4 w-4 text-gray-400' />

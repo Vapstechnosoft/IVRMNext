@@ -23,8 +23,6 @@ import type { z } from 'zod';
 type FormFields = z.infer<typeof ExamTermAndExamMappingSchema.addOrUpdate>;
 
 export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: () => void }) {
-    // const orgId = 30;
-
     const methods = useForm<FormFields>({
         resolver: zodResolver(ExamTermAndExamMappingSchema.addOrUpdate),
         mode: 'onChange',
@@ -45,8 +43,7 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
     });
 
     const { refetchAll } = useExamTermAndExamMapping();
-    const { control, handleSubmit, reset, setValue, formState, watch } = methods;
-    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
+    const { control, handleSubmit, reset, setValue, formState, watch, setFocus } = methods;
     const { isSubmitting, errors } = formState;
 
     const [addedRows, setAddedRows] = useState<FormFields['exam_term']>([]);
@@ -205,17 +202,7 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
         // Sync to field array for validation
         replace(addedRows);
 
-        // // Wait a tick for validation
-        // await new Promise((resolve) => setTimeout(resolve, 0));
-
-        // // Check for validation errors
-        // if (Object.keys(errors).length > 0) {
-        //     toast.error('Please fix form errors before submitting');
-        //     return;
-        // }
-
         try {
-            // Build API payload matching the required structure
             const payload = {
                 ecT_Id: data.ecT_Id ?? 0,
                 mI_Id: 0,
@@ -228,15 +215,14 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                 ecT_MarksPublishDate: data.ecT_MarksPublishDate,
                 ecT_Marks: data.ecT_Marks,
                 ecT_MinMarks: data.ecT_MinMarks,
-
                 exam_term: addedRows.map((r) => ({
                     emE_Id: r.emE_Id,
                     emE_ExamName: r.emE_ExamName,
                     ecteX_MarksPerFlag: r.ecteX_MarksPerFlag,
                     ecteX_MarksPercentValue: r.ecteX_MarksPercentValue,
-                    ecteX_RoundOffReqFlg: r.ecteX_RoundOffReqFlg, // boolean
-                    ecteX_ConversionReqFlg: r.ecteX_ConversionReqFlg, // boolean
-                    ecteX_NotApplicableToTotal: r.ecteX_NotApplicableToTotal // boolean
+                    ecteX_RoundOffReqFlg: r.ecteX_RoundOffReqFlg,
+                    ecteX_ConversionReqFlg: r.ecteX_ConversionReqFlg,
+                    ecteX_NotApplicableToTotal: r.ecteX_NotApplicableToTotal
                 }))
             };
             const res = await addOrUpdateExamTermAndExamMapping(payload);
@@ -254,8 +240,8 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
             toast.error(err?.message ?? 'Failed to save');
         }
     };
+
     function handleReset() {
-        // Reset all form fields to initial state
         reset({
             ecT_Id: 0,
             mI_Id: 0,
@@ -271,7 +257,6 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
             exam_term: []
         });
 
-        // Clear all local state
         setAddedRows([]);
         setEntryExamId(0);
         setEntryMarksFlag('M');
@@ -279,13 +264,12 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
         setEntryRoundOff(false);
         setEntryConversion(false);
         setEntryNotApplicable(false);
-
-        // Optional: refresh dropdown data
         setCategories([]);
         setExams([]);
 
         toast.info('Form has been reset');
     }
+
     function handleCancel() {
         setAddedRows([]);
         setEntryExamId(0);
@@ -295,38 +279,50 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
         setEntryConversion(false);
         setEntryNotApplicable(false);
     }
-    // Add this function near other handler functions (after handleDeleteRow)
+
     function handleConfirmDelete() {
         if (rowToDelete !== null) {
-            // Get the exam name before deleting for toast message
             const examName = addedRows[rowToDelete]?.emE_ExamName || 'the exam';
-
-            // Call the existing delete function
             handleDeleteRow(rowToDelete);
-
-            // Show success message
             toast.success(`"${examName}" deleted successfully`);
-
-            // Close the modal
             setShowDeleteConfirm(false);
             setRowToDelete(null);
         }
     }
+
     useEffect(() => {
         if (addedRows.length > 0) {
             tableRef.current?.scrollIntoView({ behavior: 'smooth' });
         }
     }, [addedRows]);
+
     const tableRef = useRef<HTMLDivElement>(null);
+
+    // Helper to get the error message for exam_term array (refine errors)
+    const examTermError = errors.exam_term?.message || errors.exam_term?.root?.message;
 
     return (
         <div className='flex w-full flex-col gap-6'>
             <FormProvider {...methods}>
                 <form
                     onSubmit={handleSubmit(onSubmit, (errs) => {
+                        // Improved error handler: find first field with error and focus it
                         const firstErrorKey = Object.keys(errs)[0];
                         const firstError = firstErrorKey && (errs as Record<string, any>)[firstErrorKey];
-                        const errorMessage = firstError?.message || 'Something went wrong';
+                        const errorMessage = firstError?.message || 'Please fix the validation errors';
+
+                        // Attempt to focus the first invalid field
+                        if (firstErrorKey) {
+                            // Special handling for nested fields (e.g., exam_term.0.emE_Id)
+                            if (firstErrorKey.includes('.')) {
+                                const parts = firstErrorKey.split('.');
+                                // For array fields, set focus to the first element's field
+                                setFocus(parts[0] as any, { shouldSelect: true });
+                            } else {
+                                setFocus(firstErrorKey as any, { shouldSelect: true });
+                            }
+                        }
+
                         toast.error(errorMessage);
                     })}
                     className='flex flex-col gap-6 rounded-2xl bg-white p-6 shadow-md'
@@ -344,7 +340,7 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                         </Label>
 
                                         <Select
-                                            key={field.value} // <— forces remount when value changes
+                                            key={field.value}
                                             value={field.value && field.value !== 0 ? String(field.value) : undefined}
                                             onValueChange={(val) => field.onChange(Number(val))}
                                             disabled={topLocked}>
@@ -458,7 +454,7 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                         </Label>
 
                                         <Select
-                                            key={field.value} // <— forces remount when value changes
+                                            key={field.value}
                                             value={field.value && field.value !== 0 ? String(field.value) : undefined}
                                             onValueChange={(val) => field.onChange(Number(val))}
                                             disabled={topLocked}>
@@ -494,6 +490,7 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                             toDate={watch('ecT_TermEndDate') ? new Date(watch('ecT_TermEndDate')) : undefined}
                                             restricted_tofieldName='Term End Date'
                                             restricted_fromfieldName='Today'
+                                            required={true}
                                         />
                                     )}
                                 />
@@ -511,6 +508,7 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                                 methods.watch('ecT_TermStartDate') === '' ? today : new Date(watch('ecT_TermStartDate'))
                                             }
                                             restricted_fromfieldName='Term Start Date'
+                                            required={true}
                                         />
                                     )}
                                 />
@@ -525,6 +523,7 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                             placeholder='Select Date'
                                             fromDate={methods.watch('ecT_TermEndDate') === '' ? today : new Date(watch('ecT_TermEndDate'))}
                                             restricted_fromfieldName='Term End Date'
+                                            required={true}
                                         />
                                     )}
                                 />
@@ -632,7 +631,7 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                     placeholder='Enter value'
                                     onKeyDown={(e) => {
                                         if (['e', 'E', '+', '-'].includes(e.key)) {
-                                            e.preventDefault(); // 🚫 Block unwanted chars
+                                            e.preventDefault();
                                         }
                                     }}
                                 />
@@ -673,7 +672,7 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                     </div>
                                 </div>
                             </div>
-                            <div className='col-span-5 mt-3 flex justify-center gap-4 '>
+                            <div className='col-span-5 mt-3 flex justify-center gap-4'>
                                 <Button type='button' onClick={handleAddExamRow} className='w-fit' disabled={!currentEntryValid}>
                                     Add Exam
                                 </Button>
@@ -710,7 +709,7 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                                 <tr
                                                     key={idx}
                                                     className='border-gray-300 border-t text-sm transition-colors duration-200 hover:bg-accent/90 [&>*]:px-2 [&>*]:py-1'>
-                                                    <td className='border-gray-300 border-r px-3 '>{idx + 1}</td>
+                                                    <td className='border-gray-300 border-r px-3'>{idx + 1}</td>
                                                     <td className='border-gray-300 border-r px-3'>{r.emE_ExamName}</td>
                                                     <td className='border-gray-300 border-r px-3'>
                                                         {r.ecteX_MarksPerFlag === 'M' ? 'Marks' : 'Percentage'}
@@ -742,25 +741,31 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                         </tbody>
                                     </table>
                                 </div>
+
+                                {/* Display exam_term array errors here */}
+                                {examTermError && (
+                                    <div className='mt-2'>
+                                        <FormError>{examTermError}</FormError>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}
 
                     {/* Buttons */}
                     <div className='mt-6 flex w-fit gap-4'>
-                        <Button type='submit' disabled={isSubmitting || addedRows.length === 0}>
+                        <Button type='submit' disabled={isSubmitting || addedRows.length === 0} className='w-fit'>
                             {isSubmitting ? 'Saving...' : 'Save'}
                         </Button>
-                        <Button type='button' variant='outline' onClick={() => handleReset()}>
+                        <Button type='button' variant='outline' onClick={() => handleReset()} className='w-fit'>
                             Reset
                         </Button>
                     </div>
                 </form>
             </FormProvider>
-            {/* Add this just before the closing </div> of the main container */}
+
             {showDeleteConfirm && (
                 <div className='fixed inset-0 z-[9999] flex items-center justify-center p-6'>
-                    {/* Backdrop */}
                     <div
                         className='absolute inset-0 bg-black/60'
                         onClick={() => {
@@ -768,8 +773,6 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                             setRowToDelete(null);
                         }}
                     />
-
-                    {/* Confirmation Popup */}
                     <div className='relative z-[10000] w-[90%] max-w-md overflow-hidden rounded-xl border bg-white shadow-2xl'>
                         <div className='p-6'>
                             <div className='mb-4 flex items-center gap-3'>

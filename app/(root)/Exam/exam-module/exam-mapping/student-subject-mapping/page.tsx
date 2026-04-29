@@ -7,20 +7,23 @@ import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
-import { getCategoryDropDowByExamYearCategoryList, getExamGroupsByCategory } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
+import { type StudentSubjectMappingSchema, studentSubjectMappingSchema } from '@/schemas/exam/exam-module/exam-mapping';
+import {
+    getCategoryDropDowByExamYearCategoryList,
+    getExamGroupsByCategory
+} from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
 import {
     addOrUpdateStudentSubjectMappings,
     getSectionListbyClassSectionSubjectGroup,
     getStudentsForSubjectMapping,
     getSubjectlistByCatGroupClass
 } from '@/server/exam/exam-module/exam-mapping/student-subject-mapping';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import StudentSubjectMappingTable, { type StudentMappingTableHandle } from './_components/student-mapping-table';
-import { studentSubjectMappingSchema, StudentSubjectMappingSchema } from '@/schemas/exam/exam-module/exam-mapping';
-import { zodResolver } from '@hookform/resolvers/zod';
 // type FormValues = {
 //     asmaY_Id?: number;
 //     asmcL_Id?: number;
@@ -103,7 +106,7 @@ function StudentSubjectMappingContent() {
     const watchedAcademicYear = watch('asmaY_Id');
     const watchedClass = watch('asmcL_Id');
     const watchedCategory = watch('emcA_Id');
-    const watchedExams = watch('eme_Id');
+    const _watchedExams = watch('eme_Id');
 
     const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
 
@@ -213,7 +216,7 @@ function StudentSubjectMappingContent() {
             setLoadingExams(true);
             try {
                 const { data } = await getExamGroupsByCategory(watchedAcademicYear, watchedCategory);
-                const normalize = data.map((e:any) => ({ emE_Id: e.emE_Id, emE_ExamName: e.emE_ExamName }));
+                const normalize = data.map((e: any) => ({ emE_Id: e.emE_Id, emE_ExamName: e.emE_ExamName }));
                 setExams(normalize);
                 if (data.length === 0) toast.info('No exams found for selected category');
                 setValue('eme_Id', 0);
@@ -225,7 +228,7 @@ function StudentSubjectMappingContent() {
             }
         };
         fetchExams();
-        },[watchedAcademicYear, watchedCategory, setValue]);
+    }, [watchedAcademicYear, watchedCategory, setValue]);
 
     // Load subject groups
     useEffect(() => {
@@ -504,8 +507,7 @@ function StudentSubjectMappingContent() {
                                                     <SelectItem value='0'>Default (0)</SelectItem>
                                                 </SelectContent> */}
                                                 <SelectContent>
-                                                {
-                                                    !watchedCategory || !watchedClass ? (
+                                                    {!watchedCategory || !watchedClass ? (
                                                         <SelectItem value='error' disabled>
                                                             Select Category & Class
                                                         </SelectItem>
@@ -523,8 +525,7 @@ function StudentSubjectMappingContent() {
                                                                 {e.emE_ExamName}
                                                             </SelectItem>
                                                         ))
-                                                    )
-                                                }
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                             {/* {
@@ -718,7 +719,7 @@ function StudentSubjectMappingContent() {
                                 }}>
                                 Cancel
                             </Button>
-                            <Button type='button' className='px-8 py-2 shadow-lg' onClick={handleSearch} disabled={isLoading}>
+                            <Button type='button' className='w-fit px-8 py-2 shadow-lg' onClick={handleSearch} disabled={isLoading}>
                                 {isLoading ? 'Searching...' : 'Search'}
                             </Button>
                         </div>

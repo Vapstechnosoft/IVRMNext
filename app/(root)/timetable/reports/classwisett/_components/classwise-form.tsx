@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useClassDetails, useSectionDropDown } from '@/hooks/timetable/reports';
+import { useClassDetails, useSectionDropDown, useTimeTableCategoryDropDownClassWise } from '@/hooks/timetable/reports';
 import { useTimeTableAcademicYear, useTimeTableCategoryDropDownData } from '@/hooks/timetable/useMasters';
 import { classWiseReportSchema } from '@/schemas/timetable/reports';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -28,7 +28,7 @@ export default function ClassWiseForm({ onReportGenerated }: ClassWiseFormProps)
 
     const {
         data: categorydropdowndata,
-    } = useTimeTableCategoryDropDownData();
+    } = useTimeTableCategoryDropDownClassWise();
 
     // Using new hook for classes
     const {

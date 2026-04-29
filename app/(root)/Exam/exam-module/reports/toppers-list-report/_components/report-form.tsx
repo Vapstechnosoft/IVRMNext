@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -8,16 +7,15 @@ import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type ToppersListSchema, toppersListReportSchema } from '@/schemas/exam/exam-module/reports';
-import { getToppersReportDetails } from '@/server/exam/exam-module/reports/toppers-list-report';
 import {
     getClassDropDownByAcademicYearlist,
-    getSectionsDropDownByAcademicYearandClasslist,
-    getExamsDropDownByAcademicYearandClassandSectionlist
+    getExamsDropDownByAcademicYearandClassandSectionlist,
+    getSectionsDropDownByAcademicYearandClasslist
 } from '@/server/exam/exam-module/reports/cumulative-report';
+import { getMappedSubjects, getToppersReportDetails } from '@/server/exam/exam-module/reports/toppers-list-report';
 import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
 import { getAcademicYearDropdown } from '@/server/fees/masters/class_yearly_category';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2 } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
@@ -38,7 +36,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
 
     const [loadingYears, setLoadingYears] = useState(true);
     const [loadingClasses, setLoadingClasses] = useState(false);
-    const [loadingSections, setLoadingSections] = useState(false);
+    const [_loadingSections, setLoadingSections] = useState(false);
     const [loadingExams, setLoadingExams] = useState(false);
 
     const methods = useForm<ToppersListSchema>({
@@ -63,14 +61,14 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
     const { isSubmitting, errors } = formState;
 
     // Watchers
-    const watchType = useWatch({ control, name: 'type' });
-    const watchYear = useWatch({ control, name: 'ASMAY_Id' });
-    const watchClass = useWatch({ control, name: 'ASMCL_Id' });
-    const watchSection = useWatch({ control, name: 'ASMS_Id' });
-    const watchExam = useWatch({ control, name: 'EME_Id' });
-    const watchSubjectwise = useWatch({ control, name: 'subjectwise' });
-    const watchSubject = useWatch({ control, name: 'ISMS_Id' });
-    const watchTopper = useWatch({ control, name: 'topper' });
+    const watchType = useWatch({ control, name: 'type', defaultValue: '1' });
+    const watchYear = useWatch({ control, name: 'ASMAY_Id', defaultValue: '' });
+    const watchClass = useWatch({ control, name: 'ASMCL_Id', defaultValue: '' });
+    const watchSection = useWatch({ control, name: 'ASMS_Id', defaultValue: '0' });
+    const watchExam = useWatch({ control, name: 'EME_Id', defaultValue: '' });
+    const watchSubjectwise = useWatch({ control, name: 'subjectwise', defaultValue: false });
+    const watchSubject = useWatch({ control, name: 'ISMS_Id', defaultValue: '' });
+    const _watchTopper = useWatch({ control, name: 'topper', defaultValue: '10' });
 
     // Initial Data - Academic Years
     useEffect(() => {
@@ -98,6 +96,16 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
 
     // Load Classes when Year changes
     useEffect(() => {
+        // Immediate clear of dependent fields
+        setValue('ASMCL_Id', '');
+        setValue('ASMS_Id', '0');
+        setValue('EME_Id', '');
+        setValue('ISMS_Id', '');
+        setClasses([]);
+        setSections([]);
+        setExams([]);
+        setSubjects([]);
+
         if (watchYear) {
             const fetchClasses = async () => {
                 try {
@@ -109,14 +117,6 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                     } else {
                         setClasses([]);
                     }
-
-                    // Reset dependent fields
-                    setValue('ASMCL_Id', '');
-                    setValue('ASMS_Id', '0');
-                    setValue('EME_Id', '');
-                    setSections([]);
-                    setExams([]);
-                    setSubjects([]);
                 } catch (error) {
                     console.error('Error fetching classes:', error);
                     toast.error('Failed to load classes');
@@ -126,20 +126,19 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                 }
             };
             fetchClasses();
-        } else {
-            setClasses([]);
-            setSections([]);
-            setExams([]);
-            setSubjects([]);
-            setValue('ASMCL_Id', '');
-            setValue('ASMS_Id', '0');
-            setValue('EME_Id', '');
-            setValue('ISMS_Id', '');
         }
     }, [watchYear, setValue]);
 
     // Load Sections when Class changes
     useEffect(() => {
+        // Immediate clear of dependent fields
+        setValue('ASMS_Id', '0');
+        setValue('EME_Id', '');
+        setValue('ISMS_Id', '');
+        setSections([]);
+        setExams([]);
+        setSubjects([]);
+
         if (watchYear && watchClass) {
             const fetchSections = async () => {
                 try {
@@ -153,12 +152,6 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                     } else {
                         setSections([]);
                     }
-
-                    // Reset dependent fields
-                    setValue('ASMS_Id', '0');
-                    setValue('EME_Id', '');
-                    setExams([]);
-                    setSubjects([]);
                 } catch (error) {
                     console.error('Error fetching sections:', error);
                     toast.error('Failed to load sections');
@@ -168,15 +161,17 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                 }
             };
             fetchSections();
-        } else {
-            setSections([]);
-            setValue('ASMS_Id', '0');
-            setValue('EME_Id', '');
         }
     }, [watchYear, watchClass, setValue]);
 
     // Load Exams when Section changes
     useEffect(() => {
+        // Immediate clear of dependent fields
+        setValue('EME_Id', '');
+        setValue('ISMS_Id', '');
+        setExams([]);
+        setSubjects([]);
+
         if (watchYear && watchClass && watchSection) {
             const fetchExams = async () => {
                 try {
@@ -191,9 +186,6 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                     } else {
                         setExams([]);
                     }
-
-                    setValue('EME_Id', '');
-                    setSubjects([]);
                 } catch (error) {
                     console.error('Error fetching exams:', error);
                     toast.error('Failed to load exams');
@@ -203,11 +195,41 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                 }
             };
             fetchExams();
-        } else {
-            setExams([]);
-            setValue('EME_Id', '');
         }
     }, [watchYear, watchClass, watchSection, setValue]);
+
+    useEffect(() => {
+        if (watchYear && watchClass && watchSection && watchExam) {
+            const fetchSubjects = async () => {
+                try {
+                    //setLoadingSubjects(true);
+                    const yearId = Number.parseInt(watchYear, 10);
+                    const classId = Number.parseInt(watchClass, 10);
+                    const sectionId = Number.parseInt(watchSection, 10);
+                    const examId = Number.parseInt(watchExam, 10);
+                    const payload = {
+                        asmaY_Id: yearId,
+                        asmcL_Id: classId,
+                        asmS_Id: sectionId,
+                        emE_Id: examId
+                    };
+
+                    const { data: response } = await getMappedSubjects(payload);
+                    const res__ = Array.isArray(response) ? response : [];
+                    if (response) {
+                        setSubjects(res__);
+                    } else {
+                        setSubjects([]);
+                    }
+                } catch (error) {
+                    console.error('Error fetching subjects:', error);
+                    toast.error('Failed to load subjects');
+                    setSubjects([]);
+                }
+            };
+            fetchSubjects();
+        }
+    }, [watchYear, watchClass, watchSection, watchExam]);
 
     // Update check types when form values change
     useEffect(() => {
@@ -226,6 +248,16 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
         }
     }, [watchExam, watchSubjectwise, watchSubject, setValue]);
 
+    // Clear subjects and reset subjective values when Exam changes
+    useEffect(() => {
+        if (watchExam) {
+            // Keep the selected subject empty until explicitly chosen if subjects need re-fetching
+            setValue('ISMS_Id', '');
+        } else {
+            setValue('ISMS_Id', '');
+        }
+    }, [watchExam, setValue]);
+
     // Trigger validation when fields change for conditional validation
     useEffect(() => {
         if (watchType === '2' && watchSection) {
@@ -237,43 +269,31 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
     }, [watchType, watchSection, watchSubjectwise, watchSubject, trigger]);
 
     const onSubmit = async (formValues: ToppersListSchema) => {
-        console.log('Form Values:', formValues);
+        onReportGenerated([], null, null);
         setLoading(true);
 
         try {
             // Prepare payload according to the required structure
             const payload = {
-                ASMAY_Id: Number.parseInt(formValues.ASMAY_Id) || 0,
-                ASMCL_Id:
-                    formValues.type === '1'
-                        ? 0
-                        : Number.parseInt(formValues.ASMCL_Id || '') || 0,
-                ASMS_Id:
-                    formValues.type === '1'
-                        ? 0
-                        : Number.parseInt(formValues.ASMS_Id || '') || 0,
-                EME_Id: Number.parseInt(formValues.EME_Id) || 0,
-                ISMS_Id:
-                    formValues.subjectwise
-                        ? Number.parseInt(formValues.ISMS_Id || '') || 0
-                        : 0,
-                report_type: formValues.type || '0',
+                ASMAY_Id: Number.parseInt(formValues.ASMAY_Id || '') || 0,
+                ASMCL_Id: Number.parseInt(formValues.ASMCL_Id || '') || 0,
+                ASMS_Id: formValues.type === '1' ? 0 : Number.parseInt(formValues.ASMS_Id || '') || 0,
+                EME_Id: Number.parseInt(formValues?.EME_Id || '0') || 0,
+                ISMS_Id: formValues.subjectwise ? Number.parseInt(formValues.ISMS_Id || '') || 0 : 0,
+                report_type: formValues.type || '2',
 
                 sub_check_type: formValues.subjectwise ? '1' : '0',
 
-                exm_check_type:
-                    Number.parseInt(formValues.EME_Id) > 0 ? '1' : '0',
+                exm_check_type: Number.parseInt(formValues.EME_Id || '0') > 0 ? '1' : '0',
 
                 topper: Number.parseInt(formValues.topper) || 0
             };
 
-            console.log('Toppers List Report payload:', payload);
-
-            const [result, institutionRes] = await Promise.all([
-                getToppersReportDetails(payload),
-                getMasterInstitution()
-            ]);
-            console.log('toppers list response', result);
+            const [result, institutionRes] = await Promise.all([getToppersReportDetails(payload), getMasterInstitution()]);
+            if (!result?.data || (Array.isArray(result.data) && result.data.length === 0)) {
+                toast.info(result?.message || 'No records found');
+                return;
+            }
             if (result.success) {
                 onReportGenerated(result.data, institutionRes?.success ? institutionRes.data : null, payload);
             } else {
@@ -345,7 +365,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                                 // Trigger validation when changed
                                                 trigger('ASMAY_Id');
                                             }}
-                                            value={field.value}>
+                                            value={field.value || undefined}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Academic Year' />
                                             </SelectTrigger>
@@ -372,7 +392,6 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                 {errors.ASMAY_Id && <FormError>{errors.ASMAY_Id.message}</FormError>}
                             </div>
 
-
                             {/* Class (Only for Individual type) */}
                             <div className='space-y-2'>
                                 <Label>
@@ -389,8 +408,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                                 // Trigger validation when changed
                                                 trigger('ASMCL_Id');
                                             }}
-                                            value={field.value}
-                                            disabled={watchType === '1' || !watchYear}>
+                                            value={field.value || undefined}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Class' />
                                             </SelectTrigger>
@@ -433,8 +451,8 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                                 // Trigger validation when changed
                                                 trigger('ASMS_Id');
                                             }}
-                                            value={field.value || ''}
-                                            disabled={watchType === '1' || !watchClass}>
+                                            value={field.value || undefined}
+                                            disabled={watchType === '1' ? true : undefined}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Section' />
                                             </SelectTrigger>
@@ -468,8 +486,8 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                                 // Trigger validation when changed
                                                 trigger('EME_Id');
                                             }}
-                                            value={field.value}
-                                            disabled={!watchSection}>
+                                            value={field.value || undefined}
+                                            disabled={!watchSection ? true : undefined}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Exam' />
                                             </SelectTrigger>
@@ -565,8 +583,8 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                                     // Trigger validation when changed
                                                     trigger('ISMS_Id');
                                                 }}
-                                                value={field.value || ''}
-                                                disabled={!watchSubjectwise || !watchExam}>
+                                                value={field.value || undefined}
+                                                disabled={!watchSubjectwise || !watchExam ? true : undefined}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='Select Subject' />
                                                 </SelectTrigger>

@@ -10,7 +10,7 @@ import type { IMasterGrade } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ChevronLeft, GitCompareArrows } from 'lucide-react';
 import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
-import { Controller, FormProvider, useForm } from 'react-hook-form';
+import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
@@ -56,269 +56,244 @@ const ITEMS_PER_PAGE = 10;
 // ----------------------------------
 // Optimized Row Component
 // ----------------------------------
-const SubExamRow = React.memo(({
-    row,
-    index,
-    totalIndex,
-    errors,
-    parentMaxMarks,
-    gradeList,
-    onUpdate,
-    isRowChecked
-}: {
-    row: SubExamItem;
-    index: number;
-    totalIndex: number;
-    errors: any;
-    parentMaxMarks: number;
-    gradeList: IMasterGrade[];
-    onUpdate: (id: number, field: keyof SubExamItem, value: any) => void;
-    isRowChecked: boolean;
-}) => {
-    const [localMax, setLocalMax] = useState<string>(row.eycessS_MaxMarks?.toString() || '');
-    const [localMin, setLocalMin] = useState<string>(row.eycessS_MinMarks?.toString() || '');
-    const [localEntry, setLocalEntry] = useState<string>(row.eycessS_MarksEntryMax?.toString() || '');
-    const [localExemptedPer, setLocalExemptedPer] = useState<string>(row.eycessS_ExemptedPer?.toString() || '');
+const SubExamRow = React.memo(
+    ({
+        row,
+        index,
+        totalIndex,
+        errors,
+        parentMaxMarks,
+        gradeList,
+        onUpdate,
+        isRowChecked
+    }: {
+        row: SubExamItem;
+        index: number;
+        totalIndex: number;
+        errors: any;
+        parentMaxMarks: number;
+        gradeList: IMasterGrade[];
+        onUpdate: (id: number, field: keyof SubExamItem, value: any) => void;
+        isRowChecked: boolean;
+    }) => {
+        const [localMax, setLocalMax] = useState<string>(row.eycessS_MaxMarks?.toString() || '');
+        const [localMin, setLocalMin] = useState<string>(row.eycessS_MinMarks?.toString() || '');
+        const [localEntry, setLocalEntry] = useState<string>(row.eycessS_MarksEntryMax?.toString() || '');
+        const [localExemptedPer, setLocalExemptedPer] = useState<string>(row.eycessS_ExemptedPer?.toString() || '');
 
-    const maxDebounceRef = useRef<NodeJS.Timeout>();
-    const minDebounceRef = useRef<NodeJS.Timeout>();
-    const entryDebounceRef = useRef<NodeJS.Timeout>();
-    const exemptedPerDebounceRef = useRef<NodeJS.Timeout>();
+        const maxDebounceRef = useRef<NodeJS.Timeout | null>(null);
+        const minDebounceRef = useRef<NodeJS.Timeout | null>(null);
+        const entryDebounceRef = useRef<NodeJS.Timeout | null>(null);
+        const exemptedPerDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
-    // Handle checkbox change
-    const handleCheckboxChange = (checked: boolean) => {
-        onUpdate(row.emsE_Id, 'checkedvalue', checked);
-    };
-
-    // Handle max marks change with debounce
-    const handleMaxChange = (value: string) => {
-        setLocalMax(value);
-        if (maxDebounceRef.current) clearTimeout(maxDebounceRef.current);
-        maxDebounceRef.current = setTimeout(() => {
-            const numValue = value === '' ? '' : Number(value);
-            onUpdate(row.emsE_Id, 'eycessS_MaxMarks', numValue);
-        }, 50);
-    };
-
-    // Handle min marks change with debounce
-    const handleMinChange = (value: string) => {
-        setLocalMin(value);
-        if (minDebounceRef.current) clearTimeout(minDebounceRef.current);
-        minDebounceRef.current = setTimeout(() => {
-            const numValue = value === '' ? '' : Number(value);
-            onUpdate(row.emsE_Id, 'eycessS_MinMarks', numValue);
-        }, 50);
-    };
-
-    // Handle entry marks change with debounce
-    const handleEntryChange = (value: string) => {
-        setLocalEntry(value);
-        if (entryDebounceRef.current) clearTimeout(entryDebounceRef.current);
-        entryDebounceRef.current = setTimeout(() => {
-            const numValue = value === '' ? '' : Number(value);
-            onUpdate(row.emsE_Id, 'eycessS_MarksEntryMax', numValue);
-        }, 50);
-    };
-
-    // Handle grade change (immediate)
-    const handleGradeChange = (value: string) => {
-        onUpdate(row.emsE_Id, 'emgR_Id', value);
-    };
-
-    // Handle exempted change (immediate)
-    const handleExemptedChange = (checked: boolean) => {
-        onUpdate(row.emsE_Id, 'eycessS_ExemptedFlg', checked);
-        if (!checked) {
-            setLocalExemptedPer('');
-            onUpdate(row.emsE_Id, 'eycessS_ExemptedPer', '');
-        }
-    };
-
-    // Handle exempted percentage change with debounce
-    const handleExemptedPerChange = (value: string) => {
-        setLocalExemptedPer(value);
-        if (exemptedPerDebounceRef.current) clearTimeout(exemptedPerDebounceRef.current);
-        exemptedPerDebounceRef.current = setTimeout(() => {
-            const numValue = value === '' ? '' : Number(value);
-            onUpdate(row.emsE_Id, 'eycessS_ExemptedPer', numValue);
-        }, 50);
-    };
-
-    // Handle flag changes (immediate)
-    const handleMarksFlagChange = (checked: boolean) => onUpdate(row.emsE_Id, 'eycessS_MarksFlg', checked);
-    const handleGradesFlagChange = (checked: boolean) => onUpdate(row.emsE_Id, 'eycessS_GradesFlg', checked);
-    const handleAplResultChange = (checked: boolean) => onUpdate(row.emsE_Id, 'eycessS_AplResultFlg', checked);
-
-    // Cleanup on unmount
-    useEffect(() => {
-        return () => {
-            if (maxDebounceRef.current) clearTimeout(maxDebounceRef.current);
-            if (minDebounceRef.current) clearTimeout(minDebounceRef.current);
-            if (entryDebounceRef.current) clearTimeout(entryDebounceRef.current);
-            if (exemptedPerDebounceRef.current) clearTimeout(exemptedPerDebounceRef.current);
+        // Handle checkbox change
+        const handleCheckboxChange = (checked: boolean) => {
+            onUpdate(row.emsE_Id, 'checkedvalue', checked);
         };
-    }, []);
 
-    // Update local state when row props change
-    useEffect(() => {
-        setLocalMax(row.eycessS_MaxMarks?.toString() || '');
-        setLocalMin(row.eycessS_MinMarks?.toString() || '');
-        setLocalEntry(row.eycessS_MarksEntryMax?.toString() || '');
-        setLocalExemptedPer(row.eycessS_ExemptedPer?.toString() || '');
-    }, [row.eycessS_MaxMarks, row.eycessS_MinMarks, row.eycessS_MarksEntryMax, row.eycessS_ExemptedPer]);
+        // Handle max marks change with debounce
+        const handleMaxChange = (value: string) => {
+            setLocalMax(value);
+            if (maxDebounceRef.current) clearTimeout(maxDebounceRef.current);
+            maxDebounceRef.current = setTimeout(() => {
+                const numValue = value === '' ? '' : Number(value);
+                onUpdate(row.emsE_Id, 'eycessS_MaxMarks', numValue);
+            }, 50);
+        };
 
-    return (
-        <tr className={totalIndex % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-            <td className='border p-2 text-center'>{totalIndex + 1}</td>
+        // Handle min marks change with debounce
+        const handleMinChange = (value: string) => {
+            setLocalMin(value);
+            if (minDebounceRef.current) clearTimeout(minDebounceRef.current);
+            minDebounceRef.current = setTimeout(() => {
+                const numValue = value === '' ? '' : Number(value);
+                onUpdate(row.emsE_Id, 'eycessS_MinMarks', numValue);
+            }, 50);
+        };
 
-            {/* Checkbox */}
-            <td className='border p-2 text-center'>
-                <Checkbox
-                    checked={!!row.checkedvalue}
-                    onCheckedChange={handleCheckboxChange}
-                />
-            </td>
+        // Handle entry marks change with debounce
+        const handleEntryChange = (value: string) => {
+            setLocalEntry(value);
+            if (entryDebounceRef.current) clearTimeout(entryDebounceRef.current);
+            entryDebounceRef.current = setTimeout(() => {
+                const numValue = value === '' ? '' : Number(value);
+                onUpdate(row.emsE_Id, 'eycessS_MarksEntryMax', numValue);
+            }, 50);
+        };
 
-            {/* Sub-Exam Name (Code) */}
-            <td className='border p-2 text-left'>
-                <div className='text-sm'>
-                    <div className='font-medium'>{row.emsE_SubExamName}</div>
-                    {row.emsE_SubExamCode && (
-                        <div className='text-slate-500 text-xs'>{row.emsE_SubExamCode}</div>
+        // Handle grade change (immediate)
+        const handleGradeChange = (value: string) => {
+            onUpdate(row.emsE_Id, 'emgR_Id', value);
+        };
+
+        // Handle exempted change (immediate)
+        const handleExemptedChange = (checked: boolean) => {
+            onUpdate(row.emsE_Id, 'eycessS_ExemptedFlg', checked);
+            if (!checked) {
+                setLocalExemptedPer('');
+                onUpdate(row.emsE_Id, 'eycessS_ExemptedPer', '');
+            }
+        };
+
+        // Handle exempted percentage change with debounce
+        const handleExemptedPerChange = (value: string) => {
+            setLocalExemptedPer(value);
+            if (exemptedPerDebounceRef.current) clearTimeout(exemptedPerDebounceRef.current);
+            exemptedPerDebounceRef.current = setTimeout(() => {
+                const numValue = value === '' ? '' : Number(value);
+                onUpdate(row.emsE_Id, 'eycessS_ExemptedPer', numValue);
+            }, 50);
+        };
+
+        // Handle flag changes (immediate)
+        const handleMarksFlagChange = (checked: boolean) => onUpdate(row.emsE_Id, 'eycessS_MarksFlg', checked);
+        const handleGradesFlagChange = (checked: boolean) => onUpdate(row.emsE_Id, 'eycessS_GradesFlg', checked);
+        const handleAplResultChange = (checked: boolean) => onUpdate(row.emsE_Id, 'eycessS_AplResultFlg', checked);
+
+        // Cleanup on unmount
+        useEffect(() => {
+            return () => {
+                if (maxDebounceRef.current) clearTimeout(maxDebounceRef.current);
+                if (minDebounceRef.current) clearTimeout(minDebounceRef.current);
+                if (entryDebounceRef.current) clearTimeout(entryDebounceRef.current);
+                if (exemptedPerDebounceRef.current) clearTimeout(exemptedPerDebounceRef.current);
+            };
+        }, []);
+
+        // Update local state when row props change
+        useEffect(() => {
+            setLocalMax(row.eycessS_MaxMarks?.toString() || '');
+            setLocalMin(row.eycessS_MinMarks?.toString() || '');
+            setLocalEntry(row.eycessS_MarksEntryMax?.toString() || '');
+            setLocalExemptedPer(row.eycessS_ExemptedPer?.toString() || '');
+        }, [row.eycessS_MaxMarks, row.eycessS_MinMarks, row.eycessS_MarksEntryMax, row.eycessS_ExemptedPer]);
+
+        return (
+            <tr className={totalIndex % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                <td className='border p-2 text-center'>{totalIndex + 1}</td>
+
+                {/* Checkbox */}
+                <td className='border p-2 text-center'>
+                    <Checkbox checked={!!row.checkedvalue} onCheckedChange={handleCheckboxChange} />
+                </td>
+
+                {/* Sub-Exam Name (Code) */}
+                <td className='border p-2 text-left'>
+                    <div className='text-sm'>
+                        <div className='font-medium'>{row.emsE_SubExamName}</div>
+                        {row.emsE_SubExamCode && <div className='text-slate-500 text-xs'>{row.emsE_SubExamCode}</div>}
+                    </div>
+                </td>
+
+                {/* Max Marks */}
+                <td className='w-28 border p-2'>
+                    <Input
+                        type='text'
+                        value={localMax}
+                        disabled={!isRowChecked}
+                        onChange={(e) => {
+                            const raw = e.target.value.replace(/\D/g, '');
+                            handleMaxChange(raw === '' ? '' : raw);
+                        }}
+                        className={errors?.eycessS_MaxMarks ? 'border-red-500 text-center' : 'text-center'}
+                        placeholder='Enter Max Marks'
+                        inputMode='numeric'
+                    />
+                    {errors?.eycessS_MaxMarks && <p className='mt-1 text-[11px] text-red-500'>{String(errors.eycessS_MaxMarks)}</p>}
+                </td>
+
+                {/* Min Marks */}
+                <td className='w-28 border p-2'>
+                    <Input
+                        type='text'
+                        value={localMin}
+                        disabled={!isRowChecked}
+                        onChange={(e) => {
+                            const raw = e.target.value.replace(/\D/g, '');
+                            handleMinChange(raw === '' ? '' : raw);
+                        }}
+                        className={errors?.eycessS_MinMarks ? 'border-red-500 text-center' : 'text-center'}
+                        placeholder='Enter Min Marks'
+                        inputMode='numeric'
+                    />
+                    {errors?.eycessS_MinMarks && <p className='mt-1 text-[11px] text-red-500'>{String(errors.eycessS_MinMarks)}</p>}
+                </td>
+
+                {/* Marks Entry Max */}
+                <td className='w-28 border p-2'>
+                    <Input
+                        type='text'
+                        value={localEntry}
+                        disabled={!isRowChecked}
+                        onChange={(e) => {
+                            const raw = e.target.value.replace(/\D/g, '');
+                            handleEntryChange(raw === '' ? '' : raw);
+                        }}
+                        className={errors?.eycessS_MarksEntryMax ? 'border-red-500 text-center' : 'text-center'}
+                        placeholder='Enter Max Entry'
+                        inputMode='numeric'
+                    />
+                    {errors?.eycessS_MarksEntryMax && (
+                        <p className='mt-1 text-[11px] text-red-500'>{String(errors.eycessS_MarksEntryMax)}</p>
                     )}
-                </div>
-            </td>
+                </td>
 
-            {/* Max Marks */}
-            <td className='w-28 border p-2'>
-                <Input
-                    type='text'
-                    value={localMax}
-                    disabled={!isRowChecked}
-                    onChange={(e) => {
-                        const raw = e.target.value.replace(/\D/g, '');
-                        handleMaxChange(raw === '' ? '' : raw);
-                    }}
-                    className={errors?.eycessS_MaxMarks ? 'border-red-500 text-center' : 'text-center'}
-                    placeholder='Enter Max Marks'
-                    inputMode='numeric'
-                />
-                {errors?.eycessS_MaxMarks && (
-                    <p className='mt-1 text-[11px] text-red-500'>{String(errors.eycessS_MaxMarks)}</p>
-                )}
-            </td>
+                {/* Grade */}
+                <td className='w-40 border p-2'>
+                    <Select value={row.emgR_Id?.toString() ?? ''} disabled={!isRowChecked} onValueChange={handleGradeChange}>
+                        <SelectTrigger className={errors?.emgR_Id ? 'border-red-500' : ''}>
+                            <SelectValue placeholder='Select Grade' />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {gradeList.map((g) => (
+                                <SelectItem key={g.emgR_Id} value={g.emgR_Id.toString()}>
+                                    {g.emgR_GradeName}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    {errors?.emgR_Id && <p className='mt-1 text-[11px] text-red-500'>{String(errors.emgR_Id)}</p>}
+                </td>
 
-            {/* Min Marks */}
-            <td className='w-28 border p-2'>
-                <Input
-                    type='text'
-                    value={localMin}
-                    disabled={!isRowChecked}
-                    onChange={(e) => {
-                        const raw = e.target.value.replace(/\D/g, '');
-                        handleMinChange(raw === '' ? '' : raw);
-                    }}
-                    className={errors?.eycessS_MinMarks ? 'border-red-500 text-center' : 'text-center'}
-                    placeholder='Enter Min Marks'
-                    inputMode='numeric'
-                />
-                {errors?.eycessS_MinMarks && (
-                    <p className='mt-1 text-[11px] text-red-500'>{String(errors.eycessS_MinMarks)}</p>
-                )}
-            </td>
+                {/* Exempted */}
+                <td className='border p-2 text-center'>
+                    <Checkbox checked={!!row.eycessS_ExemptedFlg} onCheckedChange={handleExemptedChange} />
+                </td>
 
-            {/* Marks Entry Max */}
-            <td className='w-28 border p-2'>
-                <Input
-                    type='text'
-                    value={localEntry}
-                    disabled={!isRowChecked}
-                    onChange={(e) => {
-                        const raw = e.target.value.replace(/\D/g, '');
-                        handleEntryChange(raw === '' ? '' : raw);
-                    }}
-                    className={errors?.eycessS_MarksEntryMax ? 'border-red-500 text-center' : 'text-center'}
-                    placeholder='Enter Max Entry'
-                    inputMode='numeric'
-                />
-                {errors?.eycessS_MarksEntryMax && (
-                    <p className='mt-1 text-[11px] text-red-500'>{String(errors.eycessS_MarksEntryMax)}</p>
-                )}
-            </td>
+                {/* Exempt % */}
+                <td className='w-24 border p-2'>
+                    <Input
+                        type='text'
+                        disabled={!row.eycessS_ExemptedFlg}
+                        value={localExemptedPer}
+                        onChange={(e) => {
+                            const raw = e.target.value.replace(/\D/g, '');
+                            handleExemptedPerChange(raw === '' ? '' : raw);
+                        }}
+                        className='text-center'
+                        placeholder='%'
+                        inputMode='numeric'
+                    />
+                </td>
 
-            {/* Grade */}
-            <td className='w-40 border p-2'>
-                <Select
-                    value={row.emgR_Id?.toString() ?? ''}
-                    disabled={!isRowChecked}
-                    onValueChange={handleGradeChange}
-                >
-                    <SelectTrigger className={errors?.emgR_Id ? 'border-red-500' : ''}>
-                        <SelectValue placeholder='Select Grade' />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {gradeList.map((g) => (
-                            <SelectItem key={g.emgR_Id} value={g.emgR_Id.toString()}>
-                                {g.emgR_GradeName}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-                {errors?.emgR_Id && (
-                    <p className='mt-1 text-[11px] text-red-500'>{String(errors.emgR_Id)}</p>
-                )}
-            </td>
+                {/* Marks Flag */}
+                <td className='border p-2 text-center'>
+                    <Checkbox checked={!!row.eycessS_MarksFlg} onCheckedChange={handleMarksFlagChange} />
+                </td>
 
-            {/* Exempted */}
-            <td className='border p-2 text-center'>
-                <Checkbox
-                    checked={!!row.eycessS_ExemptedFlg}
-                    onCheckedChange={handleExemptedChange}
-                />
-            </td>
+                {/* Grades Flag */}
+                <td className='border p-2 text-center'>
+                    <Checkbox checked={!!row.eycessS_GradesFlg} onCheckedChange={handleGradesFlagChange} />
+                </td>
 
-            {/* Exempt % */}
-            <td className='w-24 border p-2'>
-                <Input
-                    type='text'
-                    disabled={!row.eycessS_ExemptedFlg}
-                    value={localExemptedPer}
-                    onChange={(e) => {
-                        const raw = e.target.value.replace(/\D/g, '');
-                        handleExemptedPerChange(raw === '' ? '' : raw);
-                    }}
-                    className='text-center'
-                    placeholder='%'
-                    inputMode='numeric'
-                />
-            </td>
-
-            {/* Marks Flag */}
-            <td className='border p-2 text-center'>
-                <Checkbox
-                    checked={!!row.eycessS_MarksFlg}
-                    onCheckedChange={handleMarksFlagChange}
-                />
-            </td>
-
-            {/* Grades Flag */}
-            <td className='border p-2 text-center'>
-                <Checkbox
-                    checked={!!row.eycessS_GradesFlg}
-                    onCheckedChange={handleGradesFlagChange}
-                />
-            </td>
-
-            {/* Apl Result */}
-            <td className='border p-2 text-center'>
-                <Checkbox
-                    checked={!!row.eycessS_AplResultFlg}
-                    onCheckedChange={handleAplResultChange}
-                />
-            </td>
-        </tr>
-    );
-});
+                {/* Apl Result */}
+                <td className='border p-2 text-center'>
+                    <Checkbox checked={!!row.eycessS_AplResultFlg} onCheckedChange={handleAplResultChange} />
+                </td>
+            </tr>
+        );
+    }
+);
 
 SubExamRow.displayName = 'SubExamRow';
 
@@ -392,17 +367,11 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
                 emsE_SubExamOrder: l.emsE_SubExamOrder
             }));
 
-            //  SORT HERE 
-            const sortedList = [...list].sort(
-                (a, b) =>
-                    Number(a.emsE_SubExamOrder ?? 0) -
-                    Number(b.emsE_SubExamOrder ?? 0)
-            );
+            //  SORT HERE
+            const sortedList = [...list].sort((a, b) => Number(a.emsE_SubExamOrder ?? 0) - Number(b.emsE_SubExamOrder ?? 0));
 
             // Update ref
-            dataRef.current = new Map(
-                sortedList.map(item => [item.emsE_Id, item])
-            );
+            dataRef.current = new Map(sortedList.map((item) => [item.emsE_Id, item]));
 
             // Update form
             reset({ subexam_list: sortedList });
@@ -439,165 +408,171 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
     // ----------------------------------
     // Optimized Update Function using emsE_Id
     // ----------------------------------
-    const updateRowValue = useCallback((emsE_Id: number, field: keyof SubExamItem, value: any) => {
-        // Find the index of the item with this emsE_Id
-        const currentList = getValues('subexam_list') || [];
-        const itemIndex = currentList.findIndex(item => item.emsE_Id === emsE_Id);
+    const updateRowValue = useCallback(
+        (emsE_Id: number, field: keyof SubExamItem, value: any) => {
+            // Find the index of the item with this emsE_Id
+            const currentList = getValues('subexam_list') || [];
+            const itemIndex = currentList.findIndex((item) => item.emsE_Id === emsE_Id);
 
-        if (itemIndex === -1) return;
+            if (itemIndex === -1) return;
 
-        // Update the value in the form
-        setValue(`subexam_list.${itemIndex}.${field}`, value, {
-            shouldDirty: true,
-            shouldValidate: false
-        });
-
-        // Update the ref
-        const currentItem = dataRef.current.get(emsE_Id);
-        if (currentItem) {
-            dataRef.current.set(emsE_Id, {
-                ...currentItem,
-                [field]: value
+            // Update the value in the form
+            setValue(`subexam_list.${itemIndex}.${field}`, value, {
+                shouldDirty: true,
+                shouldValidate: false
             });
-        }
 
-        // Validate the field
-        validateField(emsE_Id, field, value);
-    }, [getValues, setValue]);
+            // Update the ref
+            const currentItem = dataRef.current.get(emsE_Id);
+            if (currentItem) {
+                dataRef.current.set(emsE_Id, {
+                    ...currentItem,
+                    [field]: value
+                });
+            }
+
+            // Validate the field
+            validateField(emsE_Id, field, value);
+        },
+        [getValues, setValue]
+    );
 
     // ----------------------------------
     // Validation Functions
     // ----------------------------------
-    const validateField = useCallback((emsE_Id: number, field: keyof SubExamItem, value: any) => {
-        const item = dataRef.current.get(emsE_Id);
-        if (!item) return;
+    const validateField = useCallback(
+        (emsE_Id: number, field: keyof SubExamItem, value: any) => {
+            const item = dataRef.current.get(emsE_Id);
+            if (!item) return;
 
-        const currentList = getValues('subexam_list') || [];
-        const itemIndex = currentList.findIndex(item => item.emsE_Id === emsE_Id);
+            const currentList = getValues('subexam_list') || [];
+            const _itemIndex = currentList.findIndex((item) => item.emsE_Id === emsE_Id);
 
-        let error = '';
-        const numValue = value === '' ? undefined : Number(value);
+            let error = '';
+            const numValue = value === '' ? undefined : Number(value);
 
-        // Validation based on field
-        switch (field) {
-            case 'eycessS_MaxMarks': {
-                if (numValue !== undefined && numValue > subject.eycessS_MaxMarks) {
-                    error = `Max marks cannot exceed parent subject max (${subject.eycessS_MaxMarks})`;
+            // Validation based on field
+            switch (field) {
+                case 'eycessS_MaxMarks': {
+                    if (numValue !== undefined && numValue > subject.eycessS_MaxMarks) {
+                        error = `Max marks cannot exceed parent subject max (${subject.eycessS_MaxMarks})`;
+                    }
+                    // Validate against min marks
+                    const minVal = item.eycessS_MinMarks === '' ? undefined : Number(item.eycessS_MinMarks);
+                    if (minVal !== undefined && numValue !== undefined && minVal > numValue) {
+                        error = 'Max marks cannot be less than Min marks';
+                    }
+                    break;
                 }
-                // Validate against min marks
-                const minVal = item.eycessS_MinMarks === '' ? undefined : Number(item.eycessS_MinMarks);
-                if (minVal !== undefined && numValue !== undefined && minVal > numValue) {
-                    error = 'Max marks cannot be less than Min marks';
+
+                case 'eycessS_MinMarks': {
+                    if (numValue !== undefined && numValue > subject.eycessS_MinMarks) {
+                        error = `Min marks cannot exceed parent subject max (${subject.eycessS_MinMarks})`;
+                    }
+                    // Validate against max marks
+                    const maxVal = item.eycessS_MaxMarks === '' ? undefined : Number(item.eycessS_MaxMarks);
+                    if (maxVal !== undefined && numValue !== undefined && numValue > maxVal) {
+                        error = 'Min marks cannot be greater than Max marks';
+                    }
+                    break;
                 }
-                break;
+
+                case 'eycessS_MarksEntryMax':
+                    if (numValue !== undefined && numValue > subject.eycessS_MarksEntryMax) {
+                        error = `Marks entry max cannot exceed parent subject max (${subject.eycessS_MarksEntryMax})`;
+                    }
+                    // Validate against max marks
+                    // biome-ignore lint/correctness/noSwitchDeclarations: <explanation>
+                    const maxVal2 = item.eycessS_MaxMarks === '' ? undefined : Number(item.eycessS_MaxMarks);
+                    if (maxVal2 !== undefined && numValue !== undefined && numValue > maxVal2) {
+                        error = 'Marks entry max cannot be greater than Max marks';
+                    }
+                    break;
+
+                case 'emgR_Id':
+                    if (item.checkedvalue && (!value || value === '')) {
+                        error = 'Grade is required';
+                    }
+                    break;
+
+                case 'checkedvalue':
+                    if (value) {
+                        // If checked, validate required fields
+                        if (!item.eycessS_MaxMarks || item.eycessS_MaxMarks === '') {
+                            setValidationErrors((prev) => ({
+                                ...prev,
+                                [emsE_Id]: {
+                                    ...prev[emsE_Id],
+                                    eycessS_MaxMarks: 'Max marks is required'
+                                }
+                            }));
+                        }
+                        if (!item.eycessS_MinMarks || item.eycessS_MinMarks === '') {
+                            setValidationErrors((prev) => ({
+                                ...prev,
+                                [emsE_Id]: {
+                                    ...prev[emsE_Id],
+                                    eycessS_MinMarks: 'Min marks is required'
+                                }
+                            }));
+                        }
+                        if (!item.eycessS_MarksEntryMax || item.eycessS_MarksEntryMax === '') {
+                            setValidationErrors((prev) => ({
+                                ...prev,
+                                [emsE_Id]: {
+                                    ...prev[emsE_Id],
+                                    eycessS_MarksEntryMax: 'Marks entry max is required'
+                                }
+                            }));
+                        }
+                        if (!item.emgR_Id || item.emgR_Id === '') {
+                            setValidationErrors((prev) => ({
+                                ...prev,
+                                [emsE_Id]: {
+                                    ...prev[emsE_Id],
+                                    emgR_Id: 'Grade is required'
+                                }
+                            }));
+                        }
+                    } else {
+                        // If unchecked, clear errors for this row
+                        setValidationErrors((prev) => {
+                            const newErrors = { ...prev };
+                            delete newErrors[emsE_Id];
+                            return newErrors;
+                        });
+                    }
+                    break;
             }
 
-            case 'eycessS_MinMarks': {
-                if (numValue !== undefined && numValue > subject.eycessS_MinMarks) {
-                    error = `Min marks cannot exceed parent subject max (${subject.eycessS_MinMarks})`;
-                }
-                // Validate against max marks
-                const maxVal = item.eycessS_MaxMarks === '' ? undefined : Number(item.eycessS_MaxMarks);
-                if (maxVal !== undefined && numValue !== undefined && numValue > maxVal) {
-                    error = 'Min marks cannot be greater than Max marks';
-                }
-                break;
-            }
-
-            case 'eycessS_MarksEntryMax':
-                if (numValue !== undefined && numValue > subject.eycessS_MarksEntryMax) {
-                    error = `Marks entry max cannot exceed parent subject max (${subject.eycessS_MarksEntryMax})`;
-                }
-                // Validate against max marks
-                // biome-ignore lint/correctness/noSwitchDeclarations: <explanation>
-                const maxVal2 = item.eycessS_MaxMarks === '' ? undefined : Number(item.eycessS_MaxMarks);
-                if (maxVal2 !== undefined && numValue !== undefined && numValue > maxVal2) {
-                    error = 'Marks entry max cannot be greater than Max marks';
-                }
-                break;
-
-            case 'emgR_Id':
-                if (item.checkedvalue && (!value || value === '')) {
-                    error = 'Grade is required';
-                }
-                break;
-
-            case 'checkedvalue':
-                if (value) {
-                    // If checked, validate required fields
-                    if (!item.eycessS_MaxMarks || item.eycessS_MaxMarks === '') {
-                        setValidationErrors(prev => ({
-                            ...prev,
-                            [emsE_Id]: {
-                                ...prev[emsE_Id],
-                                eycessS_MaxMarks: 'Max marks is required'
-                            }
-                        }));
-                    }
-                    if (!item.eycessS_MinMarks || item.eycessS_MinMarks === '') {
-                        setValidationErrors(prev => ({
-                            ...prev,
-                            [emsE_Id]: {
-                                ...prev[emsE_Id],
-                                eycessS_MinMarks: 'Min marks is required'
-                            }
-                        }));
-                    }
-                    if (!item.eycessS_MarksEntryMax || item.eycessS_MarksEntryMax === '') {
-                        setValidationErrors(prev => ({
-                            ...prev,
-                            [emsE_Id]: {
-                                ...prev[emsE_Id],
-                                eycessS_MarksEntryMax: 'Marks entry max is required'
-                            }
-                        }));
-                    }
-                    if (!item.emgR_Id || item.emgR_Id === '') {
-                        setValidationErrors(prev => ({
-                            ...prev,
-                            [emsE_Id]: {
-                                ...prev[emsE_Id],
-                                emgR_Id: 'Grade is required'
-                            }
-                        }));
-                    }
-                } else {
-                    // If unchecked, clear errors for this row
-                    setValidationErrors(prev => {
-                        const newErrors = { ...prev };
-                        delete newErrors[emsE_Id];
-                        return newErrors;
-                    });
-                }
-                break;
-        }
-
-        // Update validation errors
-        if (error) {
-            setValidationErrors(prev => ({
-                ...prev,
-                [emsE_Id]: {
-                    ...prev[emsE_Id],
-                    [field]: error
-                }
-            }));
-        } else {
-            setValidationErrors(prev => {
-                if (!prev[emsE_Id]) return prev;
-                const newErrors = { ...prev[emsE_Id] };
-                delete newErrors[field];
-                if (Object.keys(newErrors).length === 0) {
-                    const newState = { ...prev };
-                    delete newState[emsE_Id];
-                    return newState;
-                }
-                return {
+            // Update validation errors
+            if (error) {
+                setValidationErrors((prev) => ({
                     ...prev,
-                    [emsE_Id]: newErrors
-                };
-            });
-        }
-    }, [parentMaxMarks, getValues]);
+                    [emsE_Id]: {
+                        ...prev[emsE_Id],
+                        [field]: error
+                    }
+                }));
+            } else {
+                setValidationErrors((prev) => {
+                    if (!prev[emsE_Id]) return prev;
+                    const newErrors = { ...prev[emsE_Id] };
+                    delete newErrors[field];
+                    if (Object.keys(newErrors).length === 0) {
+                        const newState = { ...prev };
+                        delete newState[emsE_Id];
+                        return newState;
+                    }
+                    return {
+                        ...prev,
+                        [emsE_Id]: newErrors
+                    };
+                });
+            }
+        },
+        [parentMaxMarks, getValues]
+    );
 
     // ----------------------------------
     // Set Order Functions
@@ -612,46 +587,49 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
         setIsOrderloading(false);
     }, [getValues]);
 
-    const handleOrderSave = useCallback(async (updatedData: any) => {
-        setIsOrderSaving(true);
+    const handleOrderSave = useCallback(
+        async (updatedData: any) => {
+            setIsOrderSaving(true);
 
-        setTimeout(() => {
-            const currentList = getValues('subexam_list') ?? [];
-            const currentMap = new Map(currentList.map(item => [item.emsE_Id, item]));
+            setTimeout(() => {
+                const currentList = getValues('subexam_list') ?? [];
+                const currentMap = new Map(currentList.map((item) => [item.emsE_Id, item]));
 
-            // Build the reordered list preserving ALL original values
-            const reorderedList = (updatedData ?? []).map((updatedItem: any, index: number) => {
-                const itemId = updatedItem.emsE_Id || updatedItem.id;
-                const existingItem = currentMap.get(itemId);
+                // Build the reordered list preserving ALL original values
+                const reorderedList = (updatedData ?? []).map((updatedItem: any, index: number) => {
+                    const itemId = updatedItem.emsE_Id || updatedItem.id;
+                    const existingItem = currentMap.get(itemId);
 
-                if (existingItem) {
+                    if (existingItem) {
+                        return {
+                            ...existingItem,
+                            emsE_SubExamOrder: index + 1
+                        };
+                    }
+
                     return {
-                        ...existingItem,
-                        emsE_SubExamOrder: index + 1
+                        ...updatedItem,
+                        emsE_Id: itemId,
+                        emsE_SubExamOrder: index + 1,
+                        emgR_Id: updatedItem.emgR_Id || ''
                     };
-                }
+                });
 
-                return {
-                    ...updatedItem,
-                    emsE_Id: itemId,
-                    emsE_SubExamOrder: index + 1,
-                    emgR_Id: updatedItem.emgR_Id || ''
-                };
-            });
+                // Update ref with new order
+                reorderedList.forEach((item: SubExamItem) => {
+                    dataRef.current.set(item.emsE_Id, item);
+                });
 
-            // Update ref with new order
-            reorderedList.forEach((item: SubExamItem) => {
-                dataRef.current.set(item.emsE_Id, item);
-            });
+                // Update form
+                setValue('subexam_list', reorderedList, { shouldDirty: true, shouldValidate: false });
 
-            // Update form
-            setValue('subexam_list', reorderedList, { shouldDirty: true, shouldValidate: false });
-
-            toast.success('Sub-Exam order saved successfully.');
-            setIsOrderSaving(false);
-            setIsOrderDetailsOpen(false);
-        }, 0);
-    }, [getValues, setValue]);
+                toast.success('Sub-Exam order saved successfully.');
+                setIsOrderSaving(false);
+                setIsOrderDetailsOpen(false);
+            }, 0);
+        },
+        [getValues, setValue]
+    );
 
     const closeOrderDetails = useCallback(() => {
         setIsOrderDetailsOpen(false);
@@ -814,9 +792,7 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
                         <DialogTitle>{`Map Sub-Exam — ${subject?.ismS_SubjectName}`}</DialogTitle>
                         <DialogDescription>Loading sub-exam details...</DialogDescription>
                     </DialogHeader>
-                    <div className='max-h-[55vh] overflow-auto'>
-                        {renderSkeletonTable()}
-                    </div>
+                    <div className='max-h-[55vh] overflow-auto'>{renderSkeletonTable()}</div>
                     <div className='z-10 mt-4 flex w-fit justify-end gap-2 border-t bg-white p-2'>
                         <Button type='button' variant='ghost' disabled>
                             Cancel

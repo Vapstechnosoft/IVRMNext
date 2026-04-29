@@ -21,8 +21,8 @@ const routeMatcher = createRouterMatcher([
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
-    // ✅ Skip middleware for API auth routes to prevent fetch errors/recursion
-    if (pathname.startsWith('/api/auth/')) {
+    // ✅ Skip middleware for API routes that need public or direct access
+    if (pathname.startsWith('/api/auth/') || pathname.startsWith('/api/header-voice')) {
         return NextResponse.next();
     }
 

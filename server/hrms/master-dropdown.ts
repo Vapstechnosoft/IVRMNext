@@ -6,6 +6,7 @@ import type {
     DesignationItem,
     EmployeeItem
 } from '@/types/hrms/master-dropdown';
+import type { Institution } from '@/types/exam/exam-module/report';
 
 /**
  * Get all group types
@@ -246,5 +247,101 @@ export async function getLeave(): Promise<ApiResponse<any[]>> {
     } catch (error: any) {
         console.error('❌ [SERVER] Leaves API Error:', error);
         throw new Error(error?.message || 'Failed to fetch leaves');
+    }
+}
+/**
+ * Get leave names for dropdown
+ * GET /api/MasterDropDown/get_leave_name_dropdown
+ * 
+ * @returns List of leave names with codes
+ */
+export async function getLeaveNameCodeDropdown(): Promise<ApiResponse<any[]>> {
+    const url = '/api/MasterDropDown/get_leave_name_dropdown';
+    console.log('📡 [SERVER] Fetching Leave Name Dropdown:', url);
+
+    try {
+        const response = await api.get<any[]>('hmslms', url);
+        console.log('📦 [SERVER] Leave Name Dropdown Response:', JSON.stringify(response, null, 2));
+
+        const res = response as any;
+        return {
+            success: res?.success ?? true,
+            message: res?.message || 'Data fetched successfully',
+            data: res?.data || res || []
+        };
+    } catch (error: any) {
+        console.error('❌ [SERVER] Leave Name Dropdown API Error:', error);
+        throw new Error(error?.message || 'Failed to fetch leave names');
+    }
+}
+
+/**
+ * Get institution details
+ * GET /api/MasterDropDown/master_institution
+ * 
+ * @returns Institution details
+ */
+export async function getMasterInstitution(): Promise<ApiResponse<Institution>> {
+    const url = '/api/MasterDropDown/master_institution';
+    console.log('📡 [SERVER] Fetching Institution Details:', url);
+
+    try {
+        const response = await api.get<Institution>('hrms', url);
+        console.log('📊 [SERVER] Institution Details Response:', JSON.stringify(response, null, 2));
+
+        const res = response as any;
+        return {
+            success: res?.success ?? true,
+            message: res?.message || 'Data fetched successfully',
+            data: res?.data || res
+        };
+    } catch (error: any) {
+        console.error('❌ [SERVER] Institution Details API Error:', error);
+        throw new Error(error?.message || 'Failed to fetch institution details');
+    }
+}
+
+
+/**
+ * Get institution details
+ * GET /api/MasterDropDown/GetEmployees
+ * 
+ * @returns Institution details
+ */
+
+export async function getEmployees(): Promise<ApiResponse<any[]>> {
+    const url = '/api/MasterDropDown/GetEmployees';
+    try {
+        const response = await api.get<any[]>('hrms', url);
+       
+        const res = response as any;
+        return {
+            success: res?.success ?? true,
+            message: res?.message || 'Data fetched successfully',
+            data: res?.data || res || []
+        };
+    } catch (error: any) {
+        throw new Error(error?.message || 'Failed to fetch employees');
+    }
+}
+
+
+/**
+ * Get financial year dropdown
+ */
+
+export async function getFinancialYearDropdown(): Promise<ApiResponse<any[]>> {
+    const url = '/api/MasterDropDown/finanicial_year_drop_down';
+    try {
+        const response = await api.get<any[]>('hrms', url);
+       
+        const res = response as any;
+        return {
+            success: res?.success ?? true,
+            message: res?.message || 'Data fetched successfully',
+            data: res?.data || res || []
+        };
+    } catch (error: any) {
+        throw new Error(error?.message || 'Failed to fetch financial year dropdown');
     }
 }

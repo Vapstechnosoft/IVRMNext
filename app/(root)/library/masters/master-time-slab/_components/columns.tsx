@@ -50,8 +50,8 @@ export const MasterTimeSlabColumns: ColumnDef<IMasterTimeSlab>[] = [
             <DataTableColumnHeader column={column} title="Per Day" />
         ),
         cell: ({ row }) => {
-            const value = row.getValue<number>('lfsE_PerDayFlg');
-            return <div>{value === 1 ? 'Yes' : 'No'}</div>;
+            const value = row.getValue('lfsE_PerDayFlg');
+            return <div>{value === 1 || value === true ? 'Yes' : 'No'}</div>;
         }
     },
     {

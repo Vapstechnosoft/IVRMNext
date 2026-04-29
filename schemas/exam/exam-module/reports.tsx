@@ -286,11 +286,13 @@ export const juniorsProgressCardReportSchemaForPrint = z.object({
     ASMAY_Id: z.string().min(1, 'Academic Year is required'),
     ASMCL_Id: z.string().min(1, 'Class is required'),
     ASMS_Id: z.string().min(1, 'Section is required'),
-    EME_Id: z.string().min(1, 'Exam Name is required'),
+    exmname: z.string().min(1, 'Exam Name is required'),
     superAverage: z.boolean().default(false),
     printLogo: z.boolean().default(false),
     selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
 });
+
+export type JuniorsProgressCardReportSchemaForPrint = z.infer<typeof juniorsProgressCardReportSchemaForPrint>;
 
 export const marksEntryReportSchema = z.object({
     ASMAY_Id: z.string().min(1, 'Academic Year is required'),
@@ -351,7 +353,8 @@ export const promotionDetailsReportSchema = z
         ASMS_Id: z.string().min(1, 'Section is required'),
         EMPG_GroupName: z.string().optional(), // Term
         superAverage: z.boolean().default(false),
-        selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
+        selectedStudents: z.array(z.string()).min(1, 'Select at least one student'),
+        selectedStudentNames: z.array(z.string()).optional()
     })
     .refine(
         (data) => {
@@ -380,7 +383,7 @@ export const toppersListReportSchema = z
             .min(1, 'Top count is required')
             .regex(/^\d+$/, 'Must be a number')
             .refine((val) => Number.parseInt(val) > 0, 'Top count must be greater than 0'),
-        EME_Id: z.string().min(1, 'Exam is required'),
+        EME_Id: z.string().optional(),
         subjectwise: z.boolean().default(false),
         ISMS_Id: z.string().optional(), // Subject (Required only when subjectwise is checked)
         // Hidden fields for API payload
@@ -649,7 +652,7 @@ export const stJamesConsolidateReportSchema = z.object({
     asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
     asmcL_Id: z.number({ required_error: 'Class Name is required' }).min(1, { message: 'Please select Class Name' }),
     asmS_Id: z.number({ required_error: 'Section Name is required' }).min(1, { message: 'Please select Section Name' })
-})
+});
 
 export type StJamesConsolidateReportSchema = z.infer<typeof stJamesConsolidateReportSchema>;
 
@@ -666,6 +669,6 @@ export const stJamesIX_XReportSchema = z.object({
             })
         )
         .min(1, { message: 'At least one Exam must be selected' })
-})
+});
 
 export type StJamesIX_XReportSchema = z.infer<typeof stJamesIX_XReportSchema>;

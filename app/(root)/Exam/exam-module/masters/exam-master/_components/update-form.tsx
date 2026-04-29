@@ -9,7 +9,7 @@ import { masterExamSchema } from '@/schemas/exam/exam-module/masters';
 import { addOrUpdateMasterExam } from '@/server/exam/exam-module/masters/exam';
 import type { IMasterExam } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Save, RefreshCw } from 'lucide-react';
+import { RefreshCw, Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -104,9 +104,9 @@ export default function UpdateMasterExamForm({ onSuccess, className = '', select
         setIsLoading(true);
         const timer = setTimeout(() => {
             setIsLoading(false);
-        }, 500)
+        }, 500);
         return () => clearTimeout(timer);
-    }, [row])
+    }, [row]);
 
     if (isLoading) {
         return (
@@ -116,7 +116,6 @@ export default function UpdateMasterExamForm({ onSuccess, className = '', select
             </div>
         );
     }
-
 
     return (
         <div className={className}>

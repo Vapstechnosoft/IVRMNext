@@ -6,13 +6,19 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useEmployeeMonthlyReport } from '@/hooks/hrms/attendance-management/useReports';
 import { exportToExcel } from '@/lib/utils';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { FileSpreadsheet, Printer, X } from 'lucide-react';
-import { useState } from 'react';
-import { use } from 'react';
+import { useState, useMemo, use } from 'react';
 import AddEmployeeMonthlyReportForm from './_components/add-from';
 import type { MonthlyRow } from './_components/columns';
-import { employeeMonthlyReportColumns } from './_components/columns';
+import {
+    employeeMonthlyReportBaseColumns,
+    getDynamicDateColumns,
+    summaryColumns,
+    formatOneColumns,
+    getFormatOneEmployeeColumns,
+    getStatusBadge
+} from './_components/columns';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -33,29 +39,17 @@ function FormSections({ searchParams }: { searchParams?: any }) {
     const { closeAddForm, addFormRef } = useFormContext<MonthlyRow>();
 
     return (
-        <>
-            <div ref={addFormRef}>
-                <CollapsibleSection
-                    title='Generate Employee Monthly Report'
-                    description='Fill in the details below to generate the report'
-                    defaultOpen={true}
-                    variant='outline'
-                    size='md'
-                    className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                    <div className='relative'>
-                        <Button
-                            type='button'
-                            onClick={closeAddForm}
-                            variant='ghost'
-                            size='sm'
-                            className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                            <X className='h-4 w-4 text-destructive' /> Close
-                        </Button>
-                        <AddEmployeeMonthlyReportForm onSuccess={closeAddForm} searchParams={searchParams} />
-                    </div>
-                </CollapsibleSection>
-            </div>
-        </>
+        <div ref={addFormRef}>
+            <CollapsibleSection
+                title='Generate Employee Monthly Report'
+                description='Fill in the details below to generate the report'
+                defaultOpen={true}
+                variant='outline'
+                size='md'
+                className='slide-in-from-top-4 animate-in shadow-lg duration-300 mt-10'>
+                <AddEmployeeMonthlyReportForm onSuccess={closeAddForm} searchParams={searchParams} />
+            </CollapsibleSection>
+        </div>
     );
 }
 
@@ -70,42 +64,138 @@ function EmployeeMonthlyReportPageContent({
     error: any;
     searchParams?: any;
 }) {
-    const [selectedRows, setSelectedRows] = useState<MonthlyRow[]>([]);
-    const tableProps = useDataTableProps(response);
+    const [selectedRows, setSelectedRows] = useState<any[]>([]);
 
-    const handleRowSelectionChange = (rows: MonthlyRow[]) => {
+    const reportOptions = useMemo(() => {
+        const opt = searchParams?.reportOptions || response?.reportOptions;
+        return Array.isArray(opt) ? opt : opt ? [opt] : [];
+    }, [searchParams?.reportOptions, response?.reportOptions]);
+
+    const isFormatOne = useMemo(() => reportOptions.includes('Format One'), [reportOptions]);
+
+    // Data Processing
+    const processedData = useMemo(() => {
+        if (!response) return [];
+        
+        const rawData = Array.isArray(response?.data) 
+            ? response.data 
+            : (response?.data?.$values ? response.data.$values : (Array.isArray(response) ? response : []));
+            
+        if (!Array.isArray(rawData) || rawData.length === 0) return [];
+
+        const employees = rawData.map((emp: any) => {
+            let attendance = {};
+            if (typeof emp.attendance_data === 'string' && emp.attendance_data) {
+                try {
+                    const parsed = JSON.parse(emp.attendance_data);
+                    attendance = parsed.daily_attendance || {};
+                } catch (e) {
+                    console.error('Failed to parse attendance_data', e);
+                }
+            } else if (emp.attendance_data?.daily_attendance) {
+                attendance = emp.attendance_data.daily_attendance;
+            }
+
+            const flatEmp = { ...emp };
+            Object.entries(attendance).forEach(([date, status]) => {
+                flatEmp[`attendance_${date}`] = status;
+            });
+            return flatEmp;
+        });
+
+        if (isFormatOne) {
+            // Transform to Date Rows
+            const dateMap: Record<string, any> = {};
+            employees.forEach((emp: any) => {
+                let attendance = {};
+                if (typeof emp.attendance_data === 'string' && emp.attendance_data) {
+                    try {
+                        const parsed = JSON.parse(emp.attendance_data);
+                        attendance = parsed.daily_attendance || {};
+                    } catch (e) { /* noop */ }
+                } else if (emp.attendance_data?.daily_attendance) {
+                    attendance = emp.attendance_data.daily_attendance;
+                }
+
+                Object.entries(attendance).forEach(([date, status]) => {
+                    if (!dateMap[date]) dateMap[date] = { date };
+                    dateMap[date][`emp_${emp.hrme_id}`] = status;
+                });
+            });
+
+            return Object.values(dateMap).sort((a: any, b: any) => a.date.localeCompare(b.date));
+        }
+
+        return employees;
+    }, [response?.data, isFormatOne]);
+
+    // Columns Generation
+    const columns = useMemo(() => {
+        const rawData = Array.isArray(response?.data) 
+            ? response.data 
+            : (response?.data?.$values ? response.data.$values : (Array.isArray(response) ? response : []));
+            
+        if (!Array.isArray(rawData) || rawData.length === 0) return employeeMonthlyReportBaseColumns;
+
+        if (isFormatOne) {
+            const employees = rawData.map((emp: any) => ({
+                ecode: emp.ecode,
+                ename: emp.ename,
+                hrme_id: emp.hrme_id
+            }));
+            return [...formatOneColumns, ...getFormatOneEmployeeColumns(employees)];
+        }
+
+        // Collect all unique dates
+        const allDatesSet = new Set<string>();
+        rawData.forEach((emp: any) => {
+            let attendance = {};
+            if (typeof emp.attendance_data === 'string' && emp.attendance_data) {
+                try {
+                    const parsed = JSON.parse(emp.attendance_data);
+                    attendance = parsed.daily_attendance || {};
+                } catch (e) { /* noop */ }
+            } else if (emp.attendance_data?.daily_attendance) {
+                attendance = emp.attendance_data.daily_attendance;
+            }
+            Object.keys(attendance).forEach((d) => allDatesSet.add(d));
+        });
+
+        const sortedDates = Array.from(allDatesSet).sort();
+        const dateCols = getDynamicDateColumns(sortedDates);
+
+        // Filter summary columns based on options
+        const activeSummaryCols = summaryColumns.filter((col: any) => {
+            if (col.accessorKey === 'hwkdays') return reportOptions.includes('Total Working Days');
+            if (col.accessorKey === 'tpdays') return true; // Show present days by default or if needed
+            return true;
+        });
+
+        return [...employeeMonthlyReportBaseColumns, ...dateCols, ...activeSummaryCols];
+    }, [response?.data, isFormatOne, reportOptions]);
+
+    const tableProps = useDataTableProps({ ...response, data: processedData });
+
+    const handleRowSelectionChange = (rows: any[]) => {
         setSelectedRows(rows);
     };
 
     const handleExportToExcel = () => {
         if (selectedRows.length === 0) return;
 
-        // Get all column keys from the first row (to handle dynamic date columns)
-        const firstRow = selectedRows[0];
-        const allKeys = Object.keys(firstRow || {});
-
-        // Filter out internal keys and prepare column headers
-        const excludeKeys = ['user_id', 'id', '_id'];
-        const columnKeys = allKeys.filter((key) => !excludeKeys.includes(key));
-
-        // Prepare data for export with all columns dynamically
         const exportData = selectedRows.map((row, index) => {
-            const exportRow: Record<string, any> = {
-                'Sl.No': index + 1
-            };
+            const exportRow: Record<string, any> = { 'Sl.No': index + 1 };
 
-            // Add all other columns dynamically
-            columnKeys.forEach((key) => {
-                if (key === 'date_of_joining' && row[key]) {
-                    exportRow['Date of Joining'] = format(new Date(row[key]), 'dd-MM-yyyy');
-                } else {
-                    // Convert snake_case to Title Case for headers
-                    const headerName = key
-                        .split('_')
-                        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                        .join(' ');
-                    exportRow[headerName] = row[key] ?? '';
-                }
+            columns.forEach((col: any) => {
+                if (col.id === 'select' || col.accessorKey === 'slNo' || !col.accessorKey) return;
+
+                const header = typeof col.header === 'string' ? col.header : (col.title || col.accessorKey);
+                let value = row[col.accessorKey];
+
+                if (col.accessorKey === 'hrme_doj') value = value ? format(parseISO(value), 'dd-MM-yyyy') : '';
+                if (col.accessorKey === 'date') value = value ? format(parseISO(value), 'dd-MM-yyyy') : '';
+
+                exportRow[header] = value ?? '';
             });
 
             return exportRow;
@@ -117,74 +207,43 @@ function EmployeeMonthlyReportPageContent({
     const handlePrint = () => {
         if (selectedRows.length === 0) return;
 
-        // Get all column keys from the first row
-        const firstRow = selectedRows[0];
-        const allKeys = Object.keys(firstRow || {});
-        const excludeKeys = ['user_id', 'id', '_id'];
-        const columnKeys = allKeys.filter((key) => !excludeKeys.includes(key));
-
-        // Create column headers
-        const columnHeaders = [
-            'Sl.No',
-            ...columnKeys.map((key) => {
-                if (key === 'date_of_joining') return 'Date of Joining';
-                return key
-                    .split('_')
-                    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                    .join(' ');
-            })
-        ];
-
-        // Create a print-friendly table
         const printWindow = window.open('', '_blank');
         if (!printWindow) return;
 
-        const formatValue = (value: any, key: string): string => {
-            if (value === null || value === undefined || value === '') return '';
-            if (key === 'date_of_joining' && value) {
-                return format(new Date(value), 'dd-MM-yyyy');
-            }
-            return String(value);
-        };
-
         const printContent = `
-            <!DOCTYPE html>
             <html>
             <head>
                 <title>Employee Monthly Report</title>
                 <style>
-                    body { font-family: Arial, sans-serif; margin: 20px; }
-                    h1 { text-align: center; margin-bottom: 20px; }
-                    table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 10px; }
-                    th, td { border: 1px solid #ddd; padding: 6px; text-align: left; }
-                    th { background-color: #4f46e5; color: white; font-weight: bold; }
-                    tr:nth-child(even) { background-color: #f2f2f2; }
-                    @media print {
-                        body { margin: 0; }
-                        @page { margin: 1cm; landscape: true; }
-                        table { font-size: 8px; }
-                    }
+                    body { font-family: sans-serif; padding: 20px; }
+                    table { width: 100%; border-collapse: collapse; font-size: 10px; }
+                    th, td { border: 1px solid #ccc; padding: 4px; text-align: center; }
+                    th { background: #f4f4f4; }
+                    .badge { display: inline-block; padding: 2px 4px; border-radius: 4px; font-weight: bold; }
                 </style>
             </head>
             <body>
-                <h1>Employee Monthly Report</h1>
+                <h2 style="text-align: center;">Employee Monthly Report (${response?.message || ''})</h2>
                 <table>
                     <thead>
                         <tr>
-                            ${columnHeaders.map((header) => `<th>${header}</th>`).join('')}
+                            <th>Sl.No</th>
+                            ${columns.filter((c: any) => c.accessorKey && c.accessorKey !== 'slNo').map((c: any) => `<th>${c.accessorKey}</th>`).join('')}
                         </tr>
                     </thead>
                     <tbody>
-                        ${selectedRows
-                            .map(
-                                (row, index) => `
+                        ${selectedRows.map((row, idx) => `
                             <tr>
-                                <td>${index + 1}</td>
-                                ${columnKeys.map((key) => `<td>${formatValue(row[key], key)}</td>`).join('')}
+                                <td>${idx + 1}</td>
+                                ${columns.filter((c: any) => c.accessorKey && c.accessorKey !== 'slNo').map((c: any) => {
+            const val = row[c.accessorKey];
+            if (c.accessorKey.startsWith('attendance_') || c.accessorKey.startsWith('emp_')) {
+                return `<td>${val === '1' ? 'P' : val === '0' ? 'A' : val === '2' ? 'H' : val || ''}</td>`;
+            }
+            return `<td>${val ?? ''}</td>`;
+        }).join('')}
                             </tr>
-                        `
-                            )
-                            .join('')}
+                        `).join('')}
                     </tbody>
                 </table>
             </body>
@@ -193,69 +252,47 @@ function EmployeeMonthlyReportPageContent({
 
         printWindow.document.write(printContent);
         printWindow.document.close();
-        printWindow.focus();
-        setTimeout(() => {
-            printWindow.print();
-            printWindow.close();
-        }, 250);
+        printWindow.print();
     };
 
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                {/* Add Form Section (shown first) */}
                 <FormSections searchParams={searchParams} />
 
-                {/* Action Buttons - Show when rows are selected */}
-                {selectedRows.length > 0 && (
-                    <div className='flex items-center gap-2 rounded-lg border bg-blue-50 p-4 shadow-sm'>
-                        <span className='font-medium text-gray-700 text-sm'>
-                            {selectedRows.length} row{selectedRows.length > 1 ? 's' : ''} selected
-                        </span>
-                        <div className='ml-auto flex items-center gap-2'>
-                            <Button
-                                type='button'
-                                variant='outline'
-                                size='sm'
-                                onClick={handleExportToExcel}
-                                className='border-green-500 text-green-700 hover:bg-green-50'>
-                                <FileSpreadsheet className='mr-2 h-4 w-4' />
-                                Excel
-                            </Button>
-                            <Button
-                                type='button'
-                                variant='outline'
-                                size='sm'
-                                onClick={handlePrint}
-                                className='border-blue-500 text-blue-700 hover:bg-blue-50'>
-                                <Printer className='mr-2 h-4 w-4' />
-                                Print
-                            </Button>
-                        </div>
-                    </div>
-                )}
+                {processedData?.length > 0 && (
 
-                {/* Data Table Section */}
-                <CollapsibleSection
-                    defaultOpen={true}
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<MonthlyRow>
-                        {...tableProps}
-                        columns={employeeMonthlyReportColumns}
-                        isLoading={isLoading}
-                        error={error}
-                        showViewOptions={false}
-                        columnPinning={{ right: ['actions'] }}
-                        isPaginationRequired={true}
-                        onRowSelectionChange={handleRowSelectionChange}
-                        loadingMessage='Loading Employee Monthly Reports...'
-                        noDataTitle='No Employee Monthly Reports Found'
-                        noDataDescription='Get started by generating your first Employee Monthly Report'
-                        errorTitle='Error Loading Employee Monthly Reports'
-                    />
-                </CollapsibleSection>
+                    <CollapsibleSection defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
+                        {selectedRows.length > 0 && (
+                            <div className='flex items-center gap-2 rounded-lg p-4 shadow-sm'>
+                                <span className='font-medium text-gray-700 text-sm '>
+                                    {selectedRows.length} row{selectedRows.length > 1 ? 's' : ''} selected
+                                </span>
+                                <div className='ml-auto flex items-center gap-2'>
+                                    <Button variant='outline' size='sm' onClick={handleExportToExcel} className='border-green-500 text-green-700 hover:bg-green-50'>
+                                        <FileSpreadsheet className='mr-2 h-4 w-4' /> Excel
+                                    </Button>
+                                    <Button variant='outline' size='sm' onClick={handlePrint} className='border-blue-500 text-blue-700 hover:bg-blue-50'>
+                                        <Printer className='mr-2 h-4 w-4' /> Print
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+
+                        <GenericDataTable<any>
+                            {...tableProps}
+                            columns={columns}
+                            isLoading={isLoading}
+                            error={error}
+                            showViewOptions={false}
+                            isPaginationRequired={true}
+                            onRowSelectionChange={handleRowSelectionChange}
+                            loadingMessage='Loading Employee Monthly Reports...'
+                            noDataTitle='No Employee Monthly Reports Found'
+                        />
+
+                    </CollapsibleSection>
+                )}
             </div>
         </div>
     );

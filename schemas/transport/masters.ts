@@ -27,7 +27,11 @@ export const masterAreaSchema = {
 export const masterDriverSchema = {
     addOrUpdate: z.object({
         trmD_Id: z.number().optional(),
-        trmD_DriverName: z.string().min(1, 'Driver Name is required').max(100),
+        trmD_DriverName: z
+            .string()
+            .min(1, 'Driver Name is required')
+            .max(100)
+            .regex(/^[a-zA-Z\s]+$/, 'Only alphabets and spaces are allowed'),
         trmD_DriverCode: z.string().min(1, 'Driver Code is required'),
         trmD_DLNo: z
             .string()
@@ -36,7 +40,7 @@ export const masterDriverSchema = {
         trmD_DriverBadgeNo: z.string().min(1, 'Driver Badge No is required'),
         trmD_MobileNo: z.string().length(10, 'Mobile No must be 10 digits').regex(/^[0-9]+$/, 'Only Numbers Allowed'),
         trmD_EmailId: z.string().email('Invalid Email').optional().or(z.literal('')),
-        trmD_LicenseType: z.string().min(1, 'License Type is required'),
+        trmD_LicenseType: z.string().min(1, 'License Type is required').max(15).regex(/^[a-zA-Z0-9\s]+$/, 'Only letters, numbers, and spaces are allowed'),
         trmD_DLExpiryDate: z.union([z.date(), z.string({ required_error: 'DL Expiring Date is required' })]),
         trmD_RTOName: z.string().min(1, 'RTO Name is required'),
         trmD_MTExpiryDate: z.union([z.date(), z.string()]).optional().nullable(),

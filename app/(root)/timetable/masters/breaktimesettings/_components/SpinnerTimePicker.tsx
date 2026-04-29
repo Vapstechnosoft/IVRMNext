@@ -2,6 +2,7 @@
 
 import { Input } from '@/components/ui/input';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface SpinnerTimePickerProps {
     value?: Date;
@@ -9,20 +10,25 @@ interface SpinnerTimePickerProps {
 }
 
 export function SpinnerTimePicker({ value, onChange }: SpinnerTimePickerProps) {
-    const date = value ?? new Date();
+    const hasValue = !!value;
+    const hour = hasValue ? value.getHours() % 12 : undefined;
+    const minute = hasValue ? value.getMinutes() : undefined;
+    const isPM = hasValue ? value.getHours() >= 12 : false;
+    const updateTime = (h: number | undefined, m: number | undefined, pm: boolean) => {
+        const d = value ? new Date(value) : new Date();
 
-    let hour = date.getHours();
-    const minute = date.getMinutes();
-    const isPM = hour >= 12;
+        if (!value) {
+            d.setHours(0, 0, 0, 0);
+        }
 
-    hour = hour % 12 || 12;
-
-    const updateTime = (h: number, m: number, pm: boolean) => {
-        const d = new Date(date);
-        let newHour = h % 12;
+        let newHour = (h ?? 0) % 12;
         if (pm) newHour += 12;
+
         d.setHours(newHour);
-        d.setMinutes(m);
+        d.setMinutes(m ?? 0);
+        d.setSeconds(0); // ✅ force seconds to 0
+        d.setMilliseconds(0); // optional but good practice
+
         onChange(d);
     };
 
@@ -30,28 +36,28 @@ export function SpinnerTimePicker({ value, onChange }: SpinnerTimePickerProps) {
         <div className='flex items-center gap-3'>
             {/* Hour */}
             <TimeColumn>
-                <ArrowUp onClick={() => updateTime(hour === 12 ? 1 : hour + 1, minute, isPM)} />
-                <InputBox value={hour} max={12} onChange={(v) => updateTime(v || 1, minute, isPM)} />
-                <ArrowDown onClick={() => updateTime(hour === 1 ? 12 : hour - 1, minute, isPM)} />
+                <ArrowUp onClick={() => updateTime((hour ?? 0) === 11 ? 0 : (hour ?? 0) + 1, minute ?? 0, isPM)} />
+                <InputBox value={hour} max={12} placeholder='HH' onChange={(v) => updateTime(v, minute ?? 0, isPM)} />
+                <ArrowDown onClick={() => updateTime((hour ?? 0) === 0 ? 11 : (hour ?? 0) - 1, minute ?? 0, isPM)} />
             </TimeColumn>
 
             {/* Minute */}
             <TimeColumn>
-                <ArrowUp onClick={() => updateTime(hour, (minute + 1) % 60, isPM)} />
-                <InputBox value={minute} max={59} pad onChange={(v) => updateTime(hour, v ?? 0, isPM)} />
-                <ArrowDown onClick={() => updateTime(hour, (minute + 59) % 60, isPM)} />
+                <ArrowUp onClick={() => updateTime(hour ?? 0, ((minute ?? 0) + 1) % 60, isPM)} />
+                <InputBox value={minute} max={59} placeholder='MM' pad onChange={(v) => updateTime(hour ?? 0, v, isPM)} />
+                <ArrowDown onClick={() => updateTime(hour ?? 0, ((minute ?? 0) + 59) % 60, isPM)} />
             </TimeColumn>
 
             {/* AM / PM */}
             <TimeColumn>
-                <ArrowUp onClick={() => updateTime(hour, minute, !isPM)} />
+                <ArrowUp onClick={() => updateTime(hour ?? 0, minute ?? 0, !isPM)} />
                 <Input
                     value={isPM ? 'PM' : 'AM'}
                     readOnly
                     className='w-14 cursor-pointer text-center font-semibold'
-                    onClick={() => updateTime(hour, minute, !isPM)}
+                    onClick={() => updateTime(hour ?? 0, minute ?? 0, !isPM)}
                 />
-                <ArrowDown onClick={() => updateTime(hour, minute, !isPM)} />
+                <ArrowDown onClick={() => updateTime(hour ?? 0, minute ?? 0, !isPM)} />
             </TimeColumn>
         </div>
     );
@@ -75,25 +81,64 @@ function InputBox({
     value,
     max,
     pad,
+    placeholder,
     onChange
 }: {
-    value: number;
+    value: number | undefined;
     max: number;
     pad?: boolean;
-    onChange: (v?: number) => void;
+    placeholder?: string;
+    onChange: (v: number) => void;
 }) {
+    const formatValue = (v: number | undefined) => {
+        if (v === undefined) return '';
+        if (v === 0) return '0';
+        return pad ? v.toString().padStart(2, '0') : v.toString();
+    };
+
+    const [inputValue, setInputValue] = useState<string>(formatValue(value));
+
+    useEffect(() => {
+        const formatted = formatValue(value);
+        if (inputValue !== formatted && inputValue !== '') {
+            setInputValue(formatted);
+        } else if (value !== undefined && inputValue === '') {
+            // If value becomes defined but we are in an empty-input state, sync it
+            setInputValue(formatted);
+        }
+    }, [value, pad]);
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const v = e.target.value;
+        if (v === '') {
+            setInputValue('');
+            return;
+        }
+
+        if (!/^\d*$/.test(v)) return;
+
+        const num = Number.parseInt(v, 10);
+        if (Number.isNaN(num) || num > max) return;
+
+        setInputValue(v);
+        onChange(num);
+    };
+
+    const handleBlur = () => {
+        if (inputValue === '') {
+            return;
+        } else if (pad && inputValue !== '0') {
+            setInputValue(inputValue.padStart(2, '0'));
+        }
+    };
+
     return (
         <Input
             type='text'
-            value={pad ? value.toString().padStart(2, '0') : value}
-            min={0}
-            max={max}
-            onChange={(e) => {
-                const v = Number(e.target.value);
-                if (Number.isNaN(v)) return;
-                if (v > max) return;
-                onChange(v);
-            }}
+            value={inputValue}
+            placeholder={placeholder}
+            onBlur={handleBlur}
+            onChange={handleInputChange}
             className='w-14 text-center font-semibold'
         />
     );

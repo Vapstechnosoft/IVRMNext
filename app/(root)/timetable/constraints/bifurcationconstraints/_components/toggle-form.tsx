@@ -5,14 +5,18 @@ import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/ex
 import { FormError } from '@/components/ui/extension/field';
 import { useBifurcationConstraints } from '@/hooks/timetable/useMasters';
 import { bifurcationConstraintsSchema } from '@/schemas/timetable/constraints/bifurcationconstraints';
-import { ToggleMasterBuilding } from '@/server/timetable/masters/masterbuilding';
+import { toggleBifurcationConstraintsStatus } from '@/server/timetable/constraints/bifurcationconstraints';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import type { z } from 'zod';
+import { z } from 'zod';
 import type { IBifurcationConstraintList } from './columns';
 
-type FormFields = z.infer<typeof bifurcationConstraintsSchema.delete>;
+const toggleSchema = z.object({
+    ttB_Id: z.number()
+});
+
+type FormFields = z.infer<typeof toggleSchema>;
 
 interface ToggleBifurcationConstraintsFormProps {
     rowData: IBifurcationConstraintList;
@@ -40,7 +44,7 @@ export default function ToggleBifurcationConstraints({ rowData, onClose }: Toggl
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await ToggleMasterBuilding(Number(rowData.ttB_Id));
+            const response = await toggleBifurcationConstraintsStatus(Number(rowData.ttB_Id));
             if (response.success) {
                 toast.success(response.message);
                 refetchAll();

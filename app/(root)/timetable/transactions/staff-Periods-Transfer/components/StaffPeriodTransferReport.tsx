@@ -165,11 +165,15 @@ export default function StaffPeriodTransferReport({ data }: StaffPeriodTransferR
                                             Loading sections...
                                         </SelectItem>
                                     ) : (
-                                        sections?.map((s) => (
-                                            <SelectItem key={`section-${s.asms_Id}`} value={String(s.asms_Id)}>
-                                                {s.asms_SectionName}
-                                            </SelectItem>
-                                        ))
+                                        sections?.map((s: any) => {
+                                            const secId = s.asms_Id || s.asmS_Id || s.asmC_Id || s.asmc_Id;
+                                            const secName = s.asmC_SectionName || s.asms_SectionName || s.asmS_SectionName || s.sectionName;
+                                            return (
+                                                <SelectItem key={`section-${secId}`} value={String(secId)}>
+                                                    {secName}
+                                                </SelectItem>
+                                            );
+                                        })
                                     )}
                                 </SelectContent>
                             </Select>

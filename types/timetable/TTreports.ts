@@ -6,8 +6,7 @@ export interface IstaffLoadDataTTStaffReport {
     TTLAB_ActiveFlag: boolean;
 
     asmcL_Id: number; //class
-    asmcL_ClassName: string; //classexport async 
-
+    asmcL_ClassName: string; //classexport async
 }
 
 export interface ISectionDropdown {
@@ -22,10 +21,39 @@ export interface ISectionDropdown {
     updatedDate: string; // ISO date string
 
     asmcL_Id: number; //class
-    asmcL_ClassName: string; //classexport async 
-
+    asmcL_ClassName: string; //classexport async
 }
 export interface IDeputationAcademicYear {
     ttfG_Id: number;
     asmaY_Year: string;
+}
+
+export interface IDeputationStaff {
+    hrmE_Id: number;
+    staffName: string;
+}
+
+export interface IDeputationDay {
+    ttmD_Id: number;
+    mI_Id: number;
+    ttmD_DayName: string;
+    ttmD_DayCode: string;
+    order_Id: number;
+    ttmD_ActiveFlag: boolean;
+    createdDate: string;
+    updatedDate: string;
+}
+
+export interface IDeputationLoadData {
+    stafflist: IDeputationStaff[];
+    gridweeks: IDeputationDay[];
+}
+
+export interface StaffWorkingHoursReportItem {
+    ttfG_Id: number;
+    hrmE_Id: number;
+    ttmD_Id: number;
+    asmaY_Year: string;
+    staffName: string;
+    ttmD_DayName: string;
 }

@@ -243,10 +243,7 @@ export function LeaveCreditDetailsForm({
                                 render={({ field }) => {
                                     const stringValue = field.value ? String(field.value) : undefined;
                                     return (
-                                        <Select
-                                            value={stringValue}
-                                            onValueChange={(val) => field.onChange(Number(val))}
-                                        >
+                                        <Select value={stringValue} onValueChange={(val) => field.onChange(Number(val))}>
                                             <SelectTrigger id='leave-name-select' className={errors.id ? 'border-red-500' : ''}>
                                                 <SelectValue placeholder='--Select--' />
                                             </SelectTrigger>
@@ -377,7 +374,7 @@ export function LeaveCreditDetailsForm({
             </TabsContent>
             <TabsContent value='Carry Forward' className='mt-4'>
                 <CarryForwardForm
-                    control={control}
+                    control={control as any}
                     errors={errors}
                     handleSubmit={handleSubmit}
                     watch={watch}
@@ -394,7 +391,7 @@ export function LeaveCreditDetailsForm({
             </TabsContent>
             <TabsContent value='Encashment' className='mt-4'>
                 <EncashmentForm
-                    control={control}
+                    control={control as any}
                     errors={errors}
                     handleSubmit={handleSubmit}
                     watch={watch}

@@ -1,7 +1,7 @@
 import { LIBRARY_QUERY_KEYS } from '@/constants/query-keys';
 import { getMasterCategory } from '@/server/admission/preadmission/masters/category';
 import { getMasterClassCategory } from '@/server/admission/preadmission/masters/class_category';
-import { getMasterDepartment } from '@/server/hrms/hrmsConfig/master/department';
+import { getMasterDepartment } from '@/server/library/masters/department';
 import { getMasterAccessories } from '@/server/library/masters/accessories';
 import { getMasterCategoryList } from '@/server/library/masters/library_category';
 import { getMasterVendorList } from '@/server/library/masters/library_vendor';
@@ -11,7 +11,7 @@ import { getMasterLibraryList } from '@/server/library/masters/master_library';
 import { getMasterPublisherList } from '@/server/library/masters/master_publisher';
 import { getMasterSubjectList, getparentsubjectdropdown } from '@/server/library/masters/master_subject';
 import { getMasterRackDetails } from '@/server/library/masters/rack-details';
-import { getMasterTimeSlab } from '@/server/library/masters/time-slab';
+import { getMasterTimeSlab, getMasterTimeSlabList } from '@/server/library/masters/time-slab';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -132,13 +132,13 @@ export const useMasterDepartment = (searchParams?: ApiSearchparams) => {
 
     return {
         ...useQuery({
-            queryKey: [LIBRARY_QUERY_KEYS.MASTER_LIBRARY_LIST_DATA, searchParams ?? {}],
+            queryKey: [LIBRARY_QUERY_KEYS.MASTER_DEPARTMENT, searchParams ?? {}],
             queryFn: async () => getMasterDepartment(searchParams),
             staleTime: 0
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
-                queryKey: [LIBRARY_QUERY_KEYS.MASTER_LIBRARY_LIST_DATA]
+                queryKey: [LIBRARY_QUERY_KEYS.MASTER_DEPARTMENT]
             });
         }
     };
@@ -173,6 +173,23 @@ export function useMasterTimeSlab(searchParams?: ApiSearchparams) {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: ['MASTER_TIME_SLAB']
+            });
+        }
+    };
+}
+
+export function useMasterTimeSlabList(searchParams?: ApiSearchparams) {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: ['MASTER_TIME_SLAB_LIST', searchParams ?? {}],
+            queryFn: async () => getMasterTimeSlabList(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: ['MASTER_TIME_SLAB_LIST']
             });
         }
     };

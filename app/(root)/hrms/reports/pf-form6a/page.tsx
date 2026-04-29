@@ -10,10 +10,10 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { exportToExcel } from '@/lib/export-to-file';
 import { usePFForm6A } from '@/hooks/hrms/useReports';
-import { Loader2, Search, Printer } from 'lucide-react';
+import { Loader2, Search, Printer, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
+import { getMasterInstitution } from '@/server/hrms/master-dropdown';
 import { printPFForm6A } from './_components/pf-form6a-print';
 
 interface FilterFormValues {
@@ -49,12 +49,18 @@ function PFForm6AContent() {
         };
         fetchInstitution();
     }, []);
-    const { control, handleSubmit } = useForm<FilterFormValues>({
+    const { control, handleSubmit, reset } = useForm<FilterFormValues>({
         defaultValues: {
             fromDate: undefined,
             toDate: undefined
         }
     });
+
+    const handleCancel = () => {
+        reset();
+        setReportData(null);
+        setFullReportData(null);
+    };
 
     const { mutate: generateReport, isPending } = usePFForm6A();
 
@@ -157,9 +163,7 @@ function PFForm6AContent() {
 
     return (
         <div className='container min-h-screen space-y-4 p-2'>
-            <div className='flex items-center justify-between'>
-                <h2 className='text-2xl font-bold tracking-tight'>PF Form 6A Report</h2>
-            </div>
+            
 
             <CollapsibleSection defaultOpen={true} title="Report Criteria" variant='outline' className='shadow-sm'>
                 <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
@@ -187,8 +191,17 @@ function PFForm6AContent() {
                         </div>
                     </div>
 
-                    <div className='flex justify-end'>
-                        <Button type='submit' disabled={isPending} className='w-32'>
+                    <div className='flex justify-end gap-2'>
+                        <Button
+                            type='button'
+                            variant='outline'
+                            onClick={handleCancel}
+                            disabled={isPending}
+                            className='w-32 border-orange-500 text-orange-600 hover:bg-orange-50 transition-all rounded-xl'>
+                            <X className='mr-2 h-4 w-4' />
+                            CANCEL
+                        </Button>
+                        <Button type='submit' disabled={isPending} className='w-32 transition-all rounded-xl'>
                             {isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Search className='mr-2 h-4 w-4' />}
                             Generate
                         </Button>

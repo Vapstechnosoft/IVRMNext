@@ -63,11 +63,19 @@ export default function OnlineAdminLeavePage() {
 
     // Unified History Data (Favor dedicated API, fallback to batch data from balance API)
     const effectiveHistory = useMemo(() => {
-        if (leaveHistoryBatch && leaveHistoryBatch.length > 0) return leaveHistoryBatch;
-        return leaveBalanceData?.get_leave_details || [];
+        if (Array.isArray(leaveHistoryBatch) && leaveHistoryBatch.length > 0) {
+            return leaveHistoryBatch;
+        }
+        if (leaveHistoryBatch && !Array.isArray(leaveHistoryBatch) && Array.isArray((leaveHistoryBatch as any).get_leave_details) && (leaveHistoryBatch as any).get_leave_details.length > 0) {
+            return (leaveHistoryBatch as any).get_leave_details;
+        }
+        if (leaveBalanceData?.get_leave_details && Array.isArray(leaveBalanceData.get_leave_details)) {
+            return leaveBalanceData.get_leave_details;
+        }
+        return [];
     }, [leaveHistoryBatch, leaveBalanceData]);
 
-    const isHistoryLoading = isLoadingHistory && effectiveHistory.length === 0;
+    const isHistoryLoading = isLoadingHistory;
 
     // Filtered History Data
     const filteredHistoryData = useMemo(() => {
@@ -76,7 +84,7 @@ export default function OnlineAdminLeavePage() {
 
         const lowerSearch = searchQuery.toLowerCase();
 
-        return effectiveHistory.filter(item => {
+        return effectiveHistory.filter((item: any) => {
             const leaveName = (item.hrmL_LeaveName || '').toLowerCase();
             const reason = (item.hrelaP_LeaveReason || '').toLowerCase();
             const status = (item.hrelaP_ApplicationStatus || '').toLowerCase();
@@ -94,8 +102,8 @@ export default function OnlineAdminLeavePage() {
         return leaveBalanceData.employeeLeaves.map(balance => {
             // Find the most recent history record for this leave type
             const latestHistory = effectiveHistory
-                ?.filter(h => h.hrmL_Id === balance.hrmL_Id)
-                .sort((a, b) => new Date(b.hrelaP_FromDate).getTime() - new Date(a.hrelaP_FromDate).getTime())[0];
+                ?.filter((h: any) => h.hrmL_Id === balance.hrmL_Id)
+                .sort((a: any, b: any) => new Date(b.hrelaP_FromDate).getTime() - new Date(a.hrelaP_FromDate).getTime())[0];
 
             return {
                 ...balance,
@@ -366,7 +374,7 @@ export default function OnlineAdminLeavePage() {
                     </div>
 
                     <div className='w-full md:w-[400px] space-y-1.5'>
-                        <label className='text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1'>Select Employee</label>
+                        <label className='text-[12px] font-black uppercase  tracking-widest ml-1'>Select Employee</label>
                         <Select
                             searchable={false}
                             onValueChange={(value) => {
@@ -377,7 +385,7 @@ export default function OnlineAdminLeavePage() {
                             }}
                             value={selectedEmployeeId && selectedEmployeeId > 0 ? selectedEmployeeId.toString() : ''}
                         >
-                            <SelectTrigger className='h-12 border-primary/20 bg-slate-50/50 hover:bg-slate-50 rounded-xl focus:ring-primary/20 transition-all'>
+                            <SelectTrigger className='h-12 border-primary/20  hover:bg-slate-50 rounded-xl focus:ring-primary/20 transition-all'>
                                 <SelectValue placeholder='Search and Select Staff...' />
                             </SelectTrigger>
                             <SelectContent className='max-h-80'>
@@ -500,6 +508,8 @@ export default function OnlineAdminLeavePage() {
                                     {/* Application Form Integrated Below Grid */}
                                     <div className='mt-8 pb-4'>
                                         <ApplyLeaveForm
+                                            combinedBalanceData={combinedBalanceData}
+                                            isLoadingBalance={isLoadingBalance}
                                             selectedEmployeeId={selectedEmployeeId}
                                             selectedLeave={selectedLeave}
                                             selectedFromDate={selectedFromDate}
@@ -538,6 +548,7 @@ export default function OnlineAdminLeavePage() {
                                 </div>
                             </CardHeader>
                             <CardContent className='p-0'>
+
                                 <GenericDataTable
                                     columns={historyColumns}
                                     isLoading={isHistoryLoading}

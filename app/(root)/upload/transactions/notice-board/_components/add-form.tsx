@@ -11,55 +11,71 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { CalendarIcon, Minus, Plus, Eye, Save, X } from 'lucide-react';
+import { CalendarIcon, Minus, Plus, Eye, Save, X, Upload, Loader2 } from 'lucide-react';
 import { noticeBoardSchema, type INoticeBoard } from '@/schemas/upload/transactions/notice-board.schema';
-import { useMemo, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FormError, Label } from '@/components/ui/extension/field';
-import { saveNoticeBoard } from '@/server/upload/transactions/notice-board/server-action';
+import {
+    saveNoticeBoardDetail,
+    getNoticeBoardSections,
+    getNoticeBoardStudents,
+    getNoticeBoardEmployees,
+    getNoticeBoardDepartments,
+    getNoticeBoardDesignations
+} from '@/server/upload/transactions/notice-board/server-action';
+import { uploadDocument } from '@/server/fees/trasactions/waived_off';
 import { toast } from 'sonner';
 import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
+import {
+    useBusRoutingForNoticeBoardQuery,
+    useFeeGroupsForNoticeBoardQuery,
+    useFeeTermsForNoticeBoardQuery,
+    useNoticeBoardDepartments,
+    useNoticeBoardDesignations
+} from '@/hooks/upload/transactions/use-notice-board';
 
 interface AddNoticeBoardFormProps {
     onSuccess: () => void;
     yearList: any[];
     classList: any[];
-    sectionList: any[];
-    departmentList: any[];
-    designationList: any[];
-    staffList: any[];
-    studentList?: any[];
-    routeList?: any[];
-    feeGroupList?: any[];
-    subjectList?: any[];
+    deptList: any[];
+    desgList: any[];
+    routeList: any[];
+    feeGroupList: any[];
+    feeTermList: any[];
+    defaultYearId?: number;
 }
 
 export default function AddNoticeBoardForm({
     onSuccess,
     yearList,
     classList,
-    sectionList,
-    departmentList,
-    designationList,
-    staffList,
-    studentList = [],
-    routeList = [],
-    feeGroupList = [],
-    subjectList = []
+    deptList,
+    desgList,
+    routeList,
+    feeGroupList,
+    feeTermList,
+    defaultYearId,
 }: AddNoticeBoardFormProps) {
     const [isUrlMode, setIsUrlMode] = useState(false);
+    const [sections, setSections] = useState<any[]>([]);
+    const [students, setStudents] = useState<any[]>([]);
+    const [subjects, setSubjects] = useState<any[]>([]);
+    const [employees, setEmployees] = useState<any[]>([]);
+    const [filteredDesgList, setFilteredDesgList] = useState<any[]>(desgList);
+    const fileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({});
+
     const methods = useForm<INoticeBoard>({
         resolver: zodResolver(noticeBoardSchema),
         defaultValues: {
             intB_FilePath_Array: [{ intbfL_FilePath: '', fileName: '' }],
-            // Provide sensible defaults matching schema
-            asmaY_Id: undefined,
-            ntB_TTSylabusFlg: undefined,
+            asmaY_Id: defaultYearId,
+            ntB_TTSylabusFlg: 'O',
             intB_Title: '',
             intB_Description: '',
-            intB_FilePath: '',
             intB_ActiveFlag: true,
-            intB_DispalyDisableFlg: true,
-            check_student: false,
+            intB_DispalyDisableFlg: false,
+            check_student: true,
             check_staff: false,
             asmcL_Id: [],
             asmS_Id: [],
@@ -69,85 +85,192 @@ export default function AddNoticeBoardForm({
             hrmE_Id: [],
             ismS_Id: [],
             fee_def: false,
-            select_route: false
+            select_route: false,
+            routeList: [],
+            feeGroupList: [],
+            feeTermList: []
         }
     });
 
-    const { control, handleSubmit, setValue, register } = methods;
+    const { control, handleSubmit, setValue, register, reset, formState: { isSubmitting } } = methods;
 
-    // Field Array for Attachments
-    const { fields, append, remove } = useFieldArray({
+    const { fields: attachmentFields, append, remove, update } = useFieldArray({
         control,
         name: "intB_FilePath_Array"
     });
 
-    const check_student = useWatch({ control, name: 'check_student' });
-    const check_staff = useWatch({ control, name: 'check_staff' });
-    const intB_DispalyDisableFlg = useWatch({ control, name: 'intB_DispalyDisableFlg' });
-    const selectedClasses = useWatch({ control, name: 'asmcL_Id' }) || [];
-    const selectedSections = useWatch({ control, name: 'asmS_Id' }) || [];
-    const intB_FilePath = useWatch({ control, name: 'intB_FilePath' });
+    const asmaY_Id = useWatch({ control, name: "asmaY_Id" });
+    const check_student = useWatch({ control, name: "check_student" });
+    const check_staff = useWatch({ control, name: "check_staff" });
+    const intB_DispalyDisableFlg = useWatch({ control, name: "intB_DispalyDisableFlg" });
+    const asmcL_Id = useWatch({ control, name: "asmcL_Id" });
+    const asmS_Id = useWatch({ control, name: "asmS_Id" });
+    const select_route = useWatch({ control, name: "select_route" });
+    const fee_def = useWatch({ control, name: "fee_def" });
+    const hrmd_Id = useWatch({ control, name: "hrmd_Id" });
+    const hrmdeS_Id = useWatch({ control, name: "hrmdeS_Id" });
+    const amsT_Id = useWatch({ control, name: "amsT_Id" });
+    const ismS_Id = useWatch({ control, name: "ismS_Id" });
+    const hrmE_Id = useWatch({ control, name: "hrmE_Id" });
 
-    // Watch new flags
-    const select_route = useWatch({ control, name: 'select_route' });
-    const fee_def = useWatch({ control, name: 'fee_def' });
+    // Cascading Dropdowns: Designations after Department Selection
+    useEffect(() => {
+        if (check_staff && hrmd_Id && hrmd_Id.length > 0) {
+            const payload = {
+                departmentlist: hrmd_Id.map((id: any) => ({ hrmdC_ID: id.hrmd_Id }))
+            };
+            getNoticeBoardDepartments(payload).then((res: any) => {
+                const list = res?.data || res?.desglist || [];
+                setFilteredDesgList(list);
+            });
+        } else {
+            setFilteredDesgList(desgList);
+        }
+    }, [hrmd_Id, check_staff, desgList]);
 
-    // Filter Sections based on Selected Classes
-    const filteredSectionList = useMemo(() => {
-        if (!selectedClasses || selectedClasses.length === 0) return [];
-        const classIds = selectedClasses.map((c: any) => c.asmcL_Id);
-        return sectionList.filter((section) => classIds.includes(section.asmcL_Id));
-    }, [selectedClasses, sectionList]);
+    // Cascading Dropdowns: Sections
+    useEffect(() => {
+        if (asmcL_Id && asmcL_Id.length > 0) {
+            const payload = {
+                asmaY_Id: asmaY_Id,
+                classlsttwo: asmcL_Id
+            };
+            getNoticeBoardSections(payload).then(res => {
+                setSections((res.data as any[]) || (res.sectionlistarray as any[]) || []);
+            });
+        } else {
+            setSections([]);
+            if (asmS_Id && asmS_Id.length > 0) setValue('asmS_Id', []);
+        }
+    }, [asmcL_Id, asmaY_Id, setValue, asmS_Id]);
 
-    // Filter Students based on Selected Sections
-    const filteredStudentList = useMemo(() => {
-        if (!selectedSections || selectedSections.length === 0) return [];
-        const sectionIds = selectedSections.map((s: any) => s.asmS_Id);
-        return studentList.filter((student) => sectionIds.includes(student.asmS_Id));
-    }, [selectedSections, studentList]);
+    // Cascading Dropdowns: Students & Subjects
+    useEffect(() => {
+        if (asmS_Id && asmS_Id.length > 0) {
+            const payload = {
+                asmaY_Id: asmaY_Id,
+                classlsttwo: asmcL_Id,
+                sectionlistarray: asmS_Id
+            };
+            getNoticeBoardStudents(payload).then(res => {
+                setStudents((res.data as any[]) || (res.studentlist as any[]) || []);
+                setSubjects((res.data2 as any[]) || (res.subjectlist as any[]) || []);
+            });
+        } else {
+            setStudents([]);
+            setSubjects([]);
+            if (amsT_Id && amsT_Id.length > 0) setValue('amsT_Id', []);
+            if (ismS_Id && ismS_Id.length > 0) setValue('ismS_Id', []);
+        }
+    }, [asmS_Id, asmcL_Id, asmaY_Id, setValue, amsT_Id, ismS_Id]);
 
-    // Filter Subjects based on Selected Sections
-    const filteredSubjectList = useMemo(() => {
-        if (!selectedSections || selectedSections.length === 0) return [];
-        const sectionIds = selectedSections.map((s: any) => s.asmS_Id);
-        // Assuming subjects are linked to sections/classes in mock data structure
-        return subjectList.filter((subject) => sectionIds.includes(subject.asmS_Id));
-    }, [selectedSections, subjectList]);
+    // Cascading Dropdowns: Employees after Selecting Designations
+    useEffect(() => {
+        if (check_staff && (hrmd_Id?.length || hrmdeS_Id?.length)) {
+            const payload = {
+                departmentlist: (hrmd_Id || []).map((id: any) => ({ hrmdC_ID: id.hrmd_Id })),
+                designationlist: (hrmdeS_Id || []).map((id: any) => ({ hrmdeS_Id: id.hrmdeS_Id }))
+            };
+            getNoticeBoardDesignations(payload).then((res: any) => {
+                if (res?.staffList) {
+                    setEmployees(res.staffList);
+                } else if (res?.data) {
+                    setEmployees(res.data);
+                }
+            });
+        } else {
+            setEmployees([]);
+            if (hrmE_Id && hrmE_Id.length > 0) setValue('hrmE_Id', []);
+        }
+    }, [check_staff, hrmd_Id, hrmdeS_Id, setValue, hrmE_Id]);
 
-    const onSubmit = async (data: INoticeBoard) => {
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
         try {
-            const result = await saveNoticeBoard(data);
-            if (result.success) {
-                toast.success(result.message);
-                onSuccess();
+            update(index, { ...attachmentFields[index], fileName: 'Uploading...', file: file });
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('FileName', file.name);
+            formData.append('ContentType', file.type);
+            formData.append('subContainerName', 'NoticeUpload'); // Based on AngularJS NoticeUpload
+
+            const response = await uploadDocument(formData);
+
+            if (response.success && response.data) {
+                update(index, {
+                    intbfL_FilePath: response.data,
+                    fileName: file.name
+                });
+                toast.success('File uploaded successfully');
             } else {
-                toast.error(result.message);
+                throw new Error(response.message || 'Upload failed');
             }
-        } catch (error) {
-            console.error("Error saving notice:", error);
-            toast.error("An unexpected error occurred.");
+        } catch (error: any) {
+            update(index, { intbfL_FilePath: '', fileName: '' });
+            toast.error(`Upload failed: ${error.message}`);
         }
     };
 
-    // Helper to simulate file upload
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, index?: number) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            if (index !== undefined) {
-                // Update specific attachment
-                setValue(`intB_FilePath_Array.${index}.intbfL_FilePath`, URL.createObjectURL(file));
-                setValue(`intB_FilePath_Array.${index}.fileName`, file.name);
+    const onSubmit = async (data: INoticeBoard) => {
+        try {
+            // Map form data to the specific payload structure required by the backend
+            const payload = {
+                INTB_Id: data.intB_Id || 0,
+                INTB_Title: data.intB_Title,
+                INTB_Description: data.intB_Description || "",
+                ASMAY_Id: data.asmaY_Id,
+                INTB_StartDate: data.intB_StartDate.toISOString(),
+                INTB_EndDate: data.intB_EndDate.toISOString(),
+                INTB_DisplayDate: data.intB_DisplayDate ? data.intB_DisplayDate.toISOString() : new Date().toISOString(),
+                INTB_Attachment: "string",
+                INTB_FilePath: "string",
+                NTB_TTSylabusFlg: data.ntB_TTSylabusFlg,
+                INTB_DispalyDisableFlg: data.intB_DispalyDisableFlg,
+                INTB_ToStaffFlg: data.check_staff,
+                INTB_ToStudentFlg: data.check_student,
+                getclass: false,
+                classlsttwo: data.check_student ? (data.asmcL_Id || []).map(c => ({ ASMCL_Id: c.asmcL_Id })) : [],
+                sectionlistarray: data.check_student ? (data.asmS_Id || []).map(s => {
+                    const sectionInfo = sections.find(sec => (sec.ASMS_Id || sec.asmS_Id || sec.asms_Id) === s.asmS_Id);
+                    return {
+                        ASMS_Id: s.asmS_Id,
+                        ASMCL_Id: sectionInfo?.asmcL_Id || sectionInfo?.asmcl_Id || (data.asmcL_Id?.[0]?.asmcL_Id || 0)
+                    };
+                }) : [],
+                studentarray: data.check_student ? (data.amsT_Id || []).map(s => ({ AMST_Id: s.amsT_Id })) : [],
+                employeearraylist: data.check_staff ? (data.hrmE_Id || []).map(e => ({ HRME_Id: e.hrmE_Id })) : [],
+                FilePath_Array: (data.intB_FilePath_Array || []).map(f => ({
+                    FileName: f.fileName,
+                    INTBFL_FilePath: f.intbfL_FilePath
+                })).filter(f => f.INTBFL_FilePath !== ""),
+                fee_def: data.check_student ? data.fee_def : false,
+                routeflag: data.check_student ? data.select_route : false,
+                defgrparray: (data.check_student && data.fee_def) ? (data.feeGroupList || []).map(f => ({ FMG_Id: f.fmg_Id })) : [],
+                defarray: (data.check_student && data.fee_def) ? (data.feeTermList || []).map(f => ({ FMT_Id: f.fmT_Id })) : [],
+                routearray: data.check_student ? (data.routeList || []).map(r => ({ TRMR_Id: r.trmR_Id })) : []
+            };
+
+            const result = await saveNoticeBoardDetail(payload);
+            if (result?.success) {
+                toast.success(result.message || 'Notice sent successfully');
+                onSuccess();
+                reset();
             } else {
-                // Update main file
-                setValue('intB_FilePath', URL.createObjectURL(file));
+                toast.error(result?.message || 'Failed to send notice');
             }
+        } catch (error: any) {
+            console.error('Save Error:', error);
+            toast.error(error?.message || error || 'Error occurred while sending notice');
         }
     };
 
     return (
         <div className='flex w-full flex-col gap-6'>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-6 rounded-2xl bg-white p-6 shadow-md'>
-                {/* Top Toggle Section */}
+                {/* Selection Type Toggles */}
                 <div className="flex flex-wrap gap-6 border-b pb-4">
                     <Controller
                         control={control}
@@ -158,14 +281,10 @@ export default function AddNoticeBoardForm({
                                     checked={field.value}
                                     onCheckedChange={(checked) => {
                                         field.onChange(checked);
-                                        if (checked) {
-                                            setValue('check_staff', false);
-                                            setValue('select_route', false);
-                                            setValue('fee_def', false);
-                                        }
+                                        if (checked) setValue('check_staff', false);
                                     }}
                                 />
-                                <Label className="font-normal">Student</Label>
+                                <Label className="font-semibold">Student</Label>
                             </div>
                         )}
                     />
@@ -178,14 +297,10 @@ export default function AddNoticeBoardForm({
                                     checked={field.value}
                                     onCheckedChange={(checked) => {
                                         field.onChange(checked);
-                                        if (checked) {
-                                            setValue('check_student', false);
-                                            setValue('select_route', false);
-                                            setValue('fee_def', false);
-                                        }
+                                        if (checked) setValue('check_student', false);
                                     }}
                                 />
-                                <Label className="font-normal">Staff</Label>
+                                <Label className="font-semibold">Staff</Label>
                             </div>
                         )}
                     />
@@ -204,9 +319,9 @@ export default function AddNoticeBoardForm({
                                         <SelectValue placeholder='Select Academic Year' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {yearList.map((year) => (
-                                            <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>
-                                                {year.asmaY_Year}
+                                        {(yearList || []).map((year: any) => (
+                                            <SelectItem key={year.asmaY_Id || year.asmay_Id} value={(year.asmaY_Id || year.asmay_Id || '').toString()}>
+                                                {year.asmaY_Year || year.asmay_year}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -306,14 +421,14 @@ export default function AddNoticeBoardForm({
                         />
                     </div>
 
-                    {/* Display Date Picker (Conditional) */}
+                    {/* Display Date Picker */}
                     {intB_DispalyDisableFlg && (
                         <Controller
                             control={control}
                             name='intB_DisplayDate'
-                            render={({ field }) => (
+                            render={({ field, fieldState }) => (
                                 <div className='flex flex-col'>
-                                    <Label>Display Date</Label>
+                                    <Label>Display Date <span className="text-red-500">*</span></Label>
                                     <Popover>
                                         <PopoverTrigger asChild>
                                             <Button variant={'outline'} className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
@@ -325,12 +440,13 @@ export default function AddNoticeBoardForm({
                                             <Calendar mode='single' selected={field.value || undefined} onSelect={field.onChange} initialFocus />
                                         </PopoverContent>
                                     </Popover>
+                                    {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                 </div>
                             )}
                         />
                     )}
 
-                    {/* Description (Full Width) */}
+                    {/* Description */}
                     <div className="col-span-1 md:col-span-2 lg:col-span-3">
                         <Label>Description</Label>
                         <Textarea placeholder='Enter Description' {...register('intB_Description')} className="min-h-[80px]" />
@@ -338,121 +454,116 @@ export default function AddNoticeBoardForm({
                 </div>
 
                 {/* Attachments Section */}
-                <div className="space-y-4 rounded-md border p-4">
-                    <h3 className="text-lg font-semibold">Attachments</h3>
-
-                    {/* File Upload Table */}
+                <div className="space-y-4 rounded-md border p-4 shadow-sm bg-gray-50/30">
+                    <h3 className="text-lg font-bold text-gray-800">Attachments</h3>
                     <div className="overflow-x-auto">
-                        <table className="w-full table-auto border-collapse border text-left text-sm">
-                            <thead className="bg-muted">
+                        <table className="w-full table-auto border-collapse border bg-white text-left text-sm">
+                            <thead className="bg-muted/50">
                                 <tr>
-                                    <th className="border p-2 text-center w-12">SL. NO</th>
-                                    <th className="border p-2 text-center">Upload File</th>
+                                    <th className="border p-2 text-center w-12">SL NO</th>
+                                    <th className="border p-2 text-center">Upload File / URL</th>
                                     <th className="border p-2 text-center">File Name</th>
-                                    <th className="border p-2 text-center w-16">View</th>
-                                    <th className="border p-2 text-center w-16">Action</th>
+                                    <th className="border p-2 text-center w-20">View</th>
+                                    <th className="border p-2 text-center w-24">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr className="border-b">
-                                    <td className="border p-2 text-center">1</td>
-                                    <td className="border p-2">
-                                        {/* <div className="flex flex-col gap-1">
-                                            <label className="flex items-center justify-center px-4 py-2 bg-primary text-primary-foreground text-xs font-semibold cursor-pointer rounded hover:bg-primary/90 w-full">
-                                                Browse
-                                                <Input type="file" className="hidden" onChange={(e) => handleFileChange(e)} />
-                                            </label>
-                                            <span className="text-[10px] text-red-500">Accept File: jpg, jpeg, png, doc, ppt, excel, mp3, mp4, wmv, pdf</span>
-                                        </div> */}
-                                    </td>
-                                    <td className="border p-2">
-                                        <Input value={intB_FilePath || ''} readOnly className="h-9 text-xs bg-muted" />
-                                    </td>
-                                    <td className="border p-2 text-center">
-                                        {intB_FilePath && (
-                                            <Button type="button" variant="ghost" size="sm" onClick={() => window.open(intB_FilePath, '_blank')}>
-                                                <Eye className="h-4 w-4 text-blue-600" />
-                                            </Button>
-                                        )}
-                                    </td>
-                                    <td className="border p-2 text-center">
-                                        <Button type="button" size="icon" variant="outline" className="h-8 w-8" onClick={() => { }}>
-                                            <Plus className="h-4 w-4" />
-                                        </Button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {/* URL Checkbox */}
-                    <div className="flex items-center space-x-2 pt-2">
-                        <Checkbox id="url-mode-check" checked={isUrlMode} onCheckedChange={(c) => setIsUrlMode(c as boolean)} />
-                        <Label htmlFor="url-mode-check" className="font-semibold text-xs">If URL</Label>
-                    </div>
-
-                    {/* URL Table */}
-                    {isUrlMode && (
-                        <div className="overflow-x-auto">
-                            <table className="w-full table-auto border-collapse border text-left text-sm">
-                                <thead className="bg-muted">
-                                    <tr>
-                                        <th className="border p-2 text-center w-12">SL NO</th>
-                                        <th className="border p-2 text-center">URL</th>
-                                        <th className="border p-2 text-center w-16">View</th>
-                                        <th className="border p-2 text-center w-16">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {fields.map((item, index) => (
-                                        <tr key={item.id} className="border-b">
-                                            <td className="border p-2 text-center">{index + 1}</td>
-                                            <td className="border p-2">
+                                {attachmentFields.map((field, index) => (
+                                    <tr key={field.id} className="border-b transition-colors hover:bg-gray-50/50">
+                                        <td className="border p-2 text-center">{index + 1}</td>
+                                        <td className="border p-2">
+                                            {isUrlMode ? (
                                                 <Controller
                                                     control={control}
                                                     name={`intB_FilePath_Array.${index}.intbfL_FilePath`}
-                                                    render={({ field }) => <Input {...field} placeholder="Enter URL" className="h-9" />}
+                                                    render={({ field }) => (
+                                                        <Input {...field} placeholder="Enter URL" className="h-9" />
+                                                    )}
                                                 />
-                                            </td>
-                                            <td className="border p-2 text-center">
-                                                {/* Preview logic if needed */}
-                                            </td>
-                                            <td className="border p-2 text-center">
-                                                <div className="flex justify-center gap-1">
-                                                    {index === fields.length - 1 && (
-                                                        <Button type="button" size="icon" variant="outline" className="h-8 w-8" onClick={() => append({ intbfL_FilePath: '', fileName: '' })}>
-                                                            <Plus className="h-4 w-4" />
-                                                        </Button>
-                                                    )}
-                                                    {fields.length > 0 && (
-                                                        <Button type="button" size="icon" variant="destructive" className="h-8 w-8" onClick={() => remove(index)}>
-                                                            <Minus className="h-4 w-4" />
-                                                        </Button>
-                                                    )}
+                                            ) : (
+                                                <div className="flex justify-center">
+                                                    <input
+                                                        type="file"
+                                                        className="hidden"
+                                                        ref={(el) => {
+                                                            if (el) fileInputRefs.current[index] = el;
+                                                        }}
+                                                        onChange={(e) => handleFileUpload(e, index)}
+                                                    />
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => fileInputRefs.current[index]?.click()}
+                                                        className="h-9 w-full border-dashed"
+                                                    >
+                                                        <Upload className="mr-2 h-4 w-4" /> Browse
+                                                    </Button>
                                                 </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
+                                            )}
+                                        </td>
+                                        <td className="border p-2">
+                                            <Controller
+                                                control={control}
+                                                name={`intB_FilePath_Array.${index}.fileName`}
+                                                render={({ field }) => (
+                                                    <Input {...field} readOnly={!isUrlMode} placeholder={isUrlMode ? "Enter Label" : "No file"} className="h-9 bg-muted/20" />
+                                                )}
+                                            />
+                                        </td>
+                                        <td className="border p-2 text-center">
+                                            <Controller
+                                                control={control}
+                                                name={`intB_FilePath_Array.${index}.intbfL_FilePath`}
+                                                render={({ field }) => (
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        disabled={!field.value}
+                                                        onClick={() => window.open(field.value, '_blank')}
+                                                    >
+                                                        <Eye className={cn("h-4 w-4", field.value ? "text-blue-600" : "text-gray-300")} />
+                                                    </Button>
+                                                )}
+                                            />
+                                        </td>
+                                        <td className="border p-2 text-center">
+                                            <div className="flex justify-center gap-1">
+                                                {index === attachmentFields.length - 1 && (
+                                                    <Button type="button" size="icon" variant="outline" className="h-8 w-8" onClick={() => append({ intbfL_FilePath: '', fileName: '' })}>
+                                                        <Plus className="h-4 w-4" />
+                                                    </Button>
+                                                )}
+                                                {attachmentFields.length > 1 && (
+                                                    <Button type="button" size="icon" variant="destructive" className="h-8 w-8" onClick={() => remove(index)}>
+                                                        <Minus className="h-4 w-4" />
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div className="flex items-center space-x-2 pt-2">
+                        <Checkbox id="url-mode" checked={isUrlMode} onCheckedChange={(c) => setIsUrlMode(!!c)} />
+                        <Label htmlFor="url-mode" className="text-xs font-semibold cursor-pointer">Use URLs instead of Files</Label>
+                    </div>
                 </div>
 
-                {/* Student Mode Options */}
+                {/* Student Targeting Logic */}
                 {check_student && (
-                    <div className="space-y-4 pt-4 border-t">
-                        <div className="flex flex-wrap items-center gap-6">
+                    <div className="space-y-6 pt-4 border-t border-dashed">
+                        <div className="flex flex-wrap items-center gap-6 bg-blue-50/30 p-4 rounded-lg">
                             <Controller
                                 control={control}
                                 name="select_route"
                                 render={({ field }) => (
                                     <div className="flex items-center space-x-2">
-                                        <Checkbox
-                                            checked={field.value}
-                                            onCheckedChange={field.onChange}
-                                        />
-                                        <Label className="font-normal">Select Route</Label>
+                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                        <Label className="font-semibold text-blue-900">Select Route</Label>
                                     </div>
                                 )}
                             />
@@ -461,17 +572,13 @@ export default function AddNoticeBoardForm({
                                 name="fee_def"
                                 render={({ field }) => (
                                     <div className="flex items-center space-x-2">
-                                        <Checkbox
-                                            checked={field.value}
-                                            onCheckedChange={field.onChange}
-                                        />
-                                        <Label className="font-normal">Fee Defaulters</Label>
+                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                        <Label className="font-semibold text-red-900">Fee Defaulters</Label>
                                     </div>
                                 )}
                             />
                         </div>
 
-                        {/* Additional Filters: Route / Fee */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             {select_route && (
                                 <Controller
@@ -479,102 +586,132 @@ export default function AddNoticeBoardForm({
                                     name="routeList"
                                     render={({ field }) => (
                                         <CustomMultiSelectBox
-                                            label="Route Name"
-                                            options={routeList.map(r => ({ label: `${r.trmR_RouteName} - ${r.trmR_RouteNo}`, value: r.trmR_Id.toString() }))}
-                                            value={field.value?.map((v) => v.trmR_Id.toString()) || []}
-                                            onChange={(vals) => field.onChange(vals.map((v) => ({ trmR_Id: Number(v) })))}
+                                            label="Routes"
+                                            options={(routeList || []).map((r: any) => ({
+                                                label: r.trmR_RouteName || r.trmr_routename || r.trmR_routeName || '',
+                                                value: (r.trmR_Id || r.trmr_Id || r.trmR_id || '').toString()
+                                            }))}
+                                            value={field.value?.map((v) => v.trmR_Id?.toString()).filter((id): id is string => !!id) || []}
+                                            onChange={(vals) => field.onChange((vals || []).map((v) => ({ trmR_Id: Number(v) })))}
                                             isSearchRequired
                                         />
                                     )}
                                 />
                             )}
-
                             {fee_def && (
-                                <Controller
-                                    control={control}
-                                    name="feeGroupList"
-                                    render={({ field }) => (
-                                        <CustomMultiSelectBox
-                                            label="Fee Group"
-                                            options={feeGroupList.map(f => ({ label: f.fmg_GroupName, value: f.fmg_Id.toString() }))}
-                                            value={field.value?.map((v) => v.fmg_Id.toString()) || []}
-                                            onChange={(vals) => field.onChange(vals.map((v) => ({ fmg_Id: Number(v) })))}
-                                            isSearchRequired
-                                        />
-                                    )}
-                                />
+                                <>
+                                    <Controller
+                                        control={control}
+                                        name="feeGroupList"
+                                        render={({ field }) => (
+                                            <CustomMultiSelectBox
+                                                label="Fee Groups"
+                                                options={(feeGroupList || []).map((f: any) => ({
+                                                    label: f.fmG_Name || f.fmg_GroupName || f.fmg_groupname || f.fmG_groupName || '',
+                                                    value: (f.fmG_Id || f.fmg_Id || f.fmg_id || f.fmG_id || '').toString()
+                                                }))}
+                                                value={field.value?.map((v) => v.fmg_Id?.toString()).filter((id): id is string => !!id) || []}
+                                                onChange={(vals) => field.onChange((vals || []).map((v) => ({ fmg_Id: Number(v) })))}
+                                                isSearchRequired
+                                            />
+                                        )}
+                                    />
+                                    <Controller
+                                        control={control}
+                                        name="feeTermList"
+                                        render={({ field }) => (
+                                            <CustomMultiSelectBox
+                                                label="Fee Terms"
+                                                options={(feeTermList || []).map((f: any) => ({
+                                                    label: f.fmT_Name || f.fmt_Name || f.fmt_name || f.fmT_name || '',
+                                                    value: (f.fmT_Id || f.fmt_Id || f.fmt_id || f.fmT_id || '').toString()
+                                                }))}
+                                                value={field.value?.map((v) => v.fmT_Id?.toString()).filter((id): id is string => !!id) || []}
+                                                onChange={(vals) => field.onChange((vals || []).map((v) => ({ fmT_Id: Number(v) })))}
+                                                isSearchRequired
+                                            />
+                                        )}
+                                    />
+                                </>
                             )}
                         </div>
 
-                        {/* Standard Student Selection */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                             <Controller
                                 control={control}
                                 name="asmcL_Id"
-                                render={({ field }) => (
-                                    <CustomMultiSelectBox
-                                        label="Class Name"
-                                        isRequired
-                                        options={classList.map((c) => ({ label: c.asmcL_ClassName, value: c.asmcL_Id.toString() }))}
-                                        value={field.value?.map((v) => v.asmcL_Id.toString()) || []}
-                                        onChange={(vals) => {
-                                            field.onChange(vals.map((v) => ({ asmcL_Id: Number(v) })));
-                                            // Trigger cascading updates
-                                            setValue('asmS_Id', []);
-                                            setValue('ismS_Id', []);
-                                            setValue('amsT_Id', []);
-                                        }}
-                                        isSearchRequired
-                                    />
+                                render={({ field, fieldState }) => (
+                                    <div className="flex flex-col">
+                                        <CustomMultiSelectBox
+                                            label="Classes"
+                                            isRequired
+                                            options={(classList || []).map((c: any) => ({
+                                                label: c.asmcL_ClassName || c.asmcl_classname || c.asmcL_className || '',
+                                                value: (c.asmcL_Id || c.asmcl_Id || c.asmcL_id || '').toString()
+                                            }))}
+                                            value={field.value?.map((v) => v.asmcL_Id?.toString()).filter((id): id is string => !!id) || []}
+                                            onChange={(vals) => field.onChange((vals || []).map((v) => ({ asmcL_Id: Number(v) })))}
+                                            isSearchRequired
+                                        />
+                                        {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                    </div>
                                 )}
                             />
-
                             <Controller
                                 control={control}
                                 name="asmS_Id"
-                                render={({ field }) => (
-                                    <CustomMultiSelectBox
-                                        label="Section Name"
-                                        isRequired
-                                        options={filteredSectionList.map((s) => ({ label: s.asmC_SectionName, value: s.asmS_Id.toString() }))}
-                                        value={field.value?.map((v) => v.asmS_Id.toString()) || []}
-                                        onChange={(vals) => {
-                                            field.onChange(vals.map((v) => ({ asmS_Id: Number(v) })));
-                                            setValue('ismS_Id', []);
-                                            setValue('amsT_Id', []);
-                                        }}
-                                        isSearchRequired
-                                        disabled={!selectedClasses.length}
-                                    />
+                                render={({ field, fieldState }) => (
+                                    <div className="flex flex-col">
+                                        <CustomMultiSelectBox
+                                            label="Sections"
+                                            isRequired
+                                            options={(sections || []).map((s: any) => ({
+                                                label: s.ASMC_SectionName || s.asmC_SectionName || s.asmc_sectionname || '',
+                                                value: (s.ASMS_Id || s.asmS_Id || s.asms_Id || '').toString()
+                                            })).filter(opt => opt.value)}
+                                            value={field.value?.map((v) => v.asmS_Id?.toString()).filter((id): id is string => !!id) || []}
+                                            onChange={(vals) => field.onChange((vals || []).map((v) => ({ asmS_Id: Number(v) })))}
+                                            isSearchRequired
+                                            disabled={!asmcL_Id?.length}
+                                        />
+                                        {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                    </div>
                                 )}
                             />
-
-                            <Controller
+                            {/* <Controller
                                 control={control}
                                 name="ismS_Id"
                                 render={({ field }) => (
                                     <CustomMultiSelectBox
-                                        label="Subject Name"
-                                        options={filteredSubjectList.map((s) => ({ label: s.ismS_IVRSSubjectName, value: s.ismS_Id.toString() }))}
-                                        value={field.value?.map((v) => v.ismS_Id.toString()) || []}
-                                        onChange={(vals) => field.onChange(vals.map((v) => ({ ismS_Id: Number(v) })))}
+                                        label="Subjects"
+                                        options={(subjects || []).map((s: any) => ({ 
+                                            label: s.ISMS_SubjectName || s.ismS_SubjectName || s.isms_subjectname, 
+                                            value: (s.ISMS_Id || s.ismS_Id || s.isms_Id || '').toString() 
+                                        }))}
+                                        value={field.value?.map((v) => v.ismS_Id?.toString()).filter((id): id is string => !!id) || []}
+                                        onChange={(vals) => field.onChange((vals || []).map((v) => ({ ismS_Id: Number(v) })))}
                                         isSearchRequired
-                                        disabled={!selectedSections.length}
+                                        disabled={!asmS_Id?.length}
                                     />
                                 )}
-                            />
-
+                            /> */}
                             <Controller
                                 control={control}
                                 name="amsT_Id"
                                 render={({ field }) => (
                                     <CustomMultiSelectBox
-                                        label="Student Name"
-                                        options={filteredStudentList.map((s) => ({ label: s.amsT_FirstName, value: s.amsT_Id.toString() }))}
-                                        value={field.value?.map((v) => v.amsT_Id.toString()) || []}
-                                        onChange={(vals) => field.onChange(vals.map((v) => ({ amsT_Id: Number(v) })))}
+                                        label="Students"
+                                        options={Array.from(new Map((students || []).map((s: any) => [
+                                            (s.AMST_Id || s.amsT_Id || s.amst_Id || '').toString(),
+                                            s
+                                        ])).values()).map((s: any) => ({
+                                            label: `${s.studentname || s.AMST_FirstName || s.amsT_FirstName || s.amst_firstname || ''}${s.AMST_AdmNo || s.amst_admno ? ` (${s.AMST_AdmNo || s.amst_admno})` : ''}` || '',
+                                            value: (s.AMST_Id || s.amsT_Id || s.amst_Id || '').toString()
+                                        })).filter(opt => opt.value)}
+                                        value={field.value?.map((v) => v.amsT_Id?.toString()).filter((id): id is string => !!id) || []}
+                                        onChange={(vals) => field.onChange((vals || []).map((v) => ({ amsT_Id: Number(v) })))}
                                         isSearchRequired
-                                        disabled={!selectedSections.length}
+                                        disabled={!asmS_Id?.length}
                                     />
                                 )}
                             />
@@ -582,22 +719,21 @@ export default function AddNoticeBoardForm({
                     </div>
                 )}
 
-                {/* Staff Mode Options */}
+                {/* Staff Targeting Logic */}
                 {check_staff && (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-dashed bg-orange-50/20 p-4 rounded-lg">
                         <Controller
                             control={control}
                             name="hrmd_Id"
                             render={({ field }) => (
                                 <CustomMultiSelectBox
-                                    label="Department Name"
-                                    options={departmentList.map((d) => ({ label: d.hrmd_DepartmentName, value: d.hrmd_Id.toString() }))}
-                                    value={field.value?.map((v) => v.hrmd_Id.toString()) || []}
-                                    onChange={(vals) => {
-                                        field.onChange(vals.map((v) => ({ hrmd_Id: Number(v) })));
-                                        setValue('hrmdeS_Id', []); // Clear child dropdowns
-                                        setValue('hrmE_Id', []);
-                                    }}
+                                    label="Departments"
+                                    options={(deptList || []).map((d: any) => ({
+                                        label: d.HRMDC_Name || d.HRMD_DepartmentName || d.hrmd_DepartmentName || d.hrmd_departmentname || d.hrmdc_Name || '',
+                                        value: (d.HRMDC_ID || d.HRMD_Id || d.hrmd_Id || d.hrmd_id || d.hrmdc_Id || '').toString()
+                                    })).filter(opt => opt.value)}
+                                    value={field.value?.map((v) => v.hrmd_Id?.toString()).filter((id): id is string => !!id) || []}
+                                    onChange={(vals) => field.onChange((vals || []).map((v) => ({ hrmd_Id: Number(v) })))}
                                     isSearchRequired
                                 />
                             )}
@@ -607,13 +743,13 @@ export default function AddNoticeBoardForm({
                             name="hrmdeS_Id"
                             render={({ field }) => (
                                 <CustomMultiSelectBox
-                                    label="Designation Name"
-                                    options={designationList.map((d) => ({ label: d.hrmdes_DesignationName, value: d.hrmdeS_Id.toString() }))}
-                                    value={field.value?.map((v) => v.hrmdeS_Id.toString()) || []}
-                                    onChange={(vals) => {
-                                        field.onChange(vals.map((v) => ({ hrmdeS_Id: Number(v) })));
-                                        setValue('hrmE_Id', []);
-                                    }}
+                                    label="Designations"
+                                    options={(filteredDesgList || []).map((d: any) => ({
+                                        label: d.HRMDES_DesignationName || d.hrmdes_DesignationName || d.hrmdeS_DesignationName || d.hrmdes_designationname || '',
+                                        value: (d.HRMDES_Id || d.hrmdeS_Id || d.hrmdes_Id || d.hrmdes_id || '').toString()
+                                    })).filter(opt => opt.value)}
+                                    value={field.value?.map((v) => v.hrmdeS_Id?.toString()).filter((id): id is string => !!id) || []}
+                                    onChange={(vals) => field.onChange((vals || []).map((v) => ({ hrmdeS_Id: Number(v) })))}
                                     isSearchRequired
                                 />
                             )}
@@ -623,22 +759,27 @@ export default function AddNoticeBoardForm({
                             name="hrmE_Id"
                             render={({ field }) => (
                                 <CustomMultiSelectBox
-                                    label="Employee Name"
-                                    options={staffList.map((s) => ({ label: s.hrmE_EmployeeName, value: s.hrmE_Id.toString() }))}
-                                    value={field.value?.map((v) => v.hrmE_Id.toString()) || []}
-                                    onChange={(vals) => field.onChange(vals.map((v) => ({ hrmE_Id: Number(v) })))}
+                                    label="Employees"
+                                    options={(employees || []).map((e: any) => ({
+                                        label: e.userEmpName || e.HRME_EmployeeName || e.hrmE_EmployeeName || e.hrme_employeename || '',
+                                        value: (e.HRME_Id || e.hrmE_Id || e.hrme_Id || '').toString()
+                                    })).filter(opt => opt.value)}
+                                    value={field.value?.map((v) => v.hrmE_Id?.toString()).filter((id): id is string => !!id) || []}
+                                    onChange={(vals) => field.onChange((vals || []).map((v) => ({ hrmE_Id: Number(v) })))}
                                     isSearchRequired
+                                    disabled={!hrmd_Id?.length && !hrmdeS_Id?.length}
                                 />
                             )}
                         />
                     </div>
                 )}
 
-                <div className='flex justify-center gap-2 pt-6 pb-2'>
-                    <Button type='submit'>
-                        <Save className='mr-2 h-4 w-4' /> SAVE
+                <div className='flex justify-center gap-2 pt-6'>
+                    <Button type='submit' disabled={isSubmitting} className="min-w-[120px] shadow-lg">
+                        {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className='mr-2 h-4 w-4' />}
+                        SEND NOTICE
                     </Button>
-                    <Button type='button' variant='destructive' onClick={() => methods.reset()}>
+                    <Button type='button' variant='destructive' onClick={() => reset()} className="min-w-[120px]">
                         <X className='mr-2 h-4 w-4' /> CANCEL
                     </Button>
                 </div>

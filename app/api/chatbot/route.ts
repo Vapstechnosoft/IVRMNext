@@ -16,6 +16,7 @@ const studentGroq = new Groq({
 async function getNavigationContext() {
     try {
         const modulesResponse = await getUserAccessibleModules();
+        console.log("modulesResponse", modulesResponse);
         if (!modulesResponse.success || !modulesResponse.data) return '';
 
         let contextText = "AVAILABLE PAGES AND NAVIGATION PATHS:\n";
@@ -761,7 +762,7 @@ Go to **Std Fee Details** page
     },
     // --- DETAILED PROCEDURES ---
     howToFillForm: {
-        keywords: ['fill form', 'fill application', 'how to apply', 'application steps', 'admission form steps'],
+        keywords: ['fill form', 'fill application', 'how to apply', 'application steps', 'admission form steps', 'fill', 'application', 'aplication', 'form'],
         response: `To fill the **Preadmission Form**:
 1. Go to **Admission > Preadmission > Transactions > Preadmission Form**.
 2. **Student Details**: Enter Name, DOB, Gender, Class.
@@ -899,7 +900,7 @@ export async function POST(req: NextRequest) {
                     messages: [
                         {
                             role: 'system',
-                            content: `You are the **${context === 'StudentPortal' ? 'Student Assistant' : 'AI VRM Help Desk'}**, a helpful guide. 
+                            content: `You are the **${context === 'StudentPortal' ? 'School Assistant' : 'AI VRM Help Desk'}**, a helpful guide. 
                             
                             **KNOWLEDGE CONTEXT:**
                             ${data.response}
@@ -913,7 +914,7 @@ export async function POST(req: NextRequest) {
                         },
                         ...messages
                     ],
-                    model: 'llama-3.1-70b-versatile',
+                    model: 'llama-3.3-70b-versatile',
                     temperature: 0.2, // Even lower for absolute precision
                     max_tokens: 100 // Further reduced
                 });
@@ -931,7 +932,7 @@ export async function POST(req: NextRequest) {
             messages: [
                 {
                     role: 'system',
-                    content: `You are the **${context === 'StudentPortal' ? 'Student Assistant' : 'AI VRM Help Desk'}**.
+                    content: `You are the **${context === 'StudentPortal' ? 'School Assistant' : 'AI VRM Help Desk'}**.
                     
                     ${context === 'StudentPortal' ?
                             `**AVAILABLE STUDENT PAGES:**
@@ -959,7 +960,7 @@ export async function POST(req: NextRequest) {
                 },
                 ...messages
             ],
-            model: 'llama-3.1-70b-versatile',
+            model: 'llama-3.3-70b-versatile',
             temperature: 0.2, // Slightly increased for better phrasing
             max_tokens: 250, // Increased for detailed steps
             response_format: { type: "json_object" }

@@ -69,6 +69,8 @@ export default function StudyCertificateReportPage() {
     });
     const tableRef = useRef<DataTableRef>(null);
 
+    const [showGrid, setShowGrid] = useState(false);
+
     const studentStatus = useWatch({ control, name: 'studentStatus' });
     const academicYearId = useWatch({ control, name: 'academicYearId' });
     const classId = useWatch({ control, name: 'classId' });
@@ -103,7 +105,9 @@ export default function StudyCertificateReportPage() {
         toDate,
         dailyDate,
         selectionMode,
-        studentStatus
+        studentStatus,
+        undefined,
+        showGrid
     );
 
     const [allReportData, setAllReportData] = useState<any>(null);
@@ -209,13 +213,20 @@ export default function StudyCertificateReportPage() {
     const onSubmit = async (data: FormFields) => {
         try {
             const res = await refetch();
-            if (res.data?.message) {
-                toast.success(res.data.message);
+            const reportData = res.data as any;
+            const records = reportData?.data?.studentAttendanceList || [];
+
+            if (records.length > 0) {
+                setShowGrid(true);
+                toast.success('Report generated successfully');
             } else {
-                toast.success('Report failed to generate');
+                setShowGrid(false);
+                toast.error('No records found');
             }
         } catch (error) {
-            toast.error('No data found');
+            console.error('Report Error:', error);
+            setShowGrid(false);
+            toast.error('No records found');
         }
     };
 
@@ -472,7 +483,14 @@ export default function StudyCertificateReportPage() {
 
                     {/* -------- Actions -------- */}
                     <div className='flex gap-3 border-t pt-4'>
-                        <Button type='button' variant='outline' onClick={() => reset()} className='w-fit'>
+                        <Button
+                            type='button'
+                            variant='outline'
+                            onClick={() => {
+                                reset();
+                                setShowGrid(false);
+                            }}
+                            className='w-fit'>
                             Reset
                         </Button>
                         <Button type='submit' isLoading={isSubmitting} className='w-fit'>
@@ -495,87 +513,90 @@ export default function StudyCertificateReportPage() {
                 </div>
             </form>
 
-            <div className='container space-y-4 p-1'>
-                <CollapsibleSection
-                    title='Student Attendance Report'
-                    defaultOpen={true}
-                    variant='outline'
-                    size='md'
-                    className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                    {/* Institution Header */}
-                    {(studentsAttendance as any)?.data?.institutionDetails?.[0] && (
-                        <div className='mb-6 border-b pb-6 text-center'>
-                            <div className='flex flex-col items-center gap-4'>
-                                {(studentsAttendance as any).data.institutionDetails[0].mI_Logo && (
-                                    <img
-                                        src={(studentsAttendance as any).data.institutionDetails[0].mI_Logo}
-                                        alt='Logo'
-                                        className='h-24 w-auto object-contain'
-                                    />
-                                )}
-                                <div>
-                                    <h1 className='text-2xl font-bold uppercase'>
-                                        {(studentsAttendance as any).data.institutionDetails[0].mI_Name}
-                                    </h1>
-                                    <p className='text-sm text-muted-foreground'>
-                                        {(studentsAttendance as any).data.institutionDetails[0].mI_Address1}
-                                        {(studentsAttendance as any).data.institutionDetails[0].mI_Address2 &&
-                                            `, ${(studentsAttendance as any).data.institutionDetails[0].mI_Address2}`}
-                                        {(studentsAttendance as any).data.institutionDetails[0].mI_Address3 &&
-                                            `, ${(studentsAttendance as any).data.institutionDetails[0].mI_Address3}`}
-                                    </p>
-                                    <h2 className='mt-2 text-lg font-bold tracking-wide'>STUDENT ATTENDANCE REPORT</h2>
-                                    <div className='mt-4 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm font-semibold'>
-                                        {academicYearId && (
-                                            <span>
-                                                Academic Year: {academicYears?.data?.find((y: any) => y.asmaY_Id === academicYearId)?.asmaY_Year}
-                                            </span>
-                                        )}
-                                        {classId && (
-                                            <span>
-                                                Class: {classes?.data?.find((c: any) => c.asmcL_Id === classId)?.asmcL_ClassName}
-                                            </span>
-                                        )}
-                                        {sectionId && (
-                                            <span>
-                                                Section: {sections?.data?.find((s: any) => s.asmS_Id === sectionId)?.asmC_SectionName}
-                                            </span>
-                                        )}
-                                        {month && <span>Month: {monthList.find((m) => m.id === month)?.name}</span>}
-                                    </div>
-                                    <div className='mt-2 text-sm font-bold text-red-600'>
-                                        Total Records: {(studentsAttendance as any)?.total ?? 0}
+            {showGrid && (
+                <div className='container space-y-4 p-1'>
+                    <CollapsibleSection
+                        title='Student Attendance Report'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        {/* Institution Header */}
+                        {(studentsAttendance as any)?.data?.institutionDetails?.[0] && (
+                            <div className='mb-6 border-b pb-6 text-center'>
+                                <div className='flex flex-col items-center gap-4'>
+                                    {(studentsAttendance as any).data.institutionDetails[0].mI_Logo && (
+                                        <img
+                                            src={(studentsAttendance as any).data.institutionDetails[0].mI_Logo}
+                                            alt='Logo'
+                                            className='h-24 w-auto object-contain'
+                                        />
+                                    )}
+                                    <div>
+                                        <h1 className='text-2xl font-bold uppercase'>
+                                            {(studentsAttendance as any).data.institutionDetails[0].mI_Name}
+                                        </h1>
+                                        <p className='text-sm text-muted-foreground'>
+                                            {(studentsAttendance as any).data.institutionDetails[0].mI_Address1}
+                                            {(studentsAttendance as any).data.institutionDetails[0].mI_Address2 &&
+                                                `, ${(studentsAttendance as any).data.institutionDetails[0].mI_Address2}`}
+                                            {(studentsAttendance as any).data.institutionDetails[0].mI_Address3 &&
+                                                `, ${(studentsAttendance as any).data.institutionDetails[0].mI_Address3}`}
+                                        </p>
+                                        <h2 className='mt-2 text-lg font-bold tracking-wide'>STUDENT ATTENDANCE REPORT</h2>
+                                        <div className='mt-4 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm font-semibold'>
+                                            {academicYearId && (
+                                                <span>
+                                                    Academic Year:{' '}
+                                                    {academicYears?.data?.find((y: any) => y.asmaY_Id === academicYearId)?.asmaY_Year}
+                                                </span>
+                                            )}
+                                            {classId && (
+                                                <span>
+                                                    Class: {classes?.data?.find((c: any) => c.asmcL_Id === classId)?.asmcL_ClassName}
+                                                </span>
+                                            )}
+                                            {sectionId && (
+                                                <span>
+                                                    Section: {sections?.data?.find((s: any) => s.asmS_Id === sectionId)?.asmC_SectionName}
+                                                </span>
+                                            )}
+                                            {month && <span>Month: {monthList.find((m) => m.id === month)?.name}</span>}
+                                        </div>
+                                        <div className='mt-2 text-sm font-bold text-red-600'>
+                                            Total Records: {(studentsAttendance as any)?.total ?? 0}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    )}
+                        )}
 
-                    <GenericDataTable<IStudentAttendanceReportList>
-                        {...tableProps}
-                        ref={tableRef}
-                        columns={attendanceColumns}
-                        isLoading={isLoading}
-                        error={error}
-                        showViewOptions={false}
-                        loadingMessage='Loading Student Attendance Reports...'
-                        noDataTitle='No Data Found'
-                        noDataDescription='No Student Attendance Reports found.'
-                        errorTitle='Error Loading Student Attendance Reports'
-                    />
-
-                    <div className='hidden'>
-                        <StudentAttendancePrint
-                            ref={printRef}
-                            data={allReportData || studentsAttendance}
-                            academicYear={academicYears?.data?.find((y: any) => y.asmaY_Id === academicYearId)?.asmaY_Year || ''}
-                            className={classes?.data?.find((c: any) => c.asmcL_Id === classId)?.asmcL_ClassName || ''}
-                            sectionName={sections?.data?.find((s: any) => s.asmS_Id === sectionId)?.asmC_SectionName || ''}
-                            monthName={monthList.find((m) => m.id === month)?.name}
+                        <GenericDataTable<IStudentAttendanceReportList>
+                            {...tableProps}
+                            ref={tableRef}
+                            columns={attendanceColumns}
+                            isLoading={isLoading}
+                            error={error}
+                            showViewOptions={false}
+                            loadingMessage='Loading Student Attendance Reports...'
+                            noDataTitle='No Data Found'
+                            noDataDescription='No Student Attendance Reports found.'
+                            errorTitle='Error Loading Student Attendance Reports'
                         />
-                    </div>
-                </CollapsibleSection>
-            </div>
+
+                        <div className='hidden'>
+                            <StudentAttendancePrint
+                                ref={printRef}
+                                data={allReportData || studentsAttendance}
+                                academicYear={academicYears?.data?.find((y: any) => y.asmaY_Id === academicYearId)?.asmaY_Year || ''}
+                                className={classes?.data?.find((c: any) => c.asmcL_Id === classId)?.asmcL_ClassName || ''}
+                                sectionName={sections?.data?.find((s: any) => s.asmS_Id === sectionId)?.asmC_SectionName || ''}
+                                monthName={monthList.find((m) => m.id === month)?.name}
+                            />
+                        </div>
+                    </CollapsibleSection>
+                </div>
+            )}
         </div>
     );
 }
@@ -590,15 +611,23 @@ function RadioField({ name, control, options, disabled }: any) {
             render={({ field }) => (
                 <RadioGroup
                     value={String(field.value)}
-                    onValueChange={(v) => field.onChange(Number(v))}
+                    onValueChange={(v) => {
+                        const num = Number(v);
+                        field.onChange(isNaN(num) || v.trim() === '' ? v : num);
+                    }}
                     disabled={disabled}
                     className={`flex justify-center gap-4 rounded border p-3 ${disabled ? 'pointer-events-none opacity-50' : ''}`}>
-                    {options.map((opt: any) => (
-                        <div key={opt.value} className='flex items-center gap-2'>
-                            <RadioGroupItem value={String(opt.value)} />
-                            <Label className='font-normal'>{opt.label}</Label>
-                        </div>
-                    ))}
+                    {options.map((opt: any) => {
+                        const id = `radio-${name}-${opt.value}`;
+                        return (
+                            <div key={String(opt.value)} className='flex items-center gap-2'>
+                                <RadioGroupItem id={id} value={String(opt.value)} />
+                                <Label htmlFor={id} className='font-normal cursor-pointer text-sm'>
+                                    {opt.label}
+                                </Label>
+                            </div>
+                        );
+                    })}
                 </RadioGroup>
             )}
         />

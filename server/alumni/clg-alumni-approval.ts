@@ -12,9 +12,7 @@ import type {
 } from '@/types/alumni/clg-alumni-approval';
 
 export async function getAcademicYear() {
-    const session = await auth();
-    const ivrmrtId = (session as any)?.ivrmrT_Id || 30;
-    const url = `/CLGAlumniApproval/get_intial_data?IVRMRT_Id=${ivrmrtId}`;
+    const url = `/CLGAlumniApproval/get_intial_data`;
     return await api.get<any>('alumni', url);
 }
 

@@ -46,8 +46,9 @@ export function PayrollTab({
     const employeeData = response?.data;
 
     // Prioritize the specific API response as requested by user
-    // Prioritize the specific API response as requested by user
-    const salaryDetails = salaryDetailsData || DEFAULT_EMPTY_ARRAY;
+    const salaryDetails = Array.isArray(salaryDetailsData)
+        ? salaryDetailsData
+        : (salaryDetailsData as any)?.data || DEFAULT_EMPTY_ARRAY;
     console.log('🔍 [PayrollTab] Loaded salaryDetails from API:', salaryDetails);
 
     const queryClient = useQueryClient();
@@ -290,6 +291,13 @@ export function PayrollTab({
 
     const handleAutoSave = async (item: EditablePayrollItem) => {
         if (!employeeId) return;
+
+        // Skip auto-save if this row hasn't been saved to the DB yet (no valid ID)
+        const hreedId = Number(item.HREED_Id || 0);
+        if (!hreedId || hreedId <= 0) {
+            console.log('[PAYROLL AUTO-SAVE] Skipping: HREED_Id is 0 or missing (unsaved row)');
+            return;
+        }
 
         // Construct payload matching the user's requested structure
         const payload = {

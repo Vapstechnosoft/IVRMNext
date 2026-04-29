@@ -107,6 +107,7 @@ export default function MappingList({ data, onToggleActive }: MappingListProps) 
                     <TableHeader className='bg-muted/50'>
                         <TableRow>
                             <TableHead className='w-[60px] text-center'>SL.NO.</TableHead>
+                            <TableHead className='w-[100px] text-center'>Mapping ID</TableHead>
                             <TableHead>Unit Name</TableHead>
                             <TableHead>Topic Name</TableHead>
                             <TableHead className='w-[100px] text-center'>Action</TableHead>
@@ -118,10 +119,12 @@ export default function MappingList({ data, onToggleActive }: MappingListProps) 
                                 const unitName = findValue(item, ['lpmU_UnitName', 'LPMU_UnitName', 'unitName']);
                                 const topicName = findValue(item, ['lpmT_TopicName', 'LPMT_TopicName', 'topicName']);
                                 const isActive = findValue(item, ['lpmuT_ActiveFlag', 'activeFlag', 'isActive']);
+                                const mapId = findValue(item, ['lpmtU_Id', 'LPMTU_Id', 'lpmuT_Id', 'LPMUT_Id', 'id']);
 
                                 return (
                                     <TableRow key={index}>
                                         <TableCell className='text-center'>{startIndex + index + 1}</TableCell>
+                                        <TableCell className='text-center font-medium'>{mapId}</TableCell>
                                         <TableCell>{unitName}</TableCell>
                                         <TableCell>{topicName}</TableCell>
                                         <TableCell className='text-center'>
@@ -141,7 +144,7 @@ export default function MappingList({ data, onToggleActive }: MappingListProps) 
                             })
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={4} className='h-24 text-center'>
+                                <TableCell colSpan={5} className='h-24 text-center'>
                                     No records found.
                                 </TableCell>
                             </TableRow>

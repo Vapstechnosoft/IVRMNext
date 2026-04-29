@@ -50,7 +50,10 @@ interface GenericDataTableProps<T> {
     defaultVisibility?: { [key: string]: boolean };
     scrollable?: boolean;
     maxHeight?: string;
-    //manualPagination?: boolean;
+    manualPagination?: boolean;
+    manualSorting?: boolean;
+    manualFiltering?: boolean;
+    getRowId?: (row: T) => string;
     // Bento-Glass Props
 }
 
@@ -78,9 +81,13 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         ErrorComponent,
         showSearchColumns = false,
         showExportOptions = false,
-        // manualPagination = true
+        // Smart defaults: if we have less data than total items, we need manual pagination
+        manualPagination = totalItems > data.length,
+        manualSorting = totalItems > data.length,
+        manualFiltering = totalItems > data.length,
         scrollable = false,
-        maxHeight = '600px'
+        maxHeight = '600px',
+        getRowId
     }: GenericDataTableProps<T>,
     ref: React.Ref<DataTableRef>
 ) {
@@ -136,6 +143,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                     columns={columns}
                     data={[]} // Empty array
                     totalItems={0}
+                    getRowId={getRowId}
                     showViewOptions={showViewOptions}
                     isSearchRequired={isSearchRequired}
                     isPaginationRequired={isPaginationRequired}
@@ -143,7 +151,9 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                     showSearchColumns={showSearchColumns}
                     showExportOptions={showExportOptions}
                     maxSelectableRows={maxSelectableRows}
-                    //manualPagination={manualPagination}
+                    manualPagination={manualPagination}
+                    manualSorting={manualSorting}
+                    manualFiltering={manualFiltering}
                     onRowSelectionChange={(selectedRows) => {
                         if (onRowSelectionChange) {
                             onRowSelectionChange(selectedRows);
@@ -155,20 +165,23 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
     }
 
     return (
-        <div className='overflow-hidden rounded-lg bg-card'>
+        <div className='bg-card'>
             <DataTable
                 ref={ref}
                 isLoading={isLoading}
                 columns={columns}
                 data={data}
                 totalItems={totalItems}
+                getRowId={getRowId}
                 showViewOptions={showViewOptions}
                 isSearchRequired={isSearchRequired}
                 isPaginationRequired={isPaginationRequired}
                 columnPinning={columnPinning}
                 maxSelectableRows={maxSelectableRows}
                 showSearchColumns={showSearchColumns}
-                //manualPagination={manualPagination}
+                manualPagination={manualPagination}
+                manualSorting={manualSorting}
+                manualFiltering={manualFiltering}
                 scrollable={scrollable}
                 maxHeight={maxHeight}
                 onRowSelectionChange={(selectedRows) => {

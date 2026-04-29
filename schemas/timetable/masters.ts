@@ -4,8 +4,8 @@ import { createOptionalNumberOnlyStringSchema, createStringOnlySchema, deleteIdS
 export const masterDaySchema = {
     addOrUpdate: z.object({
         ttmD_Id: z.number().optional(),
-        ttmD_DayName: createStringOnlySchema('Day Name', 1, 100),
-        ttmD_DayCode: createStringOnlySchema('Day Code', 1, 100)
+        ttmD_DayName: createStringOnlySchema('Day Name', 1, 50),
+        ttmD_DayCode: createStringOnlySchema('Day Code', 1, 10)
     }),
     delete: z.object({
         ttmD_Id: deleteIdSchema('ttmD_Id')
@@ -27,7 +27,7 @@ export const masterDayClasswiseSchema = {
 export const masterBuildingSchema = {
     addOrUpdate: z.object({
         ttmB_Id: number().optional(),
-        ttmB_BuildingName: createStringOnlySchema('Building Name', 1, 100)
+        ttmB_BuildingName: createStringOnlySchema('Building Name', 1, 30)
     }),
     delete: z.object({
         ttmB_Id: deleteIdSchema('ttmB_Id')
@@ -86,8 +86,8 @@ export const breakTimeSettingsSchema = {
     addOrUpdate: z.object({
         asmay_id: number().min(1, 'Please select Academic Year'),
         ttmC_Id: number().min(1, 'Please select Category'),
-        calssids: z.array(z.string()).nonempty('Please select at least one Class'),
-        dayids: z.array(z.string()).nonempty('Please select at least one Day'),
+        calssids: z.array(z.any()).nonempty('Please select at least one Class'),
+        dayids: z.array(z.any()).nonempty('Please select at least one Day'),
         ttmB_BreakName: z.string().min(3, 'Break Name must be at least 3 characters'),
         ttmB_BreakStartTime: z.date({ required_error: 'Start Time is required' }),
         ttmB_BreakEndTime: z.date({ required_error: 'End Time is required' }),
@@ -99,7 +99,9 @@ export const breakTimeSettingsSchema = {
 
 export const masterPeriodSchema = {
     save: z.object({
-        periodname: number().min(1, 'Please select Academic Year'),
+        imP_Id: z.number().optional(),
+        impcM_Id: z.number().optional(),
+        periodname: number().min(1, 'Please select Period Name'),
         periodorder: number().min(1, 'Please enter Period Order'),
         categoryids: z.array(z.string()).nonempty('Please select at least one Category'),
         noOfPeriods: z.number().min(1, 'Enter at least 1 period').max(20, 'Max 20 periods allowed'),

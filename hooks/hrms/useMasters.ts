@@ -74,7 +74,7 @@ import { getMasterSpecialization, getMasterSpecializationById } from '@/server/h
 import type { ApiSearchparams } from '@/types';
 import type { MasterEarningsDeductionsInput } from '@/types/hrms/master-earnings-deductions';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { getLeave } from '@/server/hrms/master-dropdown';
+import { getEmployees, getFinancialYearDropdown, getLeave, getLeaveNameCodeDropdown } from '@/server/hrms/master-dropdown';
 // ============================================================================
 // DEPARTMENT
 // ============================================================================
@@ -943,6 +943,25 @@ export function useGroupTypeSetOrder() {
 // ============================================================================
 // LEAVE
 // ============================================================================
+export function useMasterLeaveCodeDropdown() {
+    const queryClient = useQueryClient();
+
+    const query = useQuery({
+        queryKey: ['MASTER_LEAVE', 'dropdown'],
+        queryFn: async () => getLeaveNameCodeDropdown(),
+        staleTime: 1000 * 60 * 5
+    });
+
+    return useMemo(() => ({
+        ...query,
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: ['MASTER_LEAVE', 'dropdown']
+            });
+        }
+    }), [query, queryClient]);
+}
+
 export function useMasterLeaveDropdown() {
     const queryClient = useQueryClient();
 
@@ -960,4 +979,28 @@ export function useMasterLeaveDropdown() {
             });
         }
     }), [query, queryClient]);
+}
+
+/**
+ * Hook for Get Employees
+ */
+
+export function useGetEmployees() {
+    return useQuery({
+        queryKey: ['login-based-departments'],
+        queryFn: () => getEmployees(),
+        staleTime: 1000 * 60 * 5
+    });
+}
+
+/**
+ * Hook for Financial Year Dropdown
+ */
+
+export function useFinancialYearDropdown() {
+    return useQuery({
+        queryKey: ['financial-year-dropdown'],
+        queryFn: () => getFinancialYearDropdown(),
+        staleTime: 1000 * 60 * 5
+    });
 }

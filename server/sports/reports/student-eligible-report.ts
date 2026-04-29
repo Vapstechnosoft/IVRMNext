@@ -1,6 +1,6 @@
 'use server';
 
-import { api } from '@/lib/apiService';
+import { api, getSearchParamsUrl } from '@/lib/apiService';
 import {
     IStudentEligibleReportClass,
     IStudentEligibleReportDetail,
@@ -60,12 +60,23 @@ export async function getStudentsForStudentEligible(asmaY_Id: number, asmcL_Id: 
     }
 }
 
-export async function getStudentEligibleReport(data: IStudentEligibleReportRequest): Promise<IStudentEligibleReportDetail[]> {
+export async function getStudentEligibleReport(data: IStudentEligibleReportRequest, searchParams?: any) {
     try {
-        const response = await api.post<{ viewlist: IStudentEligibleReportDetail[] }>('sports', API_URL.SHOW_DETAILS, data);
-        return response.data?.viewlist || [];
+        const params = { ...searchParams };
+        if (params.search_query) {
+            params.search_query = params.search_query.trim();
+        }
+        // Default search columns to include name, number, class, section, date and age if not provided
+        if (!params.search_column && !params.search_columns) {
+            params.search_columns = 'studentname,adm_no,classname,sectionname,spccE_StartDate,pasR_Age';
+        }
+
+        const urlParams = getSearchParamsUrl(params);
+        const url = `${API_URL.SHOW_DETAILS}?${urlParams}`;
+        const response = await api.post<IStudentEligibleReportDetail[]>('sports', url, data);
+        return response;
     } catch (error) {
         console.error('Error generating Student Eligible Report:', error);
-        return [];
+        return { success: false, message: 'Error generating report', data: [] };
     }
 }

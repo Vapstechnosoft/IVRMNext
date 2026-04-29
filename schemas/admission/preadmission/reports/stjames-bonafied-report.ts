@@ -1,0 +1,30 @@
+import { z } from 'zod';
+
+export const StjamesBonafiedReportSchema = z.object({
+    allorindi: z.enum(['A', 'I']),
+    optradio: z.enum(['S', 'L', 'D', '12']),
+    ASMAY_Id: z.number().min(1, 'please select academic year'),
+    ASMCL_Id: z.number().optional().default(0),
+    ASMS_Id: z.number().optional().default(0),
+    AMST_Id: z.number().min(1, 'please select student'),
+    ASA_FromDate: z.date({ required_error: 'please select date' }),
+}).superRefine((data, ctx) => {
+    if (data.allorindi === 'I') {
+        if (!data.ASMCL_Id || data.ASMCL_Id === 0) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'please select class',
+                path: ['ASMCL_Id'],
+            });
+        }
+        if (!data.ASMS_Id || data.ASMS_Id === 0) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'please select section',
+                path: ['ASMS_Id'],
+            });
+        }
+    }
+});
+
+export type StjamesBonafiedReportFields = z.infer<typeof StjamesBonafiedReportSchema>;

@@ -9,7 +9,7 @@ import { useCallback } from 'react';
 export const masterSectionColumns: ColumnDef<IMasterSectionList>[] = [
     {
         accessorKey: 'asmS_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6 font-bold text-black' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -21,35 +21,35 @@ export const masterSectionColumns: ColumnDef<IMasterSectionList>[] = [
     },
     {
         accessorKey: 'asmC_SectionCode',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Section Code' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Section Code' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('asmC_SectionCode')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'asmC_SectionName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Section Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Section Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('asmC_SectionName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'asmC_Order',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Order' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Order' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('asmC_Order')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'asmC_MaxCapacity',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Max Capacity' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Max Capacity' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('asmC_MaxCapacity')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center font-bold text-black' />,
         accessorFn: (row: any) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />

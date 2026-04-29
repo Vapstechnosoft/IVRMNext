@@ -138,7 +138,22 @@ export function NavigationSystem() {
 
             setActiveDrawer(null);
             setActiveModule(module.name);
-            router.push(firstPageUrl);
+
+            // Make AI Edge links portal-aware
+            let targetUrl = firstPageUrl;
+            if (targetUrl.includes('ai-notemaker') || targetUrl.includes('ai-performance-analysis') || targetUrl.includes('ai-question-paper-generator')) {
+                if (pathname.includes('/StaffPortal/')) {
+                    if (targetUrl.includes('ai-notemaker')) targetUrl = '/StaffPortal/ai-notemaker';
+                    else if (targetUrl.includes('ai-performance-analysis')) targetUrl = '/StaffPortal/ai-performance-analysis';
+                    else if (targetUrl.includes('ai-question-paper-generator')) targetUrl = '/StaffPortal/ai-question-paper-generator';
+                } else if (pathname.includes('/StudentPortal/')) {
+                    if (targetUrl.includes('ai-notemaker')) targetUrl = '/StudentPortal/ai-notemaker';
+                    else if (targetUrl.includes('ai-performance-analysis')) targetUrl = '/StudentPortal/ai-performance-analysis';
+                    else if (targetUrl.includes('ai-question-paper-generator')) targetUrl = '/StudentPortal/ai-question-paper-generator';
+                }
+            }
+
+            router.push(targetUrl);
         }
     };
 
@@ -269,7 +284,24 @@ export function NavigationSystem() {
             sessionStorage.setItem('activeNavigation', JSON.stringify(navData));
         }
         setActiveDrawer(null);
-        router.push(page.url);
+
+        // Make AI Edge links portal-aware
+        let targetUrl = page.url;
+        if (targetUrl.includes('ai-notemaker') || targetUrl.includes('ai-performance-analysis') || targetUrl.includes('ai-question-paper-generator')) {
+            if (pathname.includes('/StaffPortal/')) {
+                // If in Staff Portal, force Staff Portal routes
+                if (targetUrl.includes('ai-notemaker')) targetUrl = '/StaffPortal/ai-notemaker';
+                else if (targetUrl.includes('ai-performance-analysis')) targetUrl = '/StaffPortal/ai-performance-analysis';
+                else if (targetUrl.includes('ai-question-paper-generator')) targetUrl = '/StaffPortal/ai-question-paper-generator';
+            } else if (pathname.includes('/StudentPortal/')) {
+                // If in Student Portal, force Student Portal routes
+                if (targetUrl.includes('ai-notemaker')) targetUrl = '/StudentPortal/ai-notemaker';
+                else if (targetUrl.includes('ai-performance-analysis')) targetUrl = '/StudentPortal/ai-performance-analysis';
+                else if (targetUrl.includes('ai-question-paper-generator')) targetUrl = '/StudentPortal/ai-question-paper-generator';
+            }
+        }
+
+        router.push(targetUrl);
     };
 
     return (

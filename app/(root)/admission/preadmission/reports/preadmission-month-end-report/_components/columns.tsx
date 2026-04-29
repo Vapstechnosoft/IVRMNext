@@ -8,7 +8,7 @@ const getMonthName = (monthNumber: number) => {
 
 interface ReportItem {
     name: string;
-    count?: number; // optional
+    count?: number;
     photo?: number;
     sms?: number;
     emailId?: number;
@@ -26,14 +26,30 @@ interface Props {
     year: number;
     academicYear: number;
     implementationName: string;
+    logoBase64?: string;
+    institutionDetails?: any[];
 }
 
-export default function AdmissionMonthEndReport({ reportData, month, year, implementationName }: Props) {
+export default function AdmissionMonthEndReport({
+    reportData,
+    month,
+    year,
+    implementationName,
+    institutionDetails
+}: Props) {
     const todayDate = new Date().toLocaleDateString('en-GB', {
         day: '2-digit',
         month: 'short',
         year: 'numeric'
     });
+
+    const inst = institutionDetails?.[0] || {};
+    const instTitle = inst.mI_Name || inst.mi_name;
+    const address = `${inst.mI_Address1 || ''} ${inst.mI_Address2 || ''} ${inst.mI_Address3 || ''}`.trim();
+    const city = inst.ivrmmcT_Name || '';
+    const pincode = inst.mI_Pincode || '';
+    const contact = inst.mI_ContactDetails || '';
+    const logoUrl = inst.mI_Logo;
 
     const chartData = reportData.map((x) => ({
         name: x.name,
@@ -44,16 +60,16 @@ export default function AdmissionMonthEndReport({ reportData, month, year, imple
         <div className='w-full p-5 font-sans'>
             {/* HEADER */}
             <div className='mb-6 text-center'>
-                <img src='/school-logo.png' alt='logo' className='mx-auto mb-3 w-[90px]' />
+                <img src={logoUrl} alt='logo' className='mx-auto mb-3 w-[452px]' />
 
-                <h2 className='m-0 font-bold text-lg'>VIDYA VIKASA PRIMARY / HIGHER PRIMARY AND HIGH SCHOOL</h2>
+                {/* <h2 className='m-0 font-bold text-lg'>{instTitle.toUpperCase()}</h2>
 
                 <p className='m-0 text-sm leading-5'>
-                    Basaveshwara Talkies Road, Mob: 7090808194, Tel: 08194 220904 <br />
-                    Chitradurga - 577501, Karnataka
-                </p>
+                    {address} {city} {pincode} <br />
+                    {contact}
+                </p> */}
 
-                <h3 className='mt-5 mb-3 font-semibold text-base'>ADMISSION MODULE</h3>
+                {/* <h3 className='mt-5 mb-3 font-semibold text-base'>ADMISSION MODULE</h3> */}
                 <h2 className='font-semibold text-base'>
                     <span className='font-bold text-xl'>{getMonthName(Number(month)).toUpperCase()} MONTH END REPORT</span>
                 </h2>
@@ -83,7 +99,7 @@ export default function AdmissionMonthEndReport({ reportData, month, year, imple
             {/* TABLE SECTION */}
             <table className='mb-10 w-full border-collapse'>
                 <thead>
-                    <tr className='bg-blue-600 text-white'>
+                    <tr className='bg-blue-600 text-white print:text-black'>
                         <th className='border p-2 text-sm'>SL.No</th>
                         <th className='border p-2 text-sm'>Name</th>
                         <th className='border p-2 text-sm'>Count</th>

@@ -8,8 +8,9 @@ import { useEmployeeLogReport } from '@/hooks/hrms/attendance-management/useRepo
 import { exportToExcel } from '@/lib/utils';
 import { format } from 'date-fns';
 import { FileSpreadsheet, Printer, X } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { use } from 'react';
+import { toast } from 'sonner';
 import AddEmployeeLogReportForm from './_components/add-from';
 import type { LogRow } from './_components/columns';
 import { logReportColumns } from './_components/columns';
@@ -20,7 +21,8 @@ export default function EmployeeLogReportPage(props: {
     searchParams: SearchParams;
 }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useEmployeeLogReport(searchParams);
+    // Remove searchParams dependency from the query to avoid caching issues with client-side pagination
+    const { data: response, isLoading, error } = useEmployeeLogReport({});
 
     return (
         <FormProvider<LogRow>>
@@ -43,14 +45,14 @@ function FormSections({ searchParams }: { searchParams?: any }) {
                     size='md'
                     className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
                     <div className='relative'>
-                        <Button
+                        {/* <Button
                             type='button'
                             onClick={closeAddForm}
                             variant='ghost'
                             size='sm'
                             className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                             <X className='h-4 w-4 text-destructive' /> Close
-                        </Button>
+                        </Button> */}
                         <AddEmployeeLogReportForm onSuccess={closeAddForm} searchParams={searchParams} />
                     </div>
                 </CollapsibleSection>
@@ -70,88 +72,42 @@ function EmployeeLogReportPageContent({
     error: any;
     searchParams?: any;
 }) {
-    const [selectedRows, setSelectedRows] = useState<LogRow[]>([]);
     const tableProps = useDataTableProps(response);
-
-    const handleRowSelectionChange = (rows: LogRow[]) => {
-        setSelectedRows(rows);
-    };
-
+    console.log('response', response);
     const handleExportToExcel = () => {
-        if (selectedRows.length === 0) return;
+        const dataToExport = tableProps.data || [];
+        if (dataToExport.length === 0) return;
 
-        // Get all column keys from the first row (to handle dynamic columns)
-        const firstRow = selectedRows[0];
-        const allKeys = Object.keys(firstRow || {});
-
-        // Filter out internal keys and prepare column headers
-        const excludeKeys = ['user_id', 'id', '_id'];
-        const columnKeys = allKeys.filter((key) => !excludeKeys.includes(key));
-
-        // Prepare data for export with all columns dynamically
-        const exportData = selectedRows.map((row, index) => {
-            const exportRow: Record<string, any> = {
-                'Sl.No': index + 1
-            };
-
-            // Add all other columns dynamically
-            columnKeys.forEach((key) => {
-                if (key === 'entry_date' && row[key]) {
-                    exportRow['Date'] = format(new Date(row[key]), 'dd-MM-yyyy');
-                } else {
-                    // Convert snake_case to Title Case for headers
-                    const headerName = key
-                        .split('_')
-                        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                        .join(' ');
-                    exportRow[headerName] = row[key] ?? '';
-                }
-            });
-
-            return exportRow;
-        });
+        const exportData = dataToExport.map((row: any, index: number) => ({
+            'Sl.No': index + 1,
+            'Employee Code': row.ecode || '',
+            'Employee Name': row.ename || '',
+            'Employee Type': row.gtype || '',
+            'Department': row.depname || '',
+            'Designation': row.desgname || '',
+            'In Time': row.intime || (row.intime === null || row.intime === '' || row.intime === 'A' || row.intime === '00:00') ? 'A' : '',
+            'Out Time': row.outtime || (row.outtime === null || row.outtime === '' || row.outtime === 'A' || row.outtime === '00:00') ? 'A' : '',
+            'Working Time': row.workingtime || (row.workingtime === null || row.workingtime === '' || row.workingtime === 'A' || row.workingtime === '00:00') ? 'A' : '',
+            'Late By': row.lateby || (row.lateby === null || row.lateby === '' || row.lateby === 'A' || row.lateby === '00:00') ? 'A' : '',
+            'Early By': row.earlyby || (row.earlyby === null || row.earlyby === '' || row.earlyby === 'A' || row.earlyby === '00:00') ? 'A' : '',
+            'In Temp': row.intemperature || (row.intemperature === null || row.intemperature === '' || row.intemperature === 'A' || row.intemperature === '00:00') ? 'A' : ''
+        }));
 
         exportToExcel(exportData, 'Employee_Log_Report');
     };
 
     const handlePrint = () => {
-        if (selectedRows.length === 0) return;
+        const dataToPrint = tableProps.data || [];
+        if (dataToPrint.length === 0) return;
 
-        // Get all column keys from the first row
-        const firstRow = selectedRows[0];
-        const allKeys = Object.keys(firstRow || {});
-        const excludeKeys = ['user_id', 'id', '_id'];
-        const columnKeys = allKeys.filter((key) => !excludeKeys.includes(key));
-
-        // Create column headers
-        const columnHeaders = [
-            'Sl.No',
-            ...columnKeys.map((key) => {
-                if (key === 'entry_date') return 'Date';
-                return key
-                    .split('_')
-                    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                    .join(' ');
-            })
-        ];
-
-        // Create a print-friendly table
         const printWindow = window.open('', '_blank');
         if (!printWindow) return;
-
-        const formatValue = (value: any, key: string): string => {
-            if (value === null || value === undefined || value === '') return '';
-            if (key === 'entry_date' && value) {
-                return format(new Date(value), 'dd-MM-yyyy');
-            }
-            return String(value);
-        };
 
         const printContent = `
             <!DOCTYPE html>
             <html>
             <head>
-                <title>Employee Log Report</title>
+                <title></title>
                 <style>
                     body { font-family: Arial, sans-serif; margin: 20px; }
                     h1 { text-align: center; margin-bottom: 20px; }
@@ -167,20 +123,41 @@ function EmployeeLogReportPageContent({
                 </style>
             </head>
             <body>
-                <h1>Employee Log Report</h1>
+                <h1>Employee Log Report from ${response.fromdate} to ${response.todate}</h1>
                 <table>
                     <thead>
                         <tr>
-                            ${columnHeaders.map((header) => `<th>${header}</th>`).join('')}
+                            <th>Sl.No</th>
+                            <th>Employee Code</th>
+                            <th>Employee Name</th>
+                            <th>Employee Type</th>
+                            <th>Department</th>
+                            <th>Designation</th>
+                            <th>In Time</th>
+                            <th>Out Time</th>
+                            <th>Working Time</th>
+                            <th>Late By</th>
+                            <th>Early By</th>
+                            <th>In Temp</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${selectedRows
+                        ${dataToPrint
                             .map(
-                                (row, index) => `
+                                (row: any, index: number) => `
                             <tr>
                                 <td>${index + 1}</td>
-                                ${columnKeys.map((key) => `<td>${formatValue(row[key], key)}</td>`).join('')}
+                                <td>${row.ecode || ''}</td>
+                                <td>${row.ename || ''}</td>
+                                <td>${row.gtype || ''}</td>
+                                <td>${row.depname || ''}</td>
+                                <td>${row.desgname || ''}</td>
+                                <td>${row.intime || (row.intime === null || row.intime === '' || row.intime === 'A' || row.intime === '00:00') ? 'A' : ''}</td>
+                                <td>${row.outtime || (row.outtime === null || row.outtime === '' || row.outtime === 'A' || row.outtime === '00:00') ? 'A' : ''}</td>
+                                <td>${row.workingtime || (row.workingtime === null || row.workingtime === '' || row.workingtime === 'A' || row.workingtime === '00:00') ? 'A' : ''}</td>
+                                <td>${row.lateby || (row.lateby === null || row.lateby === '' || row.lateby === 'A' || row.lateby === '00:00') ? 'A' : ''}</td>
+                                <td>${row.earlyby || (row.earlyby === null || row.earlyby === '' || row.earlyby === 'A' || row.earlyby === '00:00') ? 'A' : ''}</td>
+                                <td>${row.intemperature || (row.intemperature === null || row.intemperature === '' || row.intemperature === 'A' || row.intemperature === '00:00') ? 'A' : ''}</td>
                             </tr>
                         `
                             )
@@ -200,62 +177,82 @@ function EmployeeLogReportPageContent({
         }, 250);
     };
 
+    useEffect(() => {
+        if (response && response.success && (!response.data || response.data.length === 0)) {
+            toast.info('No data found for the selected criteria');
+        }
+    }, [response]);
+
+    const formatDate = (dateString: string) => {
+            if (!dateString) return '';
+            try {
+                return format(new Date(dateString), 'dd-MM-yyyy');
+            } catch (e) {
+                console.error("Error formatting date:", e);
+                return dateString; // Return original if invalid
+            }
+        };
+        
+    const hasData = response?.data && response.data.length > 0;
+
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 {/* Add Form Section (shown first) */}
                 <FormSections searchParams={searchParams} />
 
-                {/* Action Buttons - Show when rows are selected */}
-                {selectedRows.length > 0 && (
-                    <div className='flex items-center gap-2 rounded-lg border bg-blue-50 p-4 shadow-sm'>
-                        <span className='font-medium text-gray-700 text-sm'>
-                            {selectedRows.length} row{selectedRows.length > 1 ? 's' : ''} selected
-                        </span>
-                        <div className='ml-auto flex items-center gap-2'>
-                            <Button
-                                type='button'
-                                variant='outline'
-                                size='sm'
-                                onClick={handleExportToExcel}
-                                className='border-green-500 text-green-700 hover:bg-green-50'>
-                                <FileSpreadsheet className='mr-2 h-4 w-4' />
-                                Excel
-                            </Button>
-                            <Button
-                                type='button'
-                                variant='outline'
-                                size='sm'
-                                onClick={handlePrint}
-                                className='border-blue-500 text-blue-700 hover:bg-blue-50'>
-                                <Printer className='mr-2 h-4 w-4' />
-                                Print
-                            </Button>
-                        </div>
-                    </div>
-                )}
-
                 {/* Data Table Section */}
-                <CollapsibleSection
-                    defaultOpen={true}
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<LogRow>
-                        {...tableProps}
-                        columns={logReportColumns}
-                        isLoading={isLoading}
-                        error={error}
-                        showViewOptions={false}
-                        columnPinning={{ right: ['actions'] }}
-                        isPaginationRequired={true}
-                        onRowSelectionChange={handleRowSelectionChange}
-                        loadingMessage='Loading Employee Log Reports...'
-                        noDataTitle='No Employee Log Reports Found'
-                        noDataDescription='Get started by generating your first Employee Log Report'
-                        errorTitle='Error Loading Employee Log Reports'
-                    />
-                </CollapsibleSection>
+                {hasData && (
+                    <CollapsibleSection
+                        defaultOpen={true}
+                        variant='default'
+                        size='lg'
+                        className='mt-6 shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                        <div className='space-y-4 rounded-lg bg-white p-6'>
+                            <div className='flex items-center justify-between border-b pb-4'>
+                                <h2 className='font-semibold text-lg text-gray-800'>Report Results</h2>
+                                <div className='flex gap-2'>
+                                    <Button
+                                        type='button'
+                                        variant='outline'
+                                        size='sm'
+                                        onClick={handleExportToExcel}
+                                        className='bg-green-50 text-green-700 hover:bg-green-100 hover:text-green-800 transition-all duration-200'>
+                                        <FileSpreadsheet className='mr-2 h-4 w-4' />
+                                        Export Excel
+                                    </Button>
+                                    <Button
+                                        type='button'
+                                        variant='outline'
+                                        size='sm'
+                                        onClick={handlePrint}
+                                        className='bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800 transition-all duration-200'>
+                                        <Printer className='mr-2 h-4 w-4' />
+                                        Print
+                                    </Button>
+                                </div>
+                            </div>
+
+                            <div className="rounded-md shadow-sm">
+                                <div className="bg-gray-400 py-2 px-4 mb-4 text-center text-black font-bold text-sm tracking-wide shadow-inner">
+                                    Employee Log Report from {formatDate(response?.fromdate)} to {formatDate(response?.todate)}
+                                </div>
+                                <GenericDataTable<LogRow>
+                                    {...tableProps}
+                                    columns={logReportColumns}
+                                    isLoading={isLoading}
+                                    error={error}
+                                    showViewOptions={false}
+                                    isPaginationRequired={true}
+                                    loadingMessage='Loading Employee Log Reports...'
+                                    noDataTitle='No Employee Log Reports Found'
+                                    noDataDescription='Get started by generating your first Employee Log Report'
+                                    errorTitle='Error Loading Employee Log Reports'
+                                />
+                            </div>
+                        </div>
+                    </CollapsibleSection>
+                )}
             </div>
         </div>
     );

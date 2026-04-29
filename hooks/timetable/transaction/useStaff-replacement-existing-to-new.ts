@@ -3,10 +3,12 @@ import {
     getSectionsByClass,
     getStaffReplacementExistingToNewMasters,
     getStaffReplacementGridData,
-    getTimetableData
+    getStaffReplacementInitialDetails,
+    saveStaffReplacementExistingToNew,
+    getSectionDropdown
 } from '@/server/timetable/transactions/staff-replacement-existing-to-new';
-import { ApiSearchparams } from '@/types';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import type { ApiSearchparams } from '@/types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const useStaffReplacementExistingToNewMasters = () => {
     return useQuery({
@@ -23,15 +25,34 @@ export const useSectionsByClass = (asmcL_Id: number) => {
     });
 };
 
-export const useTimetableData = (payload: any) => {
+export const useSectionDropdown = () => {
     return useQuery({
-        queryKey: [TIMETABLE_QUERY_KEYS.STAFF_REPLACEMENT_PERIOD_DETAILS, payload],
-        queryFn: () => getTimetableData(payload),
-        enabled: !!payload && !!payload.ttmC_Id && !!payload.hrmE_Id_From
+        queryKey: [TIMETABLE_QUERY_KEYS.STAFF_REPLACEMENT_SECTIONS],
+        queryFn: () => getSectionDropdown(),
     });
 };
 
+export const useStaffReplacementInitialDetails = (id = 0) => {
+    return useQuery({
+        queryKey: [TIMETABLE_QUERY_KEYS.STAFF_REPLACEMENT_MASTERS, 'details', id],
+        queryFn: () => getStaffReplacementInitialDetails(id)
+    });
+};
 
+export const useSaveStaffReplacementExistingToNew = () => {
+    const queryClient = useQueryClient();
+    console.log('queryClient', queryClient);
+    return useMutation({
+        mutationFn: saveStaffReplacementExistingToNew,
+        onSuccess: (data: any) => {
+            if (data.returnval === true || data.success === true) {
+                queryClient.invalidateQueries({ queryKey: [TIMETABLE_QUERY_KEYS.STAFF_REPLACEMENT_GRID_DATA] });
+            } else if (data.returnval === false && data.returnduplicatestatus === 'Duplicate') {
+            } else {
+            }
+        }
+    });
+};
 
 export const useStaffReplacementGridData = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
@@ -45,7 +66,7 @@ export const useStaffReplacementGridData = (searchParams?: ApiSearchparams) => {
 
         refetchAll: () => {
             return queryClient.invalidateQueries({
-                queryKey: [TIMETABLE_QUERY_KEYS.MASTER_DAY]
+                queryKey: [TIMETABLE_QUERY_KEYS.STAFF_REPLACEMENT_GRID_DATA]
             });
         }
     };

@@ -163,7 +163,6 @@ function StudentTransactionContent() {
             try {
                 const { data } = await getClassDropDownByAcademicYearlist(watchAcademicYear);
                 setClasses(Array.isArray(data) ? data : []);
-                console.log('classes', data);
                 clearDependentFields();
             } catch (err) {
                 console.error('Error loading classes:', err);
@@ -193,7 +192,6 @@ function StudentTransactionContent() {
                 if (response.data) {
                     const sectionList = Array.isArray(response.data) ? response.data : [];
                     setSections(sectionList);
-                    console.log('sections', sectionList);
                 } else {
                     setSections([]);
                 }
@@ -249,12 +247,10 @@ function StudentTransactionContent() {
                 if (response.data) {
                     if (watchExamType === 'TermWise') {
                         const termData = Array.isArray(response.data) ? response.data : [];
-                        console.log('termData', termData);
                         setExamTerms(termData);
                         setExams([]);
                     } else {
                         const examData = Array.isArray(response.data) ? response.data : [];
-                        console.log('examData', examData);
                         setExams(examData);
                         setExamTerms([]);
                     }
@@ -292,7 +288,6 @@ function StudentTransactionContent() {
                     const response = await getMasterLifeSkillDrpdownList();
                     const skillsList = Array.isArray(response.data) ? response.data : [];
                     setSkillNames(skillsList);
-                    console.log('skillsList', skillsList);
                     setActivityNames([]);
                     setSkillAreas([]);
                     setActivityAreas([]);
@@ -300,7 +295,6 @@ function StudentTransactionContent() {
                     const CcActivities_response = await getCoScholasticActivityDropdownList();
                     const activitiesList = Array.isArray(CcActivities_response.data) ? CcActivities_response.data : [];
                     setActivityNames(activitiesList);
-                    console.log('activitiesList', activitiesList);
                     setSkillNames([]);
                     setSkillAreas([]);
                     setActivityAreas([]);
@@ -359,7 +353,6 @@ function StudentTransactionContent() {
                 }
 
                 const areasList = Array.isArray(response?.data) ? response.data : [];
-                console.log('areasList', areasList);
 
                 if (watchSkillActivity === 'Skills') {
                     setSkillAreas(areasList);
@@ -393,9 +386,8 @@ function StudentTransactionContent() {
         setSelectedStudentIds((prev) => {
             if (isChecked) {
                 return [...prev, studentId];
-            } else {
-                return prev.filter((id) => id !== studentId);
             }
+            return prev.filter((id) => id !== studentId);
         });
     }, []);
 
@@ -417,7 +409,6 @@ function StudentTransactionContent() {
 
     // Handle search
     const handleSearch = async (data: FormFields) => {
-
         if (!isValid) {
             await trigger();
             toast.error('Please fix validation errors');
@@ -457,7 +448,6 @@ function StudentTransactionContent() {
                 params.ecT_Id = data.examTermId;
                 params.emE_Id = 0;
             }
-            console.log('params', params);
             const response = await getStudentList(params);
 
             if (response.data) {
@@ -529,7 +519,6 @@ function StudentTransactionContent() {
         setSelectedStudentIds([]);
         setHideSaveButton(false);
         setIsSelectAll(false);
-
 
         // Reload academic years (in case they were affected, though unlikely in this component)
         if (academicYearsData?.data) {
@@ -618,10 +607,7 @@ function StudentTransactionContent() {
                 admno: verifyFlag ? 'V' : 'S'
             };
 
-            console.log('Save payload:', payload);
-
             const result = await saveCCEStudentMarks(payload);
-            console.log('Save result:', result);
 
             if (result.success || result.returnVal === 'saved') {
                 toast.success(verifyFlag ? 'Record verified successfully' : 'Record saved successfully');
@@ -665,7 +651,7 @@ function StudentTransactionContent() {
     );
 
     // Check if all required fields are filled for search
-    const allFieldsFilled =
+    const _allFieldsFilled =
         watchAcademicYear &&
         watchAcademicYear !== 0 &&
         watchClass &&
@@ -774,7 +760,7 @@ function StudentTransactionContent() {
                                                     )}
                                                 </SelectContent>
                                             </Select>
-                                            { fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                         </>
                                     )}
                                 />
@@ -828,7 +814,7 @@ function StudentTransactionContent() {
                                                     )}
                                                 </SelectContent>
                                             </Select>
-                                            { fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                         </>
                                     )}
                                 />
@@ -879,7 +865,7 @@ function StudentTransactionContent() {
                                                     )}
                                                 </SelectContent>
                                             </Select>
-                                            { fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                         </>
                                     )}
                                 />
@@ -929,7 +915,7 @@ function StudentTransactionContent() {
                                                         )}
                                                     </SelectContent>
                                                 </Select>
-                                                { fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </>
                                         )}
                                     />
@@ -994,7 +980,7 @@ function StudentTransactionContent() {
                                                         ) : null}
                                                     </SelectContent>
                                                 </Select>
-                                                { fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </>
                                         )}
                                     />
@@ -1037,7 +1023,7 @@ function StudentTransactionContent() {
                                                     <SelectItem value='Activities'>Activities</SelectItem>
                                                 </SelectContent>
                                             </Select>
-                                            { fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                         </>
                                     )}
                                 />
@@ -1085,7 +1071,7 @@ function StudentTransactionContent() {
                                                         )}
                                                     </SelectContent>
                                                 </Select>
-                                                { fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </>
                                         )}
                                     />
@@ -1136,7 +1122,7 @@ function StudentTransactionContent() {
                                                         )}
                                                     </SelectContent>
                                                 </Select>
-                                                { fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </>
                                         )}
                                     />
@@ -1184,7 +1170,7 @@ function StudentTransactionContent() {
                                                         )}
                                                     </SelectContent>
                                                 </Select>
-                                                { fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </>
                                         )}
                                     />
@@ -1234,7 +1220,7 @@ function StudentTransactionContent() {
                                                         )}
                                                     </SelectContent>
                                                 </Select>
-                                                { fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </>
                                         )}
                                     />

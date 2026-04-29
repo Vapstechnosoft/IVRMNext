@@ -8,7 +8,7 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { feeSpecialHeadDROPDOWN, useAcademicYearDropdown } from '@/hooks/fees/useMasters';
+import { useAcademicYearDropdown, useMasterTermsDropdowndataOnlinegroupheadmapping } from '@/hooks/fees/useMasters';
 import { useFeeClassListDefaulterreport, useFeeSectionListDefaulterreport } from '@/hooks/fees/useReports';
 import { cn } from '@/lib/utils';
 import { feeDefaulterreportStthomas } from '@/schemas/fees/reports';
@@ -93,7 +93,7 @@ export default function FeeDefaulterReportstthomas() {
 
     // Hooks
     const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
-    const { data: masterTerms, isLoading: masterTermsLoading, refetchAll: refetchmasterTerms } = feeSpecialHeadDROPDOWN();
+    // const { data: masterTerms, isLoading: masterTermsLoading, refetchAll: refetchmasterTerms } = feeSpecialHeadDROPDOWN();
     useEffect(() => {
         if (academicError) {
             toast.error(academicError?.message || 'Failed to load academic years');
@@ -118,7 +118,7 @@ export default function FeeDefaulterReportstthomas() {
         error: sectionListError,
         refetch: refetchSections
     } = useFeeSectionListDefaulterreport();
-
+    const { data: masterTerms, isLoading: masterTermsLoading } = useMasterTermsDropdowndataOnlinegroupheadmapping();
     useEffect(() => {
         if (classListError) {
             toast.error(classListError?.message || 'Failed to load classes');
@@ -533,15 +533,12 @@ export default function FeeDefaulterReportstthomas() {
         }, 1000);
     };
 
-    const feeTerms = ['April', 'May', 'June', 'July', 'August', 'September'];
-
     return (
         <div className='min-h-screen bg-gray-50 py-8'>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='mx-auto max-w-7xl'>
                     <Card className='border-0 shadow-xl'>
                         <div className='p-8'>
-                            {/* First Row: All/Individual Radio Buttons */}
                             <div className='mb-8'>
                                 <div className='flex items-center justify-center'>
                                     <Card className='min-w-[400px] border bg-gray-50 p-5 shadow-sm'>
@@ -589,9 +586,7 @@ export default function FeeDefaulterReportstthomas() {
                                                                 field.onChange(value);
                                                                 setFilters((prev) => ({ ...prev, academicYearId: value }));
                                                             }}
-                                                            value={field.value?.toString() || ''}
-                                                            // disabled={loadingAcademic}
-                                                        >
+                                                            value={field.value?.toString() || ''}>
                                                             <SelectTrigger className='w-full'>
                                                                 <SelectValue
                                                                     placeholder={loadingAcademic ? 'Loading...' : 'Select Academic Year'}
@@ -676,33 +671,44 @@ export default function FeeDefaulterReportstthomas() {
                                         {/* Conditional: Name/RegNo options when Individual is selected */}
                                         {filters.reportType === 'Individual' && (
                                             <>
-                                                {/*                                                 
+                                                {/* Name/RegNo Radio Buttons */}
                                                 <div className='flex items-center gap-4'>
                                                     <Card className='w-full border bg-gray-50 p-5 shadow-sm'>
                                                         <div className='flex justify-center gap-6'>
-                                                            {['NameRegNo', 'RegNoName'].map((option) => (
-                                                                <Label key={option} className='flex cursor-pointer items-center gap-3'>
+                                                            {[
+                                                                { value: 'NameRegNo', label: 'Name:Reg.No' },
+                                                                { value: 'RegNoName', label: 'Reg.No:Name' }
+                                                            ].map((option) => (
+                                                                <Label
+                                                                    key={option.value}
+                                                                    className='flex cursor-pointer items-center gap-3'>
                                                                     <Input
                                                                         type='radio'
                                                                         name='filterdata'
-                                                                        checked={filters.filterdata === option}
+                                                                        checked={filters.filterdata === option.value}
                                                                         onChange={() => {
-                                                                            setFilters((prev) => ({ ...prev, filterdata: option }));
-                                                                            setValue('filterdata', option as 'NameRegNo' | 'RegNoName');
+                                                                            setFilters((prev) => ({
+                                                                                ...prev,
+                                                                                filterdata: option.value
+                                                                            }));
+                                                                            setValue(
+                                                                                'filterdata',
+                                                                                option.value as 'NameRegNo' | 'RegNoName'
+                                                                            );
                                                                             setShowReport(false);
                                                                             setReportData([]);
                                                                             setSelectedIds([]);
                                                                         }}
                                                                         className='h-5 w-5 text-primary'
                                                                     />
-                                                                    <span className='font-medium'>{option}</span>
+                                                                    <span className='font-medium'>{option.label}</span>
                                                                 </Label>
                                                             ))}
                                                         </div>
                                                     </Card>
                                                 </div>
 
-                                                
+                                                {/* Student Name */}
                                                 <div className='flex items-center gap-4'>
                                                     <Label className='w-48 text-right font-medium'>
                                                         Student Name: <span className='text-red-500'>*</span>
@@ -711,115 +717,44 @@ export default function FeeDefaulterReportstthomas() {
                                                         <Controller
                                                             name='studentId'
                                                             control={control}
-                                                            render={({ field }) => (
-                                                                <Select
-                                                                    onValueChange={field.onChange}
-                                                                    value={field.value?.toString() || ''}>
-                                                                    <SelectTrigger className='w-full'>
-                                                                        <SelectValue placeholder='Select Student' />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>
-                                                                        <SelectItem value='0'>Please Select Student</SelectItem>
-                                                                        <SelectItem value='1'>John Doe (REG001)</SelectItem>
-                                                                        <SelectItem value='2'>Jane Smith (REG002)</SelectItem>
-                                                                    </SelectContent>
-                                                                </Select>
-                                                            )}
+                                                            render={({ field }) => {
+                                                                const students = [
+                                                                    { id: '1', name: 'John Doe', regNo: 'REG001' },
+                                                                    { id: '2', name: 'Jane Smith', regNo: 'REG002' },
+                                                                    { id: '3', name: 'Bob Johnson', regNo: 'REG003' }
+                                                                ];
+
+                                                                return (
+                                                                    <Select
+                                                                        onValueChange={field.onChange}
+                                                                        value={field.value?.toString() || ''}>
+                                                                        <SelectTrigger className='w-full'>
+                                                                            <SelectValue placeholder='Select Student' />
+                                                                        </SelectTrigger>
+                                                                        <SelectContent>
+                                                                            <SelectItem value='0'>Please Select Student</SelectItem>
+                                                                            {students.map((student) => {
+                                                                                const displayText =
+                                                                                    filters.filterdata === 'NameRegNo'
+                                                                                        ? `${student.name} (${student.regNo})`
+                                                                                        : `${student.regNo} - ${student.name}`;
+
+                                                                                return (
+                                                                                    <SelectItem key={student.id} value={student.id}>
+                                                                                        {displayText}
+                                                                                    </SelectItem>
+                                                                                );
+                                                                            })}
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                );
+                                                            }}
                                                         />
                                                         {errors.studentId && <FormError>{errors.studentId.message}</FormError>}
                                                     </div>
-                                                </div> */}
-
-                                                <>
-                                                    {/* Name/RegNo Radio Buttons */}
-                                                    <div className='flex items-center gap-4'>
-                                                        <Card className='w-full border bg-gray-50 p-5 shadow-sm'>
-                                                            <div className='flex justify-center gap-6'>
-                                                                {[
-                                                                    { value: 'NameRegNo', label: 'Name:Reg.No' },
-                                                                    { value: 'RegNoName', label: 'Reg.No:Name' }
-                                                                ].map((option) => (
-                                                                    <Label
-                                                                        key={option.value}
-                                                                        className='flex cursor-pointer items-center gap-3'>
-                                                                        <Input
-                                                                            type='radio'
-                                                                            name='filterdata'
-                                                                            checked={filters.filterdata === option.value}
-                                                                            onChange={() => {
-                                                                                setFilters((prev) => ({
-                                                                                    ...prev,
-                                                                                    filterdata: option.value
-                                                                                }));
-                                                                                setValue(
-                                                                                    'filterdata',
-                                                                                    option.value as 'NameRegNo' | 'RegNoName'
-                                                                                );
-                                                                                setShowReport(false);
-                                                                                setReportData([]);
-                                                                                setSelectedIds([]);
-                                                                            }}
-                                                                            className='h-5 w-5 text-primary'
-                                                                        />
-                                                                        <span className='font-medium'>{option.label}</span>
-                                                                    </Label>
-                                                                ))}
-                                                            </div>
-                                                        </Card>
-                                                    </div>
-
-                                                    {/* Student Name */}
-                                                    <div className='flex items-center gap-4'>
-                                                        <Label className='w-48 text-right font-medium'>
-                                                            Student Name: <span className='text-red-500'>*</span>
-                                                        </Label>
-                                                        <div className='flex-1'>
-                                                            <Controller
-                                                                name='studentId'
-                                                                control={control}
-                                                                render={({ field }) => {
-                                                                    // Mock student data - replace with your actual data
-                                                                    const students = [
-                                                                        { id: '1', name: 'John Doe', regNo: 'REG001' },
-                                                                        { id: '2', name: 'Jane Smith', regNo: 'REG002' },
-                                                                        { id: '3', name: 'Bob Johnson', regNo: 'REG003' }
-                                                                    ];
-
-                                                                    return (
-                                                                        <Select
-                                                                            onValueChange={field.onChange}
-                                                                            value={field.value?.toString() || ''}>
-                                                                            <SelectTrigger className='w-full'>
-                                                                                <SelectValue placeholder='Select Student' />
-                                                                            </SelectTrigger>
-                                                                            <SelectContent>
-                                                                                <SelectItem value='0'>Please Select Student</SelectItem>
-                                                                                {students.map((student) => {
-                                                                                    // Determine display format based on selected radio button
-                                                                                    const displayText =
-                                                                                        filters.filterdata === 'NameRegNo'
-                                                                                            ? `${student.name} (${student.regNo})`
-                                                                                            : `${student.regNo} - ${student.name}`;
-
-                                                                                    return (
-                                                                                        <SelectItem key={student.id} value={student.id}>
-                                                                                            {displayText}
-                                                                                        </SelectItem>
-                                                                                    );
-                                                                                })}
-                                                                            </SelectContent>
-                                                                        </Select>
-                                                                    );
-                                                                }}
-                                                            />
-                                                            {errors.studentId && <FormError>{errors.studentId.message}</FormError>}
-                                                        </div>
-                                                    </div>
-                                                </>
+                                                </div>
                                             </>
                                         )}
-
-                                        {/* Fee Term - Always shown */}
                                         <div className='flex items-center gap-4'>
                                             <Label className='w-48 text-right font-medium'>
                                                 Fee Term: <span className='text-red-500'>*</span>
@@ -832,39 +767,19 @@ export default function FeeDefaulterReportstthomas() {
                                                     onChange={(e) => setTermSearch(e.target.value)}
                                                     className='mb-3'
                                                 />
-
-                                                {/* Select All Users */}
-                                                {/* {masterTerms?.data && (
-                                                    <div
-                                                        onClick={selectAllHeads}
-                                                        className={cn(
-                                                            'mb-2 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 font-medium text-sm transition-all',
-                                                            fmH_Ids.length === headOptions.length && headOptions.length
-                                                                ? 'border-primary bg-primary/5 text-primary'
-                                                                : 'border-gray-300 hover:border-primary/40'
-                                                        )}>
-                                                        {fmH_Ids.length === headOptions.length && headOptions.length ? (
-                                                            <CheckSquare className='h-4 w-4 text-primary' />
-                                                        ) : (
-                                                            <Square className='h-4 w-4 text-gray-400' />
-                                                        )}
-                                                        <span>Select All</span>
-                                                    </div>
-                                                )} */}
-
                                                 <div className='max-h-40 overflow-y-auto rounded-md border border-gray-300 p-1'>
                                                     {masterTermsLoading ? (
                                                         <div className='py-4 text-center text-gray-500 text-sm'>Loading Terms...</div>
                                                     ) : masterTerms?.data?.length === 0 ? (
                                                         <div className='py-4 text-center text-gray-500 text-sm'>No terms found</div>
                                                     ) : (
-                                                        filteredHeads.map((u) => {
-                                                            const id = u.fmH_Id.toString();
+                                                        masterTerms?.data?.map((u) => {
+                                                            const id = u.fmT_Id.toString();
                                                             const selected = fmH_Ids.includes(id);
 
                                                             return (
                                                                 <div
-                                                                    key={u.fmH_Id}
+                                                                    key={u.fmT_Id}
                                                                     onClick={() => toggleHead(id)}
                                                                     className={cn(
                                                                         'mb-1 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-sm transition-all',
@@ -877,7 +792,7 @@ export default function FeeDefaulterReportstthomas() {
                                                                     ) : (
                                                                         <Square className='h-4 w-4 text-gray-400' />
                                                                     )}
-                                                                    <span>{u.fmH_FeeName}</span>
+                                                                    <span>{u.fmT_Name}</span>
                                                                 </div>
                                                             );
                                                         })
@@ -885,31 +800,6 @@ export default function FeeDefaulterReportstthomas() {
                                                 </div>
                                             </div>
                                             {errors.terms && <FormError>{errors.terms.message}</FormError>}
-                                            {/* <div className='flex-1'>
-                                                <Controller
-                                                    name='feeTerm'
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <Select
-                                                            onValueChange={field.onChange}
-                                                            value={field.value?.toString() || ''}
-                                                        >
-                                                            <SelectTrigger className='w-full'>
-                                                                <SelectValue placeholder="Select Fee Term" />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                <SelectItem value='all'>All</SelectItem>
-                                                                {feeTerms.map((term) => (
-                                                                    <SelectItem key={term} value={term.toLowerCase()}>
-                                                                        {term}
-                                                                    </SelectItem>
-                                                                ))}
-                                                            </SelectContent>
-                                                        </Select>
-                                                    )}
-                                                />
-                                                {errors.feeTerm && <FormError>{errors.feeTerm.message}</FormError>}
-                                            </div> */}
                                         </div>
                                     </div>
                                 </div>

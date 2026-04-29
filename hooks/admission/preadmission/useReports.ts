@@ -11,7 +11,13 @@ import {
     getStudyCertficateReport,
     getCharacterCertficateReport,
     generateQRCodeCertificate,
-    getclasswiseStudentDetails
+    getclasswiseStudentDetails,
+    getAttendanceAbsentInitialDetails,
+    sendAttendanceAbsentSms,
+    sendAttendanceAbsentEmail,
+    sendAttendanceAbsentNotice,
+    sendAttendanceAbsentOTP,
+    verifyAttendanceAbsentOTP
 } from '@/server/admission/preadmission/reports/report';
 import { addOrUpdateStudentCountReport, getParentDashboardDetails } from '@/server/admission/preadmission/reports/student_count_report';
 import {
@@ -25,11 +31,14 @@ import {
     getTotalStrengthReport,
     getadmissionStudentsDropdown
 } from '@/server/admission/preadmission/reports/student_yearly_attendance';
+import { getStudentBirthdayReportDetails } from '@/server/admission/preadmission/reports/student_birthday_report';
 import { getStudyCertificateAcademicYearChange, getStudyCertificateConductDetails, getStudyCertificateDetails, getStudyCertificateLoadData, getStudyCertificateSearchFilter, getStudyCertificateSearchFilterSRKVS, getStudyCertificateStudentList, getStudyCertificateQR } from '@/server/admission/preadmission/reports/study_certificate';
+import { getAttendance100InitialDetails, getAttendance100Class, getAttendance100Section, getAttendance100Report, sendShortageAlert } from '@/server/admission/preadmission/reports/attendance_report_100';
+import { getDobCertificateDetails, getDobCertificateLoadData, getDobCertificateStudentList } from '@/server/admission/preadmission/reports/DOBcertificate';
 import type { ApiSearchparams } from '@/types';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-export const useStudentCountReport = (filterPayload?: any, searchParams?: ApiSearchparams) => {
+export const useStudentCountReport = (filterPayload?: any, searchParams?: ApiSearchparams, enabled = true) => {
     const queryClient = useQueryClient();
 
     return {
@@ -47,7 +56,8 @@ export const useStudentCountReport = (filterPayload?: any, searchParams?: ApiSea
                     },
                     searchParams
                 ),
-            staleTime: 0
+            staleTime: 0,
+            enabled: enabled
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
@@ -198,7 +208,7 @@ export const usePreAdmissionEmailSmsReport = (
             })
     };
 };
-export const useStudentYearlyAttendance = (ASMAY_Id: number, ASMCL_Id: number, ASMS_Id: number | undefined, searchParams?: ApiSearchparams, enabled: boolean = true) => {
+export const useStudentYearlyAttendance = (ASMAY_Id: number, ASMCL_Id: number, ASMS_Id: number | undefined, searchParams?: ApiSearchparams, enabled = true) => {
     const queryClient = useQueryClient();
 
     return {
@@ -216,13 +226,13 @@ export const useStudentYearlyAttendance = (ASMAY_Id: number, ASMCL_Id: number, A
     };
 };
 
-export const useClassTeacherReport = (ASMAY_Id: number, flag: number, searchParams?: ApiSearchparams) => {
+export const useClassTeacherReport = (ASMAY_Id: number, flag: number, amcId?: number, searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_CLASS_TEACHER_REPORT, ASMAY_Id, flag, searchParams ?? {}],
-            queryFn: async () => GetClassTeacherReport(ASMAY_Id, flag, searchParams),
+            queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_CLASS_TEACHER_REPORT, ASMAY_Id, flag, amcId, searchParams ?? {}],
+            queryFn: async () => GetClassTeacherReport(ASMAY_Id, flag, amcId, searchParams),
             staleTime: 0,
             enabled: !!ASMAY_Id
         }),
@@ -422,13 +432,20 @@ export const useadmissionStudentsDropdown = (ASMAY_Id?: number, ASMCL_Id?: numbe
         }
     };
 };
-export const useAttendanceAbsentSmsReport = (asmaY_Id: number, from_date: string, frequency: string, searchParams?: ApiSearchparams) => {
+export const useAttendanceAbsentSmsReport = (
+    asmaY_Id: number,
+    from_date: string,
+    frequency: string,
+    amc_id = 0,
+    att_type = 'D',
+    searchParams?: ApiSearchparams
+) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [ADMISSION_QUERY_KEYS.ATTENDANCE_ABSENT_REPORT, asmaY_Id, from_date, frequency, searchParams ?? {}],
-            queryFn: async () => getAttendanceAbsentSmsReport(asmaY_Id, from_date, frequency, searchParams),
+            queryKey: [ADMISSION_QUERY_KEYS.ATTENDANCE_ABSENT_REPORT, asmaY_Id, from_date, frequency, amc_id, att_type, searchParams ?? {}],
+            queryFn: async () => getAttendanceAbsentSmsReport(asmaY_Id, from_date, frequency, amc_id, att_type, searchParams),
             staleTime: 0,
             enabled: !!asmaY_Id
         }),
@@ -437,6 +454,44 @@ export const useAttendanceAbsentSmsReport = (asmaY_Id: number, from_date: string
                 queryKey: [ADMISSION_QUERY_KEYS.ATTENDANCE_ABSENT_REPORT]
             });
         }
+    };
+};
+
+export const useAttendanceAbsentInitialDetails = () => {
+    return useQuery({
+        queryKey: [ADMISSION_QUERY_KEYS.ATTENDANCE_ABSENT_REPORT, 'initial-details'],
+        queryFn: async () => getAttendanceAbsentInitialDetails(),
+        staleTime: Number.POSITIVE_INFINITY
+    });
+};
+
+export const useAttendanceAbsentCommunication = () => {
+    const sendSmsMutation = useMutation({
+        mutationFn: sendAttendanceAbsentSms
+    });
+
+    const sendEmailMutation = useMutation({
+        mutationFn: sendAttendanceAbsentEmail
+    });
+
+    const sendNoticeMutation = useMutation({
+        mutationFn: sendAttendanceAbsentNotice
+    });
+
+    const sendOtpMutation = useMutation({
+        mutationFn: sendAttendanceAbsentOTP
+    });
+
+    const verifyOtpMutation = useMutation({
+        mutationFn: verifyAttendanceAbsentOTP
+    });
+
+    return {
+        sendSms: sendSmsMutation,
+        sendEmail: sendEmailMutation,
+        sendNotice: sendNoticeMutation,
+        sendOtp: sendOtpMutation,
+        verifyOtp: verifyOtpMutation
     };
 };
 export const useAttendanceReport = (asmaY_Id: number, from_date: string, frequency: string, searchParams?: ApiSearchparams) => {
@@ -468,7 +523,8 @@ export const useStudentAttendanceReport = (
     dailyDate: Date | null | undefined,
     selectionMode: number,
     studentStatus: number,
-    searchParams?: ApiSearchparams
+    searchParams?: ApiSearchparams,
+    enabled = true
 ) => {
     const queryClient = useQueryClient();
 
@@ -505,7 +561,7 @@ export const useStudentAttendanceReport = (
                     searchParams
                 ),
             staleTime: 0,
-            enabled: !!asmaY_Id
+            enabled: enabled && !!asmaY_Id
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
@@ -515,7 +571,7 @@ export const useStudentAttendanceReport = (
     };
 };
 
-export const useDateOfBirth = (ASMAY_Id: number, ASMCL_Id: number, ASMS_Id: number, AMST_Id: number, AMC_Id: number, searchParams?: ApiSearchparams, enabled: boolean = true) => {
+export const useDateOfBirth = (ASMAY_Id: number, ASMCL_Id: number, ASMS_Id: number, AMST_Id: number, AMC_Id: number, searchParams?: ApiSearchparams, enabled = true) => {
     const queryClient = useQueryClient();
 
     return {
@@ -549,7 +605,7 @@ export const usePreadmissionClassDropdown1 = () => {
     };
 };
 
-export const useStudyCertificateLoadData = (enabled: boolean = true) => {
+export const useStudyCertificateLoadData = (enabled = true) => {
     const queryClient = useQueryClient();
 
     return {
@@ -567,7 +623,7 @@ export const useStudyCertificateLoadData = (enabled: boolean = true) => {
     };
 };
 
-export const useStudyCertificateStudentList = (data: any, enabled: boolean = true) => {
+export const useStudyCertificateStudentList = (data: any, enabled = true) => {
     const queryClient = useQueryClient();
 
     return {
@@ -585,7 +641,7 @@ export const useStudyCertificateStudentList = (data: any, enabled: boolean = tru
     };
 };
 
-export const useStudyCertificateDetails = (data: any, enabled: boolean = true) => {
+export const useStudyCertificateDetails = (data: any, enabled = true) => {
     const queryClient = useQueryClient();
 
     return {
@@ -603,7 +659,13 @@ export const useStudyCertificateDetails = (data: any, enabled: boolean = true) =
     };
 };
 
-export const useStudyCertificateAcademicYearChange = (data: any, enabled: boolean = true) => {
+export const useStudyCertificateDetailsMutation = () => {
+    return useMutation({
+        mutationFn: getStudyCertificateDetails
+    });
+};
+
+export const useStudyCertificateAcademicYearChange = (data: any, enabled = true) => {
     const queryClient = useQueryClient();
 
     return {
@@ -621,7 +683,7 @@ export const useStudyCertificateAcademicYearChange = (data: any, enabled: boolea
     };
 };
 
-export const useStudyCertificateConductDetails = (data: any, enabled: boolean = true) => {
+export const useStudyCertificateConductDetails = (data: any, enabled = true) => {
     const queryClient = useQueryClient();
 
     return {
@@ -639,7 +701,13 @@ export const useStudyCertificateConductDetails = (data: any, enabled: boolean = 
     };
 };
 
-export const useStudyCertificateSearchFilterSRKVS = (data: any, enabled: boolean = true) => {
+export const useStudyCertificateConductDetailsMutation = () => {
+    return useMutation({
+        mutationFn: getStudyCertificateConductDetails
+    });
+};
+
+export const useStudyCertificateSearchFilterSRKVS = (data: any, enabled = true) => {
     const queryClient = useQueryClient();
 
     return {
@@ -657,7 +725,7 @@ export const useStudyCertificateSearchFilterSRKVS = (data: any, enabled: boolean
     };
 };
 
-export const useStudyCertificateSearchFilter = (data: any, enabled: boolean = true) => {
+export const useStudyCertificateSearchFilter = (data: any, enabled = true) => {
     const queryClient = useQueryClient();
 
     return {
@@ -675,7 +743,13 @@ export const useStudyCertificateSearchFilter = (data: any, enabled: boolean = tr
     };
 };
 
-export const useStudyCertificateQR = (data: any, enabled: boolean = true) => {
+export const useStudyCertificateSearchFilterMutation = () => {
+    return useMutation({
+        mutationFn: getStudyCertificateSearchFilter
+    });
+};
+
+export const useStudyCertificateQR = (data: any, enabled = true) => {
     const queryClient = useQueryClient();
 
     return {
@@ -691,4 +765,126 @@ export const useStudyCertificateQR = (data: any, enabled: boolean = true) => {
             });
         }
     };
+}; export const useStudyCertificateQRMutation = () => {
+    return useMutation({
+        mutationFn: getStudyCertificateQR
+    });
+};
+
+
+
+export const useStudentBirthdayReportDetails = (data: any, searchParams?: ApiSearchparams, enabled = true) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.DATE_OF_BIRTH_REPORT, 'details', data, searchParams ?? {}],
+            queryFn: async () => getStudentBirthdayReportDetails(data, searchParams),
+            staleTime: 0,
+            enabled: enabled && !!data
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.DATE_OF_BIRTH_REPORT, 'details']
+            });
+        }
+    };
+};
+
+export const useAttendance100InitialDetails = (data: any, enabled = true) => {
+    return useQuery({
+        queryKey: [ADMISSION_QUERY_KEYS.ATTENDANCE_REPORT, 'initial-details-100', data],
+        queryFn: async () => getAttendance100InitialDetails(data),
+        staleTime: 0,
+        enabled: enabled && !!data
+    });
+};
+
+export const useAttendance100Class = (data: any, enabled = true) => {
+    return useQuery({
+        queryKey: [ADMISSION_QUERY_KEYS.ATTENDANCE_REPORT, 'class-100', data],
+        queryFn: async () => getAttendance100Class(data),
+        staleTime: 0,
+        enabled: enabled && !!data?.ASMAY_Id
+    });
+};
+
+export const useAttendance100Section = (data: any, enabled = true) => {
+    return useQuery({
+        queryKey: [ADMISSION_QUERY_KEYS.ATTENDANCE_REPORT, 'section-100', data],
+        queryFn: async () => getAttendance100Section(data),
+        staleTime: 0,
+        enabled: enabled && !!data?.ASMAY_Id && !!data?.ASMCL_Id
+    });
+};
+
+export const useAttendance100Report = (data: any, enabled = true) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.ATTENDANCE_REPORT, 'details-100', data],
+            queryFn: async () => getAttendance100Report(data),
+            staleTime: 0,
+            enabled: enabled && !!data
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.ATTENDANCE_REPORT, 'details-100']
+            });
+        }
+    };
+};
+
+export const useAttendance100ShortageAlert = () => {
+    return useMutation({
+        mutationFn: async (asmaY_Id: number) => sendShortageAlert(asmaY_Id)
+    });
+};
+
+export const useDobCertificateLoadData = (pageIdOrEnabled: number | boolean = true, enabledArg = true) => {
+    // Backward compatible:
+    // - old usage: useDobCertificateLoadData(pageId, enabled)
+    // - new usage: useDobCertificateLoadData(enabled)
+    const enabled = typeof pageIdOrEnabled === 'boolean' ? pageIdOrEnabled : enabledArg;
+    const pageId = typeof pageIdOrEnabled === 'number' ? pageIdOrEnabled : 1;
+    return useQuery({
+        queryKey: [ADMISSION_QUERY_KEYS.DATE_OF_BIRTH_REPORT, 'load-data', pageId],
+        queryFn: async () => {
+            const res = await getDobCertificateLoadData();
+            return res ?? ({ success: false, message: 'No response', data: null } as any);
+        },
+        staleTime: 0,
+        enabled: enabled
+    });
+};
+
+export const useDobCertificateStudentList = (data: any, enabled = true) => {
+    return useQuery({
+        queryKey: [ADMISSION_QUERY_KEYS.DATE_OF_BIRTH_REPORT, 'student-list', data],
+        queryFn: async () => {
+            const res = await getDobCertificateStudentList(data);
+            return res ?? ({ success: false, message: 'No response', data: null } as any);
+        },
+        staleTime: 0,
+        enabled: enabled && !!data.ASMAY_Id
+    });
+};
+
+export const useDobCertificateDetails = (data: any, enabled = true) => {
+    return useQuery({
+        queryKey: [ADMISSION_QUERY_KEYS.DATE_OF_BIRTH_REPORT, 'student-details', data],
+        queryFn: async () => {
+            const res = await getDobCertificateDetails(data);
+            return res ?? ({ success: false, message: 'No response', data: null } as any);
+        },
+        staleTime: 0,
+        enabled: enabled && !!data.ASMAY_Id && !!data.ASMCL_Id && !!data.ASMC_Id && data.AMST_Id !== undefined && data.AMST_Id !== null
+    });
+};
+
+export const useDobCertificateDetailsMutation = () => {
+    return useMutation({
+        mutationFn: getDobCertificateDetails
+    });
 };

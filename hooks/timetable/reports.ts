@@ -1,10 +1,16 @@
 import { TIMETABLE_QUERY_KEYS } from '@/constants/Timetable-query-keys';
-import { getClassDetails, getSectionDetailsTT } from '@/server/timetable/reports/classwisett';
-import { getAcademicYear } from '@/server/timetable/reports/deputationreport';
+import { getClassDetails, getSectionDetailsTT, getTimeTableCategoryDropDownDetails } from '@/server/timetable/reports/classwisett';
+import { getAcademicYear, getDeputationReportDetails, getDeputationReportLoadData } from '@/server/timetable/reports/deputationreport';
+import {
+    getstaffwiseWorkingHoursAcademicYear,
+    getstaffwiseWorkingHoursReport,
+    getstaffwiseWorkingHoursStaffDD
+} from '@/server/timetable/reports/stafWiseWrokingHours';
 import { getstaffdropdowndatattstaffreport } from '@/server/timetable/reports/staffwisett';
+import { getuseTimeTableClassDropdownData } from '@/server/timetable/reports/subjectwisett';
 
 import type { ApiSearchparams } from '@/types';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const useSectionDropDown = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
@@ -62,7 +68,6 @@ export const useClassDetails = (searchParams?: ApiSearchparams) => {
 export const useDeputationAcademicYear = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
-
     return {
         ...useQuery({
             queryKey: [TIMETABLE_QUERY_KEYS.DEPUTATION_ACADEMIC_YEAR, searchParams ?? {}],
@@ -76,4 +81,144 @@ export const useDeputationAcademicYear = (searchParams?: ApiSearchparams) => {
             });
         }
     };
+};
+
+export const useDeputationReportLoadData = () => {
+    return useQuery({
+        queryKey: [TIMETABLE_QUERY_KEYS.DEPUTATION_MASTERS],
+        queryFn: getDeputationReportLoadData
+    });
+};
+
+export const useDeputationReportDetails = () => {
+    return useMutation({
+        mutationFn: (data: any) => getDeputationReportDetails(data)
+    });
+};
+
+export const staffwiseWorkingHoursStaffData = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.STAFF_WISE_WORKING_HOURS_REPORT],
+            queryFn: async () => getstaffwiseWorkingHoursStaffDD(),
+            select: (res: any) => {
+                const rawData = res?.data ?? res;
+                let potentialList =
+                    rawData?.stafflist ??
+                    rawData?.staffList ??
+                    rawData?.staffData ??
+                    rawData?.$values ??
+                    (Array.isArray(rawData) ? rawData : []);
+
+                if (!Array.isArray(potentialList) && (potentialList as any)?.$values) {
+                    potentialList = (potentialList as any).$values;
+                }
+
+                return Array.isArray(potentialList) ? potentialList : [];
+            },
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.STAFF_WISE_WORKING_HOURS_REPORT]
+            });
+        }
+    };
+};
+
+
+export const useTimeTableCategoryDropDownClassWise = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.MASTER_CATEGORY_DROPDOWNDATA_TT, searchParams ?? {}],
+            queryFn: async () => getTimeTableCategoryDropDownDetails(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.MASTER_CATEGORY_DROPDOWNDATA_TT]
+            });
+        }
+    };
+};
+
+
+export const useTimeTableClassDropdown = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.MASTER_TT_CLASSDROPDOWN, searchParams ?? {}],
+            queryFn: async () => getuseTimeTableClassDropdownData(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.MASTER_TT_CLASSDROPDOWN]
+            });
+        }
+    };
+};
+
+
+// export const staffwiseWorkingHoursStaffData = (searchParams?: ApiSearchparams) => {
+//     const queryClient = useQueryClient();
+
+//     return {
+//         ...useQuery({
+//             queryKey: [TIMETABLE_QUERY_KEYS.STAFF_WISE_WORKING_HOURS_REPORT, searchParams ?? {}],
+//             queryFn: async () => getstaffwiseWorkingHoursStaffDD(),
+//             select: (res: any) => {
+//                 const rawList =
+//                     res?.data?.stafflist ??
+//                     res?.data?.staffList ??
+//                     res?.stafflist ??
+//                     res?.staffList ??
+//                     [];
+
+//                 // Some APIs return { $values: [...] }
+//                 if (rawList?.$values && Array.isArray(rawList.$values)) return rawList.$values;
+
+//                 return Array.isArray(rawList) ? rawList : [];
+//             },
+//             staleTime: 0
+//         }),
+
+//         refetchAll: () => {
+//             return queryClient.invalidateQueries({
+//                 queryKey: [TIMETABLE_QUERY_KEYS.STAFF_WISE_WORKING_HOURS_REPORT]
+//             });
+//         }
+//     };
+// };
+
+export const staffwiseWorkingHoursAcademicYear = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.STAFF_WISE_WORKING_HOURS_ACADEMIC_YEAR, searchParams ?? {}],
+            queryFn: async () => getstaffwiseWorkingHoursAcademicYear(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.STAFF_WISE_WORKING_HOURS_ACADEMIC_YEAR]
+            });
+        }
+    };
+};
+
+export const staffwiseWorkingHoursReportDetails = () => {
+    return useMutation({
+        mutationFn: (data: any) => getstaffwiseWorkingHoursReport(data)
+    });
 };

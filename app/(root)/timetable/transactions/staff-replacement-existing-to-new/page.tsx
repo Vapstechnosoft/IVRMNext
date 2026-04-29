@@ -5,9 +5,9 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider } from '@/components/ui/form/form-provider';
 import { useStaffReplacementGridData } from '@/hooks/timetable/transaction/useStaff-replacement-existing-to-new';
-import { StaffReplacementGridData } from '@/types/timetable/Transaction/staff-replacement-existing-to-new';
+import type { StaffReplacementGridData } from '@/types/timetable/Transaction/staff-replacement-existing-to-new';
 import { List } from 'lucide-react';
-import { use, useState } from 'react';
+import { use, useEffect, useRef, useState } from 'react';
 import { columns } from './components/columns';
 import StaffReplacementExistingToNewForm from './components/form';
 
@@ -16,17 +16,11 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function StaffReplacementExistingToNewPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error, refetchAll } = useStaffReplacementGridData(searchParams);
-
     // console.log('response', response);
 
     return (
         <FormProvider<StaffReplacementGridData>>
-            <StaffReplacementPageContent
-                response={response}
-                isLoading={isLoading}
-                error={error}
-                refetchAll={refetchAll}
-            />
+            <StaffReplacementPageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
         </FormProvider>
     );
 }
@@ -43,6 +37,14 @@ function StaffReplacementPageContent({
     refetchAll: any;
 }) {
     const [showForm, setShowForm] = useState(false);
+    const formRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        if (showForm && formRef.current) {
+            formRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }, [showForm]);
+
     const tableProps = useDataTableProps(response);
 
     return (
@@ -82,7 +84,7 @@ function StaffReplacementPageContent({
 
             {/* Form Area - Conditionally Visible Below Grid */}
             {showForm && (
-                <div className='fade-in slide-in-from-top-4 animate-in duration-300'>
+                <div ref={formRef} className='fade-in slide-in-from-top-4 animate-in duration-300'>
                     <StaffReplacementExistingToNewForm
                         onFetch={(data) => {
                             // console.log('Form submitted:', data);

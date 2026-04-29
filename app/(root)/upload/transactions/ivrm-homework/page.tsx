@@ -12,17 +12,21 @@ import {
     SelectValue
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { useacademicyerdropdowndatafee } from '@/hooks/fees/useTrasactions';
-import { HomeWorkUploadedList } from '@/hooks/upload/transactions/useHomeWork';
+import { HomeWorkUploadedList, useHomeWork } from '@/hooks/upload/transactions/useHomeWork';
 import type { IHomeWorkDetails } from '@/types/upload/reports/homework-upload-report';
 import { Plus, X } from 'lucide-react';
-import { use, useEffect, useState } from 'react';
+import { use, useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
 import AddHomeWorkForm from './_components/add-form';
 import { homeWorkColumns } from './_components/columns';
 import ToggleHomeWorkForm from './_components/toggle-form';
 import UpdateHomeWorkForm from './_components/update-form';
 
 
+
+import { viewHomeWorkAttachments } from '@/server/upload/transactions/ivrm-homework/server-action';
+import AttachmentViewModal from './_components/attachment-view-modal';
+import MarksEntryModal from './_components/marks-entry-modal';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -32,38 +36,31 @@ export default function HomeWorkPage(props: {
     const searchParams = use(props.searchParams);
     const [selectedYear, setSelectedYear] = useState<number | null>(null);
 
-    const { data: academicYears, isLoading: academicYearLoading, error: academicYearError } = useacademicyerdropdowndatafee();
+    const { data: initialData, isLoading: initialLoading } = useHomeWork();
+    const academicYears = initialData?.academicyear || initialData?.yearlist || [];
+    const classList = initialData?.classlist || [];
 
-
-    const payload = {
-        asmaY_Id: selectedYear
-    };
-
-    console.log("home work payload", selectedYear);
-
-    const { data: response, isLoading, error, refetchAll } = HomeWorkUploadedList(selectedYear ?? 0, searchParams ?? {},);
-
-
-    console.log("home work response", response?.data ?? []);
+    const { data: response, isLoading, error, refetchAll } = HomeWorkUploadedList(selectedYear ?? 0, searchParams ?? {});
 
     useEffect(() => {
-        if (academicYears?.data && academicYears.data.length > 0 && !selectedYear) {
-            setSelectedYear(academicYears.data[0].asmaY_Id);
+        if (academicYears && academicYears.length > 0 && !selectedYear) {
+            setSelectedYear(academicYears[0].asmaY_Id);
         }
     }, [academicYears, selectedYear]);
-
 
     return (
         <FormProvider<IHomeWorkDetails>>
             <HomeWorkContent
                 data={response}
-                isLoading={isLoading}
+                isLoading={isLoading || initialLoading}
                 error={error}
                 selectedYear={selectedYear ?? 0}
                 setSelectedYear={setSelectedYear}
-                academicYears={academicYears?.data || []}
-                academicYearLoading={academicYearLoading}
+                academicYears={academicYears}
+                classList={classList}
+                academicYearLoading={initialLoading}
                 refetchAll={refetchAll}
+                initialData={initialData}
             />
         </FormProvider>
     );
@@ -76,8 +73,10 @@ function HomeWorkContent({
     selectedYear,
     setSelectedYear,
     academicYears,
+    classList,
     academicYearLoading,
-    refetchAll
+    refetchAll,
+    initialData
 }: {
     data: any;
     isLoading: boolean;
@@ -85,78 +84,85 @@ function HomeWorkContent({
     selectedYear: number;
     setSelectedYear: (year: number) => void;
     academicYears: any[];
+    classList: any[];
     academicYearLoading: boolean;
     refetchAll: () => void;
+    initialData: any;
 }) {
-    const { openAddForm } = useFormContext<any>();
+    const { openAddForm } = useFormContext<IHomeWorkDetails>();
 
     const tableProps = useDataTableProps(data);
+    
+    // Legacy support: Parse stringified JSON if present in homeworkgridlist
+    const processedGrid = useMemo(() => {
+        let grid = tableProps.data;
+        const gridSource = data?.data?.homeworkgridlist || academicYears?.[0]?.homeworkgridlist || initialData?.homeworkgridlist;
+        
+        if (gridSource?.[0]?.IVRM_ClassHomeworkGrid_List) {
+            try {
+                grid = JSON.parse(gridSource[0].IVRM_ClassHomeworkGrid_List);
+            } catch (e) {
+                console.error('Failed to parse homework grid list', e);
+            }
+        } else if (Array.isArray(data?.data)) {
+            grid = data.data;
+        } else if (Array.isArray(initialData?.homeworkgridlist)) {
+            grid = initialData.homeworkgridlist;
+        } else {
+            grid = [];
+        }
+        return grid;
+    }, [data, academicYears, initialData, tableProps.data]);
+
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 {/* Header */}
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='flex items-center gap-4 rounded-lg border bg-white px-5 py-4 shadow-sm'>
-                        <Label className='whitespace-nowrap font-semibold'>
-                            Academic Year <span className='text-red-600'>*</span>
-                        </Label>
-                        <Select
-                            value={String(selectedYear)}
-                            onValueChange={(value) => setSelectedYear(Number(value))}
-                            disabled={academicYearLoading}>
-                            <SelectTrigger className='w-64'>
-                                <SelectValue placeholder='Select Academic Year' />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {academicYearLoading ? (
-                                    <SelectItem value='loading' disabled>
-                                        Loading...
-                                    </SelectItem>
-                                ) : academicYears.length > 0 ? (
-                                    academicYears.map((year: any) => (
-                                        <SelectItem key={year.asmaY_Id} value={String(year.asmaY_Id)}>
-                                            {year.asmaY_Year}
-                                        </SelectItem>
-                                    ))
-                                ) : (
-                                    <SelectItem value='no-data' disabled>
-                                        No years found
-                                    </SelectItem>
-                                )}
-                            </SelectContent>
-                        </Select>
-                    </div>
+                    <div></div>
                     <Button
                         type='button'
                         onClick={openAddForm}
-                        className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                        <Plus className='h-4 w-4' />
+                        className='w-fit bg-blue-600 hover:bg-blue-700 text-white shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
+                        <Plus className='h-4 w-4 mr-2' />
                         Add HomeWork
                     </Button>
                 </div>
 
                 {/* Data Table Section */}
                 <CollapsibleSection
-                    title='Home work Upload'
+                    title='HomeWork Grid Details'
                     defaultOpen={true}
                     variant='default'
                     size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                    className='shadow-lg border-blue-100 transition-shadow duration-300 hover:shadow-xl'>
+                    <div className='mb-2 flex items-center justify-between'>
+                        <div className='flex items-center gap-2'>
+                            <span className='text-sm font-bold text-gray-700'>Total Grid Records :</span>
+                            <span className='flex h-6 w-fit min-w-6 items-center justify-center rounded-full bg-blue-600 px-2 text-xs font-bold text-white shadow-sm'>
+                                {Array.isArray(processedGrid) ? processedGrid.length : 0}
+                            </span>
+                        </div>
+                    </div>
                     <GenericDataTable<IHomeWorkDetails>
                         {...tableProps}
+                        data={processedGrid || []}
+                        totalItems={Array.isArray(processedGrid) ? processedGrid.length : 0}
                         columns={homeWorkColumns}
                         isLoading={isLoading}
                         error={error}
-                        columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading homework...'
+                        manualPagination={false}
+                        columnPinning={{ right: ['Status'] }}
+                        scrollable={true}
+                        loadingMessage='Loading homework details...'
                         noDataTitle='No HomeWork Found'
-                        noDataDescription='Get started by creating your first homework entry'
+                        noDataDescription='Select academic year or add a new homework entry'
                         errorTitle='Error Loading HomeWork'
                     />
                 </CollapsibleSection>
 
-                {/* Forms */}
-                <FormSections yearList={academicYears || []} classList={data?.classlist || []} onSuccess={refetchAll} />
+                {/* Forms and Modals */}
+                <FormSections yearList={academicYears || []} classList={classList} onSuccess={refetchAll} />
             </div>
         </div>
     );
@@ -175,13 +181,53 @@ function FormSections({
         isAddFormOpen,
         isEditFormOpen,
         isToggleFormOpen,
+        isDetailsViewOpen,
+        isMarksEntryOpen,
         selectedRow,
         closeAddForm,
         closeEditForm,
         closeToggleForm,
+        closeDetailsView,
+        closeMarksEntry,
         addFormRef,
         editFormRef
-    } = useFormContext<any>();
+    } = useFormContext<IHomeWorkDetails>();
+
+    const [attachments, setAttachments] = useState<any[]>([]);
+    const [isFetchingAttachments, setIsFetchingAttachments] = useState(false);
+
+    useEffect(() => {
+        if (isDetailsViewOpen && selectedRow?.IHW_Id) {
+            const loadAttachments = async () => {
+                setIsFetchingAttachments(true);
+                try {
+                    const response: any = await viewHomeWorkAttachments(selectedRow.IHW_Id!);
+                    let list = [];
+                    if (Array.isArray(response.data)) {
+                        list = response.data;
+                    } else {
+                        list = response.data?.attachementlist || response.attachementlist || [];
+                    }
+
+                    if (response.success && list.length > 0) {
+                        setAttachments(list);
+                    } else if (response.success && list.length === 0) {
+                        setAttachments([]);
+                    } else {
+                        setAttachments([]);
+                        toast.error(response.message || 'Failed to load attachments');
+                    }
+                } catch (error) {
+                    toast.error('An error occurred while fetching attachments');
+                } finally {
+                    setIsFetchingAttachments(false);
+                }
+            };
+            loadAttachments();
+        } else {
+            setAttachments([]);
+        }
+    }, [isDetailsViewOpen, selectedRow]);
 
     return (
         <>
@@ -194,15 +240,15 @@ function FormSections({
                         defaultOpen={true}
                         variant='outline'
                         size='md'
-                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        className='slide-in-from-top-4 animate-in shadow-lg border-blue-200 duration-300'>
                         <div className='relative'>
                             <Button
                                 type='button'
                                 onClick={closeAddForm}
                                 variant='ghost'
                                 size='sm'
-                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                <X className='h-4 w-4 text-destructive' /> Close
+                                className='top-[-3.7rem] absolute right-12 w-fit border border-red-200 text-red-600 hover:bg-red-50 p-2 shadow-sm'>
+                                <X className='h-4 w-4 mr-1' /> Close
                             </Button>
                             <AddHomeWorkForm
                                 onSuccess={() => {
@@ -224,18 +270,18 @@ function FormSections({
                         defaultOpen={true}
                         variant='outline'
                         size='md'
-                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'>
+                        className='slide-in-from-top-4 animate-in border-blue-200 shadow-lg duration-300'>
                         <div className='relative'>
                             <Button
                                 type='button'
                                 onClick={closeEditForm}
                                 variant='ghost'
                                 size='sm'
-                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                <X className='h-4 w-4 text-destructive' /> Close
+                                className='top-[-3.7rem] absolute right-12 w-fit border border-red-200 text-red-600 hover:bg-red-50 p-2 shadow-sm'>
+                                <X className='h-4 w-4 mr-1' /> Close
                             </Button>
                             <UpdateHomeWorkForm
-                                selectedRow={selectedRow}
+                                selectedRow={selectedRow as any}
                                 onSuccess={() => {
                                     closeEditForm();
                                     onSuccess();
@@ -248,14 +294,31 @@ function FormSections({
                 </div>
             )}
 
-            {/* Toggle Form */}
+            {/* Toggle Form (Activate/Deactivate) */}
             {isToggleFormOpen && selectedRow && (
                 <ToggleHomeWorkForm
-                    rowData={selectedRow}
+                    rowData={selectedRow as any}
                     onClose={() => {
                         closeToggleForm();
                         onSuccess();
                     }}
+                />
+            )}
+
+            {/* Attachment View Modal */}
+            <AttachmentViewModal
+                isOpen={isDetailsViewOpen}
+                onClose={closeDetailsView}
+                attachments={attachments}
+                title={`Attachments for: ${selectedRow?.IHW_Topic || 'HomeWork'}`}
+            />
+
+            {/* Marks Entry Modal */}
+            {isMarksEntryOpen && selectedRow && (
+                <MarksEntryModal
+                    isOpen={isMarksEntryOpen}
+                    onClose={closeMarksEntry}
+                    selectedRow={selectedRow as any}
                 />
             )}
         </>

@@ -54,7 +54,7 @@ export const PromotionRemarksColumns = (
         header: ({ column }) => <DataTableColumnHeader column={column} title='Remarks' />,
         cell: ({ row }) => {
             const { studentId, remarks } = row.original;
-            const isSelected = row.getIsSelected();
+            const _isSelected = row.getIsSelected();
 
             // Local state inside the cell
             const [localValue, setLocalValue] = useState(remarks ?? '');

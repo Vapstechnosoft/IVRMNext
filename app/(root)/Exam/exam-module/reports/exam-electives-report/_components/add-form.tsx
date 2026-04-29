@@ -16,7 +16,6 @@ import {
 import { useEffect, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
 
 type ReportType = 'All' | 'Indi' | 'subj' | 'csw';
 
@@ -369,8 +368,8 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                                                     field.value === 'All'
                                                         ? 'All'
                                                         : field.value && field.value !== 0
-                                                            ? String(field.value)
-                                                            : undefined
+                                                          ? String(field.value)
+                                                          : undefined
                                                 }
                                                 onValueChange={(v) => field.onChange(v === 'All' ? 'All' : Number(v))}>
                                                 <SelectTrigger>
@@ -570,7 +569,7 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                     </div>
                     <hr className='my-8' />
                     <div className='flex justify-center gap-4'>
-                        <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting} className='flex'>                            
+                        <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting} className='flex'>
                             {isSubmitting ? 'Generating Report...' : 'Generate Report'}
                         </Button>
                         <Button type='button' variant='outline' onClick={handleClear}>

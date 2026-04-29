@@ -75,8 +75,10 @@ export const StudentChatbot = () => {
         }
     }, [isOpen]);
 
+    const isAuthPage = pathname?.toLowerCase().includes('login') || pathname?.toLowerCase().includes('sign-in');
+
     // Only show in Student Portal - Guard AFTER hooks
-    if (!mounted || !pathname?.toLowerCase().includes('studentportal')) return null;
+    if (!mounted || !pathname?.toLowerCase().includes('studentportal') || isAuthPage) return null;
 
     // Helper to resolve links from common.ts data (environment-aware)
     const resolveLink = (targetName: string, fallbackLink?: string) => {
@@ -241,7 +243,7 @@ export const StudentChatbot = () => {
     };
 
     return (
-        <div className='fixed right-3 bottom-3 z-[2147483647] flex flex-col items-end'>
+        <div className='fixed right-1 bottom-1 z-[2147483647] flex flex-col items-end'>
             <AnimatePresence>
                 {isOpen && !isMinimized && (
                     <motion.div
@@ -266,7 +268,7 @@ export const StudentChatbot = () => {
                                 </div>
                                 <div>
                                     <h3 className='flex items-center gap-1.5 font-bold text-sm leading-none'>
-                                        Student Assistant
+                                        School Assistant
                                         <Sparkles className='h-3 w-3 text-yellow-300' />
                                     </h3>
                                     <p className='mt-1 flex items-center gap-1 text-[11px] opacity-80'>
@@ -386,32 +388,32 @@ export const StudentChatbot = () => {
                 )}
             </AnimatePresence>
 
-            <div className='flex flex-col items-center gap-1.5'>
+            <div className='flex flex-col items-center gap-1'>
                 <motion.button
                     whileHover={{ scale: 1.1, rotate: 5 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={() => setIsOpen(!isOpen)}
                     className={cn(
-                        'group relative flex h-[52px] w-[52px] items-center justify-center overflow-hidden rounded-full border-2 border-white/90 shadow-2xl transition-all duration-500',
+                        'group relative flex h-[42px] w-[42px] items-center justify-center overflow-hidden rounded-full border-2 border-white/90 shadow-2xl transition-all duration-500',
                         isOpen ? 'bg-red-500' : 'bg-gradient-to-tr from-blue-600 to-indigo-700'
                     )}>
                     {isOpen ? (
-                        <X className='h-5 w-5 text-white' />
+                        <X className='h-4 w-4 text-white' />
                     ) : (
                         <div className='relative flex h-full w-full flex-col items-center justify-center'>
-                            <GraduationCap className='z-10 h-6 w-6 text-white drop-shadow-lg' />
+                            <GraduationCap className='z-10 h-5 w-5 text-white drop-shadow-lg' />
 
                             <motion.div
                                 animate={{ scale: [1, 1.2, 1] }}
                                 transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2 }}
-                                className='absolute top-1 right-1 z-20 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-white'>
-                                <Sparkles className='h-1.5 w-1.5 text-blue-600' />
+                                className='absolute top-[2px] right-[2px] z-20 flex h-2 w-2 items-center justify-center rounded-full bg-white'>
+                                <Sparkles className='h-1 w-1 text-blue-600' />
                             </motion.div>
                         </div>
                     )}
                 </motion.button>
                 {!isOpen && (
-                    <span className='whitespace-nowrap rounded-full border border-black/5 bg-white/50 px-2 py-0.5 font-bold text-[10px] text-foreground/80 tracking-wider shadow-sm backdrop-blur-sm dark:bg-black/20 dark:text-white/80'>
+                    <span className='whitespace-nowrap rounded-full border border-black/5 bg-white/50 px-1.5 py-[1px] font-bold text-[8px] text-foreground/80 tracking-wider shadow-sm backdrop-blur-sm dark:bg-black/20 dark:text-white/80'>
                         AI VRM HELP
                     </span>
                 )}

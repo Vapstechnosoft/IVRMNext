@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useTimeTableAcademicYear, useTimeTableClassDropdownData, useSubjectDropDown } from '@/hooks/timetable/useMasters';
+import { useSubjectDropDown, useTimeTableAcademicYear, useTimeTableClassDropdownData } from '@/hooks/timetable/useMasters';
 import { subjectWiseReportSchema } from '@/schemas/timetable/reports';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, Search, X } from 'lucide-react';
@@ -14,6 +14,7 @@ import type { z } from 'zod';
 type FormFields = z.infer<typeof subjectWiseReportSchema.search>;
 
 import { getSubjectWiseReport } from '@/server/timetable/reports/subjectwisett';
+import { useTimeTableClassDropdown } from '@/hooks/timetable/reports';
 
 interface SubjectWiseFormProps {
     initialData: any;
@@ -22,20 +23,11 @@ interface SubjectWiseFormProps {
 }
 
 export default function SubjectWiseForm({ initialData, onReportGenerated, onCancel }: SubjectWiseFormProps) {
-    const {
-        data: academicyeardata,
-        isLoading: academicyearloading,
-    } = useTimeTableAcademicYear();
+    const { data: academicyeardata, isLoading: academicyearloading } = useTimeTableAcademicYear();
 
-    const {
-        data: classdropdowndata,
-        isLoading: classloading,
-    } = useTimeTableClassDropdownData();
+    const { data: classdropdowndata, isLoading: classloading } = useTimeTableClassDropdown();
 
-    const {
-        data: subjectdropdowndata,
-        isLoading: subjectloading,
-    } = useSubjectDropDown();
+    const { data: subjectdropdowndata, isLoading: subjectloading } = useSubjectDropDown();
 
     const academicList = Array.isArray(academicyeardata) ? academicyeardata : (academicyeardata as any)?.data || [];
     const classList = Array.isArray(classdropdowndata) ? classdropdowndata : (classdropdowndata as any)?.data || [];
@@ -49,6 +41,7 @@ export default function SubjectWiseForm({ initialData, onReportGenerated, onCanc
     } = useForm<FormFields>({
         resolver: zodResolver(subjectWiseReportSchema.search),
         defaultValues: {
+            asmaY_Id: undefined,
             classId: [],
             subjectId: []
         }
@@ -65,9 +58,11 @@ export default function SubjectWiseForm({ initialData, onReportGenerated, onCanc
         const selectedSubjects = subjectList.filter((s: any) => data.subjectId?.includes(s.ismS_Id));
 
         const payload = {
+            asmaY_Id: data.asmaY_Id,
             ASMAY_Id: data.asmaY_Id,
             classarray: selectedClasses,
-            subarray: selectedSubjects
+            subarray: selectedSubjects,
+            subjectarray: selectedSubjects
         };
 
         try {
@@ -77,7 +72,7 @@ export default function SubjectWiseForm({ initialData, onReportGenerated, onCanc
             onReportGenerated(response, payload);
         } catch (error: any) {
             console.error('Error generating subject wise report:', error);
-            throw error;
+            // no need to throw unless you want to propagate it
         }
     };
 
@@ -93,7 +88,10 @@ export default function SubjectWiseForm({ initialData, onReportGenerated, onCanc
                         control={control}
                         name='asmaY_Id'
                         render={({ field }) => (
-                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                            <Select
+                                key={field.value ?? 'empty'}
+                                onValueChange={(val) => field.onChange(Number(val))}
+                                value={field.value?.toString()}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>

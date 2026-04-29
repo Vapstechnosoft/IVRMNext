@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, useMemo } from 'react';
+import { useRef, useState, useMemo, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 //import { useReactToPrint } from 'react-to-print';
 //Commented due to Build Error
@@ -19,7 +19,7 @@ import {
     useReportDesignations,
     useReportGroupTypes
 } from '@/hooks/hrms/useReports';
-import { Loader2, Search, Download, Printer } from 'lucide-react';
+import { Loader2, Search, Download, Printer, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 const MONTH_LIST = [
@@ -47,7 +47,7 @@ export default function ESIReportPage() {
 
 function ESIReportContent() {
     const [reportData, setReportData] = useState<any>(null);
-    const { control, handleSubmit, watch, setValue } = useForm<FilterFormValues>({
+    const { control, handleSubmit, watch, setValue, reset } = useForm<FilterFormValues>({
         defaultValues: {
             year: '',
             month: '',
@@ -57,8 +57,14 @@ function ESIReportContent() {
         }
     });
 
+    const handleCancel = () => {
+        reset();
+        setReportData(null);
+    };
+
     const watchedGroupType = watch('groupType');
     const watchedDepartment = watch('department');
+    const watchDesignation = watch('designation');
 
     // Queries - Reusing hooks from cumulative-salary-report for reliability
     const { data: yearsData } = useLeaveYearDropdown();
@@ -72,7 +78,15 @@ function ESIReportContent() {
 
     const { mutate: generateReport, isPending } = useESIReport();
 
+
+    // Clear the reportData when data changes
+
+    useEffect(() => {
+        setReportData(null);
+    }, [watchedGroupType, watchedDepartment, watchDesignation]);
+
     const onSubmit = (data: FilterFormValues) => {
+        console.log('data', data);
         if (!data.year || !data.month) {
             toast.error('Please select Year and Month');
             return;
@@ -93,7 +107,8 @@ function ESIReportContent() {
             designationselected: data.designation.map(Number)
         }, {
             onSuccess: (res) => {
-                if (res.success && res.data) {
+                console.log('API Response:', res);
+                if (res.success && res.data && res?.data?.list?.length > 0) {
                     setReportData(res.data);
                     toast.success('Report generated successfully');
                 } else {
@@ -272,8 +287,17 @@ function ESIReportContent() {
                         </div>
                     </div>
 
-                    <div className='flex justify-end'>
-                        <Button type='submit' disabled={isPending} className='w-32'>
+                    <div className='flex justify-end gap-2'>
+                        <Button
+                            type='button'
+                            variant='outline'
+                            onClick={handleCancel}
+                            disabled={isPending}
+                            className='w-32 border-orange-500 text-orange-600 hover:bg-orange-50 transition-all rounded-xl'>
+                            <X className='mr-2 h-4 w-4' />
+                            CANCEL
+                        </Button>
+                        <Button type='submit' disabled={isPending} className='w-32 transition-all rounded-xl'>
                             {isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Search className='mr-2 h-4 w-4' />}
                             Generate
                         </Button>
@@ -281,7 +305,7 @@ function ESIReportContent() {
                 </form>
             </CollapsibleSection>
 
-            {reportData && (
+            {reportData  &&  (
                 <CollapsibleSection title="Report Details" defaultOpen={true} className='shadow-md border'
                     rightElement={
                         <div className='flex gap-2'>

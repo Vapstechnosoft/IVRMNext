@@ -101,7 +101,7 @@ export default function UpdateExamSubjectGroup({ mI_Id = 30, selectedRow, onSucc
                 setTimeout(() => {
                     trigger(['asmaY_Id', 'emcA_Id', 'emE_Id']);
                 }, 0);
-            } catch (err: any) {
+            } catch (_err: any) {
                 toast.error('Failed to load group details');
             }
         };
@@ -129,7 +129,7 @@ export default function UpdateExamSubjectGroup({ mI_Id = 30, selectedRow, onSucc
                     });
                     setTimeout(() => trigger('emcA_Id'), 0);
                 }
-            } catch (err: any) {
+            } catch (_err: any) {
                 toast.error('Failed to load categories');
             }
         };
@@ -160,7 +160,7 @@ export default function UpdateExamSubjectGroup({ mI_Id = 30, selectedRow, onSucc
                     });
                     setTimeout(() => trigger('emE_Id'), 0);
                 }
-            } catch (err: any) {
+            } catch (_err: any) {
                 toast.error('Failed to load exams');
             }
         };
@@ -183,7 +183,7 @@ export default function UpdateExamSubjectGroup({ mI_Id = 30, selectedRow, onSucc
                     const response_ = await getSubjectsForPromotionalExam(asmaY_Id, emcA_Id);
                     setSubjects((response_?.data || []) as IESubject[]);
                 }
-            } catch (err: any) {
+            } catch (_err: any) {
                 toast.error('Failed to load subjects');
             }
         };
@@ -534,11 +534,11 @@ export default function UpdateExamSubjectGroup({ mI_Id = 30, selectedRow, onSucc
                         </TabsContent>
                     </Tabs>
 
-                    <div className='mt-6 flex gap-3'>
-                        <Button type='submit' disabled={isSubmitting}>
+                    <div className='mt-6 flex w-fit gap-3'>
+                        <Button type='submit' disabled={isSubmitting} className='w-fit'>
                             {isSubmitting ? 'Saving...' : 'Update Group'}
                         </Button>
-                        <Button type='button' variant='outline' onClick={() => reset()}>
+                        <Button type='button' variant='outline' onClick={() => reset()} className='w-fit'>
                             Reset
                         </Button>
                     </div>

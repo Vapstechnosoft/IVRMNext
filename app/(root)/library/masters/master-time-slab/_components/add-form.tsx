@@ -5,7 +5,7 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { useMasterTimeSlab } from '@/hooks/library/useMasters';
+import { useMasterTimeSlabList } from '@/hooks/library/useMasters';
 import { masterTimeSlabSchema } from '@/schemas/library/masters';
 import { addOrUpdateMasterTimeSlab } from '@/server/library/masters/time-slab';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -17,12 +17,13 @@ import type { z } from 'zod';
 type FormFields = z.infer<typeof masterTimeSlabSchema.addOrUpdate>;
 
 interface AddMasterTimeSlabFormProps {
+    onloaddata?: any;
     onSuccess?: () => void;
     className?: string;
 }
 
-export default function AddMasterTimeSlabForm({ onSuccess, className = '' }: AddMasterTimeSlabFormProps) {
-    const { refetchAll } = useMasterTimeSlab();
+export default function AddMasterTimeSlabForm({ onloaddata, onSuccess, className = '' }: AddMasterTimeSlabFormProps) {
+    const { refetchAll } = useMasterTimeSlabList();
 
     const {
         register,
@@ -50,9 +51,13 @@ export default function AddMasterTimeSlabForm({ onSuccess, className = '' }: Add
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             const payload = {
-                ...data,
-                lfsE_ActiveFlg: true,
-                lfsE_Id: 0
+                LFSE_Id: 0,
+                LFSE_UserType: data.lfsE_UserType,
+                LFSE_SlabTypeFlg: data.lfsE_SlabTypeFlg,
+                LFSE_PerDayFlg: data.lfsE_PerDayFlg,
+                LFSE_FromDay: data.lfsE_FromDay,
+                LFSE_ToDay: data.lfsE_ToDay ?? 0,
+                LFSE_Amount: data.lfsE_Amount
             };
 
             const response = await addOrUpdateMasterTimeSlab(payload);
@@ -87,10 +92,20 @@ export default function AddMasterTimeSlabForm({ onSuccess, className = '' }: Add
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value='STUDENT'>STUDENT</SelectItem>
-                                        <SelectItem value='STAFF'>STAFF</SelectItem>
-                                        <SelectItem value='DEPARTMENT'>DEPARTMENT</SelectItem>
-                                        <SelectItem value='GUEST'>GUEST</SelectItem>
+                                        {onloaddata?.usertype && onloaddata.usertype.length > 0 ? (
+                                            onloaddata.usertype.map((item: any, index: number) => (
+                                                <SelectItem key={index} value={item.ivrmrT_Role}>
+                                                    {item.ivrmrT_Role}
+                                                </SelectItem>
+                                            ))
+                                        ) : (
+                                            <>
+                                                <SelectItem value='STUDENT'>STUDENT</SelectItem>
+                                                <SelectItem value='STAFF'>STAFF</SelectItem>
+                                                <SelectItem value='DEPARTMENT'>DEPARTMENT</SelectItem>
+                                                <SelectItem value='GUEST'>GUEST</SelectItem>
+                                            </>
+                                        )}
                                     </SelectContent>
                                 </Select>
                             )}
@@ -109,8 +124,18 @@ export default function AddMasterTimeSlabForm({ onSuccess, className = '' }: Add
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value='BETWEEN'>BETWEEN</SelectItem>
-                                        <SelectItem value='GREATER'>GREATER</SelectItem>
+                                        {onloaddata?.slabtype && onloaddata.slabtype.length > 0 ? (
+                                            onloaddata.slabtype.map((item: any, index: number) => (
+                                                <SelectItem key={index} value={item.slabtype}>
+                                                    {item.slabtype}
+                                                </SelectItem>
+                                            ))
+                                        ) : (
+                                            <>
+                                                <SelectItem value='BETWEEN'>BETWEEN</SelectItem>
+                                                <SelectItem value='GREATER'>GREATER</SelectItem>
+                                            </>
+                                        )}
                                     </SelectContent>
                                 </Select>
                             )}

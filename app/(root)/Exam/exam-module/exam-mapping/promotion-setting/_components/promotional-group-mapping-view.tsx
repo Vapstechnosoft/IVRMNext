@@ -30,7 +30,6 @@ function GroupMappingContent({ rowData, onClose }: { rowData: IPromotionalSubjec
 
     const tableProps = useDataTableProps(response);
     useEffect(() => {
-        console.log(response);
         refetchAll();
     }, [rowData]);
 
@@ -81,7 +80,9 @@ function GroupMappingSections({ promSubjObj }: { promSubjObj: IPromotionalSubjec
 
     return (
         <>
-            {isToggleFormOpen && selectedRow && <PromotionalGroupMappingToggleForm rowData={selectedRow} onClose={closeToggleForm} promSubjObj={promSubjObj} />}
+            {isToggleFormOpen && selectedRow && (
+                <PromotionalGroupMappingToggleForm rowData={selectedRow} onClose={closeToggleForm} promSubjObj={promSubjObj} />
+            )}
 
             {isMappedviewOpen && selectedRow && <PromotionalGroupMappedExamsPage rowData={selectedRow} onClose={closeMappedview} />}
         </>

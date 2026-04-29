@@ -11,7 +11,7 @@ export const masterSubjectSchema = {
         ismS_Id: z.number().int({ message: 'Subject Id is required' }).optional(),
         mI_Id: z.number().int().optional(),
         ismS_IVRSSubjectName: createExamCustomStringSchema('IVRS Subject Name', 1, 100),
-        ismS_SubjectCode: createStringSchema('Subject Code', 1, 50),
+        ismS_SubjectCode: createExamCustomStringSchema('Subject Code', 1, 50),
         ismS_SubjectNameNew: createExamCustomStringSchema('Subject Type / New Name', 1, 50),
         ismS_SubjectName: createExamCustomStringSchema('Subject Name', 1, 50),
         ismS_PreadmFlag: z.number().int({ message: 'Pre-Admission Flag is required' }),
@@ -34,9 +34,9 @@ export const masterExamSchema = {
         emE_Id: z.number().optional(),
         mI_Id: z.number().optional(),
         emE_ExamName: createExamCustomStringSchema('Exam Name', 1, 100),
-        emE_ExamCode: z.string().min(1, { message: 'Exam Code is required' }),
+        emE_ExamCode: createExamCustomStringSchema('Exam Code', 1, 50),
         emE_ExamDescription: createExamCustomStringSchema('Exam Description', 1, 100),
-        emE_IVRSExamName: z.string().min(1, { message: 'IVRS Exam Name is required' }),
+        emE_IVRSExamName: createExamCustomStringSchema('IVRS Exam Name', 1, 100),
         emE_FinalExamFlag: z.boolean({
             required_error: 'Final Exam flag is required'
         }),

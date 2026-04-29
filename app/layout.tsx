@@ -1,5 +1,6 @@
 import { Chatbot } from '@/components/chatbot/chatbot';
 import { StudentChatbot } from '@/components/chatbot/student-chatbot';
+import { FloatingSchoolBot } from '@/components/chatbot/floating-school-bot';
 import Providers from '@/components/layout/providers';
 import { auth } from '@/lib/auth';
 import { cn } from '@/lib/utils';
@@ -9,6 +10,7 @@ import localFont from 'next/font/local';
 import NextTopLoader from 'nextjs-toploader';
 import type * as React from 'react';
 import { Toaster } from 'sonner';
+import Script from 'next/script';
 
 const geistSans = localFont({
     src: '../public/fonts/GeistVF.woff',
@@ -41,10 +43,16 @@ export default async function RootLayout({ children }: Readonly<RootLayoutProps>
                 suppressHydrationWarning
                 className={cn('min-h-screen min-w-[360px] bg-layout font-sans antialiased', geistSans.variable, geistMono.variable)}>
                 <NextTopLoader color='#4F39F6' showSpinner={false} height={3} speed={300} />
+
                 <Providers session={session}>
                     {children}
-                    <Chatbot />
-                    <StudentChatbot />
+                    {session && (
+                        <>
+                            <Chatbot />
+                            <StudentChatbot />
+                            <FloatingSchoolBot />
+                        </>
+                    )}
                     <Toaster position='bottom-right' closeButton={true} duration={3000} richColors className={`${geistSans.className}`} />
                 </Providers>
             </body>

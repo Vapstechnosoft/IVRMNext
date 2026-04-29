@@ -19,8 +19,10 @@ export async function savePeriodPeriodAllocation(data: any) {
     const url = '/TimeTableCommon/AddOrUpdateMasterPeriod';
     return await api.post<any>('timetable', url, data);
 }
+
+//Master Period Class save button
 export async function savePeriodClass(data: any) {
-    const url = '/PeriodAllocation/savedetail/';
+    const url = '/PeriodAllocationFacade/PeriodDistributionSavedetailClassWise';
     return await api.post<any>('timetable', url, data);
 }
 
@@ -39,6 +41,13 @@ export async function getPeriodClass(data: any) {
     return await api.post<any>('timetable', url, data);
 }
 
+//period number
+export async function getPeriodDetails(period_count: number) {
+    const url = `/PeriodAllocationFacade/getperiod_Details/${period_count}`;
+    console.log('getperiod_details', url);
+    return await api.get<any>('timetable', url);
+}
+
 export async function getClassByCategory(data: any) {
     const url = '/PeriodAllocation/getclass_catg';
     return await api.post<any>('timetable', url, data);
@@ -47,4 +56,10 @@ export async function getClassByCategory(data: any) {
 export async function getCategory(data: any) {
     const url = '/PeriodAllocation/get_catg';
     return await api.post<any>('timetable', url, data);
+}
+
+export async function getPeriodAllocationmasterPeriodGrid(searchParams?: ApiSearchparams) {
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'ttmP_PeriodName');
+    const url = `/PeriodAllocationFacade/PeriodAllocationmasterPeriodgrid?${urlParams}`;
+    return await api.get<IPeriodAllocationMasterDay[]>('timetable', url);
 }

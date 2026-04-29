@@ -11,10 +11,10 @@ import { GenericDataTable } from '@/components/ui/data-table/generic-data-table'
 import { useLeaveYearDropdown } from '@/hooks/hrms/useMasters';
 import { exportToExcel } from '@/lib/export-to-file';
 import { usePFForm5 } from '@/hooks/hrms/useReports';
-import { Loader2, Search, Printer } from 'lucide-react';
+import { Loader2, Search, Printer, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
+import { getMasterInstitution } from '@/server/hrms/master-dropdown';
 import { printPFForm5 } from './_components/pf-form5-print';
 
 const MONTH_LIST = [
@@ -56,12 +56,17 @@ function PFForm5Content() {
         };
         fetchInstitution();
     }, []);
-    const { control, handleSubmit } = useForm<FilterFormValues>({
+    const { control, handleSubmit, reset } = useForm<FilterFormValues>({
         defaultValues: {
             year: '',
             month: ''
         }
     });
+
+    const handleCancel = () => {
+        reset();
+        setReportData(null);
+    };
 
     const { data: yearsData } = useLeaveYearDropdown();
     const { mutate: generateReport, isPending } = usePFForm5();
@@ -185,8 +190,17 @@ function PFForm5Content() {
                         </div>
                     </div>
 
-                    <div className='flex justify-end'>
-                        <Button type='submit' disabled={isPending} className='w-32'>
+                    <div className='flex justify-end gap-2'>
+                        <Button
+                            type='button'
+                            variant='outline'
+                            onClick={handleCancel}
+                            disabled={isPending}
+                            className='w-32 border-orange-500 text-orange-600 hover:bg-orange-50 transition-all rounded-xl'>
+                            <X className='mr-2 h-4 w-4' />
+                            CANCEL
+                        </Button>
+                        <Button type='submit' disabled={isPending} className='w-32 transition-all rounded-xl'>
                             {isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Search className='mr-2 h-4 w-4' />}
                             Generate
                         </Button>

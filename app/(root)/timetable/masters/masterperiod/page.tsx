@@ -9,9 +9,8 @@ import { use } from 'react';
 import { useMasterPeriodDetails } from '@/hooks/timetable/useMasters';
 import type { IMasterPeriodDetailsList } from '@/types/timetable/masters/masters';
 import { masterPeriodColumns } from './_components/columns';
-import MasterPeriodForm from './_components/period-form';
-
-// import AddMasterModeOfPaymentForm from './_components/add-form';
+import MasterPeriodForm from './_components/update-form';
+import DeleteMasterPeriodForm from './_components/delete-form';
 // import { modeOfPaymentColumns } from './_components/columns';
 // import ToggleMasterModeOfPaymentForm from './_components/toggle-form';
 // import UpdateMasterModeOfPaymentForm from './_components/update-form';
@@ -78,21 +77,23 @@ function MasterPeriodPageContent({
                     />
                 </CollapsibleSection>
 
-                <FormSections />
+                <FormSections refetchAll={refetchAll} />
             </div>
         </div>
     );
 }
 
-function FormSections() {
+function FormSections({ refetchAll }: { refetchAll: () => void }) {
     const {
         isAddFormOpen,
         isEditFormOpen,
         isToggleFormOpen,
+        isDeleteFormOpen,
         selectedRow,
         closeAddForm,
         closeEditForm,
         closeToggleForm,
+        closeDeleteForm,
         addFormRef,
         editFormRef
     } = useFormContext<IMasterPeriodDetailsList>();
@@ -140,10 +141,21 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            {/* <UpdateMasterBuildingForm selectedRow={selectedRow} onSuccess={closeEditForm} /> */}
+                            <MasterPeriodForm selectedRow={selectedRow} onSuccess={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
+            )}
+
+            {isDeleteFormOpen && selectedRow && (
+                <DeleteMasterPeriodForm
+                    rowData={selectedRow}
+                    onClose={closeDeleteForm}
+                    onSuccess={() => {
+                        refetchAll();
+                        closeDeleteForm();
+                    }}
+                />
             )}
 
             {/* {isToggleFormOpen && selectedRow && <ToggleMasterBuildingtForm rowData={selectedRow} onClose={closeToggleForm} />} */}

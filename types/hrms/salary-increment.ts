@@ -156,3 +156,20 @@ export interface SalaryIncrementDeleteRequest {
 export interface SalaryIncrementDeleteResponse {
     retrunMsg?: string;
 }
+// New API Save Request (Bulk)
+export interface NewSalaryIncrementSaveRequest {
+    hrmeD_Id: number;
+    hreiceD_Amount: number;
+    hreiceD_Percentage: string;
+    employee: { hrmE_Id: number }[];
+}
+
+// New API Save Response
+export interface NewSalaryIncrementSaveResponse {
+    success: boolean;
+    message: string;
+    data: any | null;
+    total: any | null;
+    page: any | null;
+    page_size: any | null;
+}

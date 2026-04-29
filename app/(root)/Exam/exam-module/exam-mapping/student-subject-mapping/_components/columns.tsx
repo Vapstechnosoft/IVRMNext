@@ -1,20 +1,10 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { Plus } from 'lucide-react';
-import { toast } from 'sonner';
-import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
-import {
-    getClassDropDownByAcademicYearlist,
-    getSectionsDropDownByAcademicYearandClasslist
-} from '@/server/exam/exam-module/reports/cumulative-report';
 import type { ColumnDef } from '@tanstack/react-table';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 
 /* ============================================
    Types
@@ -29,8 +19,8 @@ export type ISubjectMeta = {
     subexamFlag: boolean;
     maxMarks: number;
     minMarks?: number;
-    subsubData: SubSub[];      // for Option A: these will be the Sub 1/Sub 2/Sub 3 columns
-    subexamData: SubExam[];    // kept for completeness (not used in Option A layout)
+    subsubData: SubSub[]; // for Option A: these will be the Sub 1/Sub 2/Sub 3 columns
+    subexamData: SubExam[]; // kept for completeness (not used in Option A layout)
 };
 
 export type IStudentMarksRow = {
@@ -52,10 +42,10 @@ export type IStudentMarksRow = {
    Replace with your real API in production
    ============================================ */
 async function fetchSubjectAndStudentsMock(
-    academicYearId: number | string,
-    classId: number | string,
-    sectionId: number | string,
-    examId?: number | string,
+    _academicYearId: number | string,
+    _classId: number | string,
+    _sectionId: number | string,
+    _examId?: number | string,
     subjectId?: number | string
 ) {
     // small delay
@@ -71,7 +61,7 @@ async function fetchSubjectAndStudentsMock(
                 subjectName: 'FL KANNADA',
                 subsubFlag: true,
                 subexamFlag: false,
-                maxMarks: 45,   // subject total
+                maxMarks: 45, // subject total
                 minMarks: 20,
                 subsubData: [
                     { subsubId: 101, subsubName: 'Sub 1', maxMarks: 15, minMarks: 5 },
@@ -250,16 +240,14 @@ function MarksInputCell({
     }
 
     return (
-        <div className="flex flex-col items-start">
+        <div className='flex flex-col items-start'>
             <input
-                className="border border-gray-300 rounded px-2 py-1 w-[120px] text-sm bg-white"
+                className='w-[120px] rounded border border-gray-300 bg-white px-2 py-1 text-sm'
                 placeholder={placeholder ?? 'Enter Marks...'}
                 value={local}
                 onChange={handleChange}
             />
-            {error ? (
-                <div className="text-red-600 text-[11px] mt-[2px] leading-none">{error}</div>
-            ) : null}
+            {error ? <div className='mt-[2px] text-[11px] text-red-600 leading-none'>{error}</div> : null}
         </div>
     );
 }
@@ -278,7 +266,7 @@ export function buildMarksEntryColumns(
         {
             id: 'select',
             header: ({ table }) => (
-                <div className="flex items-center justify-center">
+                <div className='flex items-center justify-center'>
                     <Checkbox
                         checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
                         onCheckedChange={(v) => table.toggleAllPageRowsSelected(!!v)}
@@ -291,7 +279,7 @@ export function buildMarksEntryColumns(
         },
         {
             accessorKey: 'slNo',
-            header: ({ column }) => <DataTableColumnHeader column={column} title="SL NO" />,
+            header: ({ column }) => <DataTableColumnHeader column={column} title='SL NO' />,
             cell: ({ row, table }) => {
                 const page = table.getState().pagination.pageIndex;
                 const size = table.getState().pagination.pageSize;
@@ -301,22 +289,22 @@ export function buildMarksEntryColumns(
         },
         {
             accessorKey: 'studentName',
-            header: ({ column }) => <DataTableColumnHeader column={column} title="Student Name" />,
-            cell: ({ row }) => <span className="font-semibold uppercase">{row.original.studentName}</span>
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
+            cell: ({ row }) => <span className='font-semibold uppercase'>{row.original.studentName}</span>
         },
         {
             accessorKey: 'RegNo',
-            header: ({ column }) => <DataTableColumnHeader column={column} title="Reg No" />,
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Reg No' />,
             cell: ({ row }) => <span>{row.original.RegNo}</span>
         },
         {
             accessorKey: 'AdmissionNo',
-            header: ({ column }) => <DataTableColumnHeader column={column} title="Admission No" />,
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Admission No' />,
             cell: ({ row }) => <span>{row.original.AdmissionNo}</span>
         },
         {
             accessorKey: 'RollNo',
-            header: ({ column }) => <DataTableColumnHeader column={column} title="Roll No" />,
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Roll No' />,
             cell: ({ row }) => <span>{row.original.RollNo}</span>
         }
     ];
@@ -325,7 +313,7 @@ export function buildMarksEntryColumns(
     if (!subjectMeta) {
         base.push({
             id: 'marksGroup',
-            header: ({ column }) => <DataTableColumnHeader column={column} title="Marks Entry" />,
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Marks Entry' />,
             cell: ({ row }) => <span>--</span>,
             enableSorting: false
         });
@@ -337,17 +325,22 @@ export function buildMarksEntryColumns(
         base.push({
             id: `subject_${subjectMeta.subjectId}`,
             header: () => (
-                <div className="bg-blue-600 text-white text-center">
-                    <div className="font-semibold text-sm px-2 py-1">{subjectMeta.subjectName}</div>
-                    <div className="text-xs px-2 pb-1">{`(M-${subjectMeta.maxMarks}) (ME-${subjectMeta.minMarks ?? 0})`}</div>
+                <div className='bg-blue-600 text-center text-white'>
+                    <div className='px-2 py-1 font-semibold text-sm'>{subjectMeta.subjectName}</div>
+                    <div className='px-2 pb-1 text-xs'>{`(M-${subjectMeta.maxMarks}) (ME-${subjectMeta.minMarks ?? 0})`}</div>
                 </div>
             ),
             cell: ({ row }) => {
                 const st = row.original;
                 const cur = st.marks === '' || st.marks === undefined ? '' : (st.marks as number);
                 return (
-                    <div className="px-2">
-                        <MarksInputCell value={cur} max={subjectMeta.maxMarks} min={subjectMeta.minMarks} onChange={(v) => onUpdateSimpleMark(st.studentID, v)} />
+                    <div className='px-2'>
+                        <MarksInputCell
+                            value={cur}
+                            max={subjectMeta.maxMarks}
+                            min={subjectMeta.minMarks}
+                            onChange={(v) => onUpdateSimpleMark(st.studentID, v)}
+                        />
                     </div>
                 );
             },
@@ -363,9 +356,9 @@ export function buildMarksEntryColumns(
     const subjectGroup: ColumnDef<IStudentMarksRow> = {
         id: `subject_group_${subjectMeta.subjectId}`,
         header: () => (
-            <div className="bg-blue-600 text-white text-center">
-                <div className="font-semibold text-sm px-2 py-1">{`${subjectMeta.subjectName} (M-${subjectMeta.maxMarks})`}</div>
-                <div className="text-xs px-2 pb-1">{`(ME-${subjectMeta.minMarks ?? 0})`}</div>
+            <div className='bg-blue-600 text-center text-white'>
+                <div className='px-2 py-1 font-semibold text-sm'>{`${subjectMeta.subjectName} (M-${subjectMeta.maxMarks})`}</div>
+                <div className='px-2 pb-1 text-xs'>{`(ME-${subjectMeta.minMarks ?? 0})`}</div>
             </div>
         ),
         columns: []
@@ -374,8 +367,8 @@ export function buildMarksEntryColumns(
     const subSubGroup: ColumnDef<IStudentMarksRow> = {
         id: `subsub_group_${subjectMeta.subjectId}`,
         header: () => (
-            <div className="bg-blue-600 text-white text-center">
-                <div className="font-semibold text-xs px-2 py-1">ACTIVITY / TEST</div>
+            <div className='bg-blue-600 text-center text-white'>
+                <div className='px-2 py-1 font-semibold text-xs'>ACTIVITY / TEST</div>
             </div>
         ),
         columns: []
@@ -386,18 +379,25 @@ export function buildMarksEntryColumns(
         subSubGroup.columns!.push({
             id: `subsub_${ss.subsubId}`,
             header: () => (
-                <div className="bg-blue-600 text-white text-center" style={{ borderLeft: '1px solid rgba(255,255,255,0.2)' }}>
-                    <div className="text-xs font-semibold px-2 py-1">{ss.subsubName}</div>
-                    <div className="text-[11px] px-2">{`(M-${ss.maxMarks}) (ME-${ss.minMarks ?? 0})`}</div>
+                <div className='bg-blue-600 text-center text-white' style={{ borderLeft: '1px solid rgba(255,255,255,0.2)' }}>
+                    <div className='px-2 py-1 font-semibold text-xs'>{ss.subsubName}</div>
+                    <div className='px-2 text-[11px]'>{`(M-${ss.maxMarks}) (ME-${ss.minMarks ?? 0})`}</div>
                 </div>
             ),
             cell: ({ row }) => {
                 const st = row.original;
-                const found = Array.isArray(st.subSubMarks) ? st.subSubMarks.find((m) => Number(m.subsubId) === Number(ss.subsubId)) : undefined;
+                const found = Array.isArray(st.subSubMarks)
+                    ? st.subSubMarks.find((m) => Number(m.subsubId) === Number(ss.subsubId))
+                    : undefined;
                 const cur = found?.marks === '' || found?.marks === undefined ? '' : found?.marks;
                 return (
-                    <div className="px-2">
-                        <MarksInputCell value={cur} max={ss.maxMarks} min={ss.minMarks} onChange={(v) => onUpdateSubSubMark(st.studentID, ss.subsubId, v)} />
+                    <div className='px-2'>
+                        <MarksInputCell
+                            value={cur}
+                            max={ss.maxMarks}
+                            min={ss.minMarks}
+                            onChange={(v) => onUpdateSubSubMark(st.studentID, ss.subsubId, v)}
+                        />
                     </div>
                 );
             },
@@ -409,9 +409,9 @@ export function buildMarksEntryColumns(
     subSubGroup.columns!.push({
         id: `subsub_total_${subjectMeta.subjectId}`,
         header: () => (
-            <div className="bg-blue-600 text-white text-center">
-                <div className="text-xs font-semibold px-2 py-1">TOTAL</div>
-                <div className="text-[11px] px-2">{`(M-${subjectMeta.maxMarks})`}</div>
+            <div className='bg-blue-600 text-center text-white'>
+                <div className='px-2 py-1 font-semibold text-xs'>TOTAL</div>
+                <div className='px-2 text-[11px]'>{`(M-${subjectMeta.maxMarks})`}</div>
             </div>
         ),
         cell: ({ row }) => {
@@ -419,9 +419,9 @@ export function buildMarksEntryColumns(
             const sum = (st.subSubMarks ?? []).reduce((acc, x) => acc + (x.marks === '' ? 0 : Number(x.marks)), 0);
             const over = sum > subjectMeta.maxMarks;
             return (
-                <div className="px-2 flex flex-col items-start">
-                    <div className={`px-2 py-1 text-sm ${over ? 'text-red-600 font-semibold' : ''}`}>{sum}</div>
-                    {over ? <div className="text-red-600 text-[11px]">Sum exceeds subject max</div> : null}
+                <div className='flex flex-col items-start px-2'>
+                    <div className={`px-2 py-1 text-sm ${over ? 'font-semibold text-red-600' : ''}`}>{sum}</div>
+                    {over ? <div className='text-[11px] text-red-600'>Sum exceeds subject max</div> : null}
                 </div>
             );
         },
@@ -437,25 +437,32 @@ export function buildMarksEntryColumns(
         const examGroup: ColumnDef<IStudentMarksRow> = {
             id: `exam_group_${subjectMeta.subjectId}`,
             header: () => (
-                <div className="bg-blue-600 text-white text-center">
-                    <div className="font-semibold text-xs px-2 py-1">EXAM</div>
+                <div className='bg-blue-600 text-center text-white'>
+                    <div className='px-2 py-1 font-semibold text-xs'>EXAM</div>
                 </div>
             ),
             columns: subjectMeta.subexamData.map((se) => ({
                 id: `subexam_${se.subexamId}`,
                 header: () => (
-                    <div className="bg-blue-600 text-white text-center">
-                        <div className="text-xs font-semibold px-2 py-1">{se.subexamName}</div>
-                        <div className="text-[11px] px-2">{`(M-${se.maxMarks}) (ME-${se.minMarks ?? 0})`}</div>
+                    <div className='bg-blue-600 text-center text-white'>
+                        <div className='px-2 py-1 font-semibold text-xs'>{se.subexamName}</div>
+                        <div className='px-2 text-[11px]'>{`(M-${se.maxMarks}) (ME-${se.minMarks ?? 0})`}</div>
                     </div>
                 ),
                 cell: ({ row }) => {
                     const st = row.original;
-                    const found = Array.isArray(st.subExamMarks) ? st.subExamMarks.find((m) => Number(m.subexamId) === Number(se.subexamId)) : undefined;
+                    const found = Array.isArray(st.subExamMarks)
+                        ? st.subExamMarks.find((m) => Number(m.subexamId) === Number(se.subexamId))
+                        : undefined;
                     const cur = found?.marks === '' || found?.marks === undefined ? '' : found?.marks;
                     return (
-                        <div className="px-2">
-                            <MarksInputCell value={cur} max={se.maxMarks} min={se.minMarks} onChange={(v) => onUpdateSubExamMark(st.studentID, se.subexamId, v)} />
+                        <div className='px-2'>
+                            <MarksInputCell
+                                value={cur}
+                                max={se.maxMarks}
+                                min={se.minMarks}
+                                onChange={(v) => onUpdateSubExamMark(st.studentID, se.subexamId, v)}
+                            />
                         </div>
                     );
                 },
@@ -467,9 +474,9 @@ export function buildMarksEntryColumns(
         (examGroup.columns as ColumnDef<IStudentMarksRow>[]).push({
             id: `subexam_total_${subjectMeta.subjectId}`,
             header: () => (
-                <div className="bg-blue-600 text-white text-center">
-                    <div className="text-xs font-semibold px-2 py-1">EXAM TOTAL</div>
-                    <div className="text-[11px] px-2">{`(M-${subjectMeta.maxMarks})`}</div>
+                <div className='bg-blue-600 text-center text-white'>
+                    <div className='px-2 py-1 font-semibold text-xs'>EXAM TOTAL</div>
+                    <div className='px-2 text-[11px]'>{`(M-${subjectMeta.maxMarks})`}</div>
                 </div>
             ),
             cell: ({ row }) => {
@@ -477,9 +484,9 @@ export function buildMarksEntryColumns(
                 const sum = (st.subExamMarks ?? []).reduce((acc, x) => acc + (x.marks === '' ? 0 : Number(x.marks)), 0);
                 const over = sum > subjectMeta.maxMarks;
                 return (
-                    <div className="px-2 flex flex-col items-start">
-                        <div className={`px-2 py-1 text-sm ${over ? 'text-red-600 font-semibold' : ''}`}>{sum}</div>
-                        {over ? <div className="text-red-600 text-[11px]">Sum exceeds subject max</div> : null}
+                    <div className='flex flex-col items-start px-2'>
+                        <div className={`px-2 py-1 text-sm ${over ? 'font-semibold text-red-600' : ''}`}>{sum}</div>
+                        {over ? <div className='text-[11px] text-red-600'>Sum exceeds subject max</div> : null}
                     </div>
                 );
             },

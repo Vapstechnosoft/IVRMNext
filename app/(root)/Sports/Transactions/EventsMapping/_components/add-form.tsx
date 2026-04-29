@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useForm, Controller, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
 import { eventMappingSchema, IEventMappingDTO, ISponsor } from '@/types/sports/transactions/events-mapping';
 import { useEventMapping } from '@/hooks/sports/useEventMapping';
 import { Button } from '@/components/ui/button';
@@ -52,16 +53,20 @@ export default function AddEventsMappingForm({ onSuccess }: AddEventsMappingForm
             SPCCME_Id: Number(values.SPCCME_Id),
             SPCCMEV_Id: Number(values.SPCCMEV_Id),
             SPCCE_SponsorFlag: values.SPCCE_SponsorFlag || false,
-            sponsorData: values.sponsorData?.map(s => ({
-                ...s,
+            // Format dates as yyyy-MM-dd to prevent timezone shifts
+            SPCCE_StartDate: values.SPCCE_StartDate ? format(new Date(values.SPCCE_StartDate), 'yyyy-MM-dd') : null,
+            SPCCE_EndDate: values.SPCCE_EndDate ? format(new Date(values.SPCCE_EndDate), 'yyyy-MM-dd') : null,
+            // Map sponsor properties to match backend DTO expectations
+            sponsordata: values.sponsorData?.map(s => ({
+                SPCCMSP_Id: s.spccmsP_Id,
                 selected: true,
                 spccmsP_ActiveFlag: true
             })) || []
         };
 
         const result = await save.mutateAsync(payload);
-        if (result.success || result.message === 'Record Saved Successfully') {
-            toast.success('Record Saved Successfully');
+        if (result.success || result.message?.toLowerCase().includes('successfully')) {
+            toast.success(result.message || 'Record Saved Successfully');
             onSuccess?.();
         } else {
             toast.error(result.message || 'Failed to save record');

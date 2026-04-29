@@ -154,11 +154,12 @@ function EmployeeProfileReportContent() {
                 finalData = Array.isArray(response.data) ? response.data : [response.data];
             }
 
-            setReportData(finalData);
+            
 
             if (finalData.length === 0) {
                 toast.info('No data found for selected criteria');
             } else {
+                setReportData(finalData);
                 toast.success('Report generated successfully');
             }
         } catch (error) {
@@ -340,7 +341,7 @@ function EmployeeProfileReportContent() {
                                 <h5 className='text-md font-semibold mt-2 uppercase'>Employee Profile Report</h5>
                             </div>
                         )}
-                        {reportData.map((profile, index) => (
+                        {reportData.length > 0 && reportData.map((profile, index) => (
                             <EmployeeProfileCard key={index} profile={profile} />
                         ))}
                     </div>

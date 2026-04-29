@@ -12,21 +12,22 @@ import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { guestAllotmentSchema, type GuestAllotmentSchema } from '@/schemas/hostel/transactions/guest-allotment.schema';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
-import { getRoomDetails, saveGuestAllotment } from '@/server/hostel/hostel-management/transactions/guest-allotment';
+import { Loader2 } from 'lucide-react';
+import { getRoomDetails, saveGuestAllotment, getEditData } from '@/server/hostel/hostel-management/transactions/guest-allotment';
+import { useHostelDropdownList } from '@/hooks/hostel/useMasterHostel';
+import { useRoomCategoryDropdownList } from '@/hooks/hostel/useRoomCategory';
+import { useMasterRoomDropdown } from '@/hooks/hostel/useMasterRoom';
+import { GuestAllotmentColumn } from './columns';
 
 interface AddFormProps {
-    dropdowns: {
-        hstllist: any[];
-        categorylist: any[];
-        roomlist: any[];
-    };
     onSuccess?: () => void;
+    initialData?: GuestAllotmentColumn;
 }
 
-export default function GuestAllotmentForm({ dropdowns, onSuccess }: AddFormProps) {
+export default function GuestAllotmentForm({ onSuccess, initialData }: AddFormProps) {
     const methods = useForm<GuestAllotmentSchema>({
         resolver: zodResolver(guestAllotmentSchema),
         mode: 'onSubmit',
@@ -46,6 +47,9 @@ export default function GuestAllotmentForm({ dropdowns, onSuccess }: AddFormProp
             HLHGSTALT_GuestPhoto: '',
         }
     });
+    const { data: hostels } = useHostelDropdownList();
+    const { data: roomCategories } = useRoomCategoryDropdownList();
+    const { data: rooms } = useMasterRoomDropdown();
 
     const {
         control,
@@ -55,6 +59,87 @@ export default function GuestAllotmentForm({ dropdowns, onSuccess }: AddFormProp
         formState: { errors, isSubmitting }
     } = methods;
 
+    const [isFetchingEditData, setIsFetchingEditData] = useState(false);
+
+    useEffect(() => {
+        if (!initialData?.hlhgstalT_Id) {
+            reset();
+            return;
+        }
+
+        console.log(initialData);
+
+        const fetchEditData = async () => {
+            try {
+                setIsFetchingEditData(true);
+
+                const res = await getEditData(initialData.hlhgstalT_Id);
+
+                const editData = Array.isArray(res?.data)
+                    ? res.data[0]
+                    : res?.data;
+
+                if (!editData) return;
+
+                reset({
+                    HLHGSTALT_Id:
+                        editData.hlhgstalT_Id ||
+                        editData.hlhgstalt_Id ||
+                        editData.HLHGSTALT_Id ||
+                        0,
+
+                    HLHGSTALT_GuestName:
+                        editData.hlhgstalT_GuestName || '',
+
+                    HLHGSTALT_GuestPhoneNo:
+                        editData.hlhgstalT_GuestPhoneNo || '',
+
+                    HLMH_Id:
+                        editData.hlmH_Id || 0,
+
+                    HRMRM_Id:
+                        editData.hrmrM_Id || 0,
+
+                    HLHGSTALT_NoOfBeds:
+                        editData.hlhgstalT_NoOfBeds || 0,
+
+                    HLHGSTALT_AllotRemarks:
+                        editData.hlhgstalT_AllotRemarks || '',
+
+                    HLHGSTALT_AllotmentDate:
+                        editData.hlhgstalT_AllotmentDate
+                            ? new Date(editData.hlhgstalT_AllotmentDate)
+                            : new Date(),
+
+                    HLHGSTALT_GuestEmailId:
+                        editData.hlhgstalT_GuestEmailId || '',
+
+                    HLMRCA_Id:
+                        editData.hlmrcA_Id || 0,
+
+                    HLHGSTALT_AddressProof:
+                        editData.hlhgstalT_AddressProof || '',
+
+                    HLHGSTALT_GuestAddress:
+                        editData.hlhgstalT_GuestAddress || '',
+
+                    HLHGSTALT_GuestPhoto:
+                        editData.hlhgstalT_GuestPhoto || '',
+                });
+
+            } catch (err) {
+                console.error("getEditData Error:", err);
+                toast.error("Failed to load edit details");
+            }
+            finally {
+                setIsFetchingEditData(false);
+            }
+        };
+
+        fetchEditData();
+
+    }, [initialData, reset]);
+
     const selectedRoomId = useWatch({ control, name: 'HRMRM_Id' });
 
     // Load Room Details when Room Selected
@@ -63,7 +148,7 @@ export default function GuestAllotmentForm({ dropdowns, onSuccess }: AddFormProp
         (async () => {
             const res = await getRoomDetails({ HRMRM_Id: Number(selectedRoomId) });
             if (res) {
-                setValue('HLHGSTALT_NoOfBeds', res?.hlhgstalT_NoOfBeds);
+                setValue('HLHGSTALT_NoOfBeds', res?.data);
             }
         })();
     }, [selectedRoomId, setValue]);
@@ -84,11 +169,21 @@ export default function GuestAllotmentForm({ dropdowns, onSuccess }: AddFormProp
         }
     };
 
+    if (isFetchingEditData) {
+        return (
+            <div className="w-full rounded-2xl bg-white p-6 shadow-sm border flex items-center justify-center min-h-[300px]">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        );
+    }
+
     return (
         <div className="w-full rounded-2xl bg-white p-6 shadow-sm border">
             <FormProvider {...methods}>
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                    <h3 className="text-lg font-semibold text-gray-800">Hostel Allotment For Guest</h3>
+                    <h3 className="text-lg font-semibold text-gray-800">
+                        {initialData?.hlhgstalT_Id ? 'Edit Guest Allotment' : 'Hostel Allotment For Guest'}
+                    </h3>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Guest Name */}
@@ -179,7 +274,7 @@ export default function GuestAllotmentForm({ dropdowns, onSuccess }: AddFormProp
                                             <SelectValue placeholder="Select Hostel" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {dropdowns.hstllist?.map((h: any) => (
+                                            {hostels?.map((h: any) => (
                                                 <SelectItem key={h.hlmH_Id} value={String(h.hlmH_Id)}>
                                                     {h.hlmH_Name}
                                                 </SelectItem>
@@ -206,7 +301,7 @@ export default function GuestAllotmentForm({ dropdowns, onSuccess }: AddFormProp
                                             <SelectValue placeholder="Select Category" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {dropdowns.categorylist?.map((c: any) => (
+                                            {(roomCategories as any[])?.map((c: any) => (
                                                 <SelectItem key={c.hlmrcA_Id} value={String(c.hlmrcA_Id)}>
                                                     {c.hlmrcA_RoomCategory}
                                                 </SelectItem>
@@ -233,7 +328,7 @@ export default function GuestAllotmentForm({ dropdowns, onSuccess }: AddFormProp
                                             <SelectValue placeholder="Select Room" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {dropdowns.roomlist?.map((r: any) => (
+                                            {rooms?.data?.map((r: any) => (
                                                 <SelectItem key={r.hrmrM_Id} value={String(r.hrmrM_Id)}>
                                                     {r.hrmrM_RoomNo}
                                                 </SelectItem>

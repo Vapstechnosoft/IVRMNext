@@ -222,8 +222,23 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
                     try {
                         const resp = applicationFormDetails.data;
                         const student = resp?.student_details || resp || {};
+                        const normalizeGender = (sex: string | undefined | null) => {
+                            if (!sex) return undefined;
+                            const s = sex.toUpperCase();
+                            if (s === 'M' || s === 'MALE') return 'Male';
+                            if (s === 'F' || s === 'FEMALE') return 'Female';
+                            return sex;
+                        };
+
                         const payload = {
                             ...student,
+                            pasR_Id: student.pasR_Id || student.pasr_id || resp.pasr_id || resp.pasR_Id,
+                            pasR_DOB: student.pasR_DOB ? new Date(student.pasR_DOB) : undefined,
+                            pasR_Sex: normalizeGender(student.pasR_Sex || student.pasr_sex || resp.pasr_sex || resp.pasR_Sex),
+                            asmcL_Id: Number(student.asmcL_Id || resp.asmcL_Id || resp.pasR_AppliedClassId || student.asmcL_id || 0),
+                            caste_Id: Number(student.caste_Id || resp.caste_id || resp.ic_Id || student.caste_id || 0),
+                            religion_Id: Number(student.religion_Id || resp.religion_id || student.religion_id || 0),
+                            casteCategory_Id: Number(student.casteCategory_Id || resp.casteCategory_Id || student.imCC_Id || 0),
                             selectedSourceDetails: (resp?.student_sources || resp?.studentSource || []).map((s: any) => ({
                                 pamS_Id: String(s.pamS_Id)
                             })),

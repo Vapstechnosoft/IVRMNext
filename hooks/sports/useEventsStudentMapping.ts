@@ -4,7 +4,8 @@ import {
     getEventsStudentMappingList,
     getStudentList,
     saveEventsStudentMapping,
-    deactivateEventsStudentMapping
+    deactivateEventsStudentMapping,
+    getClassList
 } from '@/server/sports/events-student-mapping';
 import { IStudentFilterParams } from '@/types/sports/events-student-mapping';
 import { toast } from 'sonner';
@@ -28,6 +29,10 @@ export const useEventsStudentMapping = () => {
     // Or useQuery with a state dependency. Let's use mutation for explicit fetching.
     const fetchStudents = useMutation({
         mutationFn: (filter: IStudentFilterParams) => getStudentList(filter),
+    });
+
+    const fetchClasses = useMutation({
+        mutationFn: (asamyId: number) => getClassList(asamyId),
     });
 
     const saveData = useMutation({
@@ -64,6 +69,7 @@ export const useEventsStudentMapping = () => {
         dropdowns,
         gridData,
         fetchStudents,
+        fetchClasses,
         saveData,
         deactivateData,
     };

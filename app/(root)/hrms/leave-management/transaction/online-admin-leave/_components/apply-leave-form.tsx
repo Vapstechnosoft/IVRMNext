@@ -64,6 +64,8 @@ interface ApplyLeaveFormProps {
     selectedFromDate?: Date;
     selectedToDate?: Date;
     totalDays?: number;
+    combinedBalanceData?: any; // Add this prop
+    isLoadingBalance?: boolean; // Add this prop
 }
 
 export default function ApplyLeaveForm({
@@ -74,7 +76,9 @@ export default function ApplyLeaveForm({
     selectedLeave,
     selectedFromDate,
     selectedToDate,
-    totalDays
+    totalDays,
+    combinedBalanceData,
+    isLoadingBalance
 }: ApplyLeaveFormProps) {
     const { mutate: saveLeave, isPending } = useSaveAdminEmployeeLeaveApplication();
 
@@ -90,7 +94,7 @@ export default function ApplyLeaveForm({
             contactNoOnLeave: ''
         }
     });
-
+    const [previewFile, setPreviewFile] = useState<any>(null);
     // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const hrmL_Id = form.watch('hrmL_Id');
     // biome-ignore lint/correctness/noUnusedVariables: <explanation>
@@ -224,6 +228,14 @@ export default function ApplyLeaveForm({
                 setIsUploading(false);
             }
         }
+
+    };
+
+    const handleViewFile = () => {
+        const file = form.getValues('supportingDocument');
+        if (file) {
+            setPreviewFile(file);
+        }
     };
 
     return (
@@ -259,7 +271,7 @@ export default function ApplyLeaveForm({
                                     </div>
                                     <FormControl>
                                         <Input
-                                            className='h-7 border-sky-100 focus:ring-sky-100 rounded-xl bg-white shadow-sm'
+                                            className='h-11 border-sky-100 focus:ring-sky-100 rounded-xl bg-white shadow-sm'
                                             type="text"
                                             maxLength={10}
                                             {...field}
@@ -298,7 +310,8 @@ export default function ApplyLeaveForm({
                             )}
                         />
 
-                        <FormItem className='flex flex-col justify-end pb-0.5'>
+                        <FormItem>
+                            <FormLabel className='text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1 block'>Supporting Document</FormLabel>
                             <FormControl>
                                 <div className='relative w-full'>
                                     <Input
@@ -311,17 +324,50 @@ export default function ApplyLeaveForm({
                                         type='button'
                                         variant='outline'
                                         disabled={isUploading}
-                                        className='w-full h-11 bg-amber-400 hover:bg-amber-500 text-slate-900 border-none font-bold flex items-center justify-center gap-2 rounded-xl shadow-sm uppercase text-[10px]'
+                                        className='w-full h-11 bg-amber-400 hover:bg-amber-700 text-slate-900 border-none font-bold flex items-center justify-center gap-2 rounded-xl shadow-sm uppercase text-[10px] cursor-pointer'
                                     >
                                         <FileText className='h-4 w-4' /> {isUploading ? 'Uploading...' : 'Choose File'}
                                     </Button>
-                                    {uploadedFileName && (
-                                        <span className='absolute -bottom-5 left-0 text-[10px] text-slate-400 italic truncate w-full' title={uploadedFileName}>
-                                            {uploadedFileName}
-                                        </span>
-                                    )}
+                                    <div className='flex items-center gap-2 mt-2'>
+                                        {uploadedFileName && (
+                                            <span className='text-[10px] text-slate-400 italic truncate w-full' title={uploadedFileName}>
+                                                {uploadedFileName}
+                                            </span>
+                                        )}
+                                        {
+                                            uploadedFileName && (
+                                                <div className='text-[12px] font-semibold pr-2 cursor-pointer hover:text-orange-500' onClick={handleViewFile}>
+                                                    View
+                                                </div>
+                                            )
+                                        }
+
+                                    </div>
                                 </div>
                             </FormControl>
+                            {previewFile && (
+                                <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+
+                                    {/* Popup Box */}
+                                    <div className="relative bg-white rounded-lg shadow-lg p-4 max-w-3xl w-full">
+
+                                        {/* Close Button */}
+                                        <button
+                                            onClick={() => setPreviewFile(null)}
+                                            className="absolute top-2 right-2 text-white bg-red-500 px-3 py-1 rounded"
+                                        >
+                                            ✕
+                                        </button>
+
+                                        {/* Image */}
+                                        <img
+                                            src={previewFile}
+                                            alt="Preview"
+                                            className="w-full max-h-[70vh] object-contain rounded"
+                                        />
+                                    </div>
+                                </div>
+                            )}
                         </FormItem>
                     </div>
 
@@ -330,7 +376,7 @@ export default function ApplyLeaveForm({
                         <div className='flex items-center gap-4'>
                             <Button
                                 type='submit'
-                                disabled={isPending || !selectedEmployeeId}
+                                disabled={combinedBalanceData?.length === 0 || isPending || !selectedEmployeeId}
                                 className='bg-orange-500 hover:bg-orange-600 text-white font-black h-12 px-16 rounded-full shadow-xl shadow-orange-200 flex items-center gap-3 uppercase text-sm transition-all active:scale-95'
                             >
                                 APPLY LEAVE NOW <ArrowRight className='h-5 w-5' />
@@ -347,6 +393,13 @@ export default function ApplyLeaveForm({
                                 <span className='text-xl leading-none'>×</span> CANCEL
                             </Button>
                         </div>
+                        {
+                            combinedBalanceData?.length === 0 && !isLoadingBalance && (
+                                <Badge variant='destructive' className='w-auto py-1 px-2 text-xs'>
+                                    No leave balance available for the selected leave type.
+                                </Badge>
+                            )
+                        }
 
                         <p className='text-[10px] text-slate-400 font-medium tracking-widest uppercase opacity-60'>
                             This will directly update the employee's leave records as an administrator action.

@@ -7,7 +7,7 @@ import type { IPeriodTimeSettingData } from '@/types/timetable/masters/masters';
 export async function getAllPeriodTimeSettings(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(
         searchParams ?? {},
-        'ttmC_CategoryName,periodName,ttmdpT_EndTime,ttmdpT_StartTime,ttmdpT_Id,ttmdpT_ActiveFlag,academicYearName'
+        'ttmC_CategoryName,ttmP_PeriodName,ttmD_DayName,asmaY_Year,ttmdpT_StartTime,ttmdpT_EndTime'
     );
     const url = `/PeriodTimeSettingFacade/GetPeriodTimeSettingData?${urlParams}`;
     return await api.get<IPeriodTimeSettingData[]>('timetable', url);

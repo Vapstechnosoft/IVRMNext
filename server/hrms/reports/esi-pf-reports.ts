@@ -110,3 +110,41 @@ export async function getPFForm6A(data: PFForm6ARequest) {
         return { success: false, message: error.message };
     }
 }
+
+/**
+ * PF Summary Report Request
+ */
+export interface PFSummaryReportRequest {
+    hrmE_Id: string;
+    imfY_Id: string;
+    flag: string;
+}
+
+/**
+ * Fetch PF Summary Report Data and PF Yearly report also
+ */
+export async function getPFSummaryReport(data: PFSummaryReportRequest) {
+    try {
+        const response = await api.post<any>('hrms', '/api/ReportPFChallen/get_pf_yearly_or_summary_report', data);
+        if (response.success) return { success: true, data: response.data, message: response.message };
+        return { success: false, message: response.message };
+    } catch (error: any) {
+        return { success: false, message: error.message };
+    }
+}
+
+
+/**
+ * Fetch VPF Summary Report Data and VPF Yearly report also
+ */
+
+export async function getVPFSummaryReport(data: PFSummaryReportRequest) {
+    try {
+        const response = await api.post<any>('hrms', '/api/ReportPFChallen/get_vpf_yearly_or_summary_report', data);
+        if (response.success) return { success: true, data: response.data };
+        return { success: false, message: response.message };
+    } catch (error: any) {
+        return { success: false, message: error.message };
+    }
+}
+

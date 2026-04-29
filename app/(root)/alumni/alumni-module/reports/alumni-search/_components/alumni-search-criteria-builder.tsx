@@ -17,7 +17,7 @@ interface AlumniSearchCriteriaBuilderProps {
 }
 
 const FIELDS = [
-    { value: 'StudentName', name: 'Alumni Name' }
+    { value: 'StudentName', name: 'Alumni First Name' }
     // { value: 'ALMST_MobileNo', name: 'MobileNo' },
     // { value: 'ALMST_emailId', name: 'Email id' },
     // { value: 'IVRMMC_CountryName', name: 'Country' },

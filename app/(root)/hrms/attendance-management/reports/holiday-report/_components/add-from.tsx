@@ -3,12 +3,13 @@
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
 import { holidayReportFilterSchema } from '@/schemas/hrms/attendance-management-schemas';
 import { getHolidayReport } from '@/server/hrms/hrmsConfig/reports/holiday-report';
+import { useEmployeeShiftMappingHolidayTypes } from '@/hooks/hrms/attendance-management/useMasters';
+import { useLeaveYearDropdown } from '@/hooks/hrms/useMasters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useQueryClient } from '@tanstack/react-query';
 import { Save } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import { Label } from 'react-aria-components';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -19,12 +20,52 @@ type FormFields = z.infer<typeof holidayReportFilterSchema>;
 interface AddHolidayReportFormProps {
     onSuccess?: () => void;
     className?: string;
-    searchParams?: any;
-    holidayTypes?: Array<{ label: string; value: string }>;
+    onReportData?: (data: any[]) => void;
+    onReset?: () => void;
 }
 
-export default function AddHolidayReportForm({ onSuccess, className = '', searchParams, holidayTypes = [] }: AddHolidayReportFormProps) {
-    const queryClient = useQueryClient();
+export default function AddHolidayReportForm({ onSuccess, className = '', onReportData, onReset }: AddHolidayReportFormProps) {
+
+    const { data: leaveYearData,isLoading: isLeaveYearLoading } = useLeaveYearDropdown();
+    const { data: holidayTypeData, error: holidayTypeError, status: holidayTypeStatus, isLoading: isHolidayTypeLoading } = useEmployeeShiftMappingHolidayTypes();
+
+    useEffect(() => {
+        if (holidayTypeStatus === 'error') {
+            console.error("❌ [HOLIDAY TYPE ERROR]:", holidayTypeError);
+        }
+    }, [holidayTypeError, holidayTypeStatus]);
+
+    const leaveYearOptions = useMemo(() => {
+        const rawData = leaveYearData as any;
+        if (!rawData) return [];
+        const list = Array.isArray(rawData) ? rawData : (Array.isArray(rawData.data) ? rawData.data : []);
+
+        return list.map((year: any) => ({
+            label: year.hrmlY_LeaveYear || '',
+            value: String(year.hrmlY_Id || '')
+        }));
+    }, [leaveYearData]);
+
+    const holidayTypeOptions = useMemo(() => {
+        const rawData = holidayTypeData as any;
+        if (!rawData) return [];
+
+        let list = [];
+        if (Array.isArray(rawData)) {
+            list = rawData;
+        } else if (rawData.data && Array.isArray(rawData.data)) {
+            list = rawData.data;
+        } else if (rawData.data && rawData.data.$values && Array.isArray(rawData.data.$values)) {
+            list = rawData.data.$values;
+        } else if (rawData.$values && Array.isArray(rawData.$values)) {
+            list = rawData.$values;
+        }
+
+        return list.map((type: any) => ({
+            label: type.value || type.Value || '',
+            value: String(type.key || type.Key || '')
+        })).filter((opt: any) => opt.value && opt.value !== 'undefined');
+    }, [holidayTypeData]);
 
     const {
         handleSubmit,
@@ -35,49 +76,30 @@ export default function AddHolidayReportForm({ onSuccess, className = '', search
         resolver: zodResolver(holidayReportFilterSchema),
         mode: 'onChange',
         defaultValues: {
-            calendarYear: '',
-            holidayType: ''
+            hrmlY_Id: '',
+            fohwdT_Id: ''
         }
     });
 
+    // incrementing this key forces the Select components to remount and show placeholder
+    const [resetKey, setResetKey] = useState(0);
+
     const onSubmit: SubmitHandler<FormFields> = async (data: FormFields) => {
         try {
-            const payload = {
-                calendarYear: data.calendarYear,
-                holidayType: data.holidayType
-            };
-
-            const response = await getHolidayReport(payload, searchParams);
+            const response = await getHolidayReport(Number(data.hrmlY_Id), Number(data.fohwdT_Id));
 
             if (response.success) {
-                toast.success(response.message || 'Report generated successfully');
-                try {
-                    if (response?.total != null) {
-                        queryClient.setQueryData([HRMS_QUERY_KEYS.HOLIDAY_REPORT, searchParams ?? {}], response);
-                    } else if (Array.isArray(response?.data)) {
-                        const parseParam = (k: string) => {
-                            const v = (searchParams as any)?.[k];
-                            if (Array.isArray(v)) return Number(v[0]);
-                            return v != null ? Number(v) : undefined;
-                        };
-                        const page = parseParam('page') || 1;
-                        const pageSize = parseParam('page_size') || 10;
-                        const total = response.data.length;
-                        const start = (page - 1) * pageSize;
-                        const pageData = response.data.slice(start, start + pageSize);
+                const raw = response?.data;
+                const dataArray = Array.isArray(raw) ? raw : (raw?.$values ?? []);
 
-                        queryClient.setQueryData([HRMS_QUERY_KEYS.HOLIDAY_REPORT, searchParams ?? {}], {
-                            data: pageData,
-                            total,
-                            success: true,
-                            message: response.message
-                        });
-                    } else {
-                        queryClient.setQueryData([HRMS_QUERY_KEYS.HOLIDAY_REPORT, searchParams ?? {}], response);
-                    }
-                } catch (e) {
-                    // noop
+                if (dataArray.length === 0) {
+                    toast.warning('No data found for the selected criteria.');
+                    onReportData?.([]);
+                    return;
                 }
+
+                onReportData?.(dataArray);
+                toast.success(response.message || 'Report generated successfully');
                 reset();
                 onSuccess?.();
             } else {
@@ -89,12 +111,10 @@ export default function AddHolidayReportForm({ onSuccess, className = '', search
     };
 
     const handleReset = () => {
-        reset();
+        reset({ hrmlY_Id: '', fohwdT_Id: '' });
+        setResetKey((k) => k + 1); // force Select remount to show placeholder
+        onReset?.();
     };
-
-    // Generate year options (current year ± 5 years)
-    const currentYear = new Date().getFullYear();
-    const yearOptions = Array.from({ length: 11 }, (_, i) => currentYear - 5 + i);
 
     return (
         <div className={`${className}`}>
@@ -108,24 +128,25 @@ export default function AddHolidayReportForm({ onSuccess, className = '', search
                                     Calendar Year <span className='ml-1 text-red-500'>*</span>
                                 </Label>
                                 <Controller
-                                    name='calendarYear'
+                                    key={`year-${resetKey}`}
+                                    name='hrmlY_Id'
                                     control={control}
                                     render={({ field }) => (
-                                        <Select value={field.value || ''} onValueChange={field.onChange}>
-                                            <SelectTrigger className={errors.calendarYear ? 'border-red-500' : ''}>
-                                                <SelectValue placeholder='Select Calendar Year' />
+                                        <Select value={field.value || undefined} onValueChange={field.onChange}>
+                                            <SelectTrigger className={errors.hrmlY_Id ? 'border-red-500' : ''} disabled={isLeaveYearLoading || leaveYearOptions.length === 0}>
+                                                <SelectValue placeholder={isLeaveYearLoading ? 'Loading...' : 'Select Calendar Year'} />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {yearOptions.map((year) => (
-                                                    <SelectItem key={year} value={year.toString()}>
-                                                        {year}
+                                                {leaveYearOptions.map((opt: any) => (
+                                                    <SelectItem key={opt.value} value={opt.value}>
+                                                        {opt.label}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
                                     )}
                                 />
-                                {errors.calendarYear && <FormError>{errors.calendarYear.message}</FormError>}
+                                {errors.hrmlY_Id && <FormError>{errors.hrmlY_Id.message}</FormError>}
                             </div>
 
                             {/* Holiday Type */}
@@ -134,32 +155,25 @@ export default function AddHolidayReportForm({ onSuccess, className = '', search
                                     Holiday Type <span className='ml-1 text-red-500'>*</span>
                                 </Label>
                                 <Controller
-                                    name='holidayType'
+                                    key={`type-${resetKey}`}
+                                    name='fohwdT_Id'
                                     control={control}
                                     render={({ field }) => (
-                                        <Select value={field.value || ''} onValueChange={field.onChange}>
-                                            <SelectTrigger className={errors.holidayType ? 'border-red-500' : ''}>
-                                                <SelectValue placeholder='Select Holiday Type' />
+                                        <Select value={field.value || undefined} onValueChange={field.onChange} disabled={isHolidayTypeLoading || holidayTypeOptions.length === 0}>
+                                            <SelectTrigger className={errors.fohwdT_Id ? 'border-red-500' : ''}>
+                                                <SelectValue placeholder={isHolidayTypeLoading ? 'Loading...' : 'Select Holiday Type'} />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {holidayTypes.length > 0 ? (
-                                                    holidayTypes.map((type) => (
-                                                        <SelectItem key={type.value} value={type.value}>
-                                                            {type.label}
-                                                        </SelectItem>
-                                                    ))
-                                                ) : (
-                                                    <>
-                                                        <SelectItem value='National'>National</SelectItem>
-                                                        <SelectItem value='Regional'>Regional</SelectItem>
-                                                        <SelectItem value='Company'>Company</SelectItem>
-                                                    </>
-                                                )}
+                                                {holidayTypeOptions.map((type: any) => (
+                                                    <SelectItem key={type.value} value={type.value}>
+                                                        {type.label}
+                                                    </SelectItem>
+                                                ))}
                                             </SelectContent>
                                         </Select>
                                     )}
                                 />
-                                {errors.holidayType && <FormError>{errors.holidayType.message}</FormError>}
+                                {errors.fohwdT_Id && <FormError>{errors.fohwdT_Id.message}</FormError>}
                             </div>
                         </div>
                     </div>

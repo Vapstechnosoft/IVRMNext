@@ -11,6 +11,8 @@ import { Plus, X } from 'lucide-react';
 import { use, useEffect } from 'react';
 import AddMasterCategoryForm from './_components/add-form';
 import { masterCategoryColumns } from './_components/columns';
+import ToggleMasterCategoryForm from './_components/toggle-form';
+import UpdateMasterCategoryForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -88,13 +90,13 @@ function FormSections({ refetch }: { refetch: () => void }) {
     const {
         isAddFormOpen,
         isEditFormOpen,
-        //isDeleteFormOpen,
+        isToggleFormOpen,
         selectedRow,
         closeAddForm,
-        //closeDeleteForm,
-        // closeEditForm,
-        addFormRef
-        // editFormRef
+        closeEditForm,
+        closeToggleForm,
+        addFormRef,
+        editFormRef
     } = useFormContext<IMasterCategoryList>();
 
     useEffect(() => {
@@ -140,6 +142,9 @@ function FormSections({ refetch }: { refetch: () => void }) {
                 </div>
             )}
 
+            {/* Toggle Form */}
+            {isToggleFormOpen && selectedRow && <ToggleMasterCategoryForm rowData={selectedRow} onClose={closeToggleForm} />}
+
             {/* Delete Form */}
             {/* {isDeleteFormOpen && selectedRow && (
                 <DeletemasterCategoryForm
@@ -153,21 +158,10 @@ function FormSections({ refetch }: { refetch: () => void }) {
             )} */}
 
             {/* Edit Form */}
-            {/* {isEditFormOpen && selectedRow && (
-                <UpdateMasterClassForm
-                    rowData={selectedRow}
-                    onClose={closeDeleteForm}
-                    onSuccess={() => {
-                        handleSuccess();
-                        closeDeleteForm();
-                    }}
-                />
-            )} */}
-
-            {/* {isEditFormOpen && selectedRow && (
+            {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Yearly Class Category'
+                        title='Edit Master Category'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -181,11 +175,17 @@ function FormSections({ refetch }: { refetch: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateMasterClassForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                            <UpdateMasterCategoryForm
+                                selectedRow={selectedRow}
+                                onSuccess={() => {
+                                    handleSuccess();
+                                    closeEditForm();
+                                }}
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>
-            )} */}
+            )}
         </>
     );
 }

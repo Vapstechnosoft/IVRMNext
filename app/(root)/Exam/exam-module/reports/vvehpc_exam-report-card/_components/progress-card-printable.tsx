@@ -1,7 +1,7 @@
 // _components/progress-card-printable.tsx
 
 'use client';
-import type { IExamReportCard, IMasterInstitution, Institution, ISubject } from '@/types/exam/exam-module/report';
+import type { IExamReportCard, IMasterInstitution, ISubject, Institution } from '@/types/exam/exam-module/report';
 import Image from 'next/image';
 
 interface Props {

@@ -146,4 +146,14 @@ export interface IPreadmissionDocumentView {
     academic_year: string;
     class_name: string;
     pasr_id: number;
+    student_name: string;
+    pasR_RegistrationNo: string;
+    pasR_Date?: string;
+    applied_class_name: string;
+    section_name: string;
+    classname?: string;
+    pasR_Student_Pic_Path?: string;
+    pasR_FatherPhoto?: string;
+    pasR_MotherPhoto?: string;
+    doclist?: any[];
 }

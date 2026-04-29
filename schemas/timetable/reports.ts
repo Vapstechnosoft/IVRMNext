@@ -19,25 +19,36 @@ export const consolidatedReportSchema = {
         .superRefine((data, ctx) => {
             if (data.type === 'ST') {
                 if (!data.ttmC_Id) {
-                    ctx.addIssue({
-                        code: z.ZodIssueCode.custom,
-                        message: 'Category is required',
-                        path: ['ttmC_Id']
-                    });
+                    ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Category is required', path: ['ttmC_Id'] });
                 }
                 if (!data.classId || data.classId.length === 0) {
-                    ctx.addIssue({
-                        code: z.ZodIssueCode.custom,
-                        message: 'Select atleast one Class',
-                        path: ['classId']
-                    });
+                    ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Select atleast one Class', path: ['classId'] });
                 }
                 if (!data.sectionId || data.sectionId.length === 0) {
-                    ctx.addIssue({
-                        code: z.ZodIssueCode.custom,
-                        message: 'Select atleast one Section',
-                        path: ['sectionId']
-                    });
+                    ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Select atleast one Section', path: ['sectionId'] });
+                }
+            }
+            if (['CSUB', 'STSUB', 'SPW'].includes(data.type)) {
+                if (!data.dayId || data.dayId.length === 0) {
+                    ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Select atleast one Day', path: ['dayId'] });
+                }
+                if (!data.periodId || data.periodId.length === 0) {
+                    ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Select atleast one Period', path: ['periodId'] });
+                }
+                if (data.type === 'CSUB' || data.type === 'SPW') {
+                    if (!data.staffId || data.staffId.length === 0) {
+                        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Select atleast one Staff', path: ['staffId'] });
+                    }
+                }
+            }
+            if (['STFP', 'PSTF'].includes(data.type)) {
+                if (!data.singleDayId) {
+                    ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Day is required', path: ['singleDayId'] });
+                }
+            }
+            if (data.type === 'PSTF') {
+                if (!data.singlePeriodId) {
+                    ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Period is required', path: ['singlePeriodId'] });
                 }
             }
         })
@@ -71,14 +82,21 @@ export const staffWiseReportSchema = {
 export const deputationReportSchema = {
     search: z.object({
         asmaY_Id: z.number().min(1, 'Academic Year is required'),
-        fromdate: z.date({
-            required_error: 'From Date is required'
-        }),
-        todate: z.date({
-            required_error: 'To Date is required'
+        date: z.date({
+            required_error: 'Date is required'
         }),
         flag: z.enum(['D', 'C'], {
             required_error: 'Report Type is required'
-        })
+        }),
+        Classids: z.array(z.number()).optional(),
+        sectionids: z.array(z.number()).optional(),
+        staffids: z.array(z.number()).optional()
+    })
+};
+
+export const staffWiseWorkingHoursReportSchema = {
+    search: z.object({
+        asmaY_Id: z.number().min(1, 'Academic Year is required'),
+        hrmE_Id: z.array(z.number()).min(1, 'Select at least one Staff')
     })
 };
