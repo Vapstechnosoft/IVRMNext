@@ -61,15 +61,7 @@ export async function getUserAccessibleModules() {
         response = {
             success: true,
             message: 'Data fetched successfully!!',
-            data: [admissionModule,
-                feesModule,
-                examModule,
-                hrmsModule,
-                iframeModule,
-                timetableModule,
-                libraryModule,
-                transportModule,
-
+            data: [
                 {
                     id: 1001,
                     name: 'Preadmission',
