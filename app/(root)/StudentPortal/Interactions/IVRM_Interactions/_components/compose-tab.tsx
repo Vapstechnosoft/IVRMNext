@@ -303,7 +303,6 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                 reader.onload = async (e) => {
                     const arrayBuffer = e.target?.result as ArrayBuffer;
                     try {
-                        // @ts-expect-error mammoth lacks proper TypeScript definitions for dynamic imports
                         const mammothModule = await import('mammoth');
                         const mammoth = mammothModule.default || mammothModule;
                         const result = await mammoth.convertToHtml({ arrayBuffer });
