@@ -59,9 +59,10 @@ export default async function RootLayout({ children }: Readonly<RootLayoutProps>
                         duration={3000} 
                         richColors 
                         className={`${geistSans.className}`} 
-                        containerStyle={{
+                        style={{
                             zIndex: 99999,
                         }}
+
                     />
                 </Providers>
             </body>
