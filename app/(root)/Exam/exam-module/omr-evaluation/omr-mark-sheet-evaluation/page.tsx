@@ -114,12 +114,31 @@ export default function OmrMarkSheetEvaluationPage() {
             return;
         }
 
+        // Cropped Image Check: Prevent processed/cropped images that lack markers
+        const isCroppedFilename = (file: File) => file.name.toLowerCase().includes('cropped');
+        if (isCroppedFilename(studentFile) || isCroppedFilename(answerKeyFile)) {
+            toast.error('Cropped images detected. Please upload the original, full OMR sheets (uncropped) for accurate evaluation.');
+            return;
+        }
+
         setIsEvaluating(true);
 
         try {
             // Ensure both files are JPEG for the backend API and get metadata for validation
             const studentInfo = await convertToJpeg(studentFile);
             const answerKeyInfo = await convertToJpeg(answerKeyFile);
+
+            // Aspect Ratio Check: Detect extreme cropping (Normal A4 ratio is ~0.7 or ~1.4)
+            const checkRatio = (info: { width: number; height: number }) => {
+                const ratio = info.width / info.height;
+                return ratio > 2.5 || ratio < 0.3; // Very wide or very narrow images are likely cropped
+            };
+
+            if (checkRatio(studentInfo) || checkRatio(answerKeyInfo)) {
+                toast.error('The uploaded images appear to be cropped or have an invalid aspect ratio. Please upload full OMR sheets.');
+                setIsEvaluating(false);
+                return;
+            }
 
             // Robust validation: Check if they are the same image content
             // (Same dimensions and same base filename even if format differs)
@@ -311,17 +330,26 @@ export default function OmrMarkSheetEvaluationPage() {
                                     <CardDescription className='text-slate-400'>Real-time PDF rendering of results.</CardDescription>
                                 </div>
                                 {pdfUrl && (
-                                    <Button
-                                        onClick={downloadPdf}
-                                        className='rounded-xl border-none bg-indigo-600 text-white shadow-indigo-900/40 shadow-xl transition-all hover:bg-indigo-700 active:scale-95'>
-                                        <Download className='mr-2 h-4 w-4' />
-                                        Download PDF
-                                    </Button>
+                                    <div className='flex gap-2'>
+                                        <Button
+                                            onClick={() => window.open(pdfUrl, '_blank')}
+                                            variant='outline'
+                                            className='rounded-xl border-slate-700 bg-slate-800 text-white transition-all hover:bg-slate-700'>
+                                            <Eye className='mr-2 h-4 w-4' />
+                                            Present
+                                        </Button>
+                                        <Button
+                                            onClick={downloadPdf}
+                                            className='rounded-xl border-none bg-indigo-600 text-white shadow-indigo-900/40 shadow-xl transition-all hover:bg-indigo-700 active:scale-95'>
+                                            <Download className='mr-2 h-4 w-4' />
+                                            Download PDF
+                                        </Button>
+                                    </div>
                                 )}
                             </CardHeader>
                             <CardContent className='relative flex-1 p-0'>
                                 {pdfUrl ? (
-                                    <iframe src={`${pdfUrl}`} className='h-full w-full border-none rounded-b-[2rem]' title='Evaluation Result' />
+                                    <iframe src={`${pdfUrl}`} className='h-full w-full border-none rounded-b-[2rem]' title='Evaluation Result' allowFullScreen allow="fullscreen" />
                                 ) : (
                                     <div className='flex h-full flex-col items-center justify-center p-12 text-center'>
                                         <div className='mb-6 flex h-24 w-24 animate-pulse items-center justify-center rounded-[2rem] bg-slate-800'>

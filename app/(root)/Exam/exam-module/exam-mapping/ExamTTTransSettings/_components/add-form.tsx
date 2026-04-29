@@ -14,8 +14,7 @@ import {
     getSubjectListAndTimeSlots,
     saveExamTTTransSettings
 } from '@/server/exam/exam-module/exam-mapping/exam-tt-trans-settings';
-import { getSectionsDropDownByAcademicYearandClasslist } from '@/server/exam/exam-module/reports/cumulative-report';
-import { getClassDropDownByAcademicYearlist } from '@/server/upload/transactions/ivrm-classwork/server-action';
+import { getClassDropDownByAcademicYearlist, getSectionsDropDownByAcademicYearandClasslist } from '@/server/exam/exam-module/reports/cumulative-report';
 import type { IExamTTTransSettings } from '@/types/exam/exam-module/exam-mapping';
 import { Loader2, Save, X } from 'lucide-react';
 import { useEffect, useState, useTransition } from 'react';

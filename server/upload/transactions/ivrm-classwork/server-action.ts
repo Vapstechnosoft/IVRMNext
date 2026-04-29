@@ -1,167 +1,182 @@
 'use server';
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
-
 import { revalidatePath } from 'next/cache';
 import type { ApiSearchparams } from '@/types';
-import type { IClassWorkDetails, ISubjectDetails } from '@/types/upload/reports/classwork-upload-report';
-import type { IAcademicYearandClassandsection } from '@/types/exam/exam-module/report';
 
-const classWorkData: any[] = [
-    {
-        icW_Id: 1,
-        asmaY_Id: 1,
-        asmcL_Id: 1,
-        hm_section_list: [{ asmS_Id: 1 }],
-        ismS_Id: 1,
-        icW_Topic: 'Algebra Basics',
-        icW_SubTopic: 'Linear Equations',
-        icW_Content: 'Introduction to variables and constants.',
-        icW_FromDate: new Date().toISOString(),
-        icW_ToDate: new Date().toISOString(),
-        icW_Assignment: true,
-        icW_TeachingAid: false,
-        icW_Evaluation: true,
-        icW_ActiveFlag: true,
-        ICW_FilePath_Array: [],
-        asmcL_ClassName: 'Class I',
-        asmC_SectionName: 'A',
-        ismS_SubjectName: 'Maths'
-    }
-];
-
+/**
+ * Initial load data: Academic Year, Class, Section, Subjects, Grid
+ */
 export async function fetchInitialData() {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    return {
-        yearlist: [
-            { asmaY_Id: 1, asmaY_Year: '2023-2024' },
-            { asmaY_Id: 2, asmaY_Year: '2024-2025' }
-        ],
-        classlist: [
-            { asmcL_Id: 1, asmcL_ClassName: 'Class I' },
-            { asmcL_Id: 2, asmcL_ClassName: 'Class II' },
-            { asmcL_Id: 3, asmcL_ClassName: 'Class X' }
-        ],
-        classwork: classWorkData
-    };
-}
-
-export async function getClassDropDownByAcademicYearlist(asmaY_Id: number) {
-    if (!asmaY_Id) throw new Error('Academic Year ID is required');
-    const url = `/exam_master_category/class_drop_down_by_academic_year_list/${asmaY_Id}`;
-    return await api.getArray<IAcademicYearandClassandsection>('exam', url);
-}
-
-export async function getSectionsDropDownByAcademicYearandClasslist(asmaY_Id: number, asmcL_Id: number) {
-    if (!asmaY_Id) throw new Error('Academic Year ID is required');
-    if (!asmcL_Id) throw new Error('Class ID is required');
-    const url = `/ivrm_class_work/section_classwork/${asmcL_Id}/${asmaY_Id}`;
+    const url = '/IVRM_ClassWork/Getdetails';
     return await api.get<any>('portal', url);
 }
 
-export async function fetchSections(classId: number) {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    const sections = [
-        { asmS_Id: 1, asmC_SectionName: 'A', asmcL_Id: classId },
-        { asmS_Id: 2, asmC_SectionName: 'B', asmcL_Id: classId },
-        { asmS_Id: 3, asmC_SectionName: 'C', asmcL_Id: classId }
-    ];
-    return { sectionlist: sections };
+/**
+ * Fetch classes for a given academic year
+ */
+export async function fetchClasses(asmaY_Id: number, hrmE_Id: number) {
+    const url = `/IVRM_ClassWork/get_classes?ASMAY_Id=${asmaY_Id}&HRME_Id=${hrmE_Id}`;
+    return await api.post<any>('portal', url, {});
 }
 
-export async function fetchSubjects(classId: number, sectionList: any[]) {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    const subjects = [
-        { ismS_Id: 1, ismS_SubjectName: 'Maths' },
-        { ismS_Id: 2, ismS_SubjectName: 'Science' },
-        { ismS_Id: 3, ismS_SubjectName: 'English' },
-        { ismS_Id: 4, ismS_SubjectName: 'Kannada' }
-    ];
-    return { subjectlist: subjects };
+/**
+ * Fetch sections for a given class and academic year
+ */
+export async function fetchSections(asmcL_Id: number, asmaY_Id: number) {
+    const url = `/IVRM_ClassWork/getsectiondata?ASMAY_Id=${asmaY_Id}&ASMCL_Id=${asmcL_Id}`;
+    return await api.post<any>('portal', url, {});
 }
 
-export async function GetClassWorkUploadedList(data: any, searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = '/ivrm_class_work/class_work_grid_details';
-    return await api.post<IClassWorkDetails[]>('portal', url, data);
-}
-
-export async function getSubjectsDropDownByAcademicYearandClassandSectionlist(data: any) {
-    const url = '/ivrm_class_work/subject_list_by_class_section';
-    return await api.post<ISubjectDetails>('portal', url, data);
-}
-
-export async function uploadClassWork(payload: any) {
-    const url = '/ivrm_class_work/upload_classwork';
+/**
+ * Fetch subjects for a given class, academic year, and sections
+ */
+export async function fetchSubjects(asmcL_Id: number, asmaY_Id: number, hm_section_list: { asmS_Id: number }[] | any[]) {
+    const url = '/IVRM_ClassWork/getsubject';
+    const payload = {
+        ASMAY_Id: asmaY_Id,
+        ASMCL_Id: asmcL_Id,
+        hm_section_list: hm_section_list.map((s: any) => ({
+            ASMS_Id: s.asmS_Id || s.ASMS_Id
+        }))
+    };
     return await api.post<any>('portal', url, payload);
 }
-export async function toggleUploadClassWork(id: number) {
-    const url = `/ivrm_class_work/active_deactive_class_work/${id}`;
-    return await api.put('portal', url);
-}
 
-export async function GetHomeWorkUploadedList(asmay_id: number, searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/ivrm_class_work/home_work_grid_details/${asmay_id}?${urlParams}`;
-    return await api.get('portal', url,);
-}
-
-
-// Class work verify using based on  privileges
-export async function SubjectsDropDownByAcademicYearandClassandSection(data: any) {
-    const url = '/ivrm_class_work/subjects_by_class_work_verify';
-    return await api.post<ISubjectDetails>('portal', url, data);
-}
-
-export const fetchClassWorkStudents = async (icW_Id: number): Promise<any[]> => {
-    // Simulate API call
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            const students = Array.from({ length: 10 }).map((_, i) => ({
-                amst_Id: 100 + i,
-                studentName: `Student ${i + 1}`,
-                rollNo: `${i + 1}`,
-                admNo: `ADM00${i + 1}`,
-                icwupl_Id: i % 2 === 0 ? 500 + i : undefined,
-                icwupl_Marks: i % 2 === 0 ? (80 + i).toString() : '',
-                icwupl_StaffRemarks: i % 2 === 0 ? 'Good' : '',
-                icwupl_StaffUpload: '',
-                icwupl_FileName: '',
-                checked: i % 2 === 0,
-                studentUploads:
-                    i % 3 === 0
-                        ? [
-                            {
-                                icwupl_Id: 700 + i,
-                                icwupl_FileName: 'assignment.pdf',
-                                icwupl_Attachment: 'https://example.com/assignment.pdf',
-                                icwupl_Date: '2023-10-26'
-                            }
-                        ]
-                        : []
-            }));
-            resolve(students);
-        }, 500);
-    });
-};
-
-export const saveClassWorkMarks = async (data: any) => {
-    console.log('Saving Marks:', data);
-    return new Promise<{ success: boolean; message: string }>((resolve) => {
-        setTimeout(() => {
-            resolve({ success: true, message: 'Marks saved successfully' });
-        }, 1000);
-    });
-};
-
-export async function deleteClassWork(id: number) {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    const index = classWorkData.findIndex((t) => t.icW_Id === id);
-    if (index !== -1) {
-        classWorkData[index].icW_ActiveFlag = !classWorkData[index].icW_ActiveFlag;
+/**
+ * Save or update classwork
+ */
+export async function saveClassWork(payload: any) {
+    const url = '/IVRM_ClassWork/savedetail';
+    const result = await api.post<any>('portal', url, payload);
+    if (result.success) {
         revalidatePath('/upload/transactions/ivrm-classwork');
-        const status = classWorkData[index].icW_ActiveFlag ? 'activated' : 'deactivated';
-        return { success: true, message: `Record ${status} successfully` };
     }
-    return { success: false, message: 'Record not found' };
+    return result;
+}
+
+/**
+ * Toggle active/inactive status
+ */
+export async function toggleClassWork(icW_Id: number) {
+    const url = `/IVRM_ClassWork/deactivate?ICW_Id=${icW_Id}`;
+    const result = await api.post<any>('portal', url, {});
+    if (result.success) {
+        revalidatePath('/upload/transactions/ivrm-classwork');
+    }
+    return result;
+}
+
+/**
+ * Fetch classwork list based on filters
+ */
+export async function getClassWorkList(payload: {
+    ASMAY_Id: number;
+    ASMCL_Id: number;
+    ASMS_Id: number;
+    ISMS_Id: number;
+    fromdate: string;
+    todate: string;
+}) {
+    const url = `/IVRM_ClassWork/getclasswork_list?ASMAY_Id=${payload.ASMAY_Id}&ASMCL_Id=${payload.ASMCL_Id}&ASMS_Id=${payload.ASMS_Id}&ISMS_Id=${payload.ISMS_Id}&fromdate=${payload.fromdate}&todate=${payload.todate}`;
+    return await api.post<any>('portal', url, {});
+}
+
+/**
+ * Fetch classwork topic list based on filters
+ */
+export async function getClassWorkTopicList(payload: {
+    ASMAY_Id: number;
+    ASMCL_Id: number;
+    ASMS_Id: number;
+    ISMS_Id: number;
+    fromdate: string;
+    todate: string;
+}) {
+    const url = `/IVRM_ClassWork/getclasswork_Topiclist?ASMAY_Id=${payload.ASMAY_Id}&ASMCL_Id=${payload.ASMCL_Id}&ASMS_Id=${payload.ASMS_Id}&ISMS_Id=${payload.ISMS_Id}&fromdate=${payload.fromdate}&todate=${payload.todate}`;
+    return await api.post<any>('portal', url, {});
+}
+
+
+/**
+ * Fetch subject list based on filters (Used in Verify ClassWork)
+ */
+export async function SubjectsDropDownByAcademicYearandClassandSection(payload: { asmaY_Id: number, asmcL_Id: number, asmS_Id: number }) {
+    const url = `/IVRM_ClassWork/getsubjectlist?ASMAY_Id=${payload.asmaY_Id}&ASMCL_Id=${payload.asmcL_Id}&ASMS_Id=${payload.asmS_Id}`;
+    return await api.post<any>('portal', url, {});
+}
+
+/**
+ * Fetch classwork details for editing (including attachments)
+ */
+export async function editClassWork(icW_Id: number, asmaY_Id: number) {
+    const url = `/IVRM_ClassWork/editData?ICW_Id=${icW_Id}&ASMAY_Id=${asmaY_Id}`;
+    return await api.post<any>('portal', url, {});
+}
+
+/**
+ * View classwork attachments
+ */
+export async function viewClassWorkAttachments(icW_Id: number) {
+    const url = `/IVRM_ClassWork/viewData?ICW_Id=${icW_Id}`;
+    return await api.post<any>('portal', url, {});
+}
+
+/**
+ * Load student list for marks entry (Used in Marks Entry)
+ */
+export async function fetchClassWorkStudents(icW_Id: number) {
+    const url = `/IVRM_ClassWork/getclasswork_student?ICW_Id=${icW_Id}`;
+    return await api.post<any>('portal', url, {});
+}
+
+export async function fetchClassWorkStudentList(asmcL_Id: number, ASMS_Id: number, asmaY_Id: number) {
+    const url = `/IVRM_ClassWork/getclasswork_student?ASMAY_Id=${asmaY_Id}&ASMCL_Id=${asmcL_Id}&ASMS_Id=${ASMS_Id}`;
+    return await api.post<any>('portal', url, {});
+}
+
+/**
+ * Update classwork marks (Used in Marks Entry)
+ */
+export async function saveClassWorkMarks(payload: any) {
+    const url = '/IVRM_ClassWork/classwork_marks_update';
+    return await api.post<any>('portal', url, payload);
+}
+
+export async function updateClassWorkMarks(payload: any) {
+    return await saveClassWorkMarks(payload);
+}
+
+/**
+ * View student uploaded files
+ */
+export async function viewStudentUpload(AMST_Id: number, ICW_Id: number, ICWUPL_Id: number) {
+    const url = '/IVRM_ClassWork/viewstudentupload';
+    const payload = { AMST_Id, ICW_Id, ICWUPL_Id };
+    return await api.post<any>('portal', url, payload);
+}
+
+/**
+ * Edit classwork marks for a specific student
+ */
+export async function editClassWorkMark(icW_Id: number, AMST_Id: number) {
+    const url = `/IVRM_ClassWork/edit_classwork_mark?ICW_Id=${icW_Id}&AMST_Id=${AMST_Id}`;
+    return await api.post<any>('portal', url, {});
+}
+
+/**
+ * View general classwork details
+ */
+export async function viewClassWork(icW_Id: number) {
+    const url = `/IVRM_ClassWork/viewclasswork?ICW_Id=${icW_Id}`;
+    return await api.post<any>('portal', url, {});
+}
+
+/**
+ * Staff upload for students (feedback/corrected files)
+ */
+export async function staffUpload(doclist: any[]) {
+    const url = '/IVRM_ClassWork/stfupload';
+    const payload = { doclist };
+    return await api.post<any>('portal', url, payload);
 }

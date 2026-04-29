@@ -1,5 +1,5 @@
 import { PORTAL_QUERY_KEYS } from '@/constants/query-keys';
-import { GetClassWorkUploadedList } from '@/server/upload/transactions/ivrm-classwork/server-action';
+import { getClassWorkList } from '@/server/upload/transactions/ivrm-classwork/server-action';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -9,7 +9,7 @@ export const ClassWorkUploadedList = (payload: any, searchParams?: ApiSearchpara
     return {
         ...useQuery({
             queryKey: [PORTAL_QUERY_KEYS.CLASS_WORK_UPLOADED, searchParams ?? {}, payload],
-            queryFn: async () => GetClassWorkUploadedList(payload, searchParams),
+            queryFn: async () => getClassWorkList(payload),
             staleTime: 0
         }),
         refetchAll: () => {

@@ -71,7 +71,7 @@ export async function getUserAccessibleModules() {
                 transportModule,
 
                 {
-                    id: 1,
+                    id: 1001,
                     name: 'Preadmission',
                     icon: 'UserRoundPlus',
                     menu: [
@@ -197,7 +197,7 @@ export async function getUserAccessibleModules() {
                 },
 
                 {
-                    id: 900,
+                    id: 900900,
                     name: 'Admission',
                     icon: 'UserRoundPlus',
                     menu: [
@@ -860,7 +860,7 @@ export async function getUserAccessibleModules() {
                                     ]
                                 },
                                 {
-                                    id: 10,
+                                    id: 13,
                                     name: 'NDA',
                                     icon: 'Settings',
                                     pages: [
@@ -880,14 +880,14 @@ export async function getUserAccessibleModules() {
                                             title: 'NDA Student TC',
                                             description: 'NDA Student TC'
                                         },
-                                        // {
-                                        //     id: 63,
-                                        //     name: 'NDA Student Profile Update',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/reports/nda-student-profile-update',
-                                        //     title: 'NDA Student Profile Update',
-                                        //     description: 'NDA Student Profile Update'
-                                        // },
+                                        {
+                                            id: 63,
+                                            name: 'NDA Student Profile Update',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/nda/reports/nda-student-profile-report',
+                                            title: 'NDA Student Profile Update',
+                                            description: 'NDA Student Profile Update'
+                                        },
                                         {
                                             id: 64,
                                             name: 'Notredame Custom TC Report',
@@ -923,7 +923,7 @@ export async function getUserAccessibleModules() {
                                     ]
                                 },
                                 {
-                                    id: 11,
+                                    id: 14,
                                     name: 'Baldwin',
                                     icon: 'Settings',
                                     pages: [
@@ -963,7 +963,7 @@ export async function getUserAccessibleModules() {
                                     ]
                                 },
                                 {
-                                    id: 12,
+                                    id: 15,
                                     name: 'Sophia',
                                     icon: 'Settings',
                                     pages: [
@@ -1107,7 +1107,7 @@ export async function getUserAccessibleModules() {
                                     ]
                                 },
                                 {
-                                    id: 12,
+                                    id: 16,
                                     name: 'St. Thomas Church School',
                                     icon: 'Settings',
                                     pages: [
@@ -1139,7 +1139,7 @@ export async function getUserAccessibleModules() {
                                 },
 
                                 {
-                                    id: 12,
+                                    id: 17,
                                     name: 'Samartha',
                                     icon: 'Settings',
                                     pages: [
@@ -1171,7 +1171,7 @@ export async function getUserAccessibleModules() {
                                 },
 
                                 {
-                                    id: 13,
+                                    id: 18,
                                     name: 'Danvantari Phisiotheraphy',
                                     icon: 'Settings',
                                     pages: [
@@ -1194,7 +1194,7 @@ export async function getUserAccessibleModules() {
                                     ]
                                 },
                                 {
-                                    id: 14,
+                                    id: 19,
                                     name: 'SRKVS',
                                     icon: 'Settings',
                                     pages: [
@@ -1209,7 +1209,7 @@ export async function getUserAccessibleModules() {
                                     ]
                                 },
                                 {
-                                    id: 15,
+                                    id: 20,
                                     name: 'St. Peters School Durgapur',
                                     icon: 'Settings',
                                     pages: [
@@ -1233,7 +1233,7 @@ export async function getUserAccessibleModules() {
                                     ]
                                 },
                                 {
-                                    id: 16,
+                                    id: 21,
                                     name: 'GNANA DEEPA ACADEMY RESIDENTIAL SCHOOL',
                                     icon: 'Settings',
                                     pages: [
@@ -1248,7 +1248,7 @@ export async function getUserAccessibleModules() {
                                     ]
                                 },
                                 {
-                                    id: 17,
+                                    id: 22,
                                     name: 'SMS degree college',
                                     icon: 'Settings',
                                     pages: [
@@ -1273,7 +1273,7 @@ export async function getUserAccessibleModules() {
                                     ]
                                 },
                                 {
-                                    id: 18,
+                                    id: 23,
                                     name: 'GM Vidya Nikethan School',
                                     icon: 'Settings',
                                     pages: [
@@ -1292,7 +1292,7 @@ export async function getUserAccessibleModules() {
                     ]
                 },
                 {
-                    id: 2,
+                    id: 20002,
                     name: 'Fees Management',
                     icon: 'BadgeIndianRupee',
                     menu: [
@@ -1969,7 +1969,7 @@ export async function getUserAccessibleModules() {
                 },
 
                 {
-                    id: 3,
+                    id: 30003,
                     name: 'Exam',
                     icon: 'BookOpen',
                     menu: [
@@ -1985,26 +1985,11 @@ export async function getUserAccessibleModules() {
                                     pages: [
                                         {
                                             id: 300,
-                                            name: 'OMR Mark Sheet Evaluation',
+                                            name: 'OMR Sheet Evaluator',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/omr-evaluation/omr-mark-sheet-evaluation',
-                                            title: 'OMR mark sheet evaluation',
+                                            title: 'OMR Sheet Evaluator',
                                             description: 'Evaluate OMR mark sheets'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 1000,
-                                    name: 'ONLINE QUIZ',
-                                    icon: 'Trophy',
-                                    pages: [
-                                        {
-                                            id: 1001,
-                                            name: 'Online MCQ Quiz',
-                                            icon: 'Trophy',
-                                            url: '/Exam/exam-module/online-quiz/online-mcq-quiz',
-                                            title: 'Online MCQ Quiz',
-                                            description: 'Conduct and manage online MCQ quizzes'
                                         }
                                     ]
                                 },
@@ -2131,6 +2116,14 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/masters/life-skills-area',
                                             title: 'Life Skills Area',
                                             description: 'Manage Life Skills Area Details'
+                                        },
+                                        {
+                                            id: 204,
+                                            name: 'Baldwin Master Time Table Session',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/masters/exam-tt-session-master',
+                                            title: 'Baldwin Master Time Table Session',
+                                            description: 'Manage Baldwin Master Time Table Session Details'
                                         }
                                     ]
                                 },
@@ -2258,6 +2251,30 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/exam-mapping/ExamTTTransSettings',
                                             title: 'Exam TT Transaction Settings',
                                             description: 'Manage Exam Time Table Transaction Settings'
+                                        },
+                                        {
+                                            id: 98,
+                                            name: 'Baldwin Exam TT Trans Settings',
+                                            icon: 'CalendarClock',
+                                            url: '/Exam/exam-module/exam-mapping/ExamTTTransSettings',
+                                            title: 'Baldwin Exam Time Table Settings',
+                                            description: 'Manage Baldwin Exam Time Table Settings'
+                                        },
+                                        {
+                                            id: 99,
+                                            name: 'Amrutha Bharathi Exam TT Trans Settings',
+                                            icon: 'CalendarClock',
+                                            url: '/Exam/exam-module/exam-mapping/ExamTTTransSettings',
+                                            title: 'Amrutha Bharathi School Exam Time Table Settings',
+                                            description: 'Manage Amrutha Bharathi School Exam Time Table Settings'
+                                        },
+                                        {
+                                            id: 100,
+                                            name: 'Hithachinthana School Exam TT Trans Settings',
+                                            icon: 'CalendarClock',
+                                            url: '/Exam/exam-module/exam-mapping/ExamTTTransSettings',
+                                            title: 'Hithachinthana School Exam Time Table Settings',
+                                            description: 'Manage Hithachinthana School Exam Time Table Settings'
                                         }
                                     ]
                                 },
@@ -2603,6 +2620,14 @@ export async function getUserAccessibleModules() {
                                             description: 'GMVPS_Vidyaniketan I-VIII Report Card'
                                         },
                                         {
+                                            id: 21100,
+                                            name: 'GMVPS Report Card IX',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/GMVPS/gmvps-progresscard-IX',
+                                            title: 'GMVPS Report Card IX',
+                                            description: 'GMVPS Report Card IX'
+                                        },
+                                        {
                                             id: 21004,
                                             name: 'StThomos_Report Card IX',
                                             icon: 'BookOpen',
@@ -2932,7 +2957,7 @@ export async function getUserAccessibleModules() {
                     ]
                 },
                 {
-                    id: 4,
+                    id: 40004,
                     name: 'HRMS',
                     icon: 'Users',
                     menu: [
@@ -2942,7 +2967,7 @@ export async function getUserAccessibleModules() {
                             icon: 'Settings',
                             sub_menu: [
                                 {
-                                    id: 1,
+                                    id: 401,
                                     name: 'HRMS Config',
                                     icon: 'Users',
                                     pages: [
@@ -2972,7 +2997,7 @@ export async function getUserAccessibleModules() {
                                     ]
                                 },
                                 {
-                                    id: 1,
+                                    id: 402,
                                     name: 'Masters',
                                     icon: 'Database',
                                     pages: [
@@ -3115,7 +3140,7 @@ export async function getUserAccessibleModules() {
                                     ]
                                 },
                                 {
-                                    id: 5,
+                                    id: 406,
                                     name: 'User Creation',
                                     icon: 'UserPlus',
                                     pages: [
@@ -3130,7 +3155,7 @@ export async function getUserAccessibleModules() {
                                     ]
                                 },
                                 {
-                                    id: 2,
+                                    id: 403,
                                     name: 'Employee',
                                     icon: 'User',
                                     pages: [
@@ -3145,7 +3170,7 @@ export async function getUserAccessibleModules() {
                                     ]
                                 },
                                 {
-                                    id: 7,
+                                    id: 408,
                                     name: 'Transactions',
                                     icon: 'FileText',
                                     pages: [
@@ -3216,7 +3241,7 @@ export async function getUserAccessibleModules() {
                                     ]
                                 },
                                 {
-                                    id: 6,
+                                    id: 407,
                                     name: 'Reports',
                                     icon: 'FileText',
                                     pages: [
@@ -3694,7 +3719,7 @@ export async function getUserAccessibleModules() {
                         //     ]
                         // },
                         {
-                            id: 3,
+                            id: 404,
                             name: 'Attendance Management',
                             icon: 'Clock',
                             sub_menu: [
@@ -4032,7 +4057,7 @@ export async function getUserAccessibleModules() {
                         // }
 
                         {
-                            id: 4,
+                            id: 405,
                             name: 'Leave Management',
                             icon: 'Calendar',
                             sub_menu: [
@@ -4529,7 +4554,7 @@ export async function getUserAccessibleModules() {
                     ]
                 },
                 {
-                    id: 5,
+                    id: 50005,
                     name: 'AI Edge',
                     icon: 'Sparkles',
                     menu: [
@@ -4611,7 +4636,7 @@ export async function getUserAccessibleModules() {
                     ]
                 },
                 {
-                    id: 12,
+                    id: 120012,
                     name: 'Alumni',
                     icon: 'GraduationCap',
                     menu: [
@@ -4785,7 +4810,7 @@ export async function getUserAccessibleModules() {
                     ]
                 },
                 {
-                    id: 8,
+                    id: 80008,
                     name: 'Hostel Management',
                     icon: 'Home',
                     menu: [
@@ -5086,7 +5111,7 @@ export async function getUserAccessibleModules() {
                 },
 
                 {
-                    id: 15,
+                    id: 150015,
                     name: 'Visitor Management',
                     icon: 'Users',
                     menu: [
@@ -5269,33 +5294,33 @@ export async function getUserAccessibleModules() {
                                     pages: [
                                         {
                                             id: 221,
-                                            name: 'Upload ClassWork',
+                                            name: 'ClassWork',
                                             icon: 'BookOpen',
                                             url: '/upload/transactions/ivrm-classwork',
-                                            title: 'Upload ClassWork',
+                                            title: 'ClassWork',
                                             description: 'Manage ClassWork'
                                         },
                                         {
                                             id: 222,
                                             name: 'Verify Class Work',
                                             icon: 'CheckCircle',
-                                            url: '/upload/transactions/verify-classwork',
+                                            url: '/upload/transactions/ClassWork_Marks_Enter',
                                             title: 'Verify Class Work',
                                             description: 'Verify and Enter Class Work Marks'
                                         },
                                         {
                                             id: 223,
-                                            name: 'IVRM HomeWork',
+                                            name: 'HomeWork',
                                             icon: 'BookOpen',
                                             url: '/upload/transactions/ivrm-homework',
-                                            title: 'Upload HomeWork',
+                                            title: 'HomeWork',
                                             description: 'Manage IVRM HomeWork'
                                         },
                                         {
                                             id: 224,
                                             name: 'HomeWork Marks Update',
                                             icon: 'CheckCircle',
-                                            url: '/upload/transactions/homework-marks-update',
+                                            url: '/upload/transactions/HomeWork_Marks_Enter',
                                             title: 'Verify HomeWork',
                                             description: 'Verify HomeWork Marks'
                                         },
@@ -5435,7 +5460,7 @@ export async function getUserAccessibleModules() {
                 // },
 
                 {
-                    id: 6,
+                    id: 60006,
                     name: 'Time Table',
                     icon: 'Clock',
                     menu: [
@@ -5744,7 +5769,7 @@ export async function getUserAccessibleModules() {
                     ]
                 },
                 {
-                    id: 7,
+                    id: 70007,
                     name: 'Library',
                     icon: 'BookOpen',
                     menu: [
@@ -6085,7 +6110,7 @@ export async function getUserAccessibleModules() {
                     ]
                 },
                 {
-                    id: 10,
+                    id: 100010,
                     name: 'Inventory Management',
                     icon: 'Package',
                     menu: [
@@ -6441,7 +6466,7 @@ export async function getUserAccessibleModules() {
                 //     ]
                 // },
                 {
-                    id: 111,
+                    id: 111111,
                     name: 'Transport',
                     icon: 'BookOpen',
                     menu: [
@@ -6636,7 +6661,7 @@ export async function getUserAccessibleModules() {
                     ]
                 },
                 {
-                    id: 14,
+                    id: 140014,
                     name: 'Lesson Planner',
                     icon: 'GraduationCap',
                     menu: [
@@ -6719,7 +6744,7 @@ export async function getUserAccessibleModules() {
                     ]
                 },
                 {
-                    id: 11,
+                    id: 110011,
                     name: 'Sports Management',
                     icon: 'Trophy',
                     menu: [
@@ -7558,6 +7583,29 @@ export async function getUserAccessibleModules() {
                             icon: 'GraduationCap',
                             sub_menu: [
                                 {
+                                    id: 9000,
+                                    name: 'Exam',
+                                    icon: 'Trophy',
+                                    pages: [
+                                        {
+                                            id: 9001,
+                                            name: 'AI MCQ QUIZ',
+                                            icon: 'Trophy',
+                                            url: '/StaffPortal/ai-mcq-quiz',
+                                            title: 'AI MCQ QUIZ',
+                                            description: 'Conduct and manage online MCQ quizzes'
+                                        },
+                                        {
+                                            id: 9002,
+                                            name: 'OMR Sheet Evaluator',
+                                            icon: 'ClipboardCheck',
+                                            url: '/StaffPortal/omr-sheet-evaluator',
+                                            title: 'OMR Sheet Evaluator',
+                                            description: 'Evaluate scanned OMR mark sheets using AI'
+                                        }
+                                    ]
+                                },
+                                {
                                     id: 8004,
                                     name: 'Marks Entry',
                                     icon: 'ClipboardEdit',
@@ -7647,56 +7695,51 @@ export async function getUserAccessibleModules() {
                                             id: 8009,
                                             name: 'Homework',
                                             icon: 'MessageSquare',
-                                            // url: '/StaffPortal/Upload/homework',
-                                            url: '/upload/transactions/ivrm-homework',
+                                            url: '/StaffPortal/Upload/ivrm-homework',
                                             title: 'Home Work',
-                                            description: 'Upload Home Work'
+                                            description: 'Home Work'
                                         },
                                         {
                                             id: 80010,
-                                            name: 'Homework Marks Update',
+                                            name: 'Homework Marks Entry',
                                             icon: 'MessageSquare',
-                                            //url: '/StaffPortal/Upload/homework-marks-entry',
-                                            url: '/upload/transactions/homework-marks-update',
-                                            title: 'Home Work Marks Update',
-                                            description: 'Homework Marks Update'
+                                            url: '/StaffPortal/Upload/HomeWork_Marks_Enter',
+                                            title: 'Homework Marks Entry',
+                                            description: 'Homework Marks Entry'
                                         },
-                                        {
-                                            id: 80011,
-                                            name: 'Homework Upload Report',
-                                            icon: 'MessageSquare',
-                                            //url: '/StaffPortal/Upload/homework-upload-report',
-                                            url: '/upload/reports/homework-upload-report',
-                                            title: 'Home Work Upload Report',
-                                            description: 'Homework Upload Report'
-                                        },
+                                        // {
+                                        //     id: 80011,
+                                        //     name: 'Homework Upload Report',
+                                        //     icon: 'MessageSquare',
+                                        //     url: '/StaffPortal/Upload/homework-upload-report',
+                                        //     title: 'Home Work Upload Report',
+                                        //     description: 'Homework Upload Report'
+                                        // },
 
                                         {
                                             id: 80013,
                                             name: 'Notice Board',
                                             icon: 'MessageSquare',
-                                            url: '/upload/transactions/notice-board',
+                                            url: '/StaffPortal/Upload/notice-board',
                                             title: 'Notice Board',
                                             description: 'Notice Board'
                                         },
                                         {
                                             id: 80014,
-                                            name: 'Classwork Upload',
+                                            name: 'Classwork',
                                             icon: 'MessageSquare',
-                                            // url: '/StaffPortal/Upload/classwork-upload',
-                                            url: '/upload/transactions/ivrm-classwork',
-                                            title: 'Classwork Upload',
-                                            description: 'Classwork Upload'
+                                            url: '/StaffPortal/Upload/ivrm-classwork',
+                                            title: 'Classwork',
+                                            description: 'Classwork'
                                         },
 
                                         {
                                             id: 80015,
-                                            name: 'Classwork Marks Update',
+                                            name: 'Class Work Marks Entry',
                                             icon: 'MessageSquare',
-                                            //url: '/StaffPortal/Upload/classwork-marks',
-                                            url: '/upload/transactions/verify-classwork',
-                                            title: 'Classwork Marks Update',
-                                            description: 'Classwork Marks Update'
+                                            url: '/StaffPortal/Upload/ClassWork_Marks_Enter',
+                                            title: 'Class Work Marks Entry',
+                                            description: 'Class Work Marks Entry'
                                         }
                                     ]
                                 }
@@ -8134,10 +8177,10 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 40015,
-                                            name: 'Online MCQ Quiz',
+                                            name: 'AI MCQ Quiz',
                                             icon: 'FileQuestion',
                                             url: '/StudentPortal/student-dashboard/Exam/OnlineMcqQuiz',
-                                            title: 'Online MCQ Quiz',
+                                            title: 'AI MCQ Quiz',
                                             description: 'Take and view results of online MCQ assessments'
                                         }
                                     ]

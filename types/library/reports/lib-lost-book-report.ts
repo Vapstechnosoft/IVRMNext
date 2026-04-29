@@ -1,9 +1,12 @@
 export interface ILibLostBookReportRequest {
-    BookType: string;
-    BNBFlg: string;
-    Fromdate?: string;
-    ToDate?: string;
-    LMAL_Id: number;
+    bookType: string;
+    bnbFlg: string;
+    fromdate?: string;
+    toDate?: string;
+    lmaL_Id: number;
+    IVRMUL_Id?: number;
+    reportlist?: string[];
+    lib_list?: string[];
 }
 
 export interface ILibLostBookReportGridData {
@@ -16,9 +19,8 @@ export interface ILibLostBookReportGridData {
     LMBANO_LostDamagedDate: string;
 }
 
-export interface ILibLostBookReportInitialData {
-    lib_list: Array<{
-        lmaL_Id: number;
-        lmaL_LibraryName: string;
-    }>;
-}
+export type ILibLostBookReportInitialData = Array<{
+    lmaL_Id: number;
+    lmaL_LibraryName: string;
+    lmaL_ActiveFlag: boolean;
+}>;
