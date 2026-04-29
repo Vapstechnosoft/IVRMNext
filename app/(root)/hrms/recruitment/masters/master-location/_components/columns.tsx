@@ -5,6 +5,7 @@ import type { ColumnDef } from '@tanstack/react-table';
 
 export interface MasterLocation {
     hrmlO_Id: number;
+    mi_Id: number;           // institution ID from API response
     hrmlO_Institution: string;
     hrmlO_LocationName: string;
     hrmlO_LocationDesc: string;
@@ -28,17 +29,16 @@ export const getMasterLocationColumns = ({ onEdit,onToggle }: MasterLocationColu
         accessorKey: 'hrmlO_LocationName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Location Name' />,
         cell: ({ row }) => <div className='font-medium'>{row.original.hrmlO_LocationName}</div>,
-        enableSorting: false
     },
     {
         accessorKey: 'hrmlO_LocationDesc',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Location Description' />,
         cell: ({ row }) => <div className='font-medium'>{row.original.hrmlO_LocationDesc}</div>,
-        enableSorting: false
     },
    {
         id: 'actions',
         header: 'Action',
+        enableSorting: false,
         cell: ({ row }) => {
             const entity = row.original;
             return (
@@ -53,3 +53,4 @@ export const getMasterLocationColumns = ({ onEdit,onToggle }: MasterLocationColu
         }
     }
 ];
+

@@ -646,9 +646,13 @@ export const TRANSPORT_QUERY_KEYS = {
 
 
 export const RECRUITMENT_QUERY_KEYS = {
+    MASTER_INSTITUTION_BY_LOGIN: 'master_institution_by_login',
     MASTER_JOB_GRID: 'master_job_grid',
     MASTER_JOB_SAVE_OR_UPDATE: 'master_job_save_or_update',
     MASTER_JOB_DELETE: 'master_job_delete',
     MASTER_JOB_BY_JOBID: 'master_job_by_jobid',
     MASTER_LOCATION_GRID: 'master_location_grid',
+    MASTER_POSITION_GRID: 'master_position_grid',
+    MASTER_POSITION_TYPE_GRID: 'master_position_type_grid',
+   
 }

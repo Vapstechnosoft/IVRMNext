@@ -10,7 +10,7 @@ interface ToggleMasterLocationModalProps {
     rowData: MasterLocation;
     isOpen: boolean;
     onClose: () => void;
-    onSuccess: () => void;
+    onSuccess?: () => void;
 }
 
 export default function ToggleMasterLocationModal({ rowData, isOpen, onClose, onSuccess }: ToggleMasterLocationModalProps) {
@@ -23,7 +23,7 @@ export default function ToggleMasterLocationModal({ rowData, isOpen, onClose, on
 
             if (response?.success) {
                 toast.success(response?.message || `Location activate/deactivate successfully`);
-                onSuccess();
+                onSuccess?.();
                 onClose();
             } else {
                 toast.error(response?.message || `Failed to activate/deactivate location`);

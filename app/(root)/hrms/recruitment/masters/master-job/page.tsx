@@ -28,6 +28,7 @@ export default function MasterJobPage() {
     const { data: masterGridData, isLoading: masterGridLoading, refetchAll: masterGridRefetch } = useGetMasterJobGrid();
     const { data: locationData, isLoading: locationLoading } = useGetMasterLocationDropDown();
     const { mutateAsync: saveMutation, isPending: isSubmitting } = useSaveOrUpdateJob();
+    
 
 
     const locations = locationData?.data || [];
@@ -197,6 +198,7 @@ export default function MasterJobPage() {
                                                 {...register('hrmJ_JobCode')}
                                                 error={errors.hrmJ_JobCode?.message}
                                                 className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                                placeholder='Enter Job Code'
                                             />
                                             <InputText
                                                 label='Job Title'
@@ -205,6 +207,7 @@ export default function MasterJobPage() {
                                                 {...register('hrmJ_JobTiTle')}
                                                 error={errors.hrmJ_JobTiTle?.message}
                                                 className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                                placeholder='Enter Job Title'
                                             />
                                         </div>
                                         <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>

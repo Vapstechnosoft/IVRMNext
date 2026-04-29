@@ -3440,48 +3440,48 @@ export async function getUserAccessibleModules() {
                             ]
                         },
                         
-                        // {
-                        //     id: 2,
-                        //     name: 'Recruitment',
-                        //     icon: 'UserPlus',
-                        //     sub_menu: [
-                        //         {
-                        //             id: 1,
-                        //             name: 'Masters',
-                        //             icon: 'Database',
-                        //             pages: [
-                        //                 {
-                        //                     id: 1,
-                        //                     name: 'Master Job',
-                        //                     icon: 'Briefcase',
-                        //                     url: '/hrms/recruitment/masters/master-job',
-                        //                     title: 'Master Job',
-                        //                     description: 'Manage Job Positions'
-                        //                 },
-                        //                 // {
-                        //                 //     id: 2,
-                        //                 //     name: 'Master Location',
-                        //                 //     icon: 'MapPin',
-                        //                 //     url: '/hrms/recruitment/masters/master-location',
-                        //                 //     title: 'Master Location',
-                        //                 //     description: 'Manage Locations'
-                        //                 // },
-                        //                 // {
-                        //                 //     id: 3,
-                        //                 //     name: 'Master Position',
-                        //                 //     icon: 'Target',
-                        //                 //     url: '/hrms/recruitment/masters/master-position',
-                        //                 //     title: 'Master Position',
-                        //                 //     description: 'Manage Positions'
-                        //                 // },
-                        //                 // {
-                        //                 //     id: 4,
-                        //                 //     name: 'Master Position Type',
-                        //                 //     icon: 'Tag',
-                        //                 //     url: '/hrms/recruitment/masters/master-positionType',
-                        //                 //     title: 'Master Position Type',
-                        //                 //     description: 'Manage Position Types'
-                        //                 // },
+                        {
+                            id: 2,
+                            name: 'Recruitment',
+                            icon: 'UserPlus',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Masters',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Master Job',
+                                            icon: 'Briefcase',
+                                            url: '/hrms/recruitment/masters/master-job',
+                                            title: 'Master Job',
+                                            description: 'Manage Job Positions'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Master Location',
+                                            icon: 'MapPin',
+                                            url: '/hrms/recruitment/masters/master-location',
+                                            title: 'Master Location',
+                                            description: 'Manage Locations'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Master Position',
+                                            icon: 'Target',
+                                            url: '/hrms/recruitment/masters/master-position',
+                                            title: 'Master Position',
+                                            description: 'Manage Positions'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Master Position Type',
+                                            icon: 'Tag',
+                                            url: '/hrms/recruitment/masters/master-positionType',
+                                            title: 'Master Position Type',
+                                            description: 'Manage Position Types'
+                                        },
                         //                 // {
                         //                 //     id: 5,
                         //                 //     name: 'Master Priority',
@@ -3490,8 +3490,8 @@ export async function getUserAccessibleModules() {
                         //                 //     title: 'Master Priority',
                         //                 //     description: 'Manage Priority Levels'
                         //                 // }
-                        //             ]
-                        //         },
+                                    ]
+                                },
                                 // {
                                 //     id: 2,
                                 //     name: 'Transactions',
@@ -3600,8 +3600,8 @@ export async function getUserAccessibleModules() {
                                 //         }
                                 //     ]
                                 // }
-                        //     ]
-                        // },
+                            ]
+                        },
                         {
                             id: 3,
                             name: 'Attendance Management',

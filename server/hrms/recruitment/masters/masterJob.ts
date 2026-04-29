@@ -73,3 +73,20 @@ export async function toggleJobStatusData(jobId: number): Promise<ApiResponse<an
         throw error;
     }
 }
+
+// -------------------------- Institution by Login Server FUNCTIONS --------------------------
+
+export async function getInstitutionByLogin(): Promise<ApiResponse<any>> {
+    const url = '/api/MasterDropDown/get_login_based_institutions';
+    try {
+        const response = await api.get('hrmsrecruitment', url);
+        return {
+            success: response?.success ?? true,
+            message: response?.message || 'Data fetched successfully',
+            data: response?.data || response,
+        };
+    } catch (error) {
+        console.error('Error fetching institution by login data:', error);
+        throw error;
+    }
+}

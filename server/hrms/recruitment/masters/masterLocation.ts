@@ -3,6 +3,7 @@ import { api, type ApiResponse } from '@/lib/apiService';
 
 export interface saveOrUpdateLocationPayload {
   hrmlO_Id: number;
+  mi_Id: number;
   hrmlO_LocationName: string;
   hrmlO_LocationDesc: string;
   hrmlO_ActiveFlg: boolean;
@@ -23,8 +24,8 @@ export async function getMasterLocation(): Promise<ApiResponse<any>> {
     }
 }
 
-export async function getMasterLocationGridData(): Promise<ApiResponse<any>> {
-    const url = '/api/MasterLocation/get_master_locations_grid';
+export async function getMasterLocationGridData(mi_id: number): Promise<ApiResponse<any>> {
+    const url = `/api/MasterLocation/get_master_locations_grid/${mi_id}`;
     try {
         const response = await api.get('hrmsrecruitment', url);
         return {
