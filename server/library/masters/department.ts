@@ -15,7 +15,7 @@ export async function addOrUpdateMasterDepartment(data: any) {
     return await api.post<any>('library', url, data);
 }
 
-export async function deactivateMasterDepartment(data: any) {
-    const url = 'MasterDepartmentFacade/toggle-master-department';
-    return await api.post<any>('library', url, data);
+export async function deactivateMasterDepartment(id: number) {
+    const url = `MasterDepartmentFacade/toggle-master-department/${id}`;
+    return await api.put<any>('library', url, {});
 }

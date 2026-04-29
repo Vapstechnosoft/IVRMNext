@@ -39,8 +39,7 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import * as XLSX from 'xlsx';
-// @ts-ignore
-import mammoth from 'mammoth';
+// mammoth will be imported dynamically to avoid build-time resolution issues
 
 interface ViewReplyModalProps {
     isOpen: boolean;
@@ -203,6 +202,9 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id 
             reader.onload = async (e) => {
                 const arrayBuffer = e.target?.result as ArrayBuffer;
                 try {
+                    // @ts-expect-error mammoth lacks proper TypeScript definitions for dynamic imports
+                    const mammothModule = await import('mammoth');
+                    const mammoth = mammothModule.default || mammothModule;
                     const result = await mammoth.convertToHtml({ arrayBuffer });
                     setDocxPreviewHtml(result.value);
                 } catch (err) {
