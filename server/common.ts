@@ -2914,7 +2914,33 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/Calcatta/baldwin-exam-hallticket',
                                             title: 'Baldwin Exam Hallticket',
                                             description: 'Baldwin Exam Hallticket'
+                                        },
+                                        {
+                                            id: 21041,
+                                            name: 'BRS Progress Card Report',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/Burnpur/brs_reportcard',
+                                            title: 'BRS Progress Card Report',
+                                            description: 'BRS Progress Card Report'
+                                        },
+                                        {
+                                            id: 21042,
+                                            name: 'BRS Progress Card IX Report',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/Burnpur/brs_reportcardIX',
+                                            title: 'BRS Progress Card IX Report',
+                                            description: 'BRS Progress Card IX Report'
+                                        },
+                                        {
+                                            id: 21043,
+                                            name: 'BRS Progress Card X Report',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/Burnpur/brs_reportcardX',
+                                            title: 'BRS Progress Card X Report',
+                                            description: 'BRS Progress Card X Report'
                                         }
+
+
 
                                     ]
                                 }
