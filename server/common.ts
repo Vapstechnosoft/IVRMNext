@@ -880,14 +880,14 @@ export async function getUserAccessibleModules() {
                                             title: 'NDA Student TC',
                                             description: 'NDA Student TC'
                                         },
-                                        // {
-                                        //     id: 63,
-                                        //     name: 'NDA Student Profile Update',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/reports/nda-student-profile-update',
-                                        //     title: 'NDA Student Profile Update',
-                                        //     description: 'NDA Student Profile Update'
-                                        // },
+                                        {
+                                            id: 63,
+                                            name: 'NDA Student Profile Update',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/nda/reports/nda-student-profile-report',
+                                            title: 'NDA Student Profile Update',
+                                            description: 'NDA Student Profile Update'
+                                        },
                                         {
                                             id: 64,
                                             name: 'Notredame Custom TC Report',
@@ -1990,21 +1990,6 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/omr-evaluation/omr-mark-sheet-evaluation',
                                             title: 'OMR Sheet Evaluator',
                                             description: 'Evaluate OMR mark sheets'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 1000,
-                                    name: 'AI MCQ QUIZ',
-                                    icon: 'Trophy',
-                                    pages: [
-                                        {
-                                            id: 1001,
-                                            name: 'AI MCQ Quiz',
-                                            icon: 'Trophy',
-                                            url: '/Exam/exam-module/online-quiz/online-mcq-quiz',
-                                            title: 'AI MCQ Quiz',
-                                            description: 'Conduct and manage online MCQ quizzes'
                                         }
                                     ]
                                 },
@@ -3544,7 +3529,7 @@ export async function getUserAccessibleModules() {
                                 }
                             ]
                         },
-                        
+
                         // {
                         //     id: 2,
                         //     name: 'Recruitment',
@@ -3597,114 +3582,114 @@ export async function getUserAccessibleModules() {
                         //                 // }
                         //             ]
                         //         },
-                                // {
-                                //     id: 2,
-                                //     name: 'Transactions',
-                                //     icon: 'FileText',
-                                //     pages: [
-                                //         {
-                                //             id: 1,
-                                //             name: 'Add Candidate',
-                                //             icon: 'UserPlus',
-                                //             url: '/hrms/recruitment/transaction/add-candidate',
-                                //             title: 'Add Candidate',
-                                //             description: 'Add New Candidates'
-                                //         },
-                                //         {
-                                //             id: 2,
-                                //             name: 'Add Candidate Interview',
-                                //             icon: 'Calendar',
-                                //             url: '/hrms/recruitment/transaction/add-candidate-interview',
-                                //             title: 'Add Candidate Interview',
-                                //             description: 'Add Candidate Interview'
-                                //         },
-                                //         {
-                                //             id: 3,
-                                //             name: 'Candidate Interview List',
-                                //             icon: 'List',
-                                //             url: '/hrms/recruitment/transaction/candidate-interview-list',
-                                //             title: 'Candidate Interview List',
-                                //             description: 'View All Candidate Interviews'
-                                //         },
-                                //         {
-                                //             id: 4,
-                                //             name: 'Interviewer Feedback',
-                                //             icon: 'MessageSquare',
-                                //             url: '/hrms/recruitment/transaction/interviewer-feedback',
-                                //             title: 'Interviewer Feedback',
-                                //             description: 'Manage Interviewer Feedback'
-                                //         },
-                                //         {
-                                //             id: 5,
-                                //             name: 'Job List',
-                                //             icon: 'Briefcase',
-                                //             url: '/hrms/recruitment/transaction/job-list',
-                                //             title: 'Job List',
-                                //             description: 'View All Jobs'
-                                //         },
-                                //         {
-                                //             id: 6,
-                                //             name: 'Job Posting List',
-                                //             icon: 'FileText',
-                                //             url: '/hrms/recruitment/transaction/job-posting-list',
-                                //             title: 'Job Posting List',
-                                //             description: 'View All Job Postings'
-                                //         }
-                                //     ]
-                                // },
-                                // {
-                                //     id: 3,
-                                //     name: 'MRF Approval',
-                                //     icon: 'CheckSquare',
-                                //     pages: [
-                                //         {
-                                //             id: 1,
-                                //             name: 'MRF Requisition Form',
-                                //             icon: 'FileCheck',
-                                //             url: '/hrms/recruitment/mrf-approval/mrf-requisition-form',
-                                //             title: 'MRF Requisition Form',
-                                //             description: 'Approve MRF Requests'
-                                //         }
-                                //     ]
-                                // },
-                                // {
-                                //     id: 4,
-                                //     name: 'Feedback',
-                                //     icon: 'MessageSquare',
-                                //     pages: [
-                                //         {
-                                //             id: 1,
-                                //             name: 'Candidate Feedback',
-                                //             icon: 'Star',
-                                //             url: '/hrms/recruitment/feedback/candidate-feedback',
-                                //             title: 'Candidate Feedback',
-                                //             description: 'Record Candidate Feedback'
-                                //         }
-                                //     ]
-                                // },
-                                // {
-                                //     id: 5,
-                                //     name: 'Reports',
-                                //     icon: 'FileText',
-                                //     pages: [
-                                //         {
-                                //             id: 1,
-                                //             name: 'Candidate Report',
-                                //             icon: 'Users',
-                                //             url: '/hrms/recruitment/reports/candidate-report',
-                                //             title: 'Candidate Report',
-                                //             description: 'Candidate Summary Report'
-                                //         },
-                                //         {
-                                //             id: 2,
-                                //             name: 'Interview Report',
-                                //             icon: 'ClipboardList',
-                                //             url: '/hrms/recruitment/reports/interview-report',
-                                //             title: 'Interview Report',
-                                //             description: 'Interview Summary Report'
-                                //         }
-                                //     ]
-                                // }
+                        // {
+                        //     id: 2,
+                        //     name: 'Transactions',
+                        //     icon: 'FileText',
+                        //     pages: [
+                        //         {
+                        //             id: 1,
+                        //             name: 'Add Candidate',
+                        //             icon: 'UserPlus',
+                        //             url: '/hrms/recruitment/transaction/add-candidate',
+                        //             title: 'Add Candidate',
+                        //             description: 'Add New Candidates'
+                        //         },
+                        //         {
+                        //             id: 2,
+                        //             name: 'Add Candidate Interview',
+                        //             icon: 'Calendar',
+                        //             url: '/hrms/recruitment/transaction/add-candidate-interview',
+                        //             title: 'Add Candidate Interview',
+                        //             description: 'Add Candidate Interview'
+                        //         },
+                        //         {
+                        //             id: 3,
+                        //             name: 'Candidate Interview List',
+                        //             icon: 'List',
+                        //             url: '/hrms/recruitment/transaction/candidate-interview-list',
+                        //             title: 'Candidate Interview List',
+                        //             description: 'View All Candidate Interviews'
+                        //         },
+                        //         {
+                        //             id: 4,
+                        //             name: 'Interviewer Feedback',
+                        //             icon: 'MessageSquare',
+                        //             url: '/hrms/recruitment/transaction/interviewer-feedback',
+                        //             title: 'Interviewer Feedback',
+                        //             description: 'Manage Interviewer Feedback'
+                        //         },
+                        //         {
+                        //             id: 5,
+                        //             name: 'Job List',
+                        //             icon: 'Briefcase',
+                        //             url: '/hrms/recruitment/transaction/job-list',
+                        //             title: 'Job List',
+                        //             description: 'View All Jobs'
+                        //         },
+                        //         {
+                        //             id: 6,
+                        //             name: 'Job Posting List',
+                        //             icon: 'FileText',
+                        //             url: '/hrms/recruitment/transaction/job-posting-list',
+                        //             title: 'Job Posting List',
+                        //             description: 'View All Job Postings'
+                        //         }
+                        //     ]
+                        // },
+                        // {
+                        //     id: 3,
+                        //     name: 'MRF Approval',
+                        //     icon: 'CheckSquare',
+                        //     pages: [
+                        //         {
+                        //             id: 1,
+                        //             name: 'MRF Requisition Form',
+                        //             icon: 'FileCheck',
+                        //             url: '/hrms/recruitment/mrf-approval/mrf-requisition-form',
+                        //             title: 'MRF Requisition Form',
+                        //             description: 'Approve MRF Requests'
+                        //         }
+                        //     ]
+                        // },
+                        // {
+                        //     id: 4,
+                        //     name: 'Feedback',
+                        //     icon: 'MessageSquare',
+                        //     pages: [
+                        //         {
+                        //             id: 1,
+                        //             name: 'Candidate Feedback',
+                        //             icon: 'Star',
+                        //             url: '/hrms/recruitment/feedback/candidate-feedback',
+                        //             title: 'Candidate Feedback',
+                        //             description: 'Record Candidate Feedback'
+                        //         }
+                        //     ]
+                        // },
+                        // {
+                        //     id: 5,
+                        //     name: 'Reports',
+                        //     icon: 'FileText',
+                        //     pages: [
+                        //         {
+                        //             id: 1,
+                        //             name: 'Candidate Report',
+                        //             icon: 'Users',
+                        //             url: '/hrms/recruitment/reports/candidate-report',
+                        //             title: 'Candidate Report',
+                        //             description: 'Candidate Summary Report'
+                        //         },
+                        //         {
+                        //             id: 2,
+                        //             name: 'Interview Report',
+                        //             icon: 'ClipboardList',
+                        //             url: '/hrms/recruitment/reports/interview-report',
+                        //             title: 'Interview Report',
+                        //             description: 'Interview Summary Report'
+                        //         }
+                        //     ]
+                        // }
                         //     ]
                         // },
                         {
@@ -7572,6 +7557,29 @@ export async function getUserAccessibleModules() {
                             icon: 'GraduationCap',
                             sub_menu: [
                                 {
+                                    id: 9000,
+                                    name: 'Exam',
+                                    icon: 'Trophy',
+                                    pages: [
+                                        {
+                                            id: 9001,
+                                            name: 'AI MCQ QUIZ',
+                                            icon: 'Trophy',
+                                            url: '/StaffPortal/ai-mcq-quiz',
+                                            title: 'AI MCQ QUIZ',
+                                            description: 'Conduct and manage online MCQ quizzes'
+                                        },
+                                        {
+                                            id: 9002,
+                                            name: 'OMR Sheet Evaluator',
+                                            icon: 'ClipboardCheck',
+                                            url: '/StaffPortal/omr-sheet-evaluator',
+                                            title: 'OMR Sheet Evaluator',
+                                            description: 'Evaluate scanned OMR mark sheets using AI'
+                                        }
+                                    ]
+                                },
+                                {
                                     id: 8004,
                                     name: 'Marks Entry',
                                     icon: 'ClipboardEdit',
@@ -7667,20 +7675,20 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 80010,
-                                            name: 'Verify Homework',
+                                            name: 'Homework Marks Entry',
                                             icon: 'MessageSquare',
-                                            url: '/StaffPortal/Upload/homework-marks-entry',
-                                            title: 'Verify Homework',
-                                            description: 'Verify Homework'
+                                            url: '/StaffPortal/Upload/HomeWork_Marks_Enter',
+                                            title: 'Homework Marks Entry',
+                                            description: 'Homework Marks Entry'
                                         },
-                                        {
-                                            id: 80011,
-                                            name: 'Homework Upload Report',
-                                            icon: 'MessageSquare',
-                                            url: '/StaffPortal/Upload/homework-upload-report',
-                                            title: 'Home Work Upload Report',
-                                            description: 'Homework Upload Report'
-                                        },
+                                        // {
+                                        //     id: 80011,
+                                        //     name: 'Homework Upload Report',
+                                        //     icon: 'MessageSquare',
+                                        //     url: '/StaffPortal/Upload/homework-upload-report',
+                                        //     title: 'Home Work Upload Report',
+                                        //     description: 'Homework Upload Report'
+                                        // },
 
                                         {
                                             id: 80013,
@@ -7701,11 +7709,11 @@ export async function getUserAccessibleModules() {
 
                                         {
                                             id: 80015,
-                                            name: 'Verify Classwork',
+                                            name: 'Class Work Marks Entry',
                                             icon: 'MessageSquare',
-                                            url: '/StaffPortal/Upload/classwork-marks_Enter',
-                                            title: 'Verify Classwork',
-                                            description: 'Verify Classwork'
+                                            url: '/StaffPortal/Upload/ClassWork_Marks_Enter',
+                                            title: 'Class Work Marks Entry',
+                                            description: 'Class Work Marks Entry'
                                         }
                                     ]
                                 }

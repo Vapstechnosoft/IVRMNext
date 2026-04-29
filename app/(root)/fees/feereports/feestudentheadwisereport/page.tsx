@@ -14,7 +14,7 @@ import {
 import { getFeeStudentheadWiseReportforCBCS } from '@/server/fees/reports/headwiseReport';
 import type { IFeeStudentHeadWiseReport } from '@/types/fees/reports/reports';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
@@ -473,7 +473,7 @@ export default function FeeStudentHeadWiseReport() {
                                                                         groups[groupKey].push(row);
                                                                     });
 
-                                                                    const rows: JSX.Element[] = [];
+                                                                    const rows: React.ReactNode[] = [];
                                                                     let groupCounter = 1;
 
                                                                     Object.entries(groups).forEach(([groupId, groupRows]) => {
