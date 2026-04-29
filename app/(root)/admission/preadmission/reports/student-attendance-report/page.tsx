@@ -212,15 +212,21 @@ export default function StudyCertificateReportPage() {
 
     const onSubmit = async (data: FormFields) => {
         try {
-            setShowGrid(true);
             const res = await refetch();
-            if (res.data?.message) {
-                toast.success(res.data.message);
+            const reportData = res.data as any;
+            const records = reportData?.data?.studentAttendanceList || [];
+
+            if (records.length > 0) {
+                setShowGrid(true);
+                toast.success('Report generated successfully');
             } else {
-                toast.success('Report failed to generate');
+                setShowGrid(false);
+                toast.error('No records found');
             }
         } catch (error) {
-            toast.error('No data found');
+            console.error('Report Error:', error);
+            setShowGrid(false);
+            toast.error('No records found');
         }
     };
 
@@ -605,15 +611,23 @@ function RadioField({ name, control, options, disabled }: any) {
             render={({ field }) => (
                 <RadioGroup
                     value={String(field.value)}
-                    onValueChange={(v) => field.onChange(Number(v))}
+                    onValueChange={(v) => {
+                        const num = Number(v);
+                        field.onChange(isNaN(num) || v.trim() === '' ? v : num);
+                    }}
                     disabled={disabled}
                     className={`flex justify-center gap-4 rounded border p-3 ${disabled ? 'pointer-events-none opacity-50' : ''}`}>
-                    {options.map((opt: any) => (
-                        <div key={opt.value} className='flex items-center gap-2'>
-                            <RadioGroupItem value={String(opt.value)} />
-                            <Label className='font-normal'>{opt.label}</Label>
-                        </div>
-                    ))}
+                    {options.map((opt: any) => {
+                        const id = `radio-${name}-${opt.value}`;
+                        return (
+                            <div key={String(opt.value)} className='flex items-center gap-2'>
+                                <RadioGroupItem id={id} value={String(opt.value)} />
+                                <Label htmlFor={id} className='font-normal cursor-pointer text-sm'>
+                                    {opt.label}
+                                </Label>
+                            </div>
+                        );
+                    })}
                 </RadioGroup>
             )}
         />

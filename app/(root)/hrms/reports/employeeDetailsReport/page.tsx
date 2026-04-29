@@ -105,6 +105,8 @@ function EmployeeDetailsReportContent() {
   const [filteredEmployeeTypeDropdown, setFilteredEmployeeTypeDropdown] =
     useState<any[]>([]);
 
+  const [empTypeLoading, setEmpTypeLoading] = useState(false);
+
   const tableRef = useRef<HTMLTableElement>(null);
 
   const { control, handleSubmit, watch, setValue, reset } =
@@ -179,21 +181,29 @@ function EmployeeDetailsReportContent() {
         working: watchedWorking,
       };
 
-      getEmployeeAndType(payload, {
-        onSuccess: (res) => {
-          if (res.data) {
-            console.log("Emp API Response:", res);
-
-            if (res.data.employeeTypedropdown) {
-              setFilteredEmployeeTypeDropdown(res.data.employeeTypedropdown);
+      try{
+        setEmpTypeLoading(true);
+        getEmployeeAndType(payload, {
+          onSuccess: (res) => {
+            if (res.data) {
+              console.log("Emp API Response:", res);
+  
+              if (res.data.employeeTypedropdown) {
+                setFilteredEmployeeTypeDropdown(res.data.employeeTypedropdown);
+              }
+  
+              if (res.data.employeeDetails) {
+                setFilteredEmployeeDropdown(res.data.employeeDetails);
+              }
             }
+          },
+        });
+      }catch(error){
+        console.error("Error fetching employee/type data:", error);
+      }finally{
+        setEmpTypeLoading(false);
+      }
 
-            if (res.data.employeeDetails) {
-              setFilteredEmployeeDropdown(res.data.employeeDetails);
-            }
-          }
-        },
-      });
     };
 
     // Trigger on relevant changes
@@ -728,10 +738,16 @@ function EmployeeDetailsReportContent() {
                               value={field.value}
                             >
                               <SelectTrigger>
-                                <SelectValue placeholder="Select Type" />
+                                <SelectValue placeholder={empTypeLoading ? "Loading..." : "Select Type"} />
                               </SelectTrigger>
                               <SelectContent>
-                                {filteredEmployeeTypeDropdown.map(
+                                {
+                                  filteredEmployeeTypeDropdown.length === 0 ? (
+                                    <div className="p-4 text-center text-sm text-muted-foreground">
+                                      No employee types found for the selected
+                                      criteria.
+                                    </div>
+                                  ) : filteredEmployeeTypeDropdown.map(
                                   (item: any) => (
                                     <SelectItem
                                       key={item.hrmeT_Id}
@@ -740,7 +756,9 @@ function EmployeeDetailsReportContent() {
                                       {item.hrmeT_EmployeeType}
                                     </SelectItem>
                                   ),
-                                )}
+                                )
+                                }
+                                
                               </SelectContent>
                             </Select>
                           )}

@@ -51,18 +51,14 @@ export async function toggleNoticeBoardStatus(payload: { intB_Id: number }) {
     return result;
 }
 
-export async function viewNoticeBoardRecords(payload: any) {
-    const { intB_Id, intB_Title, flag, flag1, intB_ToStaffFlg, intB_ToStudentFlg } = payload;
-    let url = `/notice_board/viewrecords?INTB_Id=${intB_Id}&INTB_Title=${encodeURIComponent(intB_Title)}`;
-
-    if (flag) {
-        url += `&flag=${flag}&INTB_ToStaffFlg=${intB_ToStaffFlg}`;
-    }
-    if (flag1) {
-        url += `&flag1=${flag1}&INTB_ToStudentFlg=${intB_ToStudentFlg}`;
-    }
-
+export async function viewNoticeBoardRecords(payload: { intB_Id: number, intB_Title: string, intB_ToStaffFlg: boolean, intB_ToStudentFlg: boolean }) {
+    const { intB_Id, intB_Title, intB_ToStaffFlg, intB_ToStudentFlg } = payload;
+    const url = `/notice_board/viewrecords?INTB_Id=${intB_Id}&INTB_Title=${encodeURIComponent(intB_Title)}&INTB_ToStudentFlg=${intB_ToStudentFlg}&INTB_ToStaffFlg=${intB_ToStaffFlg}`;
     return await api.post<any>('portal', url, {});
+}
+
+export async function viewNoticeBoardAttachments(payload: { intB_Id: number }) {
+    return await api.post<any>('portal', `/notice_board/viewData?INTB_Id=${payload.intB_Id}`, {});
 }
 
 // Additional Helpers for Fee Defaulters
