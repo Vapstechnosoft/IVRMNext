@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { useMasterCategoryListData } from '@/hooks/library/useMasters';
 import { toggleMasterCategory } from '@/server/library/masters/library_category';
-import type { IMasterCategoryList } from '@/types/library/masters/masters';
+import { IMasterCategoryList } from '@/types/library/masters/masters';
 import { toast } from 'sonner';
+import { useState } from 'react';
 
 interface ToggleMasterCategoryFormProps {
     rowData: IMasterCategoryList;
@@ -15,12 +16,15 @@ interface ToggleMasterCategoryFormProps {
 export default function ToggleMasterCategoryForm({ rowData, onClose }: ToggleMasterCategoryFormProps) {
     const { refetchAll } = useMasterCategoryListData();
     const isActive = rowData.lmC_ActiveFlag;
+    const [isPending, setIsPending] = useState(false);
 
     const handleToggle = async () => {
+        setIsPending(true);
         try {
             const response = await toggleMasterCategory(rowData.lmC_Id);
 
-            if (response?.success) {
+            // Handle unusual backend where success: false but message is positive
+            if (response?.success || response?.message?.toLowerCase().includes('success')) {
                 toast.success(response.message || 'Status updated successfully');
                 refetchAll();
                 onClose();
@@ -29,22 +33,30 @@ export default function ToggleMasterCategoryForm({ rowData, onClose }: ToggleMas
             }
         } catch (error: any) {
             toast.error(error?.message || 'An error occurred');
+        } finally {
+            setIsPending(false);
         }
     };
 
     return (
-        <AdaptiveDialog title='Toggle Master Category' isOpen={true} onClose={onClose}>
+        <AdaptiveDialog title='Confirmation' isOpen={true} onClose={onClose}>
             <AdaptiveBody>
-                <p>
-                    Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.lmC_CategoryName}</strong>?
-                </p>
+                <div className='py-4 text-center'>
+                    <p className='text-lg font-medium'>
+                        Do You Want To {isActive ? 'Inactivate' : 'Activate'} Record?
+                    </p>
+                </div>
             </AdaptiveBody>
-            <AdaptiveFooter>
-                <Button variant='outline' onClick={onClose}>
+            <AdaptiveFooter className='justify-center border-t pt-4'>
+                <Button variant='outline' onClick={onClose} disabled={isPending}>
                     Cancel
                 </Button>
-                <Button variant={isActive ? 'destructive' : 'default'} onClick={handleToggle}>
-                    {isActive ? 'Deactivate' : 'Activate'}
+                <Button
+                    variant='destructive'
+                    onClick={handleToggle}
+                    isLoading={isPending}
+                    loadingText={isActive ? 'Inactivating...' : 'Activating...'}>
+                    {isActive ? 'Inactivate' : 'Activate'}
                 </Button>
             </AdaptiveFooter>
         </AdaptiveDialog>

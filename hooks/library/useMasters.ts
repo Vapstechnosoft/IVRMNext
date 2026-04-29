@@ -1,7 +1,7 @@
 import { LIBRARY_QUERY_KEYS } from '@/constants/query-keys';
 import { getMasterCategory } from '@/server/admission/preadmission/masters/category';
 import { getMasterClassCategory } from '@/server/admission/preadmission/masters/class_category';
-import { getMasterDepartment } from '@/server/hrms/hrmsConfig/master/department';
+import { getMasterDepartment } from '@/server/library/masters/department';
 import { getMasterAccessories } from '@/server/library/masters/accessories';
 import { getMasterCategoryList } from '@/server/library/masters/library_category';
 import { getMasterVendorList } from '@/server/library/masters/library_vendor';
@@ -132,13 +132,13 @@ export const useMasterDepartment = (searchParams?: ApiSearchparams) => {
 
     return {
         ...useQuery({
-            queryKey: [LIBRARY_QUERY_KEYS.MASTER_LIBRARY_LIST_DATA, searchParams ?? {}],
+            queryKey: [LIBRARY_QUERY_KEYS.MASTER_DEPARTMENT, searchParams ?? {}],
             queryFn: async () => getMasterDepartment(searchParams),
             staleTime: 0
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
-                queryKey: [LIBRARY_QUERY_KEYS.MASTER_LIBRARY_LIST_DATA]
+                queryKey: [LIBRARY_QUERY_KEYS.MASTER_DEPARTMENT]
             });
         }
     };

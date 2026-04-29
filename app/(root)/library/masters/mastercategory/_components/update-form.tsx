@@ -52,7 +52,7 @@ export default function UpdateMasterCategoryForm({ onSuccess, className = '', se
                 lmC_BNBFlg: data.lmC_BNBFlg,
                 createdDate: new Date().toISOString(),
                 updatedDate: new Date().toISOString(),
-                lmC_ActiveFlag: true
+                lmC_ActiveFlag: row.lmC_ActiveFlag
             };
 
             const response = await addOrUpdateMasterCategory(payload);
