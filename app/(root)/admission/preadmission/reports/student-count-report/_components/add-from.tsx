@@ -82,12 +82,12 @@ export default function AddStudentCountReportForm({
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {
             const payload = {
-                type: 1, // Default type from schema
+                type: data.range_type,
                 report_type: Number(data.report_type),
                 from_date: data.range_type === 'between' && data.from_date ? new Date(data.from_date).toISOString() : new Date().toISOString(),
                 to_date: data.range_type === 'between' && data.to_date ? new Date(data.to_date).toISOString() : new Date().toISOString(),
-                asmaY_Id: data.asmaY_Id || 0,
-                asmcL_Id: data.asmcL_Id || 0
+                asmay_id: data.asmaY_Id || 0,
+                asmcl_id: data.asmcL_Id || 0
             };
 
             toast.loading('Searching...', { id: 'search-loading' });
@@ -110,7 +110,7 @@ export default function AddStudentCountReportForm({
                 try {
                     // If API already returned pagination meta (total), use it directly
                     if (response?.total != null) {
-                        queryClient.setQueryData([PREADMISSION_QUERY_KEYS.STUDENT_COUNT_REPORT, searchParams ?? {}], response);
+                        queryClient.setQueryData([PREADMISSION_QUERY_KEYS.STUDENT_COUNT_REPORT, payload ?? {}, searchParams ?? {}], response);
                     } else if (Array.isArray(response?.data)) {
                         // derive page and page_size from searchParams (they may be strings or arrays)
                         const parseParam = (k: string) => {
@@ -124,7 +124,7 @@ export default function AddStudentCountReportForm({
                         const start = (page - 1) * pageSize;
                         const pageData = response.data.slice(start, start + pageSize);
 
-                        queryClient.setQueryData([PREADMISSION_QUERY_KEYS.STUDENT_COUNT_REPORT, searchParams ?? {}], {
+                        queryClient.setQueryData([PREADMISSION_QUERY_KEYS.STUDENT_COUNT_REPORT, payload ?? {}, searchParams ?? {}], {
                             data: pageData,
                             total,
                             success: true,
@@ -132,7 +132,7 @@ export default function AddStudentCountReportForm({
                         });
                     } else {
                         // fallback: set whatever was returned
-                        queryClient.setQueryData([PREADMISSION_QUERY_KEYS.STUDENT_COUNT_REPORT, searchParams ?? {}], response);
+                        queryClient.setQueryData([PREADMISSION_QUERY_KEYS.STUDENT_COUNT_REPORT, payload ?? {}, searchParams ?? {}], response);
                     }
                 } catch (e) {
                     // noop

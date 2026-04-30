@@ -129,13 +129,17 @@ export interface PaymentFormData {
     udf3: string;
 }
 export interface IPreadmissionStatusCountReport {
-    registered_applications: number;
-    application_not_filled: number;
-    application_filled: number;
-    application_fee_applicable: boolean;
-    payment_pending: number;
-    payment_completed: number;
-    admission_transferred: number;
+    report_data: Array<{
+        reg: number;
+        notapplicationform: number;
+        applicationform: number;
+        payment: number;
+        transferstu: number;
+        notpayment: number;
+        duplicate: number;
+    }>;
+    academic_years?: any[];
+    classes?: any[];
 }
 
 export interface IPreadmissionDocumentView {

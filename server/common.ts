@@ -11,7 +11,6 @@ import { timetableModule } from './modules/timetable';
 import { libraryModule } from './modules/library';
 import { transportModule } from './modules/transport';
 
-
 export async function getCommonDropdown(name: string) {
     const url = `/v1/common/common_drop_down_list/${name}`;
     return await api.get<IDropdown[]>('default', url);
@@ -101,6 +100,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Preadmission Form',
                                             description: 'Apply for Preadmission'
                                         },
+                                        // {
+                                        //     id: 20000000,
+                                        //     name: 'Registration Form',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/transactions/registration-form',
+                                        //     title: 'Registration Form',
+                                        //     description: 'Apply for Registration'
+                                        // },
 
                                         {
                                             id: 3,
@@ -2939,9 +2946,6 @@ export async function getUserAccessibleModules() {
                                             title: 'BRS Progress Card X Report',
                                             description: 'BRS Progress Card X Report'
                                         }
-
-
-
                                     ]
                                 }
                             ]
@@ -2984,7 +2988,8 @@ export async function getUserAccessibleModules() {
                                             icon: 'FileSearch',
                                             url: '/hrms/ai-ats/resume-checker',
                                             title: 'AI Resume checker',
-                                            description: 'Upload resumes and job descriptions for AI-powered ATS scoring and skill gap analysis.'
+                                            description:
+                                                'Upload resumes and job descriptions for AI-powered ATS scoring and skill gap analysis.'
                                         }
                                     ]
                                 },
@@ -7884,7 +7889,7 @@ export async function getUserAccessibleModules() {
                                             url: '/StaffPortal/Interactions/SCS_IVRM_Interactions',
                                             title: 'SCS Interaction',
                                             description: 'SCS Interaction'
-                                        },
+                                        }
                                     ]
                                 },
                                 {
