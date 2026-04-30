@@ -1,4 +1,4 @@
-'use client'
+'use server';
 import { api, type ApiResponse } from '@/lib/apiService';
 
 export interface saveOrUpdateLocationPayload {

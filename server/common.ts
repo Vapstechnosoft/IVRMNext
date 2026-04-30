@@ -3482,71 +3482,71 @@ export async function getUserAccessibleModules() {
                                             title: 'Master Position Type',
                                             description: 'Manage Position Types'
                                         },
-                        //                 // {
-                        //                 //     id: 5,
-                        //                 //     name: 'Master Priority',
-                        //                 //     icon: 'Flag',
-                        //                 //     url: '/hrms/recruitment/masters/master-priority',
-                        //                 //     title: 'Master Priority',
-                        //                 //     description: 'Manage Priority Levels'
-                        //                 // }
+                                        {
+                                            id: 5,
+                                            name: 'Master Priority',
+                                            icon: 'Flag',
+                                            url: '/hrms/recruitment/masters/master-priority',
+                                            title: 'Master Priority',
+                                            description: 'Manage Priority Levels'
+                                        }
                                     ]
                                 },
-                                // {
-                                //     id: 2,
-                                //     name: 'Transactions',
-                                //     icon: 'FileText',
-                                //     pages: [
-                                //         {
-                                //             id: 1,
-                                //             name: 'Add Candidate',
-                                //             icon: 'UserPlus',
-                                //             url: '/hrms/recruitment/transaction/add-candidate',
-                                //             title: 'Add Candidate',
-                                //             description: 'Add New Candidates'
-                                //         },
-                                //         {
-                                //             id: 2,
-                                //             name: 'Add Candidate Interview',
-                                //             icon: 'Calendar',
-                                //             url: '/hrms/recruitment/transaction/add-candidate-interview',
-                                //             title: 'Add Candidate Interview',
-                                //             description: 'Add Candidate Interview'
-                                //         },
-                                //         {
-                                //             id: 3,
-                                //             name: 'Candidate Interview List',
-                                //             icon: 'List',
-                                //             url: '/hrms/recruitment/transaction/candidate-interview-list',
-                                //             title: 'Candidate Interview List',
-                                //             description: 'View All Candidate Interviews'
-                                //         },
-                                //         {
-                                //             id: 4,
-                                //             name: 'Interviewer Feedback',
-                                //             icon: 'MessageSquare',
-                                //             url: '/hrms/recruitment/transaction/interviewer-feedback',
-                                //             title: 'Interviewer Feedback',
-                                //             description: 'Manage Interviewer Feedback'
-                                //         },
-                                //         {
-                                //             id: 5,
-                                //             name: 'Job List',
-                                //             icon: 'Briefcase',
-                                //             url: '/hrms/recruitment/transaction/job-list',
-                                //             title: 'Job List',
-                                //             description: 'View All Jobs'
-                                //         },
-                                //         {
-                                //             id: 6,
-                                //             name: 'Job Posting List',
-                                //             icon: 'FileText',
-                                //             url: '/hrms/recruitment/transaction/job-posting-list',
-                                //             title: 'Job Posting List',
-                                //             description: 'View All Job Postings'
-                                //         }
-                                //     ]
-                                // },
+                                {
+                                    id: 2,
+                                    name: 'Transactions',
+                                    icon: 'FileText',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Add Candidate',
+                                            icon: 'UserPlus',
+                                            url: '/hrms/recruitment/transaction/add-candidate',
+                                            title: 'Add Candidate',
+                                            description: 'Add New Candidates'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Add Candidate Interview',
+                                            icon: 'Calendar',
+                                            url: '/hrms/recruitment/transaction/add-candidate-interview',
+                                            title: 'Add Candidate Interview',
+                                            description: 'Add Candidate Interview'
+                                        },
+                                        // {
+                                        //     id: 3,
+                                        //     name: 'Candidate Interview List',
+                                        //     icon: 'List',
+                                        //     url: '/hrms/recruitment/transaction/candidate-interview-list',
+                                        //     title: 'Candidate Interview List',
+                                        //     description: 'View All Candidate Interviews'
+                                        // },
+                                        // {
+                                        //     id: 4,
+                                        //     name: 'Interviewer Feedback',
+                                        //     icon: 'MessageSquare',
+                                        //     url: '/hrms/recruitment/transaction/interviewer-feedback',
+                                        //     title: 'Interviewer Feedback',
+                                        //     description: 'Manage Interviewer Feedback'
+                                        // },
+                                        // {
+                                        //     id: 5,
+                                        //     name: 'Job List',
+                                        //     icon: 'Briefcase',
+                                        //     url: '/hrms/recruitment/transaction/job-list',
+                                        //     title: 'Job List',
+                                        //     description: 'View All Jobs'
+                                        // },
+                                        // {
+                                        //     id: 6,
+                                        //     name: 'Job Posting List',
+                                        //     icon: 'FileText',
+                                        //     url: '/hrms/recruitment/transaction/job-posting-list',
+                                        //     title: 'Job Posting List',
+                                        //     description: 'View All Job Postings'
+                                        // }
+                                    ]
+                                },
                                 // {
                                 //     id: 3,
                                 //     name: 'MRF Approval',

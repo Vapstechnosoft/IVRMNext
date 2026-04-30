@@ -654,5 +654,8 @@ export const RECRUITMENT_QUERY_KEYS = {
     MASTER_LOCATION_GRID: 'master_location_grid',
     MASTER_POSITION_GRID: 'master_position_grid',
     MASTER_POSITION_TYPE_GRID: 'master_position_type_grid',
+    MASTER_PRIORITY_GRID: 'master_priority_grid',
+    TRANSACTION_CANDIDATE_LIST: 'transaction_candidate_list',
+    TRANSACTION_CANDIDATE_INTERVIEW_LIST: 'transaction_candidate_interview_list'
    
 }
