@@ -15,8 +15,8 @@ interface SecondaryFormContextType<T = any> {
 
     closeAllForms: () => void;
 
-    addFormRef: React.RefObject<HTMLDivElement>;
-    editFormRef: React.RefObject<HTMLDivElement>;
+    addFormRef: React.RefObject<HTMLDivElement | null>;
+    editFormRef: React.RefObject<HTMLDivElement | null>;
 }
 
 const SecondaryFormContext = createContext<SecondaryFormContextType | null>(null);

@@ -103,7 +103,9 @@ export async function POST(req: NextRequest) {
         // Dynamic imports for Node.js modules
         const busboyModule = await import('busboy');
         const busboy = busboyModule.default || busboyModule;
+        // @ts-expect-error pdf-parse lacks proper TypeScript declarations for this subpath
         const pdfModule = await import('pdf-parse/lib/pdf-parse.js');
+
         const pdf = pdfModule.default || pdfModule;
 
         if (!req.body) {
