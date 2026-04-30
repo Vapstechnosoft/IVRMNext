@@ -121,6 +121,12 @@ export const classWorkSchema = {
             invalid_type_error: 'End Date is required'
         }),
 
+        // Additional Fields
+        icW_TeachingAid: z.number().optional().default(0),
+        icW_Assignment: z.string().optional().default(''),
+        icW_Evaluation: z.string().optional().default(''),
+        icW_Attachment: z.string().optional().default(''),
+
         // Attachments (Files)
         icW_FilePath_Array: z
             .array(

@@ -20,11 +20,46 @@ export const getNoticeBoardColumns = (
             enableSorting: false,
         },
         {
+            accessorKey: 'asmaY_Year',
+            header: 'Academic Year',
+            enableSorting: true,
+            cell: ({ row }) => (
+                <div className="font-medium text-slate-700">{row.original.asmaY_Year || '---'}</div>
+            )
+        },
+        {
             accessorKey: 'intB_Title',
             header: 'Notice Title',
             enableSorting: true,
+            cell: ({ row }) => <div className="font-medium">{row.original.intB_Title}</div>
+        },
+        {
+            header: 'Target',
+            cell: ({ row }) => {
+                const isStaff = row.original.intB_ToStaffFlg === 'true' || row.original.intB_ToStaffFlg === true;
+                const isStudent = row.original.intB_ToStudentFlg === 'true' || row.original.intB_ToStudentFlg === true;
+                return (
+                    <div className="flex gap-1">
+                        {isStaff && <span className="bg-orange-100 text-orange-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase">Staff</span>}
+                        {isStudent && <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase">Student</span>}
+                        {!isStaff && !isStudent && <span className="text-gray-400 text-xs">---</span>}
+                    </div>
+                );
+            }
+        },
+        {
+            header: 'Files',
+            accessorKey: 'FilesCount',
             cell: ({ row }) => (
-                <div>{row.original.intB_Title}</div>
+                <div className="flex justify-center">
+                    {row.original.FilesCount > 0 ? (
+                        <span className="inline-flex items-center gap-1 rounded bg-green-50 px-2 py-1 text-[10px] font-bold text-green-700 border border-green-100">
+                             {row.original.FilesCount} FILES
+                        </span>
+                    ) : (
+                        <span className="text-gray-300 text-xs">---</span>
+                    )}
+                </div>
             )
         },
         {

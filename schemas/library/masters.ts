@@ -84,12 +84,36 @@ export const masterCategorySchema = {
 
 export const masterPublisherSchema = {
     addOrUpdate: z.object({
-        lmP_Id: z.number().nonnegative().optional(), // optional when creating new record
-        lmP_PublisherName: z.string({ message: 'Publisher Name is required' }).min(2).max(100),
-        lmP_MobileNo: z.string({ message: 'Mobile No is required' }).min(10).max(15),
-        lmP_Address: z.string({ message: 'Address is required' }).min(2).max(200),
-        lmP_EMailId: z.string({ message: 'Email is required' }).email(),
-        lmP_PhoneNo: z.string({ message: 'Phone No is required' }).min(10).max(15)
+        lmP_Id: z.number().nonnegative().optional(),
+        lmP_PublisherName: z
+            .string({ required_error: 'Publisher Name is required' })
+            .trim()
+            .min(3, 'Publisher Name must be at least 3 characters')
+            .max(100, 'Publisher Name cannot exceed 100 characters')
+            .regex(/^[A-Za-z\s]+$/, 'Only letters and spaces allowed'),
+
+        lmP_MobileNo: z
+            .string({ required_error: 'Mobile Number is required' })
+            .trim()
+            .regex(/^\d{10}$/, 'Mobile Number must be exactly 10 digits'),
+
+        lmP_Address: z
+            .string({ required_error: 'Address is required' })
+            .trim()
+            .min(3, 'Address must be at least 3 characters')
+            .max(200, 'Address cannot exceed 200 characters')
+            .regex(/^[A-Za-z0-9\s,.-]+$/, 'Only letters, numbers, spaces, and basic punctuation allowed'),
+
+        lmP_EMailId: z
+            .string({ required_error: 'Email is required' })
+            .trim()
+            .min(5, 'Email must be at least 5 characters')
+            .email('Invalid email address'),
+
+        lmP_PhoneNo: z
+            .string({ required_error: 'Phone Number is required' })
+            .trim()
+            .regex(/^\d{10}$/, 'Phone Number must be exactly 10 digits')
     }),
     delete: z.object({
         lmP_Id: deleteIdSchema('lmP_Id')
@@ -155,7 +179,7 @@ export const masterDepartmentSchema = {
         lmD_ActiveFlg: z.boolean().optional()
     }),
     delete: z.object({
-        lmD_Id: z.number()
+        lmD_Id: z.coerce.number()
     })
 };
 
@@ -168,7 +192,7 @@ export const masterAccessoriesSchema = {
         lmaC_ActiveFlg: z.boolean().optional()
     }),
     delete: z.object({
-        lmaC_Id: z.number()
+        lmaC_Id: z.coerce.number()
     })
 };
 
@@ -216,7 +240,7 @@ export const masterRackDetailsSchema = {
         lmrA_ActiveFlag: z.boolean().optional()
     }),
     delete: z.object({
-        lmrA_Id: z.number()
+        lmrA_Id: z.coerce.number()
     })
 };
 
@@ -228,7 +252,7 @@ export const masterClassCategorySchema = {
         lmcC_ActiveFlag: z.boolean().optional()
     }),
     delete: z.object({
-        lmcC_Id: z.number()
+        lmcC_Id: z.coerce.number()
     })
 };
 

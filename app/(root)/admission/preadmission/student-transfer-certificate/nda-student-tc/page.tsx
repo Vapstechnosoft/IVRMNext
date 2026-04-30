@@ -158,7 +158,7 @@ export default function NdaStudentTcPage() {
                         <p className="text-indigo-100 font-bold opacity-80 backdrop-blur-sm bg-black/5 p-4 rounded-2xl border border-white/5 inline-block">Official portal for Transfer Certificate applications and records management.</p>
                     </div>
                 </div>
-                <div className="absolute top-0 right-0 p-16 opacity-10 group-hover:scale-125 group-hover:rotate-12 transition-all duration-[3000ms] pointer-events-none">
+                <div className="absolute top-0 right-0 p-16 opacity-10 group-hover:scale-125 group-hover:rotate-12 transition-all duration-3000 pointer-events-none">
                     <FileText className="w-72 h-72" />
                 </div>
             </div>

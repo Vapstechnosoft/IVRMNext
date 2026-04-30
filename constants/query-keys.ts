@@ -567,7 +567,8 @@ export const LIBRARY_QUERY_KEYS = {
     // Lost Books
     LIBRARY_LOST_BOOK_GRID: 'library_lost_book_grid',
     LIBRARY_ACADEMIC_YEAR_DROPDOWN: 'library_academic_year_dropdown',
-    LIBRARY_LOST_BOOK_LIST: 'library_lost_book_list'
+    LIBRARY_LOST_BOOK_LIST: 'library_lost_book_list',
+    MASTER_DEPARTMENT: 'master_department'
 };
 export const PORTAL_QUERY_KEYS = {
     NOTICE_BOARD_LIST: 'notice_board_list',

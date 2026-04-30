@@ -2,16 +2,30 @@
 
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
-import { format } from 'date-fns';
+import { format, isValid, parse } from 'date-fns';
 
-const formatDate = (date: unknown): string => {
-    if (typeof date !== 'string') return 'N/A';
-    if (!date) return 'N/A';
-    try {
-        return format(new Date(date), 'dd-MM-yyyy');
-    } catch {
-        return 'N/A';
+export const formatDate = (date: unknown): string => {
+    if (typeof date !== 'string' || !date) return 'N/A';
+
+    // Try parsing as dd/MM/yyyy first since that's what the API returns
+    const parsedDate = parse(date, 'dd/MM/yyyy', new Date());
+    if (isValid(parsedDate)) {
+        return format(parsedDate, 'dd-MM-yyyy');
     }
+
+    // Try parsing as dd-MM-yyyy as fallback
+    const parsedDateHyphen = parse(date, 'dd-MM-yyyy', new Date());
+    if (isValid(parsedDateHyphen)) {
+        return format(parsedDateHyphen, 'dd-MM-yyyy');
+    }
+
+    // Fallback to standard Date constructor
+    const fallbackDate = new Date(date);
+    if (isValid(fallbackDate)) {
+        return format(fallbackDate, 'dd-MM-yyyy');
+    }
+
+    return 'N/A';
 };
 
 export const FIELD_CONFIG: Record<string, { label: string; isDate?: boolean }> = {

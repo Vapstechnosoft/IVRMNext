@@ -24,6 +24,12 @@ interface Class {
   selected?: boolean;
 }
 
+interface Section {
+  ASMS_Id: number;
+  ASMC_SectionName: string;
+  selected?: boolean;
+}
+
 interface HomeworkReport {
   IHW_Id: number;
   IHW_Topic: string;
@@ -47,6 +53,7 @@ interface FileAttachment {
 export default function HomeworkUploadReportPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [classes, setClasses] = useState<Class[]>([]);
+  const [sections, setSections] = useState<Section[]>([]);
   const [reportData, setReportData] = useState<HomeworkReport[]>([]);
   const [fromDate, setFromDate] = useState<Date | undefined>();
   const [toDate, setToDate] = useState<Date | undefined>();
@@ -55,6 +62,9 @@ export default function HomeworkUploadReportPage() {
   const [allSelected, setAllSelected] = useState(false);
   const [selectedClasses, setSelectedClasses] = useState<number[]>([]);
   const [classSearchTerm, setClassSearchTerm] = useState('');
+  const [allSectionsSelected, setAllSectionsSelected] = useState(false);
+  const [selectedSections, setSelectedSections] = useState<number[]>([]);
+  const [sectionSearchTerm, setSectionSearchTerm] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
 
   // Modal states
@@ -70,6 +80,39 @@ export default function HomeworkUploadReportPage() {
   useEffect(() => {
     loadClasses();
   }, []);
+
+  useEffect(() => {
+    if (selectedClasses.length === 0) {
+      setSections([]);
+      setSelectedSections([]);
+      setAllSectionsSelected(false);
+      return;
+    }
+
+    // Mock data - replace with actual API call
+    const mockSections: Section[] = [];
+
+    selectedClasses.forEach(classId => {
+      const className = classes.find(c => c.ASMCL_Id === classId)?.ASMCL_ClassName || `Class ${classId}`;
+      mockSections.push({ ASMS_Id: classId * 10 + 1, ASMC_SectionName: `Section A`, selected: false });
+      mockSections.push({ ASMS_Id: classId * 10 + 2, ASMC_SectionName: `Section B`, selected: false });
+    });
+
+    setSections(prevSections => {
+      const previouslySelected = new Set(prevSections.filter(s => s.selected).map(s => s.ASMS_Id));
+      return mockSections.map(sec => ({
+        ...sec,
+        selected: previouslySelected.has(sec.ASMS_Id)
+      }));
+    });
+
+    setSelectedSections(prev => {
+      const availableSectionIds = new Set(mockSections.map(s => s.ASMS_Id));
+      const newSelected = prev.filter(id => availableSectionIds.has(id));
+      setAllSectionsSelected(mockSections.length > 0 && newSelected.length === mockSections.length);
+      return newSelected;
+    });
+  }, [selectedClasses, classes]);
 
   const loadClasses = async () => {
     try {
@@ -100,9 +143,9 @@ export default function HomeworkUploadReportPage() {
   };
 
   const toggleClass = (classId: number, checked: boolean) => {
-    setClasses(prev => 
-      prev.map(cls => 
-        cls.ASMCL_Id === classId 
+    setClasses(prev =>
+      prev.map(cls =>
+        cls.ASMCL_Id === classId
           ? { ...cls, selected: checked }
           : cls
       )
@@ -117,12 +160,48 @@ export default function HomeworkUploadReportPage() {
     });
 
     // Update allSelected state
-    const updatedClasses = classes.map(cls => 
-      cls.ASMCL_Id === classId 
+    const updatedClasses = classes.map(cls =>
+      cls.ASMCL_Id === classId
         ? { ...cls, selected: checked }
         : cls
     );
     setAllSelected(updatedClasses.every(cls => cls.selected));
+  };
+
+  const toggleAllSections = (checked: boolean) => {
+    setAllSectionsSelected(checked);
+    setSections(prev => prev.map(sec => ({ ...sec, selected: checked })));
+    if (checked) {
+      setSelectedSections(sections.map(sec => sec.ASMS_Id));
+    } else {
+      setSelectedSections([]);
+    }
+  };
+
+  const toggleSection = (sectionId: number, checked: boolean) => {
+    setSections(prev =>
+      prev.map(sec =>
+        sec.ASMS_Id === sectionId
+          ? { ...sec, selected: checked }
+          : sec
+      )
+    );
+
+    setSelectedSections(prev => {
+      if (checked) {
+        return [...prev, sectionId];
+      } else {
+        return prev.filter(id => id !== sectionId);
+      }
+    });
+
+    // Update allSelected state
+    const updatedSections = sections.map(sec =>
+      sec.ASMS_Id === sectionId
+        ? { ...sec, selected: checked }
+        : sec
+    );
+    setAllSectionsSelected(updatedSections.every(sec => sec.selected));
   };
 
   const generateReport = async () => {
@@ -136,9 +215,14 @@ export default function HomeworkUploadReportPage() {
       return;
     }
 
+    if (selectedSections.length === 0) {
+      alert('Please select at least one section');
+      return;
+    }
+
     try {
       setIsGenerating(true);
-      
+
       // Mock API call - replace with actual implementation
       const mockReportData: HomeworkReport[] = [
         {
@@ -169,7 +253,7 @@ export default function HomeworkUploadReportPage() {
 
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       setReportData(mockReportData);
       setShowReport(true);
       setIsGenerating(false);
@@ -269,7 +353,7 @@ export default function HomeworkUploadReportPage() {
         </body>
       </html>
     `);
-    
+
     printWindow.document.close();
     printWindow.focus();
     printWindow.print();
@@ -282,6 +366,10 @@ export default function HomeworkUploadReportPage() {
 
   const filteredClasses = classes.filter(cls =>
     cls.ASMCL_ClassName.toLowerCase().includes(classSearchTerm.toLowerCase())
+  );
+
+  const filteredSections = sections.filter(sec =>
+    sec.ASMC_SectionName.toLowerCase().includes(sectionSearchTerm.toLowerCase())
   );
 
   if (isLoading) {
@@ -307,7 +395,7 @@ export default function HomeworkUploadReportPage() {
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label>From Date *</Label>
+              <Label>From Date <span className="text-red-500">*</span></Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -333,7 +421,7 @@ export default function HomeworkUploadReportPage() {
             </div>
 
             <div className="space-y-2">
-              <Label>To Date *</Label>
+              <Label>To Date <span className="text-red-500">*</span></Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -360,52 +448,96 @@ export default function HomeworkUploadReportPage() {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label>Class Name</Label>
-            <div className="border rounded-md p-4 max-h-48 overflow-y-auto">
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2 mb-4 pb-2 border-b">
-                  <Input
-                    placeholder="Search here..."
-                    value={classSearchTerm}
-                    onChange={(e) => setClassSearchTerm(e.target.value)}
-                    className="flex-1"
-                  />
-                </div>
-                
-                {classSearchTerm.length === 0 && (
-                  <div className="flex items-center space-x-2 p-2">
-                    <Checkbox
-                      id="select-all"
-                      checked={allSelected}
-                      onCheckedChange={toggleAllClasses}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label>Class Name <span className="text-red-500">*</span></Label>
+              <div className="border rounded-md p-4 max-h-48 overflow-y-auto">
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2 mb-4 pb-2 border-b">
+                    <Input
+                      placeholder="Search here..."
+                      value={classSearchTerm}
+                      onChange={(e) => setClassSearchTerm(e.target.value)}
+                      className="flex-1"
                     />
-                    <Label htmlFor="select-all" className="font-medium">
-                      All
-                    </Label>
                   </div>
-                )}
 
-                {filteredClasses.map((cls) => (
-                  <div key={cls.ASMCL_Id} className="flex items-center space-x-2 p-2">
-                    <Checkbox
-                      id={`class-${cls.ASMCL_Id}`}
-                      checked={cls.selected || false}
-                      onCheckedChange={(checked) => toggleClass(cls.ASMCL_Id, checked as boolean)}
+                  {classSearchTerm.length === 0 && (
+                    <div className="flex items-center space-x-2 p-2">
+                      <Checkbox
+                        id="select-all"
+                        checked={allSelected}
+                        onCheckedChange={toggleAllClasses}
+                      />
+                      <Label htmlFor="select-all" className="font-medium">
+                        All
+                      </Label>
+                    </div>
+                  )}
+
+                  {filteredClasses.map((cls) => (
+                    <div key={cls.ASMCL_Id} className="flex items-center space-x-2 p-2">
+                      <Checkbox
+                        id={`class-${cls.ASMCL_Id}`}
+                        checked={cls.selected || false}
+                        onCheckedChange={(checked) => toggleClass(cls.ASMCL_Id, checked as boolean)}
+                      />
+                      <Label htmlFor={`class-${cls.ASMCL_Id}`} className="flex-1">
+                        {cls.ASMCL_ClassName}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Section Name <span className="text-red-500">*</span></Label>
+              <div className="border rounded-md p-4 max-h-48 overflow-y-auto">
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2 mb-4 pb-2 border-b">
+                    <Input
+                      placeholder="Search here..."
+                      value={sectionSearchTerm}
+                      onChange={(e) => setSectionSearchTerm(e.target.value)}
+                      className="flex-1"
                     />
-                    <Label htmlFor={`class-${cls.ASMCL_Id}`} className="flex-1">
-                      {cls.ASMCL_ClassName}
-                    </Label>
                   </div>
-                ))}
+
+                  {sectionSearchTerm.length === 0 && (
+                    <div className="flex items-center space-x-2 p-2">
+                      <Checkbox
+                        id="select-all-sections"
+                        checked={allSectionsSelected}
+                        onCheckedChange={toggleAllSections}
+                      />
+                      <Label htmlFor="select-all-sections" className="font-medium">
+                        All
+                      </Label>
+                    </div>
+                  )}
+
+                  {filteredSections.map((sec) => (
+                    <div key={sec.ASMS_Id} className="flex items-center space-x-2 p-2">
+                      <Checkbox
+                        id={`section-${sec.ASMS_Id}`}
+                        checked={sec.selected || false}
+                        onCheckedChange={(checked) => toggleSection(sec.ASMS_Id, checked as boolean)}
+                      />
+                      <Label htmlFor={`section-${sec.ASMS_Id}`} className="flex-1">
+                        {sec.ASMC_SectionName}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
 
           <div className="flex justify-center space-x-4">
-            <Button 
-              onClick={generateReport} 
-              disabled={isGenerating || !fromDate || !toDate || selectedClasses.length === 0}
+            <Button
+              onClick={generateReport}
+              disabled={isGenerating || !fromDate || !toDate || selectedClasses.length === 0 || selectedSections.length === 0}
             >
               {isGenerating ? 'Generating...' : 'Generate Report'}
             </Button>

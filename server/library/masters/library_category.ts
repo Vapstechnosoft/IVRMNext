@@ -25,10 +25,10 @@ export async function addOrUpdateMasterCategory(data: any) {
 
 export async function toggleMasterCategory(id: number) {
     try {
-        const url = `/MasterCategory/toggle?LMC_Id=${id}`;
-        return await api.put('library', url);
+        const url = `/MasterCategory/toggle/${id}`;
+        return await api.put('library', url, {});
     } catch (error: any) {
-        return { success: false, message: error?.message || 'Failed to toggle category' };
+        return { success: false, message: error?.message || error?.toString() || 'Failed to toggle category' };
     }
 }
 

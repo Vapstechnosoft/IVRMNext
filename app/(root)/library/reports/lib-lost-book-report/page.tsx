@@ -23,16 +23,17 @@ export default function LibLostBookReportPage() {
     };
 
     return (
-        <div className='space-y-4'>
-            <CollapsibleSection title='Lost Book Report' defaultOpen={true}>
+        <div className='space-y-6 p-4 bg-background min-h-screen'>
+            <div className='max-w-5xl mx-auto'>
                 <ReportForm onSearch={handleSearch} isLoading={searchMutation.isPending} />
-            </CollapsibleSection>
 
-            {reportData.length > 0 && (
-                <CollapsibleSection title='Report Grid' defaultOpen={true}>
-                    <GenericDataTable columns={LibLostBookReportColumns} data={reportData} isLoading={false} />
-                </CollapsibleSection>
-            )}
+                {reportData.length > 0 && (
+                    <div className='mt-8 pt-8 border-t'>
+                        <h2 className='text-lg font-bold mb-4'>Report Details</h2>
+                        <GenericDataTable columns={LibLostBookReportColumns} data={reportData} isLoading={false} />
+                    </div>
+                )}
+            </div>
         </div>
     );
 }
