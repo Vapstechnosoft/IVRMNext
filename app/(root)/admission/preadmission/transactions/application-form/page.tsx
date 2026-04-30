@@ -11,7 +11,7 @@ import type { IPreadmissionStudentApplicationList } from '@/types/admission/prea
 import { useQueryClient } from '@tanstack/react-query';
 import { Plus, X } from 'lucide-react';
 import { useSession } from 'next-auth/react';
-import { use, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import AddStudentApplicationForm from './_components/add-form';
 import { studentApplicationColumns } from './_components/columns';
 import PreadmissionStatusCountReport from './_components/preadmission-status-count-report';
@@ -22,7 +22,7 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function StudentApplicationPage(props: {
     searchParams: SearchParams;
 }) {
-    const searchParams = use(props.searchParams);
+    const searchParams = (React as any).use(props.searchParams);
     const { data: activePreadmission } = useActivePreadmissionDetails();
     const { data: response, isLoading, error, refetch } = useStudentApplicationList(activePreadmission?.data?.asmaY_Id ?? 0, searchParams);
     const { data: masterConfig } = useAcademicYearMasterConfiguration(activePreadmission?.data?.asmaY_Id ?? 0);
