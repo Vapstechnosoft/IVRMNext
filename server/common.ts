@@ -2945,6 +2945,22 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/Burnpur/brs_reportcardX',
                                             title: 'BRS Progress Card X Report',
                                             description: 'BRS Progress Card X Report'
+                                        },
+                                        {
+                                            id: 21044,
+                                            name: 'NDS_9_ProgressNewCardReport',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/NDS/NDS_9_ProgressNewCardReport',
+                                            title: 'NDS_9_ProgressNewCardReport',
+                                            description: 'NDS_9_ProgressNewCardReport'
+                                        },
+                                        {
+                                            id: 21045,
+                                            name: 'NDS Promotion Report Card',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/NDS/NDS_Promotionreportcard',
+                                            title: 'NDS Promotion Report Card',
+                                            description: 'NDS Promotion Report Card'
                                         }
                                     ]
                                 }
