@@ -1,5 +1,4 @@
 import { PORTAL_QUERY_KEYS } from '@/constants/query-keys';
-import { GetHomeWorkUploadedList } from '@/server/upload/transactions/ivrm-classwork/server-action';
 import { fetchInitialData } from '@/server/upload/transactions/ivrm-homework/server-action';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -12,7 +11,8 @@ export const HomeWorkUploadedList = (asmay_id: number, searchParams?: ApiSearchp
     return {
         ...useQuery({
             queryKey: [PORTAL_QUERY_KEYS.HOME_WORK_UPLOADED, asmay_id, searchParams ?? {}],
-            queryFn: async () => GetHomeWorkUploadedList(asmay_id, searchParams),
+            queryFn: async () => fetchInitialData(),
+            enabled: true,
             staleTime: 0
         }),
         refetchAll: () => {
@@ -38,7 +38,11 @@ export const useHomeWork = (params?: any) => {
         setIsLoading(true);
         try {
             const result = await fetchInitialData();
-            setData(result);
+            if (result?.data) {
+                setData(result.data);
+            } else {
+                setData(result as any);
+            }
         } catch (err) {
             setError(err);
             toast.error('Failed to load homework data');

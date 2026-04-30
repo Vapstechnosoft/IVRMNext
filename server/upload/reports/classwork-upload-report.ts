@@ -1,57 +1,20 @@
 'use server';
 
 import { api } from '@/lib/apiService';
+import type { IClassWorkAttachmentResponse, IClassWorkInitialData, IClassWorkReportPayload, IClassWorkReportResponse } from '@/types/upload/reports/classwork-upload-report';
 
-import type { IInitialData, IReportResponse, IAttachmentResponse, IClassWorkUploadReport } from '@/types/upload/reports/classwork-upload-report';
-
-// Initial Data
-export async function getInitialData(_pageId: number) {
-    // const url = `/HomeworkUpload/Getdata_class/${pageId}`;
-    // return await api.get<IInitialData>('preadmission', url);
-
-    // Static Data
-    return {
-        success: true,
-        message: 'Static data fetched',
-        data: {
-            classlist: [
-                { asmcL_Id: 1, asmcL_ClassName: 'Grade 1', asmcL_ActiveFlag: true, mI_Id: 30 },
-                { asmcL_Id: 2, asmcL_ClassName: 'Grade 2', asmcL_ActiveFlag: true, mI_Id: 30 },
-                { asmcL_Id: 3, asmcL_ClassName: 'Grade 3', asmcL_ActiveFlag: true, mI_Id: 30 },
-            ]
-        }
-    } as any;
+export async function getClassWorkInitialData() {
+    const url = `/HomeworkUpload/Getdata_class`;
+    return await api.post<IClassWorkInitialData>('portal', url, 0);
 }
 
-// Get Report Data
-export async function getReportData(_data: any) {
-    const url = '/HomeworkUploadFacade/class_work_report';
-     return await api.post<any>('portal', url, _data); 
+export async function getClassWorkReport(data: IClassWorkReportPayload) {
+    const url = '/HomeworkUpload/getreport_class';
+    return await api.post<IClassWorkReportResponse>('portal', url, data);
 }
 
-// View Attachment Data
-export async function viewAttachmentData(_data: any) {
-    // const url = `/HomeworkUpload/viewData`;
-    // return await api.post<IAttachmentResponse>('preadmission', url, data);
-
-    // Static Data
-    return {
-        success: true,
-        message: 'Static attachment data fetched',
-        data: {
-            attachementlist: [
-                {
-                    icwatT_FileName: 'attachment_v1.pdf',
-                    icwatT_Attachment: 'https://example.com/file1.pdf',
-                    icW_Attachment: 'att1'
-                },
-                {
-                    icwatT_FileName: 'attachment_v2.jpg',
-                    icwatT_Attachment: 'https://example.com/file2.jpg',
-                    icW_Attachment: 'att1'
-                }
-            ]
-        }
-    } as any;
+export async function viewClassWorkAttachmentData(data: { ICW_Id: number; Temp: number }) {
+    const url = `/HomeworkUpload/viewData?Temp=${data.Temp}&IHW_Id=0&ICW_Id=${data.ICW_Id}`;
+    return await api.post<IClassWorkAttachmentResponse>('portal', url, data);
 }
 

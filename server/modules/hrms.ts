@@ -11,6 +11,21 @@ export const hrmsModule: IUserAccessibleModules = {
             icon: 'Settings',
             sub_menu: [
                 {
+                    id: 101,
+                    name: 'AI ATS',
+                    icon: 'BrainCircuit',
+                    pages: [
+                        {
+                            id: 1,
+                            name: 'AI Resume checker',
+                            icon: 'FileSearch',
+                            url: '/hrms/ai-ats/resume-checker',
+                            title: 'AI Resume checker',
+                            description: 'Upload resumes and job descriptions for AI-powered ATS scoring and skill gap analysis.'
+                        }
+                    ]
+                },
+                {
                     id: 1,
                     name: 'Masters',
                     icon: 'Database',

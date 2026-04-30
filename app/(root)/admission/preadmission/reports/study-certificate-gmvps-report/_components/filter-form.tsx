@@ -16,6 +16,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { useStudyCertificateLoadData, useStudyCertificateStudentList, useStudyCertificateSearchFilterMutation, useStudyCertificateAcademicYearChange } from '@/hooks/admission/preadmission/useReports';
 import { DatePickerWithYear } from '@/components/ui/date-picker-year';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 
 const filterSchema = z.object({
     allorindid: z.enum(['A', 'I']),
@@ -28,6 +29,33 @@ const filterSchema = z.object({
     asmS_Id: z.coerce.number().optional(),
     amst_Id: z.coerce.number().optional(),
     selectedDate: z.date({ required_error: 'Date is required' }),
+}).refine((data) => {
+    // Student is required in both Individual and All modes
+    if (!data.amst_Id || data.amst_Id === 0) {
+        return false;
+    }
+    return true;
+}, {
+    message: "Please select a student",
+    path: ["amst_Id"]
+}).refine((data) => {
+    // If Individual mode is selected, class must be selected
+    if (data.allorindid === 'I' && (!data.asmcL_Id || data.asmcL_Id === 0)) {
+        return false;
+    }
+    return true;
+}, {
+    message: "Class is required in Individual mode",
+    path: ["asmcL_Id"]
+}).refine((data) => {
+    // If Individual mode is selected, section must be selected
+    if (data.allorindid === 'I' && (!data.asmS_Id || data.asmS_Id === 0)) {
+        return false;
+    }
+    return true;
+}, {
+    message: "Section is required in Individual mode",
+    path: ["asmS_Id"]
 });
 
 type FilterValues = z.infer<typeof filterSchema>;
@@ -135,6 +163,48 @@ export function FilterForm({ onSubmit, onReset, isMIId6 = false }: FilterFormPro
         return () => clearTimeout(timer);
     }, [searchQuery, asmayId, studentStatus]);
 
+    // Trigger validation only when Academic Year is selected or switching modes
+    useEffect(() => {
+        // Only show Student validation after Academic Year is selected
+        if (asmayId && asmayId > 0) {
+            if (!amstId || amstId === 0) {
+                form.setError('amst_Id', {
+                    type: 'manual',
+                    message: 'Please select a student'
+                });
+            } else {
+                form.clearErrors('amst_Id');
+            }
+        } else {
+            // Clear Student error when no Academic Year is selected
+            form.clearErrors('amst_Id');
+        }
+
+        if (allorindid === 'I') {
+            // Check and set errors for Individual mode specific fields only
+            if (!asmclId || asmclId === 0) {
+                form.setError('asmcL_Id', {
+                    type: 'manual',
+                    message: 'Class is required in Individual mode'
+                });
+            } else {
+                form.clearErrors('asmcL_Id');
+            }
+
+            if (!asmsId || asmsId === 0) {
+                form.setError('asmS_Id', {
+                    type: 'manual',
+                    message: 'Section is required in Individual mode'
+                });
+            } else {
+                form.clearErrors('asmS_Id');
+            }
+        } else {
+            // Clear Individual mode specific errors when switching to All mode
+            form.clearErrors(['asmcL_Id', 'asmS_Id']);
+        }
+    }, [allorindid, asmayId, amstId, asmclId, asmsId, form]);
+
     const handleReset = () => {
         reset();
         setSearchQuery('');
@@ -142,11 +212,32 @@ export function FilterForm({ onSubmit, onReset, isMIId6 = false }: FilterFormPro
         onReset();
     };
 
+    const handleSubmit = (data: FilterValues) => {
+        // Show toast messages for required fields before submission
+        if (!data.asmaY_Id || data.asmaY_Id === 0) {
+            toast.error('Please select Academic Year');
+            return;
+        }
+
+        // Student is required in both Individual and All modes
+        if (!data.amst_Id || data.amst_Id === 0) {
+            console.log('Student validation triggered:', data.amst_Id);
+            toast.error('Please select a Student');
+            return;
+        }
+
+        onSubmit(data);
+    };
+
     const selectedStudent = students.find((s: any) => s.amsT_Id === amstId);
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={(e) => {
+        e.preventDefault();
+        const data = form.getValues();
+        handleSubmit(data);
+    }} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {/* Selection Mode */}
                     <FormField

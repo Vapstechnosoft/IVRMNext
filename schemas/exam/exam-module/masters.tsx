@@ -11,7 +11,7 @@ export const masterSubjectSchema = {
         ismS_Id: z.number().int({ message: 'Subject Id is required' }).optional(),
         mI_Id: z.number().int().optional(),
         ismS_IVRSSubjectName: createExamCustomStringSchema('IVRS Subject Name', 1, 100),
-        ismS_SubjectCode: createStringSchema('Subject Code', 1, 50),
+        ismS_SubjectCode: createExamCustomStringSchema('Subject Code', 1, 50),
         ismS_SubjectNameNew: createExamCustomStringSchema('Subject Type / New Name', 1, 50),
         ismS_SubjectName: createExamCustomStringSchema('Subject Name', 1, 50),
         ismS_PreadmFlag: z.number().int({ message: 'Pre-Admission Flag is required' }),

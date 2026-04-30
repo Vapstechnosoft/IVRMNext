@@ -28,6 +28,7 @@ export default function NoticeBoardPage() {
     const [isViewRecordsOpen, setIsViewRecordsOpen] = useState(false);
     const [isAttachmentOpen, setIsAttachmentOpen] = useState(false);
     const [selectedRow, setSelectedRow] = useState<any>(null);
+    const [viewDefaultTab, setViewDefaultTab] = useState("students");
     const [selectedAttachment, setSelectedAttachment] = useState<{ url: string, name: string } | null>(null);
 
     const handleEdit = useCallback((row: INoticeBoard) => {
@@ -55,17 +56,14 @@ export default function NoticeBoardPage() {
 
     const handleViewRecords = useCallback((row: INoticeBoard) => {
         setSelectedRow(row);
+        setViewDefaultTab("students");
         setIsViewRecordsOpen(true);
     }, []);
 
     const handleViewAttachment = useCallback((row: INoticeBoard) => {
-        if (row.intB_FilePath_Array && row.intB_FilePath_Array.length > 0) {
-            setSelectedAttachment({
-                url: row.intB_FilePath_Array[0].intbfL_FilePath,
-                name: row.intB_FilePath_Array[0].fileName || 'Attachment'
-            });
-            setIsAttachmentOpen(true);
-        }
+        setSelectedRow(row);
+        setViewDefaultTab("attachments");
+        setIsViewRecordsOpen(true);
     }, []);
 
     const columns = useMemo(() =>
@@ -86,15 +84,35 @@ export default function NoticeBoardPage() {
 
     const noticeList = useMemo(() => {
         const list = (response as any)?.data?.studentList || (response as any)?.studentList || (response as any)?.data?.studentlist || (response as any)?.studentlist || [];
+        const allAttachments = (response as any)?.data?.attachementlist || (response as any)?.attachementlist || (response as any)?.data?.attachmentlist || (response as any)?.attachmentlist || [];
+
         return list.map((notice: any) => {
-            const year = yearList.find((y: any) => y.asmaY_Id === notice.asmaY_Id);
+            const noticeId = notice.intB_Id || notice.INTB_Id;
+            const noticeYearId = notice.asmaY_Id || notice.ASMAY_Id || notice.asmay_id || notice.asmay_Id;
+            const year = yearList.find((y: any) => (y.asmaY_Id || y.asmay_Id || y.ASMAY_Id) === noticeYearId);
+            
+            // Helper to normalize backend string-booleans
+            const toBool = (val: any) => typeof val === 'string' ? val.toLowerCase() === 'true' : !!val;
+
+            // Map attachments for this specific row using intB_Id
+            const rowAttachments = allAttachments
+                .filter((att: any) => (att.intB_Id || att.INTB_Id) === noticeId)
+                .map((att: any) => ({
+                    intbfL_Id: att.intbfL_Id || att.INTBFL_Id,
+                    intbfL_FilePath: att.intbfL_FilePath || att.INTBFL_FilePath,
+                    fileName: att.intbfL_FileName || att.INTBFL_FileName || 'Attachment'
+                }));
+
             return {
                 ...notice,
                 asmaY_Year: year ? year.asmaY_Year : activeYear,
-                // Ensure active flag is a boolean (handles "true"/"false" strings from some APIs)
-                intB_ActiveFlag: typeof notice.intB_ActiveFlag === 'string' 
-                    ? notice.intB_ActiveFlag.toLowerCase() === 'true' 
-                    : !!notice.intB_ActiveFlag
+                intB_ActiveFlag: toBool(notice.intB_ActiveFlag ?? notice.INTB_ActiveFlag),
+                intB_ToStaffFlg: toBool(notice.intB_ToStaffFlg ?? notice.INTB_ToStaffFlg),
+                intB_ToStudentFlg: toBool(notice.intB_ToStudentFlg ?? notice.INTB_ToStudentFlg),
+                // Populate FilePath_Array so columns.tsx can see the files
+                intB_FilePath_Array: rowAttachments,
+                // Harmonize FilesCount
+                FilesCount: rowAttachments.length > 0 ? rowAttachments.length : (notice.FilesCount || notice.filescount || 0)
             };
         });
     }, [response, yearList, activeYear]);
@@ -179,11 +197,11 @@ export default function NoticeBoardPage() {
                 </DialogContent>
             </Dialog>
 
-            {/* View Records Modal */}
             <ViewRecordsModal
                 isOpen={isViewRecordsOpen}
                 onClose={() => setIsViewRecordsOpen(false)}
                 selectedRow={selectedRow}
+                defaultTab={viewDefaultTab}
             />
 
             {/* Attachment Preview Modal */}

@@ -46,33 +46,33 @@ export default function PreadmissionStatusCountReport() {
         );
     }
 
-    const data = response?.data;
+    const reportData = response?.data?.report_data?.[0];
 
     const statusCards = [
         {
             icon: <UserCheck className='h-6 w-6' />,
-            count: data?.registered_applications,
+            count: reportData?.reg,
             label: 'Registered Applications',
             iconColor: 'text-emerald-600',
             iconBgColor: 'bg-emerald-50 dark:bg-emerald-950/30'
         },
         {
             icon: <FileX className='h-6 w-6' />,
-            count: data?.application_not_filled,
+            count: reportData?.notapplicationform,
             label: 'Form Not Filled',
             iconColor: 'text-red-600',
             iconBgColor: 'bg-red-50 dark:bg-red-950/30'
         },
         {
             icon: <FileCheck className='h-6 w-6' />,
-            count: data?.application_filled,
+            count: reportData?.applicationform,
             label: 'Form Filled',
             iconColor: 'text-amber-600',
             iconBgColor: 'bg-amber-50 dark:bg-amber-950/30'
         },
         {
             icon: <BadgeIndianRupee className='h-6 w-6' />,
-            count: data?.payment_completed,
+            count: reportData?.payment,
             label: 'Payment Done',
             iconColor: 'text-green-600',
             iconBgColor: 'bg-green-50 dark:bg-green-950/30'
@@ -86,24 +86,31 @@ export default function PreadmissionStatusCountReport() {
                     </div>
                 </div>
             ),
-            count: data?.payment_pending,
+            count: reportData?.notpayment,
             label: 'Payment Not Done',
             iconColor: 'text-red-600',
             iconBgColor: 'bg-red-50 dark:bg-red-950/30'
         },
         {
             icon: <ArrowRightLeft className='h-6 w-6' />,
-            count: data?.admission_transferred,
+            count: reportData?.transferstu,
             label: 'Transferred',
             iconColor: 'text-primary',
             iconBgColor: 'bg-primary/10'
+        },
+        {
+            icon: <FileCheck className='h-6 w-6' />,
+            count: reportData?.duplicate,
+            label: 'Duplicate',
+            iconColor: 'text-indigo-600',
+            iconBgColor: 'bg-indigo-50 dark:bg-indigo-950/30'
         }
     ];
 
     return (
         <div className='w-full'>
             {/* Cards Grid - Responsive Layout */}
-            <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6'>
+            <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7'>
                 {statusCards.map((card, index) => (
                     <StatusCard
                         key={index}

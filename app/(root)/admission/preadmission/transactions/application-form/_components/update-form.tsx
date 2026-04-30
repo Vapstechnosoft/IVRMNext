@@ -162,10 +162,12 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                 if (
                     normalized === '' ||
                     normalized === null ||
-                    (normalized === 0 && !['pasR_TransportReqdFlag'].includes(key)) ||
+                    (normalized === 0 && !['pasR_TransportReqdFlag', 'pasR_ConState', 'pasR_PerState', 'caste_Id', 'religion_Id', 'asmcL_Id'].includes(key)) ||
                     normalized === '0'
                 ) {
-                    normalized = undefined;
+                    if (!['pasR_TransportReqdFlag', 'pasR_ConState', 'pasR_PerState', 'caste_Id', 'religion_Id', 'asmcL_Id'].includes(key)) {
+                        normalized = undefined;
+                    }
                 }
 
                 if (
@@ -191,11 +193,24 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                 }
 
                 if (['pasR_ConState', 'pasR_PerState', 'asmcL_Id', 'caste_Id', 'religion_Id'].includes(key) && normalized !== undefined) {
-                    normalized = typeof normalized === 'string' ? Number(normalized) : normalized;
+                    // Check if the value is numeric before converting
+                    if (!isNaN(Number(normalized))) {
+                        normalized = Number(normalized);
+                    }
+                }
+
+                if (['pasR_Nationality', 'pasR_FatherNationality', 'pasR_MotherNationality'].includes(key) && normalized !== undefined) {
+                    normalized = String(normalized);
                 }
 
                 setValue(key as any, normalized);
             });
+
+            // Set specific fields that might be named differently or need explicit setting
+            if (rowData.pasR_Sex) setValue('pasR_Sex', rowData.pasR_Sex);
+            if (rowData.religion_Id) setValue('religion_Id', Number(rowData.religion_Id));
+            if (rowData.caste_Id) setValue('caste_Id', Number(rowData.caste_Id));
+            if (rowData.pasR_Nationality) setValue('pasR_Nationality', String(rowData.pasR_Nationality));
 
             setValue('pasA_WillingToContributeFlg', rowData.pasA_WillingToContributeFlg ? 1 : 0);
             setValue('pasA_WillingToContributeRemarks', rowData.pasA_WillingToContributeRemarks ?? undefined);
@@ -1761,7 +1776,10 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
-                                                            onValueChange={(value) => field.onChange(Number(value))}
+                                                            onValueChange={(value) => {
+                                                                field.onChange(Number(value));
+                                                                setValue('caste_Id', 0);
+                                                            }}
                                                             value={field.value?.toString() || undefined}>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder='Select religion' />
@@ -1797,9 +1815,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
-                                                            key={watch('religion_Id')}
+                                                            key={`caste-${watch('religion_Id')}-${casteLoading}`}
                                                             onValueChange={(value) => field.onChange(Number(value))}
-                                                            value={field.value?.toString() || undefined}
+                                                            value={field.value?.toString() || ''}
                                                             disabled={!watch('religion_Id')}>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder='Select caste' />
@@ -1808,10 +1826,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                 {casteLoading ? (
                                                                     <SelectItem value='loading' disabled>
                                                                         Loading...
-                                                                    </SelectItem>
-                                                                ) : casteError ? (
-                                                                    <SelectItem value='error' disabled>
-                                                                        Error loading
                                                                     </SelectItem>
                                                                 ) : (
                                                                     caste?.data?.map((item) => (
@@ -1833,32 +1847,34 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                 <Controller
                                                     name='pasR_Sex'
                                                     control={control}
-                                                    render={({ field }) => (
-                                                        <Select
-                                                            onValueChange={(value) => field.onChange(value)}
-                                                            value={field.value?.toString() || undefined}>
-                                                            <SelectTrigger>
-                                                                <SelectValue placeholder='Select gender' />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                {genderLoading ? (
-                                                                    <SelectItem value='loading' disabled>
-                                                                        Loading...
-                                                                    </SelectItem>
-                                                                ) : genderError ? (
-                                                                    <SelectItem value='error' disabled>
-                                                                        Error loading
-                                                                    </SelectItem>
-                                                                ) : (
-                                                                    gender?.data?.map((item) => (
-                                                                        <SelectItem key={item.ivrmmG_Id} value={item.ivrmmG_GenderName}>
-                                                                            {item.ivrmmG_GenderName}
+                                                    render={({ field }) => {
+                                                        const normalizedValue = gender?.data?.find(
+                                                            (g) => g.ivrmmG_GenderName.toUpperCase() === field.value?.toString().toUpperCase()
+                                                        )?.ivrmmG_GenderName || field.value?.toString();
+
+                                                        return (
+                                                            <Select
+                                                                onValueChange={(value) => field.onChange(value)}
+                                                                value={normalizedValue || undefined}>
+                                                                <SelectTrigger>
+                                                                    <SelectValue placeholder='Select gender' />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    {genderLoading ? (
+                                                                        <SelectItem value='loading' disabled>
+                                                                            Loading...
                                                                         </SelectItem>
-                                                                    ))
-                                                                )}
-                                                            </SelectContent>
-                                                        </Select>
-                                                    )}
+                                                                    ) : (
+                                                                        gender?.data?.map((item) => (
+                                                                            <SelectItem key={item.ivrmmG_Id} value={item.ivrmmG_GenderName}>
+                                                                                {item.ivrmmG_GenderName}
+                                                                            </SelectItem>
+                                                                        ))
+                                                                    )}
+                                                                </SelectContent>
+                                                            </Select>
+                                                        );
+                                                    }}
                                                 />
                                                 {errors.pasR_Sex && <FormError>{errors.pasR_Sex.message}</FormError>}
                                             </div>
@@ -2118,7 +2134,10 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
-                                                                    onValueChange={(value) => field.onChange(value)}
+                                                                    onValueChange={(value) => {
+                                                                        field.onChange(value);
+                                                                        setValue('pasR_ConState', 0);
+                                                                    }}
                                                                     value={field.value?.toString() || undefined}>
                                                                     <SelectTrigger>
                                                                         <SelectValue placeholder='Select country' />
@@ -2154,8 +2173,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
+                                                                    key={`con-state-${watch('pasR_ConCountry')}-${conStateLoading}`}
                                                                     onValueChange={(value) => field.onChange(Number(value))}
-                                                                    value={field.value?.toString() || undefined}
+                                                                    value={field.value?.toString() || ''}
                                                                     disabled={!conConuntryId}>
                                                                     <SelectTrigger>
                                                                         <SelectValue placeholder='Select state' />
@@ -2295,7 +2315,10 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
-                                                                    onValueChange={(value) => field.onChange(value)}
+                                                                    onValueChange={(value) => {
+                                                                        field.onChange(value);
+                                                                        setValue('pasR_PerState', 0);
+                                                                    }}
                                                                     value={field.value?.toString() || undefined}
                                                                     disabled={sameAsResidential}>
                                                                     <SelectTrigger>
@@ -2332,8 +2355,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
+                                                                    key={`per-state-${watch('pasR_PerCountry')}-${perStateLoading}`}
                                                                     onValueChange={(value) => field.onChange(Number(value))}
-                                                                    value={field.value?.toString() || undefined}
+                                                                    value={field.value?.toString() || ''}
                                                                     disabled={!perConuntryId || sameAsResidential}>
                                                                     <SelectTrigger>
                                                                         <SelectValue placeholder='Select state' />

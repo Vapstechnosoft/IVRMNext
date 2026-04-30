@@ -70,7 +70,7 @@ export default function NdaStudentProfileReportPage() {
     return (
         <div className="container mx-auto p-4 md:p-10 space-y-12 animate-in fade-in duration-1000">
             {/* Header Section */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-white p-10 rounded-[3rem] shadow-xl shadow-indigo-100/20 border border-slate-100 relative overflow-hidden group">
+            {/* <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-white p-10 rounded-[3rem] shadow-xl shadow-indigo-100/20 border border-slate-100 relative overflow-hidden group">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50 rounded-full -mr-32 -mt-32 opacity-20 group-hover:scale-110 transition-transform duration-700" />
                 <div className="flex items-center gap-8 relative z-10">
                     <div className="w-24 h-24 rounded-[2rem] bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center text-white shadow-2xl shadow-indigo-200 rotate-3 group-hover:rotate-0 transition-transform duration-500">
@@ -83,7 +83,7 @@ export default function NdaStudentProfileReportPage() {
                         </p>
                     </div>
                 </div>
-            </div>
+            </div> */}
 
             {/* Filter Section */}
             <div className="relative">
