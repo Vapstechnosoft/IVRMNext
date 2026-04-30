@@ -61,14 +61,7 @@ export async function getUserAccessibleModules() {
         response = {
             success: true,
             message: 'Data fetched successfully!!',
-            data: [admissionModule,
-                feesModule,
-                examModule,
-                hrmsModule,
-                iframeModule,
-                timetableModule,
-                libraryModule,
-                transportModule,
+            data: [
 
                 {
                     id: 1001,
@@ -109,6 +102,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Preadmission Form',
                                             description: 'Apply for Preadmission'
                                         },
+                                        // {
+                                        //     id: 20000000,
+                                        //     name: 'Registration Form',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/transactions/registration-form',
+                                        //     title: 'Registration Form',
+                                        //     description: 'Apply for Registration'
+                                        // },
 
                                         {
                                             id: 3,

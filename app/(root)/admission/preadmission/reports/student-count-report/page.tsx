@@ -46,6 +46,7 @@ export default function StudentCountReportPage(props: {
                     }
                 }}
                 isSearched={isSearched}
+                filterPayload={filterPayload}
             />
         </FormProvider>
     );
@@ -80,7 +81,8 @@ function StudentCountReportPageContent({
     error,
     searchParams,
     onFilterChange,
-    isSearched
+    isSearched,
+    filterPayload
 }: {
     response: any;
     isLoading: boolean;
@@ -88,6 +90,7 @@ function StudentCountReportPageContent({
     searchParams?: any;
     onFilterChange?: (payload: any, reset?: boolean) => void;
     isSearched: boolean;
+    filterPayload: any;
 }) {
     const tableProps = useDataTableProps(response);
 
@@ -95,7 +98,7 @@ function StudentCountReportPageContent({
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 {/* Report Cards */}
-                <PreadmissionStatusCountReport />
+                <PreadmissionStatusCountReport filterPayload={isSearched ? filterPayload : undefined} />
 
                 {/* Add Form Section (shown first) */}
                 <FormSections searchParams={searchParams} onFilterChange={onFilterChange} />
