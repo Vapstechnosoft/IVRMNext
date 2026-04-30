@@ -61,14 +61,7 @@ export async function getUserAccessibleModules() {
         response = {
             success: true,
             message: 'Data fetched successfully!!',
-            data: [admissionModule,
-                feesModule,
-                examModule,
-                hrmsModule,
-                iframeModule,
-                timetableModule,
-                libraryModule,
-                transportModule,
+            data: [
 
                 {
                     id: 1001,
@@ -109,6 +102,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Preadmission Form',
                                             description: 'Apply for Preadmission'
                                         },
+                                        // {
+                                        //     id: 20000000,
+                                        //     name: 'Registration Form',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/transactions/registration-form',
+                                        //     title: 'Registration Form',
+                                        //     description: 'Apply for Registration'
+                                        // },
 
                                         {
                                             id: 3,
@@ -1990,21 +1991,6 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/omr-evaluation/omr-mark-sheet-evaluation',
                                             title: 'OMR Sheet Evaluator',
                                             description: 'Evaluate OMR mark sheets'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 1000,
-                                    name: 'AI MCQ QUIZ',
-                                    icon: 'Trophy',
-                                    pages: [
-                                        {
-                                            id: 1001,
-                                            name: 'AI MCQ Quiz',
-                                            icon: 'Trophy',
-                                            url: '/Exam/exam-module/online-quiz/online-mcq-quiz',
-                                            title: 'AI MCQ Quiz',
-                                            description: 'Conduct and manage online MCQ quizzes'
                                         }
                                     ]
                                 },
@@ -7563,6 +7549,29 @@ export async function getUserAccessibleModules() {
                             name: 'Exam',
                             icon: 'GraduationCap',
                             sub_menu: [
+                                {
+                                    id: 9000,
+                                    name: 'Exam',
+                                    icon: 'Trophy',
+                                    pages: [
+                                        {
+                                            id: 9001,
+                                            name: 'AI MCQ QUIZ',
+                                            icon: 'Trophy',
+                                            url: '/StaffPortal/ai-mcq-quiz',
+                                            title: 'AI MCQ QUIZ',
+                                            description: 'Conduct and manage online MCQ quizzes'
+                                        },
+                                        {
+                                            id: 9002,
+                                            name: 'OMR Sheet Evaluator',
+                                            icon: 'ClipboardCheck',
+                                            url: '/StaffPortal/omr-sheet-evaluator',
+                                            title: 'OMR Sheet Evaluator',
+                                            description: 'Evaluate scanned OMR mark sheets using AI'
+                                        }
+                                    ]
+                                },
                                 {
                                     id: 8004,
                                     name: 'Marks Entry',

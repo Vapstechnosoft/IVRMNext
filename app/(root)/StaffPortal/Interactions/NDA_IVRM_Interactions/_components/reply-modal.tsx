@@ -243,7 +243,6 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id 
             } else if (isWord) {
                 const arrayBuffer = await blob.arrayBuffer();
                 try {
-
                     const mammothModule = await import('mammoth');
                     const mammoth = mammothModule.default || mammothModule;
                     const result = await mammoth.convertToHtml({ arrayBuffer });
