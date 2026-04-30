@@ -105,6 +105,9 @@ export function NavigationSystem() {
     const pathname = usePathname();
 
     const { data: accessibleModule } = useUserAccessibleModules();
+    useEffect(() => {
+        console.log('accessibleModule', accessibleModule);
+    }, [accessibleModule])
 
     const handleModuleClick = (moduleName: string) => {
         if (activeDrawer === moduleName) {

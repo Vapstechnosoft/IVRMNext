@@ -11,7 +11,6 @@ import { timetableModule } from './modules/timetable';
 import { libraryModule } from './modules/library';
 import { transportModule } from './modules/transport';
 
-
 export async function getCommonDropdown(name: string) {
     const url = `/v1/common/common_drop_down_list/${name}`;
     return await api.get<IDropdown[]>('default', url);
@@ -62,7 +61,6 @@ export async function getUserAccessibleModules() {
             success: true,
             message: 'Data fetched successfully!!',
             data: [
-
                 {
                     id: 1001,
                     name: 'Preadmission',
@@ -2637,6 +2635,14 @@ export async function getUserAccessibleModules() {
                                             description: 'GMVPS_Vidyaniketan I-VIII Report Card'
                                         },
                                         {
+                                            id: 21100,
+                                            name: 'GMVPS Report Card IX',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/GMVPS/gmvps-progresscard-IX',
+                                            title: 'GMVPS Report Card IX',
+                                            description: 'GMVPS Report Card IX'
+                                        },
+                                        {
                                             id: 21004,
                                             name: 'StThomos_Report Card IX',
                                             icon: 'BookOpen',
@@ -2947,8 +2953,31 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/nds/NDS_I_To_VIII_ReportCard',
                                             title: 'NDS_I_To_VIII_ReportCard',
                                             description: 'NDS_I_To_VIII_ReportCard'
+                                        },
+                                        {
+                                            id: 21041,
+                                            name: 'BRS Progress Card Report',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/Burnpur/brs_reportcard',
+                                            title: 'BRS Progress Card Report',
+                                            description: 'BRS Progress Card Report'
+                                        },
+                                        {
+                                            id: 21042,
+                                            name: 'BRS Progress Card IX Report',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/Burnpur/brs_reportcardIX',
+                                            title: 'BRS Progress Card IX Report',
+                                            description: 'BRS Progress Card IX Report'
+                                        },
+                                        {
+                                            id: 21043,
+                                            name: 'BRS Progress Card X Report',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/Burnpur/brs_reportcardX',
+                                            title: 'BRS Progress Card X Report',
+                                            description: 'BRS Progress Card X Report'
                                         }
-
                                     ]
                                 }
                             ]
@@ -2991,7 +3020,8 @@ export async function getUserAccessibleModules() {
                                             icon: 'FileSearch',
                                             url: '/hrms/ai-ats/resume-checker',
                                             title: 'AI Resume checker',
-                                            description: 'Upload resumes and job descriptions for AI-powered ATS scoring and skill gap analysis.'
+                                            description:
+                                                'Upload resumes and job descriptions for AI-powered ATS scoring and skill gap analysis.'
                                         }
                                     ]
                                 },
@@ -7891,7 +7921,7 @@ export async function getUserAccessibleModules() {
                                             url: '/StaffPortal/Interactions/SCS_IVRM_Interactions',
                                             title: 'SCS Interaction',
                                             description: 'SCS Interaction'
-                                        },
+                                        }
                                     ]
                                 },
                                 {

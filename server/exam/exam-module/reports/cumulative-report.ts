@@ -21,7 +21,7 @@ export async function getClassDropDownByAcademicYearlist(asmaY_Id: number) {
 }
 
 // 🔹 Section Dropdown
-export async function getSectionsDropDownByAcademicYearandClasslist(asmcL_Id: number, asmaY_Id: number) {
+export async function getSectionsDropDownByAcademicYearandClasslist(asmaY_Id: number, asmcL_Id: number) {
     if (!asmaY_Id) throw new Error('Academic Year ID is required');
     if (!asmcL_Id) throw new Error('Class ID is required');
     const url = `/exam_master_category/sections_drop_down_by_class_list/${asmcL_Id}/${asmaY_Id}`;
