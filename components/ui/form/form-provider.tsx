@@ -79,8 +79,8 @@ export function FormProvider<T = any>({
     const [isCopyFormOpen, setIsCopyFormOpen] = useState(false);
     const [selectedRow, setSelectedRow] = useState<T | null>(null);
 
-    const addFormRef = useRef<HTMLDivElement>(null);
-    const editFormRef = useRef<HTMLDivElement>(null);
+    const addFormRef = useRef<HTMLDivElement>(null!);
+    const editFormRef = useRef<HTMLDivElement>(null!);
 
     const scrollToElement = useCallback(
         (ref: React.RefObject<HTMLDivElement | null>) => {
