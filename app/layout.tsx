@@ -53,12 +53,12 @@ export default async function RootLayout({ children }: Readonly<RootLayoutProps>
                             <FloatingSchoolBot />
                         </>
                     )}
-                    <Toaster 
-                        position='bottom-right' 
-                        closeButton={true} 
-                        duration={3000} 
-                        richColors 
-                        className={`${geistSans.className}`} 
+                    <Toaster
+                        position='bottom-right'
+                        closeButton={true}
+                        duration={3000}
+                        richColors
+                        className={`${geistSans.className}`}
                         style={{
                             zIndex: 99999,
                         }}
