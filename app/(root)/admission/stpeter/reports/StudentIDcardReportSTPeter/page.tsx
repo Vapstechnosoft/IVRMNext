@@ -144,6 +144,7 @@ export default function StudentIDcardReportSTPeterPage() {
         setStudentList([]);
         setSelectedStudentIds([]);
         setShowReport(false);
+        window.location.reload();
     };
 
     const filteredStudents = useMemo(() => {

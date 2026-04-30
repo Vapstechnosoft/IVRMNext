@@ -14,7 +14,7 @@ import type { IPreadmissionStudentApplicationList } from '@/types/admission/prea
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Plus, X } from 'lucide-react';
 import { useSession } from 'next-auth/react';
-import { use, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import BBHSAddStudentApplicationForm from '@/app/(root)/admission/preadmission/bbhs-student-application/_components/add-form';
 import { bbhsStudentApplicationColumns } from '@/app/(root)/admission/preadmission/bbhs-student-application/_components/columns';
 import PreadmissionStatusCountReport from '../transactions/application-form/_components/preadmission-status-count-report';
@@ -26,7 +26,7 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function BBHSStudentApplicationPage(props: {
     searchParams: SearchParams;
 }) {
-    const searchParams = use(props.searchParams);
+    const searchParams = (React as any).use(props.searchParams);
     
     const { data: activePreadmission } = useQuery({
         queryKey: [PREADMISSION_QUERY_KEYS.ACTIVE_PREADMISSION_DETAILS, 'bbhs'],
