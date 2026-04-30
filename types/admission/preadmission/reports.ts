@@ -1,10 +1,9 @@
 export interface IMasterStudentCountReportList {
-    type: number;
-    asmay_id: string;
-    from_date: string;
-    to_date: string;
-    report_type: number;
-    asmcl_id: number;
+    user_id: number;
+    user_name: string;
+    email: string;
+    phone_number: string;
+    entry_date: string;
 }
 export interface IParentsDashboardStudentResponse {
     pasr_id: number;

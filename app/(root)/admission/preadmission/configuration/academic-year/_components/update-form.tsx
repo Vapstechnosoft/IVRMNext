@@ -14,7 +14,7 @@ import { PreAdmissionAcademicYearSchema } from '@/schemas/admission/preadmission
 import { addOrUpdatePreAdmissionYear } from '@/server/admission/preadmission/configuration/academic_year_master';
 import type { IMasterAcademicYearMasterList } from '@/types/admission/preadmission/configaration';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { format } from 'date-fns';
+import { addDays, format } from 'date-fns';
 import { CalendarIcon, Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useForm, useWatch } from 'react-hook-form';
@@ -157,7 +157,11 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                             required
                             id='asmaY_AcademicYearCode'
                             placeholder='Enter Code'
-                            {...register('asmaY_AcademicYearCode')}
+                            {...register('asmaY_AcademicYearCode', {
+                                onChange: (e) => {
+                                    e.target.value = e.target.value.replace(/\D/g, '');
+                                }
+                            })}
                             defaultValue={row.asmaY_AcademicYearCode}
                             error={errors.asmaY_AcademicYearCode?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
@@ -289,7 +293,7 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                                                         field.onChange(date?.toISOString());
                                                         setOpenPopover(null);
                                                     }}
-                                                    fromDate={academicFromDate ? new Date(academicFromDate) : undefined}
+                                                    fromDate={academicFromDate ? addDays(new Date(academicFromDate), 1) : undefined}
                                                     toDate={new Date(new Date().getFullYear() + 3, 11, 31)}
                                                 />
                                             </PopoverContent>
@@ -372,7 +376,7 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                                                         field.onChange(date?.toISOString());
                                                         setOpenPopover(null);
                                                     }}
-                                                    fromDate={preAdmFromDate ? new Date(preAdmFromDate) : undefined}
+                                                    fromDate={preAdmFromDate ? addDays(new Date(preAdmFromDate), 1) : undefined}
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -565,7 +569,7 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                                                         field.onChange(date?.toISOString());
                                                         setOpenPopover(null);
                                                     }}
-                                                    fromDate={transportFromDate ? new Date(transportFromDate) : undefined}
+                                                    fromDate={transportFromDate ? addDays(new Date(transportFromDate), 1) : undefined}
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -643,7 +647,7 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                                                         field.onChange(date?.toISOString());
                                                         setOpenPopover(null);
                                                     }}
-                                                    fromDate={regularFeeFromDate ? new Date(regularFeeFromDate) : undefined}
+                                                    fromDate={regularFeeFromDate ? addDays(new Date(regularFeeFromDate), 1) : undefined}
                                                 />
                                             </PopoverContent>
                                         </Popover>
