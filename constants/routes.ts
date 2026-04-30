@@ -35,7 +35,8 @@ export const ROUTES = {
                 },
                 REPORTS: '/reports',
                 REPORTS_SUB_MENUS: {
-                    STUDENT_COUNT_REPORT: '/student-count-report'
+                    STUDENT_COUNT_REPORT: '/student-count-report',
+                    DOCUMENT_VIEW_REPORT: '/document-view-report'
                 },
                 ATTENDANCE_ENTRY: '/attendance-entry',
                 ATTENDANCE_ENTRY_SUB_MENUS: {
