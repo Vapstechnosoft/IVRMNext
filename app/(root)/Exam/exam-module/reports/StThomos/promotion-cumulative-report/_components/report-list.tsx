@@ -53,7 +53,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
     const renderNormalReport = () => {
         // Extract dynamic columns from subject_Marks if present
-        let dynamicColumns: string[] = [];
+        const dynamicColumns: string[] = [];
         studentMarksDetails.forEach((report: any) => {
             try {
                 if (report.subject_Marks) {

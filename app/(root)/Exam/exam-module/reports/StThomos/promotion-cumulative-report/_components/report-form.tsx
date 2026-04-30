@@ -124,7 +124,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                 setSections(Array.isArray(data) ? data : []);
                 setValue('ASMS_Id', '');
                 setValue('selectedStudents', []);
-                setAllStudentsSelected(false); ``
+                setAllStudentsSelected(false);
             } catch {
                 toast.error('Failed to load sections');
             } finally {
@@ -233,7 +233,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
             const selectedClass = classes.find((c: any) => String(c.asmcL_Id) === data.ASMCL_Id)?.asmcL_ClassName || '';
             const selectedSection = sections.find((s: any) => String(s.asmS_Id) === data.ASMS_Id)?.asmC_SectionName || '';
 
-            let finalResult = result;
+            const finalResult = result;
             // if (!result?.data?.getstudentmarksdetails?.length && !result?.data?.getstudentwisesubjectlist?.length && !result?.data?.getstudentmarksdetails_temp?.length) {
             //     finalResult = {
             //         ...result,
