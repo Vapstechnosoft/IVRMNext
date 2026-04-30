@@ -440,7 +440,6 @@ export function HeaderSearch() {
 
         setIsOpen(false);
         if (query.trim()) saveToHistory(query);
-        setQuery('');
         router.push(result.url);
     };
 
@@ -491,7 +490,6 @@ export function HeaderSearch() {
             const route = guessModuleRoute(dbResult.source);
             setIsOpen(false);
             if (query.trim()) saveToHistory(query);
-            setQuery('');
             router.push(route);
         }
     };
@@ -517,10 +515,26 @@ export function HeaderSearch() {
                     }}
                     onKeyDown={handleKeyDown}
                     className={cn(
-                        'pl-9 pr-9 transition-all focus:ring-2 focus:ring-primary/20 bg-background',
+                        'pl-9 transition-all focus:ring-2 focus:ring-primary/20 bg-background',
+                        query ? 'pr-20' : 'pr-12',
                         isOpen || query ? 'w-[400px]' : 'w-[300px]'
                     )}
                 />
+                {query && (
+                    <button
+                        onMouseDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setQuery('');
+                            setResults([]);
+                            setDbResults([]);
+                        }}
+                        className="absolute right-11 top-1/2 -translate-y-1/2 p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-full transition-all"
+                        title="Clear search"
+                    >
+                        <X size={14} />
+                    </button>
+                )}
                 <button
                     onClick={isRecording ? stopRecording : startRecording}
                     disabled={isTranscribing}
@@ -576,7 +590,7 @@ export function HeaderSearch() {
                                             e.stopPropagation();
                                             clearHistory(e);
                                         }}
-                                        className="text-xs text-blue-500 hover:text-blue-600 hover:underline px-2 py-0.5 rounded-sm hover:bg-blue-50 transition-colors"
+                                        className="text-sm font-medium text-blue-500 hover:text-blue-600 hover:underline px-2.5 py-1 rounded-md hover:bg-blue-50 transition-colors"
                                     >
                                         Clear all
                                     </button>

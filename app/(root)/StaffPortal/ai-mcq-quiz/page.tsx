@@ -23,7 +23,12 @@ import {
     getMarksEntryClasses, 
     getMarksEntrySections 
 } from '@/server/staff-portal/marks-entry';
+import { 
+    getInitialData as getStaffInitialData,
+    getStudentData 
+} from '@/server/staff-portal/attendance-entry';
 import { getStudentList } from '@/server/exam/exam-module/exam-mapping/student-transaction-cce';
+import { getAcademicYearDropdown } from '@/server/admission/preadmission/masters/class_category';
 import { AnimatePresence, motion } from 'framer-motion';
 import { BarChart3, CheckCircle2, FileText, Plus, Sparkles, Trophy, Upload, Wand2, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -206,29 +211,75 @@ export default function OnlineMcqQuizPage() {
         calculateStats();
     }, [publishedQuizzes]);
 
+    /**
+     * Resiliently extract array data from various API response formats
+     */
+    const extractListData = (res: any, keys: string[]) => {
+        if (!res) return [];
+        // Case 1: res is the array
+        if (Array.isArray(res)) return res;
+        // Case 2: res.data is the array
+        if (Array.isArray(res.data)) return res.data;
+        // Case 3: res.data contains one of the keys
+        if (res.data && typeof res.data === 'object') {
+            for (const key of keys) {
+                if (Array.isArray((res.data as any)[key])) return (res.data as any)[key];
+            }
+        }
+        // Case 4: res contains one of the keys directly
+        for (const key of keys) {
+            if (Array.isArray(res[key])) return res[key];
+        }
+        return [];
+    };
+
     // Load Initial Staff Data (Academic Years & Initial Classes)
     useEffect(() => {
         const fetchInitial = async () => {
             setLoadingAcademic(true);
             try {
-                const res = await getInitialMarksEntryData();
-                const initialData = res?.data;
-                
-                if (initialData) {
-                    const yrs = initialData.yearlist || [];
-                    setAcademicYears(yrs);
-                    
-                    // Set classes from initial data if any
-                    if (initialData.classlist) {
-                        setClasses(initialData.classlist);
-                    }
+                let yrs: any[] = [];
+                let cls: any[] = [];
+                let defaultYear: number | null = null;
 
-                    // Default to the year returned by the API (current year)
-                    if (initialData.asmaY_Id && !publishConfig.academicYearId) {
-                        setPublishConfig(prev => ({ ...prev, academicYearId: String(initialData.asmaY_Id) }));
-                    } else if (yrs.length > 0 && !publishConfig.academicYearId) {
-                        setPublishConfig(prev => ({ ...prev, academicYearId: String(yrs[0].asmaY_Id) }));
+                // 1. Try Marks Entry Initial Data (Primary source for exams)
+                try {
+                    const res = await getInitialMarksEntryData();
+                    const initialData = res?.data || (res as any);
+                    if (initialData) {
+                        yrs = extractListData(res, ['yearlist', 'academicYearList']);
+                        cls = extractListData(res, ['classlist', 'classList']);
+                        defaultYear = initialData.asmaY_Id || (initialData as any).asmaY_Id;
                     }
+                } catch (e) { console.warn("getInitialMarksEntryData failed", e); }
+
+                // 2. Fallback: Try Staff Initial Data (Used by Attendance Entry module)
+                if (yrs.length === 0) {
+                    try {
+                        const staffRes = await getStaffInitialData(0);
+                        yrs = extractListData(staffRes, ['academicYearList', 'yearlist']);
+                        cls = extractListData(staffRes, ['classList', 'classlist']);
+                        const curYearObj = extractListData(staffRes, ['currentYear'])[0];
+                        if (curYearObj) defaultYear = curYearObj.asmaY_Id;
+                    } catch (e) { console.warn("getStaffInitialData failed", e); }
+                }
+
+                // 3. Final Fallback: Global Academic Year Dropdown
+                if (yrs.length === 0) {
+                    try {
+                        const globalYrs = await getAcademicYearDropdown();
+                        yrs = extractListData(globalYrs, ['data']);
+                    } catch (e) { console.warn("getAcademicYearDropdown failed", e); }
+                }
+
+                setAcademicYears(yrs);
+                if (cls.length > 0) setClasses(cls);
+
+                // Set default year if found
+                if (defaultYear && !publishConfig.academicYearId) {
+                    setPublishConfig(prev => ({ ...prev, academicYearId: String(defaultYear) }));
+                } else if (yrs.length > 0 && !publishConfig.academicYearId) {
+                    setPublishConfig(prev => ({ ...prev, academicYearId: String(yrs[0].asmaY_Id) }));
                 }
             } catch (err) {
                 console.error('Initial data fetch failed:', err);
@@ -252,14 +303,28 @@ export default function OnlineMcqQuizPage() {
 
             setLoadingClasses(true);
             try {
-                // Try Staff Portal specific API first
-                const res = await getMarksEntryClasses(ayId);
-                let data = res?.data?.classlist || [];
+                let data: any[] = [];
                 
-                // Fallback to global privilege API if portal one returns nothing
+                // 1. Try Marks Entry specific API
+                try {
+                    const res = await getMarksEntryClasses(ayId);
+                    data = extractListData(res, ['classlist', 'classList']);
+                } catch (e) { console.warn("getMarksEntryClasses failed", e); }
+
+                // 2. Fallback: Try Login Privilege Classes API
                 if (data.length === 0) {
-                    const globalRes = await GetLoginPrivilegeClassesDropdown(ayId);
-                    data = Array.isArray(globalRes?.data) ? globalRes.data : [];
+                    try {
+                        const globalRes = await GetLoginPrivilegeClassesDropdown(ayId);
+                        data = extractListData(globalRes, ['data']);
+                    } catch (e) { console.warn("GetLoginPrivilegeClassesDropdown failed", e); }
+                }
+
+                // 3. Fallback: Try Staff Initial Data for this year (Matching Attendance Entry behavior)
+                if (data.length === 0) {
+                    try {
+                        const staffRes = await getStaffInitialData(ayId);
+                        data = extractListData(staffRes, ['classList', 'classlist']);
+                    } catch (e) { console.warn("getStaffInitialData fallback for classes failed", e); }
                 }
 
                 setClasses(data);
@@ -288,18 +353,35 @@ export default function OnlineMcqQuizPage() {
 
             setLoadingSections(true);
             try {
-                // Try Staff Portal specific API first
-                const res = await getMarksEntrySections(ayId, clId);
-                let data = res?.data?.sectionlist || [];
+                let data: any[] = [];
 
-                // Fallback to global privilege API if portal one returns nothing
+                // 1. Try Marks Entry specific API
+                try {
+                    const res = await getMarksEntrySections(ayId, clId);
+                    data = extractListData(res, ['sectionlist', 'sectionList']);
+                } catch (e) { console.warn("getMarksEntrySections failed", e); }
+
+                // 2. Fallback: Try Login Privilege Sections API
                 if (data.length === 0) {
-                    const globalRes = await GetLoginPrivilegeSectionsDropdown(ayId, clId);
-                    data = Array.isArray(globalRes?.data) ? globalRes.data : [];
+                    try {
+                        const globalRes = await GetLoginPrivilegeSectionsDropdown(ayId, clId);
+                        data = extractListData(globalRes, ['data']);
+                    } catch (e) { console.warn("GetLoginPrivilegeSectionsDropdown failed", e); }
+                }
+
+                // 3. Fallback: Try Staff Data for class (Matching Attendance Entry behavior)
+                if (data.length === 0) {
+                    try {
+                        const staffRes: any = await getStudentData({
+                            ASMAY_Id: ayId,
+                            ASMCL_Id: clId,
+                            classsecflag: '1'
+                        });
+                        data = extractListData(staffRes, ['sectionList', 'sectionlist']);
+                    } catch (e) { console.warn("getStudentData fallback for sections failed", e); }
                 }
 
                 setSections(data);
-                // Reset dependent selection
                 setPublishConfig(prev => ({ ...prev, targetSection: '' }));
             } catch (err) {
                 console.error(err);
