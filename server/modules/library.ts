@@ -134,6 +134,16 @@ export const libraryModule: IUserAccessibleModules = {
                             title: 'Book Return',
                             description: 'Process Book Returns'
                         },
+
+{
+                                            id: 30015,
+                                            name: 'Circulation Parameter',
+                                            icon: 'Settings',
+                                            url: '/library/transactions/circulation-parameter',
+                                            title: 'Circulation Parameter',
+                                            description: 'Manage Circulation Parameters'
+                                        },
+
                         {
                             id: 30016,
                             name: 'Book Transaction',

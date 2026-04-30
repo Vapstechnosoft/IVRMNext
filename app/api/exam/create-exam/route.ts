@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Next.js 15 Route Handler Configuration
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 const BASE_URL = 'https://examquiz-6b6c.onrender.com';
 

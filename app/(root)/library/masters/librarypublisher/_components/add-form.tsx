@@ -37,27 +37,23 @@ export default function AddMasterPublisherForm({ onSuccess, className = '' }: Ad
         mode: 'onChange'
     });
 
-    const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
+    const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const { lmP_PublisherName } = data;
-            const payload = {
-                lmP_Id: 0,
-                lmP_PublisherName: lmP_PublisherName
-            };
-
-            const response = await addOrUpdateMasterPublisher(payload);
+            const response = await addOrUpdateMasterPublisher({
+                ...data,
+                lmP_Id: 0
+            });
 
             if (response.success) {
-                toast.success(response.message);
+                toast.success(response.message || 'Master Publisher saved successfully');
                 reset();
-                //refetchMasterCasteCategoryCode();
                 refetchAll();
                 onSuccess?.();
             } else {
-                toast.error(response.message);
+                toast.error(response.message || 'Failed to save Master Publisher');
             }
         } catch (error: any) {
-            toast.error(error.message);
+            toast.error(error.message || 'Something went wrong');
         }
     };
 
@@ -74,31 +70,30 @@ export default function AddMasterPublisherForm({ onSuccess, className = '' }: Ad
                             label='Publisher Name'
                             required
                             id='lmP_PublisherName'
-                            placeholder='Enter publisher name'
+                            placeholder='e.g. Oxford University Press'
                             {...register('lmP_PublisherName')}
                             error={errors.lmP_PublisherName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                         <InputText
-                            label='Email Id :'
+                            label='Email Id'
+                            required
                             id='lmP_EMailId'
-                            placeholder='Enter publisher email'
+                            placeholder='e.g. contact@publisher.com'
                             {...register('lmP_EMailId')}
                             error={errors.lmP_EMailId?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                     </div>
-
-                    {/* Root Error */}
-                    {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <InputText
                             label='Mobile No'
+                            required
                             id='lmP_MobileNo'
-                            placeholder='Enter mobile number'
+                            placeholder='10-digit mobile number'
                             {...register('lmP_MobileNo')}
                             error={errors.lmP_MobileNo?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
@@ -116,6 +111,8 @@ export default function AddMasterPublisherForm({ onSuccess, className = '' }: Ad
                     {/* Root Error */}
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
+
+
 
 
 
