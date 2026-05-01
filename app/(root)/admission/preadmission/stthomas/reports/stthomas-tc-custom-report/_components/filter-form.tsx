@@ -14,7 +14,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { FileText, RefreshCw, Loader2, Search, Check, ChevronsUpDown, X } from 'lucide-react';
+import { FileText, RefreshCw, Loader2, Search, Check, X } from 'lucide-react';
+import { toast } from 'sonner';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
@@ -147,9 +148,19 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
 
     const selectedStudent = studentList.find(s => s.amsT_Id === selectedAmstId);
 
+    const onFormError = (errors: any) => {
+        Object.values(errors).forEach((error: any) => {
+            if (error.message) {
+                toast.error(error.message.toString().toLowerCase(), {
+                    id: error.message.toString(),
+                });
+            }
+        });
+    };
+
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit, onFormError)} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Report Type */}
                     <FormField
@@ -178,7 +189,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                         </div>
                                     </RadioGroup>
                                 </FormControl>
-                                <FormMessage />
+
                             </FormItem>
                         )}
                     />
@@ -210,7 +221,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                         </div>
                                     </RadioGroup>
                                 </FormControl>
-                                <FormMessage />
+
                             </FormItem>
                         )}
                     />
@@ -241,7 +252,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+
                             </FormItem>
                         )}
                     />
@@ -273,7 +284,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+
                             </FormItem>
                         )}
                     />
@@ -305,7 +316,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+
                             </FormItem>
                         )}
                     />
@@ -317,7 +328,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                             name="AMST_Id"
                             render={({ field }) => (
                                 <FormItem className="flex flex-col">
-                                    <FormLabel className="font-bold">Student Name <span className="text-red-500">*</span></FormLabel>
+                                <FormLabel className="font-bold">Student <span className="text-red-500">*</span></FormLabel>
                                     <Popover open={studentOpen} onOpenChange={setStudentOpen}>
                                         <PopoverTrigger asChild>
                                             <FormControl>
@@ -376,7 +387,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                             </Command>
                                         </PopoverContent>
                                     </Popover>
-                                    <FormMessage />
+
                                 </FormItem>
                             )}
                         />

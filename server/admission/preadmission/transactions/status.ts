@@ -1,20 +1,20 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import type { IStatusInitialData, IStatusSearchResponse } from '@/types/admission/preadmission/status';
+import type { IStatusInitialData, IStatusStudent } from '@/types/admission/preadmission/status';
 
 export async function getStatusInitialData() {
-    const url = '/Status/getinitialdata/';
+    const url = '/Status/getinitialdata';
     return await api.get<IStatusInitialData>('preadmission', url);
 }
 
 export async function searchStatusData(data: any) {
-    const url = '/Status/SearchData';
-    return await api.post<IStatusSearchResponse>('preadmission', url, data);
+    const url = `/Status/getdataonsearchfilter?ASMAY_Id=${data.ASMAY_Id}&ASMCL_Id=${data.ASMCL_Id}&PAMST_Id=${data.PAMST_Id}&status_type=${data.status_type}`;
+    return await api.post<IStatusStudent[]>('preadmission', url);
 }
 
 export async function saveStatusData(data: any) {
-    const url = '/Status/';
+    const url = '/Status/savedata';
     return await api.post<any>('preadmission', url, data);
 }
 

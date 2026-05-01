@@ -1,6 +1,6 @@
 export interface IStatusInitialData {
     academicList: { asmaY_Id: number; asmaY_Year: string }[];
-    classlist: { asmcl_Id: number; asmcL_ClassName: string }[];
+    classlist: { asmcL_Id: number; asmcL_ClassName: string }[];
     statuslist: { pamsT_Id: number; pamsT_Status: string }[];
 }
 
@@ -28,6 +28,4 @@ export interface IStatusStudent {
     selected?: boolean;
 }
 
-export interface IStatusSearchResponse {
-    studentlist: IStatusStudent[];
-}
+// IStatusSearchResponse is no longer needed as the API returns IStatusStudent[] directly in the data field.
