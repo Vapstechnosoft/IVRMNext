@@ -670,5 +670,23 @@ export const stJamesIX_XReportSchema = z.object({
         )
         .min(1, { message: 'At least one Exam must be selected' })
 });
-
 export type StJamesIX_XReportSchema = z.infer<typeof stJamesIX_XReportSchema>;
+
+export const ndsCoScholasticReportSchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
+});
+
+export type NDSCoScholasticReportSchema = z.infer<typeof ndsCoScholasticReportSchema>;
+
+export const gmvpsProgressCardIXSchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    date: z.string().min(1, 'Date is required'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
+});
+
+export type GmvpsProgressCardIXSchema = z.infer<typeof gmvpsProgressCardIXSchema>;

@@ -1536,7 +1536,10 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                     render={({ field }) => (
                                                         <Select
                                                             key={field.value || 'empty'}
-                                                            onValueChange={(value) => field.onChange(Number(value))}
+                                                            onValueChange={(value) => {
+                                                                field.onChange(Number(value));
+                                                                setValue('caste_Id', 0);
+                                                            }}
                                                             value={field.value?.toString() || ''}>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder='Select religion' />
@@ -1572,7 +1575,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
-                                                            key={field.value || 'empty'}
+                                                            key={`caste-${watch('religion_Id')}-${casteLoading}`}
                                                             onValueChange={(value) => field.onChange(Number(value))}
                                                             value={field.value?.toString() || ''}
                                                             disabled={!watch('religion_Id')}>
@@ -1894,8 +1897,11 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             render={({ field }) => (
                                                                 <Select
                                                                     key={field.value || 'empty'}
-                                                                    onValueChange={(value) => field.onChange(value)}
-                                                                    value={field.value ? String(field.value) : undefined}>
+                                                                    onValueChange={(value) => {
+                                                                        field.onChange(value);
+                                                                        setValue('pasR_ConState', 0);
+                                                                    }}
+                                                                    value={field.value ? String(field.value) : ''}>
                                                                     <SelectTrigger>
                                                                         <SelectValue placeholder='Select country' />
                                                                     </SelectTrigger>
@@ -1930,9 +1936,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
-                                                                    key={field.value || 'empty'}
+                                                                    key={`con-state-${watch('pasR_ConCountry')}-${conStateLoading}`}
                                                                     onValueChange={(value) => field.onChange(Number(value))}
-                                                                    value={field.value ? String(field.value) : undefined}
+                                                                    value={field.value ? String(field.value) : ''}
                                                                     disabled={isConStateDisabled}>
                                                                     <SelectTrigger>
                                                                         <SelectValue placeholder='Select state' />
@@ -2077,7 +2083,10 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             render={({ field }) => (
                                                                 <Select
                                                                     key={field.value || 'empty'}
-                                                                    onValueChange={(value) => field.onChange(value)}
+                                                                    onValueChange={(value) => {
+                                                                        field.onChange(value);
+                                                                        setValue('pasR_PerState', 0);
+                                                                    }}
                                                                     value={field.value?.toString() || ''}
                                                                     disabled={sameAsResidential}>
                                                                     <SelectTrigger>
@@ -2114,9 +2123,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
-                                                                    key={field.value || 'empty'}
+                                                                    key={`per-state-${watch('pasR_PerCountry')}-${perStateLoading}`}
                                                                     onValueChange={(value) => field.onChange(Number(value))}
-                                                                    value={field.value ? String(field.value) : undefined}
+                                                                    value={field.value ? String(field.value) : ''}
                                                                     disabled={isPerStateDisabled || sameAsResidential}>
                                                                     <SelectTrigger>
                                                                         <SelectValue placeholder='Select state' />

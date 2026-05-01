@@ -13,16 +13,17 @@ import {
     usePreadmissionClassDropdown,
     usePreadmissionDocumentsDropdown
 } from '@/hooks/admission/preadmission/useTransactions';
-import type { IPreadmissionDocumentView } from '@/types/admission/preadmission/transactions';
-import { CheckSquare } from 'lucide-react';
+import { IPreadmissionDocumentView } from '@/types/admission/preadmission/transactions';
+import { format } from 'date-fns';
+import { Calendar, CheckSquare } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
-import { use, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { DocumentViewColoumn } from './_components/columns';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function DocumentView(props: { searchParams: SearchParams }) {
-    const searchParams = use(props.searchParams);
+    const searchParams = (React as any).use(props.searchParams);
     const router = useRouter();
     const pathname = usePathname();
 
@@ -136,6 +137,36 @@ export default function DocumentView(props: { searchParams: SearchParams }) {
 
     return (
         <div className='min-h-screen'>
+            {/* Active Preadmission Details */}
+            {activePreadmission?.data && (
+                <div className='mb-4 bg-muted/50 border rounded-lg p-4 flex flex-wrap gap-6 items-center justify-between shadow-sm'>
+                    <div className='flex items-center gap-3'>
+                        <div className='p-2 bg-primary/10 rounded-full'>
+                            <Calendar className='h-5 w-5 text-primary' />
+                        </div>
+                        <div>
+                            <p className='text-xs text-muted-foreground font-medium uppercase tracking-wider'>Active Academic Year</p>
+                            <p className='text-lg font-bold text-foreground'>{activePreadmission.data.asmaY_Year}</p>
+                        </div>
+                    </div>
+
+                    <div className='flex gap-8'>
+                        <div className='flex flex-col'>
+                            <p className='text-xs text-muted-foreground font-medium uppercase tracking-wider'>Preadmission Start Date</p>
+                            <p className='font-semibold text-foreground'>
+                                {activePreadmission.data.asmaY_PreAdm_F_Date ? format(new Date(activePreadmission.data.asmaY_PreAdm_F_Date), 'dd-MM-yyyy') : 'N/A'}
+                            </p>
+                        </div>
+                        <div className='flex flex-col border-l pl-8'>
+                            <p className='text-xs text-muted-foreground font-medium uppercase tracking-wider'>Preadmission End Date</p>
+                            <p className='font-semibold text-foreground'>
+                                {activePreadmission.data.asmaY_PreAdm_T_Date ? format(new Date(activePreadmission.data.asmaY_PreAdm_T_Date), 'dd-MM-yyyy') : 'N/A'}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Filters Header */}
             <div className='mb-3 flex w-fit flex-col gap-4 rounded-xl border p-4 shadow-xl'>
                 <div className='flex flex-wrap justify-start gap-6'>

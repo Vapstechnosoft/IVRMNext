@@ -51,8 +51,8 @@ export default function AddStudentCountReportForm({
         resolver: zodResolver(masterStudentCountReportSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
-            report_type: '2',
-            range_type: 'between',
+            report_type: '1',
+            type: 'between',
             from_date: '',
             to_date: '',
             asmaY_Id: 0,
@@ -61,7 +61,7 @@ export default function AddStudentCountReportForm({
     });
 
     const watchReportType = watch('report_type');
-    const watchRangeType = watch('range_type');
+    const watchType = watch('type');
     const watchFromDate = watch('from_date');
     const watchToDate = watch('to_date');
     const watchAsmayId = watch('asmaY_Id');
@@ -82,12 +82,12 @@ export default function AddStudentCountReportForm({
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {
             const payload = {
-                type: 1, // Default type from schema
+                type: data.type,
                 report_type: Number(data.report_type),
-                from_date: data.range_type === 'between' && data.from_date ? new Date(data.from_date).toISOString() : new Date().toISOString(),
-                to_date: data.range_type === 'between' && data.to_date ? new Date(data.to_date).toISOString() : new Date().toISOString(),
-                asmaY_Id: data.asmaY_Id || 0,
-                asmcL_Id: data.asmcL_Id || 0
+                from_date: data.type === 'between' && data.from_date ? new Date(data.from_date).toISOString() : new Date().toISOString(),
+                to_date: data.type === 'between' && data.to_date ? new Date(data.to_date).toISOString() : new Date().toISOString(),
+                asmay_id: data.asmaY_Id || 0,
+                asmcl_id: data.asmcL_Id || 0
             };
 
             toast.loading('Searching...', { id: 'search-loading' });
@@ -110,7 +110,7 @@ export default function AddStudentCountReportForm({
                 try {
                     // If API already returned pagination meta (total), use it directly
                     if (response?.total != null) {
-                        queryClient.setQueryData([PREADMISSION_QUERY_KEYS.STUDENT_COUNT_REPORT, searchParams ?? {}], response);
+                        queryClient.setQueryData([PREADMISSION_QUERY_KEYS.STUDENT_COUNT_REPORT, payload ?? {}, searchParams ?? {}], response);
                     } else if (Array.isArray(response?.data)) {
                         // derive page and page_size from searchParams (they may be strings or arrays)
                         const parseParam = (k: string) => {
@@ -124,7 +124,7 @@ export default function AddStudentCountReportForm({
                         const start = (page - 1) * pageSize;
                         const pageData = response.data.slice(start, start + pageSize);
 
-                        queryClient.setQueryData([PREADMISSION_QUERY_KEYS.STUDENT_COUNT_REPORT, searchParams ?? {}], {
+                        queryClient.setQueryData([PREADMISSION_QUERY_KEYS.STUDENT_COUNT_REPORT, payload ?? {}, searchParams ?? {}], {
                             data: pageData,
                             total,
                             success: true,
@@ -132,7 +132,7 @@ export default function AddStudentCountReportForm({
                         });
                     } else {
                         // fallback: set whatever was returned
-                        queryClient.setQueryData([PREADMISSION_QUERY_KEYS.STUDENT_COUNT_REPORT, searchParams ?? {}], response);
+                        queryClient.setQueryData([PREADMISSION_QUERY_KEYS.STUDENT_COUNT_REPORT, payload ?? {}, searchParams ?? {}], response);
                     }
                 } catch (e) {
                     // noop
@@ -182,15 +182,16 @@ export default function AddStudentCountReportForm({
                                                 <SelectItem value='2'>Registered but not filled application form</SelectItem>
                                                 <SelectItem value='3'>Registered and filled application form</SelectItem>
                                                 <SelectItem value='4'>Registration payment done list (Application datewise)</SelectItem>
-                                                <SelectItem value='5'>Registration payment not done list</SelectItem>
-                                                <SelectItem value='6'>Partial/Admission payment done list</SelectItem>
-                                                <SelectItem value='7'>Sibling students list (Paid Students)</SelectItem>
-                                                <SelectItem value='8'>Transferred student (Admission Confirm)</SelectItem>
+                                                <SelectItem value='5'>Transferred student (Admission Confirm)</SelectItem>
+                                                <SelectItem value='6'>Registration payment not done list</SelectItem>
+                                                {watchType === 'between' && <SelectItem value='7'>Registration payment done list (Payment datewise)</SelectItem>}
+                                                {watchType === 'yearwise' && <SelectItem value='8'>Sibling students list (Paid Students)</SelectItem>}
+                                                <SelectItem value='9'>Partial/Admission payment done list</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     )}
                                 />
-                                <p className='mt-2 text-primary text-xs'>Registered students who completed the application form</p>
+                                {/* <p className='mt-2 text-primary text-xs'>Registered students who completed the application form</p> */}
                             </div>
 
                             {/* Middle column - range radio + dates */}
@@ -198,17 +199,18 @@ export default function AddStudentCountReportForm({
                                 <Label className='mb-2 block font-medium text-gray-700 text-sm'>Select Range</Label>
                                 <div className='mb-3 flex items-center gap-6'>
                                     <Controller
-                                        name="range_type"
+                                        name="type"
                                         control={control}
                                         render={({ field }) => (
                                             <RadioGroup
                                                 value={field.value}
                                                 onValueChange={(v) => {
                                                     field.onChange(v);
-                                                    if (v === 'yearwise') {
+                                                    // Reset report type if it's no longer valid for the selected range
+                                                    if (v === 'yearwise' && watchReportType === '7') {
                                                         setValue('report_type', '1');
-                                                    } else {
-                                                        setValue('report_type', '2');
+                                                    } else if (v === 'between' && watchReportType === '8') {
+                                                        setValue('report_type', '1');
                                                     }
                                                 }}
                                                 className='flex items-center gap-4'>
@@ -229,7 +231,7 @@ export default function AddStudentCountReportForm({
                                     />
                                 </div>
 
-                                {watchRangeType === 'between' && (
+                                {watchType === 'between' && (
                                     <div className='flex gap-2'>
                                         <Controller
                                             name="from_date"
@@ -301,7 +303,7 @@ export default function AddStudentCountReportForm({
                                     </div>
                                 )}
 
-                                {watchRangeType === 'yearwise' && (
+                                {watchType === 'yearwise' && (
                                     <div className='group flex flex-col gap-1.5'>
                                         <Label aria-label='academic-year' htmlFor='asmaY_Id'>
                                             Academic Year <span className='ml-1 text-red-500'>*</span>

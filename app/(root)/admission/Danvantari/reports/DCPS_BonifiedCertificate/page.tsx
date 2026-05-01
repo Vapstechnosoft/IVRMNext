@@ -170,8 +170,24 @@ export default function DanvantariBonafideCertificatePage() {
 
     /* -------------------- Actions -------------------- */
     const handleReport = async () => {
-        if (academicYearId === null || studentId === null) {
-            toast.error('Please select all required fields');
+        const validationErrors: string[] = [];
+        
+        if (!academicYearId) validationErrors.push('Please select Academic Year');
+        if (reportType === 'I') {
+            if (!courseId) validationErrors.push('Please select Course');
+            if (!branchId) validationErrors.push('Please select Branch');
+            if (!semesterId) validationErrors.push('Please select Semester');
+            if (!sectionId) validationErrors.push('Please select Section');
+        }
+        if (!reportDate) validationErrors.push('Please select Date');
+        if (!studentId) validationErrors.push('Please select Student Name');
+
+        if (validationErrors.length > 0) {
+            validationErrors.forEach((msg) => {
+                toast.error(msg.toLowerCase(), {
+                    id: msg,
+                });
+            });
             return;
         }
 
@@ -319,7 +335,7 @@ export default function DanvantariBonafideCertificatePage() {
                             <div className='grid grid-cols-[140px_1fr] items-center gap-4'>
                                 <Label className='text-sm font-bold'>Course:<span className={reportType === 'I' ? 'text-red-500' : 'hidden'}>*</span></Label>
                                 <Select
-                                    disabled={reportType === 'A' || !academicYearId}
+                                    disabled={reportType === 'A'}
                                     value={courseId?.toString()}
                                     onValueChange={(v) => handleCourseChange(Number(v))}
                                 >
@@ -339,7 +355,7 @@ export default function DanvantariBonafideCertificatePage() {
                             <div className='grid grid-cols-[140px_1fr] items-center gap-4'>
                                 <Label className='text-sm font-bold'>Branch:<span className={reportType === 'I' ? 'text-red-500' : 'hidden'}>*</span></Label>
                                 <Select
-                                    disabled={reportType === 'A' || !courseId}
+                                    disabled={reportType === 'A'}
                                     value={branchId?.toString()}
                                     onValueChange={(v) => handleBranchChange(Number(v))}
                                 >
@@ -359,7 +375,7 @@ export default function DanvantariBonafideCertificatePage() {
                             <div className='grid grid-cols-[140px_1fr] items-center gap-4'>
                                 <Label className='text-sm font-bold'>Semester:<span className={reportType === 'I' ? 'text-red-500' : 'hidden'}>*</span></Label>
                                 <Select
-                                    disabled={reportType === 'A' || !branchId}
+                                    disabled={reportType === 'A'}
                                     value={semesterId?.toString()}
                                     onValueChange={(v) => handleSemesterChange(Number(v))}
                                 >
@@ -379,7 +395,7 @@ export default function DanvantariBonafideCertificatePage() {
                             <div className='grid grid-cols-[140px_1fr] items-center gap-4'>
                                 <Label className='text-sm font-bold'>Section:<span className={reportType === 'I' ? 'text-red-500' : 'hidden'}>*</span></Label>
                                 <Select
-                                    disabled={reportType === 'A' || !semesterId}
+                                    disabled={reportType === 'A'}
                                     value={sectionId?.toString()}
                                     onValueChange={(v) => setSectionId(Number(v))}
                                 >
@@ -432,7 +448,6 @@ export default function DanvantariBonafideCertificatePage() {
                                         <Button
                                             variant="outline"
                                             role="combobox"
-                                            disabled={academicYearId === null}
                                             className={cn(
                                                 "w-full justify-between h-9 bg-white border-input font-normal",
                                                 studentId === null && "text-muted-foreground"
