@@ -54,3 +54,18 @@ export const recruitmentMasterPositionTypeSchema = z.object({
     hrmpT_Desc: z.string().min(1, 'Description is required').regex(/^[A-Za-z\s\-,'.]+$/, 'Description must contain only letters'),
     hrmpT_ActiveFlg: z.boolean().default(true),
 });
+
+// Master Priority Schema
+export const recruitmentMasterPrioritySchema = z.object({
+    hrmpR_Id: z.number().optional().default(0),
+    hrmP_Name: z
+        .string({ message: 'Priority Name is required' })
+        .min(1, 'Priority Name is required')
+        .max(100, 'Priority Name must not exceed 100 characters')
+        .regex(/^[A-Za-z\s\-,']+$/, 'Priority Name must contain only letters'),
+    hrmP_Order: z
+        .string({ message: 'Order is required' })
+        .min(1, 'Order is required')
+        .regex(/^[0-9]+$/, 'Order must be a number'),
+   hrmP_ActiveFlag: z.boolean().default(true)
+});

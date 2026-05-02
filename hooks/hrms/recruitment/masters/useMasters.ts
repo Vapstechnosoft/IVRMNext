@@ -8,6 +8,7 @@ import { getMasterLocation, getMasterLocationGridData, saveOrUpdateLocation, typ
 import { getMasterPositionGridData, saveOrUpdatePosition, togglePositionStatusData, type saveOrUpdatePositionPayload } 
 from '@/server/hrms/recruitment/masters/masterPosition';
 import { getMasterPositionTypeGridData, saveOrUpdatePositionType, togglePositionTypeStatusData, type saveOrUpdatePositionTypePayload } from '@/server/hrms/recruitment/masters/masterPositionsTypes';
+import { getMasterPriorityGridData, saveOrUpdatePriority, togglePriorityStatusData, type saveOrUpdatePriorityPayload } from '@/server/hrms/recruitment/masters/masterPriority';
 
 // ---------------------- Login Based Instittution Hook -----------------
 
@@ -208,6 +209,50 @@ export function useTogglePositionTypeStatus() {
         onSuccess: () => {
             queryClient.invalidateQueries({
                 queryKey: [RECRUITMENT_QUERY_KEYS.MASTER_POSITION_TYPE_GRID]
+            });
+        }
+    });
+}
+
+
+// -------------------------- Master Master Priority HOOKS --------------------------
+
+export function useGetMasterPriorityGrid() {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [RECRUITMENT_QUERY_KEYS.MASTER_PRIORITY_GRID],
+            queryFn: async () => getMasterPriorityGridData(),
+            staleTime: 0,
+            placeholderData: keepPreviousData
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [RECRUITMENT_QUERY_KEYS.MASTER_PRIORITY_GRID]
+            });
+        }
+    };
+}
+
+export function useSaveOrUpdatePriority() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (payload: saveOrUpdatePriorityPayload) => saveOrUpdatePriority(payload),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: [RECRUITMENT_QUERY_KEYS.MASTER_PRIORITY_GRID]
+            });
+        }
+    });
+}
+
+export function useTogglePriorityStatus() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (hrmpr_Id: number) => togglePriorityStatusData(hrmpr_Id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: [RECRUITMENT_QUERY_KEYS.MASTER_PRIORITY_GRID]
             });
         }
     });

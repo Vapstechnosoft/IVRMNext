@@ -1,348 +1,224 @@
-// Refactored by automation script on 2025-10-28T15:40:35.907Z
-// TODO: Complete refactoring by:
-// 1. Import columns from _components/columns.tsx
-// 2. Import form from _components/priority-form.tsx
-// 3. Extract column definitions and form to the respective files
-// 4. Update handlers to use the new structure
 'use client';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
-import type { ColumnDef } from '@tanstack/react-table';
-import { Edit, MoreHorizontal, Plus, RefreshCw, Save, Trash2, X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-import { type SubmitHandler, useForm } from 'react-hook-form';
+import {
+    useGetMasterPriorityGrid,
+    useSaveOrUpdatePriority,
+} from '@/hooks/hrms/recruitment/masters/useMasters';
+import { recruitmentMasterPrioritySchema } from '@/schemas/hrms/recruitment/masters';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { RefreshCw, Save } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-interface MasterPriority extends BaseEntity {
-    institution: string;
-    priority: string;
-    order: string;
-    isActive: boolean;
-}
-type MasterPriorityForm = {
-    institution: string;
-    priority: string;
-    order: string;
-    isActive: boolean;
-};
-const institutions = ['VAPS School', 'VAPS College', 'VAPS University', 'VAPS Institute', 'VAPS Academy'];
+import { z } from 'zod';
+import { getMasterPriorityColumns, type MasterPriority } from './_components/columns';
+import ToggleMasterPriorityModal from './_components/toggle-modal';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+type MasterPriorityForm = z.infer<typeof recruitmentMasterPrioritySchema>;
+
 export default function MasterPriorityPage() {
-    const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
-    const [priorities, setPriorities] = useState<MasterPriority[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isToggleOpen, setIsToggleOpen] = useState(false);
+    const [selectedPriority, setSelectedPriority] = useState<MasterPriority | null>(null);
+    const [resetkey, setResetkey] = useState(0);
     const formRef = useRef<HTMLDivElement>(null);
-    const priorityDB = createLocalCrud<MasterPriority>('master:priority');
+
+    const { mutateAsync: saveMutation, isPending: isSubmittingMutation } = useSaveOrUpdatePriority();
+
     const {
+        control,
         register,
         handleSubmit,
         reset,
-        setValue,
         watch,
-        formState: { errors, isSubmitting }
+        formState: { errors }
     } = useForm<MasterPriorityForm>({
+        resolver: zodResolver(recruitmentMasterPrioritySchema),
         mode: 'onChange',
         defaultValues: {
-            isActive: true
+            hrmpR_Id: 0,
+            hrmP_ActiveFlag: true,
+            hrmP_Name: '',
+            hrmP_Order: '',
         }
     });
-    const institution = watch('institution');
-    // Load data on component mount
-    useEffect(() => {
-        loadPriorities();
-    }, []);
-    const loadPriorities = () => {
-        try {
-            setPriorities(priorityDB.list());
-        } catch (_error) {
-            toast.error('Failed to load priorities');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-    const handleAddClick = () => {
-        setIsFormOpen(true);
+
+
+    const { data: priorityGridData, isLoading: isLoadingMasterPriority, refetchAll: refetchMasterPriority } = useGetMasterPriorityGrid()
+
+    const gridData = priorityGridData?.data ?? [];
+
+    const handleClear = () => {
         setEditingId(null);
-        reset({ isActive: true });
-        // Scroll to form after state update
-        setTimeout(() => {
-            formRef.current?.scrollIntoView({
-                behavior: 'smooth',
-                block: 'end'
-            });
-        }, 100);
+        reset({
+            hrmpR_Id: 0,
+            hrmP_ActiveFlag: true,
+            hrmP_Name: '',
+            hrmP_Order: '',
+           
+        });
+        setResetkey(prev => prev + 1);
     };
-    const handleFormClose = () => {
-        setIsFormOpen(false);
+
+    const handleFullClear = () => {
         setEditingId(null);
-        reset({ isActive: true });
+        reset({ hrmpR_Id: 0, hrmP_ActiveFlag: true, hrmP_Name: '', hrmP_Order: ''});
+        setResetkey(prev => prev + 1);
     };
-    const onSubmit: SubmitHandler<MasterPriorityForm> = async (data: MasterPriorityForm) => {
+
+    const onSubmit: SubmitHandler<MasterPriorityForm> = async (data) => {
+        console.log("form data",data);
         try {
-            if (editingId) {
-                priorityDB.update(editingId, data);
-                toast.success('Priority updated successfully');
+            const payload = {
+                hrmpR_Id: editingId || 0,
+                hrmP_Name: data.hrmP_Name,
+                hrmP_Order: Number(data.hrmP_Order),
+                hrmP_ActiveFlag: data.hrmP_ActiveFlag ?? true
+            };
+            const result = await saveMutation(payload);
+            if (result.success) {
+                toast.success(editingId ? 'Priority updated successfully' : 'Priority created successfully');
+                await refetchMasterPriority();
+                handleFullClear();
             } else {
-                priorityDB.create(data as Omit<MasterPriority, 'id' | 'createdAt'>);
-                toast.success('Priority created successfully');
+                toast.error(result.message || 'Operation failed');
             }
-            loadPriorities();
-            handleFormClose();
         } catch (error: any) {
             toast.error(error.message || 'Operation failed');
         }
     };
+
     const handleEdit = (priority: MasterPriority) => {
-        setEditingId(priority.id);
-        setValue('institution', priority.institution);
-        setValue('priority', priority.priority);
-        setValue('order', priority.order);
-        setValue('isActive', priority.isActive);
-        setIsFormOpen(true);
-        // Scroll to form after state update
+        setEditingId(priority.hrmpR_Id);
+      
+        reset({
+            hrmpR_Id: priority.hrmpR_Id,
+            hrmP_Name: priority.hrmP_Name,
+            hrmP_Order: priority.hrmP_Order.toString(),
+            hrmP_ActiveFlag: priority.hrmP_ActiveFlag,
+           
+        });
         setTimeout(() => {
-            formRef.current?.scrollIntoView({
-                behavior: 'smooth',
-                block: 'end'
-            });
+            formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
         }, 100);
     };
-    const handleDelete = (id: number) => {
-        try {
-            priorityDB.remove(id);
-            toast.success('Priority deleted successfully');
-            loadPriorities();
-        } catch (_error: any) {
-            toast.error('Failed to delete priority');
-        }
+
+    const handleToggle = (priority: MasterPriority) => {
+        setSelectedPriority(priority);
+        setIsToggleOpen(true);
     };
+
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                {/* Header */}
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    {/* <div className='space-y-1'>
-                        <Heading
-                            title='Master Priority Management'
-                            description='Manage priority levels and their ordering for recruitment processes'
-                        />
-                    </div> */}
-                    <Button
-                        type='button'
-                        onClick={handleAddClick}
-                        size='lg'
-                        className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                        <Plus className='h-4 w-4' />
-                        Add Master Priority
-                    </Button>
+                <div ref={formRef} className='slide-in-from-top-4 animate-in duration-300'>
+                    <CollapsibleSection
+                        title={editingId ? 'Update Master Priority' : 'Add New Master Priority'}
+                        description='Fill in the details below to manage priority levels'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='shadow-lg'
+                        headerClassName=''>
+                        <div className='relative'>
+                            <form onSubmit={handleSubmit(onSubmit)} className='max-w-full space-y-6'>
+                                <div className='space-y-4'>
+                                    <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
+                                        <InputText
+                                            key={`name-${resetkey}`}
+                                            label='Priority Name'
+                                            required
+                                            id='hrmP_Name'
+                                            {...register('hrmP_Name')}
+                                            error={errors.hrmP_Name?.message}
+                                            className='mt-0 transition-colors focus:ring-2 focus:ring-primary/20'
+                                            placeholder='Enter Priority Name'
+                                        />
+                                        <InputText
+                                            key={`order-${resetkey}`}
+                                            label='Priority Order'
+                                            required
+                                            id='hrmP_Order'
+                                            {...register('hrmP_Order')}
+                                            error={errors.hrmP_Order?.message}
+                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                            placeholder='Enter Priority Order'
+                                        />
+                                    </div>
+                                </div>
+                                {/* Action Buttons */}
+                                <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
+                                    <Button
+                                        type='button'
+                                        variant='outline'
+                                        onClick={handleFullClear}
+                                        disabled={isSubmittingMutation}
+                                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        type='submit'
+                                        disabled={isSubmittingMutation}
+                                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
+                                        {isSubmittingMutation ? (
+                                            <div className='flex items-center'>
+                                                <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
+                                                Saving...
+                                            </div>
+                                        ) : (
+                                            <div className='flex items-center'>
+                                                <Save className='mr-2 h-4 w-4' />
+                                                {editingId ? 'Update Master Priority' : 'Save Master Priority'}
+                                            </div>
+                                        )}
+                                    </Button>
+                                </div>
+                            </form>
+                        </div>
+                    </CollapsibleSection>
                 </div>
-                {/* Data Table Section - Collapsible but default open */}
+
+                {/* Data Table Section */}
                 <CollapsibleSection
-                    // title='Master Priorities Data'
-                    // description='View, search, and manage all priority levels in the system'
+                    title='Master Priority Details'
+                    description='Manage priority levels and orders'
                     defaultOpen={true}
-                    variant='default'
                     size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
-                    headerClassName=''>
-                    <PriorityTable priorities={priorities} isLoading={isLoading} onEdit={handleEdit} onDelete={handleDelete} />
-                </CollapsibleSection>
-                {/* Add Form Section - Conditionally Rendered */}
-                {isFormOpen && (
-                    <div ref={formRef} className='slide-in-from-top-4 animate-in duration-300'>
-                        <CollapsibleSection
-                            // title={editingId ? 'Update Master Priority' : 'Add New Master Priority'}
-                            // description='Fill in the details below to create a new priority level'
-                            defaultOpen={true}
-                            variant='outline'
-                            size='md'
-                            className='shadow-lg'
-                            headerClassName=''>
-                            <div className='relative'>
-                                <Button
-                                    onClick={handleFormClose}
-                                    variant='ghost'
-                                    size='sm'
-                                    className='-top-[4rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                    <X className='h-4 w-4 text-destructive' /> Close
-                                </Button>
-                                <form onSubmit={handleSubmit(onSubmit)} className='max-w-full space-y-6'>
-                                    {/* Primary Information Section */}
-                                    <div className='space-y-4'>
-                                        <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
-                                            <div className='space-y-2'>
-                                                <span className='font-medium text-sm'>
-                                                    Institution <span className='text-red-500'>*</span>
-                                                </span>
-                                                <Select value={institution || ''} onValueChange={(value) => setValue('institution', value)}>
-                                                    <SelectTrigger className={errors.institution ? 'border-red-500' : ''}>
-                                                        <SelectValue placeholder='Select Institution' />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {institutions.map((inst) => (
-                                                            <SelectItem key={inst} value={inst}>
-                                                                {inst}
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                                {!institution && (
-                                                    <input
-                                                        type='hidden'
-                                                        {...register('institution', {
-                                                            required: 'Institution is required'
-                                                        })}
-                                                    />
-                                                )}
-                                                {errors.institution && <FormError>{errors.institution.message}</FormError>}
-                                            </div>
-                                            <InputText
-                                                label='Order'
-                                                required
-                                                id='order'
-                                                {...register('order', { required: 'Order is required' })}
-                                                error={errors.order?.message}
-                                                className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                            />
-                                        </div>
-                                        <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
-                                            <InputText
-                                                label='Priority'
-                                                required
-                                                id='priority'
-                                                {...register('priority', { required: 'Priority is required' })}
-                                                error={errors.priority?.message}
-                                                className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                            />
-                                            <div className='flex items-center space-y-2 pt-6'>
-                                                <input
-                                                    type='checkbox'
-                                                    id='isActive'
-                                                    {...register('isActive')}
-                                                    className='mr-2 border-border text-primary focus:ring-primary'
-                                                />
-                                                <label htmlFor='isActive' className='font-medium text-foreground text-sm'>
-                                                    Active
-                                                </label>
-                                            </div>
-                                        </div>
-                                        {/* Root Error */}
-                                        {errors.root && <FormError>{errors.root.message}</FormError>}
-                                    </div>
-                                    {/* Action Buttons */}
-                                    <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
-                                        <Button
-                                            type='button'
-                                            variant='outline'
-                                            onClick={handleFormClose}
-                                            disabled={isSubmitting}
-                                            className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                                            Cancel
-                                        </Button>
-                                        <Button
-                                            type='submit'
-                                            disabled={isSubmitting}
-                                            className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
-                                            {isSubmitting ? (
-                                                <div className='flex items-center'>
-                                                    <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
-                                                    Saving...
-                                                </div>
-                                            ) : (
-                                                <div className='flex items-center'>
-                                                    <Save className='mr-2 h-4 w-4' />
-                                                    {editingId ? 'Update Master Priority' : 'Save Master Priority'}
-                                                </div>
-                                            )}
-                                        </Button>
-                                    </div>
-                                </form>
+                    className='shadow-lg'
+                >
+                    {
+                        (isLoadingMasterPriority || gridData.length > 0 ) ? (
+                            <GenericDataTable
+                                data={gridData || []}
+                                columns={getMasterPriorityColumns({ onEdit: handleEdit, onToggle: handleToggle })}
+                                isLoading={isLoadingMasterPriority}
+                                totalItems={gridData?.length || 0}
+                                showViewOptions={false}
+                            />
+                        ) : (
+                            <div className='flex items-center justify-center py-10'>
+                                <p className='text-muted-foreground text-md'>Please Select Institution to View Data</p>
                             </div>
-                        </CollapsibleSection>
-                    </div>
+                        )
+                    }
+                </CollapsibleSection>
+
+                {/* Toggle Modal */}
+                {selectedPriority && (
+                    <ToggleMasterPriorityModal
+                        isOpen={isToggleOpen}
+                        rowData={selectedPriority}
+                        onClose={() => setIsToggleOpen(false)}
+                        onSuccess={() => refetchMasterPriority()}
+                    />
                 )}
+
             </div>
         </div>
-    );
-}
-interface PriorityTableProps {
-    priorities: MasterPriority[];
-    isLoading: boolean;
-    onEdit: (priority: MasterPriority) => void;
-    onDelete: (id: number) => void;
-}
-function PriorityTable({ priorities, isLoading, onEdit, onDelete }: PriorityTableProps) {
-    const priorityColumns: ColumnDef<MasterPriority>[] = [
-        {
-            id: 'serialNumber',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Sl No' />,
-            cell: ({ row }) => <div className='font-medium'>{row.index + 1}</div>,
-            enableSorting: false
-        },
-        {
-            accessorKey: 'priority',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Priority' />,
-            cell: ({ row }) => <div className='font-medium'>{row.getValue('priority')}</div>
-        },
-        {
-            accessorKey: 'order',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Order' />,
-            cell: ({ row }) => <div>{row.getValue('order')}</div>
-        },
-        {
-            accessorKey: 'isActive',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
-            cell: ({ row }) => {
-                const isActive = row.getValue('isActive') as boolean;
-                return <Badge variant={isActive ? 'default' : 'secondary'}>{isActive ? 'Active' : 'Inactive'}</Badge>;
-            }
-        },
-        {
-            id: 'actions',
-            header: 'Actions',
-            cell: ({ row }) => {
-                const priority = row.original;
-                return (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant='ghost' className='h-8 w-8 p-0'>
-                                <MoreHorizontal className='h-4 w-4' />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align='end'>
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <Button variant='ghost' size='sm' onClick={() => onEdit(priority)} className='w-full justify-start'>
-                                <Edit className='mr-2 h-4 w-4' />
-                                Edit
-                            </Button>
-                            <Button
-                                variant='ghost'
-                                size='sm'
-                                onClick={() => onDelete(priority.id)}
-                                className='w-full justify-start text-red-600 hover:text-red-900'>
-                                <Trash2 className='mr-2 h-4 w-4' />
-                                Delete
-                            </Button>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                );
-            }
-        }
-    ];
-    return (
-        <GenericDataTable
-            isLoading={isLoading}
-            columns={priorityColumns}
-            data={priorities}
-            totalItems={priorities.length}
-            showViewOptions={true}
-        />
     );
 }
