@@ -1,13 +1,15 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import { 
-    NDS9ReportPayload, 
-    NDS9ReportResponse, 
-    ClassListResponse, 
-    SectionListResponse, 
+import {
+    NDS9ReportPayload,
+    NDS9ReportResponse,
+    ClassListResponse,
+    SectionListResponse,
     StudentListResponse,
-    NDS9ReportData
+    NDS9ReportData,
+    NDS15ReportData,
+    NDS15ReportResponse
 } from '@/types/exam/NDS/NDS_9_ProgressNewCardReport';
 
 export async function getClasses(asmay_id: number) {
@@ -33,6 +35,15 @@ export async function getNDS9Report(payload: NDS9ReportPayload): Promise<NDS9Rep
     return {
         success: response?.success ?? false,
         data: (response?.data || response) as any as NDS9ReportResponse,
+        message: response?.message
+    };
+}
+
+export async function getNDS15Report(payload: NDS9ReportPayload): Promise<NDS15ReportData> {
+    const response = await api.post<any>('exam', '/JSHSExamReports_/nds_6_8_report', payload);
+    return {
+        success: response?.success ?? false,
+        data: (response?.data || response) as any as NDS15ReportResponse,
         message: response?.message
     };
 }

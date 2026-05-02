@@ -17,6 +17,31 @@ export interface NDS9ReportResponse {
     getpromotionremarksdetails: any[];
 }
 
+export interface NDS15ReportResponse {
+    getstudentmarksdetails: any[];
+    gettermdetails: any[];
+    gettermexamdetails: any[];
+    getgroupdetails: any[];
+    getgroupexamdetails: any[];
+    getstudentdetails: any[];
+    getstudentwisesubjectlist: any[];
+    getstudentwiseskillslist: any[];
+    getstudentwiseactiviteslist: any[];
+    getstudentwiseattendancedetails: any[];
+    getstudentwisesportsdetails: any[];
+    getsudentwisehousedetails: any[];
+    getsubjectwisetotaldetails: any[];
+    getpromotionremarksdetails: any[];
+    examwiseremarks: any[];
+    getparticipatedetails: any[];
+}
+
+export interface NDS15ReportData {
+    success: boolean;
+    data: NDS15ReportResponse;
+    message?: string;
+}
+
 export interface ClassListResponse {
     success: boolean;
     getclasslist: { asmcL_Id: number; asmcL_ClassName: string }[];
