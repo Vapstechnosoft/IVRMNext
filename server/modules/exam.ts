@@ -31,14 +31,6 @@ export const examModule: IUserAccessibleModules = {
                     icon: 'Trophy',
                     pages: [
                         {
-                            id: 1001,
-                            name: 'AI MCQ Quiz',
-                            icon: 'Trophy',
-                            url: '/StaffPortal/ai-mcq-quiz',
-                            title: 'AI MCQ Quiz',
-                            description: 'Generate and manage AI-powered MCQ quizzes'
-                        },
-                        {
                             id: 1002,
                             name: 'AI Performance Analysis',
                             icon: 'BarChart',

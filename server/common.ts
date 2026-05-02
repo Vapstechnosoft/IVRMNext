@@ -2009,29 +2009,6 @@ export async function getUserAccessibleModules() {
                                     ]
                                 },
                                 {
-                                    id: 1000,
-                                    name: 'AI MCQ QUIZ',
-                                    icon: 'Trophy',
-                                    pages: [
-                                        {
-                                            id: 1001,
-                                            name: 'AI MCQ Quiz',
-                                            icon: 'Trophy',
-                                            url: '/StaffPortal/ai-mcq-quiz',
-                                            title: 'AI MCQ Quiz',
-                                            description: 'Generate and manage AI-powered MCQ quizzes'
-                                        },
-                                        {
-                                            id: 1002,
-                                            name: 'AI Performance Analysis',
-                                            icon: 'BarChart',
-                                            url: '/Exam/exam-module/ai-performance-analysis',
-                                            title: 'AI Performance Analysis',
-                                            description: 'Analyze student performance using AI insights'
-                                        }
-                                    ]
-                                },
-                                {
                                     id: 9,
                                     name: 'Configuration',
                                     icon: 'Settings',
