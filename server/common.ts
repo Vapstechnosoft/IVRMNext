@@ -203,6 +203,14 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/reports/preadmission-month-end-report',
                                             title: 'PreAdmission Month End Report',
                                             description: 'PreAdmission Month End Report'
+                                        },
+                                        {
+                                            id: 11,
+                                            name: 'Schedule Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/schedule-report',
+                                            title: 'Schedule Report',
+                                            description: 'Schedule Report'
                                         }
                                     ]
                                 }

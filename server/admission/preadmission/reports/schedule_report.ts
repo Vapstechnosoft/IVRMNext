@@ -39,15 +39,15 @@ export async function getScheduleReportDetails(data: {
     schids: string;
     stype: number;
 }) {
-    const url = '/ScheduleReport/Getreportdetails';
-    return await api.post<IScheduleReportDetailsResponse>('preadmission', url, data);
+    const url = `/ScheduleReport/Getreportdetails?asmayid=${data.asmayid}&asmclid=${data.asmclid}&fromdate=${data.fromdate}&todate=${data.todate}&flagows=${data.flagows}&schids=${data.schids}&stype=${data.stype}`;
+    return await api.get<IScheduleReportDetailsResponse>('preadmission', url);
 }
 
 /**
  * Sends/Resends schedule emails to selected students.
  */
 export async function sendScheduleMail(data: {
-    SmsMailStudentDetailst: any[];
+    smsMailStudentDetailst: any[];
 }) {
     const url = '/ScheduleReport/SendMail';
     return await api.post<any>('preadmission', url, data);

@@ -122,7 +122,11 @@ export const PREADMISSION_QUERY_KEYS = {
     CHARACTER_CERTIFICATE_REPORT: 'character_certificate_report',
     GENERATE_QR_CODE_CERTIFICATE: 'generate_qr_code_certificate',
     SCHEDULE_REPORT: 'schedule_report',
-    SCHEDULE_LIST: 'schedule_list'
+    SCHEDULE_LIST: 'schedule_list',
+    ORAL_TEST_SCHEDULE_DETAILS: 'oral_test_schedule_details',
+    CLASSWISE_STUDENTS: 'classwise_students',
+    ORAL_TEST_RESCHEDULE_DETAILS: 'oral_test_reschedule_details',
+    RESCHEDULE_REPORT: 'reschedule_report'
 };
 
 export const FEES_QUERY_KEYS = {
