@@ -16,7 +16,8 @@ export const env = createEnv({
         HRMS_API_BASE_URL: z.string(),
         HRMS_FRONTOFFICE_BASE_URL: z.string(),
         HRMS_LMS_BASE_URL: z.string(),
-        TIMETABLE_API_BASE_URL: z.string()
+        TIMETABLE_API_BASE_URL: z.string(),
+        HRMS_RECRUITEMENT_BASE_URL: z.string(),
     },
     experimental__runtimeEnv: process.env
 });
@@ -33,7 +34,8 @@ export const clientEnv = createEnv({
         NEXT_PUBLIC_HRMS_API_BASE_URL: z.string(),
         NEXT_PUBLIC_HRMS_FRONTOFFICE_BASE_URL: z.string(),
         NEXT_PUBLIC_HRMS_LMS_BASE_URL: z.string(),
-        NEXT_PUBLIC_TIMETABLE_API_BASE_URL: z.string()
+        NEXT_PUBLIC_TIMETABLE_API_BASE_URL: z.string(),
+        NEXT_PUBLIC_HRMS_RECRUITMENT_API_BASE_URL: z.string(),
     },
     experimental__runtimeEnv: {
         NEXT_PUBLIC_APP_NODE_ENV: process.env.NEXT_PUBLIC_APP_NODE_ENV,
@@ -45,6 +47,7 @@ export const clientEnv = createEnv({
         NEXT_PUBLIC_HRMS_API_BASE_URL: process.env.NEXT_PUBLIC_HRMS_API_BASE_URL,
         NEXT_PUBLIC_HRMS_FRONTOFFICE_BASE_URL: process.env.NEXT_PUBLIC_HRMS_FRONTOFFICE_BASE_URL,
         NEXT_PUBLIC_HRMS_LMS_BASE_URL: process.env.NEXT_PUBLIC_HRMS_LMS_BASE_URL,
-        NEXT_PUBLIC_TIMETABLE_API_BASE_URL: process.env.NEXT_PUBLIC_TIMETABLE_API_BASE_URL
+        NEXT_PUBLIC_TIMETABLE_API_BASE_URL: process.env.NEXT_PUBLIC_TIMETABLE_API_BASE_URL,
+        NEXT_PUBLIC_HRMS_RECRUITMENT_API_BASE_URL: process.env.NEXT_PUBLIC_HRMS_RECRUITMENT_API_BASE_URL
     }
 });
