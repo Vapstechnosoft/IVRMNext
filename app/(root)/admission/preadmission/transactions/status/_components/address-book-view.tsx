@@ -7,49 +7,97 @@ interface AddressBookViewProps {
 }
 
 const AddressBookView = React.forwardRef<HTMLDivElement, AddressBookViewProps>(({ data }, ref) => {
+    if (!data || data.length === 0) {
+        return (
+            <div ref={ref} className='p-5 text-center bg-white text-black'>
+                No data selected for address book.
+            </div>
+        );
+    }
+
     return (
-        <div ref={ref} className="p-4 bg-white text-black">
-            <h3 className="text-xl font-bold border-b pb-2 mb-6 text-center uppercase">Address Book</h3>
-            <div className="grid grid-cols-2 gap-8">
+        <div ref={ref} className='print-preview-container bg-white text-black min-h-full w-full'>
+            <style dangerouslySetInnerHTML={{
+                __html: `
+                    @media print {
+                        @page {
+                            margin: 10mm;
+                            size: A4 portrait;
+                        }
+                        body {
+                            visibility: hidden;
+                            background: white;
+                            margin: 0;
+                            padding: 0;
+                        }
+                        .print-preview-container {
+                            visibility: visible !important;
+                            position: absolute;
+                            left: 0;
+                            top: 0;
+                            width: 100%;
+                            background: white;
+                            z-index: 9999;
+                            color: black;
+                        }
+                        .print-preview-container * {
+                            visibility: visible !important;
+                        }
+                        .address-grid {
+                            display: grid;
+                            grid-template-columns: repeat(2, 1fr);
+                            gap: 15px;
+                            width: 100%;
+                        }
+                        .address-card {
+                            border: 1px solid #000;
+                            padding: 15px;
+                            border-radius: 4px;
+                            font-size: 12px;
+                            break-inside: avoid;
+                            background: white;
+                        }
+                        .header-section {
+                            text-align: center;
+                            padding-bottom: 20px;
+                            border-bottom: 1px solid #000;
+                            margin-bottom: 20px;
+                        }
+                    }
+                `
+            }} />
+
+            <div className='header-section'>
+                <h2 className='text-xl font-bold uppercase underline'>Address Book</h2>
+                <p className='text-sm text-gray-600'>Total Records: {data.length}</p>
+            </div>
+
+            <div className='address-grid'>
                 {data.map((user, index) => (
-                    <div key={index} className="border p-4 rounded shadow-sm break-inside-avoid">
-                        <table className="w-full text-sm">
-                            <tbody>
-                                {user.pasR_FirstName && (
-                                    <tr>
-                                        <td className="uppercase font-bold">
-                                            {user.pasR_FirstName} ({user.pasR_RegistrationNo})
-                                        </td>
-                                    </tr>
-                                )}
-                                {user.pasR_FatherName && (
-                                    <tr>
-                                        <td>
-                                            S/o <span className="uppercase">{user.pasR_FatherName}</span>
-                                        </td>
-                                    </tr>
-                                )}
-                                <tr>
-                                    <td>
-                                        {user.pasR_ConStreet && <div className="max-w-[300px] break-words">{user.pasR_ConStreet},</div>}
-                                        {user.pasR_ConArea && <div className="max-w-[300px] break-words">{user.pasR_ConArea},</div>}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div className="max-w-[300px] break-words">
-                                            {user.pasR_ConCity}
-                                            {user.pasR_ConPincode && <span> - {user.pasR_ConPincode}</span>}
-                                        </div>
-                                    </td>
-                                </tr>
-                                {user.pasR_MobileNo && (
-                                    <tr>
-                                        <td>Mobile No: {user.pasR_MobileNo}</td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
+                    <div key={index} className='address-card'>
+                        <div className='font-bold uppercase border-b pb-1 mb-2'>
+                            {user.name} ({user.pasR_RegistrationNo})
+                        </div>
+                        <div className='space-y-1'>
+                            {user.pasR_FatherName && (
+                                <div><span className='font-semibold'>S/O:</span> <span className='uppercase'>{user.pasR_FatherName}</span></div>
+                            )}
+                            <div className='mt-2'>
+                                <span className='font-semibold'>Address:</span><br />
+                                {user.pasR_ConStreet && <div>{user.pasR_ConStreet},</div>}
+                                {user.pasR_ConArea && <div>{user.pasR_ConArea},</div>}
+                                <div>
+                                    {user.pasR_ConCity}
+                                    {user.pasR_ConPincode && <span> - {user.pasR_ConPincode}</span>}
+                                </div>
+                            </div>
+                            {user.pasR_MobileNo && (
+                                <div className='mt-2 font-semibold'>Mobile: {user.pasR_MobileNo}</div>
+                            )}
+                            {user.pasR_emailId && (
+                                <div className='text-xs text-gray-600'>{user.pasR_emailId}</div>
+                            )}
+                        </div>
                     </div>
                 ))}
             </div>

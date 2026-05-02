@@ -97,3 +97,41 @@ export type StudyCertificateResponse = {
 export type GenerateQRCodeResponse = {
     ascisS_QRCode: string;
 };
+
+export interface IScheduleReportList {
+    name: string;
+    regno: string;
+    class: string;
+    gender: string;
+    ScheduleDate: string;
+    ScheduleTime: string;
+    ScheduleTimeTo: string;
+    PAOTS_Remarks: string;
+    age: string;
+    place: string;
+    fathername: string;
+    PASR_DOB: string;
+    PASR_emailId: string;
+    PASR_MobileNo: string;
+    PASR_PerStreet: string;
+    PASR_PerArea: string;
+    PASR_PerCity: string;
+    PASR_PerPincode: string;
+    Category: string;
+    Medium: string;
+    Syllabus: string;
+    selected?: boolean;
+}
+
+export interface IScheduleReportInitialDetailsResponse {
+    year: { asmaY_Id: number; asmaY_Year: string }[];
+    classname: { asmcL_Id: number; asmcL_ClassName: string }[];
+}
+
+export interface IScheduleListResponse {
+    writentestlist: { disid: number; disname: string }[];
+}
+
+export interface IScheduleReportDetailsResponse {
+    searchstudentlist: IScheduleReportList[];
+}

@@ -109,30 +109,30 @@ export async function getUserAccessibleModules() {
                                         //     description: 'Apply for Registration'
                                         // },
 
-                                        {
-                                            id: 3,
-                                            name: 'Transfer Application Status',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/transactions/transfer-application-status',
-                                            title: 'Transfer Application Status',
-                                            description: 'Manage Transfer Application Status Details'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'Transfer Admission Status',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/transactions/transfer-admission-status',
-                                            title: 'Transfer Admission Status',
-                                            description: 'Manage Transfer Admission Status Details'
-                                        },
                                         // {
                                         //     id: 3,
                                         //     name: 'Transfer Application Status',
                                         //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/transactions/status',
+                                        //     url: '/admission/preadmission/transactions/transfer-application-status',
                                         //     title: 'Transfer Application Status',
                                         //     description: 'Manage Transfer Application Status Details'
                                         // },
+                                        // {
+                                        //     id: 4,
+                                        //     name: 'Transfer Admission Status',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/transactions/transfer-admission-status',
+                                        //     title: 'Transfer Admission Status',
+                                        //     description: 'Manage Transfer Admission Status Details'
+                                        // },
+                                        {
+                                            id: 3,
+                                            name: 'Transfer Application Status',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/transactions/status',
+                                            title: 'Transfer Application Status',
+                                            description: 'Manage Transfer Application Status Details'
+                                        },
                                         {
                                             id: 5,
                                             name: 'Transfer to Admission',
@@ -203,6 +203,14 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/reports/preadmission-month-end-report',
                                             title: 'PreAdmission Month End Report',
                                             description: 'PreAdmission Month End Report'
+                                        },
+                                        {
+                                            id: 11,
+                                            name: 'Schedule Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/schedule-report',
+                                            title: 'Schedule Report',
+                                            description: 'Schedule Report'
                                         }
                                     ]
                                 }
