@@ -2723,6 +2723,22 @@ export async function getUserAccessibleModules() {
                                             description: 'Sophia_Topper List Report'
                                         },
                                         {
+                                            id: 21099,
+                                            name: 'Sophia_Promotion Report Card',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Sophia/PromotionReportCardSophia',
+                                            title: 'Sophia_Promotion Report Card',
+                                            description: 'Sophia_Promotion Report Card'
+                                        },
+                                        {
+                                            id: 21100,
+                                            name: 'Final Promotion VI_TO_VIII Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Sophia/FinalpromoreportVI_TO_VIII',
+                                            title: 'Final Promotion VI_TO_VIII Report',
+                                            description: 'Final Promotion VI_TO_VIII Report'
+                                        },
+                                        {
                                             id: 21016,
                                             name: 'StJames_Consolidation Report',
                                             icon: 'BookOpen',

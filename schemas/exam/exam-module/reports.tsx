@@ -682,3 +682,21 @@ export const gmvpsProgressCardIXSchema = z.object({
 });
 
 export type GmvpsProgressCardIXSchema = z.infer<typeof gmvpsProgressCardIXSchema>;
+
+export const promotionReportCardSophiaSchema = z.object({
+    mI_Id: z.number().optional(),
+    asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
+    asmcL_Id: z.number({ required_error: 'Class is required' }).min(1, { message: 'Please select Class' }),
+    asmS_Id: z.number({ required_error: 'Section is required' }).min(1, { message: 'Please select Section' }),
+    from_date: z.date({ required_error: 'From Date is required' }),
+    to_date: z.date({ required_error: 'To Date is required' }),
+    studentList: z
+        .array(
+            z.object({
+                amsT_Id: z.number({ required_error: 'Student is required' }).min(1, { message: 'Please select a Student' })
+            })
+        )
+        .min(1, { message: 'At least one Student must be selected' })
+});
+
+export type PromotionReportCardSophiaSchema = z.infer<typeof promotionReportCardSophiaSchema>;
