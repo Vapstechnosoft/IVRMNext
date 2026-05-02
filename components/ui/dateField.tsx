@@ -103,12 +103,17 @@ export const DateField: React.FC<DateFieldProps> = ({
                 <PopoverContent className='flex w-auto items-start p-0' align='start'>
                     <CalendarYear
                         mode='single'
-                        captionLayout='buttons'
                         selected={selectedDate ?? undefined}
                         onSelect={handleSelect}
                         onDayClick={() => setIsOpen(false)}
-                        fromDate={fromDate}
-                        toDate={toDate}
+                        // v9: startMonth/endMonth replace fromDate/toDate for navigation limits
+                        startMonth={fromDate}
+                        endMonth={toDate}
+                        // v9: hidden replaces fromDate/toDate for disabling dates
+                        hidden={[
+                            ...(fromDate ? [{ before: fromDate }] : []),
+                            ...(toDate ? [{ after: toDate }] : [])
+                        ]}
                     />
                 </PopoverContent>
             </Popover>
