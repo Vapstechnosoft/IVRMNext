@@ -3025,6 +3025,14 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/NDS/NDS9ProgressCardReport',
                                             title: 'NDS_9 Progress Card Report',
                                             description: 'NDS 9 Progress Card Report'
+                                        },
+                                        {
+                                            id: 21048,
+                                            name: 'Sophia Exam Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Sophia/SopiaExamReport',
+                                            title: 'Sophia Exam Report',
+                                            description: 'Sophia Exam Report'
                                         }
                                     ]
                                 }
