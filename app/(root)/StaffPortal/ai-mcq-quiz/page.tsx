@@ -29,6 +29,16 @@ import {
 } from '@/server/staff-portal/attendance-entry';
 import { getStudentList } from '@/server/exam/exam-module/exam-mapping/student-transaction-cce';
 import { getAcademicYearDropdown } from '@/server/admission/preadmission/masters/class_category';
+import { 
+    fetchInitialData as fetchHomeworkInitial,
+    fetchClasses as fetchHomeworkClasses,
+    fetchSections as fetchHomeworkSections
+} from '@/server/upload/transactions/ivrm-homework/server-action';
+import {
+    fetchClasses as fetchClassworkClasses,
+    fetchSections as fetchClassworkSections,
+    fetchClassWorkStudentList
+} from '@/server/upload/transactions/ivrm-classwork/server-action';
 import { AnimatePresence, motion } from 'framer-motion';
 import { BarChart3, CheckCircle2, FileText, Plus, Sparkles, Trophy, Upload, Wand2, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -139,6 +149,7 @@ export default function OnlineMcqQuizPage() {
     });
 
     // Dropdown Data
+    const [hrmeId, setHrmeId] = useState<number>(0);
     // Loading States
     const [loadingAcademic, setLoadingAcademic] = useState(false);
 
@@ -216,20 +227,27 @@ export default function OnlineMcqQuizPage() {
      */
     const extractListData = (res: any, keys: string[]) => {
         if (!res) return [];
-        // Case 1: res is the array
-        if (Array.isArray(res)) return res;
-        // Case 2: res.data is the array
-        if (Array.isArray(res.data)) return res.data;
-        // Case 3: res.data contains one of the keys
-        if (res.data && typeof res.data === 'object') {
+        
+        // Priority 1: Check specifically requested keys in res or res.data
+        const targets = [res, res.data].filter(t => t && typeof t === 'object');
+        for (const target of targets) {
             for (const key of keys) {
-                if (Array.isArray((res.data as any)[key])) return (res.data as any)[key];
+                if (Array.isArray((target as any)[key])) return (target as any)[key];
             }
         }
-        // Case 4: res contains one of the keys directly
-        for (const key of keys) {
-            if (Array.isArray(res[key])) return res[key];
+        
+        // Priority 2: Check if res or res.data itself is the array
+        if (Array.isArray(res)) return res;
+        if (res?.data && Array.isArray(res.data)) return res.data;
+        
+        // Priority 3: Check very common fallback keys
+        const commonKeys = ['data', 'classList', 'classlist', 'sectionList', 'sectionlist', 'yearlist', 'academicYearList', 'yearList'];
+        for (const target of targets) {
+            for (const key of commonKeys) {
+                if (Array.isArray((target as any)[key])) return (target as any)[key];
+            }
         }
+        
         return [];
     };
 
@@ -238,60 +256,85 @@ export default function OnlineMcqQuizPage() {
         const fetchInitial = async () => {
             setLoadingAcademic(true);
             try {
-                let yrs: any[] = [];
-                let cls: any[] = [];
+                let allYrs: any[] = [];
+                let allCls: any[] = [];
                 let defaultYear: number | null = null;
 
-                // 1. Try Marks Entry Initial Data (Primary source for exams)
-                try {
-                    const res = await getInitialMarksEntryData();
+                // Fetch from multiple sources in parallel for better coverage
+                const [marksRes, staffRes, globalYrs, hwRes] = await Promise.allSettled([
+                    getInitialMarksEntryData(),
+                    getStaffInitialData(0),
+                    getAcademicYearDropdown(),
+                    fetchHomeworkInitial()
+                ]);
+
+                // Process Marks Entry
+                if (marksRes.status === 'fulfilled' && marksRes.value) {
+                    const res = marksRes.value;
+                    allYrs = [...allYrs, ...extractListData(res, ['yearlist', 'academicYearList'])];
+                    allCls = [...allCls, ...extractListData(res, ['classlist', 'classList'])];
                     const initialData = res?.data || (res as any);
-                    if (initialData) {
-                        yrs = extractListData(res, ['yearlist', 'academicYearList']);
-                        cls = extractListData(res, ['classlist', 'classList']);
-                        defaultYear = initialData.asmaY_Id || (initialData as any).asmaY_Id;
-                    }
-                } catch (e) { console.warn("getInitialMarksEntryData failed", e); }
-
-                // 2. Fallback: Try Staff Initial Data (Used by Attendance Entry module)
-                if (yrs.length === 0) {
-                    try {
-                        const staffRes = await getStaffInitialData(0);
-                        yrs = extractListData(staffRes, ['academicYearList', 'yearlist']);
-                        cls = extractListData(staffRes, ['classList', 'classlist']);
-                        const curYearObj = extractListData(staffRes, ['currentYear'])[0];
-                        if (curYearObj) defaultYear = curYearObj.asmaY_Id;
-                    } catch (e) { console.warn("getStaffInitialData failed", e); }
+                    if (initialData?.asmaY_Id) defaultYear = initialData.asmaY_Id;
                 }
 
-                // 3. Final Fallback: Global Academic Year Dropdown
-                if (yrs.length === 0) {
-                    try {
-                        const globalYrs = await getAcademicYearDropdown();
-                        yrs = extractListData(globalYrs, ['data']);
-                    } catch (e) { console.warn("getAcademicYearDropdown failed", e); }
+                // Process Staff Initial (Attendance)
+                if (staffRes.status === 'fulfilled' && staffRes.value) {
+                    const res = staffRes.value;
+                    allYrs = [...allYrs, ...extractListData(res, ['academicYearList', 'yearlist'])];
+                    allCls = [...allCls, ...extractListData(res, ['classList', 'classlist'])];
+                    const curYearObj = extractListData(res, ['currentYear'])[0];
+                    if (curYearObj && !defaultYear) defaultYear = curYearObj.asmaY_Id;
                 }
 
-                setAcademicYears(yrs);
-                if (cls.length > 0) setClasses(cls);
+                // Process Homework Initial (to get HRME_Id)
+                if (hwRes.status === 'fulfilled' && hwRes.value) {
+                    const res = hwRes.value;
+                    allYrs = [...allYrs, ...extractListData(res, ['yearlist', 'academicyear'])];
+                    const h_id = res?.data?.hrmE_Id || res?.hrmE_Id || res?.data?.HRME_Id || 0;
+                    if (h_id) setHrmeId(h_id);
+                }
+
+                // Process Global Years
+                if (globalYrs.status === 'fulfilled' && globalYrs.value) {
+                    allYrs = [...allYrs, ...extractListData(globalYrs.value, ['data'])];
+                }
+
+                // De-duplicate Years
+                const seenYrs = new Set();
+                const uniqueYrs = allYrs.filter(y => {
+                    if (!y?.asmaY_Id) return false;
+                    const dup = seenYrs.has(y.asmaY_Id);
+                    seenYrs.add(y.asmaY_Id);
+                    return !dup;
+                });
+
+                // De-duplicate Classes
+                const seenCls = new Set();
+                const uniqueCls = allCls.filter(c => {
+                    if (!c?.asmcL_Id) return false;
+                    const dup = seenCls.has(c.asmcL_Id);
+                    seenCls.add(c.asmcL_Id);
+                    return !dup;
+                });
+
+                setAcademicYears(uniqueYrs);
+                if (uniqueCls.length > 0) setClasses(uniqueCls);
 
                 // Set default year if found
                 if (defaultYear && !publishConfig.academicYearId) {
                     setPublishConfig(prev => ({ ...prev, academicYearId: String(defaultYear) }));
-                } else if (yrs.length > 0 && !publishConfig.academicYearId) {
-                    setPublishConfig(prev => ({ ...prev, academicYearId: String(yrs[0].asmaY_Id) }));
+                } else if (uniqueYrs.length > 0 && !publishConfig.academicYearId) {
+                    setPublishConfig(prev => ({ ...prev, academicYearId: String(uniqueYrs[0].asmaY_Id) }));
                 }
             } catch (err) {
                 console.error('Initial data fetch failed:', err);
-                // Fallback: If staff portal specific fetch fails, the standard hook will handle it
-                // and GetLoginPrivilege APIs will be tried in subsequent effects
             } finally {
                 setLoadingAcademic(false);
             }
         };
 
         fetchInitial();
-    }, []); // Only on mount
+    }, []);
 
     // Load Privileged Classes
     useEffect(() => {
@@ -303,36 +346,51 @@ export default function OnlineMcqQuizPage() {
 
             setLoadingClasses(true);
             try {
-                let data: any[] = [];
+                let allData: any[] = [];
                 
-                // 1. Try Marks Entry specific API
-                try {
-                    const res = await getMarksEntryClasses(ayId);
-                    data = extractListData(res, ['classlist', 'classList']);
-                } catch (e) { console.warn("getMarksEntryClasses failed", e); }
+                // Fetch from multiple sources in parallel
+                const [marksRes, globalRes, staffRes, hwRes, cwRes] = await Promise.allSettled([
+                    getMarksEntryClasses(ayId),
+                    GetLoginPrivilegeClassesDropdown(ayId),
+                    getStaffInitialData(ayId),
+                    fetchHomeworkClasses(ayId, hrmeId),
+                    fetchClassworkClasses(ayId, hrmeId)
+                ]);
 
-                // 2. Fallback: Try Login Privilege Classes API
-                if (data.length === 0) {
-                    try {
-                        const globalRes = await GetLoginPrivilegeClassesDropdown(ayId);
-                        data = extractListData(globalRes, ['data']);
-                    } catch (e) { console.warn("GetLoginPrivilegeClassesDropdown failed", e); }
+                if (marksRes.status === 'fulfilled' && marksRes.value) {
+                    allData = [...allData, ...extractListData(marksRes.value, ['classlist', 'classList'])];
+                }
+                if (globalRes.status === 'fulfilled' && globalRes.value) {
+                    allData = [...allData, ...extractListData(globalRes.value, ['data', 'classList', 'classlist'])];
+                }
+                if (staffRes.status === 'fulfilled' && staffRes.value) {
+                    allData = [...allData, ...extractListData(staffRes.value, ['classList', 'classlist'])];
+                }
+                if (hwRes.status === 'fulfilled' && hwRes.value) {
+                    allData = [...allData, ...extractListData(hwRes.value, ['classlist', 'classList'])];
+                }
+                if (cwRes.status === 'fulfilled' && cwRes.value) {
+                    allData = [...allData, ...extractListData(cwRes.value, ['classlist', 'classList'])];
                 }
 
-                // 3. Fallback: Try Staff Initial Data for this year (Matching Attendance Entry behavior)
-                if (data.length === 0) {
-                    try {
-                        const staffRes = await getStaffInitialData(ayId);
-                        data = extractListData(staffRes, ['classList', 'classlist']);
-                    } catch (e) { console.warn("getStaffInitialData fallback for classes failed", e); }
-                }
+                // De-duplicate by asmcL_Id
+                const seen = new Set();
+                const uniqueClasses = allData.filter(item => {
+                    if (!item?.asmcL_Id) return false;
+                    const dup = seen.has(item.asmcL_Id);
+                    seen.add(item.asmcL_Id);
+                    return !dup;
+                });
 
-                setClasses(data);
-                // Reset dependent selections
-                setPublishConfig(prev => ({ ...prev, targetClass: '', targetSection: '' }));
-                setSections([]);
+                setClasses(uniqueClasses);
+                // Reset dependent selections if class list changed significantly
+                // Only reset if current selection is no longer valid
+                if (publishConfig.targetClass && !uniqueClasses.some(c => String(c.asmcL_Id) === publishConfig.targetClass)) {
+                    setPublishConfig(prev => ({ ...prev, targetClass: '', targetSection: '' }));
+                    setSections([]);
+                }
             } catch (err) {
-                console.error(err);
+                console.error("fetchClasses error:", err);
                 toast.error('Failed to load classes');
             } finally {
                 setLoadingClasses(false);
@@ -353,38 +411,52 @@ export default function OnlineMcqQuizPage() {
 
             setLoadingSections(true);
             try {
-                let data: any[] = [];
+                let allData: any[] = [];
 
-                // 1. Try Marks Entry specific API
-                try {
-                    const res = await getMarksEntrySections(ayId, clId);
-                    data = extractListData(res, ['sectionlist', 'sectionList']);
-                } catch (e) { console.warn("getMarksEntrySections failed", e); }
+                // Fetch from multiple sources in parallel
+                const [marksRes, globalRes, staffRes, hwRes, cwRes] = await Promise.allSettled([
+                    getMarksEntrySections(ayId, clId),
+                    GetLoginPrivilegeSectionsDropdown(ayId, clId),
+                    getStudentData({
+                        ASMAY_Id: ayId,
+                        ASMCL_Id: clId,
+                        classsecflag: '1'
+                    }),
+                    fetchHomeworkSections(clId, ayId),
+                    fetchClassworkSections(clId, ayId)
+                ]);
 
-                // 2. Fallback: Try Login Privilege Sections API
-                if (data.length === 0) {
-                    try {
-                        const globalRes = await GetLoginPrivilegeSectionsDropdown(ayId, clId);
-                        data = extractListData(globalRes, ['data']);
-                    } catch (e) { console.warn("GetLoginPrivilegeSectionsDropdown failed", e); }
+                if (marksRes.status === 'fulfilled' && marksRes.value) {
+                    allData = [...allData, ...extractListData(marksRes.value, ['sectionlist', 'sectionList'])];
+                }
+                if (globalRes.status === 'fulfilled' && globalRes.value) {
+                    allData = [...allData, ...extractListData(globalRes.value, ['data', 'sectionlist', 'sectionList'])];
+                }
+                if (staffRes.status === 'fulfilled' && staffRes.value) {
+                    allData = [...allData, ...extractListData(staffRes.value, ['sectionList', 'sectionlist'])];
+                }
+                if (hwRes.status === 'fulfilled' && hwRes.value) {
+                    allData = [...allData, ...extractListData(hwRes.value, ['sectionlist', 'sectionList'])];
+                }
+                if (cwRes.status === 'fulfilled' && cwRes.value) {
+                    allData = [...allData, ...extractListData(cwRes.value, ['sectionlist', 'sectionList'])];
                 }
 
-                // 3. Fallback: Try Staff Data for class (Matching Attendance Entry behavior)
-                if (data.length === 0) {
-                    try {
-                        const staffRes: any = await getStudentData({
-                            ASMAY_Id: ayId,
-                            ASMCL_Id: clId,
-                            classsecflag: '1'
-                        });
-                        data = extractListData(staffRes, ['sectionList', 'sectionlist']);
-                    } catch (e) { console.warn("getStudentData fallback for sections failed", e); }
-                }
+                // De-duplicate by asmS_Id
+                const seen = new Set();
+                const uniqueSections = allData.filter(item => {
+                    if (!item?.asmS_Id) return false;
+                    const dup = seen.has(item.asmS_Id);
+                    seen.add(item.asmS_Id);
+                    return !dup;
+                });
 
-                setSections(data);
-                setPublishConfig(prev => ({ ...prev, targetSection: '' }));
+                setSections(uniqueSections);
+                if (publishConfig.targetSection && !uniqueSections.some(s => String(s.asmS_Id) === publishConfig.targetSection)) {
+                    setPublishConfig(prev => ({ ...prev, targetSection: '' }));
+                }
             } catch (err) {
-                console.error(err);
+                console.error("fetchSections error:", err);
                 toast.error('Failed to load sections');
             } finally {
                 setLoadingSections(false);
@@ -405,20 +477,51 @@ export default function OnlineMcqQuizPage() {
         const fetchStudents = async () => {
             setLoadingStudents(true);
             try {
-                const params = {
-                    ASMAY_Id: Number(publishConfig.academicYearId),
-                    ASMCL_Id: Number(publishConfig.targetClass),
-                    ASMS_Id: Number(publishConfig.targetSection)
-                };
-                const res = await getStudentList(params);
-                const rawData = res?.data;
-                const students = Array.isArray(rawData) ? rawData : (Array.isArray(rawData?.students) ? rawData.students : []);
+                const ayId = Number(publishConfig.academicYearId);
+                const clId = Number(publishConfig.targetClass);
+                const scId = Number(publishConfig.targetSection);
+
+                let students: any[] = [];
+                
+                // 1. Try primary student list API (CCE Student Transaction)
+                try {
+                    const res = await getStudentList({
+                        ASMAY_Id: ayId,
+                        ASMCL_Id: clId,
+                        ASMS_Id: scId
+                    });
+                    students = extractListData(res, ['studentList', 'studentlist', 'students', 'studentDetails']);
+                } catch (e) { console.warn("getStudentList failed", e); }
+
+                // 2. Fallback 1: Try Attendance Entry student data API
+                if (students.length === 0) {
+                    try {
+                        const res = await getStudentData({
+                            ASMAY_Id: ayId,
+                            ASMCL_Id: clId,
+                            ASMS_Id: scId,
+                            classsecflag: '1',
+                            monthflag: 'D', 
+                            monthflag1: 'Dailyonce',
+                            checksubject: '1'
+                        });
+                        students = extractListData(res, ['studentList', 'studentlist', 'students']);
+                    } catch (e) { console.warn("getStudentData fallback for students failed", e); }
+                }
+
+                // 3. Fallback 2: Try Classwork student list API
+                if (students.length === 0) {
+                    try {
+                        const res = await fetchClassWorkStudentList(clId, scId, ayId);
+                        students = extractListData(res, ['studentlist', 'studentList', 'students']);
+                    } catch (e) { console.warn("fetchClassWorkStudentList fallback failed", e); }
+                }
                 
                 setStudentsList(students);
                 // Default select all
-                setSelectedStudentIds(students.map((s: any) => s.amst_Id || s.amsT_Id));
+                setSelectedStudentIds(students.map((s: any) => s.amst_Id || s.amsT_Id || s.AMST_Id));
             } catch (err) {
-                console.error(err);
+                console.error("fetchStudents error:", err);
                 toast.error('Failed to load students');
             } finally {
                 setLoadingStudents(false);
