@@ -9,7 +9,7 @@ import { useCallback } from 'react';
 export const masterColumnevent: ColumnDef<MasterEventCoe>[] = [
     {
         accessorKey: 'coemE_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} className='w-full pl-6' title='Sl. No' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} className='w-full pl-6 font-bold text-black ' title='Sl. No' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -21,14 +21,14 @@ export const masterColumnevent: ColumnDef<MasterEventCoe>[] = [
     },
     {
         accessorKey: 'coemE_EventName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title=' Event Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title=' Event Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('coemE_EventName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'coemE_EventDesc',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Event Description' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Event Description' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('coemE_EventDesc')}</div>,
         enableSorting: true,
         enableHiding: true
@@ -36,7 +36,7 @@ export const masterColumnevent: ColumnDef<MasterEventCoe>[] = [
 
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start font-bold text-black' />,
         accessorFn: (row) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />

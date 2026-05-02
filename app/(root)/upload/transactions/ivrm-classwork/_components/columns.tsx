@@ -20,72 +20,72 @@ export const classWorkColumns = ({
 }: ClassWorkColumnProps): ColumnDef<IClassWorkDetails>[] => [
         {
             accessorKey: 'icW_Id',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='SLNO' className='text-xs font-black uppercase text-black justify-center' />,
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='font-bold text-black justify-center' />,
             cell: ({ row, table }) => {
                 const pageIndex = table.getState().pagination.pageIndex;
                 const pageSize = table.getState().pagination.pageSize;
-                return <div className='w-full text-center font-bold text-slate-700'>{pageIndex * pageSize + row.index + 1}</div>;
+                return <div className='w-full text-center'>{pageIndex * pageSize + row.index + 1}</div>;
             },
             enableSorting: false,
             enableHiding: false
         },
         {
             accessorKey: 'isms_SubjectName',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Subject' className='text-xs font-black uppercase text-black justify-left' />,
-            cell: ({ row }) => <div className='text-[11px] font-bold text-slate-600 uppercase'>{row.getValue('isms_SubjectName')}</div>
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Subject' className='font-bold text-black justify-left' />,
+            cell: ({ row }) => <div className='text-[11px] uppercase'>{row.getValue('isms_SubjectName')}</div>
         },
         {
             accessorKey: 'icW_Topic',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Topic' className='text-xs font-black uppercase text-black justify-left' />,
-            cell: ({ row }) => <div className='text-[11px] font-medium text-slate-600'>{row.getValue('icW_Topic')}</div>
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Topic' className='font-bold text-black justify-left' />,
+            cell: ({ row }) => <div className='text-[11px] font-medium text-black'>{row.getValue('icW_Topic')}</div>
         },
         {
             accessorKey: 'icW_SubTopic',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Sub Topic' className='text-xs font-black uppercase text-black justify-left' />,
-            cell: ({ row }) => <div className='text-[11px] font-medium text-slate-500 italic'>{row.getValue('icW_SubTopic')}</div>
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Sub Topic' className='font-bold text-black justify-left' />,
+            cell: ({ row }) => <div className='text-[11px] font-medium text-black italic'>{row.getValue('icW_SubTopic')}</div>
         },
         {
             accessorKey: 'icW_Content',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Content' className='text-xs font-black uppercase text-black justify-left' />,
-            cell: ({ row }) => <div className='text-[11px] text-slate-600 max-w-[200px] truncate' title={row.getValue('icW_Content')}>{row.getValue('icW_Content')}</div>
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Content' className='font-bold text-black justify-left' />,
+            cell: ({ row }) => <div className='text-[11px] text-black max-w-[200px] truncate' title={row.getValue('icW_Content')}>{row.getValue('icW_Content')}</div>
         },
         {
             accessorKey: 'asmcL_ClassName',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Class' className='text-xs font-black uppercase text-black justify-center' />,
-            cell: ({ row }) => <div className='text-[11px] font-black text-center text-slate-700'>{row.getValue('asmcL_ClassName')}</div>
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Class' className='font-bold text-black justify-center' />,
+            cell: ({ row }) => <div className='text-[11px] text-center text-black'>{row.getValue('asmcL_ClassName')}</div>
         },
         {
             accessorKey: 'asmC_SectionName',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Section' className='text-xs font-black uppercase text-black justify-center' />,
-            cell: ({ row }) => <div className='text-[11px] font-black text-center text-slate-700'>{row.getValue('asmC_SectionName')}</div>
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Section' className='font-bold text-black justify-center' />,
+            cell: ({ row }) => <div className='text-[11px] text-center text-black'>{row.getValue('asmC_SectionName')}</div>
         },
         {
             id: 'updateDateTime',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Update Date / Time' className='text-xs font-black uppercase text-black justify-center' />,
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Update Date / Time' className='font-bold text-black justify-center' />,
             cell: ({ row }) => {
                 const data = row.original as any;
-                return <div className='text-[10px] text-center text-slate-400 font-medium tracking-tighter'>{data.createdDate ? `${data.createdDate} ${data.createdTime || ''}` : '---'}</div>;
+                return <div className='text-[10px] text-center font-medium tracking-tighter'>{data.createdDate ? `${data.createdDate} ${data.createdTime || ''}` : '---'}</div>;
             }
         },
         {
             accessorKey: 'icW_FromDate',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Start Date' className='text-xs font-black uppercase text-black justify-center' />,
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Start Date' className='font-bold text-black justify-center' />,
             cell: ({ row }) => {
                 const date = row.getValue('icW_FromDate');
-                return <div className='text-[11px] font-bold text-center text-black'>{date ? format(new Date(date as string), 'dd-MM-yyyy') : '---'}</div>;
+                return <div className='text-[11px] text-center text-black'>{date ? format(new Date(date as string), 'dd-MM-yyyy') : '---'}</div>;
             }
         },
         {
             accessorKey: 'icW_ToDate',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='End Date' className='text-xs font-black uppercase text-black justify-center' />,
+            header: ({ column }) => <DataTableColumnHeader column={column} title='End Date' className='font-bold text-black justify-center' />,
             cell: ({ row }) => {
                 const date = row.getValue('icW_ToDate');
-                return <div className='text-[11px] font-bold text-center text-black'>{date ? format(new Date(date as string), 'dd-MM-yyyy') : '---'}</div>;
+                return <div className='text-[11px] text-center text-black'>{date ? format(new Date(date as string), 'dd-MM-yyyy') : '---'}</div>;
             }
         },
         {
             id: 'attachment',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Attachment' className='text-xs font-black uppercase text-black justify-center' />,
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Attachment' className='font-bold text-black justify-center' />,
             cell: ({ row }) => {
                 const rowData = row.original;
                 const hasAttachment = (rowData as any).filesCount > 0 || rowData.icW_Attachment || (rowData as any).attachementlist?.length > 0;
@@ -101,7 +101,7 @@ export const classWorkColumns = ({
                                 <Eye className='h-3.5 w-3.5 shadow-sm' />
                             </button>
                         ) : (
-                            <span className='text-slate-300 text-[10px] font-bold tracking-widest'>---</span>
+                            <span className='text-slate-300 text-[10px] tracking-widest'>---</span>
                         )}
                     </div>
                 );
@@ -109,7 +109,7 @@ export const classWorkColumns = ({
         },
         {
             id: 'actions',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-xs font-black uppercase text-black justify-center' />,
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='font-bold text-black justify-center' />,
             cell: ({ row }) => {
                 const rowData = row.original;
                 return (

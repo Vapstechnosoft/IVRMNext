@@ -1,5 +1,10 @@
 import { ADMISSION_QUERY_KEYS, PREADMISSION_QUERY_KEYS } from '@/constants/query-keys';
 import {
+    IScheduleReportInitialDetailsResponse,
+    IScheduleListResponse,
+    IScheduleReportDetailsResponse
+} from '@/types/admission/preadmission/reports';
+import {
     getAttendanceAbsentSmsReport,
     getAttendanceReport,
     getMonthEndReport,
@@ -20,6 +25,12 @@ import {
     verifyAttendanceAbsentOTP
 } from '@/server/admission/preadmission/reports/report';
 import { addOrUpdateStudentCountReport, getParentDashboardDetails } from '@/server/admission/preadmission/reports/student_count_report';
+import {
+    getScheduleReportInitialDetails,
+    getScheduleList,
+    getScheduleReportDetails,
+    sendScheduleMail
+} from '@/server/admission/preadmission/reports/schedule_report';
 import {
     type ElectiveItem,
     GetClassTeacherReport,
@@ -886,5 +897,57 @@ export const useDobCertificateDetails = (data: any, enabled = true) => {
 export const useDobCertificateDetailsMutation = () => {
     return useMutation({
         mutationFn: getDobCertificateDetails
+    });
+};
+
+export const useScheduleReportInitialDetails = (enabled = true) => {
+    return useQuery<IScheduleReportInitialDetailsResponse>({
+        queryKey: [PREADMISSION_QUERY_KEYS.SCHEDULE_REPORT, 'initial-details'],
+        queryFn: async () => {
+            const res = await getScheduleReportInitialDetails();
+            return res.data as IScheduleReportInitialDetailsResponse;
+        },
+        staleTime: 0,
+        enabled: enabled
+    });
+};
+
+export const useScheduleList = (data: any, enabled = true) => {
+    return useQuery<IScheduleListResponse>({
+        queryKey: [PREADMISSION_QUERY_KEYS.SCHEDULE_LIST, data],
+        queryFn: async () => {
+            const res = await getScheduleList(data);
+            return res.data as IScheduleListResponse;
+        },
+        staleTime: 0,
+        enabled: enabled && !!data.oralwrittenscheduleflag
+    });
+};
+
+export const useScheduleReport = (data: any, searchParams?: ApiSearchparams, enabled = true) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery<IScheduleReportDetailsResponse>({
+            queryKey: [PREADMISSION_QUERY_KEYS.SCHEDULE_REPORT, 'details', data, searchParams ?? {}],
+            queryFn: async () => {
+                const res = await getScheduleReportDetails(data);
+                return res.data as IScheduleReportDetailsResponse;
+            },
+            staleTime: 0,
+            enabled: enabled && !!data,
+            refetchOnWindowFocus: false
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [PREADMISSION_QUERY_KEYS.SCHEDULE_REPORT]
+            });
+        }
+    };
+};
+
+export const useSendScheduleMail = () => {
+    return useMutation({
+        mutationFn: sendScheduleMail
     });
 };

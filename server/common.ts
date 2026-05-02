@@ -109,30 +109,30 @@ export async function getUserAccessibleModules() {
                                         //     description: 'Apply for Registration'
                                         // },
 
-                                        {
-                                            id: 3,
-                                            name: 'Transfer Application Status',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/transactions/transfer-application-status',
-                                            title: 'Transfer Application Status',
-                                            description: 'Manage Transfer Application Status Details'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'Transfer Admission Status',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/transactions/transfer-admission-status',
-                                            title: 'Transfer Admission Status',
-                                            description: 'Manage Transfer Admission Status Details'
-                                        },
                                         // {
                                         //     id: 3,
                                         //     name: 'Transfer Application Status',
                                         //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/transactions/status',
+                                        //     url: '/admission/preadmission/transactions/transfer-application-status',
                                         //     title: 'Transfer Application Status',
                                         //     description: 'Manage Transfer Application Status Details'
                                         // },
+                                        // {
+                                        //     id: 4,
+                                        //     name: 'Transfer Admission Status',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/transactions/transfer-admission-status',
+                                        //     title: 'Transfer Admission Status',
+                                        //     description: 'Manage Transfer Admission Status Details'
+                                        // },
+                                        {
+                                            id: 3,
+                                            name: 'Transfer Application Status',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/transactions/status',
+                                            title: 'Transfer Application Status',
+                                            description: 'Manage Transfer Application Status Details'
+                                        },
                                         {
                                             id: 5,
                                             name: 'Transfer to Admission',
@@ -203,6 +203,14 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/reports/preadmission-month-end-report',
                                             title: 'PreAdmission Month End Report',
                                             description: 'PreAdmission Month End Report'
+                                        },
+                                        {
+                                            id: 11,
+                                            name: 'Schedule Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/schedule-report',
+                                            title: 'Schedule Report',
+                                            description: 'Schedule Report'
                                         }
                                     ]
                                 }
@@ -3025,6 +3033,30 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/NDS/NDS_Promotionreportcard',
                                             title: 'NDS Promotion Report Card',
                                             description: 'NDS Promotion Report Card'
+                                        },
+                                        {
+                                            id: 21046,
+                                            name: 'Chinmaya_Final Promotion Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Chinmaya/FinalPromReportSChinmaya',
+                                            title: 'Chinmaya_Final Promotion Report',
+                                            description: 'Chinmaya Final Promotion Report Card'
+                                        },
+                                        {
+                                            id: 21047,
+                                            name: 'NDS_9 Progress Card Report',
+                                            icon: 'FileText',
+                                            url: '/Exam/exam-module/reports/NDS/NDS9ProgressCardReport',
+                                            title: 'NDS_9 Progress Card Report',
+                                            description: 'NDS 9 Progress Card Report'
+                                        },
+                                        {
+                                            id: 21048,
+                                            name: 'Sophia Exam Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Sophia/SopiaExamReport',
+                                            title: 'Sophia Exam Report',
+                                            description: 'Sophia Exam Report'
                                         }
                                     ]
                                 }
