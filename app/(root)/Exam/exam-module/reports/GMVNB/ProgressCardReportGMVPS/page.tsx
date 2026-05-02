@@ -28,6 +28,9 @@ export default function ProgressCardReportPage() {
     const handleReportSuccess = async (payload: any) => {
         try {
             const res = await getExamReportCard(payload);
+
+            console.log(res, "response");
+
             if (!res?.success || !Array.isArray(res?.data) || res.data.length === 0) {
                 setIsReportVisible(false);
                 return;

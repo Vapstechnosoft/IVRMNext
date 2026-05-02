@@ -143,6 +143,16 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
         });
     };
 
+    const onFormError = (errors: any) => {
+        Object.values(errors).forEach((error: any) => {
+            if (error.message) {
+                toast.error(error.message.toString().toLowerCase(), {
+                    id: error.message.toString(),
+                });
+            }
+        });
+    };
+
     const handleStudentSearch = (value: string) => {
         if (!asmayId) {
             toast.error('Please select Academic Year first');
@@ -185,7 +195,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(handleFormSubmit, onFormError)} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* All / Individual */}
                     <FormField
@@ -210,7 +220,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                         </div>
                                     </RadioGroup>
                                 </FormControl>
-                                <FormMessage />
+
                             </FormItem>
                         )}
                     />
@@ -242,7 +252,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                         </div>
                                     </RadioGroup>
                                 </FormControl>
-                                <FormMessage />
+
                             </FormItem>
                         )}
                     />
@@ -275,7 +285,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    <FormMessage />
+
                                 </FormItem>
                             )}
                         />
@@ -307,7 +317,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    <FormMessage />
+
                                 </FormItem>
                             )}
                         />
@@ -339,7 +349,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    <FormMessage />
+
                                 </FormItem>
                             )}
                         />
@@ -417,7 +427,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                             {...field}
                                         />
                                     </FormControl>
-                                    <FormMessage />
+
                                 </FormItem>
                             )}
                         />
@@ -437,7 +447,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                             {...field}
                                         />
                                     </FormControl>
-                                    <FormMessage />
+
                                 </FormItem>
                             )}
                         />
@@ -458,7 +468,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                             setDate={(date) => field.onChange(date)}
                                         />
                                     </FormControl>
-                                    <FormMessage />
+
                                 </FormItem>
                             )}
                         />
@@ -528,7 +538,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                             </Command>
                                         </PopoverContent>
                                     </Popover>
-                                    <FormMessage />
+
                                 </FormItem>
                             )}
                         />
@@ -602,7 +612,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                         <FormControl>
                                             <Input placeholder="Year" {...field} />
                                         </FormControl>
-                                        <FormMessage />
+
                                     </FormItem>
                                 )}
                             />
@@ -615,7 +625,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                         <FormControl>
                                             <Input placeholder="Final Average" {...field} />
                                         </FormControl>
-                                        <FormMessage />
+
                                     </FormItem>
                                 )}
                             />
@@ -631,7 +641,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                         <FormControl>
                                             <Input placeholder="Year" {...field} />
                                         </FormControl>
-                                        <FormMessage />
+
                                     </FormItem>
                                 )}
                             />
@@ -644,7 +654,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                         <FormControl>
                                             <Input placeholder="Final Average" {...field} />
                                         </FormControl>
-                                        <FormMessage />
+
                                     </FormItem>
                                 )}
                             />

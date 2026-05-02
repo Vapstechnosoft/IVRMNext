@@ -20,6 +20,8 @@ import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { IPromotionalGroup } from '@/types/exam/exam-module/masters';
+import { getPromotionalGroups } from '@/server/exam/exam-module/masters/category-class-mapping';
 
 export const promotionCumulativeSchema = z.object({
     ASMAY_Id: z.string().min(1, 'Academic Year is required'),
@@ -54,7 +56,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     const [classes, setClasses] = useState<{ asmcL_Id: number; asmcL_ClassName: string }[]>([]);
     const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
     const [students, setStudents] = useState<{ amsT_AdmNo: number; amsT_Id: number; studentName?: string | null }[]>([]);
-    const [terms, setTerms] = useState<{ empG_GroupName: string }[]>([]);
+    const [terms, setTerms] = useState<IPromotionalGroup[]>([]);
     const [allStudentsSelected, setAllStudentsSelected] = useState(false);
 
     // Loading States
@@ -82,6 +84,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     const watchClass = useWatch({ control, name: 'ASMCL_Id' });
     const watchSection = useWatch({ control, name: 'ASMS_Id' });
     const watchSuperAverage = useWatch({ control, name: 'Left_FlagAverage' });
+    const watchTerm = useWatch({ control, name: 'empG_GroupName' });
 
     // Clear Term if Super Average changes to true
     useEffect(() => {
@@ -176,15 +179,11 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                     // As we just map this with cumulative-report endpoint, we might lack `subjectwisetotal`.
                     // We can use a common dropdown for Terms if we don't have it exactly from the same endpoint.
                     // For now, let's load terms from the common dropdown 'Exm_Term_Master' if it exists, or just use hardcoded ones as placeholder
-                    const termsData = await getCommonDropdown('Exam_Group');
-                    if (termsData && termsData.data) {
-                        // Just map it
-                        setTerms(termsData.data.map((t: any) => ({ empG_GroupName: t.label || t.name || t.empG_GroupName || t })));
-                    } else {
-                        setTerms([{ empG_GroupName: 'Term 1' }, { empG_GroupName: 'Term 2' }, { empG_GroupName: 'Final' }]);
-                    }
+                    const { data: termsData } = await getPromotionalGroups(Number(watchYear), Number(watchClass), Number(watchSection));
+                    setTerms(Array.isArray(termsData) ? termsData : []);
+                    console.log('termsData', termsData);
                 } catch (e) {
-                    setTerms([{ empG_GroupName: 'Term 1' }, { empG_GroupName: 'Term 2' }, { empG_GroupName: 'Final' }]);
+                    setTerms([]);
                 }
 
             } catch {
@@ -220,7 +219,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
             ASMAY_Id: Number(data.ASMAY_Id),
             ASMCL_Id: Number(data.ASMCL_Id),
             ASMS_Id: Number(data.ASMS_Id),
-            EMPG_GroupName: data.Left_FlagAverage ? '' : data.empG_GroupName,
+            EMPG_GroupName: watchTerm,
             reporttype: data.Left_FlagAverage ? 'superaverage' : '',
             Temp_AmstIds: data.selectedStudents.map((id) => ({
                 AMST_Id: Number(id)
@@ -234,15 +233,68 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
             const selectedClass = classes.find((c: any) => String(c.asmcL_Id) === data.ASMCL_Id)?.asmcL_ClassName || '';
             const selectedSection = sections.find((s: any) => String(s.asmS_Id) === data.ASMS_Id)?.asmC_SectionName || '';
 
-            onReportGenerated({
-                ...result,
-                institution: institutionRes?.data,
-                YearName: selectedYear,
-                stream: selectedClass,
-                section: selectedSection,
-                empG_GroupName: payload.EMPG_GroupName,
-                Left_FlagAverage: data.Left_FlagAverage
-            }, data);
+            const finalResult = result;
+            // if (!result?.data?.getstudentmarksdetails?.length && !result?.data?.getstudentwisesubjectlist?.length && !result?.data?.getstudentmarksdetails_temp?.length) {
+            //     finalResult = {
+            //         ...result,
+            //         success: true,
+            //         data: {
+            //             getstudentwisesubjectlist: [
+            //                 { ismS_Id: 1, ISMS_SubjectName: 'ENGLISH LANGUAGE', grporder: 1 },
+            //                 { ismS_Id: 2, ISMS_SubjectName: 'ENGLISH LITERATURE', grporder: 2 },
+            //                 { ismS_Id: 4, ISMS_SubjectName: '2ND LANGUAGE (HINDI)', grporder: 4 },
+            //                 { ismS_Id: 5, ISMS_SubjectName: 'GENERAL SCIENCE', grporder: 5 },
+            //                 { ismS_Id: 6, ISMS_SubjectName: 'MATHEMATICS', grporder: 6 },
+            //                 { ismS_Id: 7, ISMS_SubjectName: 'SOCIAL STUDIES', grporder: 7 },
+            //                 { ismS_Id: 8, ISMS_SubjectName: 'COMPUTER', grporder: 8 },
+            //                 { ismS_Id: 9, ISMS_SubjectName: 'SPELLING & DICTATION', grporder: 9 },
+            //                 { ismS_Id: 11, ISMS_SubjectName: 'GENERAL KNOWLEDGE', grporder: 10 },
+            //                 { ismS_Id: 12, ISMS_SubjectName: 'MORAL SCIENCE', grporder: 11 },
+            //                 { ismS_Id: 25, ISMS_SubjectName: '3RD LANGUAGE (BENGALI)', grporder: 13 }
+            //             ],
+            //             getstudentmarksdetails_temp: [
+            //                 {
+            //                     AMST_Id: 5758,
+            //                     AMST_AdmNo: '18780',
+            //                     studentname: 'AARIZ AHMED  ',
+            //                     '2ND LANGUAGE (HINDI)': 70,
+            //                     '3RD LANGUAGE (BENGALI)': 33,
+            //                     'COMPUTER': 52,
+            //                     'ENGLISH LANGUAGE': 58,
+            //                     'ENGLISH LITERATURE': 58,
+            //                     'GENERAL KNOWLEDGE': 45,
+            //                     'GENERAL SCIENCE': 52,
+            //                     'MATHEMATICS': 49,
+            //                     'MORAL SCIENCE': 40,
+            //                     'SOCIAL STUDIES': 50,
+            //                     'SPELLING & DICTATION': 42
+            //                 }
+            //             ],
+            //             St_ThomosTotal: [
+            //                 {
+            //                     AMST_Id: 5758,
+            //                     ESTMPPSG_GroupObtMarks: 549,
+            //                     estmpP_SectionRank: 1,
+            //                     TotalPercentage: 61
+            //                 }
+            //             ]
+            //         }
+            //     };
+            // }
+
+            onReportGenerated(
+                {
+                    ...finalResult,
+                    ...(finalResult?.data || {}),
+                    institution: institutionRes?.data,
+                    YearName: selectedYear,
+                    stream: selectedClass,
+                    section: selectedSection,
+                    empG_GroupName: payload.EMPG_GroupName,
+                    Left_FlagAverage: data.Left_FlagAverage
+                },
+                data
+            );
         } catch (error) {
             console.error('Error:', error);
             toast.error('Failed to generate report');
@@ -418,7 +470,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                                     ) : (
                                                         terms.map((term, i) => (
                                                             <SelectItem key={i} value={String(term.empG_GroupName)}>
-                                                                {term.empG_GroupName}
+                                                                {term.empG_DisplayName}
                                                             </SelectItem>
                                                         ))
                                                     )}

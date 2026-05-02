@@ -15,7 +15,7 @@ import { masterUpdateRollNumberSchema } from '@/schemas/admission/preadmission/s
 import { updateRollNumbers } from '@/server/admission/preadmission/section/sections';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { use, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -29,11 +29,16 @@ interface Student {
     student_name: string;
     asmcL_Id: number;
     asmcL_ClassName: string;
+    class_name?: string;
     asmS_Id: number;
     asmC_SectionName: string;
+    section_name?: string;
     amaY_RollNo: number;
+    roll_no?: number;
     amsT_AdmNo: string;
+    admission_no?: string;
     new_roll_no?: number;
+    display_roll_no?: number;
 }
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -41,7 +46,7 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function MasterUpdateRollNumberPage(props: {
     searchParams: SearchParams;
 }) {
-    const searchParams = use(props.searchParams);
+    const searchParams = (React as any).use(props.searchParams);
     const [academicYearId, setAcademicYearId] = useState<number>(0);
     const [classId, setClassId] = useState<number>(0);
     const [sectionId, setSectionId] = useState<number>(0);
@@ -92,8 +97,8 @@ export default function MasterUpdateRollNumberPage(props: {
         if (UpdateStudentRolesData?.data && Array.isArray(UpdateStudentRolesData.data)) {
             const studentsWithNewRollNo = UpdateStudentRolesData.data.map((student: Student) => ({
                 ...student,
-                new_roll_no: student.amaY_RollNo
-            }));
+                new_roll_no: student.roll_no || student.amaY_RollNo
+            })).sort((a: Student, b: Student) => (a.roll_no || a.amaY_RollNo) - (b.roll_no || b.amaY_RollNo));
             setStudents(studentsWithNewRollNo);
             setShowTable(true);
         }
@@ -107,7 +112,7 @@ export default function MasterUpdateRollNumberPage(props: {
                     asysT_Id: student.asysT_Id,
                     amsT_Id: student.student_id,
                     student_name: student.student_name,
-                    new_roll_no: student.new_roll_no || student.amaY_RollNo
+                    new_roll_no: student.new_roll_no || student.roll_no || student.amaY_RollNo
                 }));
             setValue('students', studentData, { shouldValidate: true });
         }
@@ -426,10 +431,10 @@ export default function MasterUpdateRollNumberPage(props: {
                                                                         />
                                                                     </td>
                                                                     <td className='p-3 font-medium text-sm'>{student.student_name}</td>
-                                                                    <td className='p-3 text-sm'>{student.asmcL_ClassName}</td>
-                                                                    <td className='p-3 text-sm'>{student.asmC_SectionName}</td>
-                                                                    <td className='p-3 text-sm'>{student.amsT_AdmNo}</td>
-                                                                    <td className='p-3 text-sm'>{student.amaY_RollNo}</td>
+                                                                    <td className='p-3 text-sm'>{student.class_name || student.asmcL_ClassName}</td>
+                                                                    <td className='p-3 text-sm'>{student.section_name || student.asmC_SectionName}</td>
+                                                                    <td className='p-3 text-sm'>{student.admission_no || student.amsT_AdmNo}</td>
+                                                                    <td className='p-3 text-sm'>{student.roll_no || student.amaY_RollNo}</td>
                                                                     <td className='p-3'>
                                                                         <Input
                                                                             type='number'
@@ -483,13 +488,12 @@ export default function MasterUpdateRollNumberPage(props: {
                                 size='lg'
                                 className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                                 <div className='space-y-4'>
-                                    <GenericDataTable<Student>
+                                    <GenericDataTable<any>
                                         {...tableProps}
                                         columns={masterUpdateRollNumberColumns as any}
                                         isLoading={StudentsLoading}
                                         error={StudentsError as any}
                                         showViewOptions={false}
-                                        columnPinning={{ right: ['actions'] }}
                                         loadingMessage='Loading Students...'
                                         noDataTitle='No Students Found'
                                         noDataDescription='Select a section to view students'

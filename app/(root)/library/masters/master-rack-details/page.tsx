@@ -39,8 +39,9 @@ function MasterRackDetailsPageContent({
 }) {
     const { isEditFormOpen, selectedRow, closeEditForm } = useFormContext<IMasterRackDetails>();
 
-    const tableProps = useDataTableProps(response?.alldata || []);
-    const subjectList = response?.subjectlist || [];
+    const tableData = response?.data?.rackDetails || [];
+    const tableProps = useDataTableProps(tableData);
+    const subjectList = response?.data?.subjects || [];
 
     return (
         <div className='min-h-screen'>
@@ -83,7 +84,7 @@ function MasterRackDetailsPageContent({
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <GenericDataTable<IMasterRackDetails>
                         {...tableProps}
-                        data={response?.alldata || []}
+                        data={tableData}
                         columns={MasterRackDetailsColumns}
                         isLoading={isLoading}
                         error={error}

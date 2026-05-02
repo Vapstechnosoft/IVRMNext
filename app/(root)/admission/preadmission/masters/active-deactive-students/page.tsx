@@ -18,7 +18,7 @@ import { masterActiveDeactiveStudentSchema } from '@/schemas/admission/preadmiss
 import { ActiveDeactive } from '@/server/admission/preadmission/masters/active_deactive_student';
 import type { ApiSearchparams } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { use, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -51,7 +51,7 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function MasterActiveDeactiveStudentPage(props: {
     searchParams: SearchParams;
 }) {
-    const searchParams = use(props.searchParams);
+    const searchParams = (React as any).use(props.searchParams);
     const tableRef = useRef<any>(null);
 
     const [academicYearId, setAcademicYearId] = useState<number>(0);

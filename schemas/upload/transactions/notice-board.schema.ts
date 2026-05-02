@@ -11,7 +11,10 @@ export const noticeBoardSchema = z
         intB_EndDate: z.date({ required_error: 'End Date is required' }),
         intB_DisplayDate: z.date().optional().nullable(),
         intB_DispalyDisableFlg: z.boolean().default(false),
-        intB_ActiveFlag: z.boolean().default(true),
+        intB_ActiveFlag: z.any().default(true),
+        intB_ToStaffFlg: z.any().optional(),
+        intB_ToStudentFlg: z.any().optional(),
+        FilesCount: z.number().optional().default(0),
 
         // File/URL Attachments
         intB_FilePath_Array: z
@@ -92,7 +95,25 @@ export const noticeBoardSchema = z
             message: 'Display Date must be less than or equal to End Date',
             path: ['intB_DisplayDate']
         }
-    );
+    )
+    .superRefine((data, ctx) => {
+        if (data.check_student) {
+            if (!data.asmcL_Id || data.asmcL_Id.length === 0) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: "Class name is required",
+                    path: ['asmcL_Id'],
+                });
+            }
+            if (!data.asmS_Id || data.asmS_Id.length === 0) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: "Section name is required",
+                    path: ['asmS_Id'],
+                });
+            }
+        }
+    });
 
 export type INoticeBoard = z.infer<typeof noticeBoardSchema>;
 

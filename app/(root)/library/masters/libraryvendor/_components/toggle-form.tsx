@@ -17,9 +17,10 @@ type FormFields = z.infer<typeof masterVendorSchema.delete>;
 interface ToggleMasterVendorFormProps {
     rowData: IMasterVendorList;
     onClose: () => void;
+    onSuccess?: () => void;
 }
 
-export default function ToggleMasterVendorForm({ rowData, onClose }: ToggleMasterVendorFormProps) {
+export default function ToggleMasterVendorForm({ rowData, onClose, onSuccess }: ToggleMasterVendorFormProps) {
     const { refetchAll } = useMasterVendor();
     const isActive = rowData.lmV_ActiveFlg;
 
@@ -43,14 +44,15 @@ export default function ToggleMasterVendorForm({ rowData, onClose }: ToggleMaste
             const response = await toggleMasterVendor(Number(rowData.lmV_Id));
 
             if (response.success) {
-                toast.success(response.message);
+                toast.success(response.message || 'Status Updated Successfully');
                 refetchAll();
+                onSuccess?.();
                 closeDialog();
             } else {
-                toast.error(response.message);
+                toast.error(response.message || 'Failed to update status');
             }
         } catch (error: any) {
-            toast.error(error.message);
+            toast.error(typeof error === 'string' ? error : error?.message || 'An unknown error occurred.');
         }
     };
 

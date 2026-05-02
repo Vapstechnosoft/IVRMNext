@@ -15,7 +15,7 @@ import { exportPreadmissionToAdmission } from '@/server/admission/preadmission/t
 import type { IPreadmissionApplicationList } from '@/types/admission/preadmission/transactions';
 import { CheckSquare } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
-import { use, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { exportPreadmissionToAdmissionColumns } from './_components/columns';
 import { ExportPreadmissionToAdmissionDialog } from './_components/export-preadmission-to-admission-form';
@@ -23,7 +23,7 @@ import { ExportPreadmissionToAdmissionDialog } from './_components/export-preadm
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function ExportPreadmissionToAdmissionPage(props: { searchParams: SearchParams }) {
-    const searchParams = use(props.searchParams);
+    const searchParams = (React as any).use(props.searchParams);
     const router = useRouter();
     const pathname = usePathname();
 

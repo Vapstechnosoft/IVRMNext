@@ -37,6 +37,13 @@ export const FilterForm = ({ onSubmit, onReset, onExport, onPrint, hasData, hasS
         onSubmit(data);
     };
 
+    const handleFormError = (errors: any) => {
+        const errorMessages = Object.values(errors).map((err: any) => err.message);
+        if (errorMessages.length > 0) {
+            toast.error(errorMessages[0]);
+        }
+    };
+
     const handleReset = () => {
         form.reset({
             ASMAY_Id: undefined,
@@ -46,6 +53,7 @@ export const FilterForm = ({ onSubmit, onReset, onExport, onPrint, hasData, hasS
             Admnoallind: 'Regular'
         });
         onReset();
+        window.location.reload();
     };
 
     const data = (loadData.data as any)?.data || (loadData.data as any);
@@ -56,7 +64,7 @@ export const FilterForm = ({ onSubmit, onReset, onExport, onPrint, hasData, hasS
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(handleFormSubmit, handleFormError)} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {/* Academic Year */}
                     <FormField
