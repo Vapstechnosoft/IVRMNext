@@ -57,7 +57,7 @@ function StudentApplicationPageContent({
     useEffect(() => {
         // Don't force a full page reload when session role is temporarily undefined.
         // Session handling should be addressed centrally; avoid reloads here.
-    }, [session?.data?.role]);
+    }, [session?.data?.user]);
 
     // Listen for global admission changes and refetch the table when they occur
     useEffect(() => {

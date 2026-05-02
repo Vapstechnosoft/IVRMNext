@@ -3009,6 +3009,22 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/NDS/NDS_Promotionreportcard',
                                             title: 'NDS Promotion Report Card',
                                             description: 'NDS Promotion Report Card'
+                                        },
+                                        {
+                                            id: 21046,
+                                            name: 'Chinmaya_Final Promotion Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Chinmaya/FinalPromReportSChinmaya',
+                                            title: 'Chinmaya_Final Promotion Report',
+                                            description: 'Chinmaya Final Promotion Report Card'
+                                        },
+                                        {
+                                            id: 21047,
+                                            name: 'NDS_9 Progress Card Report',
+                                            icon: 'FileText',
+                                            url: '/Exam/exam-module/reports/NDS/NDS9ProgressCardReport',
+                                            title: 'NDS_9 Progress Card Report',
+                                            description: 'NDS 9 Progress Card Report'
                                         }
                                     ]
                                 }
