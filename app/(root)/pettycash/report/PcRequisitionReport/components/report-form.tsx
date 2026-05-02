@@ -17,6 +17,7 @@ import { UsePcRequisitionReportOrganization } from '@/hooks/pettycash/report/PcR
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { UsePcRequisitionReportSchemas, UsePcRequisitionReport } from '@/schemas/pettycash/PcRequisitionReport';
+import { toast } from 'sonner';
 
 interface SimpleRequisitionReportProps {
   onSearch?: (params: any) => void;
@@ -27,9 +28,6 @@ interface SimpleRequisitionReportProps {
 // RequisitionReport
 
 export default function SimpleRequisitionReport({ onSearch }: SimpleRequisitionReportProps) {
-  const [organization, setOrganization] = useState('');
-  const [fromDate, setFromDate] = useState<Date | undefined>();
-  const [toDate, setToDate] = useState<Date | undefined>();
   const [reportType, setReportType] = useState<'Overall' | 'Particular'>('Overall');
 
   const {
@@ -43,20 +41,28 @@ export default function SimpleRequisitionReport({ onSearch }: SimpleRequisitionR
     resolver: zodResolver(UsePcRequisitionReportSchemas.addOrUpdate),
     mode: 'onChange',
     defaultValues: {
-      mI_Id: undefined
+      mI_Id: undefined,
+      fromDate: undefined,
+      toDate: undefined,
     }
   });
   const handleReport = (data: UsePcRequisitionReport) => {
     const payload = {
       mI_Id: data.mI_Id,
-      fromDate: fromDate ? format(fromDate, 'yyyy-MM-dd') : null,
-      toDate: toDate ? format(toDate, 'yyyy-MM-dd') : null,
+      fromDate: data.fromDate ? format(data.fromDate, 'yyyy-MM-dd') : null,
+      toDate: data.toDate ? format(data.toDate, 'yyyy-MM-dd') : null,
       reportType: reportType
     };
 
     console.log('Clean Payload:', payload);
 
     onSearch?.(payload);
+  };
+
+  const onError = (errors: any) => {
+    Object.values(errors).forEach((error: any) => {
+      toast.error(error.message as string);
+    });
   };
   const {
     data: ReportOrganizationDropDown,
@@ -67,11 +73,11 @@ export default function SimpleRequisitionReport({ onSearch }: SimpleRequisitionR
 
   const handleCancel = () => {
     reset({
-      mI_Id: undefined
+      mI_Id: undefined,
+      fromDate: undefined,
+      toDate: undefined,
     });
 
-    setFromDate(undefined);
-    setToDate(undefined);
     setReportType('Overall');
   };
 
@@ -125,23 +131,46 @@ export default function SimpleRequisitionReport({ onSearch }: SimpleRequisitionR
         </div>
 
 
-
         {/* From Date */}
         <div className="space-y-3">
-          <Label className="text-purple-900 font-semibold">Requisition From Date: <span className='text-red-500'>*</span></Label>
-          <DatePicker
-            date={fromDate}
-            setDate={setFromDate}
+          <Label className="text-purple-900 font-semibold">
+            Requisition From Date: <span className='text-red-500'>*</span>
+          </Label>
+
+          <Controller
+            name="fromDate"
+            control={control}
+            render={({ field }) => (
+              <DatePicker
+                date={field.value}
+                setDate={field.onChange}
+              />
+            )}
           />
+          {errors.fromDate && (
+            <span className="text-red-500 text-sm">{errors.fromDate.message}</span>
+          )}
         </div>
 
         {/* To Date */}
         <div className="space-y-3">
-          <Label className="text-purple-900 font-semibold">Requisition To Date: <span className='text-red-500'>*</span></Label>
-          <DatePicker
-            date={toDate}
-            setDate={setToDate}
+          <Label className="text-purple-900 font-semibold">
+            Requisition To Date: <span className='text-red-500'>*</span>
+          </Label>
+
+          <Controller
+            name="toDate"
+            control={control}
+            render={({ field }) => (
+              <DatePicker
+                date={field.value}
+                setDate={field.onChange}
+              />
+            )}
           />
+          {errors.toDate && (
+            <span className="text-red-500 text-sm">{errors.toDate.message}</span>
+          )}
         </div>
       </div>
 
@@ -177,7 +206,7 @@ export default function SimpleRequisitionReport({ onSearch }: SimpleRequisitionR
         {/* Buttons */}
         <div className="flex items-center gap-4 w-full md:w-auto">
           <Button
-            onClick={handleSubmit(handleReport)}
+            onClick={handleSubmit(handleReport, onError)}
             className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white px-6 h-10 rounded-md"
           >
             <Search className="mr-2 h-4 w-4" />

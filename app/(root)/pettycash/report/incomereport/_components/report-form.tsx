@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/extension/field';
 import { FileDown, FileText, Printer, Search, RotateCcw, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 
 const formSchema = z.object({
     ASMAY_Id: z.string().min(1, { message: 'Academic Year is required' }),
@@ -48,7 +49,7 @@ export default function PDAReportForm({
         resolver: zodResolver(formSchema),
         defaultValues: {
             ASMAY_Id: '',
-            From_Date: new Date(),
+            From_Date: undefined as any,
         },
     });
 
@@ -62,6 +63,12 @@ export default function PDAReportForm({
     function onSubmit(values: PDAFormValues) {
         onSearch(values);
     }
+
+    const onError = (errors: any) => {
+        Object.values(errors).forEach((error: any) => {
+            toast.error(error.message as string);
+        });
+    };
 
     const handleReset = () => {
         reset();
@@ -117,7 +124,7 @@ export default function PDAReportForm({
             <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-4 border-t border-purple-50">
                 <div className="flex items-center gap-4 whitespace-nowrap">
                     <Button
-                        onClick={handleSubmit(onSubmit)}
+                        onClick={handleSubmit(onSubmit, onError)}
                         className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white px-6 h-10 rounded-md font-bold shadow-md transition-all active:scale-95"
                     >
                         <Search className="mr-2 h-4 w-4" />

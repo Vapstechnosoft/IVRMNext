@@ -165,6 +165,12 @@ export default function PDADebitCreditReportForm({
         onCancel();
     };
 
+    const onError = (errors: any) => {
+        Object.values(errors).forEach((error: any) => {
+            toast.error(error.message as string);
+        });
+    };
+
     return (
         <CollapsibleSection defaultOpen title="PDA Debit Credit Report">
             <div className="mx-auto w-full bg-white rounded-xl shadow-sm border border-purple-100 p-8 space-y-8 animate-in fade-in duration-500">
@@ -308,7 +314,7 @@ export default function PDADebitCreditReportForm({
                 <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-4 border-t border-purple-50">
                     <div className="flex items-center gap-4">
                         <Button
-                            onClick={handleSubmit(onSubmit)}
+                            onClick={handleSubmit(onSubmit, onError)}
                             disabled={reportMutation.isPending}
                             className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white px-6 h-10 rounded-md font-bold shadow-md transition-all active:scale-95"
                         >
