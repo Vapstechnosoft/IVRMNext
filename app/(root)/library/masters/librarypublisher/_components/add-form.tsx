@@ -5,7 +5,7 @@ import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
 
-import { useMasterLibrary } from '@/hooks/library/useMasters';
+import { useMasterPublisherList } from '@/hooks/library/useMasters';
 
 import { masterPublisherSchema } from '@/schemas/library/masters';
 import { addOrUpdateMasterPublisher } from '@/server/library/masters/master_publisher';
@@ -23,9 +23,7 @@ interface AddMasterPublisherFormProps {
 }
 
 export default function AddMasterPublisherForm({ onSuccess, className = '' }: AddMasterPublisherFormProps) {
-    //const { refetchAll: refetchMasterCasteCategoryCode } = useMasterLibrary();
-
-    const { refetchAll } = useMasterLibrary();
+    const { refetchAll } = useMasterPublisherList();
 
     const {
         register,
@@ -98,23 +96,32 @@ export default function AddMasterPublisherForm({ onSuccess, className = '' }: Ad
                             error={errors.lmP_MobileNo?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-                        <InputTextarea
-                            label='Address'
-                            id='lmP_Address'
-                            placeholder='Enter address'
-                            {...register('lmP_Address')}
-                            error={errors.lmP_Address?.message}
+                        <InputText
+                            label='Phone No'
+                            required
+                            id='lmP_PhoneNo'
+                            placeholder='10-digit phone number'
+                            {...register('lmP_PhoneNo')}
+                            error={errors.lmP_PhoneNo?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                     </div>
-
-                    {/* Root Error */}
-                    {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
+                <div className='space-y-4'>
+                    <InputTextarea
+                        label='Address'
+                        required
+                        id='lmP_Address'
+                        placeholder='Enter the complete office address'
+                        {...register('lmP_Address')}
+                        error={errors.lmP_Address?.message}
+                        className='transition-colors focus:ring-2 focus:ring-primary/20'
+                    />
 
-
-
+                    {/* Root Error */}
+                    {errors.root?.message && <FormError>{errors.root.message}</FormError>}
+                </div>
 
                 {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>

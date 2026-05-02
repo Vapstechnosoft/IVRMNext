@@ -120,7 +120,9 @@ export const PREADMISSION_QUERY_KEYS = {
     PARENTS_DASHBOARD: 'parents_dashboard',
     STUDY_CERTIFICATE_REPORT: 'study_certificate_report',
     CHARACTER_CERTIFICATE_REPORT: 'character_certificate_report',
-    GENERATE_QR_CODE_CERTIFICATE: 'generate_qr_code_certificate'
+    GENERATE_QR_CODE_CERTIFICATE: 'generate_qr_code_certificate',
+    SCHEDULE_REPORT: 'schedule_report',
+    SCHEDULE_LIST: 'schedule_list'
 };
 
 export const FEES_QUERY_KEYS = {

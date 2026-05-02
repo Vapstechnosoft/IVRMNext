@@ -105,17 +105,28 @@ export default function UpdateMasterPublisherForm({ onSuccess, className = '', s
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                         <InputText
-                            label='Address'
-                            {...register('lmP_Address', {})}
-                            error={errors.lmP_Address?.message}
+                            label='Phone No'
+                            required
+                            placeholder='10-digit phone number'
+                            {...register('lmP_PhoneNo')}
+                            error={errors.lmP_PhoneNo?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                     </div>
-                    {/* Root Error */}
-                    {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
-
+                <div className='space-y-4'>
+                    <InputTextarea
+                        label='Address'
+                        required
+                        placeholder='Enter the complete office address'
+                        {...register('lmP_Address')}
+                        error={errors.lmP_Address?.message}
+                        className='transition-colors focus:ring-2 focus:ring-primary/20'
+                    />
+                    {/* Root Error */}
+                    {errors.root?.message && <FormError>{errors.root.message}</FormError>}
+                </div>
 
 
 
