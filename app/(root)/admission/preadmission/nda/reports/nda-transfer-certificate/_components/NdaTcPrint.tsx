@@ -49,7 +49,6 @@ export const NdaTcPrint = forwardRef<HTMLDivElement, NdaTcPrintProps>(({ data, i
                         display: block !important;
                         visibility: visible !important;
                         width: 210mm !important;
-                        min-height: 297mm !important;
                         padding: 20mm !important;
                         margin: 0 auto !important;
                         color: black !important;
@@ -80,7 +79,20 @@ export const NdaTcPrint = forwardRef<HTMLDivElement, NdaTcPrintProps>(({ data, i
                 .nda-tc-container .text-black { color: #000; }
             `}} />
 
-            <div className="mt-16 max-w-[95%] mx-auto font-serif text-black">
+            <div className="mt-8 max-w-[95%] mx-auto font-serif text-black">
+
+
+                {/* {data?.institutionname && (
+                    <div className="flex flex-col items-center mb-8 border-b-2 border-black pb-4">
+                        {data?.logo && (
+                            <img src={data.logo} alt="Logo" className="h-20 w-auto mb-2 object-contain" />
+                        )}
+                        <h2 className="text-xl font-black uppercase text-center tracking-tight">{data.institutionname}</h2>
+                        {data?.statename && (
+                             <p className="text-xs font-bold uppercase tracking-widest">{data.statename}</p>
+                        )}
+                    </div>
+                )} */}
                 <h1 className="text-center text-lg font-bold underline decoration-1 underline-offset-[4px] uppercase mb-8">
                     TRANSFER CERTIFICATE
                 </h1>
@@ -114,9 +126,9 @@ export const NdaTcPrint = forwardRef<HTMLDivElement, NdaTcPrintProps>(({ data, i
                     ))}
                 </div>
 
-                <div className="mt-2 border-b border-gray-400 mb-6 w-full" />
+                <div className="mt-1 border-b border-gray-400 mb-2 w-full" />
 
-                <div className="px-1 space-y-4 text-[11pt] text-black">
+                <div className="px-1 space-y-2 text-[11pt] text-black">
                     <div className="flex justify-between">
                         <div className="flex items-center gap-2">
                             <span>PEN No. :</span>
@@ -128,22 +140,22 @@ export const NdaTcPrint = forwardRef<HTMLDivElement, NdaTcPrintProps>(({ data, i
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2 mb-8">
+                    <div className="flex items-center gap-2 mb-2">
                         <span>APAAR No. :</span>
                         <span>{data?.AMST_APAAANO}</span>
                     </div>
 
-                    <p className="mt-10 text-[11pt] leading-relaxed">
+                    <p className="mt-4 text-[11pt] leading-relaxed">
                         Certified that the above-mentioned information is in accordance with the school register.
                     </p>
 
-                    <div className="mt-16 flex justify-between items-center text-[11pt]">
+                    <div className="mt-6 flex justify-between items-center text-[11pt]">
                         <div className="flex items-center gap-2">
                             <span>Date:</span>
                             <span>{formatDate(issuedDate)}</span>
                         </div>
                         <div className="text-right">
-                           <span className="font-bold">PRINCIPAL</span>
+                            <span className="font-bold">PRINCIPAL</span>
                         </div>
                     </div>
                 </div>

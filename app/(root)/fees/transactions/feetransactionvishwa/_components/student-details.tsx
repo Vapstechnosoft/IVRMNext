@@ -106,7 +106,7 @@ const tabs = [
     { id: 'library', label: 'Library Details' }
 ];
 
-export default function StudentProfileModal({ isOpen, onClose, asmay_Id, amst_Id }: StudentProfileModalProps): JSX.Element | null {
+export default function StudentProfileModal({ isOpen, onClose, asmay_Id, amst_Id }: StudentProfileModalProps) {
     const [activeTab, setActiveTab] = useState('academic');
     const [studentJoinedDetails, setStudentJoinedDetails] = useState<StudentDetailsFromFeeTransaction[]>([]);
     const [academicDetails, setAcademicDetails] = useState<AcademicDetailsFromFeeTransaction[]>([]);

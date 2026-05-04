@@ -27,12 +27,7 @@ interface AdvancePaymentHistory {
     advanceAmount: number;
 }
 
-export default function AdvancePaymentDetails({
-    isOpen,
-    onClose,
-    studentName = '',
-    admissionNo = ''
-}: AdvancePaymentDetailsProps): JSX.Element | null {
+export default function AdvancePaymentDetails({ isOpen, onClose, studentName = '', admissionNo = '' }: AdvancePaymentDetailsProps) {
     const [bankName, setBankName] = useState('');
     const [chequeDate, setChequeDate] = useState('');
     const [chequeNo, setChequeNo] = useState('');

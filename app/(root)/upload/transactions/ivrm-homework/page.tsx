@@ -135,7 +135,7 @@ function HomeWorkContent({
                     defaultOpen={true}
                     variant='default'
                     size='lg'
-                    className='shadow-lg border-blue-100 transition-shadow duration-300 hover:shadow-xl'>
+                    className='shadow-lg border-blue-100 transition-shadow duration-300 hover:shadow-xl [&_tbody_tr:hover_td]:!bg-blue-50/50 [&_tbody_tr]:cursor-pointer'>
                     <div className='mb-2 flex items-center justify-between'>
                         <div className='flex items-center gap-2'>
                             <span className='text-sm font-bold text-gray-700'>Total Grid Records :</span>
