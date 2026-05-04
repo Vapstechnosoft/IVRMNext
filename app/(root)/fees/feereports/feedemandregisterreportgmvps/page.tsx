@@ -1,35 +1,33 @@
 'use client';
-
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
-import { Controller, type SubmitHandler, useForm, useWatch } from 'react-hook-form';
-
-import type { z } from 'zod';
-
 import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { FormError, Label } from '@/components/ui/extension/field';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
-import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
-
-import { toast } from 'sonner';
-
-import { FeesCustomMultiSelectBox } from '@/components/ui/feesmultiselect';
+import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { useClassDropdownDropdown, useFeeClassListDefaulterreport, useFeeSectionListDefaulterreport } from '@/hooks/fees/useReports';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    useFeeClassListDefaulterreport,
+    useFeeCustomGroupDefaulterreport,
+    useFeeDefaulterReport,
+    useFeeGroupDefaulterreport,
+    useFeeSectionListDefaulterreport,
+    useFeeTermDropDownDataForReports
+} from '@/hooks/fees/useReports';
 import { feeDemandRegisterReportGMVPSSchema } from '@/schemas/fees/reports';
 import { getDailyFeeCollectionReport, getGroupsDropdown } from '@/server/fees/reports/daily_fee_collection_report';
-import type { ApiSearchparams } from '@/types';
-import type { IDailyFeeCollectionRequest } from '@/types/fees/reports/reports';
-//  import { exportToExcel, printTable } from './_components/print-and-export-excel';
+import type { IFeeCustomGroupDropdownList, IFeeGroupDropdownList, IFeeTermDropdownList } from '@/types/fees/reports/reports';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
+import { CalendarIcon } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Controller, type SubmitHandler, useForm, useWatch } from 'react-hook-form';
+import { toast } from 'sonner';
+import type { z } from 'zod';
 
 type FormFields = z.infer<typeof feeDemandRegisterReportGMVPSSchema>;
 
-interface DailyFeeProps {
-    onSuccess?: (payload: any, apiSearchParams?: ApiSearchparams) => void;
-    apiSearchParams: ApiSearchparams;
-}
 const today = new Date().toISOString().split('T')[0];
 
 export default function FeeDemandRegisterReportGMVPS() {
@@ -39,15 +37,14 @@ export default function FeeDemandRegisterReportGMVPS() {
         reset,
         register,
         setValue,
-        watch,
-        formState: { errors, isSubmitting }
+        formState: { isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(feeDemandRegisterReportGMVPSSchema),
         mode: 'all',
         defaultValues: {
             report: 'All',
             rpttyp: 'Individual',
-            reportdate: 'transdate',
+            reportdate: 'As On Date',
             asmaY_Id: 0,
             asmcL_Id: 0,
             asms_Id: 0,
@@ -57,10 +54,7 @@ export default function FeeDemandRegisterReportGMVPS() {
             headwise: false,
             paymentwise: false,
             fromDate: today,
-            toDate: today,
-            enableAllClasses: false,
-            Fmc_allorsudentorother: 'all',
-            Fmc_allorcorddorop: 'All'
+            toDate: today
         }
     });
 
@@ -74,102 +68,62 @@ export default function FeeDemandRegisterReportGMVPS() {
     const acdmyr = useWatch({ control, name: 'acdmyr' });
     const headwise = useWatch({ control, name: 'headwise' });
     const paymentwise = useWatch({ control, name: 'paymentwise' });
-    const enableAllClasses = useWatch({ control, name: 'enableAllClasses' });
-    const Fmc_allorcorddorop = useWatch({ control, name: 'Fmc_allorcorddorop' });
-    const selectedGroupIds = useWatch({ control, name: 'groupIds' }) || [];
+    const detailed = useWatch({ control, name: 'detailed' });
+    const grandTotal = useWatch({ control, name: 'grandTotal' });
+    const active = useWatch({ control, name: 'active' });
+    const left = useWatch({ control, name: 'left' });
+    const deactive = useWatch({ control, name: 'deactive' });
+    const total = useWatch({ control, name: 'total' });
+    const userSelection = useWatch({ control, name: 'userSelection' });
+    const newAdmissionStudent = useWatch({
+        control,
+        name: 'newAdmissionStudent'
+    });
 
     const [refreshAY, setRefreshAY] = useState(0);
     const [tableSumRow, setTableSumRow] = useState<any>(null);
 
     const [reporttype, setReportType] = useState('');
 
-    const sumRow: any = {};
-
-    const handleGroupChange = (values: string[]) => {
-        const ids = values.map(Number);
-        setValue('groupIds', ids, { shouldValidate: true });
-    };
-    // ---------------------------- DROPDOWNS ----------------------------
     const [academicYears, setAcademicYears] = useState<any[]>([]);
-    const [feeGroups, setFeeGroups] = useState<any[]>([]);
+    const [feeGroups, setFeeGroups] = useState<IFeeGroupDropdownList[]>([]);
+    const [feeTerms, setFeeTerms] = useState<IFeeTermDropdownList[]>([]);
     const [groupManualLoading, setGroupManualLoading] = useState(false);
     const [classes, setClasses] = useState<any[]>([]);
+    const [section, setSection] = useState<any[]>([]);
+    const [customGroups, setCustomGroups] = useState<IFeeCustomGroupDropdownList[]>([]);
 
     const [selectedAsmayId, setSelectedAsmayId] = useState<number | null>(null);
+    const [filters, setFilters] = useState({
+        customGroupIds: [] as number[],
+        feeGroupIds: [] as number[],
+        termIds: [] as number[],
+        dueDate: new Date(),
+        fromDate: new Date(),
+        toDate: new Date()
+    });
 
-    const {
-        data: academicData,
-        error: academicError,
-        isLoading: loadingAcademic,
-        refetch: refetchAcademicYears
-    } = useAcademicYearDropdown();
-    const { data: classData, error: classError } = useClassDropdownDropdown();
+    const { data: academicData, error: academicError, isLoading: loadingAcademic, refetch: refetchAcademicYears } = useFeeDefaulterReport();
+    const { data: classData, error: classError, isLoading: loadingClasses1 } = useFeeClassListDefaulterreport();
 
-    const { data: sectionListResponse, isLoading: loadingSections, error: sectionListError } = useFeeSectionListDefaulterreport();
-
-    // useEffect(() => {
-    //     if (!loadingAcademic && academicData?.data?.length && selectedAsmayId === null) {
-    //         setSelectedAsmayId(Number(academicData.data[0].asmaY_Id));
-    //     }
-    // }, [loadingAcademic, academicData, selectedAsmayId]);
-
-    // useEffect(() => {
-    //     if (academicError) toast.error('Failed to load academic years');
-    //     if (academicData?.data) {
-    //         setAcademicYears(
-    //             academicData.data.map((i: any) => ({
-    //                 asmaY_Id: i.asmaY_Id,
-    //                 asmaY_Year: i.asmaY_Year
-    //             }))
-    //         );
-    //     }
-    // }, [academicData, academicError]);
-
-    // useEffect(() => {
-    //     if (academicError) toast.error('Failed to load academic years');
-    //     if (academicData?.data) {
-    //         const years = academicData.data.map((i: any) => ({
-    //             asmaY_Id: i.asmaY_Id,
-    //             asmaY_Year: i.asmaY_Year
-    //         }));
-
-    //         setAcademicYears(years);
-
-    //         // ⭐ AUTO-SELECT FIRST YEAR
-    //         if (years.length > 0) {
-    //             const firstYearId = years[0].asmaY_Id;
-    //             setValue('asmaY_Id', firstYearId, { shouldValidate: true });
-
-    //             // ⭐ Trigger loading of groups immediately
-    //             onYearChange(firstYearId);
-    //         }
-    //     }
-    // }, [academicData, academicError]);
+    const { data: sectionListResponse, error: sectionListError, isLoading: loadingSection } = useFeeSectionListDefaulterreport();
 
     useEffect(() => {
         if (academicError) toast.error('Failed to load academic years');
-
         if (!loadingAcademic && academicData?.data?.length && selectedAsmayId === null) {
             const years = academicData.data.map((i: any) => ({
                 asmaY_Id: i.asmaY_Id,
                 asmaY_Year: i.asmaY_Year
             }));
-
             setAcademicYears(years);
-
             const firstYearId = years[0].asmaY_Id;
             setValue('asmaY_Id', firstYearId, {
                 shouldValidate: true,
                 shouldDirty: false
             });
-
             if (years.length > 0) {
                 const firstYearId = years[0].asmaY_Id;
-
-                // ⭐ ALWAYS PICK FIRST YEAR
                 setValue('asmaY_Id', firstYearId, { shouldValidate: true });
-
-                // ⭐ ALWAYS reload groups for first year
                 onYearChange(firstYearId);
             }
         }
@@ -187,28 +141,83 @@ export default function FeeDemandRegisterReportGMVPS() {
         }
     }, [classData, classError]);
 
-    // ---------------------------------------
-    // LOAD GROUPS WHEN YEAR CHANGES
-    // ---------------------------------------
-    // const onYearChange = async (yearId: number) => {
-    //     try {
-    //         setGroupManualLoading(true);
-    //         const res = await getGroupsDropdown(yearId);
+    useEffect(() => {
+        if (sectionListError) toast.error('Failed to load Section dropdown');
+        if (sectionListResponse?.data) {
+            setSection(
+                sectionListResponse.data.map((i: any) => ({
+                    asmS_Id: i.asmS_Id,
+                    asmC_SectionName: i.asmC_SectionName
+                }))
+            );
+        }
+    }, [sectionListResponse, sectionListError]);
+    const selectAllCustomGroups = (checked: boolean) => {
+        setFilters((prev) => ({
+            ...prev,
+            customGroupIds: checked ? customGroups.map((g) => g.fmgG_Id) : []
+        }));
+    };
 
-    //         setFeeGroups(
-    //             res?.data?.map((i: any) => ({
-    //                 fmG_Id: i.fmG_Id,
-    //                 fmG_GroupName: i.fmG_GroupName
-    //             })) ?? []
-    //         );
+    const selectAllFeeGroups = (checked: boolean) => {
+        setFilters((prev) => ({
+            ...prev,
+            feeGroupIds: checked ? feeGroups.map((g) => g.fmG_Id) : []
+        }));
+    };
 
-    //         setValue('groupIds', []);
-    //     } catch {
-    //         toast.error('Failed to load groups');
-    //     } finally {
-    //         setGroupManualLoading(false);
-    //     }
-    // };
+    const selectAllTerms = (checked: boolean) => {
+        setFilters((prev) => ({
+            ...prev,
+            termIds: checked ? feeTerms.map((t) => t.fmT_Id) : []
+        }));
+    };
+
+    const toggleCustomGroup = (id: number) =>
+        setFilters((prev) => ({
+            ...prev,
+            customGroupIds: prev.customGroupIds.includes(id) ? prev.customGroupIds.filter((x) => x !== id) : [...prev.customGroupIds, id]
+        }));
+
+    const toggleFeeGroup = (id: number) =>
+        setFilters((prev) => ({
+            ...prev,
+            feeGroupIds: prev.feeGroupIds.includes(id) ? prev.feeGroupIds.filter((x) => x !== id) : [...prev.feeGroupIds, id]
+        }));
+
+    const toggleTerm = (id: number) =>
+        setFilters((prev) => ({
+            ...prev,
+            termIds: prev.termIds.includes(id) ? prev.termIds.filter((x) => x !== id) : [...prev.termIds, id]
+        }));
+    const { data: customGroupResponse, isLoading: loadingCustomGroup, error: customGroupError } = useFeeCustomGroupDefaulterreport();
+
+    const { data: feegroupData, isLoading: loadingfeegroup, error: feegroupError } = useFeeGroupDefaulterreport();
+    const { data: feetermData, isLoading: loadingfeeterm, error: feetermError } = useFeeTermDropDownDataForReports();
+
+    useEffect(() => {
+        if (customGroupError) toast.error(customGroupError?.message || 'Failed to load custom groups');
+        else if (customGroupResponse?.data) setCustomGroups(customGroupResponse.data);
+    }, [customGroupResponse, customGroupError]);
+
+    useEffect(() => {
+        if (customGroups.length > 0 && filters.customGroupIds.length === 0) {
+            setFilters((prev) => ({
+                ...prev,
+                customGroupIds: customGroups.map((g) => g.fmgG_Id)
+            }));
+        }
+    }, [customGroups]);
+
+    useEffect(() => {
+        if (feegroupError) toast.error(feegroupError?.message || 'Failed to load fee groups');
+        else if (feegroupData?.data) setFeeGroups(feegroupData.data);
+    }, [feegroupData, feegroupError]);
+
+    useEffect(() => {
+        if (feetermError) toast.error(feetermError?.message || 'Failed to load terms');
+        else if (feetermData?.data) setFeeTerms(feetermData.data);
+    }, [feetermData, feetermError]);
 
     const onYearChange = async (yearId: number) => {
         try {
@@ -223,7 +232,6 @@ export default function FeeDemandRegisterReportGMVPS() {
 
             setFeeGroups(groups);
 
-            // ⭐ AUTO-SELECT ALL GROUP IDs
             setValue(
                 'groupIds',
                 groups.map((g) => g.fmG_Id),
@@ -236,41 +244,10 @@ export default function FeeDemandRegisterReportGMVPS() {
         }
     };
 
-    // ===================================================
-    // SHOW/HIDE LOGIC
-    // ===================================================
-    const showHeadPaymentBlock =
-        (report === 'All' && rpttyp === 'All' && reportdate === 'transdate') || (rpttyp === 'All' && reportdate === 'transdate');
-
-    const isClassRequired = rpttyp === 'Individual' && !enableAllClasses;
-
-    // ===================================================
-    // TABLE STATES + API LOGIC
-    // ===================================================
     const [loading, setLoading] = useState(false);
     const [tableColumns, setTableColumns] = useState<string[]>([]);
     const [tableRows, setTableRows] = useState<any[]>([]);
     const [showTable, setShowTable] = useState(false);
-
-    async function fetchDailyReport(params: any) {
-        const query = new URLSearchParams(params).toString();
-        const url = `/FeeDailycollection/daily-fee-collection-report?${query}`;
-
-        const res = await fetch(url, { method: 'GET' });
-        if (!res.ok) throw new Error('API failed');
-
-        return res.json();
-    }
-
-    const formatDate = (date: string) => new Date(date).toLocaleDateString('en-GB');
-
-    const flattenData = (data: any[]) => {
-        return data.map((item) => ({
-            Date: formatDate(item.date),
-            ...item.feeHeadAmounts,
-            TotalPaidAmount: item.totalPaidAmount
-        }));
-    };
 
     const handlePrint = () => {
         //  printTable(tableColumns, tableRows, tableSumRow);
@@ -282,106 +259,23 @@ export default function FeeDemandRegisterReportGMVPS() {
         //      'Daily_Fee_Collection_Report'
         //  );
     };
-    const { data: classListResponse, isLoading: loadingClasses, error: classListError } = useFeeClassListDefaulterreport();
+
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         setSubmitClicked(true);
 
-        // if (!isClassRequired && (data.asmcL_Id === 0 || data.asmcL_Id === null || data.asmcL_Id === undefined)) {
-        //     toast.error('Please select Class');
-        //     return;
-        // }
-        if (rpttyp === 'Individual') {
-            if (enableAllClasses === true) {
-                if (asmcL_Id === 0 || asmcL_Id === null || asmcL_Id === undefined) {
-                    toast.error('Please select Class');
-                    return;
-                }
-            }
-        }
-
-        if (reportdate === 'transdate' && rpttyp === 'All' && report === 'All' && !chequeDate && !acdmyr && !headwise && !paymentwise) {
+        if (rpttyp === 'All' && report === 'All' && !chequeDate && !acdmyr && !headwise && !paymentwise) {
             toast.error('Please select at least one checkbox Cheque Date/Add Year Wise Report/Headwise/Paymentwise');
             return;
         }
 
-        // if (isClassRequired && !data.asmcL_Id) {
-        //     toast.error('Please select Class');
-        //     return;
-        // }
-
-        // -------------------------------
-        // BASE PARAMS (ALWAYS SENT)
-        // -------------------------------
-        const params: IDailyFeeCollectionRequest = {
-            AsmayId: data.asmaY_Id,
-            FromDate: data.fromDate,
-            ToDate: data.toDate,
-            All_List: [{ columnID: '1' }]
-        };
-
-        // // ===================================================
-        // // REPORT 4 → STUDENTS / ALL (NOT multiplepaymentmode)
-        // // Trigger:
-        // // Fmc_allorsudentorother = "stud" OR "All"
-        // // AND Fmc_allorcorddorop != "multiplepaymentmode"
-        // // ===================================================
-        // if ((data.Fmc_allorsudentorother === 'stud' || data.Fmc_allorsudentorother === 'All') && data.Fmc_allorcorddorop !== 'All') {
-        //     params.regornamedetails = data.Fmc_allorsudentorother.toLowerCase();
-        //     params.allorstdorothersflag = 'all';
-        //     params.allorindivflag = data.rpttyp === 'All' ? 'all' : 'individual';
-        //     params.allorcorchoronlineflag = data.Fmc_allorcorddorop.toLowerCase();
-
-        //     params.ClassFlag = data.enableAllClasses ? '0' : '1';
-        //     params.GroupFlag = data.groupIds.length > 0 ? '1' : '0';
-        //     params.Cheque = data.chequeDate ? '1' : '0';
-        //     params.TempararyArrayListstring = 'all';
-
-        //     console.log('REPORT 4 (STUDENTS/ALL) PARAMS', params);
-        // }
-
-        // // ===================================================
-        // // REPORT 5 → STAFF / OTHERS
-        // // Trigger: Fmc_allorsudentorother = "staff" | "other"
-        // // ===================================================
-        // if (data.Fmc_allorsudentorother === 'Trpt' || data.Fmc_allorsudentorother === 'other') {
-        //     params.regornamedetails = data.Fmc_allorsudentorother;
-        //     params.allorstdorothersflag = 'all';
-        //     params.ClassFlag = data.enableAllClasses ? '0' : '1';
-
-        //     console.log('REPORT 5 (STAFF / OTHERS) PARAMS', params);
-        // }
-
-        // console.log('FINAL PARAM SENT:', params);
-
-        // ===================================================
-        // API CALL
-        // ===================================================
-
-        if (data.Fmc_allorsudentorother === 'all') {
-            data.Fmc_allorsudentorother = 'multiplepaymentmode';
-        }
         try {
             setShowTable(false);
             setLoading(true);
             setTableRows([]);
-            // const tempParams: IDailyFeeCollectionRequest = {
-            //     AsmayId: 176,
-            //     FromDate: '2025-01-01',
-            //     ToDate: '2025-01-31',
-            //     Headwise: true,
-            //     Paymentwise: false
-            // };
-
-            //console.log('tempParams', tempParams);
-            const formatDate = (date: string) => new Date(date).toISOString().split('T')[0];
-            const { asmaY_Id, fromDate, toDate, Fmc_allorsudentorother, Fmc_allorcorddorop } = data;
 
             const payload = {};
 
-            console.log('payload', JSON.stringify(payload));
             const response = await getDailyFeeCollectionReport(payload);
-
-            console.log('response', response);
 
             const rawData: any = response?.data;
 
@@ -392,8 +286,6 @@ export default function FeeDemandRegisterReportGMVPS() {
                 return;
             }
 
-            console.log('rawData', rawData);
-
             const currentReportType = rawData?.listName || '';
             setReportType(currentReportType);
 
@@ -401,8 +293,6 @@ export default function FeeDemandRegisterReportGMVPS() {
                 const list = Array.isArray(rawData?.list) ? rawData.list : [];
 
                 toast.success('Report Data Fetched Successfully');
-
-                console.log('list', list);
 
                 // 🔹 Collect all fee heads
                 const feeHeadSet = new Set<string>();
@@ -635,9 +525,6 @@ export default function FeeDemandRegisterReportGMVPS() {
         }
     };
 
-    // ===================================================
-    // CANCEL BUTTON
-    // ===================================================
     const handleReset = () => {
         reset();
         setSubmitClicked(false);
@@ -645,15 +532,9 @@ export default function FeeDemandRegisterReportGMVPS() {
         setTableRows([]);
         setShowTable(false);
         refetchAcademicYears();
-        setRefreshAY((n) => n + 1); // ⭐ force re-run useEffect
+        setRefreshAY((n) => n + 1);
     };
 
-    const asmcL_Id = useWatch({ control, name: 'asmcL_Id' });
-    const fromDateValue = watch('fromDate');
-
-    // ===================================================
-    // MAIN UI
-    // ===================================================
     return (
         <div className='rounded-lg border bg-card p-6 text-card-foreground shadow-sm'>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-8'>
@@ -702,7 +583,7 @@ export default function FeeDemandRegisterReportGMVPS() {
                                                 </SelectItem>
                                             ) : (
                                                 academicYears.map((item) => (
-                                                    <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                    <SelectItem key={item.asmaY_Id} value={item.asmaY_Id}>
                                                         {item.asmaY_Year}
                                                     </SelectItem>
                                                 ))
@@ -728,22 +609,22 @@ export default function FeeDemandRegisterReportGMVPS() {
                                             onYearChange(num);
                                         }}>
                                         <SelectTrigger className='w-full'>
-                                            <SelectValue placeholder={loadingAcademic ? 'Loading...' : 'Select Section'} />
+                                            <SelectValue placeholder={loadingClasses1 ? 'Loading...' : 'Select Section'} />
                                         </SelectTrigger>
 
                                         <SelectContent>
-                                            {loadingAcademic ? (
+                                            {loadingSection ? (
                                                 <SelectItem value='loading' disabled>
                                                     Loading...
                                                 </SelectItem>
-                                            ) : academicError ? (
+                                            ) : sectionListError ? (
                                                 <SelectItem value='error' disabled>
-                                                    Failed to load years
+                                                    Failed to load Section
                                                 </SelectItem>
                                             ) : (
-                                                academicYears.map((item) => (
-                                                    <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                        {item.asmaY_Year}
+                                                section.map((item) => (
+                                                    <SelectItem key={item.asmS_Id} value={item.asmS_Id}>
+                                                        {item.asmC_SectionName}
                                                     </SelectItem>
                                                 ))
                                             )}
@@ -752,130 +633,147 @@ export default function FeeDemandRegisterReportGMVPS() {
                                 )}
                             />
                         </div>
-                        <div className='flex items-start gap-4'>
-                            {/* LABEL */}
-                            <Label className='mt-[6px] whitespace-nowrap font-medium'>
-                                Group <span className='text-red-500'>*</span>
-                            </Label>
+                        <div className='grid grid-cols-1 gap-6 md:grid-cols-3'>
+                            <div className='space-y-3'>
+                                <Label className='font-semibold text-lg'>
+                                    Custom Group <span className='text-red-500'>*</span>
+                                </Label>
+                                <Card className='border bg-gray-50 p-4'>
+                                    <div className='max-h-64 space-y-3 overflow-y-auto'>
+                                        <Label
+                                            htmlFor='customGroupSelectAll'
+                                            className='flex cursor-pointer items-center gap-3 rounded border-b bg-white px-2 py-2 font-medium hover:bg-gray-200'>
+                                            <Checkbox
+                                                id='customGroupSelectAll'
+                                                checked={customGroups.length > 0 && filters.customGroupIds.length === customGroups.length}
+                                                onCheckedChange={(checked: any) => selectAllCustomGroups(!!checked)}
+                                            />
+                                            <span>Select All</span>
+                                        </Label>
 
-                            {/* MULTI SELECT */}
-                            <div className='flex-1'>
-                                <FeesCustomMultiSelectBox
-                                    options={feeGroups.map((g) => ({
-                                        label: g.fmG_GroupName,
-                                        value: String(g.fmG_Id)
-                                    }))}
-                                    value={selectedGroupIds.map(String)}
-                                    onChange={handleGroupChange}
-                                    placeholder='Select Fee Groups'
-                                    height='200px'
-                                    isSearchRequired
-                                    isLoading={groupManualLoading}
-                                />
-
-                                {errors.groupIds && <FormError>{errors.groupIds.message}</FormError>}
+                                        {loadingCustomGroup ? (
+                                            <div className='py-4 text-center text-gray-500'>Loading...</div>
+                                        ) : customGroups.length > 0 ? (
+                                            customGroups.map((group) => (
+                                                <Label
+                                                    key={group.fmgG_Id}
+                                                    htmlFor={`customGroup-${group.fmgG_Id}`}
+                                                    className='flex cursor-pointer items-center gap-3 rounded px-2 py-1 hover:bg-gray-100'>
+                                                    <Checkbox
+                                                        id={`customGroup-${group.fmgG_Id}`}
+                                                        checked={filters.customGroupIds.includes(group.fmgG_Id)}
+                                                        onCheckedChange={() => toggleCustomGroup(group.fmgG_Id)}
+                                                    />
+                                                    <span className='font-medium text-sm'>{group.fmgG_GroupName}</span>
+                                                </Label>
+                                            ))
+                                        ) : (
+                                            <div className='py-4 text-center text-gray-500'>No custom groups</div>
+                                        )}
+                                    </div>
+                                </Card>
                             </div>
-                        </div>
+                            <div className='space-y-3'>
+                                <Label className='font-semibold text-lg'>
+                                    Fee Group <span className='text-red-500'>*</span>
+                                </Label>
+                                <Card className='border bg-gray-50 p-4'>
+                                    <div className='max-h-64 space-y-3 overflow-y-auto'>
+                                        <Label
+                                            htmlFor='feeGroupSelectAll'
+                                            className='flex cursor-pointer items-center gap-3 rounded border-b bg-white px-2 py-2 font-medium hover:bg-gray-200'>
+                                            <Checkbox
+                                                id='feeGroupSelectAll'
+                                                checked={feeGroups.length > 0 && filters.feeGroupIds.length === feeGroups.length}
+                                                onCheckedChange={(checked: any) => selectAllFeeGroups(!!checked)}
+                                            />
+                                            <span>Select All</span>
+                                        </Label>
 
-                        {/* SPECIAL CHECKBOXES */}
-                        <div className='space-y-3 text-sm'>
-                            {reportdate !== 'SettledOnline' && reportdate !== 'settdate' && (
-                                <div className='flex items-center gap-2'>
-                                    <Checkbox id='acdmyr-1' checked={chequeDate} onCheckedChange={(v) => setValue('chequeDate', !!v)} />
-                                    <Label htmlFor='acdmyr-1'>Cheque Date</Label>
-                                </div>
-                            )}
-                            {/* <div className='flex items-center gap-2'>
-                                 <Checkbox id='acdmyr-1' checked={chequeDate} onCheckedChange={(v) => setValue('chequeDate', !!v)} />
-                                 <Label htmlFor='acdmyr-1'>Cheque Date</Label>
-                             </div> */}
-
-                            <div className='flex items-center gap-2'>
-                                <Checkbox id='acdmyr-2' checked={acdmyr} onCheckedChange={(v) => setValue('acdmyr', !!v)} />
-                                <Label htmlFor='acdmyr-2'>Add Year Wise Report</Label>
+                                        {loadingfeegroup ? (
+                                            <div className='py-4 text-center text-gray-500'>Loading...</div>
+                                        ) : feeGroups.length > 0 ? (
+                                            feeGroups.map((group) => (
+                                                <Label
+                                                    key={group.fmG_Id}
+                                                    htmlFor={`feeGroup-${group.fmG_Id}`}
+                                                    className='flex cursor-pointer items-center gap-3 rounded px-2 py-1 hover:bg-gray-100'>
+                                                    <Checkbox
+                                                        id={`feeGroup-${group.fmG_Id}`}
+                                                        checked={filters.feeGroupIds.includes(group.fmG_Id)}
+                                                        onCheckedChange={() => toggleFeeGroup(group.fmG_Id)}
+                                                    />
+                                                    <span className='text-sm'>{group.fmG_GroupName}</span>
+                                                </Label>
+                                            ))
+                                        ) : (
+                                            <div className='py-4 text-center text-gray-500'>No fee groups</div>
+                                        )}
+                                    </div>
+                                </Card>
                             </div>
 
-                            {showHeadPaymentBlock && (
+                            <div className='space-y-3'>
                                 <>
-                                    <Label htmlFor='headwise-checkbox' className='flex items-center gap-2'>
-                                        <Checkbox
-                                            id='headwise-checkbox'
-                                            checked={headwise}
-                                            onCheckedChange={(v) => setValue('headwise', !!v)}
-                                        />
-                                        <span>Head Wise Report</span>
+                                    <Label className='font-semibold text-lg'>
+                                        Term Name <span className='text-red-500'>*</span>
                                     </Label>
+                                    <Card className='border bg-gray-50 p-4'>
+                                        <div className='max-h-64 space-y-3 overflow-y-auto'>
+                                            <Label
+                                                htmlFor='termSelectAll'
+                                                className='flex cursor-pointer items-center gap-3 rounded border-b bg-white px-2 py-2 font-medium hover:bg-gray-200'>
+                                                <Checkbox
+                                                    id='termSelectAll'
+                                                    checked={feeTerms.length > 0 && filters.termIds.length === feeTerms.length}
+                                                    // indeterminate={
+                                                    //     filters.termIds.length > 0 && filters.termIds.length < feeTerms.length
+                                                    // }
+                                                    onCheckedChange={(checked: any) => selectAllTerms(!!checked)}
+                                                />
+                                                <span>Select All</span>
+                                            </Label>
 
-                                    <Label htmlFor='paymentwise-checkbox' className='flex items-center gap-2'>
-                                        <Checkbox
-                                            id='paymentwise-checkbox'
-                                            checked={paymentwise}
-                                            onCheckedChange={(v) => setValue('paymentwise', !!v)}
-                                        />
-                                        <span>Payment Mode</span>
-                                    </Label>
+                                            {loadingfeeterm ? (
+                                                <div className='py-4 text-center text-gray-500'>Loading...</div>
+                                            ) : feeTerms.length > 0 ? (
+                                                feeTerms.map((term) => (
+                                                    <Label
+                                                        key={term.fmT_Id}
+                                                        htmlFor={`term-${term.fmT_Id}`}
+                                                        className='flex cursor-pointer items-center gap-3 rounded px-2 py-1 hover:bg-gray-100'>
+                                                        <Checkbox
+                                                            id={`term-${term.fmT_Id}`}
+                                                            checked={filters.termIds.includes(term.fmT_Id)}
+                                                            onCheckedChange={() => toggleTerm(term.fmT_Id)}
+                                                        />
+                                                        <span className='text-sm'>{term.fmT_Name}</span>
+                                                    </Label>
+                                                ))
+                                            ) : (
+                                                <div className='py-4 text-center text-gray-500'>No terms</div>
+                                            )}
+                                        </div>
+                                    </Card>
                                 </>
-                            )}
-
-                            {/* ERROR MESSAGE */}
-                            {/* {reportdate === 'transdate' &&
-                                 rpttyp === 'All' &&
-                                 (report === 'All' || report === 'students') &&
-                                 !chequeDate &&
-                                 !acdmyr &&
-                                 !headwise &&
-                                 !paymentwise && <div className='text-red-500 text-sm'>Please select at least one checkbox</div>} */}
+                            </div>
                         </div>
                     </div>
-
-                    {/* ================= RIGHT BLOCK ================= */}
                     <div className='space-y-6'>
-                        {/* DETAILS FOR */}
-
-                        {/* <div className='space-y-2 rounded-lg border p-4'>
-                                 
- 
-                                 <div className='flex flex-wrap gap-4 text-sm'>
-                                     {['all', 'stud', 'preadm', 'other', 'Trpt', 'thirdparty', 'multiplepaymentmode'].map((val) => (
-                                         <Label key={val} className='flex items-center gap-2'>
-                                             <input type='radio' value={val} {...register('Fmc_allorsudentorother')} />
-                                             <span>
-                                                 {val === 'all'
-                                                     ? 'All'
-                                                     : val === 'stud'
-                                                       ? 'Student'
-                                                       : val === 'preadm'
-                                                         ? 'Preadmission'
-                                                         : val === 'other'
-                                                           ? 'Others'
-                                                           : val === 'Trpt'
-                                                             ? 'Transport'
-                                                             : val === 'thirdparty'
-                                                               ? 'Third Party'
-                                                               : 'Multiple Payment'}
-                                             </span>
-                                         </Label>
-                                     ))}
-                                 </div>
-                             </div> */}
                         <div className='rounded-lg border p-4'>
-                            {/* <Label className='mb-2 block font-semibold'>
-                                 Report Category <span className='text-red-500'>*</span>
-                             </Label> */}
-
                             <div className='flex gap-6'>
                                 Select Check Box:<span className='text-red-500'>*</span>
                                 <div className='flex items-center gap-2'>
-                                    <Checkbox id='acdmyr-2' checked={acdmyr} onCheckedChange={(v) => setValue('acdmyr', !!v)} />
-                                    <Label htmlFor='acdmyr-2'>Active</Label>
+                                    <Checkbox id='active' checked={active} onCheckedChange={(v) => setValue('active', !!v)} />
+                                    <Label htmlFor='active'>Active</Label>
                                 </div>
                                 <div className='flex items-center gap-2'>
-                                    <Checkbox id='acdmyr-2' checked={acdmyr} onCheckedChange={(v) => setValue('acdmyr', !!v)} />
-                                    <Label htmlFor='acdmyr-2'>Deactive</Label>
+                                    <Checkbox id='deactive' checked={deactive} onCheckedChange={(v) => setValue('deactive', !!v)} />
+                                    <Label htmlFor='deactive'>Deactive</Label>
                                 </div>
                                 <div className='flex items-center gap-2'>
-                                    <Checkbox id='acdmyr-2' checked={acdmyr} onCheckedChange={(v) => setValue('acdmyr', !!v)} />
-                                    <Label htmlFor='acdmyr-2'>Left</Label>
+                                    <Checkbox id='left' checked={left} onCheckedChange={(v) => setValue('left', !!v)} />
+                                    <Label htmlFor='left'>Left</Label>
                                 </div>
                             </div>
                         </div>
@@ -896,23 +794,23 @@ export default function FeeDemandRegisterReportGMVPS() {
                                                 onYearChange(num);
                                             }}>
                                             <SelectTrigger className='w-full'>
-                                                <SelectValue placeholder={loadingAcademic ? 'Loading...' : 'Select class Name'} />
+                                                <SelectValue placeholder={loadingClasses1 ? 'Loading...' : 'Select class Name'} />
                                             </SelectTrigger>
 
                                             <SelectContent>
                                                 {/* <SelectItem value='all'>All</SelectItem> */}
-                                                {loadingAcademic ? (
+                                                {loadingClasses1 ? (
                                                     <SelectItem value='loading' disabled>
                                                         Loading...
                                                     </SelectItem>
-                                                ) : academicError ? (
+                                                ) : classError ? (
                                                     <SelectItem value='error' disabled>
-                                                        Failed to load years
+                                                        Failed to load Class
                                                     </SelectItem>
                                                 ) : (
                                                     classes.map((item) => (
-                                                        <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                            {item.asmaY_Year}
+                                                        <SelectItem key={item.asmcL_Id} value={item.asmcL_Id}>
+                                                            {item.asmcL_ClassName}
                                                         </SelectItem>
                                                     ))
                                                 )}
@@ -951,7 +849,7 @@ export default function FeeDemandRegisterReportGMVPS() {
                                                     </SelectItem>
                                                 ) : (
                                                     academicYears.map((item) => (
-                                                        <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                        <SelectItem key={item.asmaY_Id} value={item.asmaY_Id}>
                                                             {item.asmaY_Year}
                                                         </SelectItem>
                                                     ))
@@ -962,178 +860,127 @@ export default function FeeDemandRegisterReportGMVPS() {
                                 />
                             </div>
                         </div>
-
-                        {/* PAYMENT MODE */}
-                        {reportdate === 'transdate' && rpttyp === 'Individual' && (
-                            <div className='space-y-2 rounded-lg border p-4'>
-                                {/* <Label className='font-semibold'>Payment Mode</Label> */}
-
-                                <div className='grid grid-cols-3 gap-3 text-sm'>
-                                    {['All', 'C', 'B', 'O', 'Ecs', 'S', 'R', 'BT', 'U'].map((val) => (
-                                        <label key={val} className='flex items-center gap-2'>
-                                            <input type='radio' value={val} {...register('Fmc_allorcorddorop')} />
-                                            <span>
-                                                {val === 'All'
-                                                    ? 'All'
-                                                    : val === 'C'
-                                                      ? 'Cash'
-                                                      : val === 'B'
-                                                        ? 'Cheque/DD'
-                                                        : val === 'O'
-                                                          ? 'Online Paid'
-                                                          : val === 'Ecs'
-                                                            ? 'ECS'
-                                                            : val === 'S'
-                                                              ? 'Card'
-                                                              : val === 'R'
-                                                                ? 'RTGS'
-                                                                : val === 'BT'
-                                                                  ? 'Bank Transfer'
-                                                                  : 'UPI'}
-                                            </span>
-                                        </label>
-                                    ))}
+                        <div className='rounded-lg border p-4'>
+                            <div className='flex gap-6'>
+                                <div className='flex items-center gap-2'>
+                                    <Checkbox id='detailed' checked={detailed} onCheckedChange={(v) => setValue('detailed', !!v)} />
+                                    <Label htmlFor='detailed'>Detailed</Label>
+                                </div>
+                                <div className='flex items-center gap-2'>
+                                    <Checkbox id='grandTotal' checked={grandTotal} onCheckedChange={(v) => setValue('grandTotal', !!v)} />
+                                    <Label htmlFor='grandTotal'>Grand Total</Label>
                                 </div>
                             </div>
+                        </div>
+                        <div className='rounded-lg border p-4'>
+                            <div className='flex gap-6'>
+                                <div className='flex items-center gap-2'>
+                                    <Checkbox id='total' checked={total} onCheckedChange={(v) => setValue('total', !!v)} />
+                                    <Label htmlFor='total'>Total</Label>
+                                </div>
+                                <div className='flex items-center gap-2'>
+                                    <Checkbox
+                                        id='userSelection'
+                                        checked={userSelection}
+                                        onCheckedChange={(v) => setValue('userSelection', !!v)}
+                                    />
+                                    <Label htmlFor='userSelection'>User Selection</Label>
+                                </div>
+                                <div className='flex items-center gap-2'>
+                                    <Checkbox
+                                        id='newAdmissionStudent'
+                                        checked={newAdmissionStudent}
+                                        onCheckedChange={(v) => setValue('newAdmissionStudent', !!v)}
+                                    />
+                                    <Label htmlFor='newAdmissionStudent'>New Admission Student</Label>
+                                </div>
+                            </div>
+                        </div>
+                        <div className='space-y-3 rounded-lg border p-4'>
+                            <div className='flex flex-wrap gap-6'>
+                                {['As On Date', 'Between Date'].map((val) => (
+                                    <label key={val} className='flex items-center gap-2'>
+                                        <input type='radio' value={val} {...register('reportdate')} />
+                                        <span className='capitalize'>{val}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+                        {reportdate === 'As On Date' && (
+                            <div>
+                                <Label className='min-w-32 font-medium'>
+                                    Date <span className='text-red-500'>*</span>
+                                </Label>
+
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button variant='outline' className='w-[240px] justify-start text-left font-normal'>
+                                            <CalendarIcon className='mr-2 h-4 w-4' />
+                                            {format(filters.dueDate, 'dd-MM-yyyy')}
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className='w-auto p-0' align='start'>
+                                        <Calendar
+                                            mode='single'
+                                            selected={filters.dueDate}
+                                            onSelect={(date) => date && setFilters((prev) => ({ ...prev, dueDate: date }))}
+                                            initialFocus
+                                        />
+                                    </PopoverContent>
+                                </Popover>
+                            </div>
                         )}
-
-                        {/* DATES & CLASS */}
-                        <div className='space-y-5 rounded-lg border p-4'>
-                            {/* <div className='flex items-center gap-4'>
-                                 <Label className='w-32'>
-                                     From Date <span className='text-red-500'>*</span>
-                                 </Label>
-                                 <input type='date'
-                                  className='flex-1 rounded-md border px-3 py-2' 
-                                  {...register('fromDate')} />
-                                 {errors.fromDate && <FormError>{errors.fromDate.message}</FormError>}
-                             </div>
- 
-                            
-                             <div className='flex items-center gap-4'>
-                                 <Label className='w-32'>
-                                     To Date <span className='text-red-500'>*</span>
-                                 </Label>
-                                 <input type='date' className='flex-1 rounded-md border px-3 py-2' {...register('toDate')} />
-                                 {errors.toDate && <FormError>{errors.toDate.message}</FormError>}
-                             </div> */}
-
-                            {/* FROM DATE */}
-                            <div className='flex flex-col gap-1'>
-                                <div className='flex items-center gap-4'>
-                                    <Label className='w-32'>
+                        {reportdate === 'Between Date' && (
+                            <div className='flex flex-wrap gap-6'>
+                                <div className='flex items-center gap-2'>
+                                    <Label className='min-w-32 font-medium'>
                                         From Date <span className='text-red-500'>*</span>
                                     </Label>
 
-                                    {/* <input
-                                         type='date'
-                                         className='flex-1 rounded-md border px-3 py-2'
-                                         onKeyDown={(e) => e.preventDefault()} // 🔒 blocks typing
-                                         {...register('fromDate')}
-                                     /> */}
-
-                                    <input
-                                        type='date'
-                                        className='flex-1 rounded-md border px-3 py-2'
-                                        onKeyDown={(e) => e.preventDefault()} // 🔒 blocks typing
-                                        {...register('fromDate', {
-                                            required: 'From Date is required',
-                                            onChange: (e) => {
-                                                const newFromDate = e.target.value;
-                                                const currentToDate = watch('toDate');
-
-                                                // Clear toDate if it's before new fromDate
-                                                if (currentToDate && newFromDate > currentToDate) {
-                                                    setValue('toDate', '');
-                                                }
-                                            }
-                                        })}
-                                    />
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button variant='outline' className='w-[240px] justify-start text-left font-normal'>
+                                                <CalendarIcon className='mr-2 h-4 w-4' />
+                                                {format(filters.fromDate, 'dd-MM-yyyy')}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className='w-auto p-0' align='start'>
+                                            <Calendar
+                                                mode='single'
+                                                selected={filters.fromDate}
+                                                onSelect={(date) => date && setFilters((prev) => ({ ...prev, fromDate: date }))}
+                                                initialFocus
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
                                 </div>
-
-                                {errors.fromDate && <FormError className='ml-32'>{errors.fromDate.message}</FormError>}
-                            </div>
-
-                            {/* TO DATE */}
-                            <div className='flex flex-col gap-1'>
-                                <div className='flex items-center gap-4'>
-                                    <Label className='w-32'>
+                                <div className='flex items-center gap-2'>
+                                    <Label className='min-w-32 font-medium'>
                                         To Date <span className='text-red-500'>*</span>
                                     </Label>
-                                    {/* 
-                                     <input
-                                         type='date'
-                                         className='flex-1 rounded-md border px-3 py-2'
-                                         onKeyDown={(e) => e.preventDefault()} // 🔒 blocks typing
-                                         {...register('toDate')}
-                                     /> */}
 
-                                    <input
-                                        type='date'
-                                        className='flex-1 rounded-md border px-3 py-2'
-                                        onKeyDown={(e) => e.preventDefault()} // 🔒 blocks typing
-                                        {...register('toDate', {
-                                            required: 'To Date is required',
-                                            validate: (value) => {
-                                                if (!fromDateValue) return 'Please select From Date first';
-                                                return true;
-                                            }
-                                        })}
-                                        min={fromDateValue || ''} // 👈 THIS BLOCKS DATES BEFORE FROM DATE
-                                        disabled={!fromDateValue} // 👈 OPTIONAL: Disable until fromDate is selected
-                                    />
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button variant='outline' className='w-[240px] justify-start text-left font-normal'>
+                                                <CalendarIcon className='mr-2 h-4 w-4' />
+                                                {format(filters.toDate, 'dd-MM-yyyy')}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className='w-auto p-0' align='start'>
+                                            <Calendar
+                                                mode='single'
+                                                selected={filters.toDate}
+                                                onSelect={(date) => date && setFilters((prev) => ({ ...prev, toDate: date }))}
+                                                initialFocus
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
                                 </div>
-
-                                {errors.toDate && <FormError className='ml-32'>{errors.toDate.message}</FormError>}
                             </div>
-
-                            {/* CLASS */}
-
-                            {rpttyp === 'Individual' && (
-                                <div className='flex items-center gap-4'>
-                                    {/* Checkbox + Label */}
-                                    <Label className='flex w-40 items-center gap-2'>
-                                        <Checkbox
-                                            checked={enableAllClasses}
-                                            onCheckedChange={(checked) => {
-                                                const v = !!checked;
-                                                setValue('enableAllClasses', v);
-
-                                                // clear value when disabled
-                                                if (!v) {
-                                                    setValue('asmcL_Id', 0);
-                                                }
-                                            }}
-                                        />
-                                        <span>Class {!isClassRequired && <span className='text-red-500'>*</span>}</span>
-                                    </Label>
-
-                                    {/* Dropdown controlled by checkbox */}
-                                    <div className='flex-1'>
-                                        <Select
-                                            disabled={!enableAllClasses} // <-- enable only when checkbox checked
-                                            onValueChange={(v) => setValue('asmcL_Id', Number(v))}
-                                            value={enableAllClasses ? asmcL_Id?.toString() : undefined}>
-                                            <SelectTrigger className='w-full'>
-                                                <SelectValue placeholder='Select' />
-                                            </SelectTrigger>
-
-                                            <SelectContent>
-                                                {classes.map((c) => (
-                                                    <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
-                                                        {c.asmcL_ClassName}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                        )}
                     </div>
                 </div>
 
-                {/* ===================== BUTTONS ===================== */}
                 <div className='flex justify-center gap-4 border-t pt-6'>
                     <Button type='submit' disabled={isSubmitting} className='min-w-32'>
                         {isSubmitting ? 'Generating...' : 'Report'}

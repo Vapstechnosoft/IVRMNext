@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider } from '@/components/ui/form/form-provider';
 import { useScheduleReport, useSendScheduleMail } from '@/hooks/admission/preadmission/useReports';
@@ -132,7 +133,7 @@ function ScheduleReportPageContent({
         try {
             toast.loading('Sending emails...', { id: 'mail-loading' });
             const payload = {
-                SmsMailStudentDetailst: selectedRows
+                smsMailStudentDetailst: selectedRows
             };
             const res = await sendMailMutation.mutateAsync(payload);
             toast.dismiss('mail-loading');
@@ -177,21 +178,22 @@ function ScheduleReportPageContent({
     const columns = getScheduleReportColumns();
 
     return (
-        <div className='min-h-screen bg-slate-50/30'>
-            <div className='container mx-auto space-y-6 py-8 px-4'>
-                <div className='flex flex-col gap-2 mb-2'>
-                    <h1 className='text-3xl font-extrabold text-slate-800 tracking-tight'>Schedule Report</h1>
-                    <p className='text-slate-500'>Generate and manage admission test schedules and receipts.</p>
+        <div className='min-h-screen bg-slate-50/50'>
+            <div className='container mx-auto space-y-4 py-4 px-4'>
+                <div className='flex items-center gap-2 mb-2'>
+                    <h1 className='text-xl font-bold text-slate-700 tracking-tight uppercase'>PREADMISSION</h1>
                 </div>
 
-                <CollapsibleSection 
-                    title='Filter Criteria' 
-                    defaultOpen={!isSearched}
-                    variant='outline'
-                    className='shadow-sm border-slate-200'
-                >
-                    <AddScheduleReportForm onFilterChange={onFilterChange} />
-                </CollapsibleSection>
+                <Card className='shadow-md border-slate-200 overflow-hidden bg-white'>
+                    <CardHeader className='bg-white border-b py-2 px-6'>
+                        <CardTitle className='text-sm font-bold text-blue-900 uppercase tracking-widest'>
+                            SCHEDULE REPORT
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className='p-6'>
+                        <AddScheduleReportForm onFilterChange={onFilterChange} />
+                    </CardContent>
+                </Card>
 
                 {isSearched && (
                     <div className='space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500'>

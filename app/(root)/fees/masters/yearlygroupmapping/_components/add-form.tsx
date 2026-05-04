@@ -88,7 +88,8 @@ export default function YearlyFeeGroupMapping({ onSuccess }: yearlyGroupMappingF
 
     const { data: feeHeadResponse, isLoading: isLoadingHeads } = useFeeMasterHead();
     const { data: installmentResponse, isLoading: isLoadingInstallments } = useFeeMasterInstallment();
-
+    console.log('feeinstaellments', installmentResponse);
+    console.log('feeHeads', feeHeadResponse);
     const academicYears = Array.isArray(academicYearOptions?.data) ? academicYearOptions.data : [];
     //const feeGroups = Array.isArray(feeGroupResponse?.data) ? feeGroupResponse.data : [];
 
