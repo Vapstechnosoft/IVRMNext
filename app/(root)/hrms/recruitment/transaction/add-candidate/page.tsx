@@ -98,7 +98,7 @@ function FormSections({
         <>
             {/* Add Form */}
             {isAddFormOpen && (
-                <div ref={addFormRef}>
+                <div ref={addFormRef as any}>
                     <CollapsibleSection
                         title='Candidate Details'
                         description='Fill in the details below to create a new candidate'
@@ -128,7 +128,7 @@ function FormSections({
             )}
             {/* Edit Form */}
             {isEditFormOpen && (
-                <div ref={editFormRef}>
+                <div ref={editFormRef as any}>
                     <CollapsibleSection
                         title='Edit Candidate Details'
                         description='Update the details below to edit the candidate'

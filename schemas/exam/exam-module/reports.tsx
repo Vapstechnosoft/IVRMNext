@@ -682,3 +682,13 @@ export const gmvpsProgressCardIXSchema = z.object({
 });
 
 export type GmvpsProgressCardIXSchema = z.infer<typeof gmvpsProgressCardIXSchema>;
+
+export const burnpurProgressCardXIISchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    date: z.string().min(1, 'Date is required'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
+});
+
+export type BurnpurProgressCardXIISchema = z.infer<typeof burnpurProgressCardXIISchema>;
