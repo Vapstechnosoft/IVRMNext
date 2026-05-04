@@ -79,7 +79,6 @@ import {
 } from '@/server/fees/masters/student_fee_group_mapping';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getExamAcademicYearDropdown } from '@/server/exam/exam-module/masters/exam';
 export const useMasterFeehead = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
@@ -819,20 +818,19 @@ export const useFeeMasterHead = () => {
         }
     };
 };
-
 export const useFeeMasterInstallment = () => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.FEE_MASTER_INSTALLMENT_DROPDOWN],
+            queryKey: [FEES_QUERY_KEYS.FEE_MASTER_INSTALLMENT_DROPDOWN1],
             queryFn: async () => getMasterfeeInstallment(),
             staleTime: 0,
             retry: 1
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
-                queryKey: [FEES_QUERY_KEYS.FEE_MASTER_INSTALLMENT_DROPDOWN]
+                queryKey: [FEES_QUERY_KEYS.FEE_MASTER_INSTALLMENT_DROPDOWN1]
             });
         }
     };
