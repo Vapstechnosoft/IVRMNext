@@ -139,7 +139,7 @@ export default function StJamesIX_XReportForm({
             asmaY_Id: data.asmaY_Id,
             asmcL_Id: data.asmcL_Id,
             asmS_Id: data.asmS_Id,
-            emE_Ids: data.emE_Id.map((e) => e.emE_Id).join(','),
+            emE_Ids: data.emE_Id.map((e: any) => e.emE_Id).join(','),
             type: data.type,
             displayAttendance: data.displayAttendance
         };
@@ -345,7 +345,7 @@ export default function StJamesIX_XReportForm({
                                                             <div className='flex flex-col gap-3'>
                                                                 {exams.map((e) => {
                                                                     const isChecked =
-                                                                        field.value?.some((val) => val.emE_Id === e.emE_Id) || false;
+                                                                        field.value?.some((val: any) => val.emE_Id === e.emE_Id) || false;
                                                                     return (
                                                                         <div key={e.emE_Id} className='flex items-center space-x-2'>
                                                                             <Checkbox
@@ -360,7 +360,7 @@ export default function StJamesIX_XReportForm({
                                                                                     } else {
                                                                                         field.onChange(
                                                                                             (field.value || []).filter(
-                                                                                                (val) => val.emE_Id !== e.emE_Id
+                                                                                                (val: any) => val.emE_Id !== e.emE_Id
                                                                                             )
                                                                                         );
                                                                                     }

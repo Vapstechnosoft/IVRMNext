@@ -215,8 +215,20 @@ export default function DanvantariTransferCertificatePage() {
     };
 
     const handleReport = async () => {
-        if (academicYearId === null || studentId === null) {
-            toast.error('Please select academic year and student');
+        if (academicYearId === null) {
+            toast.error('Select Academic Year');
+            return;
+        }
+        if (courseId === null) {
+            toast.error('Select Course');
+            return;
+        }
+        if (semesterId === null) {
+            toast.error('Select Semester');
+            return;
+        }
+        if (studentId === null) {
+            toast.error('Select Student Name');
             return;
         }
 

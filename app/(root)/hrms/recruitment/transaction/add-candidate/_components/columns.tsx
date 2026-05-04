@@ -1,8 +1,9 @@
 'use client';
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit, Trash2, CreditCard } from 'lucide-react';
 export interface QualificationDetail {
     id: number;
     qualification: string;
@@ -40,7 +41,23 @@ export interface DocumentDetail {
 }
 export interface Candidate {
     id: number;
-    // Personal Details
+    hrcD_Id: number;
+    hrcD_FullName: string;
+    hrcD_FirstName: string;
+    hrcD_MiddleName?: string;
+    hrcD_LastName: string;
+    hrmJ_Id: number;
+    hrmJ_JobTiTle: string;
+    hrcD_ExpFrom: number;
+    hrcD_ExpTo: number;
+    applydate: string;
+    hrcD_RecruitmentStatus: string;
+    hrcD_EmailId: string;
+    hrcD_MobileNo: number;
+    hrcD_CreatedBy: number;
+    hrcD_ActiveFlg: boolean | number;
+    
+    // Legacy fields for form state (if still used by the frontend)
     firstName: string;
     middleName?: string;
     lastName: string;
@@ -56,7 +73,6 @@ export interface Candidate {
     applicationDate: string;
     interviewDate: string;
     dateOfBirth: string;
-    // Additional Details
     nationality: string;
     religion: string;
     caste: string;
@@ -72,7 +88,6 @@ export interface Candidate {
     remark?: string;
     consultency?: string;
     resumeCV?: string;
-    // Address
     localAddressLine1: string;
     localAddressLine2?: string;
     localPlace: string;
@@ -82,72 +97,53 @@ export interface Candidate {
     permanentPlace: string;
     permanentPincode: string;
     sameAsLocalAddress: boolean;
-    // Qualifications
-    qualifications: QualificationDetail[];
-    // Experience
-    experiences: ExperienceDetail[];
-    // Family
-    familyMembers: FamilyDetail[];
-    // Languages
-    languages: LanguageDetail[];
-    // Documents
-    documents: DocumentDetail[];
     status: string;
     createdAt: string;
 }
 interface CandidateColumnsProps {
     onEdit: (row: Candidate) => void;
-    onDelete: (row: Candidate) => void;
+    onToggle: (row: Candidate) => void;
 }
-export const getCandidateColumns = ({ onEdit, onDelete }: CandidateColumnsProps): ColumnDef<Candidate>[] => [
+export const getCandidateColumns = ({ onEdit, onToggle }: CandidateColumnsProps): ColumnDef<Candidate>[] => [
     {
-        id: 'sl',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='SL.NO' />,
-        cell: ({ row }) => <div className='font-medium'>{row.index + 1}</div>,
-        enableSorting: false
+        id: 'serialNumber',
+        header: 'SL.NO',
+        cell: ({ row }) => <div>{row.index + 1}</div>
     },
     {
-        accessorKey: 'firstName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Candidate Name' />,
-        cell: ({ row }) => {
-            const candidate = row.original;
-            return <div className='font-medium'>{`${candidate.firstName} ${candidate.middleName || ''} ${candidate.lastName}`.trim()}</div>;
+        id: 'fullName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Name' />,
+        cell: ({ row }) => <div className='capitalize'>{row.original.hrcD_FullName}</div>
+    },
+    {
+        accessorKey: 'hrcD_EmailId',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Email' />,
+        cell: ({ row }) => <div>{row.getValue('hrcD_EmailId')}</div>
+    },
+    {
+        accessorKey: 'hrmJ_JobTiTle',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Job Title' />,
+        cell: ({ row }) => <div>{row.getValue('hrmJ_JobTiTle')}</div>
+    },
+    {
+            id: 'actions',
+            header: 'Action',
+            enableSorting: false,
+            cell: ({ row }) => {
+                const entity = row.original;
+                return (
+                    <ActionButtons
+                        rowData={entity}
+                        buttons={{ edit: true, toggle: true, delete: false }}
+                        onEdit={onEdit}
+                        onToggle={() => onToggle?.(entity)}
+                        toggleConditionKey='hrcD_ActiveFlg'
+                    />
+                );
+            }
         }
-    },
-    {
-        accessorKey: 'applicationDate',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Date Of Application' />,
-        cell: ({ row }) => <div>{new Date(row.getValue('applicationDate')).toLocaleDateString()}</div>
-    },
-    {
-        accessorKey: 'jobTitle',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Applied Position' />,
-        cell: ({ row }) => <div>{row.getValue('jobTitle')}</div>
-    },
-    {
-        accessorKey: 'status',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
-        cell: ({ row }) => <div>{row.getValue('status')}</div>
-    },
-    {
-        id: 'actions',
-        header: 'Action',
-        cell: ({ row }) => {
-            const entity = row.original;
-            return (
-                <div className='flex items-center gap-2'>
-                    <Button variant='outline' size='sm' onClick={() => onEdit(entity)}>
-                        <Edit className='h-4 w-4' />
-                    </Button>
-                    <Button variant='outline' size='sm' className='text-red-600' onClick={() => onDelete(entity)}>
-                        <Trash2 className='h-4 w-4' />
-                    </Button>
-                </div>
-            );
-        }
-    }
 ];
 export const candidateColumns = getCandidateColumns({
     onEdit: () => {},
-    onDelete: () => {}
+    onToggle: () => {}
 });
