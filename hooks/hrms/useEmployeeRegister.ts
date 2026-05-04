@@ -946,3 +946,5 @@ export function useEmployeeEarningsDeductions(hrme_id: number | null) {
         enabled: !!hrme_id && hrme_id > 0
     });
 }
+
+

@@ -109,21 +109,29 @@ export async function getUserAccessibleModules() {
                                         //     description: 'Apply for Registration'
                                         // },
 
+                                        // {
+                                        //     id: 3,
+                                        //     name: 'Transfer Application Status',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/transactions/transfer-application-status',
+                                        //     title: 'Transfer Application Status',
+                                        //     description: 'Manage Transfer Application Status Details'
+                                        // },
+                                        // {
+                                        //     id: 4,
+                                        //     name: 'Transfer Admission Status',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/transactions/transfer-admission-status',
+                                        //     title: 'Transfer Admission Status',
+                                        //     description: 'Manage Transfer Admission Status Details'
+                                        // },
                                         {
                                             id: 3,
                                             name: 'Transfer Application Status',
                                             icon: 'Settings',
-                                            url: '/admission/preadmission/transactions/transfer-application-status',
+                                            url: '/admission/preadmission/transactions/status',
                                             title: 'Transfer Application Status',
                                             description: 'Manage Transfer Application Status Details'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'Transfer Admission Status',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/transactions/transfer-admission-status',
-                                            title: 'Transfer Admission Status',
-                                            description: 'Manage Transfer Admission Status Details'
                                         },
                                         {
                                             id: 5,
@@ -133,13 +141,21 @@ export async function getUserAccessibleModules() {
                                             title: 'Transfer to Admission',
                                             description: 'Transfer confirmed preadmission applications to admission'
                                         },
+                                        // {
+                                        //     id: 6,
+                                        //     name: 'Document View',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/transactions/document-view',
+                                        //     title: 'Document View',
+                                        //     description: ' Document View'
+                                        // },
                                         {
-                                            id: 6,
+                                            id: 7,
                                             name: 'Document View',
                                             icon: 'Settings',
-                                            url: '/admission/preadmission/transactions/document-view',
+                                            url: '/admission/preadmission/reports/document-view-report',
                                             title: 'Document View',
-                                            description: ' Document View'
+                                            description: 'Document View'
                                         }
                                     ]
                                 }
@@ -187,6 +203,14 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/reports/preadmission-month-end-report',
                                             title: 'PreAdmission Month End Report',
                                             description: 'PreAdmission Month End Report'
+                                        },
+                                        {
+                                            id: 11,
+                                            name: 'Schedule Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/schedule-report',
+                                            title: 'Schedule Report',
+                                            description: 'Schedule Report'
                                         }
                                     ]
                                 }
@@ -1959,6 +1983,46 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/transactions/thirdPartyTransactionGM',
                                             title: 'Third Party TransactionGM',
                                             description: 'Manage Third Party TransactionGM'
+                                        },
+                                        {
+                                            id: 520,
+                                            name: 'Fee Transaction Vishwadarshana Society',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/feetransactionvishwa',
+                                            title: 'Fee Transaction Vishwadarshana Society',
+                                            description: 'Manage Fee Transaction Vishwadarshana Society'
+                                        },
+                                        {
+                                            id: 521,
+                                            name: 'Fee Receipt Import ST THOMAS',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/feesreceiptimportstthomas',
+                                            title: 'Fee Receipt Import ST THOMAS',
+                                            description: 'Manage Fee Receipt Import ST THOMAS'
+                                        },
+                                        {
+                                            id: 522,
+                                            name: 'Fee Trail Audit Reoport ST JAMES',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feetrailauditreport',
+                                            title: 'Fee Trail Audit Reoport ST JAMES',
+                                            description: 'Manage Fee Trail Audit Reoport ST JAMES'
+                                        },
+                                        {
+                                            id: 522,
+                                            name: 'Fee Demand Register Report GMVPS',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feedemandregisterreportgmvps',
+                                            title: 'Fee Demand Register Report GMVPS',
+                                            description: 'Manage Fee Demand Register Report GMVPS'
+                                        },
+                                        {
+                                            id: 43,
+                                            name: 'Fee Waivedoff Sophia',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/waivedoff',
+                                            title: 'Fee Waivedoff Sophia',
+                                            description: 'Manage Fee Waivedoff Sophia'
                                         }
                                     ]
                                 }
@@ -2921,6 +2985,22 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/Calcatta/baldwin-exam-hallticket',
                                             title: 'Baldwin Exam Hallticket',
                                             description: 'Baldwin Exam Hallticket'
+                                        },
+                                        {
+                                            id: 21050,
+                                            name: 'NDS_Co_Scholasticreport',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/nds/NDS_Co_Scholasticreport',
+                                            title: 'NDS_Co_Scholasticreport',
+                                            description: 'NDS_Co_Scholasticreport'
+                                        },
+                                        {
+                                            id: 21060,
+                                            name: 'NDS_I_To_VIII_ReportCard',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/nds/NDS_I_To_VIII_ReportCard',
+                                            title: 'NDS_I_To_VIII_ReportCard',
+                                            description: 'NDS_I_To_VIII_ReportCard'
                                         },
                                         {
                                             id: 21041,

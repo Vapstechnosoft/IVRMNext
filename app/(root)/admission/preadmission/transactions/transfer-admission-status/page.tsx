@@ -16,7 +16,7 @@ import { updateStudentPreadmissionStatus } from '@/server/admission/preadmission
 import type { IPreadmissionApplicationList } from '@/types/admission/preadmission/transactions';
 import { CheckSquare } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
-import { use, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { AdmissionStatusUpdateDialog } from './_components/admission-status-update-form';
 import { transferAdmissionColumns } from './_components/columns';
@@ -24,7 +24,7 @@ import { transferAdmissionColumns } from './_components/columns';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function TransferAdmissionStatusPage(props: { searchParams: SearchParams }) {
-    const searchParams = use(props.searchParams);
+    const searchParams = (React as any).use(props.searchParams);
     const router = useRouter();
     const pathname = usePathname();
 
