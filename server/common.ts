@@ -2787,6 +2787,22 @@ export async function getUserAccessibleModules() {
                                             description: 'Sophia_Topper List Report'
                                         },
                                         {
+                                            id: 21099,
+                                            name: 'Sophia_Promotion Report Card',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Sophia/PromotionReportCardSophia',
+                                            title: 'Sophia_Promotion Report Card',
+                                            description: 'Sophia_Promotion Report Card'
+                                        },
+                                        {
+                                            id: 21100,
+                                            name: 'Final Promotion VI_TO_VIII Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Sophia/FinalpromoreportVI_TO_VIII',
+                                            title: 'Final Promotion VI_TO_VIII Report',
+                                            description: 'Final Promotion VI_TO_VIII Report'
+                                        },
+                                        {
                                             id: 21016,
                                             name: 'StJames_Consolidation Report',
                                             icon: 'BookOpen',
@@ -2990,15 +3006,15 @@ export async function getUserAccessibleModules() {
                                             id: 21050,
                                             name: 'NDS_Co_Scholasticreport',
                                             icon: 'Ticket',
-                                            url: '/Exam/exam-module/reports/nds/NDS_Co_Scholasticreport',
+                                            url: '/Exam/exam-module/reports/NDS/NDS_Co_Scholasticreport',
                                             title: 'NDS_Co_Scholasticreport',
                                             description: 'NDS_Co_Scholasticreport'
                                         },
                                         {
-                                            id: 21060,
+                                            id: 21051,
                                             name: 'NDS_I_To_VIII_ReportCard',
                                             icon: 'Ticket',
-                                            url: '/Exam/exam-module/reports/nds/NDS_I_To_VIII_ReportCard',
+                                            url: '/Exam/exam-module/reports/NDS/NDS_I_To_VIII_ReportCard',
                                             title: 'NDS_I_To_VIII_ReportCard',
                                             description: 'NDS_I_To_VIII_ReportCard'
                                         },
@@ -3026,6 +3042,7 @@ export async function getUserAccessibleModules() {
                                             title: 'BRS Progress Card X Report',
                                             description: 'BRS Progress Card X Report'
                                         },
+<<<<<<< HEAD
 
                                         {
                                             id: 21044,
@@ -3042,6 +3059,79 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/MES/mes-progresscardreport',
                                             title: 'MES Progress Card Report',
                                             description: 'MES Progress Card Report'
+=======
+                                        {
+                                            id: 21044,
+                                            name: 'NDS_9_ProgressNewCardReport',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/NDS/NDS_9_ProgressNewCardReport',
+                                            title: 'NDS_9_ProgressNewCardReport',
+                                            description: 'NDS_9_ProgressNewCardReport'
+                                        },
+                                        {
+                                            id: 21046,
+                                            name: 'NDS_9_ProgressCardReport',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/NDS/NDS_9_ProgressCardReport',
+                                            title: 'NDS_9_ProgressCardReport',
+                                            description: 'NDS_9_ProgressCardReport'
+                                        },
+                                        {
+                                            id: 21047,
+                                            name: 'NDS_1_5_ProgressCardReport',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/NDS/NDS_1_5_ProgressCardReport',
+                                            title: 'NDS_1_5_ProgressCardReport',
+                                            description: 'NDS_1_5_ProgressCardReport'
+                                        },
+                                        {
+                                            id: 21045,
+                                            name: 'NDS Promotion Report Card',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/NDS/NDS_Promotionreportcard',
+                                            title: 'NDS Promotion Report Card',
+                                            description: 'NDS Promotion Report Card'
+                                        },
+                                        {
+                                            id: 21046,
+                                            name: 'Chinmaya_Final Promotion Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Chinmaya/FinalPromReportSChinmaya',
+                                            title: 'Chinmaya_Final Promotion Report',
+                                            description: 'Chinmaya Final Promotion Report Card'
+                                        },
+                                        {
+                                            id: 21047,
+                                            name: 'NDS_9 Progress Card Report',
+                                            icon: 'FileText',
+                                            url: '/Exam/exam-module/reports/NDS/NDS9ProgressCardReport',
+                                            title: 'NDS_9 Progress Card Report',
+                                            description: 'NDS 9 Progress Card Report'
+                                        },
+                                        {
+                                            id: 21048,
+                                            name: 'Sophia Exam Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Sophia/SopiaExamReport',
+                                            title: 'Sophia Exam Report',
+                                            description: 'Sophia Exam Report'
+                                        },
+                                        {
+                                            id: 21049,
+                                            name: 'Sophia Exam Report Term Exam',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Sophia/SopiaExamReportTermExam',
+                                            title: 'Sophia Exam Report Term Exam',
+                                            description: 'Sophia Exam Report Term Exam'
+                                        },
+                                        {
+                                            id: 21051,
+                                            name: 'Sophia Exam Report I to IV',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Sophia/SopiaExamReportItoIV',
+                                            title: 'Sophia Exam Report I to IV',
+                                            description: 'Sophia Exam Report I to IV'
+>>>>>>> 5e355368b5f05ba18c2df56aed13044e94d3a874
                                         }
                                     ]
                                 }

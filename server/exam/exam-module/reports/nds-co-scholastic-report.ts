@@ -45,9 +45,8 @@ export async function getStudentsDropDownByAcademicYearandClassandSectionlist(as
 }
 
 /**
- * Get Exam Report Card Data
+ * Get GMVPS Progress Card IX Report Data
  */
-export async function getExamReportCard(data: any) {
-    const url = '/individual_exam_report_card/exam_report_card';
-    return await api.post<any>('exam', url, data);
+export async function getGmvpsProgressCardIXReport(payload: any) {
+    return await api.post<any>('exam', '/JSHSExamReports_/nds_6_8_report', payload);
 }
