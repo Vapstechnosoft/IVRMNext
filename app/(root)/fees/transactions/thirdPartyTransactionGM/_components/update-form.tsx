@@ -16,18 +16,18 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 import {
-    useBankdropdowndatathirdpartytransaction,
-    useFeeThirdParty,
-    useGroupdropdowndatathirdpartytransaction,
-    useHeaddropdowndatathirdpartytransaction,
-    useStudentdowndatathirdpartytransaction,
-    useacademicyerdropdowndatafee,
-    useeditThirdpartytrasaction
+    useBankdropdowndatathirdpartytransaction_GM,
+    useFeeThirdPartyGM,
+    useGroupdropdowndatathirdpartytransaction_GM,
+    useHeaddropdowndatathirdpartytransaction_GM,
+    useStudentdowndatathirdpartytransaction_GM,
+    useacademicyerdropdowndatafee_GM,
+    useeditThirdpartytrasaction_GM
 } from '@/hooks/fees/useTrasactions';
 
 import { cn } from '@/lib/utils';
 import { thirdPartyTransactionSchema } from '@/schemas/fees/trasactions';
-import { ThirdPartyTrasactionfeeReceiptNoflg, saveorUpdateThirdPartyTrasaction } from '@/server/fees/trasactions/thirdPartyTrasaction';
+import { ThirdPartyTrasactionfeeReceiptNoflg_GM, saveorUpdateThirdPartyTrasaction_GM } from '@/server/fees/trasactions/thirdpartyTransaction_GM';
 import type { IFeeThirdPartyTransaction } from '@/types/fees/transactions/transactions';
 import type { z } from 'zod';
 
@@ -39,9 +39,7 @@ interface UpdateThirdPartyFormProps {
 }
 
 export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: UpdateThirdPartyFormProps) {
-    const { refetchAll } = useFeeThirdParty();
-
-    const receiptnoflg = ThirdPartyTrasactionfeeReceiptNoflg();
+    const { refetchAll } = useFeeThirdPartyGM();
 
     const [selectedPaymentMode, setSelectedPaymentMode] = useState<string>('B');
     const [loading, setLoading] = useState(false);
@@ -64,29 +62,31 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
     const watchAcademicYearId = watch('academicYearId');
     const studentType = watch('studentType');
 
-    const { data: academicYear } = useacademicyerdropdowndatafee();
-    const { data: groupData } = useGroupdropdowndatathirdpartytransaction();
-    const { data: headdata } = useHeaddropdowndatathirdpartytransaction();
-    const { data: bankdata } = useBankdropdowndatathirdpartytransaction();
+    const { data: academicYear } = useacademicyerdropdowndatafee_GM();
+    const { data: groupData } = useGroupdropdowndatathirdpartytransaction_GM();
+    const { data: headdata } = useHeaddropdowndatathirdpartytransaction_GM();
+    const { data: bankdata } = useBankdropdowndatathirdpartytransaction_GM();
 
     const {
         data: studentdata,
         isLoading: studentDataLoading,
         refetch: fetchStudents
-    } = useStudentdowndatathirdpartytransaction(Number(watchAcademicYearId || 0));
+    } = useStudentdowndatathirdpartytransaction_GM(Number(watchAcademicYearId || 0));
+
+    const uniqueAcademicYears = Array.from(new Map((academicYear?.data || [])?.map((item) => [item.asmaY_Id, item])).values());
 
     const {
         data: editDataResponse,
         isFetching: isEditFetching,
         refetch: refetchEditData
-    } = useeditThirdpartytrasaction(Number(row.mI_Id), Number(row.asmaY_Id), row?.fyP_Id ?? 0, {
+    } = useeditThirdpartytrasaction_GM(Number(row.mI_Id), Number(row.asmaY_Id), row?.fyP_Id ?? 0, {
         enabled: !!row?.fyP_Id
     });
 
     useEffect(() => {
         const fetchReceiptFlag = async () => {
             try {
-                const res = await ThirdPartyTrasactionfeeReceiptNoflg();
+                const res = await ThirdPartyTrasactionfeeReceiptNoflg_GM();
 
                 // assuming API response shape: { data: IThirdPartyReceiptFlag[] }
                 if (res?.data?.length) {
@@ -175,7 +175,7 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
             const payloaddata = JSON.stringify(payload);
             console.log('Payload to be sent:', payloaddata);
 
-            const response = await saveorUpdateThirdPartyTrasaction(payload);
+            const response = await saveorUpdateThirdPartyTrasaction_GM(payload);
 
             if (response.success) {
                 toast.success('Updated Successfully');
@@ -239,8 +239,8 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                                 <SelectValue placeholder='Select Academic Year' />
                             </SelectTrigger>
                             <SelectContent>
-                                {academicYear?.data?.map((item) => (
-                                    <SelectItem key={item.asmaY_Id} value={String(item.asmaY_Id)}>
+                                {uniqueAcademicYears.map((item, index) => (
+                                    <SelectItem key={`${item.asmaY_Id}-${index}`} value={String(item.asmaY_Id)}>
                                         {item.asmaY_Year}
                                     </SelectItem>
                                 ))}
@@ -258,7 +258,19 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                         name='studentName'
                         control={control}
                         render={({ field }) => (
-                            <Select disabled={!watchAcademicYearId} value={field.value ?? ''} onValueChange={(v) => field.onChange(v)}>
+                            <Select
+                                disabled={!watchAcademicYearId}
+                                value={
+                                    (studentdata?.data?.findIndex((s) => s.amsT_FirstName === field.value && s.amsT_Id === watch('studentId')) ?? -1) !== -1
+                                        ? `std-${studentdata?.data?.findIndex((s) => s.amsT_FirstName === field.value && s.amsT_Id === watch('studentId'))}`
+                                        : ''
+                                }
+                                onValueChange={(val) => {
+                                    const idx = Number(val.split('-')[1]);
+                                    const std = studentdata?.data?.[idx];
+                                    field.onChange(std?.amsT_FirstName || '');
+                                    setValue('studentId', std?.amsT_Id);
+                                }}>
                                 <SelectTrigger className='min-w-[400px]'>
                                     <SelectValue placeholder={watchAcademicYearId ? 'Select Student' : 'Select Academic Year First'} />
                                 </SelectTrigger>
@@ -268,8 +280,8 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                                             Loading students...
                                         </SelectItem>
                                     ) : studentdata ? (
-                                        studentdata.data?.map((std) => (
-                                            <SelectItem key={std.amsT_Id} value={String(std.amsT_FirstName)}>
+                                        studentdata.data?.map((std, index) => (
+                                            <SelectItem key={`${std.amsT_Id}-${index}`} value={`std-${index}`}>
                                                 {std.amsT_FirstName}
                                             </SelectItem>
                                         ))

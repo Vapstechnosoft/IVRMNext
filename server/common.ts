@@ -1983,6 +1983,46 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/transactions/thirdPartyTransactionGM',
                                             title: 'Third Party TransactionGM',
                                             description: 'Manage Third Party TransactionGM'
+                                        },
+                                        {
+                                            id: 520,
+                                            name: 'Fee Transaction Vishwadarshana Society',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/feetransactionvishwa',
+                                            title: 'Fee Transaction Vishwadarshana Society',
+                                            description: 'Manage Fee Transaction Vishwadarshana Society'
+                                        },
+                                        {
+                                            id: 521,
+                                            name: 'Fee Receipt Import ST THOMAS',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/feesreceiptimportstthomas',
+                                            title: 'Fee Receipt Import ST THOMAS',
+                                            description: 'Manage Fee Receipt Import ST THOMAS'
+                                        },
+                                        {
+                                            id: 522,
+                                            name: 'Fee Trail Audit Reoport ST JAMES',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feetrailauditreport',
+                                            title: 'Fee Trail Audit Reoport ST JAMES',
+                                            description: 'Manage Fee Trail Audit Reoport ST JAMES'
+                                        },
+                                        {
+                                            id: 522,
+                                            name: 'Fee Demand Register Report GMVPS',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feedemandregisterreportgmvps',
+                                            title: 'Fee Demand Register Report GMVPS',
+                                            description: 'Manage Fee Demand Register Report GMVPS'
+                                        },
+                                        {
+                                            id: 43,
+                                            name: 'Fee Waivedoff Sophia',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/waivedoff',
+                                            title: 'Fee Waivedoff Sophia',
+                                            description: 'Manage Fee Waivedoff Sophia'
                                         }
                                     ]
                                 }
