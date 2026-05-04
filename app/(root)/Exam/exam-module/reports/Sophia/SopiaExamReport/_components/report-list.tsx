@@ -17,7 +17,7 @@ function StudentCard({ student, apiData, payload }: { student: any; apiData: any
     const studentTotal = apiData?.studentwise_total?.find((t: any) => t.AMST_Id === student.AMST_Id) || {};
     const performanceMarks = apiData?.examwisemarksprocess1?.filter((m: any) => m.AMST_Id === student.AMST_Id) || [];
     const promotionRemarks = apiData?.getpromotionremarksdetails?.find((r: any) => r.amsT_Id === student.AMST_Id) || {};
-    
+
     const performanceSubjects = Array.from(new Set(performanceMarks.map((m: any) => m.TTMSUAB_Abbreviation)));
     const performanceExams = ['First Unit Test', 'First Term Examination', 'Second Unit Test'];
 
@@ -61,7 +61,7 @@ function StudentCard({ student, apiData, payload }: { student: any; apiData: any
 
             {/* HEADER */}
             <div style={{ width: '100%' }}>
-                <img 
+                <img
                     src="https://vapsclg.blob.core.windows.net/files/3/InstitutionLogo/9278fa12-3eed-4c60-8da2-074b5e3df753.jpg"
                     style={{ maxWidth: '100%', height: 'auto', display: 'block', margin: '0 auto' }}
                     alt="Institution Logo"
@@ -298,7 +298,7 @@ function StudentCard({ student, apiData, payload }: { student: any; apiData: any
                 </table>
 
                 {/* REMARKS */}
-                <table style={{ border: '0.5px solid grey', borderTop: 'none', border: '1px solid grey', width: '100%', borderCollapse: 'collapse' }}>
+                <table style={{ border: '0.5px solid grey', borderTop: 'none', width: '100%', borderCollapse: 'collapse' }}>
                     <tr style={{ height: '60px', border: '0.5px solid grey', borderTop: 'none', verticalAlign: 'top' }}>
                         <td style={{ padding: '5px' }}>
                             Teacher&apos;s Remarks : <strong>{promotionRemarks.ecterE_Remarks}</strong>
@@ -307,7 +307,7 @@ function StudentCard({ student, apiData, payload }: { student: any; apiData: any
                 </table>
 
                 {/* SIGNATURES */}
-                <table style={{ border: '0.5px solid grey', border: '1px solid grey', borderTop: 'none', borderCollapse: 'collapse', width: '100%' }}>
+                <table style={{ border: '0.5px solid grey', borderTop: 'none', borderCollapse: 'collapse', width: '100%' }}>
                     <tr style={{ height: '60px' }}>
                         <td style={{ verticalAlign: 'bottom', textAlign: 'center', borderRight: '1px solid grey', width: '33.33%', paddingBottom: '5px' }}>CLASS TEACHER</td>
                         <td style={{ verticalAlign: 'bottom', textAlign: 'center', borderRight: '1px solid grey', width: '33.33%', paddingBottom: '5px' }}>PRINCIPAL</td>
@@ -326,13 +326,13 @@ export default function SopiaExamReportView({ data }: { data: any }) {
     // Process the raw data into report_list (grouped by student)
     const report_list: any[] = [];
     const examwisedetailsnew = apiData?.examwisedetailsnew || [];
-    
+
     examwisedetailsnew.forEach((dev: any) => {
         let stu = report_list.find((r: any) => r.AMST_Id === dev.AMST_Id);
         if (!stu) {
-            stu = { 
-                ...dev, 
-                AMST_Id: dev.AMST_Id, 
+            stu = {
+                ...dev,
+                AMST_Id: dev.AMST_Id,
                 TotalMarksList: [],
                 TotalSchoolDays: 0,
                 TotalWorkingDays: 0,
@@ -345,7 +345,7 @@ export default function SopiaExamReportView({ data }: { data: any }) {
     // Populate TotalMarksList and row numbers
     report_list.forEach((stu: any) => {
         stu.TotalMarksList = examwisedetailsnew.filter((m: any) => m.AMST_Id === stu.AMST_Id);
-        
+
         let counter = 1;
         stu.TotalMarksList.forEach((marks: any) => {
             if (marks.EYCES_AplFResultFlg === false) {
@@ -355,7 +355,7 @@ export default function SopiaExamReportView({ data }: { data: any }) {
             }
 
             // Map percentile from examwisemarksprocess
-            const percentileEntry = apiData?.examwisemarksprocess?.find((mar: any) => 
+            const percentileEntry = apiData?.examwisemarksprocess?.find((mar: any) =>
                 mar.AMST_Id === stu.AMST_Id && mar.ISMS_Id === marks.ISMS_Id1
             );
             if (percentileEntry) {

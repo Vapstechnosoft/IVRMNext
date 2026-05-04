@@ -3041,6 +3041,22 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/Sophia/SopiaExamReport',
                                             title: 'Sophia Exam Report',
                                             description: 'Sophia Exam Report'
+                                        },
+                                        {
+                                            id: 21049,
+                                            name: 'Sophia Exam Report Term Exam',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Sophia/SopiaExamReportTermExam',
+                                            title: 'Sophia Exam Report Term Exam',
+                                            description: 'Sophia Exam Report Term Exam'
+                                        },
+                                        {
+                                            id: 21051,
+                                            name: 'Sophia Exam Report I to IV',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Sophia/SopiaExamReportItoIV',
+                                            title: 'Sophia Exam Report I to IV',
+                                            description: 'Sophia Exam Report I to IV'
                                         }
                                     ]
                                 }
