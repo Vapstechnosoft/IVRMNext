@@ -3,9 +3,9 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
-import { useFeeThirdParty } from '@/hooks/fees/useTrasactions';
+import { useFeeThirdPartyGM } from '@/hooks/fees/useTrasactions';
 import { thirdPartyTransactionSchema } from '@/schemas/fees/trasactions';
-import { deleteThirdPartyTrasaction } from '@/server/fees/trasactions/thirdPartyTrasaction';
+import { deleteThirdPartyTrasaction_GM } from '@/server/fees/trasactions/thirdpartyTransaction_GM';
 import type { IFeeThirdPartyTransaction } from '@/types/fees/transactions/transactions';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Trash2 } from 'lucide-react';
@@ -21,7 +21,7 @@ interface ToggleThirdPartyFormProps {
 }
 
 export default function ToggleThirdPartyForm({ rowData, onClose }: ToggleThirdPartyFormProps) {
-    const { refetchAll } = useFeeThirdParty();
+    const { refetchAll } = useFeeThirdPartyGM();
 
     const {
         register,
@@ -40,7 +40,7 @@ export default function ToggleThirdPartyForm({ rowData, onClose }: ToggleThirdPa
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await deleteThirdPartyTrasaction(Number(rowData.fyP_Id));
+            const response = await deleteThirdPartyTrasaction_GM(Number(rowData.fyP_Id));
             if (response?.success) {
                 toast.success(response.message || 'Deleted successfully');
                 refetchAll();

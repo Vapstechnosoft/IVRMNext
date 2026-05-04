@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { receiptView } from '@/server/fees/trasactions/thirdPartyTrasaction';
+import { receiptView_GM } from '@/server/fees/trasactions/thirdpartyTransaction_GM';
 import type { IFeeThirdPartyTransaction } from '@/types/fees/transactions/transactions';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
@@ -39,7 +39,7 @@ export default function ReceiptPage({ rowData, onClose }: ReceiptPageProps) {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const raw = await receiptView(payload);
+                const raw = await receiptView_GM(payload);
 
                 console.log('Receipt Raw Data:', raw);
                 const response = typeof raw === 'string' ? JSON.parse(raw) : raw;

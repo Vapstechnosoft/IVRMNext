@@ -120,7 +120,13 @@ export const PREADMISSION_QUERY_KEYS = {
     PARENTS_DASHBOARD: 'parents_dashboard',
     STUDY_CERTIFICATE_REPORT: 'study_certificate_report',
     CHARACTER_CERTIFICATE_REPORT: 'character_certificate_report',
-    GENERATE_QR_CODE_CERTIFICATE: 'generate_qr_code_certificate'
+    GENERATE_QR_CODE_CERTIFICATE: 'generate_qr_code_certificate',
+    SCHEDULE_REPORT: 'schedule_report',
+    SCHEDULE_LIST: 'schedule_list',
+    ORAL_TEST_SCHEDULE_DETAILS: 'oral_test_schedule_details',
+    CLASSWISE_STUDENTS: 'classwise_students',
+    ORAL_TEST_RESCHEDULE_DETAILS: 'oral_test_reschedule_details',
+    RESCHEDULE_REPORT: 'reschedule_report'
 };
 
 export const FEES_QUERY_KEYS = {
@@ -176,7 +182,7 @@ export const FEES_QUERY_KEYS = {
     FEE_THIRDPARTY_HEADDROPDOWN: 'fee_thirdparty_headdropdown',
     FEE_THIRDPARTY_BANKDROPDOWN: 'fee_thirdparty_bankdropdown',
     FEE_MASTER_HEADS_DROPDOWN: 'fee_master_heads_dropdown',
-    FEE_MASTER_INSTALLMENT_DROPDOWN: 'fee_master_installment_dropdown',
+    FEE_MASTER_INSTALLMENT_DROPDOWN1: 'fee_master_installment_dropdown1',
     FEE_ALL_HEAD: 'fee_all_head',
     FEE_ONLINE_PAYMENT_HEAD_GROUP: 'fee_online_payment_head_group',
     FEE_ONLINE_PAYMENT_HEAD_GROUP_INSTALLMENT_YEAR: 'fee_online_payment_head_group_installment_year',
@@ -644,3 +650,19 @@ export const TRANSPORT_QUERY_KEYS = {
     SESSION_DROPDOWN: 'session_dropdown',
     VECHILE_GRID_LIST: 'vechile_grid_list'
 };
+
+
+export const RECRUITMENT_QUERY_KEYS = {
+    MASTER_INSTITUTION_BY_LOGIN: 'master_institution_by_login',
+    MASTER_JOB_GRID: 'master_job_grid',
+    MASTER_JOB_SAVE_OR_UPDATE: 'master_job_save_or_update',
+    MASTER_JOB_DELETE: 'master_job_delete',
+    MASTER_JOB_BY_JOBID: 'master_job_by_jobid',
+    MASTER_LOCATION_GRID: 'master_location_grid',
+    MASTER_POSITION_GRID: 'master_position_grid',
+    MASTER_POSITION_TYPE_GRID: 'master_position_type_grid',
+    MASTER_PRIORITY_GRID: 'master_priority_grid',
+    TRANSACTION_CANDIDATE_LIST: 'transaction_candidate_list',
+    TRANSACTION_CANDIDATE_INTERVIEW_LIST: 'transaction_candidate_interview_list'
+   
+}

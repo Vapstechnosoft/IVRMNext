@@ -58,7 +58,7 @@ export async function getGradeDropdown(): Promise<ApiResponse<IGradeDropdown[]>>
  * GET /api/MasterDropDown/GetEmployeeType
  */
 export async function getEmployeeTypeDropdown(): Promise<ApiResponse<IEmployeeTypeDropdown[]>> {
-    const url = '/api/MasterEmployeeType';
+    const url = '/api/MasterDropDown/GetEmployeeType';
     console.log('🔍 [API DEBUG] Fetching Employee Type Dropdown from:', url);
     try {
         const response = await api.get<IEmployeeTypeDropdown[]>('hrms', url);

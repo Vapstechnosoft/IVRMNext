@@ -209,6 +209,12 @@ export interface ISection {
     ecaC_ActiveFlag: boolean;
 }
 
+export interface IPromotionalGroup {
+    empG_Order: number;
+    empG_DisplayName: string;
+    empG_GroupName: string;
+}
+
 export interface ICategoryClassMappingDetails {
     mI_Id: number;
     asmS_Id: number;

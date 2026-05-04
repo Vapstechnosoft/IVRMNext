@@ -3,28 +3,10 @@ import { Calendar } from '@/components/ui/calendar';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { getFineslabDetails } from '@/server/fees/trasactions/feeAmountEntry';
-import type { IAmountEntryFineSlabDetails } from '@/types/fees/transactions/transactions';
 import { format } from 'date-fns';
 import { CalendarIcon, Minus, Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
-
-interface FineSlab {
-    fmfS_Id: number;
-    fmfS_FineType: string;
-    fmfS_FromDay: number;
-    fmfS_ToDay: number;
-    fmfS_ECSFlag: string;
-    ftfS_Id?: number;
-    ftfS_Amount?: string;
-    FTFS_FineType?: string;
-    FTFSE_FineType?: string;
-    ftfsE_Id?: number;
-    ftfsE_Amount?: string;
-    isSelected: boolean;
-    fmH_Id?: number;
-    ftI_Id?: number;
-}
+import { toast } from 'sonner';
 
 interface FineSlabModalProps {
     isOpen: boolean;
@@ -35,18 +17,29 @@ interface FineSlabModalProps {
     categoryId: number;
     academicYearId: number;
     selectionType: string;
-    onSave: (regularSlabs: FineSlab[], ecsSlabs: FineSlab[]) => void;
-    existingRegularSlabs?: FineSlab[];
-    existingEcsSlabs?: FineSlab[];
     selectedInstallment: string;
 }
 
-interface RowData {
+export interface RowData {
     id: number | string;
     date: Date | null;
     type: string;
     amount: string;
 }
+
+export interface CartItem {
+    headId: number;
+    installmentId: number;
+    rows: RowData[];
+    selectedInstallment: string;
+    feeGroupId: number;
+    categoryId: number;
+    academicYearId: number;
+    selectionType: string;
+    timestamp: number;
+}
+
+const CART_STORAGE_PREFIX = 'fine_slab_cart_';
 
 export default function FineSlabModal({
     isOpen,
@@ -57,270 +50,110 @@ export default function FineSlabModal({
     categoryId,
     academicYearId,
     selectionType,
-    onSave,
-    existingRegularSlabs = [],
-    existingEcsSlabs = [],
     selectedInstallment
 }: FineSlabModalProps) {
-    const [showRegularSlab, setShowRegularSlab] = useState(false);
-    const [showEcsSlab, setShowEcsSlab] = useState(false);
-    const [regularSlabs, setRegularSlabs] = useState<FineSlab[]>([]);
-    const [ecsSlabs, setEcsSlabs] = useState<FineSlab[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [selectedRegular, setSelectedRegular] = useState<number[]>([]);
-    const [selectedEcs, setSelectedEcs] = useState<number[]>([]);
-    const [validationError, setValidationError] = useState<string>('');
-    const [todaysDate, setTodaysDate] = useState<Date | undefined>(new Date());
     const fineTypeOptions = [
         { value: 'Per Day', label: 'Per Day' },
         { value: 'Day Slab', label: 'Day Slab' }
     ];
 
-    const [selectedType, setSelectedType] = useState<string>('');
-
-    useEffect(() => {
-        if (isOpen && headId && installmentId) {
-            fetchFineSlabs();
-        }
-    }, [isOpen, headId, installmentId]);
-
-    // Initialize with existing selected slabs - DON'T auto-check checkboxes
-    useEffect(() => {
-        if (existingRegularSlabs.length > 0) {
-            const regularIds = existingRegularSlabs.map((slab) => slab.fmfS_Id);
-            setSelectedRegular(regularIds);
-        }
-
-        if (existingEcsSlabs.length > 0) {
-            const ecsIds = existingEcsSlabs.map((slab) => slab.fmfS_Id);
-            setSelectedEcs(ecsIds);
-        }
-    }, [existingRegularSlabs, existingEcsSlabs]);
-
-    const fetchFineSlabs = async () => {
-        setLoading(true);
-        try {
-            // Call API based on selection type
-            let response: IAmountEntryFineSlabDetails;
-            if (selectionType === 'stud') {
-                // For students, fetch both regular and ECS slabs
-                response = (await getFineslabDetails('R', 'E')) as unknown as IAmountEntryFineSlabDetails;
-            } else {
-                // For non-students (stfoth, stfothamt), fetch only regular slabs
-                response = (await getFineslabDetails('R')) as unknown as IAmountEntryFineSlabDetails;
-            }
-
-            if (response?.data) {
-                // Transform API response to match your interface
-                const regularData: FineSlab[] = response.data.fillslab.map((slab) => ({
-                    fmfS_Id: slab.fmfS_Id,
-                    fmfS_FineType: slab.fmfS_FineType,
-                    fmfS_FromDay: slab.fmfS_FromDay,
-                    fmfS_ToDay: slab.fmfS_ToDay,
-                    fmfS_ECSFlag: slab.fmfS_ECSFlag,
-                    isSelected: false, // Don't auto-select
-                    FTFS_FineType: '',
-                    ftfS_Amount: ''
-                }));
-
-                const ecsData: FineSlab[] = response.data.fillslabecs.map((slab) => ({
-                    fmfS_Id: slab.fmfS_Id,
-                    fmfS_FineType: slab.fmfS_FineType,
-                    fmfS_FromDay: slab.fmfS_FromDay,
-                    fmfS_ToDay: slab.fmfS_ToDay,
-                    fmfS_ECSFlag: slab.fmfS_ECSFlag,
-                    isSelected: false, // Don't auto-select
-                    FTFSE_FineType: '',
-                    ftfsE_Amount: ''
-                }));
-
-                setRegularSlabs(regularData);
-                setEcsSlabs(ecsData);
-
-                // DON'T auto-show sections - let user decide
-                setShowRegularSlab(false);
-                setShowEcsSlab(false);
-
-                // Only pre-fill data if we have existing slabs
-                if (existingRegularSlabs.length > 0) {
-                    const updatedRegular = regularData.map((slab) => {
-                        const existing = existingRegularSlabs.find((existing) => existing.fmfS_Id === slab.fmfS_Id);
-                        if (existing) {
-                            return {
-                                ...slab,
-                                FTFS_FineType: existing.FTFS_FineType || '',
-                                ftfS_Amount: existing.ftfS_Amount || '',
-                                isSelected: true
-                            };
-                        }
-                        return slab;
-                    });
-                    setRegularSlabs(updatedRegular);
-                    setShowRegularSlab(true);
-                }
-
-                if (existingEcsSlabs.length > 0 && selectionType === 'stud') {
-                    const updatedEcs = ecsData.map((slab) => {
-                        const existing = existingEcsSlabs.find((existing) => existing.fmfS_Id === slab.fmfS_Id);
-                        if (existing) {
-                            return {
-                                ...slab,
-                                FTFSE_FineType: existing.FTFSE_FineType || '',
-                                ftfsE_Amount: existing.ftfsE_Amount || '',
-                                isSelected: true
-                            };
-                        }
-                        return slab;
-                    });
-                    setEcsSlabs(updatedEcs);
-                    setShowEcsSlab(true);
-                }
-
-                // Update selected arrays only if we have existing data
-                setSelectedRegular(existingRegularSlabs.map((slab) => slab.fmfS_Id));
-                setSelectedEcs(existingEcsSlabs.map((slab) => slab.fmfS_Id));
-            }
-        } catch (error) {
-            console.error('Error fetching fine slabs:', error);
-            // Handle error state if needed
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleRegularCheckboxChange = (slabId: number) => {
-        setSelectedRegular((prev) => {
-            if (prev.includes(slabId)) {
-                return prev.filter((id) => id !== slabId);
-            }
-            return [...prev, slabId];
-        });
-    };
-
-    const handleEcsCheckboxChange = (slabId: number) => {
-        setSelectedEcs((prev) => {
-            if (prev.includes(slabId)) {
-                return prev.filter((id) => id !== slabId);
-            }
-            return [...prev, slabId];
-        });
-    };
-
-    const handleFineTypeChange = (index: number, value: string, isEcs = false) => {
-        setValidationError('');
-        if (isEcs) {
-            const updated = [...ecsSlabs];
-            updated[index].FTFSE_FineType = value;
-            setEcsSlabs(updated);
-        } else {
-            const updated = [...regularSlabs];
-            updated[index].FTFS_FineType = value;
-            setRegularSlabs(updated);
-        }
-    };
-
-    const handleAmountChange = (index: number, value: string, isEcs = false) => {
-        setValidationError('');
-        if (isEcs) {
-            const updated = [...ecsSlabs];
-            updated[index].ftfsE_Amount = value;
-            setEcsSlabs(updated);
-        } else {
-            const updated = [...regularSlabs];
-            updated[index].ftfS_Amount = value;
-            setRegularSlabs(updated);
-        }
-    };
-
-    const validateSelectedSlabs = () => {
-        // Check regular slabs
-        for (const slab of regularSlabs) {
-            if (selectedRegular.includes(slab.fmfS_Id)) {
-                if (!slab.FTFS_FineType || slab.FTFS_FineType.trim() === '') {
-                    return `Please select Type for "${slab.fmfS_FineType}" in Regular Slab`;
-                }
-                if (!slab.ftfS_Amount || slab.ftfS_Amount.trim() === '' || Number.parseFloat(slab.ftfS_Amount) <= 0) {
-                    return `Please enter valid Amount (> 0) for "${slab.fmfS_FineType}" in Regular Slab`;
-                }
-            }
-        }
-
-        // Check ECS slabs
-        for (const slab of ecsSlabs) {
-            if (selectedEcs.includes(slab.fmfS_Id)) {
-                if (!slab.FTFSE_FineType || slab.FTFSE_FineType.trim() === '') {
-                    return `Please select Type for "${slab.fmfS_FineType}" in ECS Slab`;
-                }
-                if (!slab.ftfsE_Amount || slab.ftfsE_Amount.trim() === '' || Number.parseFloat(slab.ftfsE_Amount) <= 0) {
-                    return `Please enter valid Amount (> 0) for "${slab.fmfS_FineType}" in ECS Slab`;
-                }
-            }
-        }
-
-        return '';
-    };
-
-    const handleAddToCart = () => {
-        // Validate that all selected rows have Type and Amount
-        const error = validateSelectedSlabs();
-        if (error) {
-            setValidationError(error);
-            return;
-        }
-
-        // Prepare selected slabs with additional info
-        const selectedRegularSlabs = regularSlabs
-            .filter((slab) => selectedRegular.includes(slab.fmfS_Id))
-            .map((slab) => ({
-                ...slab,
-                isSelected: true,
-                fmH_Id: headId,
-                ftI_Id: installmentId,
-                fmG_Id: feeGroupId,
-                fmcC_Id: categoryId,
-                asmaY_Id: academicYearId
-            }));
-
-        const selectedEcsSlabs = ecsSlabs
-            .filter((slab) => selectedEcs.includes(slab.fmfS_Id))
-            .map((slab) => ({
-                ...slab,
-                isSelected: true,
-                fmH_Id: headId,
-                ftI_Id: installmentId,
-                fmG_Id: feeGroupId,
-                fmcC_Id: categoryId,
-                asmaY_Id: academicYearId
-            }));
-
-        // Call parent save function
-        onSave(selectedRegularSlabs, selectedEcsSlabs);
-        setValidationError('');
-        onClose();
-    };
-
-    const handleCheckboxTypeChange = (type: 'regular' | 'ecs', checked: boolean) => {
-        setValidationError('');
-        if (type === 'regular') {
-            setShowRegularSlab(checked);
-            if (!checked) {
-                setSelectedRegular([]);
-            }
-        } else {
-            setShowEcsSlab(checked);
-            if (!checked) {
-                setSelectedEcs([]);
-            }
-        }
-    };
     const [rows, setRows] = useState<RowData[]>([
         {
             id: 1,
-            date: null,
+            date: new Date(),
             type: '',
             amount: ''
         }
     ]);
+
+    const getStorageKey = () => {
+        return `${CART_STORAGE_PREFIX}${headId}_${installmentId}`;
+    };
+
+    useEffect(() => {
+        if (isOpen && headId && installmentId) {
+            loadSavedData();
+        }
+    }, [isOpen, headId, installmentId]);
+
+    useEffect(() => {
+        if (isOpen && headId && installmentId && rows.length > 0) {
+            saveToSession();
+        }
+    }, [rows]);
+
+    const loadSavedData = () => {
+        try {
+            const storageKey = getStorageKey();
+            const savedData = sessionStorage.getItem(storageKey);
+
+            if (savedData) {
+                const parsedData: CartItem = JSON.parse(savedData);
+                const restoredRows = parsedData.rows.map((row) => ({
+                    ...row,
+                    date: row.date ? new Date(row.date) : null
+                }));
+                if (restoredRows.length > 0) {
+                    toast.success('Data restored from previous session');
+                }
+                setRows(restoredRows);
+                // console.log('✅ Loaded saved data for:', { headId, installmentId }, restoredRows);
+            } else {
+                if (rows.length === 0 || rows[0]?.type === '') {
+                    resetToDefault();
+                }
+                toast.warning('No Saved Data Found');
+                // console.log('ℹ️ No saved data found for:', { headId, installmentId });
+            }
+        } catch (error) {
+            console.error('Error loading data from session storage:', error);
+            resetToDefault();
+        }
+    };
+
+    const resetToDefault = () => {
+        setRows([
+            {
+                id: 1,
+                date: new Date(),
+                type: '',
+                amount: ''
+            }
+        ]);
+    };
+
+    const saveToSession = () => {
+        try {
+            const cartItem: CartItem = {
+                headId,
+                installmentId,
+                rows: rows.map((row) => ({
+                    ...row,
+                    date: row.date ? row.date : null
+                })),
+                selectedInstallment,
+                feeGroupId,
+                categoryId,
+                academicYearId,
+                selectionType,
+                timestamp: Date.now()
+            };
+
+            const storageKey = getStorageKey();
+            sessionStorage.setItem(storageKey, JSON.stringify(cartItem));
+        } catch (error) {
+            console.error('Error saving to session storage:', error);
+        }
+    };
+
+    const handleAddToCart = () => {
+        saveToSession();
+        toast.success(`Fine slab added to cart successfully for ${selectedInstallment}!`, {
+            duration: 3000
+        });
+        onClose();
+    };
+
     const handleAddRow = () => {
         const newRow = {
             id: rows.length + 1,
@@ -330,6 +163,7 @@ export default function FineSlabModal({
         };
         setRows([...rows, newRow]);
     };
+
     const handleRemoveRow = (id: any) => {
         if (rows.length > 1) {
             const updatedRows = rows.filter((row) => row.id !== id);
@@ -342,13 +176,6 @@ export default function FineSlabModal({
     };
 
     const handleClose = () => {
-        setRegularSlabs([]);
-        setEcsSlabs([]);
-        setSelectedRegular([]);
-        setSelectedEcs([]);
-        setShowRegularSlab(false);
-        setShowEcsSlab(false);
-        setValidationError('');
         onClose();
     };
 
@@ -360,8 +187,15 @@ export default function FineSlabModal({
                 </DialogHeader>
                 <div className='flex-1 overflow-y-auto rounded-lg border p-4'>
                     <div className='mt-6 w-full overflow-x-auto rounded-md border'>
-                        <div className='p-4'>
-                            Installment Name : <strong>{selectedInstallment}</strong>
+                        <div className='flex items-center justify-between p-4'>
+                            <div>
+                                Installment Name : <strong>{selectedInstallment}</strong>
+                            </div>
+                            <div className='flex gap-2'>
+                                <Button variant='outline' size='sm' onClick={loadSavedData}>
+                                    Reload Saved Data
+                                </Button>
+                            </div>
                         </div>
                         <table className='min-w-full border-collapse text-sm'>
                             <thead>

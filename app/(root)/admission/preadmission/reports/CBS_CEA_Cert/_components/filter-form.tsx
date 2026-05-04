@@ -129,6 +129,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
         setStudentList([]);
         setSearchQuery('');
         onReset();
+        window.location.reload();
     };
 
     const handleFormSubmit = (data: StjamesBonafiedReportFields) => {

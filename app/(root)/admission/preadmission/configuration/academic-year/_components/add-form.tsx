@@ -14,7 +14,7 @@ import { addOrUpdatePreAdmissionYear } from '@/server/admission/preadmission/con
 import { zodResolver } from '@hookform/resolvers/zod';
 import { addDays, format } from 'date-fns';
 import { CalendarIcon, ChevronDown, ChevronUp, Save } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -201,8 +201,12 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
                                 label='Academic Year Code'
                                 required
                                 id='asmaY_AcademicYearCode'
-                                placeholder='e.g., AY2024'
-                                {...register('asmaY_AcademicYearCode')}
+                                placeholder='e.g., 2024'
+                                {...register('asmaY_AcademicYearCode', {
+                                    onChange: (e) => {
+                                        e.target.value = e.target.value.replace(/\D/g, '');
+                                    }
+                                })}
                                 error={errors.asmaY_AcademicYearCode?.message}
                             />
 
@@ -852,6 +856,10 @@ export function TimeSpinnerField({
     onChange: (val: string) => void;
     error?: string;
 }) {
+    const hoursRef = useRef<HTMLDivElement>(null);
+    const minutesRef = useRef<HTMLDivElement>(null);
+    const ampmRef = useRef<HTMLDivElement>(null);
+
     // Parse "HH:mm" (24h) → h (1-12), mm, ampm
     function parse(v: string) {
         const [hStr = '12', mStr = '00'] = (v || '').split(':');
@@ -870,12 +878,51 @@ export function TimeSpinnerField({
 
     const { h, m, ampm } = parse(value);
 
+    useEffect(() => {
+        const handleHoursWheel = (e: WheelEvent) => {
+            e.preventDefault();
+            if (e.deltaY < 0) {
+                emit((h % 12) + 1 || 12, m, ampm);
+            } else {
+                emit(((h - 2 + 12) % 12) + 1, m, ampm);
+            }
+        };
+
+        const handleMinutesWheel = (e: WheelEvent) => {
+            e.preventDefault();
+            if (e.deltaY < 0) {
+                emit(h, (m + 1) % 60, ampm);
+            } else {
+                emit(h, (m - 1 + 60) % 60, ampm);
+            }
+        };
+
+        const handleAmpmWheel = (e: WheelEvent) => {
+            e.preventDefault();
+            emit(h, m, ampm === 'AM' ? 'PM' : 'AM');
+        };
+
+        const hEl = hoursRef.current;
+        const mEl = minutesRef.current;
+        const aEl = ampmRef.current;
+
+        if (hEl) hEl.addEventListener('wheel', handleHoursWheel, { passive: false });
+        if (mEl) mEl.addEventListener('wheel', handleMinutesWheel, { passive: false });
+        if (aEl) aEl.addEventListener('wheel', handleAmpmWheel, { passive: false });
+
+        return () => {
+            if (hEl) hEl.removeEventListener('wheel', handleHoursWheel);
+            if (mEl) mEl.removeEventListener('wheel', handleMinutesWheel);
+            if (aEl) aEl.removeEventListener('wheel', handleAmpmWheel);
+        };
+    }, [h, m, ampm]);
+
     return (
         <div className='flex flex-col gap-1.5'>
             <Label>{label}</Label>
             <div className='flex items-center gap-2'>
                 {/* Hours */}
-                <div className='flex flex-col items-center'>
+                <div ref={hoursRef} className='flex flex-col items-center'>
                     <button type='button' onClick={() => emit((h % 12) + 1 || 12, m, ampm)} className='rounded p-0.5 hover:bg-muted'>
                         <ChevronUp className='h-4 w-4' />
                     </button>
@@ -890,7 +937,7 @@ export function TimeSpinnerField({
                 <span className='text-lg font-bold leading-none'>:</span>
 
                 {/* Minutes */}
-                <div className='flex flex-col items-center'>
+                <div ref={minutesRef} className='flex flex-col items-center'>
                     <button type='button' onClick={() => emit(h, (m + 1) % 60, ampm)} className='rounded p-0.5 hover:bg-muted'>
                         <ChevronUp className='h-4 w-4' />
                     </button>
@@ -903,7 +950,7 @@ export function TimeSpinnerField({
                 </div>
 
                 {/* AM / PM toggle */}
-                <div className='flex flex-col items-center'>
+                <div ref={ampmRef} className='flex flex-col items-center'>
                     <button type='button' onClick={() => emit(h, m, ampm === 'AM' ? 'PM' : 'AM')} className='rounded p-0.5 hover:bg-muted'>
                         <ChevronUp className='h-4 w-4' />
                     </button>

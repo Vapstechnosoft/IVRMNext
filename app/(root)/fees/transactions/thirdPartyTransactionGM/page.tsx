@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useFeeThirdParty } from '@/hooks/fees/useTrasactions';
+import { useFeeThirdPartyGM } from '@/hooks/fees/useTrasactions';
 import type { IFeeThirdPartyTransaction } from '@/types/fees/transactions/transactions';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
@@ -17,7 +17,7 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function ThirdPartyTrasactionEntryPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useFeeThirdParty(searchParams);
+    const { data: response, isLoading, error } = useFeeThirdPartyGM(searchParams);
 
     console.log(response);
 

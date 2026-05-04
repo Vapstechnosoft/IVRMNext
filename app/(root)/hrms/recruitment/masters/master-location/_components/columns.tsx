@@ -1,43 +1,56 @@
 'use client';
-import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Edit, Trash2 } from 'lucide-react';
+
 export interface MasterLocation {
-    id: number;
-    institution: string;
-    locationName: string;
-    locationDesc: string;
-    isActive: boolean;
-    createdAt: string;
+    hrmlO_Id: number;
+    mi_Id: number;           // institution ID from API response
+    hrmlO_Institution: string;
+    hrmlO_LocationName: string;
+    hrmlO_LocationDesc: string;
+    hrmlO_ActiveFlg: boolean;
+    createdDate: string;
 }
+
 interface MasterLocationColumnsProps {
     onEdit: (row: MasterLocation) => void;
-    onDelete: (row: MasterLocation) => void;
+    onToggle?: (row: MasterLocation) => void;
 }
-export const getMasterLocationColumns = ({ onEdit, onDelete }: MasterLocationColumnsProps): ColumnDef<MasterLocation>[] => [
+
+export const getMasterLocationColumns = ({ onEdit,onToggle }: MasterLocationColumnsProps): ColumnDef<MasterLocation>[] => [
     {
         id: 'sl',
         header: ({ column }) => <DataTableColumnHeader column={column} title='SL.NO' />,
         cell: ({ row }) => <div className='font-medium'>{row.index + 1}</div>,
         enableSorting: false
     },
-    // TODO: Add other columns based on the entity fields
     {
+        accessorKey: 'hrmlO_LocationName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Location Name' />,
+        cell: ({ row }) => <div className='font-medium'>{row.original.hrmlO_LocationName}</div>,
+    },
+    {
+        accessorKey: 'hrmlO_LocationDesc',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Location Description' />,
+        cell: ({ row }) => <div className='font-medium'>{row.original.hrmlO_LocationDesc}</div>,
+    },
+   {
         id: 'actions',
         header: 'Action',
+        enableSorting: false,
         cell: ({ row }) => {
             const entity = row.original;
             return (
-                <div className='flex items-center gap-2'>
-                    <Button variant='outline' size='sm' onClick={() => onEdit(entity)}>
-                        <Edit className='h-4 w-4' />
-                    </Button>
-                    <Button variant='outline' size='sm' className='text-red-600' onClick={() => onDelete(entity)}>
-                        <Trash2 className='h-4 w-4' />
-                    </Button>
-                </div>
+                <ActionButtons
+                    rowData={entity}
+                    buttons={{ edit: true, toggle: true, delete: false }}
+                    onEdit={onEdit}
+                    onToggle={() => onToggle?.(entity)}
+                    toggleConditionKey='hrmlO_ActiveFlg'
+                />
             );
         }
     }
 ];
+

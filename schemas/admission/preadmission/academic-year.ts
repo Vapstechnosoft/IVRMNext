@@ -57,8 +57,10 @@ export const PreAdmissionAcademicYearSchema = {
                 message: 'Order must be a valid number'
             }),
 
-        // Academic Year Code - required with length validation
-        asmaY_AcademicYearCode: createStringSchema('Academic Year Code', 1, 20),
+        // Academic Year Code - required with length validation and numeric constraint
+        asmaY_AcademicYearCode: createStringSchema('Academic Year Code', 1, 20).regex(/^\d+$/, {
+            message: 'Academic Year Code must only contain numbers'
+        }),
 
         // Date fields with ISO string validation
         asmaY_From_Date: dateSchema('From Date', true),
@@ -109,7 +111,55 @@ export const PreAdmissionAcademicYearSchema = {
         // Pre-Admission time fields (stored as "HH:mm" strings)
         asmaY_PreAdm_F_Time: z.string().optional().nullable(),
         asmaY_PreAdm_T_Time: z.string().optional().nullable()
-    }),
+    })
+    .refine(
+        (data) => {
+            if (data.asmaY_From_Date && data.asmaY_To_Date) {
+                return new Date(data.asmaY_To_Date) > new Date(data.asmaY_From_Date);
+            }
+            return true;
+        },
+        {
+            message: 'End Date must be after Start Date',
+            path: ['asmaY_To_Date']
+        }
+    )
+    .refine(
+        (data) => {
+            if (data.asmaY_PreAdm_F_Date && data.asmaY_PreAdm_T_Date) {
+                return new Date(data.asmaY_PreAdm_T_Date) > new Date(data.asmaY_PreAdm_F_Date);
+            }
+            return true;
+        },
+        {
+            message: 'Pre-Admission End Date must be after Start Date',
+            path: ['asmaY_PreAdm_T_Date']
+        }
+    )
+    .refine(
+        (data) => {
+            if (data.asmaY_TransportSDate && data.asmaY_TransportEDate) {
+                return new Date(data.asmaY_TransportEDate) > new Date(data.asmaY_TransportSDate);
+            }
+            return true;
+        },
+        {
+            message: 'Transport End Date must be after Start Date',
+            path: ['asmaY_TransportEDate']
+        }
+    )
+    .refine(
+        (data) => {
+            if (data.asmaY_RegularFeeFDate && data.asmaY_RegularFeeTDate) {
+                return new Date(data.asmaY_RegularFeeTDate) > new Date(data.asmaY_RegularFeeFDate);
+            }
+            return true;
+        },
+        {
+            message: 'Financial Year End Date must be after Start Date',
+            path: ['asmaY_RegularFeeTDate']
+        }
+    ),
 
     delete: z.object({
         asmaY_Id: z.coerce
