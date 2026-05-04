@@ -8,17 +8,17 @@ import type { IadmissionStudentApplicationList } from '@/types/admission/admissi
 import type { ColumnDef } from '@tanstack/react-table';
 import { Plus, X } from 'lucide-react';
 import { useSession } from 'next-auth/react';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import AddStudentAdmissionForm from './_components/add-form';
 import { studentApplicationColumns } from './_components/columns';
 import ApplicationFormSuccessDialog from './_components/success-dialog';
 
-type SearchParams = { [key: string]: string | string[] | undefined };
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function StudentApplicationPage(props: {
     searchParams: SearchParams;
 }) {
-    const searchParams = props.searchParams;
+    const searchParams = (React as any).use(props.searchParams);
     const { data: activePreadmission } = useGetAllAdmissionLists();
     const { data: response, isLoading, error, refetch } = useGetAllAdmissionLists(searchParams);
     const { data: masterConfig } = useAcademicYearMasterConfiguration(0);
@@ -57,7 +57,7 @@ function StudentApplicationPageContent({
     useEffect(() => {
         // Don't force a full page reload when session role is temporarily undefined.
         // Session handling should be addressed centrally; avoid reloads here.
-    }, [session?.data?.user]);
+    }, [session?.data?.role]);
 
     // Listen for global admission changes and refetch the table when they occur
     useEffect(() => {
@@ -147,7 +147,7 @@ function FormSections({
         <>
             {/* Add Form */}
             {isAddFormOpen && (
-                <div ref={addFormRef as React.RefObject<HTMLDivElement> | null}>
+                <div ref={addFormRef}>
                     <CollapsibleSection
                         title='Admission Application'
                         description='Fill in the details below to create a new admission application'
@@ -178,7 +178,7 @@ function FormSections({
 
             {/* Edit Form */}
             {isEditFormOpen && (
-                <div ref={editFormRef as React.RefObject<HTMLDivElement> | null}>
+                <div ref={editFormRef}>
                     <CollapsibleSection
                         title='Edit Admission Application'
                         description='Update the details below to edit the Admission application'
