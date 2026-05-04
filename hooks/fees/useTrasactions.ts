@@ -74,11 +74,13 @@ import {
     geteditThirdpartytrasaction
 } from '@/server/fees/trasactions/thirdPartyTrasaction';
 import {
+    getAcademicThirdPartyTrasaction_GM,
+    geteditThirdpartytrasaction_GM,
+    getThirdPartyTrasaction_GM,
     getThirdPartyTrasactionBankDropDown_GM,
     getThirdPartyTrasactionGroupDropDown_GM,
     getThirdPartyTrasactionHeadDropDown_GM,
-    getThirdPartyTrasactionStudentDropDown_GM,
-    getThirdPartyTrasaction_GM
+    getThirdPartyTrasactionStudentDropDown_GM
 } from '@/server/fees/trasactions/thirdpartyTransaction_GM';
 import { feeTransactionWaivedOff, getClassdetails, getsectiondetails } from '@/server/fees/trasactions/waived_off';
 import type { ApiSearchparams } from '@/types';
@@ -1369,12 +1371,33 @@ export const useacademicyerdropdowndatafee_GM = (searchParams?: ApiSearchparams)
     return {
         ...useQuery({
             queryKey: [FEES_QUERY_KEYS.ACADEMIC_DROPDOWN_FEES, searchParams ?? {}],
-            queryFn: async () => getThirdPartyTrasaction_GM(),
+            queryFn: async () => getAcademicThirdPartyTrasaction_GM(),
             staleTime: 0
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.ACADEMIC_DROPDOWN_FEES]
+            });
+        }
+    };
+};
+
+
+export const useeditThirdpartytrasaction_GM = (mi_id: number, asmaY_Id: number, fyp_id: number, options?: { enabled?: boolean }) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_THIRDPARTY_EDITDATA],
+            queryFn: async () => geteditThirdpartytrasaction_GM(mi_id, asmaY_Id, fyp_id),
+            enabled: options?.enabled ?? !!fyp_id,
+            //enabled: !!asmaY_Id, // 🔥 only run when academic year selected
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_THIRDPARTY_EDITDATA]
             });
         }
     };

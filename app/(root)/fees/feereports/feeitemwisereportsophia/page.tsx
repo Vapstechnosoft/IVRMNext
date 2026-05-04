@@ -29,7 +29,20 @@ interface IAcademicYear {
     asmaY_Year: string;
     asmaY_Order?: number;
 }
-
+export interface IFeeItemWiseReportofSophia {
+    id: number;
+    fee_ItemName: string;
+    actual: number;
+    paid: number;
+    fine: number;
+    discount: number;
+    excess: number;
+    asmcL_Id: any;
+    asmcL_ClassName: string;
+    asmcL_Order: any;
+    asmS_Id: any;
+    asmC_SectionName: any;
+}
 export default function FeeItemWiseReportofSophia() {
     const {
         handleSubmit,
@@ -55,7 +68,7 @@ export default function FeeItemWiseReportofSophia() {
     const [academicYears, setAcademicYears] = useState<IAcademicYear[]>([]);
     const [classes, setClasses] = useState<IFeeClassDropdownList[]>([]);
     const [sections, setSections] = useState<IFeeSectionDropdownList[]>([]);
-    const [reportData, setReportData] = useState<any[]>([]);
+    const [reportData, setReportData] = useState<IFeeItemWiseReportofSophia[]>([]);
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const toggleAllstudents = () => {
         if (selectedIds.length === reportData.length) {
@@ -340,7 +353,7 @@ export default function FeeItemWiseReportofSophia() {
                                         </Button>
                                     </div>
                                     {reportData.length > 0 && (
-                                        <div className='mx-10'>
+                                        <div className='mx-10 mt-10'>
                                             {/* Loading State */}
                                             <CollapsibleSection
                                                 defaultOpen={true}
@@ -414,21 +427,21 @@ export default function FeeItemWiseReportofSophia() {
                                                                             />
                                                                         </td>
                                                                         <td className='border px-2 py-2 text-center'>{index + 1}</td>
-                                                                        <td className='border px-2 py-2 text-left'>{row.amsT_AdmNo}</td>
+                                                                        <td className='border px-2 py-2 text-left'>{row.fee_ItemName}</td>
                                                                         <td className='border px-2 py-2 text-right'>
-                                                                            {row.amsT_FirstName || '-'}
+                                                                            {row.actual?.toLocaleString() || '-'}
                                                                         </td>
                                                                         <td className='border px-2 py-2 text-right'>
-                                                                            {row.asmcL_ClassName?.toLocaleString() || '-'}
+                                                                            {row.paid?.toLocaleString() || '-'}
                                                                         </td>
                                                                         <td className='border px-2 py-2 text-right'>
-                                                                            {row.asmC_SectionName?.toLocaleString() || '-'}
+                                                                            {row.fine?.toLocaleString() || '-'}
                                                                         </td>
                                                                         <td className='border px-2 py-2 text-right'>
-                                                                            {row.amaY_RollNo?.toLocaleString() || '-'}
+                                                                            {row.discount?.toLocaleString() || '-'}
                                                                         </td>
                                                                         <td className='border px-2 py-2 text-right'>
-                                                                            {row.fmG_GroupName?.toLocaleString() || '-'}
+                                                                            {row.excess?.toLocaleString() || '-'}
                                                                         </td>
                                                                     </tr>
                                                                 ))}

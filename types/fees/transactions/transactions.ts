@@ -87,6 +87,7 @@ export interface IMasterAmountEntryDetails {
     addFine: boolean;
     fmA_PartialRebateApplicableDate: string;
     fyghM_FineApplicableFlag?: string;
+    fmH_Order: any;
 }
 
 export interface TAmountEntryStThomasInstallment {
