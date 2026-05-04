@@ -3025,6 +3025,23 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/Burnpur/brs_reportcardX',
                                             title: 'BRS Progress Card X Report',
                                             description: 'BRS Progress Card X Report'
+                                        },
+
+                                        {
+                                            id: 21044,
+                                            name: 'St. James Consolidate Report',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/StJames/stjames-consolidated-report',
+                                            title: 'St. James Consolidate Report',
+                                            description: 'St. James Consolidate Report'
+                                        },
+                                        {
+                                            id: 21045,
+                                            name: 'MES Progress Card Report',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/MES/mes-progresscardreport',
+                                            title: 'MES Progress Card Report',
+                                            description: 'MES Progress Card Report'
                                         }
                                     ]
                                 }
