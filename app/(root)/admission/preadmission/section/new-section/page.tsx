@@ -14,7 +14,7 @@ import { masterNewSectionSchema } from '@/schemas/admission/preadmission/section
 import { addOrUpdateMasterNewSection } from '@/server/admission/preadmission/section/sections';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, ArrowRight, RefreshCw, Save } from 'lucide-react';
-import { use, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -36,7 +36,7 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function MasterNewSectionPage(props: {
     searchParams: SearchParams;
 }) {
-    const searchParams = use(props.searchParams);
+    const searchParams = (React as any).use(props.searchParams);
 
     const [leftStudents, setLeftStudents] = useState<Student[]>([]);
     const [rightStudents, setRightStudents] = useState<Student[]>([]);

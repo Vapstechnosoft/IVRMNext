@@ -50,8 +50,8 @@ export async function saveNdaStudentTcData(data: {
  * Fetches TC PDF data for viewing
  */
 export async function getNdaStudentTcPdfData(data: { AMST_Id: number }) {
-  const url = '/StudentTc/tcpdf';
-  const res = await api.post<any>('admission', url, data);
+  const url = `/StudentTc/tcpdf?AMST_Id=${data.AMST_Id}`;
+  const res = await api.post<any>('admission', url, {});
   return res?.data || res;
 }
 

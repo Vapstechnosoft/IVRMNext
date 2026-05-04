@@ -670,8 +670,16 @@ export const stJamesIX_XReportSchema = z.object({
         )
         .min(1, { message: 'At least one Exam must be selected' })
 });
-
 export type StJamesIX_XReportSchema = z.infer<typeof stJamesIX_XReportSchema>;
+
+export const ndsCoScholasticReportSchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
+});
+
+export type NDSCoScholasticReportSchema = z.infer<typeof ndsCoScholasticReportSchema>;
 
 export const gmvpsProgressCardIXSchema = z.object({
     ASMAY_Id: z.string().min(1, 'Academic Year is required'),
@@ -692,3 +700,20 @@ export const burnpurProgressCardXIISchema = z.object({
 });
 
 export type BurnpurProgressCardXIISchema = z.infer<typeof burnpurProgressCardXIISchema>;
+export const promotionReportCardSophiaSchema = z.object({
+    mI_Id: z.number().optional(),
+    asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
+    asmcL_Id: z.number({ required_error: 'Class is required' }).min(1, { message: 'Please select Class' }),
+    asmS_Id: z.number({ required_error: 'Section is required' }).min(1, { message: 'Please select Section' }),
+    from_date: z.date({ required_error: 'From Date is required' }),
+    to_date: z.date({ required_error: 'To Date is required' }),
+    studentList: z
+        .array(
+            z.object({
+                amsT_Id: z.number({ required_error: 'Student is required' }).min(1, { message: 'Please select a Student' })
+            })
+        )
+        .min(1, { message: 'At least one Student must be selected' })
+});
+
+export type PromotionReportCardSophiaSchema = z.infer<typeof promotionReportCardSophiaSchema>;

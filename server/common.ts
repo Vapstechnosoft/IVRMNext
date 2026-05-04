@@ -109,21 +109,29 @@ export async function getUserAccessibleModules() {
                                         //     description: 'Apply for Registration'
                                         // },
 
+                                        // {
+                                        //     id: 3,
+                                        //     name: 'Transfer Application Status',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/transactions/transfer-application-status',
+                                        //     title: 'Transfer Application Status',
+                                        //     description: 'Manage Transfer Application Status Details'
+                                        // },
+                                        // {
+                                        //     id: 4,
+                                        //     name: 'Transfer Admission Status',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/transactions/transfer-admission-status',
+                                        //     title: 'Transfer Admission Status',
+                                        //     description: 'Manage Transfer Admission Status Details'
+                                        // },
                                         {
                                             id: 3,
                                             name: 'Transfer Application Status',
                                             icon: 'Settings',
-                                            url: '/admission/preadmission/transactions/transfer-application-status',
+                                            url: '/admission/preadmission/transactions/status',
                                             title: 'Transfer Application Status',
                                             description: 'Manage Transfer Application Status Details'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'Transfer Admission Status',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/transactions/transfer-admission-status',
-                                            title: 'Transfer Admission Status',
-                                            description: 'Manage Transfer Admission Status Details'
                                         },
                                         {
                                             id: 5,
@@ -133,13 +141,21 @@ export async function getUserAccessibleModules() {
                                             title: 'Transfer to Admission',
                                             description: 'Transfer confirmed preadmission applications to admission'
                                         },
+                                        // {
+                                        //     id: 6,
+                                        //     name: 'Document View',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/transactions/document-view',
+                                        //     title: 'Document View',
+                                        //     description: ' Document View'
+                                        // },
                                         {
-                                            id: 6,
+                                            id: 7,
                                             name: 'Document View',
                                             icon: 'Settings',
-                                            url: '/admission/preadmission/transactions/document-view',
+                                            url: '/admission/preadmission/reports/document-view-report',
                                             title: 'Document View',
-                                            description: ' Document View'
+                                            description: 'Document View'
                                         }
                                     ]
                                 }
@@ -187,6 +203,14 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/reports/preadmission-month-end-report',
                                             title: 'PreAdmission Month End Report',
                                             description: 'PreAdmission Month End Report'
+                                        },
+                                        {
+                                            id: 11,
+                                            name: 'Schedule Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/schedule-report',
+                                            title: 'Schedule Report',
+                                            description: 'Schedule Report'
                                         }
                                     ]
                                 }
@@ -1959,6 +1983,46 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/transactions/thirdPartyTransactionGM',
                                             title: 'Third Party TransactionGM',
                                             description: 'Manage Third Party TransactionGM'
+                                        },
+                                        {
+                                            id: 520,
+                                            name: 'Fee Transaction Vishwadarshana Society',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/feetransactionvishwa',
+                                            title: 'Fee Transaction Vishwadarshana Society',
+                                            description: 'Manage Fee Transaction Vishwadarshana Society'
+                                        },
+                                        {
+                                            id: 521,
+                                            name: 'Fee Receipt Import ST THOMAS',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/feesreceiptimportstthomas',
+                                            title: 'Fee Receipt Import ST THOMAS',
+                                            description: 'Manage Fee Receipt Import ST THOMAS'
+                                        },
+                                        {
+                                            id: 522,
+                                            name: 'Fee Trail Audit Reoport ST JAMES',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feetrailauditreport',
+                                            title: 'Fee Trail Audit Reoport ST JAMES',
+                                            description: 'Manage Fee Trail Audit Reoport ST JAMES'
+                                        },
+                                        {
+                                            id: 522,
+                                            name: 'Fee Demand Register Report GMVPS',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feedemandregisterreportgmvps',
+                                            title: 'Fee Demand Register Report GMVPS',
+                                            description: 'Manage Fee Demand Register Report GMVPS'
+                                        },
+                                        {
+                                            id: 43,
+                                            name: 'Fee Waivedoff Sophia',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/waivedoff',
+                                            title: 'Fee Waivedoff Sophia',
+                                            description: 'Manage Fee Waivedoff Sophia'
                                         }
                                     ]
                                 }
@@ -2723,6 +2787,22 @@ export async function getUserAccessibleModules() {
                                             description: 'Sophia_Topper List Report'
                                         },
                                         {
+                                            id: 21099,
+                                            name: 'Sophia_Promotion Report Card',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Sophia/PromotionReportCardSophia',
+                                            title: 'Sophia_Promotion Report Card',
+                                            description: 'Sophia_Promotion Report Card'
+                                        },
+                                        {
+                                            id: 21100,
+                                            name: 'Final Promotion VI_TO_VIII Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Sophia/FinalpromoreportVI_TO_VIII',
+                                            title: 'Final Promotion VI_TO_VIII Report',
+                                            description: 'Final Promotion VI_TO_VIII Report'
+                                        },
+                                        {
                                             id: 21016,
                                             name: 'StJames_Consolidation Report',
                                             icon: 'BookOpen',
@@ -2923,6 +3003,22 @@ export async function getUserAccessibleModules() {
                                             description: 'Baldwin Exam Hallticket'
                                         },
                                         {
+                                            id: 21050,
+                                            name: 'NDS_Co_Scholasticreport',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/NDS/NDS_Co_Scholasticreport',
+                                            title: 'NDS_Co_Scholasticreport',
+                                            description: 'NDS_Co_Scholasticreport'
+                                        },
+                                        {
+                                            id: 21051,
+                                            name: 'NDS_I_To_VIII_ReportCard',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/NDS/NDS_I_To_VIII_ReportCard',
+                                            title: 'NDS_I_To_VIII_ReportCard',
+                                            description: 'NDS_I_To_VIII_ReportCard'
+                                        },
+                                        {
                                             id: 21041,
                                             name: 'BRS Progress Card Report',
                                             icon: 'Ticket',
@@ -2961,6 +3057,78 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/Burnpur/Burnpur_ProgressCardReportXI',
                                             title: 'BRS Progress Card XI Report',
                                             description: 'BRS Progress Card XI Report'
+                                        },
+                                        {
+                                            id: 21044,
+                                            name: 'NDS_9_ProgressNewCardReport',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/NDS/NDS_9_ProgressNewCardReport',
+                                            title: 'NDS_9_ProgressNewCardReport',
+                                            description: 'NDS_9_ProgressNewCardReport'
+                                        },
+                                        {
+                                            id: 21046,
+                                            name: 'NDS_9_ProgressCardReport',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/NDS/NDS_9_ProgressCardReport',
+                                            title: 'NDS_9_ProgressCardReport',
+                                            description: 'NDS_9_ProgressCardReport'
+                                        },
+                                        {
+                                            id: 21047,
+                                            name: 'NDS_1_5_ProgressCardReport',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/NDS/NDS_1_5_ProgressCardReport',
+                                            title: 'NDS_1_5_ProgressCardReport',
+                                            description: 'NDS_1_5_ProgressCardReport'
+                                        },
+                                        {
+                                            id: 21045,
+                                            name: 'NDS Promotion Report Card',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/NDS/NDS_Promotionreportcard',
+                                            title: 'NDS Promotion Report Card',
+                                            description: 'NDS Promotion Report Card'
+                                        },
+                                        {
+                                            id: 21046,
+                                            name: 'Chinmaya_Final Promotion Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Chinmaya/FinalPromReportSChinmaya',
+                                            title: 'Chinmaya_Final Promotion Report',
+                                            description: 'Chinmaya Final Promotion Report Card'
+                                        },
+                                        {
+                                            id: 21047,
+                                            name: 'NDS_9 Progress Card Report',
+                                            icon: 'FileText',
+                                            url: '/Exam/exam-module/reports/NDS/NDS9ProgressCardReport',
+                                            title: 'NDS_9 Progress Card Report',
+                                            description: 'NDS 9 Progress Card Report'
+                                        },
+                                        {
+                                            id: 21048,
+                                            name: 'Sophia Exam Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Sophia/SopiaExamReport',
+                                            title: 'Sophia Exam Report',
+                                            description: 'Sophia Exam Report'
+                                        },
+                                        {
+                                            id: 21049,
+                                            name: 'Sophia Exam Report Term Exam',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Sophia/SopiaExamReportTermExam',
+                                            title: 'Sophia Exam Report Term Exam',
+                                            description: 'Sophia Exam Report Term Exam'
+                                        },
+                                        {
+                                            id: 21051,
+                                            name: 'Sophia Exam Report I to IV',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Sophia/SopiaExamReportItoIV',
+                                            title: 'Sophia Exam Report I to IV',
+                                            description: 'Sophia Exam Report I to IV'
                                         }
                                     ]
                                 }

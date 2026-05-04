@@ -14,7 +14,7 @@ import { masterDeleteStudentSectionSchema } from '@/schemas/admission/preadmissi
 import { deleteSection } from '@/server/admission/preadmission/section/sections';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RefreshCw, Trash2 } from 'lucide-react';
-import { use, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -37,7 +37,7 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function MasterDeleteStudentSectionPage(props: {
     searchParams: SearchParams;
 }) {
-    const searchParams = use(props.searchParams);
+    const searchParams = (React as any).use(props.searchParams);
 
     const [academicYearId, setAcademicYearId] = useState<number>(0);
     const [classId, setClassId] = useState<number>(0);
