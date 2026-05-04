@@ -176,7 +176,7 @@ export const FEES_QUERY_KEYS = {
     FEE_THIRDPARTY_HEADDROPDOWN: 'fee_thirdparty_headdropdown',
     FEE_THIRDPARTY_BANKDROPDOWN: 'fee_thirdparty_bankdropdown',
     FEE_MASTER_HEADS_DROPDOWN: 'fee_master_heads_dropdown',
-    FEE_MASTER_INSTALLMENT_DROPDOWN: 'fee_master_installment_dropdown',
+    FEE_MASTER_INSTALLMENT_DROPDOWN1: 'fee_master_installment_dropdown1',
     FEE_ALL_HEAD: 'fee_all_head',
     FEE_ONLINE_PAYMENT_HEAD_GROUP: 'fee_online_payment_head_group',
     FEE_ONLINE_PAYMENT_HEAD_GROUP_INSTALLMENT_YEAR: 'fee_online_payment_head_group_installment_year',

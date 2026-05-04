@@ -70,6 +70,7 @@ export default function FeeHeadWiseReportForm() {
         isLoading: loadingAcademic,
         refetch: refetchAcademicYears
     } = useAcademicYearDropdown();
+    console.log('academicData', academicData?.data);
 
     useEffect(() => {
         if (academicError) toast.error('Failed to load academic years');

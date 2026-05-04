@@ -15,7 +15,6 @@ export async function getMasterfeehead() {
 
 export async function getMasterfeeInstallment() {
     const url = '/YearlyFeeGroupMappingFacade/feeinstallments';
-
     return await api.get<{
         success: boolean;
         message: string;
