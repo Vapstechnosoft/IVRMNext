@@ -480,6 +480,16 @@ export const reportCardXiSchema = z.object({
 
 export type ReportCardXiSchema = z.infer<typeof reportCardXiSchema>;
 
+export const burnpurProgressCardSchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    date: z.string().min(1, 'Date is required'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
+});
+
+export type BurnpurProgressCardSchema = z.infer<typeof burnpurProgressCardSchema>;
+
 export const reportCardViViiiSchema = z.object({
     ASMAY_Id: z.string().min(1, 'Academic Year is required'),
     ASMCL_Id: z.string().min(1, 'Class is required'),
