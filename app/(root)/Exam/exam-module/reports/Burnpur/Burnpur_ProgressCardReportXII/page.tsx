@@ -36,10 +36,16 @@ export default function BurnpurProgressCardReportXIIPage() {
         }
     };
 
+    const handleCancel = () => {
+        setReportData(null);
+        setReportDate('');
+        setIsReportVisible(false);
+    };
+
     return (
         <div className='container mx-auto space-y-6 p-4'>
             <CollapsibleSection title='Burnpur Progress Card Report XII' defaultOpen>
-                <BurnpurReportCardForm onSuccess={handleReportSuccess} />
+                <BurnpurReportCardForm onSuccess={handleReportSuccess} onCancel={handleCancel} />
             </CollapsibleSection>
 
             {isReportVisible && reportData && (

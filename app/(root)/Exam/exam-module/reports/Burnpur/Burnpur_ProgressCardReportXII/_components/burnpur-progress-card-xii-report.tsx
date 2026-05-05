@@ -230,7 +230,7 @@ export default function BurnpurProgressCardXIIReport({ data, date, onPrint }: Pr
                                     </tr>
                                     <tr>
                                         <td className='burnpur-xii-no-border burnpur-xii-text-left'><b>Father&apos;s Name : {stu.fatherName || stu.fathername || '-'}</b></td>
-                                        <td className='burnpur-xii-no-border burnpur-xii-text-left'><b>Date of Birth : {formatDate(stu.dob)}</b></td>
+                                        <td className='burnpur-xii-no-border burnpur-xii-text-left'><b>Date of Birth : {(stu.dob)}</b></td>
                                         <td className='burnpur-xii-no-border'></td>
                                     </tr>
                                 </tbody>

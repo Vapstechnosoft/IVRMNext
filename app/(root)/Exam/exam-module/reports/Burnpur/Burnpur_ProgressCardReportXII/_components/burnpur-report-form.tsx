@@ -23,17 +23,19 @@ import {
 type FormFields = z.infer<typeof burnpurProgressCardXIISchema>;
 
 export default function BurnpurReportCardForm({
-    onSuccess
+    onSuccess,
+    onCancel
 }: {
     onSuccess?: (payload: any) => Promise<void> | void;
+    onCancel?: () => void;
 }) {
     const methods = useForm<FormFields>({
         resolver: zodResolver(burnpurProgressCardXIISchema),
         mode: 'all',
         defaultValues: {
-            ASMAY_Id: '',
-            ASMCL_Id: '',
-            ASMS_Id: '',
+            ASMAY_Id: undefined as any,
+            ASMCL_Id: undefined as any,
+            ASMS_Id: undefined as any,
             date: new Date().toISOString(),
             selectedStudents: []
         }
@@ -191,7 +193,10 @@ export default function BurnpurReportCardForm({
                                         Academic Year <span className='text-red-500'>*</span>
                                     </Label>
                                     <div className='flex-1'>
-                                        <Select onValueChange={field.onChange} value={field.value}>
+                                        <Select
+                                            key={field.value}
+                                            onValueChange={field.onChange}
+                                            value={field.value || undefined}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder={academicYearLoading ? 'Loading...' : 'Select Academic Year'} />
                                             </SelectTrigger>
@@ -219,7 +224,11 @@ export default function BurnpurReportCardForm({
                                         Class <span className='text-red-500'>*</span>
                                     </Label>
                                     <div className='flex-1'>
-                                        <Select onValueChange={field.onChange} value={field.value} disabled={!selectedYear || loadingClasses}>
+                                        <Select
+                                            key={field.value}
+                                            onValueChange={field.onChange}
+                                            value={field.value || undefined}
+                                            disabled={!selectedYear || loadingClasses}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder={loadingClasses ? 'Loading...' : 'Select Class'} />
                                             </SelectTrigger>
@@ -247,7 +256,11 @@ export default function BurnpurReportCardForm({
                                         Section <span className='text-red-500'>*</span>
                                     </Label>
                                     <div className='flex-1'>
-                                        <Select onValueChange={field.onChange} value={field.value} disabled={!selectedClass || loadingSections}>
+                                        <Select
+                                            key={field.value}
+                                            onValueChange={field.onChange}
+                                            value={field.value || undefined}
+                                            disabled={!selectedClass || loadingSections}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder={loadingSections ? 'Loading...' : 'Select Section'} />
                                             </SelectTrigger>
@@ -328,10 +341,17 @@ export default function BurnpurReportCardForm({
                         type='button'
                         variant='outline'
                         onClick={() => {
-                            reset();
+                            reset({
+                                ASMAY_Id: undefined as any,
+                                ASMCL_Id: undefined as any,
+                                ASMS_Id: undefined as any,
+                                date: undefined as any,
+                                selectedStudents: []
+                            });
                             setStudents([]);
                             setClasses([]);
                             setSections([]);
+                            if (onCancel) onCancel();
                         }}>
                         Cancel
                     </Button>
