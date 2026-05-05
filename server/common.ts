@@ -3042,6 +3042,24 @@ export async function getUserAccessibleModules() {
                                             title: 'BRS Progress Card X Report',
                                             description: 'BRS Progress Card X Report'
                                         },
+<<<<<<< HEAD
+
+                                        {
+                                            id: 21044,
+                                            name: 'St. James Consolidate Report',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/StJames/stjames-consolidated-report',
+                                            title: 'St. James Consolidate Report',
+                                            description: 'St. James Consolidate Report'
+                                        },
+                                        {
+                                            id: 21045,
+                                            name: 'MES Progress Card Report',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/MES/mes-progresscardreport',
+                                            title: 'MES Progress Card Report',
+                                            description: 'MES Progress Card Report'
+=======
                                         {
                                             id: 21055,
                                             name: 'BRS Progress Card XII Report',
@@ -3129,6 +3147,7 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/Sophia/SopiaExamReportItoIV',
                                             title: 'Sophia Exam Report I to IV',
                                             description: 'Sophia Exam Report I to IV'
+>>>>>>> 5e355368b5f05ba18c2df56aed13044e94d3a874
                                         }
                                     ]
                                 }
