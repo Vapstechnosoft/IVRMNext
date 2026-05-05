@@ -46,8 +46,8 @@ interface FormContextType<T = any> {
     closeAllForms: () => void;
 
     // Refs for scrolling
-    addFormRef: React.RefObject<HTMLDivElement | null>;
-    editFormRef: React.RefObject<HTMLDivElement | null>;
+    addFormRef: React.RefObject<HTMLDivElement>;
+    editFormRef: React.RefObject<HTMLDivElement>;
 }
 
 const FormContext = createContext<FormContextType | null>(null);

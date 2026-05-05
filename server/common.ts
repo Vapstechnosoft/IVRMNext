@@ -2,14 +2,6 @@
 import { type ApiResponse, api } from '@/lib/apiService';
 import { auth } from '@/lib/auth';
 import type { IDropdown, IUserAccessibleModules, UserNotification } from '@/types';
-import { admissionModule } from './modules/admission';
-import { feesModule } from './modules/fees';
-import { examModule } from './modules/exam';
-import { hrmsModule } from './modules/hrms';
-import { iframeModule } from './modules/iframe';
-import { timetableModule } from './modules/timetable';
-import { libraryModule } from './modules/library';
-import { transportModule } from './modules/transport';
 
 export async function getCommonDropdown(name: string) {
     const url = `/v1/common/common_drop_down_list/${name}`;
@@ -8042,22 +8034,22 @@ export async function getUserAccessibleModules() {
                                     name: 'Transaction',
                                     icon: 'FileBarChart',
                                     pages: [
-                                        {
-                                            id: 1,
-                                            name: 'IVRM Interaction',
-                                            icon: 'BookOpenText',
-                                            url: '/StaffPortal/Interactions/IVRM_Interactions',
-                                            title: 'IVRM Interaction',
-                                            description: 'IVRM Interaction'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'NDA IVRM Interaction',
-                                            icon: 'BookOpenText',
-                                            url: '/StaffPortal/Interactions/NDA_IVRM_Interactions',
-                                            title: 'NDA IVRM Interaction',
-                                            description: 'NDA IVRM Interaction'
-                                        },
+                                        // {
+                                        //     id: 1,
+                                        //     name: 'IVRM Interaction',
+                                        //     icon: 'BookOpenText',
+                                        //     url: '/StaffPortal/Interactions/IVRM_Interactions',
+                                        //     title: 'IVRM Interaction',
+                                        //     description: 'IVRM Interaction'
+                                        // },
+                                        // {
+                                        //     id: 2,
+                                        //     name: 'NDA IVRM Interaction',
+                                        //     icon: 'BookOpenText',
+                                        //     url: '/StaffPortal/Interactions/NDA_IVRM_Interactions',
+                                        //     title: 'NDA IVRM Interaction',
+                                        //     description: 'NDA IVRM Interaction'
+                                        // },
                                         {
                                             id: 3,
                                             name: 'SCS Interaction',
