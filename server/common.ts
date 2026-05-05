@@ -3077,6 +3077,15 @@ export async function getUserAccessibleModules() {
                                             description: 'BRS Progress Card XI Report'
                                         },
                                         {
+                                            id: 21057,
+                                            name: 'BRS Progress Card Report',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/Burnpur/Burnpur_ProgressCardReport',
+                                            title: 'BRS Progress Card Report',
+                                            description: 'BRS Progress Card Report'
+
+                                        },
+                                        {
                                             id: 21044,
                                             name: 'NDS_9_ProgressNewCardReport',
                                             icon: 'Ticket',
