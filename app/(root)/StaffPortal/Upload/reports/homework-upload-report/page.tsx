@@ -3,8 +3,9 @@
 import { useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
-import { viewAttachmentData } from '@/server/upload/reports/classwork-upload-report';
-import type { IClassWorkReport, IUploadClassDropdownList } from '@/types/upload/reports/classwork-upload-report';
+import { viewHomeWorkAttachmentData } from '@/server/upload/reports/homework-upload-report';
+import type { IUploadClassDropdownList } from '@/types/upload/reports/classwork-upload-report';
+import type { IHomeWorkReport } from '@/types/upload/reports/homework-upload-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -20,7 +21,6 @@ import { DateField } from '@/components/ui/dateField';
 import { FormError } from '@/components/ui/extension/field';
 import { useClassDropdownDropdown } from '@/hooks/fees/useReports';
 import { getHomeWorkReport } from '@/server/upload/reports/homework-upload-report';
-import type { IHomeWorkUploadReport } from '@/types/upload/reports/homework-upload-report';
 const formSchema = z.object({
     fromdate: z.string().nonempty('From date is required'),
     todate: z.string().nonempty('To date is required'),
@@ -29,7 +29,7 @@ const formSchema = z.object({
 
 type FormFields = z.infer<typeof formSchema>;
 export default function HomeWorkUploadReportPage() {
-    const [reportData, setReportData] = useState<IClassWorkReport[]>([]);
+    const [reportData, setReportData] = useState<IHomeWorkReport[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalAttachments, setModalAttachments] = useState<any[]>([]);
     //const [searchParams, setSearchParams] = useState<ApiSearchparams>({ page: 1, page_size: 10 });
@@ -84,15 +84,16 @@ export default function HomeWorkUploadReportPage() {
     // }, [searchParams]);
 
     const { data: classData, isLoading: loadingClasses, error } = useClassDropdownDropdown();
-    const handleViewAttachment = async (item: IClassWorkReport) => {
+
+    const handleViewAttachment = async (item: IHomeWorkReport) => {
         try {
             const payload = {
-                ICW_Id: item.icW_Id,
+                ihW_Id: item.Id,
                 ASMAY_Id: 0,
                 Temp: 0
             };
 
-            const res = await viewAttachmentData(payload);
+            const res = await viewHomeWorkAttachmentData(payload);
             // if (res.data && res.data.attachementlist && res.data.attachementlist.length > 0) {
             //     setModalAttachments(res.data.attachementlist);
             //     setIsModalOpen(true);
@@ -130,7 +131,7 @@ export default function HomeWorkUploadReportPage() {
     //     setSearchParams(sParams);
     // };
     const [showReport, setShowReport] = useState(false);
-    const [homeWorkReport, setHomeWorkReport] = useState<IHomeWorkUploadReport[]>([]);
+    const [homeWorkReport, setHomeWorkReport] = useState<IHomeWorkReport[]>([]);
 
     const onSubmit = async (values: FormFields) => {
         setShowReport(true);
@@ -138,12 +139,12 @@ export default function HomeWorkUploadReportPage() {
             fromdate: new Date(values.fromdate).toISOString().slice(0, 10), // "YYYY-MM-DD"
             todate: new Date(values.todate).toISOString().slice(0, 10), // "YYYY-MM-DD"
             classarray: values.classarray.map((id) => ({
-                ASMCL_Id: Number(id)
+                asmcL_Id: Number(id)
             }))
         };
 
         const response = await getHomeWorkReport(payload);
-        setHomeWorkReport(response.data ?? []);
+        setHomeWorkReport(response.data?.report ?? []);
     };
 
     const handleCancel = () => {
@@ -262,18 +263,18 @@ export default function HomeWorkUploadReportPage() {
                                         </thead>
 
                                         <tbody>
-                                            {homeWorkReport.map((row, index) => (
+                                             {homeWorkReport.map((row, index) => (
                                                 <tr key={index + 1}>
                                                     <td className='border px-2 py-2 text-center'>{index + 1}</td>
-                                                    <td className='border px-2 py-2 font-semibold'>{row.topic}</td>
-                                                    <td className='border px-2 py-2 text-center'>{row.className}</td>
-                                                    <td className='border px-2 py-2 text-center'>{row.sectionName}</td>
-                                                    <td className='border px-2 py-2 text-center'>{row.subjectName}</td>
+                                                    <td className='border px-2 py-2 font-semibold'>{row.Topic}</td>
+                                                    <td className='border px-2 py-2 text-center'>{row.ClassName}</td>
+                                                    <td className='border px-2 py-2 text-center'>{row.SectionName}</td>
+                                                    <td className='border px-2 py-2 text-center'>{row.SubjectName}</td>
                                                     <td className='border px-2 py-2 text-center'>{'NA'}</td>
                                                     <td className='border px-2 py-2 text-center'>
-                                                        {new Date(row.uploadDate).toISOString().slice(0, 10)}
+                                                        {new Date(row.UploadDate).toISOString().slice(0, 10)}
                                                     </td>
-                                                    <td className='border px-2 py-2 text-center'>{row.employeeName}</td>
+                                                    <td className='border px-2 py-2 text-center'>{row.EmployeeName}</td>
                                                 </tr>
                                             ))}
 

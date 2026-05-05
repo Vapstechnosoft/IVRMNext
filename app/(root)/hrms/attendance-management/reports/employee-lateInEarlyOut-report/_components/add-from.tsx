@@ -14,6 +14,7 @@ import {
     useReportDepartments,
     useReportDesignations,
     useReportEmployeesByDeptAndDesignation,
+    useReportEmployeesByGroupTypeDeptAndDesignation,
     useReportGroupTypes
 } from '@/hooks/hrms/useReports';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -60,7 +61,7 @@ export default function AddEmployeeLateInEarlyOutReportForm({
             designation: [],
             allOrIndividual: 'All',
             codeOrName: 'Code',
-            query: [],
+            query: '',
             fromDate: '',
             toDate: '',
             mode: 'Late By'
@@ -85,10 +86,10 @@ export default function AddEmployeeLateInEarlyOutReportForm({
     console.log("deptIds", deptIds);
     console.log("desigIds", desigIds);
 
-    const { data: groupTypesData } = useReportGroupTypes();
-    const { data: departmentsData } = useReportDepartments(groupTypeIds.toString());
-    const { data: designationsData } = useReportDesignations(groupTypeIds.toString(), deptIds.toString());
-    const { data: employeesData } = useReportEmployeesByDeptAndDesignation(deptIds.toString(), desigIds.toString());
+    const { data: groupTypesData, isLoading: isGroupTypesLoading } = useReportGroupTypes();
+    const { data: departmentsData, isLoading: isDepartmentsLoading } = useReportDepartments(groupTypeIds.toString());
+    const { data: designationsData, isLoading: isDesignationsLoading } = useReportDesignations(groupTypeIds.toString(), deptIds.toString());
+    const { data: employeesData, isLoading: isEmployeesLoading } = useReportEmployeesByGroupTypeDeptAndDesignation(groupTypeIds, deptIds, desigIds);
 
     console.log("employeesData", employeesData);
 
@@ -121,7 +122,7 @@ export default function AddEmployeeLateInEarlyOutReportForm({
     }, [designationsData]);
 
     const employeesDataTransformed = useMemo(() => {
-        const list = employeesData?.data || employeesData;
+        const list = employeesData?.data?.employeeNames || employeesData;
         if (!list || !Array.isArray(list)) return [];
 
         return list
@@ -129,21 +130,11 @@ export default function AddEmployeeLateInEarlyOutReportForm({
                 const id = emp.HRME_Id || emp.hrmE_Id || emp.id || emp.key;
                 if (id == null) return null;
 
-                const firstName = (emp.HRME_EmployeeFirstName || emp.hrmE_EmployeeFirstName || '').trim();
-                const middleName = (emp.HRME_EmployeeMiddleName || emp.hrmE_EmployeeMiddleName || '').trim();
-                const lastName = (emp.HRME_EmployeeLastName || emp.hrmE_EmployeeLastName || '').trim();
+                const employeeName = emp.employeeFullName
 
-                const employeeName =
-                    [firstName, middleName, lastName].filter(Boolean).join(' ') ||
-                    emp.value ||
-                    emp.employeeName ||
-                    'Unknown Employee';
 
-                const employeeCode =
-                    emp.HRME_EmployeeCode ||
-                    emp.hrmE_EmployeeCode ||
-                    emp.employeeCode ||
-                    id.toString();
+                const employeeCode = id
+
 
                 return {
                     id: Number(id),
@@ -159,14 +150,14 @@ export default function AddEmployeeLateInEarlyOutReportForm({
             // Determine comma-separated employee IDs
             let hrmeIds = '0';
             if (data.allOrIndividual === 'Individual') {
-                hrmeIds = (data.query || []).join(',');
+                hrmeIds = (data.query)?.toString() || '0';
             } else if (data.allOrIndividual === 'All') {
                 const allIds = employeesDataTransformed.map((emp: any) => emp.id).join(',');
                 hrmeIds = allIds || '0';
             }
 
             const fromDateObj = data.fromDate ? new Date(data.fromDate) : null;
-            
+
             const punchTypeMap: Record<string, string> = {
                 'Late By': 'late',
                 'Early Out': 'early',
@@ -241,7 +232,7 @@ export default function AddEmployeeLateInEarlyOutReportForm({
             designation: [],
             allOrIndividual: 'All',
             codeOrName: 'Code',
-            query: [],
+            query: '',
             fromDate: '',
             toDate: '',
             mode: 'Late By'
@@ -252,13 +243,13 @@ export default function AddEmployeeLateInEarlyOutReportForm({
             keepTouched: false,
             keepIsValid: false
         });
-        
+
         // Explicitly clear all errors to ensure a clean state
         // Using setTimeout to ensure it runs after any immediate re-validation triggered by reset()
         setTimeout(() => {
             clearErrors();
         }, 0);
-        
+
         // Also clear the query cache so the grid results are removed from view
         // Using setQueryData(..., null) is more explicit and ensures the UI observer 
         // immediately sees the change and hides the report section.
@@ -287,9 +278,10 @@ export default function AddEmployeeLateInEarlyOutReportForm({
                                             }))}
                                             onValueChange={(values) => field.onChange(values)}
                                             defaultValue={field.value || []}
-                                            placeholder='Select Types'
-                                            className={`w-full ${errors.type ? 'border-red-500' : ''}`}
+                                            placeholder={isGroupTypesLoading ? 'Loading...' : 'Select Group Types'}
+                                            className={`w-full ${errors.type ? 'border-red-500' : ''} `}
                                             maxHeight={240}
+                                            disabled={isGroupTypesLoading || groupTypesDataTransformed.length === 0}
                                         />
                                     )}
                                 />
@@ -312,9 +304,10 @@ export default function AddEmployeeLateInEarlyOutReportForm({
                                             }))}
                                             onValueChange={(values) => field.onChange(values)}
                                             defaultValue={field.value || []}
-                                            placeholder='Select Departments'
-                                            className={`w-full ${errors.department ? 'border-red-500' : ''}`}
+                                            placeholder={isDepartmentsLoading ? 'Loading...' : 'Select Departments'}
+                                            className={`w-full ${errors.department ? 'border-red-500' : ''} `}
                                             maxHeight={240}
+                                            disabled={isDepartmentsLoading || departmentsDataTransformed.length === 0}
                                         />
                                     )}
                                 />
@@ -337,9 +330,10 @@ export default function AddEmployeeLateInEarlyOutReportForm({
                                             }))}
                                             onValueChange={(values) => field.onChange(values)}
                                             defaultValue={field.value || []}
-                                            placeholder='Select Designations'
+                                            placeholder={isDesignationsLoading ? 'Loading...' : 'Select Designations'}
                                             className={`w-full ${errors.designation ? 'border-red-500' : ''}`}
                                             maxHeight={240}
+                                            disabled={isDesignationsLoading || designationsDataTransformed.length === 0}
                                         />
                                     )}
                                 />
@@ -375,7 +369,7 @@ export default function AddEmployeeLateInEarlyOutReportForm({
                                     <Label className='mb-2 block font-medium text-gray-700 text-sm'>
                                         Employee <span className='ml-1 text-red-500'>*</span>
                                     </Label>
-                                    <Controller
+                                    {/* <Controller
                                         name='query'
                                         control={control}
                                         render={({ field }) => (
@@ -390,6 +384,33 @@ export default function AddEmployeeLateInEarlyOutReportForm({
                                                 className={`w-full ${errors.query ? 'border-red-500' : ''}`}
                                                 maxHeight={240}
                                             />
+                                        )}
+                                    /> */}
+                                    <Controller
+                                        name='query'
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Select value={field.value || ''} onValueChange={field.onChange}>
+                                                <SelectTrigger className={errors.query ? 'border-red-500' : ''}>
+                                                    <SelectValue placeholder={isEmployeesLoading ? 'Loading...' : 'Select Employee'} />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {
+                                                        employeesDataTransformed.length === 0 ? (
+                                                            <div className="p-4 text-center text-sm text-muted-foreground">
+                                                                No employees found for the selected criteria.
+                                                            </div>
+                                                        ) : (employeesDataTransformed as any[]).map((emp: any) => {
+                                                            return (
+                                                                <SelectItem key={emp.id} value={emp.id?.toString() || ''}>
+                                                                    {emp.employeeName} - [{emp.employeeCode}]
+                                                                </SelectItem>
+                                                            );
+                                                        })
+                                                    }
+
+                                                </SelectContent>
+                                            </Select>
                                         )}
                                     />
                                     {errors.query && <FormError>{errors.query.message}</FormError>}
@@ -483,9 +504,9 @@ export default function AddEmployeeLateInEarlyOutReportForm({
                                                     disabled={
                                                         fromDateObject
                                                             ? [
-                                                                  { before: fromDateObject },
-                                                                  { after: today }
-                                                              ]
+                                                                { before: fromDateObject },
+                                                                { after: today }
+                                                            ]
                                                             : [{ after: today }]
                                                     }
                                                     onSelect={(date: Date | undefined) => {

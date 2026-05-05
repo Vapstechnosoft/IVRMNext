@@ -255,15 +255,15 @@ export default function AddNoticeBoardForm({
 
             const result = await saveNoticeBoardDetail(payload);
             if (result?.success) {
-                toast.success(result.message || 'Notice sent successfully.');
+                toast.success(result.message || 'Notice sent successfully');
                 onSuccess();
                 reset();
             } else {
-                toast.error(result?.message || 'Failed to send notice.');
+                toast.error(result?.message || 'Failed to send notice');
             }
         } catch (error: any) {
             console.error('Save Error:', error);
-            toast.error(error?.message || 'Error occurred while sending notice.');
+            toast.error(error?.message || error || 'Error occurred while sending notice');
         }
     };
 
@@ -640,35 +640,42 @@ export default function AddNoticeBoardForm({
                             <Controller
                                 control={control}
                                 name="asmcL_Id"
-                                render={({ field }) => (
-                                    <CustomMultiSelectBox
-                                        label="Classes"
-                                        isRequired
-                                        options={(classList || []).map((c: any) => ({
-                                            label: c.asmcL_ClassName || c.asmcl_classname || c.asmcL_className || '',
-                                            value: (c.asmcL_Id || c.asmcl_Id || c.asmcL_id || '').toString()
-                                        }))}
-                                        value={field.value?.map((v) => v.asmcL_Id?.toString()).filter((id): id is string => !!id) || []}
-                                        onChange={(vals) => field.onChange((vals || []).map((v) => ({ asmcL_Id: Number(v) })))}
-                                        isSearchRequired
-                                    />
+                                render={({ field, fieldState }) => (
+                                    <div className="flex flex-col">
+                                        <CustomMultiSelectBox
+                                            label="Classes"
+                                            isRequired
+                                            options={(classList || []).map((c: any) => ({
+                                                label: c.asmcL_ClassName || c.asmcl_classname || c.asmcL_className || '',
+                                                value: (c.asmcL_Id || c.asmcl_Id || c.asmcL_id || '').toString()
+                                            }))}
+                                            value={field.value?.map((v) => v.asmcL_Id?.toString()).filter((id): id is string => !!id) || []}
+                                            onChange={(vals) => field.onChange((vals || []).map((v) => ({ asmcL_Id: Number(v) })))}
+                                            isSearchRequired
+                                        />
+                                        {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                    </div>
                                 )}
                             />
                             <Controller
                                 control={control}
                                 name="asmS_Id"
-                                render={({ field }) => (
-                                    <CustomMultiSelectBox
-                                        label="Sections"
-                                        options={(sections || []).map((s: any) => ({
-                                            label: s.ASMC_SectionName || s.asmC_SectionName || s.asmc_sectionname || '',
-                                            value: (s.ASMS_Id || s.asmS_Id || s.asms_Id || '').toString()
-                                        })).filter(opt => opt.value)}
-                                        value={field.value?.map((v) => v.asmS_Id?.toString()).filter((id): id is string => !!id) || []}
-                                        onChange={(vals) => field.onChange((vals || []).map((v) => ({ asmS_Id: Number(v) })))}
-                                        isSearchRequired
-                                        disabled={!asmcL_Id?.length}
-                                    />
+                                render={({ field, fieldState }) => (
+                                    <div className="flex flex-col">
+                                        <CustomMultiSelectBox
+                                            label="Sections"
+                                            isRequired
+                                            options={(sections || []).map((s: any) => ({
+                                                label: s.ASMC_SectionName || s.asmC_SectionName || s.asmc_sectionname || '',
+                                                value: (s.ASMS_Id || s.asmS_Id || s.asms_Id || '').toString()
+                                            })).filter(opt => opt.value)}
+                                            value={field.value?.map((v) => v.asmS_Id?.toString()).filter((id): id is string => !!id) || []}
+                                            onChange={(vals) => field.onChange((vals || []).map((v) => ({ asmS_Id: Number(v) })))}
+                                            isSearchRequired
+                                            disabled={!asmcL_Id?.length}
+                                        />
+                                        {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                    </div>
                                 )}
                             />
                             {/* <Controller

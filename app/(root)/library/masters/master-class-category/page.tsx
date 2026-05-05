@@ -1,26 +1,25 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useMasterClassCategory } from '@/hooks/library/useMasters';
-import type { IMasterClassCategory } from '@/types/library/masters/class-category';
+import { useMasterCategoryListData } from '@/hooks/library/useMasters';
+import type { IMasterCategoryList } from '@/types/library/masters/masters';
 import { X } from 'lucide-react';
 import { use } from 'react';
-import AddMasterClassCategoryForm from './_components/add-form';
-import { MasterClassCategoryColumns } from './_components/columns';
-import ToggleClassCategoryForm from './_components/toggle-form';
-import UpdateMasterClassCategoryForm from './_components/update-form';
+import AddMasterCategoryForm from '../mastercategory/_components/add-form';
+import { masterCategoryColumns } from '../mastercategory/_components/columns';
+import ToggleMasterCategoryForm from '../mastercategory/_components/toggle-form';
+import UpdateMasterCategoryForm from '../mastercategory/_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function MasterClassCategoryPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error, refetchAll } = useMasterClassCategory(searchParams);
+    const { data: response, isLoading, error, refetchAll } = useMasterCategoryListData(searchParams);
 
     return (
-        <FormProvider<IMasterClassCategory>>
+        <FormProvider<IMasterCategoryList>>
             <MasterClassCategoryPageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
         </FormProvider>
     );
@@ -37,17 +36,16 @@ function MasterClassCategoryPageContent({
     error: any;
     refetchAll: any;
 }) {
-    const { isEditFormOpen, selectedRow, closeEditForm } = useFormContext<IMasterClassCategory>();
-    const tableProps = useDataTableProps(response?.alldata || []);
-    const staffList = response?.stafflist || [];
+    const { isEditFormOpen, selectedRow, closeEditForm } = useFormContext<IMasterCategoryList>();
+    const tableProps = useDataTableProps(response);
 
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 {/* Entry Form Section */}
                 <CollapsibleSection
-                    title={isEditFormOpen ? 'EDIT CLASS CATEGORY' : 'MASTER CLASS CATEGORY ENTRY'}
-                    description={isEditFormOpen ? 'Update the details of the selected class category' : 'Fill in the details below to create a new class category'}
+                    title={isEditFormOpen ? 'EDIT BOOKS CATEGORY' : 'MASTER BOOKS CATEGORY ENTRY'}
+                    description={isEditFormOpen ? 'Update the details of the selected books category' : 'Fill in the details below to create a new books category'}
                     defaultOpen={true}
                     variant='outline'
                     size='md'
@@ -55,18 +53,16 @@ function MasterClassCategoryPageContent({
                     <div className='relative'>
                         {isEditFormOpen && selectedRow ? (
                             <>
-                                <Button
+                                <button
                                     type='button'
                                     onClick={closeEditForm}
-                                    variant='ghost'
-                                    size='sm'
-                                    className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                    <X className='h-4 w-4 text-destructive' /> Cancel
-                                </Button>
-                                <UpdateMasterClassCategoryForm selectedRow={selectedRow} onSuccess={closeEditForm} staffList={staffList} />
+                                    className='absolute -top-[3.5rem] right-12 w-fit border p-2 shadow-md hover:bg-destructive/10 rounded-md bg-background flex items-center gap-1 text-xs'>
+                                    <X className='h-4 w-4 text-destructive' /> Close
+                                </button>
+                                <UpdateMasterCategoryForm selectedRow={selectedRow} onSuccess={closeEditForm} />
                             </>
                         ) : (
-                            <AddMasterClassCategoryForm staffList={staffList} />
+                            <AddMasterCategoryForm onSuccess={refetchAll} />
                         )}
                     </div>
                 </CollapsibleSection>
@@ -74,21 +70,20 @@ function MasterClassCategoryPageContent({
                 {/* List Section */}
                 <CollapsibleSection
                     defaultOpen={true}
-                    title='MASTER CLASS CATEGORY LIST'
+                    title='BOOKS CATEGORY LIST'
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<IMasterClassCategory>
+                    <GenericDataTable<IMasterCategoryList>
                         {...tableProps}
-                        data={response?.alldata || []}
-                        columns={MasterClassCategoryColumns}
+                        columns={masterCategoryColumns}
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading class categories...'
-                        noDataTitle='No Class Categories Found'
-                        noDataDescription='Get started by creating your first class category'
-                        errorTitle='Error Loading Class Categories'
+                        loadingMessage='Loading books categories...'
+                        noDataTitle='No Books Categories Found'
+                        noDataDescription='Get started by creating your first books category'
+                        errorTitle='Error Loading Books Categories'
                     />
                 </CollapsibleSection>
 
@@ -100,11 +95,11 @@ function MasterClassCategoryPageContent({
 }
 
 function FormSections() {
-    const { isToggleFormOpen, selectedRow, closeToggleForm } = useFormContext<IMasterClassCategory>();
+    const { isToggleFormOpen, selectedRow, closeToggleForm } = useFormContext<IMasterCategoryList>();
 
     return (
         <>
-            {isToggleFormOpen && selectedRow && <ToggleClassCategoryForm rowData={selectedRow} onClose={closeToggleForm} />}
+            {isToggleFormOpen && selectedRow && <ToggleMasterCategoryForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );
 }

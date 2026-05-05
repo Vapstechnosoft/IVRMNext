@@ -1,11 +1,14 @@
 export interface INoticeBoardReport {
-    intB_Id: number;
-    intB_Title: string;
-    asmcL_ClassName: string;
-    asmC_SectionName: string;
-    intbupl_Date: string;
-    employeename: string | null;
-    filecount: number;
+    Id: number;
+    Topic: string;
+    ClassName: string;
+    SectionName: string | null;
+    SubjectName: string | null;
+    UploadDate: string;
+    FileName: string;
+    Filepath: string;
+    UserName: string | null;
+    EmployeeName: string | null;
 }
 
 export interface INoticeBoardAttachment {
@@ -23,7 +26,7 @@ export interface INoticeBoardReportPayload {
 }
 
 export interface INoticeBoardReportResponse {
-    classreportlist: INoticeBoardReport[];
+    report: INoticeBoardReport[];
 }
 
 export interface INoticeBoardAttachmentResponse {
@@ -31,30 +34,15 @@ export interface INoticeBoardAttachmentResponse {
 }
 
 export interface INoticeBoardInitialData {
-    classlist: {
-        asmcL_Id: number;
-        asmcL_ClassName: string;
-        asmcL_ActiveFlag: boolean;
-        mI_Id: number;
+    classes: {
+        ASMCL_Id: number;
+        ASMCL_ClassName: string;
+        ASMAY_Id: number | null;
     }[];
-    acayear: {
+    academicYear: {
         asmaY_Id: number;
         asmaY_Year: string;
         asmaY_From_Date: string;
         asmaY_To_Date: string;
     }[];
-    academicYear: {
-        asmaY_From_Date: string;
-        asmaY_To_Date: string;
-    }[];
-}
-export interface INoticeBoardUploadReport {
-    topic: string;
-    className: string;
-    sectionName: string;
-    subjectName: string;
-    uploadDate: string;
-    fileName: string;
-    userName: string;
-    employeeName: string;
 }

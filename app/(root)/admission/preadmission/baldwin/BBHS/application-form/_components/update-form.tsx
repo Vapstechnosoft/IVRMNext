@@ -29,8 +29,8 @@ import {
 } from '@/hooks/admission/preadmission/useTransactions';
 import { getIconByName } from '@/lib/lucide-icon-registry';
 import { calculateAge, cn } from '@/lib/utils';
-import { studentApplicationFormUpdateSchema } from '@/schemas/admission/preadmission/transactions';
-import { addStudentApplicationForm } from '@/server/admission/preadmission/transactions/application_form';
+import { studentApplicationFormSchema } from '@/schemas/admission/preadmission/baldwin/transactions';
+import { addBBHSStudentApplication } from '@/server/admission/preadmission/transactions/bbhs_student_application';
 import { deleteDocument, uploadDocument } from '@/server/document_upload';
 import type { IPreadmissionClassDropdown } from '@/types/admission/preadmission/transactions';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -42,8 +42,9 @@ import PhoneInput from 'react-phone-input-2';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 import { IneligibleClassesDialog } from './InEligibleDialog';
+import { validateAgeForClass } from './application-form-helper';
 
-type FormFields = z.infer<typeof studentApplicationFormUpdateSchema.update>;
+type FormFields = z.infer<typeof studentApplicationFormSchema.add> & { pasR_Id: number; pasR_RegistrationNo?: string };
 
 interface UpdateStudentApplicationFormProps {
     id?: number;
@@ -111,7 +112,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         clearErrors,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(studentApplicationFormUpdateSchema.update),
+        resolver: zodResolver(studentApplicationFormSchema.add),
         mode: 'onChange',
         defaultValues: {
             pasA_WillingToContributeFlg: 0,
@@ -141,19 +142,34 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         name: 'previousSchoolDetails'
     });
 
+    // Guardian details controlled by react-hook-form
+    const {
+        fields: guardianFields,
+        append: appendGuardian,
+        remove: removeGuardian,
+        replace: replaceGuardians
+    } = useFieldArray({
+        control,
+        name: 'guardianDetails'
+    });
+
     useEffect(() => {
         if (rowData) {
-            const existingId = rowData.pasr_id ?? rowData.pasR_Id ?? rowData.pasRId ?? 0;
-            setValue('pasR_Id', existingId);
+            // Robust ID detection from all common casing variants
+            const existingId = rowData.pasR_Id || rowData.pasr_id || rowData.PASR_Id || rowData.pasrId || rowData.pasRId || 0;
+            setValue('pasR_Id', Number(existingId));
 
+            const formKeys = Object.keys(getValues());
             Object.entries(rowData).forEach(([key, value]) => {
-                // Skip siblingsDetails and previousSchoolDetails - handle them separately
-                if (key === 'siblingsDetails' || key === 'previousSchoolDetails') {
+                // Skip arrays - handle them separately or via useFieldArray
+                if (
+                    ['siblingsDetails', 'previousSchoolDetails', 'guardianDetails', 'selectedSourceDetails', 'selectedRefrenceDetails', 'selectedDocuments'].includes(key)
+                ) {
                     return;
                 }
 
-                if (key === 'pasR_DOB' && value) {
-                    setValue(key, new Date(value as string));
+                if (key.toLowerCase() === 'pasr_dob' && value) {
+                    setValue('pasR_DOB', new Date(value as string));
                     return;
                 }
 
@@ -162,93 +178,128 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                 if (
                     normalized === '' ||
                     normalized === null ||
-                    (normalized === 0 && !['pasR_TransportReqdFlag'].includes(key)) ||
-                    normalized === '0'
+                    normalized === 'null' ||
+                    (normalized === 0 && !['pasR_TransportReqdFlag', 'pasA_WillingToContributeFlg', 'pasR_UndertakingFlag', 'PASR_BloodGroup'].includes(key))
                 ) {
-                    normalized = undefined;
+                    // Only set to undefined for null-ish values, preserving valid 0s for specified flags
+                    if (!['pasR_TransportReqdFlag', 'pasA_WillingToContributeFlg', 'pasR_UndertakingFlag', 'PASR_BloodGroup'].includes(key)) {
+                        normalized = undefined;
+                    }
                 }
 
                 if (
                     [
-                        'pasR_MobileNo',
-                        'pasR_FatherMobleNo',
-                        'pasR_MotherMobleNo',
-                        'pasR_AltContactNo',
-                        'pasR_AadharNo',
-                        'pasR_FatherPanno',
-                        'pasR_MotherPanno'
-                    ].includes(key) &&
+                        'pasr_mobileno',
+                        'pasr_fathermobleno',
+                        'pasr_mothermobleno',
+                        'pasr_altcontactno',
+                        'pasr_aadharno',
+                        'pasr_fatherpanno',
+                        'pasr_motherpanno',
+                        'pasr_fatheraadharno',
+                        'pasr_motheraadharno'
+                    ].includes(key.toLowerCase()) &&
                     typeof normalized === 'number'
                 ) {
                     normalized = String(normalized);
                 }
 
                 if (
-                    ['pasR_Nationality', 'pasR_FatherNationality', 'pasR_MotherNationality', 'pasR_Sex'].includes(key) &&
+                    ['pasr_nationality', 'pasr_fathernationality', 'pasr_mothernationality', 'pasr_sex'].includes(key.toLowerCase()) &&
                     normalized !== undefined
                 ) {
                     normalized = typeof normalized === 'number' ? String(normalized) : normalized;
                 }
 
-                if (['pasR_ConState', 'pasR_PerState', 'asmcL_Id', 'caste_Id', 'religion_Id'].includes(key) && normalized !== undefined) {
-                    normalized = typeof normalized === 'string' ? Number(normalized) : normalized;
+                if (
+                    [
+                        'pasr_constate',
+                        'pasr_perstate',
+                        'asmcl_id',
+                        'caste_id',
+                        'religion_id',
+                        'pasr_fatherreligion',
+                        'pasr_fathercaste',
+                        'pasr_motherreligion',
+                        'pasr_mothercaste',
+                        'fathersubcaste_id',
+                        'mothersubcaste_id',
+                        'subcaste_id',
+                        'pasr_bloodgroup'
+                    ].includes(key.toLowerCase()) &&
+                    normalized !== undefined
+                ) {
+                    normalized = typeof normalized === 'string' && normalized !== '' ? Number(normalized) : normalized;
                 }
 
-                setValue(key as any, normalized);
+                // Robust case-insensitive binding
+                const targetKey = formKeys.find((k) => k.toLowerCase() === key.toLowerCase());
+                if (targetKey) {
+                    setValue(targetKey as any, normalized);
+                }
             });
 
-            setValue('pasA_WillingToContributeFlg', rowData.pasA_WillingToContributeFlg ? 1 : 0);
-            setValue('pasA_WillingToContributeRemarks', rowData.pasA_WillingToContributeRemarks ?? undefined);
-            // if (rowData.hasOwnProperty("pasR_BirthPlace")) {
-            //   setValue("pasR_BirthPlace", rowData.pasR_BirthPlace ?? undefined);
-            // }
+            setValue('pasA_WillingToContributeFlg', (rowData.pasA_WillingToContributeFlg || rowData.pasa_willingtocontributeflg) ? 1 : 0);
+            setValue('pasA_WillingToContributeRemarks', (rowData.pasA_WillingToContributeRemarks || rowData.pasa_willingtocontributeremarks) ?? undefined);
 
-            // Handle siblingsDetails and previousSchoolDetails arrays AFTER all other fields
-            if (rowData.siblingsDetails && Array.isArray(rowData.siblingsDetails) && rowData.siblingsDetails.length > 0) {
-                replaceSiblings(rowData.siblingsDetails);
+            // Handle arrays and complex structures
+            const siblings = rowData.siblingsDetails || rowData.siblingsdetails || rowData.student_siblings;
+            if (siblings && Array.isArray(siblings) && siblings.length > 0) {
+                replaceSiblings(siblings);
             }
 
-            if (rowData.previousSchoolDetails && Array.isArray(rowData.previousSchoolDetails) && rowData.previousSchoolDetails.length > 0) {
-                // Keep only the first previous school entry in the form (show single entry only)
-                const firstPrev = rowData.previousSchoolDetails[0];
+            const guardians = rowData.guardianDetails || rowData.guardiandetails || rowData.student_guardians;
+            if (guardians && Array.isArray(guardians) && guardians.length > 0) {
+                replaceGuardians(guardians);
+            }
+
+            const previousSchools = rowData.previousSchoolDetails || rowData.previousschooldetails || rowData.previous_schools;
+            if (previousSchools && Array.isArray(previousSchools) && previousSchools.length > 0) {
+                const firstPrev = previousSchools[0];
                 replacePreviousSchools([firstPrev]);
+                setPreviousSchool(firstPrev);
             }
 
-            if (rowData.selectedSourceDetails) {
-                setSelectedSourceItems(rowData.selectedSourceDetails);
-            }
-            if (rowData.selectedRefrenceDetails) {
-                setSelectedReferenceItems(rowData.selectedRefrenceDetails);
-            }
-            if (rowData.previousSchoolDetails?.[0]) {
-                setPreviousSchool(rowData.previousSchoolDetails[0]);
-            }
-            if (rowData.selectedDocuments) {
-                setUploadedDocuments(rowData.selectedDocuments);
+            const sources = rowData.selectedSourceDetails || rowData.selectedsourcedetails || rowData.student_sources;
+            if (sources) {
+                setSelectedSourceItems(sources);
             }
 
-            if (rowData.pasR_Student_Pic_Path) {
+            const references = rowData.selectedRefrenceDetails || rowData.selectedrefrencedetails || rowData.student_refrences;
+            if (references) {
+                setSelectedReferenceItems(references);
+            }
+
+            const documents = rowData.selectedDocuments || rowData.selecteddocuments || rowData.student_documents;
+            if (documents) {
+                setUploadedDocuments(documents);
+            }
+
+            const studentPic = rowData.pasR_Student_Pic_Path || rowData.pasr_student_pic_path;
+            if (studentPic) {
                 setStudentPhoto({
-                    pasR_Student_Pic_Path: rowData.pasR_Student_Pic_Path,
+                    pasR_Student_Pic_Path: studentPic,
                     isUploading: false
                 });
             }
 
-            if (rowData.pasR_FatherPhoto) {
+            const fatherPic = rowData.pasR_FatherPhoto || rowData.pasr_fatherphoto;
+            if (fatherPic) {
                 setFatherPhoto({
-                    pasR_FatherPhoto: rowData.pasR_FatherPhoto,
+                    pasR_FatherPhoto: fatherPic,
                     isUploading: false
                 });
             }
 
-            if (rowData.pasR_MotherPhoto) {
+            const motherPic = rowData.pasR_MotherPhoto || rowData.pasr_motherphoto;
+            if (motherPic) {
                 setMotherPhoto({
-                    pasR_MotherPhoto: rowData.pasR_MotherPhoto,
+                    pasR_MotherPhoto: motherPic,
                     isUploading: false
                 });
             }
         }
-    }, [rowData, setValue, replaceSiblings, replacePreviousSchools]);
+    }, [rowData, setValue, replaceSiblings, replacePreviousSchools, replaceGuardians]);
 
     const [isDobOpen, setIsDobOpen] = useState(false);
     const [filteredClasses, setFilteredClasses] = useState<IPreadmissionClassDropdown[]>([]);
@@ -667,114 +718,188 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         clearErrors();
     };
 
-    const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
-        if (data.pasR_UndertakingFlag === 0) {
-            toast.error('Please accept undertaking');
-            return;
-        }
+    const onSubmit: SubmitHandler<FormFields> = async (formData) => {
 
         try {
-            const existingId = data.pasR_Id ?? rowData?.pasR_Id ?? rowData?.pasr_id ?? rowData?.pasRId ?? id ?? 0;
 
-            const {
-                pasR_DOB,
-                source_ids,
-                reference_ids,
-                pasR_ConCountry,
-                pasR_PerCountry,
-                pasR_ConPincode,
-                pasR_PerPincode,
-                pasR_ConState,
-                pasR_PerState,
-                pasA_WillingToContributeFlg,
-                ...filteredData
-            } = data;
-
-            const toNull = (v: any) => (v === '' || v === undefined || v === '$undefined' ? null : v);
-            const toNullOther = (v: any) => (v === '' || v === undefined || v === '$undefined' ? '' : v);
-            const toZero = (v: any) => (v === '' || v === undefined || v === '$undefined' || v === null ? 0 : v);
-            const nullFields = new Set([
-                'pasR_AadharNo',
-                'pasR_FatherPanno',
-                'pasR_MotherPanno',
-                'pasR_MobileNo',
-                'pasR_FatherMobleNo',
-                'pasR_MotherMobleNo',
-                'pasR_AltContactNo',
-                'pasR_FatherIncome',
-                'pasR_MotherIncome',
-                'pasR_ConState'
-            ]);
+            const studentId = Number(formData.pasR_Id || rowData?.pasR_Id || rowData?.pasr_id || rowData?.PASR_Id || 0);
+            const asmayId = Number(rowData?.asmay_id || rowData?.ASMAY_Id || activePreadmission?.data?.asmaY_Id || 0);
 
             const payload = {
-                pasR_Id: Number(existingId),
-                ...Object.fromEntries(
-                    Object.entries(filteredData)
-                        .filter(([k]) => k !== 'createdDate' && k !== 'updatedDate' && k !== 'createdAt' && k !== 'updatedAt')
-                        .map(([k, v]) => [k, nullFields.has(k) ? toNull(v) : toNullOther(v)])
-                ),
-                pasR_DOB: pasR_DOB ? format(pasR_DOB, 'yyyy-MM-dd') : null,
+                // Core Identification
+                pasR_Id: studentId,
+                pasr_id: studentId,
+                PASR_Id: studentId,
+                pasrId: studentId,
+                ASMAY_Id: asmayId,
+                asmay_id: asmayId,
+                pasR_FirstName: formData.pasR_FirstName?.trim() || '',
+                pasR_MiddleName: formData.pasR_MiddleName?.trim() || '',
+                pasR_LastName: formData.pasR_LastName?.trim() || '',
+                pasR_DOB: formData.pasR_DOB ? format(new Date(formData.pasR_DOB), 'yyyy-MM-dd') : '',
                 pasR_Age: 0,
-                pasR_Student_Pic_Path: toNullOther(studentPhoto?.pasR_Student_Pic_Path),
-                pasR_FatherPhoto: toNullOther(fatherPhoto?.pasR_FatherPhoto),
-                pasR_MotherPhoto: toNullOther(motherPhoto?.pasR_MotherPhoto),
-                PASR_ConState:
-                    pasR_ConState == null || String(pasR_ConState) === '' || String(pasR_ConState) === '$undefined'
-                        ? null
-                        : Number(pasR_ConState),
-                PASR_PerState: toNullOther(pasR_PerState?.toString()),
-                PASR_ConCountry: toNullOther(pasR_ConCountry?.toString()),
-                PASR_PerCountry: toNullOther(pasR_PerCountry?.toString()),
-                PASR_ConPincode: toZero(pasR_ConPincode),
-                PASR_PerPincode: toZero(pasR_PerPincode),
-                pasR_MobileNo: toNull(data.pasR_MobileNo),
-                pasR_FatherMobleNo: toNull(data.pasR_FatherMobleNo),
-                pasR_MotherMobleNo: toNull(data.pasR_MotherMobleNo),
-                pasR_AltContactNo: toNull(data.pasR_AltContactNo),
-                pasR_AadharNo: toNull(data.pasR_AadharNo),
-                pasR_FatherPanno: toNull(data.pasR_FatherPanno),
-                pasR_MotherPanno: toNull(data.pasR_MotherPanno),
+                pasR_Sex: formData.pasR_Sex || '',
+                asmcL_Id: Number(formData.asmcL_Id || 0),
+                asmcl_id: Number(formData.asmcL_Id || 0),
+                pasR_emailId: formData.pasR_emailId || '',
+                pasR_MobileNo: formData.pasR_MobileNo || '',
+                // Exhaustive variants for backend duplicate and update logic
+                PASR_FirstName: formData.pasR_FirstName?.trim() || '',
+                PASR_MiddleName: formData.pasR_MiddleName?.trim() || '',
+                PASR_LastName: formData.pasR_LastName?.trim() || '',
+                PASR_MobileNo: formData.pasR_MobileNo || '',
+                PASR_Mobile_No: Number(formData.pasR_MobileNo) || 0,
+                student_name: `${formData.pasR_FirstName || ''} ${formData.pasR_MiddleName || ''} ${formData.pasR_LastName || ''}`.trim(),
+                Student_Name: `${formData.pasR_FirstName || ''} ${formData.pasR_MiddleName || ''} ${formData.pasR_LastName || ''}`.trim(),
+                PASR_StudentName: `${formData.pasR_FirstName || ''} ${formData.pasR_MiddleName || ''} ${formData.pasR_LastName || ''}`.trim(),
+                pasr_RegistrationNo: formData.pasR_RegistrationNo || rowData?.pasR_RegistrationNo || '',
+                PASR_RegistrationNo: formData.pasR_RegistrationNo || rowData?.pasR_RegistrationNo || '',
+                Pasr_Id: studentId,
+                pasr_Id: studentId,
+                pasR_id: studentId,
+
+                // Photos
+                pasR_Student_Pic_Path: studentPhoto?.pasR_Student_Pic_Path || '',
+                pasR_FatherPhoto: fatherPhoto?.pasR_FatherPhoto || '',
+                pasR_MotherPhoto: motherPhoto?.pasR_MotherPhoto || '',
+
+                // Additional Info (Step 1)
+                religion_Id: Number(formData.religion_Id || 0),
+                caste_Id: Number(formData.caste_Id || 0),
+                SubCaste_Id: formData.SubCaste_Id ? Number(formData.SubCaste_Id) : 0,
+                pasR_BirthPlace: formData.pasR_BirthPlace || '',
+                pasR_Nationality: formData.pasR_Nationality || '',
+                pasR_MotherTongue: formData.pasR_MotherTongue || '',
+                pasR_TransportReqdFlag: Number(formData.pasR_TransportReqdFlag || 0),
+
+                // Address Information (Step 2)
+                pasR_ConStreet: formData.pasR_ConStreet || '',
+                pasR_ConArea: formData.pasR_ConArea || '',
+                pasR_ConCity: formData.pasR_ConCity || '',
+                PASR_ConState: formData.pasR_ConState ? Number(formData.pasR_ConState) : null,
+                PASR_ConCountry: formData.pasR_ConCountry ? String(formData.pasR_ConCountry) : '',
+                PASR_ConPincode: formData.pasR_ConPincode ? Number(formData.pasR_ConPincode) : 0,
+
+                pasR_PerStreet: formData.pasR_PerStreet || '',
+                pasR_PerArea: formData.pasR_PerArea || '',
+                pasR_PerCity: formData.pasR_PerCity || '',
+                PASR_PerState: formData.pasR_PerState ? String(formData.pasR_PerState) : '',
+                PASR_PerCountry: formData.pasR_PerCountry ? String(formData.pasR_PerCountry) : '',
+                PASR_PerPincode: formData.pasR_PerPincode ? Number(formData.pasR_PerPincode) : 0,
+
+                // Parent Information (Step 3)
+                // Father
+                pasR_FatherName: formData.pasR_FatherName || '',
+                pasR_FatherNationality: formData.pasR_FatherNationality || '',
+                PASR_FatherAadharNo: formData.PASR_FatherAadharNo ? String(formData.PASR_FatherAadharNo) : null,
+                PASR_FatherReligion: Number(formData.PASR_FatherReligion || 0),
+                PASR_FatherCaste: Number(formData.PASR_FatherCaste || 0),
+                PASR_FatherMobleNo: formData.pasR_FatherMobleNo ? Number(formData.pasR_FatherMobleNo) : null,
+                pasR_FatherEducation: formData.pasR_FatherEducation || '',
+                pasR_FatherOccupation: formData.pasR_FatherOccupation || '',
+                pasR_FatherDesignation: formData.pasR_FatherDesignation || '',
+                PASR_FatherIncome: formData.pasR_FatherIncome ? Number(formData.pasR_FatherIncome) : 0,
+                pasA_FatherInstitution: formData.pasA_FatherInstitution || '',
+                pasA_FatherBusiness: formData.pasA_FatherBusiness || '',
+                pasA_FatherCompany: formData.pasA_FatherCompany || '',
+                pasA_FatherMotherTongue: formData.pasA_FatherMotherTongue || '',
+
+                // Mother
+                pasR_MotherName: formData.pasR_MotherName || '',
+                pasR_MotherNationality: formData.pasR_MotherNationality || '',
+                PASR_MotherAadharNo: formData.PASR_MotherAadharNo ? String(formData.PASR_MotherAadharNo) : null,
+                PASR_MotherReligion: Number(formData.PASR_MotherReligion || 0),
+                PASR_MotherCaste: Number(formData.PASR_MotherCaste || 0),
+                pasR_MotherMobleNo: formData.pasR_MotherMobleNo || '',
+                pasR_MotherEducation: formData.pasR_MotherEducation || '',
+                pasR_MotherOccupation: formData.pasR_MotherOccupation || '',
+                pasR_MotherDesignation: formData.pasR_MotherDesignation || '',
+                PASR_MotherIncome: formData.pasR_MotherIncome ? Number(formData.pasR_MotherIncome) : 0,
+                pasA_MotherInstitution: formData.pasA_MotherInstitution || '',
+                pasA_MotherBusiness: formData.pasA_MotherBusiness || '',
+                pasA_MotherCompany: formData.pasA_MotherCompany || '',
+                pasA_MotherMotherTongue: formData.pasA_MotherMotherTongue || '',
+                PASR_BloodGroup: formData.PASR_BloodGroup !== undefined ? String(formData.PASR_BloodGroup) : '0', // Blood Group
+
+                // Combined / Alternate
+                pasR_AltContactNo: formData.pasR_AltContactNo || '',
+                pasR_AltContactEmail: formData.pasR_AltContactEmail || '',
+
+                // Tab 4: Multi-selects
                 selectedSourceDetails: selectedSourceItems.map((item) => ({
                     pamS_Id: item.pamS_Id
                 })),
                 selectedRefrenceDetails: selectedReferenceItems.map((item) => ({
                     pamR_Id: item.pamR_Id
                 })),
-                siblingsDetails: (getValues('siblingsDetails') || []).map((sibling: any) => ({
-                    ...Object.fromEntries(Object.entries(sibling).filter(([k]) => k !== 'createdDate' && k !== 'updatedDate')),
-                    verrejstatus: '',
-                    pasrS_SchoolName: '',
-                    pasrS_Age: 0,
-                    pasrS_Gender: '',
-                    pasrS_Institution: '',
-                    pasrS_DOB: ''
+
+                // Tab 5: Sibling Details
+                siblingsDetails: (formData.siblingsDetails || []).map((sibling: any) => ({
+                    pasrS_Id: sibling.pasrS_Id || 0,
+                    pasR_Id: studentId,
+                    pasrS_SiblingsName: sibling.pasrS_SiblingsName || '',
+                    pasrS_SiblingsClass: sibling.pasrS_SiblingsClass || '',
+                    pasrS_SiblingsAdmissionNo: sibling.pasrS_SiblingsAdmissionNo || '',
+                    pasrS_SiblingsSection: sibling.pasrS_SiblingsSection || '',
+                    pasrS_SchoolName: sibling.pasrS_SchoolName || '',
+                    pasrS_Institution: sibling.pasrS_Institution || '',
+                    pasrS_Age: Number(sibling.pasrS_Age || 0),
+                    pasrS_Gender: sibling.pasrS_Gender || '',
+                    pasrS_DOB: sibling.pasrS_DOB || '',
+                    verrejstatus: sibling.verrejstatus || ''
                 })),
-                previousSchoolList: (getValues('previousSchoolDetails') || []).map((school: any) => ({
-                    ...school,
-                    pasrpS_TcNo: '',
-                    pasrpS_PreviousPer: '',
-                    pasrpS_PreviousGrade: '',
-                    pasrpS_PreviousMarks: '',
-                    pasrpS_ConcOrScholarshipFlg: ''
+
+                // Other Info
+                guardianDetails: (formData.guardianDetails || []).map((guardian: any) => ({
+                    pasrG_Id: guardian.pasrG_Id || 0,
+                    pasR_Id: studentId,
+                    PASRG_GuardianName: guardian.PASRG_GuardianName || '',
+                    PASRG_GuardianRelation: guardian.PASRG_GuardianRelation || '',
+                    PASRG_PhoneOffice: guardian.PASRG_PhoneOffice || '',
+                    PASRG_GuardianPhoneNo: guardian.PASRG_GuardianPhoneNo || '',
+                    ReportType: guardian.ReportType || ''
                 })),
+                previousSchoolList: (formData.previousSchoolDetails || []).map((school: any) => ({
+                    pasrpS_Id: school.pasrpS_Id || 0,
+                    pasR_Id: studentId,
+                    pasrpS_PrvSchoolName: school.pasrpS_PrvSchoolName || '',
+                    pasrpS_PreviousClass: school.pasrpS_PreviousClass || '',
+                    pasrpS_Board: school.pasrpS_Board || '',
+                    pasrpS_LeftYear: school.pasrpS_LeftYear || '',
+                    pasrpS_LeftReason: school.pasrpS_LeftReason || '',
+                    pasrpS_Address: school.pasrpS_Address || '',
+                    pasrpS_TcNo: school.pasrpS_TcNo || '',
+                    pasrpS_PreviousPer: school.pasrpS_PreviousPer || '',
+                    pasrpS_PreviousGrade: school.pasrpS_PreviousGrade || '',
+                    pasrpS_PreviousMarks: school.pasrpS_PreviousMarks || '',
+                    pasrpS_ConcOrScholarshipFlg: school.pasrpS_ConcOrScholarshipFlg || ''
+                })),
+
+                pasA_AdmittingReason: formData.pasA_AdmittingReason || '',
+                pasA_WillingToContributeFlg: formData.pasA_WillingToContributeFlg === 1 ? 1 : 0,
+                pasA_WillingToContributeRemarks: formData.pasA_WillingToContributeRemarks || '',
+                pasR_UndertakingFlag: formData.pasR_UndertakingFlag === 1 ? 1 : 0,
+
+                // Technical fields
                 examSubjectDTO: [],
                 elesubsubject: [],
                 selectedDocuments: uploadedDocuments.map((doc) => ({
-                    pasrD_Id: doc.pasrD_Id,
-                    pasR_Id: doc.pasR_Id,
-                    amsmD_Id: doc.amsmD_Id,
-                    document_Path: toNullOther(doc.document_Path)
+                    pasrD_Id: doc.pasrD_Id || 0,
+                    pasR_Id: studentId,
+                    amsmD_Id: doc.amsmD_Id || 0,
+                    document_Path: doc.document_Path || ''
                 })),
-                PASR_RegistrationNo: toNullOther((data as any).pasR_RegistrationNo),
-                pasA_WillingToContributeFlg: pasA_WillingToContributeFlg === 1
+                pasP_Id: studentId,
+                pasp_id: studentId,
+                PASP_Id: studentId,
+                AMC_Id: 0
             };
 
-            const response = await addStudentApplicationForm(payload);
+            const response = await addBBHSStudentApplication(payload);
 
-            if (response && (response.success === true || response.status === 200)) {
-                toast.success('Successfully Updated Student Application ');
+            if (response.success) {
+                toast.success('Successfully Updated Student Application');
                 reset();
-                handleReset();
                 onSuccess?.();
             } else {
                 const msg = response?.message || 'Failed to submit form';
@@ -1431,6 +1556,8 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                 {currentStep === 1 && (
                                     <div className='space-y-6'>
                                         <div>
+                                            <input type='hidden' {...register('pasR_Id')} />
+                                            <input type='hidden' {...register('pasR_RegistrationNo')} />
                                             <h2 className='font-bold text-2xl text-gray-900'>Student Information</h2>
                                             <p className='mt-1 text-gray-500 text-sm'>
                                                 Please provide the student&apos;s basic information
@@ -1790,7 +1917,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                             </div>
                                             <div className='flex flex-col gap-1.5'>
                                                 <Label htmlFor='caste_Id'>
-                                                    Caste <span className='ml-1 text-red-500'>*</span>
+                                                    Caste tesing <span className='ml-1 text-red-500'>*</span>
                                                 </Label>
                                                 <Controller
                                                     name='caste_Id'
@@ -1826,6 +1953,30 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                 />
                                                 {errors.caste_Id && <FormError>{errors.caste_Id.message}</FormError>}
                                             </div>
+
+
+                                            <div className='flex flex-col gap-1.5'>
+                                                <Controller
+                                                    name='SubCaste_Id'
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <MobileNumberInput
+                                                            label='Sub Caste'
+                                                            id='SubCaste_Id'
+                                                            value={field.value}
+                                                            onChange={(value) => field.onChange(value)}
+                                                            type='number'
+                                                            showSpinner={false}
+                                                        />
+                                                    )}
+                                                />
+                                                {errors.SubCaste_Id && <FormError>{errors.SubCaste_Id.message}</FormError>}
+                                            </div>
+
+
+
+
+
                                             <div className='flex flex-col gap-1.5'>
                                                 <Label htmlFor='pasR_Sex'>
                                                     Gender <span className='ml-1 text-red-500'>*</span>
@@ -1869,7 +2020,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                     render={({ field, fieldState: { error } }) => (
                                                         <div className='flex flex-col space-y-2'>
                                                             <Label htmlFor='asmcL_Id'>
-                                                                Applying For Class <span className='ml-1 text-red-500'>*</span>
+                                                                Applying For <span className='ml-1 text-red-500'>*</span>
                                                             </Label>
                                                             <Select
                                                                 key={`${field.value}-${filteredClasses.length}`}
@@ -1920,6 +2071,20 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                 placeholder='Enter email'
                                                 {...register('pasR_emailId')}
                                                 error={errors.pasR_emailId?.message}
+                                            />
+                                            <InputText
+                                                label='If christian, Name of Church'
+                                                id='PASR_Churchname'
+                                                placeholder='Enter Church Name'
+                                                {...register('PASR_Churchname')}
+                                                error={errors.PASR_Churchname?.message}
+                                            />
+                                            <InputText
+                                                label='Address of Church'
+                                                id='PASR_ChurchAddress'
+                                                placeholder='Enter Church Address'
+                                                {...register('PASR_ChurchAddress')}
+                                                error={errors.PASR_ChurchAddress?.message}
                                             />
                                             <div className='flex flex-col gap-1.5'>
                                                 <Label htmlFor='pasR_Nationality'>
@@ -2079,6 +2244,43 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                     <FormError>{errors.pasR_TransportReqdFlag.message}</FormError>
                                                 )}
                                             </div>
+
+
+                                            <div className='flex flex-col gap-1.5'>
+                                                <Label htmlFor='PASR_BloodGroup'>
+                                                    Blood Group <span className='ml-1 text-red-500'>*</span>
+                                                </Label>
+                                                <Controller
+                                                    name='PASR_BloodGroup'
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <Select
+                                                            key={field.value || 'empty'}
+                                                            onValueChange={(value) => field.onChange(value)}
+                                                            value={field.value?.toString() || ''}>
+                                                            <SelectTrigger>
+                                                                <SelectValue placeholder='Select Blood Group' />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem value='A+'>A+</SelectItem>
+                                                                <SelectItem value='B+'>B+</SelectItem>
+                                                                <SelectItem value='AB+'>AB+</SelectItem>
+                                                                <SelectItem value='O+'>O+</SelectItem>
+                                                                <SelectItem value='A-'>A-</SelectItem>
+                                                                <SelectItem value='B-'>B-</SelectItem>
+                                                                <SelectItem value='AB-'>AB-</SelectItem>
+                                                                <SelectItem value='O-'>O-</SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                    )}
+                                                />
+                                                {errors.PASR_BloodGroup && (
+                                                    <FormError>{errors.PASR_BloodGroup.message}</FormError>
+                                                )}
+                                            </div>
+
+
+
                                         </div>
                                     </div>
                                 )}
@@ -2630,6 +2832,82 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                         {...register('pasR_FatherEducation')}
                                                         error={errors.pasR_FatherEducation?.message}
                                                     />
+
+                                                    <div className='col-span-full space-y-3'>
+                                                        <Label>Occupation</Label>
+                                                        <Controller
+                                                            name='pasR_FatherOccupation'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <div className='space-y-4'>
+                                                                    <RadioGroup
+                                                                        onValueChange={(val) => {
+                                                                            if (val === 'Others') {
+                                                                                field.onChange('');
+                                                                            } else {
+                                                                                field.onChange(val);
+                                                                            }
+                                                                        }}
+                                                                        value={
+                                                                            ['Government Employee', 'Private Employee', 'Self Employee'].includes(
+                                                                                field.value ?? ''
+                                                                            )
+                                                                                ? field.value
+                                                                                : field.value === undefined
+                                                                                    ? undefined
+                                                                                    : 'Others'
+                                                                        }
+                                                                        className='flex flex-wrap gap-6'>
+                                                                        <div className='flex items-center space-x-2'>
+                                                                            <RadioGroupItem value='Government Employee' id='f-gov' />
+                                                                            <Label htmlFor='f-gov' className='font-normal'>
+                                                                                Government Employee
+                                                                            </Label>
+                                                                        </div>
+                                                                        <div className='flex items-center space-x-2'>
+                                                                            <RadioGroupItem value='Private Employee' id='f-pvt' />
+                                                                            <Label htmlFor='f-pvt' className='font-normal'>
+                                                                                Private Employee
+                                                                            </Label>
+                                                                        </div>
+                                                                        <div className='flex items-center space-x-2'>
+                                                                            <RadioGroupItem value='Self Employee' id='f-self' />
+                                                                            <Label htmlFor='f-self' className='font-normal'>
+                                                                                Self Employee
+                                                                            </Label>
+                                                                        </div>
+                                                                        <div className='flex items-center space-x-2'>
+                                                                            <RadioGroupItem value='Others' id='f-others' />
+                                                                            <Label htmlFor='f-others' className='font-normal'>
+                                                                                Others
+                                                                            </Label>
+                                                                        </div>
+                                                                    </RadioGroup>
+
+                                                                    {field.value !== undefined &&
+                                                                        !['Government Employee', 'Private Employee', 'Self Employee'].includes(
+                                                                            field.value
+                                                                        ) && (
+                                                                            <InputText
+                                                                                label='Specify Occupation'
+                                                                                placeholder='Enter occupation'
+                                                                                value={field.value}
+                                                                                onChange={(e) => field.onChange(e.target.value)}
+                                                                            />
+                                                                        )}
+                                                                </div>
+                                                            )}
+                                                        />
+                                                    </div>
+
+
+
+
+
+
+
+
+
                                                     <InputText
                                                         label='Pan No'
                                                         id='pasR_FatherPanno'
@@ -2684,6 +2962,143 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             <FormError>{errors.pasR_FatherNationality.message}</FormError>
                                                         )}
                                                     </div>
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Label htmlFor='PASR_FatherAadharNo'>
+                                                            Aadhaar No <span className='ml-1 text-red-500'>*</span>
+                                                        </Label>
+                                                        <Controller
+                                                            name='PASR_FatherAadharNo'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <MobileNumberInput
+
+                                                                    id='PASR_FatherAadharNo'
+                                                                    value={field.value}
+                                                                    onChange={(value) => field.onChange(value)}
+                                                                    type='number'
+                                                                    showSpinner={false}
+                                                                />
+                                                            )}
+                                                        />
+                                                        {errors.PASR_FatherAadharNo && <FormError>{errors.PASR_FatherAadharNo.message}</FormError>}
+                                                    </div>
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Label htmlFor='PASR_FatherReligion'>
+                                                            Religion <span className='ml-1 text-red-500'>*</span>
+                                                        </Label>
+                                                        <Controller
+                                                            name='PASR_FatherReligion'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <Select
+                                                                    key={field.value || 'empty'}
+                                                                    onValueChange={(value) => field.onChange(Number(value))}
+                                                                    value={field.value?.toString() || ''}>
+                                                                    <SelectTrigger>
+                                                                        <SelectValue placeholder='Select religion' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {religionLoading ? (
+                                                                            <SelectItem value='loading' disabled>
+                                                                                Loading...
+                                                                            </SelectItem>
+                                                                        ) : religionError ? (
+                                                                            <SelectItem value='error' disabled>
+                                                                                Error loading
+                                                                            </SelectItem>
+                                                                        ) : (
+                                                                            religion?.data?.map((item) => (
+                                                                                <SelectItem key={item.ivrmmR_Id} value={item.ivrmmR_Id.toString()}>
+                                                                                    {item.ivrmmR_Name}
+                                                                                </SelectItem>
+                                                                            ))
+                                                                        )}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            )}
+                                                        />
+                                                        {errors.PASR_FatherReligion && <FormError>{errors.PASR_FatherReligion.message}</FormError>}
+                                                    </div>
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Label htmlFor='PASR_FatherCaste'>
+                                                            Caste <span className='ml-1 text-red-500'>*</span>
+                                                        </Label>
+                                                        <Controller
+                                                            name='PASR_FatherCaste'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <Select
+                                                                    key={field.value || 'empty'}
+                                                                    onValueChange={(value) => field.onChange(Number(value))}
+                                                                    value={field.value?.toString() || ''}
+                                                                    disabled={!watch('religion_Id')}>
+                                                                    <SelectTrigger>
+                                                                        <SelectValue placeholder='Select caste' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {casteLoading ? (
+                                                                            <SelectItem value='loading' disabled>
+                                                                                Loading...
+                                                                            </SelectItem>
+                                                                        ) : casteError ? (
+                                                                            <SelectItem value='error' disabled>
+                                                                                Error loading
+                                                                            </SelectItem>
+                                                                        ) : (
+                                                                            caste?.data?.map((item) => (
+                                                                                <SelectItem key={item.imC_Id} value={item.imC_Id.toString()}>
+                                                                                    {item.imC_CasteName}
+                                                                                </SelectItem>
+                                                                            ))
+                                                                        )}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            )}
+                                                        />
+                                                        {errors.PASR_FatherCaste && <FormError>{errors.PASR_FatherCaste.message}</FormError>}
+                                                    </div>
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Controller
+                                                            name='fatherSubCaste_Id'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <MobileNumberInput
+                                                                    label='Sub Caste'
+                                                                    id='fatherSubCaste_Id'
+                                                                    value={field.value}
+                                                                    onChange={(value) => field.onChange(value)}
+                                                                    type='number'
+                                                                    showSpinner={false}
+                                                                />
+                                                            )}
+                                                        />
+                                                        {errors.fatherSubCaste_Id && <FormError>{errors.fatherSubCaste_Id.message}</FormError>}
+                                                    </div>
+                                                    <InputText
+                                                        label='Phone Office'
+                                                        id='PASR_FatherOfficePhNo'
+                                                        placeholder='Enter Phone Office'
+                                                        {...register('PASR_FatherOfficePhNo')}
+                                                        error={errors.PASR_FatherOfficePhNo?.message}
+                                                    />
+
+                                                    <InputText
+                                                        label='Phone Res'
+                                                        id='PASR_FatherHomePhNo'
+                                                        placeholder='Enter Phone Res'
+                                                        {...register('PASR_FatherHomePhNo')}
+                                                        error={errors.PASR_FatherHomePhNo?.message}
+                                                    />
+
+                                                    <InputText
+                                                        label='Email ID'
+                                                        id='PASR_FatheremailId'
+                                                        placeholder='Enter email ID'
+                                                        {...register('PASR_FatheremailId')}
+                                                        error={errors.PASR_FatheremailId?.message}
+                                                    />
+
+
                                                     <InputText
                                                         label='Office Address'
                                                         id='pasR_FatherOfficeAddr'
@@ -2691,6 +3106,29 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                         {...register('pasR_FatherOfficeAddr')}
                                                         error={errors.pasR_FatherOfficeAddr?.message}
                                                     />
+
+
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Label>Transferable job (Central/State Government employee only)</Label>
+                                                        <Controller
+                                                            name='pasR_UndertakingFlag'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <Select
+                                                                    onValueChange={(value) => field.onChange(value)}
+                                                                    value={field.value?.toString() || ''}>
+                                                                    <SelectTrigger>
+                                                                        <SelectValue placeholder='Select' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        <SelectItem value='1'>Yes</SelectItem>
+                                                                        <SelectItem value='0'>No</SelectItem>
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            )}
+                                                        />
+                                                    </div>
+
                                                     <div className='flex flex-col gap-1.5 '>
                                                         <Controller
                                                             name='pasR_FatherMobleNo'
@@ -2977,6 +3415,74 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                         {...register('pasR_MotherEducation')}
                                                         error={errors.pasR_MotherEducation?.message}
                                                     />
+                                                    <div className='col-span-full space-y-3'>
+                                                        <Label>Occupation</Label>
+                                                        <Controller
+                                                            name='pasR_MotherOccupation'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <div className='space-y-4'>
+                                                                    <RadioGroup
+                                                                        onValueChange={(val) => {
+                                                                            if (val === 'Others') {
+                                                                                field.onChange('');
+                                                                            } else {
+                                                                                field.onChange(val);
+                                                                            }
+                                                                        }}
+                                                                        value={
+                                                                            ['Government Employee', 'Private Employee', 'Self Employee'].includes(
+                                                                                field.value ?? ''
+                                                                            )
+                                                                                ? field.value
+                                                                                : field.value === undefined
+                                                                                    ? undefined
+                                                                                    : 'Others'
+                                                                        }
+                                                                        className='flex flex-wrap gap-6'>
+                                                                        <div className='flex items-center space-x-2'>
+                                                                            <RadioGroupItem value='Government Employee' id='f-gov' />
+                                                                            <Label htmlFor='f-gov' className='font-normal'>
+                                                                                Government Employee
+                                                                            </Label>
+                                                                        </div>
+                                                                        <div className='flex items-center space-x-2'>
+                                                                            <RadioGroupItem value='Private Employee' id='f-pvt' />
+                                                                            <Label htmlFor='f-pvt' className='font-normal'>
+                                                                                Private Employee
+                                                                            </Label>
+                                                                        </div>
+                                                                        <div className='flex items-center space-x-2'>
+                                                                            <RadioGroupItem value='Self Employee' id='f-self' />
+                                                                            <Label htmlFor='f-self' className='font-normal'>
+                                                                                Self Employee
+                                                                            </Label>
+                                                                        </div>
+                                                                        <div className='flex items-center space-x-2'>
+                                                                            <RadioGroupItem value='Others' id='f-others' />
+                                                                            <Label htmlFor='f-others' className='font-normal'>
+                                                                                Others
+                                                                            </Label>
+                                                                        </div>
+                                                                    </RadioGroup>
+
+                                                                    {field.value !== undefined &&
+                                                                        !['Government Employee', 'Private Employee', 'Self Employee'].includes(
+                                                                            field.value
+                                                                        ) && (
+                                                                            <InputText
+                                                                                label='Specify Occupation'
+                                                                                placeholder='Enter occupation'
+                                                                                value={field.value}
+                                                                                onChange={(e) => field.onChange(e.target.value)}
+                                                                            />
+                                                                        )}
+                                                                </div>
+                                                            )}
+                                                        />
+                                                    </div>
+
+
                                                     <InputText
                                                         label='Pan No'
                                                         id='pasR_MotherPanno'
@@ -3031,6 +3537,148 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             <FormError>{errors.pasR_MotherNationality.message}</FormError>
                                                         )}
                                                     </div>
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Label htmlFor='PASR_MotherAadharNo'>
+                                                            Aadhaar No <span className='ml-1 text-red-500'>*</span>
+                                                        </Label>
+                                                        <Controller
+                                                            name='PASR_MotherAadharNo'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <MobileNumberInput
+
+                                                                    id='PASR_MotherAadharNo'
+                                                                    value={field.value}
+                                                                    onChange={(value) => field.onChange(value)}
+                                                                    type='number'
+                                                                    showSpinner={false}
+                                                                />
+                                                            )}
+                                                        />
+                                                        {errors.PASR_MotherAadharNo && <FormError>{errors.PASR_MotherAadharNo.message}</FormError>}
+                                                    </div>
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Label htmlFor='PASR_MotherReligion'>
+                                                            Religion <span className='ml-1 text-red-500'>*</span>
+                                                        </Label>
+                                                        <Controller
+                                                            name='PASR_MotherReligion'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <Select
+                                                                    key={field.value || 'empty'}
+                                                                    onValueChange={(value) => field.onChange(Number(value))}
+                                                                    value={field.value?.toString() || ''}>
+                                                                    <SelectTrigger>
+                                                                        <SelectValue placeholder='Select religion' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {religionLoading ? (
+                                                                            <SelectItem value='loading' disabled>
+                                                                                Loading...
+                                                                            </SelectItem>
+                                                                        ) : religionError ? (
+                                                                            <SelectItem value='error' disabled>
+                                                                                Error loading
+                                                                            </SelectItem>
+                                                                        ) : (
+                                                                            religion?.data?.map((item) => (
+                                                                                <SelectItem key={item.ivrmmR_Id} value={item.ivrmmR_Id.toString()}>
+                                                                                    {item.ivrmmR_Name}
+                                                                                </SelectItem>
+                                                                            ))
+                                                                        )}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            )}
+                                                        />
+                                                        {errors.PASR_MotherReligion && <FormError>{errors.PASR_MotherReligion.message}</FormError>}
+                                                    </div>
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Label htmlFor='PASR_MotherCaste'>
+                                                            Caste <span className='ml-1 text-red-500'>*</span>
+                                                        </Label>
+                                                        <Controller
+                                                            name='PASR_MotherCaste'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <Select
+                                                                    key={field.value || 'empty'}
+                                                                    onValueChange={(value) => field.onChange(Number(value))}
+                                                                    value={field.value?.toString() || ''}
+                                                                    disabled={!watch('religion_Id')}>
+                                                                    <SelectTrigger>
+                                                                        <SelectValue placeholder='Select caste' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {casteLoading ? (
+                                                                            <SelectItem value='loading' disabled>
+                                                                                Loading...
+                                                                            </SelectItem>
+                                                                        ) : casteError ? (
+                                                                            <SelectItem value='error' disabled>
+                                                                                Error loading
+                                                                            </SelectItem>
+                                                                        ) : (
+                                                                            caste?.data?.map((item) => (
+                                                                                <SelectItem key={item.imC_Id} value={item.imC_Id.toString()}>
+                                                                                    {item.imC_CasteName}
+                                                                                </SelectItem>
+                                                                            ))
+                                                                        )}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            )}
+                                                        />
+                                                        {errors.PASR_MotherCaste && <FormError>{errors.PASR_MotherCaste.message}</FormError>}
+                                                    </div>
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Controller
+                                                            name='motherSubCaste_Id'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <MobileNumberInput
+                                                                    label='Sub Caste'
+                                                                    id='motherSubCaste_Id'
+                                                                    value={field.value}
+                                                                    onChange={(value) => field.onChange(value)}
+                                                                    type='number'
+                                                                    showSpinner={false}
+                                                                />
+                                                            )}
+                                                        />
+                                                        {errors.motherSubCaste_Id && <FormError>{errors.motherSubCaste_Id.message}</FormError>}
+                                                    </div>
+                                                    <InputText
+                                                        label='Phone Office'
+                                                        id='PASR_MotherOfficePhNo'
+                                                        placeholder='Enter Phone Office'
+                                                        {...register('PASR_MotherOfficePhNo')}
+                                                        error={errors.PASR_MotherOfficePhNo?.message}
+                                                    />
+
+                                                    <InputText
+                                                        label='Phone Res'
+                                                        id='PASR_MotherHomePhNo'
+                                                        placeholder='Enter Phone Res'
+                                                        {...register('PASR_MotherHomePhNo')}
+                                                        error={errors.PASR_MotherHomePhNo?.message}
+                                                    />
+
+                                                    <InputText
+                                                        label='Email ID'
+                                                        id='PASR_MotheremailId'
+                                                        placeholder='Enter email ID'
+                                                        {...register('PASR_MotheremailId')}
+                                                        error={errors.PASR_MotheremailId?.message}
+                                                    />
+                                                    {/* <InputText
+                                                        label={`Mother's Passing Year`}
+                                                        id='PASR_MotherPassingYear'
+                                                        placeholder={`Enter Mother's Passing Year`}
+                                                        {...register('PASR_MotherPassingYear')}
+                                                        error={errors.PASR_MotherPassingYear?.message}
+                                                    /> */}
                                                     <InputText
                                                         label='Office Address'
                                                         id='pasR_MotherOfficeAddr'
@@ -3206,6 +3854,28 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                         {...register('pasR_AltContactEmail')}
                                                         error={errors.pasR_AltContactEmail?.message}
                                                     />
+
+
+                                                    <div className='space-y-4'>
+                                                        <h3 className='font-bold text-gray-800 text-lg'>Year of Passing of Mother/Father if they are Old Baldwinians</h3>
+                                                        <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
+
+                                                            <InputText
+                                                                label='Father'
+                                                                id='PASR_FatherPassingYear'
+                                                                placeholder=''
+                                                                {...register('PASR_FatherPassingYear')}
+                                                                error={errors.PASR_FatherPassingYear?.message}
+                                                            />
+                                                            <InputText
+                                                                label='Mother'
+                                                                id='PASR_MotherPassingYear'
+                                                                placeholder=''
+                                                                {...register('PASR_MotherPassingYear')}
+                                                                error={errors.PASR_MotherPassingYear?.message}
+                                                            />
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -3640,6 +4310,78 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                             )}
                                         </div>
 
+
+                                        <div className='space-y-4'>
+                                            <h3 className='font-bold text-gray-800 text-lg'>Guardian Details</h3>
+                                            <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
+                                                <Controller
+                                                    control={control}
+                                                    name='guardianDetails.0.PASRG_GuardianName'
+                                                    render={({ field }) => (
+                                                        <InputText
+                                                            label='Guardian Name'
+                                                            id='PASRG_GuardianName'
+                                                            placeholder='Enter Guardian Name'
+                                                            {...field}
+                                                            error={errors.guardianDetails?.[0]?.PASRG_GuardianName?.message}
+                                                        />
+                                                    )}
+                                                />
+                                                <Controller
+                                                    control={control}
+                                                    name='guardianDetails.0.PASRG_GuardianRelation'
+                                                    render={({ field }) => (
+                                                        <InputText
+                                                            label='Relationship To student'
+                                                            id='PASRG_GuardianRelation'
+                                                            placeholder='Enter relationship'
+                                                            {...field}
+                                                            error={errors.guardianDetails?.[0]?.PASRG_GuardianRelation?.message}
+                                                        />
+                                                    )}
+                                                />
+                                                <Controller
+                                                    control={control}
+                                                    name='guardianDetails.0.ReportType'
+                                                    render={({ field }) => (
+                                                        <InputText
+                                                            label='Occupation'
+                                                            id='ReportType'
+                                                            placeholder='Enter Occupation'
+                                                            {...field}
+                                                            error={errors.guardianDetails?.[0]?.ReportType?.message}
+                                                        />
+                                                    )}
+                                                />
+                                                <Controller
+                                                    control={control}
+                                                    name='guardianDetails.0.PASRG_PhoneOffice'
+                                                    render={({ field }) => (
+                                                        <InputText
+                                                            label='Guardian Phone Office:'
+                                                            id='PASRG_PhoneOffice'
+                                                            placeholder='Enter phone office'
+                                                            {...field}
+                                                            error={errors.guardianDetails?.[0]?.PASRG_PhoneOffice?.message}
+                                                        />
+                                                    )}
+                                                />
+                                                <Controller
+                                                    control={control}
+                                                    name='guardianDetails.0.PASRG_GuardianPhoneNo'
+                                                    render={({ field }) => (
+                                                        <InputText
+                                                            label='Guardian Phone Res:'
+                                                            id='PASRG_GuardianPhoneNo'
+                                                            placeholder='Enter phone res'
+                                                            {...field}
+                                                            error={errors.guardianDetails?.[0]?.PASRG_GuardianPhoneNo?.message}
+                                                        />
+                                                    )}
+                                                />
+
+                                            </div>
+                                        </div>
                                         {/* Previous School Details Section */}
                                         <div className='space-y-4'>
                                             <h3 className='font-bold text-gray-800 text-lg'>Previous School Details</h3>

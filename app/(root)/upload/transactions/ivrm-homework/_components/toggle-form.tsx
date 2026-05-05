@@ -5,7 +5,7 @@ import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/ex
 import { FormError } from '@/components/ui/extension/field';
 import { HomeWorkUploadedList } from '@/hooks/upload/transactions/useHomeWork';
 import { homeWorkSchema } from '@/schemas/upload/transactions/ivrm-homework.schema';
-import { toggleUploadHomeWork } from '@/server/upload/transactions/ivrm-homework/server-action';
+import { toggleHomeWork } from '@/server/upload/transactions/ivrm-homework/server-action';
 
 import { IHomeWorkDetails } from '@/types/upload/reports/homework-upload-report';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -40,7 +40,7 @@ export default function ToggleHomeWorkForm({ rowData, onClose }: ToggleHomeWorkF
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await toggleUploadHomeWork(Number(rowData.ihW_Id));
+            const response = await toggleHomeWork({ ihW_Id: rowData.IHW_Id! });
 
             if (response.success) {
                 toast.success(response.message);
@@ -57,9 +57,9 @@ export default function ToggleHomeWorkForm({ rowData, onClose }: ToggleHomeWorkF
         <AdaptiveDialog title='Home Work Upload Status' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden' {...register('ihW_Id')} defaultValue={rowData.ihW_Id ?? ''} />
+                    <input type='hidden' {...register('ihW_Id')} defaultValue={rowData.IHW_Id ?? ''} />
                     <p>
-                        Are you sure you want to {rowData.ihW_ActiveFlag ? 'deactivate' : 'activate'} <strong>{rowData.ihW_Topic}</strong> ?
+                        Are you sure you want to {rowData.IHW_ActiveFlag ? 'deactivate' : 'activate'} <strong>{rowData.IHW_Topic}</strong> ?
                     </p>
 
                     <FormError>{errors.root?.message}</FormError>
@@ -68,8 +68,8 @@ export default function ToggleHomeWorkForm({ rowData, onClose }: ToggleHomeWorkF
                     <Button variant='secondary' onClick={closeDialog} type='button'>
                         Cancel
                     </Button>
-                    <Button type='submit' isLoading={isSubmitting} variant={rowData.ihW_ActiveFlag ? 'destructive' : 'default'}>
-                        {rowData.ihW_ActiveFlag ? 'Deactivate' : 'Activate'}
+                    <Button type='submit' isLoading={isSubmitting} variant={rowData.IHW_ActiveFlag ? 'destructive' : 'default'}>
+                        {rowData.IHW_ActiveFlag ? 'Deactivate' : 'Activate'}
                     </Button>
                 </AdaptiveFooter>
             </form>

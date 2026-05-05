@@ -10,6 +10,7 @@ import localFont from 'next/font/local';
 import NextTopLoader from 'nextjs-toploader';
 import type * as React from 'react';
 import { Toaster } from 'sonner';
+import Script from 'next/script';
 
 const geistSans = localFont({
     src: '../public/fonts/GeistVF.woff',
@@ -42,6 +43,7 @@ export default async function RootLayout({ children }: Readonly<RootLayoutProps>
                 suppressHydrationWarning
                 className={cn('min-h-screen min-w-[360px] bg-layout font-sans antialiased', geistSans.variable, geistMono.variable)}>
                 <NextTopLoader color='#4F39F6' showSpinner={false} height={3} speed={300} />
+
                 <Providers session={session}>
                     {children}
                     {session && (
@@ -51,7 +53,17 @@ export default async function RootLayout({ children }: Readonly<RootLayoutProps>
                             <FloatingSchoolBot />
                         </>
                     )}
-                    <Toaster position='bottom-right' closeButton={true} duration={3000} richColors className={`${geistSans.className}`} />
+                    <Toaster
+                        position='bottom-right'
+                        closeButton={true}
+                        duration={3000}
+                        richColors
+                        className={`${geistSans.className}`}
+                        style={{
+                            zIndex: 99999,
+                        }}
+
+                    />
                 </Providers>
             </body>
         </html>

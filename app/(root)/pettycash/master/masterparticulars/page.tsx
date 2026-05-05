@@ -1,105 +1,99 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+<<<<<<<< HEAD:app/(root)/pettycash/master/masterparticulars/page.tsx
 import { useMasterParticulars } from '@/hooks/pettycash/master/useMasters';
 import type { IMasterParticulars } from '@/types/pettycash/master/masters';
+========
+import { useExamTTSession } from '@/hooks/exam/exammodule/exam-mapping';
+import type { IExamTTSession } from '@/types/exam/exam-module/exam-mapping';
+>>>>>>>> a2d96c9bdb9477a8b51fcf2f0aa4352f4b668f93:app/(root)/Exam/exam-module/exam-mapping/ExamTTsession/page.tsx
 import { Plus, X } from 'lucide-react';
-import { use, useEffect } from 'react';
-import AddMasterParticularsForm from './_components/add-form';
-import { masterParticularsColumns } from './_components/columns';
-import ToggleMasterParticularsForm from './_components/toggle-form';
-import UpdateMasterParticularsForm from './_components/update-form';
+import { use } from 'react';
+import AddExamTTSessionForm from './_components/add-form';
+import { ExamTTSessionColumns } from './_components/columns';
+import ToggleExamTTSessionForm from './_components/toggle-form';
+
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-export default function MasterParticularsPage(props: { searchParams: SearchParams }) {
+export default function ExamTTSessionPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error, refetch } = useMasterParticulars(searchParams);
+    const { data: response, isLoading, error } = useExamTTSession(searchParams);
 
     return (
-        <FormProvider<IMasterParticulars>>
-            <MasterParticularsPageContent response={response} isLoading={isLoading} error={error} refetch={refetch} />
+        <FormProvider<IExamTTSession>>
+            <ExamTTSessionPageContent data={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
 }
 
-function MasterParticularsPageContent({
-    response,
+function ExamTTSessionPageContent({
+    data,
     isLoading,
-    error,
-    refetch
+    error
 }: {
-    response: any;
+    data: any;
     isLoading: boolean;
     error: any;
-    refetch: () => void;
 }) {
-    const { openAddForm } = useFormContext<IMasterParticulars>();
-    const tableProps = useDataTableProps(response);
+    const { openAddForm } = useFormContext<IExamTTSession>();
+    const tableProps = useDataTableProps(data);
 
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 {/* Header */}
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>
-                    </div>
-
+                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-self-end'>
                     <Button
                         type='button'
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                        <Plus className='mr-2 h-4 w-4' />
-                        Add Particular
+                        <Plus className='h-4 w-4' />
+                        Add Exam TT Session
                     </Button>
                 </div>
 
                 {/* Data Table Section */}
                 <CollapsibleSection
-                    defaultOpen
+                    defaultOpen={true}
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<IMasterParticulars>
+                    <GenericDataTable<IExamTTSession>
                         {...tableProps}
-                        columns={masterParticularsColumns}
+                        columns={ExamTTSessionColumns}
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading master particulars...'
-                        noDataTitle='No Particulars Found'
-                        noDataDescription='Start by adding a new particular.'
-                        errorTitle='Error Loading Data'
+                        loadingMessage='Loading Exam TT Sessions...'
+                        noDataTitle='No Exam TT Sessions Found'
+                        noDataDescription='Get started by creating your first session'
+                        errorTitle='Error Loading Exam TT Sessions'
                     />
                 </CollapsibleSection>
 
                 {/* Forms */}
-                <FormSections refetch={refetch} />
+                <FormSections />
             </div>
         </div>
     );
 }
 
-function FormSections({ refetch }: { refetch: () => void }) {
+function FormSections() {
     const {
         isAddFormOpen,
         isEditFormOpen,
         isToggleFormOpen,
-        selectedRow,
         closeAddForm,
         closeEditForm,
         closeToggleForm,
         addFormRef,
-        editFormRef
-    } = useFormContext<IMasterParticulars>();
-
-    // Success handler that refetches data
-    const handleSuccess = () => {
-        refetch();
-    };
+        editFormRef,
+        selectedRow
+    } = useFormContext<IExamTTSession>();
 
     return (
         <>
@@ -107,9 +101,9 @@ function FormSections({ refetch }: { refetch: () => void }) {
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title='Add New Master Particular'
-                        description='Fill in the details below to create a new particular'
-                        defaultOpen
+                        title='Add New Exam TT Session'
+                        description='Fill in the details below to create a new session'
+                        defaultOpen={true}
                         variant='outline'
                         size='md'
                         className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
@@ -120,37 +114,19 @@ function FormSections({ refetch }: { refetch: () => void }) {
                                 variant='ghost'
                                 size='sm'
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                <X className='mr-2 h-4 w-4 text-destructive' /> Close
+                                <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddMasterParticularsForm
-                                onSuccess={() => {
-                                    handleSuccess();
-                                    closeAddForm();
-                                }}
-                            />
+                            <AddExamTTSessionForm onSuccess={closeAddForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
-            )}
-
-            {/* Toggle Form */}
-            {isToggleFormOpen && selectedRow && (
-                <ToggleMasterParticularsForm
-                    rowData={selectedRow}
-                    onClose={closeToggleForm}
-                    onSuccess={() => {
-                        handleSuccess();
-                        closeToggleForm();
-                    }}
-                />
             )}
 
             {/* Edit Form */}
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Master Particular'
-                        description='Update the details of the selected particular'
+                        title='Edit Exam TT Session'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -162,19 +138,16 @@ function FormSections({ refetch }: { refetch: () => void }) {
                                 variant='ghost'
                                 size='sm'
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                <X className='mr-2 h-4 w-4 text-destructive' /> Close
+                                <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateMasterParticularsForm
-                                selectedRow={selectedRow}
-                                onSuccess={() => {
-                                    handleSuccess();
-                                    closeEditForm();
-                                }}
-                            />
+                            <AddExamTTSessionForm rowData={selectedRow} onSuccess={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
             )}
+
+            {/* Toggle Form */}
+            {isToggleFormOpen && selectedRow && <ToggleExamTTSessionForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );
 }

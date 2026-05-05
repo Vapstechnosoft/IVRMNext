@@ -15,7 +15,7 @@ const SelectSearchContext = React.createContext<{
 }>({
     searchable: true,
     searchQuery: '',
-    setSearchQuery: () => {},
+    setSearchQuery: () => { },
     filteredItems: new Set(),
     isMobile: false
 });
@@ -69,32 +69,34 @@ const Select = ({ children, searchable = true, onOpenChange, ...props }: SelectP
         React.Children.forEach(children, (child) => {
             if (!React.isValidElement(child)) return;
 
-            if (child.type === SelectItem) {
-                const value = child.props.value;
+            const element = child as React.ReactElement<any>;
+
+            if (element.type === SelectItem) {
+                const value = element.props.value;
                 // Favor an explicit search prop first, otherwise fallback to extracting text from children, otherwise just stringify
                 let textContent = '';
 
-                if (child.props.textValue) {
-                    textContent = child.props.textValue;
-                } else if (child.props.searchableText) {
-                    textContent = child.props.searchableText;
+                if (element.props.textValue) {
+                    textContent = element.props.textValue;
+                } else if (element.props.searchableText) {
+                    textContent = element.props.searchableText;
                 } else {
                     // Try to recursively extract text if children is not a simple string or number
                     const extractText = (node: React.ReactNode): string => {
                         if (typeof node === 'string' || typeof node === 'number') return String(node);
                         if (!node) return '';
                         if (Array.isArray(node)) return node.map(extractText).join(' ');
-                        if (React.isValidElement(node)) return extractText(node.props.children);
+                        if (React.isValidElement(node)) return extractText((node as any).props.children);
                         return '';
                     };
-                    textContent = extractText(child.props.children);
+                    textContent = extractText(element.props.children);
                 }
 
                 if (value) values.push(`${value}:::${textContent}`);
             }
 
-            if (child.props.children) {
-                values.push(...collectItemValues(child.props.children));
+            if (element.props.children) {
+                values.push(...collectItemValues(element.props.children));
             }
         });
 
@@ -373,7 +375,7 @@ const SelectContent = React.forwardRef<
                 className={cn(
                     'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-50 max-h-56 min-w-[8rem] overflow-hidden rounded-xl border bg-popover text-popover-foreground shadow-md data-[state=closed]:animate-out data-[state=open]:animate-in',
                     position === 'popper' &&
-                        'data-[side=left]:-translate-x-1 data-[side=top]:-translate-y-1 data-[side=right]:translate-x-1 data-[side=bottom]:translate-y-1',
+                    'data-[side=left]:-translate-x-1 data-[side=top]:-translate-y-1 data-[side=right]:translate-x-1 data-[side=bottom]:translate-y-1',
                     !isPointerEventsEnabled && 'pointer-events-none', // Disable pointer events during updates
                     className
                 )}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useUserAccessibleModules } from '@/hooks/common';
-import { Search, X, Command, Database, FileText, Globe, Mic, MicOff, Loader2 } from "lucide-react";
+import { Search, X, Command, Database, FileText, Globe, Mic, MicOff, Loader2, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { blobToFile, enhanceAndConvertToWav } from "@/lib/audio-utils";
 import { useRouter, usePathname } from 'next/navigation';
@@ -33,6 +33,20 @@ interface DbResult {
     data: any;
 }
 
+// Cookie helpers
+const getCookie = (name: string) => {
+    if (typeof document === 'undefined') return null;
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop()?.split(';').shift();
+    return null;
+};
+
+const setCookie = (name: string, value: string, days: number) => {
+    const expires = new Date(Date.now() + days * 864e5).toUTCString();
+    document.cookie = `${name}=${value}; expires=${expires}; path=/; SameSite=Lax`;
+};
+
 export function HeaderSearch() {
     const router = useRouter();
     const { data: accessibleModule } = useUserAccessibleModules();
@@ -45,6 +59,80 @@ export function HeaderSearch() {
     const debounceRef = useRef<NodeJS.Timeout | null>(null);
     const activeSearchRef = useRef('');
     const [selectedIndex, setSelectedIndex] = useState(-1);
+    const [searchHistory, setSearchHistory] = useState<string[]>([]);
+
+    // Load history on mount
+    useEffect(() => {
+        const loadHistory = () => {
+            try {
+                let historyData = getCookie('search_history');
+                if (!historyData) {
+                    historyData = localStorage.getItem('search_history');
+                }
+                
+                if (historyData) {
+                    let parsed;
+                    try {
+                        parsed = JSON.parse(decodeURIComponent(historyData));
+                    } catch {
+                        parsed = JSON.parse(historyData);
+                    }
+                    if (Array.isArray(parsed)) {
+                        setSearchHistory(parsed);
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to load search history', e);
+            }
+        };
+        loadHistory();
+    }, []);
+
+    const saveToHistory = (term: string) => {
+        if (!term || !term.trim() || term.length < 2 || term === "Listening..." || term === "Transcribing...") return;
+        const trimmed = term.trim();
+        
+        setSearchHistory(prev => {
+            const filtered = prev.filter(item => item.toLowerCase() !== trimmed.toLowerCase());
+            const next = [trimmed, ...filtered].slice(0, 15);
+            
+            const stringified = JSON.stringify(next);
+            try {
+                setCookie('search_history', encodeURIComponent(stringified), 30);
+                localStorage.setItem('search_history', stringified);
+            } catch (e) {
+                console.error('Failed to save search history', e);
+            }
+            return next;
+        });
+    };
+
+    const deleteFromHistory = (e: React.MouseEvent, term: string) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setSearchHistory(prev => {
+            const next = prev.filter(item => item.trim().toLowerCase() !== term.trim().toLowerCase());
+            const stringified = JSON.stringify(next);
+            try {
+                setCookie('search_history', encodeURIComponent(stringified), 30);
+                localStorage.setItem('search_history', stringified);
+            } catch (err) {
+                console.error('Failed to delete from history', err);
+            }
+            return next;
+        });
+    };
+
+    const clearHistory = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setSearchHistory([]);
+        try {
+            setCookie('search_history', encodeURIComponent(JSON.stringify([])), 30);
+            localStorage.setItem('search_history', JSON.stringify([]));
+        } catch (e) {
+            console.error('Failed to clear search history', e);
+        }
+    };
 
     useEffect(() => {
         setSelectedIndex(-1);
@@ -79,7 +167,8 @@ export function HeaderSearch() {
                 } else {
                     handleDbSelect(dbResults[selectedIndex - results.length]);
                 }
-            } else {
+            } else if (query.trim()) {
+                saveToHistory(query);
                 performSearch(query);
             }
         } else if (e.key === 'Escape') {
@@ -174,6 +263,7 @@ export function HeaderSearch() {
                         const transcript = result.text.trim();
                         setQuery(transcript);
                         setIsOpen(true);
+                        saveToHistory(transcript);
                         performSearch(transcript);
                     } else {
                         toast.error('Speech not recognized. Please try again.');
@@ -325,7 +415,12 @@ export function HeaderSearch() {
     // Close on click outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+            const target = event.target as Node;
+            // If the target is no longer in the DOM, it was likely removed during the click 
+            // (e.g. deleting a history item). We don't want to close the dropdown in this case.
+            if (target && !document.body.contains(target)) return;
+
+            if (containerRef.current && !containerRef.current.contains(target)) {
                 setIsOpen(false);
             }
         };
@@ -344,6 +439,7 @@ export function HeaderSearch() {
         });
 
         setIsOpen(false);
+        if (query.trim()) saveToHistory(query);
         setQuery('');
         router.push(result.url);
     };
@@ -394,6 +490,7 @@ export function HeaderSearch() {
             // Fallback for cases where no specific page matches the data source
             const route = guessModuleRoute(dbResult.source);
             setIsOpen(false);
+            if (query.trim()) saveToHistory(query);
             setQuery('');
             router.push(route);
         }
@@ -413,10 +510,16 @@ export function HeaderSearch() {
                         if (!isOpen) setIsOpen(true);
                     }}
                     onFocus={() => {
-                        if (query) setIsOpen(true);
+                        setIsOpen(true);
+                    }}
+                    onClick={() => {
+                        setIsOpen(true);
                     }}
                     onKeyDown={handleKeyDown}
-                    className='w-[300px] pl-9 pr-9 transition-all focus:w-[400px] focus:ring-2 focus:ring-primary/20 bg-background'
+                    className={cn(
+                        'pl-9 pr-9 transition-all focus:ring-2 focus:ring-primary/20 bg-background',
+                        isOpen || query ? 'w-[400px]' : 'w-[300px]'
+                    )}
                 />
                 <button
                     onClick={isRecording ? stopRecording : startRecording}
@@ -459,9 +562,57 @@ export function HeaderSearch() {
                 .animate-purple-dot-4 { animation: purple-dot 0.8s ease-in-out infinite; animation-delay: 0.3s; }
             `}</style>
 
-            {isOpen && (results.length > 0 || dbResults.length > 0 || isSearching) && (
+            {isOpen && (results.length > 0 || dbResults.length > 0 || isSearching || (query === '' && searchHistory.length > 0)) && (
                 <div className='absolute top-full left-0 mt-2 w-full min-w-[400px] max-w-[600px] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95 z-50'>
                     <div className='max-h-[70vh] overflow-y-auto p-1'>
+                        {/* Recent Searches */}
+                        {query === '' && searchHistory.length > 0 && (
+                            <div className="mb-2">
+                                <div className="flex items-center justify-between px-2 py-1.5 bg-muted/30">
+                                    <span className="text-xs font-semibold text-muted-foreground uppercase">Recent Searches</span>
+                                    <button 
+                                        onMouseDown={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            clearHistory(e);
+                                        }}
+                                        className="text-xs text-blue-500 hover:text-blue-600 hover:underline px-2 py-0.5 rounded-sm hover:bg-blue-50 transition-colors"
+                                    >
+                                        Clear all
+                                    </button>
+                                </div>
+                                {searchHistory.map((item) => (
+                                    <div
+                                        key={item}
+                                        className="group flex items-center justify-between px-2 py-1 hover:bg-accent cursor-pointer rounded-sm transition-colors"
+                                    >
+                                        <div
+                                            className="flex items-center flex-1 overflow-hidden py-1 px-1"
+                                            onClick={() => {
+                                                setQuery(item);
+                                                performSearch(item);
+                                            }}
+                                        >
+                                            <Clock className="h-3.5 w-3.5 mr-3 text-muted-foreground shrink-0" />
+                                            <span className="text-sm truncate">{item}</span>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onMouseDown={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                deleteFromHistory(e, item);
+                                            }}
+                                            className="delete-history-btn p-1.5 opacity-0 group-hover:opacity-100 hover:bg-red-50 hover:text-red-500 rounded-md transition-all relative z-10 mr-1"
+                                            title="Remove from history"
+                                        >
+                                            <X className="h-3.5 w-3.5" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
                         {/* Page Results */}
                         {results.length > 0 && (
                             <div className="mb-2">

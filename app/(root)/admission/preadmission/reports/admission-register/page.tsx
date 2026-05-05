@@ -24,7 +24,7 @@ import { useReactToPrint } from 'react-to-print';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 import * as XLSX from 'xlsx';
-import { getMasterAdmissionReportColumns } from './_components/columns';
+import { FIELD_CONFIG, formatDate, getMasterAdmissionReportColumns } from './_components/columns';
 import { AdmissionRegisterPrint } from './_components/admission-register-print';
 
 type FormFields = z.infer<typeof admissionReportSchema>;
@@ -194,6 +194,7 @@ export default function AdmissionReportPage(props: {
         };
     }, [response]);
 
+    console.log(transformedResponse, 'transformedResponse');
     const tableProps = useDataTableProps(transformedResponse);
 
     const downloadExcel = async () => {
@@ -207,6 +208,8 @@ export default function AdmissionReportPage(props: {
 
             const response: any = await getAdmissionRegister(academicYearValue, statusValue, requestPayload, printSearchParams);
 
+
+            console.log(response);
             const allData =
                 response?.data && 'searchstudentDetails' in response.data
                     ? response.data.searchstudentDetails
@@ -225,7 +228,9 @@ export default function AdmissionReportPage(props: {
             const dataToExport = allData.map((row: any, index: number) => {
                 const mappedRow: any = { 'Sl.No': index + 1 };
                 for (const field of activeFields) {
-                    mappedRow[field.label] = row[field.accessor] || 'N/A';
+                    const value = row[field.accessor];
+                    const config = FIELD_CONFIG[field.id];
+                    mappedRow[field.label] = config?.isDate ? formatDate(value) : (value || 'N/A');
                 }
                 return mappedRow;
             });

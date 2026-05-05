@@ -72,7 +72,7 @@ export function printTableInstallmentReport(columns: string[], rows: any[], sumR
     }, 300);
 }
 
-export function exportToExcelInstallmentReport(rows: any[], fileName: string) {
+export function exportToExcelItemWiseReport(rows: any[], fileName: string) {
     if (!rows || rows.length === 0) return;
 
     const worksheet = XLSX.utils.json_to_sheet(rows);

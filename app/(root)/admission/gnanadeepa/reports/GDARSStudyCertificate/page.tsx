@@ -38,7 +38,7 @@ export default function GDARSStudyCertificatePage() {
     const [classId, setClassId] = useState<number | null>(null);
     const [sectionId, setSectionId] = useState<number | null>(null);
     const [studentId, setStudentId] = useState<number | null>(null);
-    const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+    const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
     /* -------------------- UI State -------------------- */
     const [searchQuery, setSearchQuery] = useState('');
@@ -131,10 +131,11 @@ export default function GDARSStudyCertificatePage() {
         setSearchQuery('');
         setStudentScope('A');
         setStudentStatus('S');
-        setSelectedDate(new Date());
+        setSelectedDate(null);
         setSelectedStudentName('');
         setShowReport(false);
         setReportData(null);
+        window.location.reload();
     };
 
     const handlePrint = useReactToPrint({
@@ -281,7 +282,7 @@ export default function GDARSStudyCertificatePage() {
                                     <PopoverContent align="start" className="p-0">
                                         <DatePickerWithYear
                                             mode="single"
-                                            selected={selectedDate}
+                                            selected={selectedDate || undefined}
                                             onDayClick={(date) => {
                                                 if (date) setSelectedDate(date);
                                                 setDateOpen(false);
@@ -459,7 +460,7 @@ export default function GDARSStudyCertificatePage() {
                                                 <ReportRow
                                                     no="01"
                                                     label="Admission Number and Date"
-                                                    value={`${student.admNo || ''} and ${format(selectedDate, 'dd-MM-yyyy')}`}
+                                                    value={`${student.admNo || ''} and ${selectedDate ? format(selectedDate, 'dd-MM-yyyy') : ''}`}
                                                 />
                                                 <ReportRow
                                                     no="02"

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Next.js 15 Route Handler Configuration
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 const BASE_URL = 'https://examquiz-6b6c.onrender.com';
 
@@ -19,6 +21,10 @@ export async function POST(req: NextRequest) {
                 title: body.title || "AI Quiz",
                 created_by: "Teacher_User", // Fallback, could be pulled from session
                 duration: parseInt(body.duration) || 30,
+                student_ids: body.studentIds || [],
+                academic_year_id: body.academicYearId,
+                class_id: body.classId,
+                section_id: body.sectionId,
                 questions: body.questions.map((q: any) => ({
                     question: q.text,
                     options: q.options,

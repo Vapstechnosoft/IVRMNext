@@ -9,10 +9,10 @@ import {
     FormControl,
     FormDescription,
     FormField,
-    FormItem,
-    FormLabel,
-    FormMessage
+    FormItem
 } from '@/components/ui/form';
+import { FormError } from '@/components/ui/extension/field';
+import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import {
     Select,
@@ -51,15 +51,40 @@ import { AdminOnDutyApply } from '@/types/hrms/leave-management/admin-on-duty-ap
 const formSchema = z.object({
     hrmE_Id: z.coerce.number().min(1, 'Employee ID is required'),
     leaveType: z.string().min(1, 'Leave type is required'),
-    fromDate: z.date({ required_error: 'From date is required' }),
-    toDate: z.date({ required_error: 'To date is required' }),
+    fromDate: z.date({ 
+        required_error: 'From date is required',
+        invalid_type_error: 'Please select a valid From Date'
+    }),
+    toDate: z.date({ 
+        required_error: 'To date is required',
+        invalid_type_error: 'Please select a valid To Date'
+    }),
     totalDays: z.coerce.number().min(0.5, 'Total days must be at least 0.5'),
-    leaveReason: z.string().min(1, 'Reason is required'),
-    inTime: z.string().min(1, 'In time is required'),
-    outTime: z.string().min(1, 'Out time is required')
-}).refine((data) => data.toDate >= data.fromDate, {
+    leaveReason: z.string()
+        .min(5, 'Reason must be at least 5 characters long')
+        .max(500, 'Reason cannot exceed 500 characters'),
+    inTime: z.string()
+        .min(1, 'In time is required')
+        .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Please enter a valid time (HH:MM)'),
+    outTime: z.string()
+        .min(1, 'Out time is required')
+        .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Please enter a valid time (HH:MM)')
+})
+.refine((data) => data.toDate >= data.fromDate, {
     message: "To Date cannot be before From Date",
     path: ["toDate"]
+})
+.refine((data) => {
+    // Ensure outTime is after inTime if it's a single day leave
+    if (data.fromDate.getTime() === data.toDate.getTime()) {
+        const inMinutes = parseInt(data.inTime.split(':')[0]) * 60 + parseInt(data.inTime.split(':')[1]);
+        const outMinutes = parseInt(data.outTime.split(':')[0]) * 60 + parseInt(data.outTime.split(':')[1]);
+        return outMinutes > inMinutes;
+    }
+    return true;
+}, {
+    message: "Out time must be after In time for single day applications",
+    path: ["outTime"]
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -74,54 +99,31 @@ export default function ApplyLeaveForm({ onSuccess, onCancel, editingRow }: Appl
     const { mutate: saveLeave, isPending } = useSaveOnDutyLeaveRequest();
     const { data: employeeList, isLoading: isLoadingList } = useAdminOnDutyEmployeeDropdown();
 
+    const formatTime = (time?: string) => {
+        if (!time) return '';
+        const parts = time.split(':');
+        if (parts.length >= 2) {
+            return `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`;
+        }
+        return time;
+    };
+
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
+        mode: 'onChange',
         defaultValues: {
             hrmE_Id: editingRow?.employeeId || 0,
             leaveType: 'OD',
-            fromDate: editingRow?.fromDate || undefined,
-            toDate: editingRow?.toDate || undefined,
+            fromDate: editingRow?.fromDate ? new Date(editingRow.fromDate) : undefined,
+            toDate: editingRow?.toDate ? new Date(editingRow.toDate) : undefined,
             totalDays: editingRow?.totalDays || 1,
             leaveReason: editingRow?.leaveReason || '',
-            inTime: editingRow?.inTime || '10:00',
-            outTime: editingRow?.outTime || '18:00'
+            inTime: formatTime(editingRow?.inTime) || '10:00',
+            outTime: formatTime(editingRow?.outTime) || '18:00'
         }
     });
 
-    // Reset form when editingRow changes
-    useEffect(() => {
-        if (editingRow) {
-            // Ensure time format is HH:mm for the time input
-            const formatTime = (time: string) => {
-                if (!time) return '';
-                const parts = time.split(':');
-                if (parts.length >= 2) {
-                    return `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`;
-                }
-                return time;
-            };
-
-            form.reset({
-                hrmE_Id: editingRow.employeeId,
-                leaveType: 'OD',
-                fromDate: editingRow.fromDate ? new Date(editingRow.fromDate) : undefined,
-                toDate: editingRow.toDate ? new Date(editingRow.toDate) : undefined,
-                totalDays: editingRow.totalDays,
-                leaveReason: editingRow.leaveReason || '',
-                inTime: formatTime(editingRow.inTime),
-                outTime: formatTime(editingRow.outTime)
-            });
-        } else {
-            form.reset({
-                hrmE_Id: 0,
-                leaveType: 'OD',
-                totalDays: 1,
-                leaveReason: '',
-                inTime: '10:00',
-                outTime: '18:00'
-            });
-        }
-    }, [editingRow, form]);
+    console.log('Form default values:', editingRow);
 
     const hrmE_Id = form.watch('hrmE_Id');
     const fromDate = form.watch('fromDate');
@@ -140,18 +142,19 @@ export default function ApplyLeaveForm({ onSuccess, onCancel, editingRow }: Appl
     const { data: employeeData, isLoading: isLoadingEmp } = useEmployeeOnDutyDetails(hrmE_Id > 0 ? hrmE_Id : null);
 
     function onSubmit(values: FormValues) {
+
+        console.log('Submitting form with values:', values);
         saveLeave(
             {
-                hrelaP_Id: editingRow?.id || 0,
-                hrmE_Id: values.hrmE_Id,
-                hrmL_LeaveType: values.leaveType,
-                hrelaP_FromDate: values.fromDate.toISOString(),
-                hrelaP_ToDate: values.toDate.toISOString(),
-                hrelaP_TotalDays: values.totalDays,
-                hrelaP_LeaveReason: values.leaveReason,
-                hrelapD_InTime: values.inTime.includes(':') && values.inTime.split(':').length === 2 ? `${values.inTime}:00` : values.inTime,
-                hrelapD_OutTime: values.outTime.includes(':') && values.outTime.split(':').length === 2 ? `${values.outTime}:00` : values.outTime,
-                hrelT_SupportingDocument: ''
+                HRME_Id: values.hrmE_Id,
+                HRML_LeaveType: values.leaveType,
+                HRELAP_FromDate: format(values.fromDate, 'yyyy-MM-dd'),
+                HRELAP_ToDate: format(values.toDate, 'yyyy-MM-dd'),
+                HRELAP_TotalDays: values.totalDays,
+                HRELAP_LeaveReason: values.leaveReason,
+                HRELAPD_InTime: values.inTime,
+                HRELAPD_OutTime: values.outTime,
+                HRELT_SupportingDocument: ''
             },
             {
                 onSuccess: () => {
@@ -161,6 +164,8 @@ export default function ApplyLeaveForm({ onSuccess, onCancel, editingRow }: Appl
             }
         );
     }
+
+    const { isValid } = form.formState;
 
     return (
         <div className='space-y-6'>
@@ -188,7 +193,7 @@ export default function ApplyLeaveForm({ onSuccess, onCancel, editingRow }: Appl
                                         name='hrmE_Id'
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className='font-semibold'>Select Employee</FormLabel>
+                                                <Label className='font-semibold'>Select Employee <span className="text-destructive">*</span></Label>
                                                 <Select
                                                     onValueChange={(value) => {
                                                         const id = Number(value);
@@ -221,7 +226,7 @@ export default function ApplyLeaveForm({ onSuccess, onCancel, editingRow }: Appl
                                                 <FormDescription className='text-[11px]'>
                                                     Select an employee to auto-fetch details.
                                                 </FormDescription>
-                                                <FormMessage />
+                                                {form.formState.errors.hrmE_Id?.message && <FormError>{form.formState.errors.hrmE_Id.message}</FormError>}
                                             </FormItem>
                                         )}
                                     />
@@ -230,13 +235,13 @@ export default function ApplyLeaveForm({ onSuccess, onCancel, editingRow }: Appl
                                         name='leaveType'
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className='font-semibold'>Leave Type</FormLabel>
+                                                <Label className='font-semibold'>Leave Type <span className="text-destructive">*</span></Label>
                                                 <FormControl>
                                                     <div className='h-11 flex items-center px-4 rounded-md border border-muted-foreground/10 bg-muted/30 font-bold text-primary'>
                                                         On Duty (OD)
                                                     </div>
                                                 </FormControl>
-                                                <FormMessage />
+                                                {form.formState.errors.leaveType?.message && <FormError>{form.formState.errors.leaveType.message}</FormError>}
                                             </FormItem>
                                         )}
                                     />
@@ -301,7 +306,7 @@ export default function ApplyLeaveForm({ onSuccess, onCancel, editingRow }: Appl
                                                 </div>
 
                                                 {/* Recent Applications Sidebar/Inline */}
-                                                {employeeData.leaveDetails.length > 0 && (
+                                                {/* {employeeData.leaveDetails.length > 0 && (
                                                     <div className='mt-5 pt-4 border-t border-primary/10'>
                                                         <h5 className='text-[10px] font-bold text-muted-foreground uppercase mb-2 flex items-center gap-1'>
                                                             <History className='h-3 w-3' /> Recent OD History
@@ -318,7 +323,7 @@ export default function ApplyLeaveForm({ onSuccess, onCancel, editingRow }: Appl
                                                             ))}
                                                         </div>
                                                     </div>
-                                                )}
+                                                )} */}
                                             </div>
                                         </motion.div>
                                     )}
@@ -335,7 +340,7 @@ export default function ApplyLeaveForm({ onSuccess, onCancel, editingRow }: Appl
                                         name='fromDate'
                                         render={({ field }) => (
                                             <FormItem className='flex flex-col'>
-                                                <FormLabel className='font-semibold'>From Date</FormLabel>
+                                                <Label className='font-semibold'>From Date <span className="text-destructive">*</span></Label>
                                                 <Popover>
                                                     <PopoverTrigger asChild>
                                                         <FormControl>
@@ -365,7 +370,7 @@ export default function ApplyLeaveForm({ onSuccess, onCancel, editingRow }: Appl
                                                         />
                                                     </PopoverContent>
                                                 </Popover>
-                                                <FormMessage />
+                                                {form.formState.errors.fromDate?.message && <FormError>{form.formState.errors.fromDate.message}</FormError>}
                                             </FormItem>
                                         )}
                                     />
@@ -374,7 +379,7 @@ export default function ApplyLeaveForm({ onSuccess, onCancel, editingRow }: Appl
                                         name='toDate'
                                         render={({ field }) => (
                                             <FormItem className='flex flex-col'>
-                                                <FormLabel className='font-semibold'>To Date</FormLabel>
+                                                <Label className='font-semibold'>To Date <span className="text-destructive">*</span></Label>
                                                 <Popover>
                                                     <PopoverTrigger asChild>
                                                         <FormControl>
@@ -408,7 +413,7 @@ export default function ApplyLeaveForm({ onSuccess, onCancel, editingRow }: Appl
                                                         />
                                                     </PopoverContent>
                                                 </Popover>
-                                                <FormMessage />
+                                                {form.formState.errors.toDate?.message && <FormError>{form.formState.errors.toDate.message}</FormError>}
                                             </FormItem>
                                         )}
                                     />
@@ -420,7 +425,7 @@ export default function ApplyLeaveForm({ onSuccess, onCancel, editingRow }: Appl
                                         name='totalDays'
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className='font-semibold'>Total Days</FormLabel>
+                                                <Label className='font-semibold'>Total Days <span className="text-destructive">*</span></Label>
                                                 <FormControl>
                                                     <div className='relative'>
                                                         <Input
@@ -434,7 +439,7 @@ export default function ApplyLeaveForm({ onSuccess, onCancel, editingRow }: Appl
                                                         </div>
                                                     </div>
                                                 </FormControl>
-                                                <FormMessage />
+                                                {form.formState.errors.totalDays?.message && <FormError>{form.formState.errors.totalDays.message}</FormError>}
                                             </FormItem>
                                         )}
                                     />
@@ -443,11 +448,11 @@ export default function ApplyLeaveForm({ onSuccess, onCancel, editingRow }: Appl
                                         name='inTime'
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className='font-semibold'>In Time</FormLabel>
+                                                <Label className='font-semibold'>In Time <span className="text-destructive">*</span></Label>
                                                 <FormControl>
                                                     <Input type='time' className='h-11 border-muted-foreground/20' {...field} />
                                                 </FormControl>
-                                                <FormMessage />
+                                                {form.formState.errors.inTime?.message && <FormError>{form.formState.errors.inTime.message}</FormError>}
                                             </FormItem>
                                         )}
                                     />
@@ -456,11 +461,11 @@ export default function ApplyLeaveForm({ onSuccess, onCancel, editingRow }: Appl
                                         name='outTime'
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className='font-semibold'>Out Time</FormLabel>
+                                                <Label className='font-semibold'>Out Time <span className="text-destructive">*</span></Label>
                                                 <FormControl>
                                                     <Input type='time' className='h-11 border-muted-foreground/20' {...field} />
                                                 </FormControl>
-                                                <FormMessage />
+                                                {form.formState.errors.outTime?.message && <FormError>{form.formState.errors.outTime.message}</FormError>}
                                             </FormItem>
                                         )}
                                     />
@@ -472,7 +477,7 @@ export default function ApplyLeaveForm({ onSuccess, onCancel, editingRow }: Appl
                                 name='leaveReason'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className='font-semibold'>Application Reason</FormLabel>
+                                        <Label className='font-semibold'>Application Reason <span className="text-destructive">*</span></Label>
                                         <FormControl>
                                             <div className='relative'>
                                                 <Input
@@ -483,7 +488,7 @@ export default function ApplyLeaveForm({ onSuccess, onCancel, editingRow }: Appl
                                                 <FileText className='absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground opacity-50' />
                                             </div>
                                         </FormControl>
-                                        <FormMessage />
+                                        {form.formState.errors.leaveReason?.message && <FormError>{form.formState.errors.leaveReason.message}</FormError>}
                                     </FormItem>
                                 )}
                             />
@@ -511,7 +516,7 @@ export default function ApplyLeaveForm({ onSuccess, onCancel, editingRow }: Appl
                                     </Button>
                                     <Button
                                         type='submit'
-                                        disabled={isPending || !employeeData}
+                                        
                                         className='px-8 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all active:scale-95'
                                     >
                                         {isPending ? (

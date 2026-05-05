@@ -58,6 +58,7 @@ export default function AddAmountEntryFormStThomas({ onSuccess, headname = '' }:
     const [selectedAcademicYear, setSelectedAcademicYear] = useState<number | null>(null);
     const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
     const [feeGridData, setFeeGridData] = useState<IMasterAmountEntryDetails[]>([]);
+    const [feeGridData1, setFeeGridData1] = useState<IMasterAmountEntryDetails[]>([]);
     const [feeInstallmentData, setFeeInstallmentData] = useState<TAmountEntryStThomasInstallment[]>([]);
     const [isFineSlabModalOpen, setIsFineSlabModalOpen] = useState(false);
     const [currentHeadId, setCurrentHeadId] = useState<number | null>(null);
@@ -136,10 +137,21 @@ export default function AddAmountEntryFormStThomas({ onSuccess, headname = '' }:
                     if (response?.data) {
                         const headdetails = JSON.parse(JSON.stringify((response as any)?.data?.allgroupheaddata || []));
                         const installmentdetails = JSON.parse(JSON.stringify((response as any)?.data?.instllmentdetails || []));
-                        setFeeGridData(headdetails);
+                        const newlyUpdatedHeads = JSON.parse(JSON.stringify((response as any)?.data?.newlyupdatedrec || []));
+                        const uniqueHeads = [];
+                        const seenFmHIds = new Set();
+                        const dataToFilter = headdetails.length > 0 ? headdetails : newlyUpdatedHeads;
+                        for (const item of dataToFilter) {
+                            if (!seenFmHIds.has(item.fmH_Id)) {
+                                seenFmHIds.add(item.fmH_Id);
+                                uniqueHeads.push(item);
+                            }
+                        }
+                        setFeeGridData1(dataToFilter);
+                        setFeeGridData(uniqueHeads);
                         setFeeInstallmentData(installmentdetails);
 
-                        if (headdetails.length > 0) {
+                        if (headdetails.length > 0 || newlyUpdatedHeads.length > 0) {
                             toast.success('Fee amount details loaded successfully', {
                                 id: loadingToast
                             });
@@ -166,39 +178,6 @@ export default function AddAmountEntryFormStThomas({ onSuccess, headname = '' }:
         fetchFeeAmountDetails();
     }, [selectedAcademicYear, selectedCategoryId, selectedFeeGroup]);
 
-    const handleGridChange = (index: number, field: string, value: any) => {
-        const updatedFeeGridData = [...feeGridData];
-        updatedFeeGridData[index] = {
-            ...updatedFeeGridData[index],
-            [field]: value
-        };
-        setFeeGridData(updatedFeeGridData);
-    };
-
-    const handleSaveFineSlabs = (regularSlabs: FineSlab[], ecsSlabs: FineSlab[]) => {
-        if (currentHeadId && currentInstallmentId) {
-            const key = `${currentHeadId}-${currentInstallmentId}`;
-            if (regularSlabs.length > 0 || ecsSlabs.length > 0) {
-                setSavedFineSlabs((prev) => ({
-                    ...prev,
-                    [key]: { regular: regularSlabs, ecs: ecsSlabs }
-                }));
-                const rowIndex = feeGridData.findIndex((row) => row.fmH_Id === currentHeadId && row.ftI_Id === currentInstallmentId);
-                if (rowIndex !== -1) {
-                    handleGridChange(rowIndex, 'fyghM_FineApplicableFlag', 'Y');
-                }
-            } else {
-                const rowIndex = feeGridData.findIndex((row) => row.fmH_Id === currentHeadId && row.ftI_Id === currentInstallmentId);
-                if (rowIndex !== -1) {
-                    handleGridChange(rowIndex, 'fyghM_FineApplicableFlag', 'N');
-                }
-            }
-            setIsFineSlabModalOpen(false);
-            setCurrentHeadId(null);
-            setCurrentInstallmentId(null);
-        }
-    };
-
     const getTodayDateString = () => {
         const today = new Date();
         const year = today.getFullYear();
@@ -206,39 +185,85 @@ export default function AddAmountEntryFormStThomas({ onSuccess, headname = '' }:
         const day = String(today.getDate()).padStart(2, '0');
         return `${year}-${month}-${day}`;
     };
+    // Add this function to check what's in session storage
+    const debugSessionStorage = () => {
+        console.log('=== ALL FINE SLAB DATA IN SESSION STORAGE ===');
+        let found = false;
+
+        for (let i = 0; i < sessionStorage.length; i++) {
+            const key = sessionStorage.key(i);
+            // biome-ignore lint/complexity/useOptionalChain: <explanation>
+            if (key && key.startsWith('fine_slab_cart_')) {
+                found = true;
+                const data = sessionStorage.getItem(key);
+                console.log(`Key: ${key}`);
+                console.log(`Data: ${data}`);
+
+                // Parse and show the content
+                if (data) {
+                    const parsed = JSON.parse(data);
+                    console.log(`HeadId: ${parsed.headId}, InstallmentId: ${parsed.installmentId}`);
+                    // biome-ignore lint/suspicious/noConsoleLog: <explanation>
+                    console.log('Rows:', parsed.rows);
+                }
+            }
+        }
+
+        if (!found) {
+            console.log('No fine slab data found in session storage!');
+        }
+        console.log('===============================================');
+    };
+
+    // Call this before creating your payload
 
     const onSubmit = async () => {
         try {
-            const hasEmptyAmounts = feeInstallmentData.some((installment) => {
-                return feeGridData.some((row) => {
-                    const cellKey = `${row.fmA_Id}-${installment.ftI_Id}`;
-                    const amount = installmentAmount[cellKey];
-                    return !amount || Number(amount) <= 0;
-                });
-            });
+            // const hasEmptyAmounts = feeInstallmentData.some((installment) => {
+            //     return feeGridData.some((row) => {
+            //         const cellKey = `${row.fmA_Id}-${installment.ftI_Id}`;
+            //         const amount = installmentAmount[cellKey];
+            //         return !amount || Number(amount) <= 0;
+            //     });
+            // });
 
-            if (hasEmptyAmounts) {
-                toast.error('Please enter valid amounts for all fee heads');
-                return;
-            }
+            // if (hasEmptyAmounts) {
+            //     toast.error('Please enter valid amounts for all fee heads');
+            //     return;
+            // }
 
-            const amountEntries = feeGridData.map((row) => {
+            const amountEntries = feeGridData1.map((row) => {
                 const cellKey = `${row.fmA_Id}-${row.ftI_Id}`;
                 const amount = installmentAmount[cellKey] !== undefined ? installmentAmount[cellKey] : row.fmA_Amount || 0;
 
-                const fineKey = `${row.fmH_Id}-${row.ftI_Id}`;
-                const savedSlabs = savedFineSlabs[fineKey] || { regular: [], ecs: [] };
+                // Get fine slab data for this specific headId and installmentId
+                const storageKey = `fine_slab_cart_${row.fmH_Id}_${row.ftI_Id}`;
+                const savedFineSlabData = sessionStorage.getItem(storageKey);
+                debugSessionStorage();
+                let fineSlabDetails = [];
 
-                const fineSlabDetails = [
-                    ...savedSlabs.ecs.map((slab) => ({
-                        fmH_Id: slab.fmH_Id || row.fmH_Id,
-                        ftI_Id: slab.ftI_Id || row.ftI_Id,
-                        ftfS_FineType: slab.FTFSE_FineType || slab.fmfS_FineType || 'ECS',
-                        ftfS_Amount: slab.ftfsE_Amount || '0',
-                        fmfS_Duedate: getTodayDateString(),
-                        ftfS_ID: slab.ftfsE_Id || 0
-                    }))
-                ];
+                if (savedFineSlabData) {
+                    try {
+                        const parsedData = JSON.parse(savedFineSlabData);
+                        console.log(`Found fine slab data for ${row.fmH_Id}_${row.ftI_Id}:`, parsedData);
+
+                        // Map each row in the CartItem to the required format
+                        fineSlabDetails = parsedData.rows.map((slabRow: any) => ({
+                            fmH_Id: parsedData.headId,
+                            ftI_Id: parsedData.installmentId,
+                            ftfS_FineType: slabRow.type || '',
+                            ftfS_Amount: Number.parseFloat(slabRow.amount) || 0,
+                            fmfS_Duedate: slabRow.date ? new Date(slabRow.date).toISOString() : new Date().toISOString(),
+                            ftfS_ID: 0
+                        }));
+
+                        console.log(`Mapped fine slab details for ${row.fmH_Id}_${row.ftI_Id}:`, fineSlabDetails);
+                    } catch (error) {
+                        console.error('Error parsing fine slab data:', error);
+                    }
+                } else {
+                    console.log(`No fine slab data found for key: ${storageKey}`);
+                }
 
                 return {
                     fmA_Id: row.fmA_Id || 0,
@@ -248,7 +273,7 @@ export default function AddAmountEntryFormStThomas({ onSuccess, headname = '' }:
                     fmA_DueDate: row.fmA_DueDate || getTodayDateString(),
                     ftddE_DueDate: row.ftddE_DueDate || getTodayDateString(),
                     fmA_PartialRebateApplicableDate: row.fmA_PartialRebateApplicableDate || getTodayDateString(),
-                    fineSlabDetails: fineSlabDetails.length > 0 ? fineSlabDetails : []
+                    fineSlabDetails: fineSlabDetails
                 };
             });
 
@@ -259,6 +284,8 @@ export default function AddAmountEntryFormStThomas({ onSuccess, headname = '' }:
                 fmA_Flag: 'A',
                 amountEntries: amountEntries
             };
+
+            console.log('Final payload:', JSON.stringify(payload, null, 2));
 
             console.log('Submitting payload:', payload); // For debugging
 
@@ -455,6 +482,8 @@ export default function AddAmountEntryFormStThomas({ onSuccess, headname = '' }:
                                                     <Eye
                                                         className='mt-1 h-4 w-4 cursor-pointer text-gray-500 hover:text-primary'
                                                         onClick={() => {
+                                                            setCurrentHeadId(installmentName.fmH_Id);
+                                                            setCurrentInstallmentId(installmentName.ftI_Id);
                                                             setSelectedInstallment(installmentName.ftI_Name);
                                                             setIsFineSlabModalOpen(true);
                                                         }}
@@ -551,16 +580,16 @@ export default function AddAmountEntryFormStThomas({ onSuccess, headname = '' }:
                         isOpen={isFineSlabModalOpen}
                         selectedInstallment={selectedInstallment}
                         onClose={() => {
-                            const rowIndex = feeGridData.findIndex(
-                                (row) => row.fmH_Id === currentHeadId && row.ftI_Id === currentInstallmentId
-                            );
-                            if (rowIndex !== -1) {
-                                handleGridChange(rowIndex, 'fyghM_FineApplicableFlag', 'N');
-                            }
+                            // const rowIndex = feeGridData.findIndex(
+                            //     (row) => row.fmH_Id === currentHeadId && row.ftI_Id === currentInstallmentId
+                            // );
+                            // if (rowIndex !== -1) {
+                            //     handleGridChange(rowIndex, 'fyghM_FineApplicableFlag', 'N');
+                            // }
 
                             setIsFineSlabModalOpen(false);
-                            setCurrentHeadId(null);
-                            setCurrentInstallmentId(null);
+                            // setCurrentHeadId(null);
+                            // setCurrentInstallmentId(null);
                         }}
                         headId={currentHeadId ?? 0}
                         installmentId={currentInstallmentId ?? 0}
@@ -568,9 +597,6 @@ export default function AddAmountEntryFormStThomas({ onSuccess, headname = '' }:
                         categoryId={selectedCategoryId!}
                         academicYearId={selectedAcademicYear!}
                         selectionType='stud'
-                        onSave={handleSaveFineSlabs}
-                        existingRegularSlabs={savedFineSlabs[`${currentHeadId}-${currentInstallmentId}`]?.regular || []}
-                        existingEcsSlabs={savedFineSlabs[`${currentHeadId}-${currentInstallmentId}`]?.ecs || []}
                     />
                 )}
 

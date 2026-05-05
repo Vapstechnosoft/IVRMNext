@@ -21,39 +21,6 @@ import { MultiSelect } from "@/components/ui/multi-select";
 import { saveAs } from "file-saver";
 import { useVPFSummaryReport } from "@/hooks/hrms/useReports";
 
-const mockPFDetails = [
-  // Employee 1
-  { HRME_Id: 1, IVRM_Month_Name: "April", HREVPFST_Contribution: 1200, HREVPFST_Intersest: 10 },
-  { HRME_Id: 1, IVRM_Month_Name: "May", HREVPFST_Contribution: 1200, HREVPFST_Intersest: 10 },
-  { HRME_Id: 1, IVRM_Month_Name: "June", HREVPFST_Contribution: 1200, HREVPFST_Intersest: 10 },
-  { HRME_Id: 1, IVRM_Month_Name: "July", HREVPFST_Contribution: 1200, HREVPFST_Intersest: 10 },
-  { HRME_Id: 1, IVRM_Month_Name: "August", HREVPFST_Contribution: 1200, HREVPFST_Intersest: 10 },
-  { HRME_Id: 1, IVRM_Month_Name: "September", HREVPFST_Contribution: 1200, HREVPFST_Intersest: 10 },
-  { HRME_Id: 1, IVRM_Month_Name: "October", HREVPFST_Contribution: 1200, HREVPFST_Intersest: 10 },
-  { HRME_Id: 1, IVRM_Month_Name: "November", HREVPFST_Contribution: 1200, HREVPFST_Intersest: 10 },
-  { HRME_Id: 1, IVRM_Month_Name: "December", HREVPFST_Contribution: 1200, HREVPFST_Intersest: 10 },
-  { HRME_Id: 1, IVRM_Month_Name: "January", HREVPFST_Contribution: 1200, HREVPFST_Intersest: 10 },
-  { HRME_Id: 1, IVRM_Month_Name: "February", HREVPFST_Contribution: 1200, HREVPFST_Intersest: 10 },
-  { HRME_Id: 1, IVRM_Month_Name: "March", HREVPFST_Contribution: 1200, HREVPFST_Intersest: 10 },
-  // Employee 2
-  { HRME_Id: 2, IVRM_Month_Name: "April", HREVPFST_Contribution: 1500, HREVPFST_Intersest: 12 },
-  { HRME_Id: 2, IVRM_Month_Name: "May", HREVPFST_Contribution: 1500, HREVPFST_Intersest: 12 },
-  { HRME_Id: 2, IVRM_Month_Name: "June", HREVPFST_Contribution: 1500, HREVPFST_Intersest: 12 },
-  { HRME_Id: 2, IVRM_Month_Name: "July", HREVPFST_Contribution: 1500, HREVPFST_Intersest: 12 },
-  { HRME_Id: 2, IVRM_Month_Name: "August", HREVPFST_Contribution: 1500, HREVPFST_Intersest: 12 },
-  { HRME_Id: 2, IVRM_Month_Name: "September", HREVPFST_Contribution: 1500, HREVPFST_Intersest: 12 },
-  { HRME_Id: 2, IVRM_Month_Name: "October", HREVPFST_Contribution: 1500, HREVPFST_Intersest: 12 },
-  { HRME_Id: 2, IVRM_Month_Name: "November", HREVPFST_Contribution: 1500, HREVPFST_Intersest: 12 },
-  { HRME_Id: 2, IVRM_Month_Name: "December", HREVPFST_Contribution: 1500, HREVPFST_Intersest: 12 },
-  { HRME_Id: 2, IVRM_Month_Name: "January", HREVPFST_Contribution: 1500, HREVPFST_Intersest: 12 },
-  { HRME_Id: 2, IVRM_Month_Name: "February", HREVPFST_Contribution: 1500, HREVPFST_Intersest: 12 },
-  { HRME_Id: 2, IVRM_Month_Name: "March", HREVPFST_Contribution: 1500, HREVPFST_Intersest: 12 },
-];
-
-const mockEmployeeDetails = [
-  { hrmE_Id: 1, hrmE_EmployeeCode: "E001", hrmE_EmployeeFirstName: "JOHN DOE", hrmE_PFAccNo: "PF/WB/123456" },
-  { hrmE_Id: 2, hrmE_EmployeeCode: "E002", hrmE_EmployeeFirstName: "JANE SMITH", hrmE_PFAccNo: "PF/WB/789012" },
-];
 
 interface VPFYearlyReportProps {
   employees: string;

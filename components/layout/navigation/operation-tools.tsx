@@ -35,6 +35,7 @@ export function OperationTools() {
 
     const filteredModules = React.useMemo(() => {
         if (!accessibleModules?.data) return [];
+        console.log("accessibleModules", accessibleModules);
         return accessibleModules.data.filter((module) =>
             module.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
             module.name !== "AI Edge"
@@ -73,15 +74,17 @@ export function OperationTools() {
 
         // Make AI Edge links portal-aware
         let targetUrl = page.url;
-        if (targetUrl.includes('ai-notemaker') || targetUrl.includes('ai-performance-analysis') || targetUrl.includes('ai-question-paper-generator')) {
+        if (targetUrl.includes('ai-notemaker') || targetUrl.includes('ai-performance-analysis') || targetUrl.includes('ai-question-paper-generator') || targetUrl.includes('ai-mcq-quiz')) {
             if (pathname.includes('/StaffPortal/')) {
                 if (targetUrl.includes('ai-notemaker')) targetUrl = '/StaffPortal/ai-notemaker';
                 else if (targetUrl.includes('ai-performance-analysis')) targetUrl = '/StaffPortal/ai-performance-analysis';
                 else if (targetUrl.includes('ai-question-paper-generator')) targetUrl = '/StaffPortal/ai-question-paper-generator';
+                else if (targetUrl.includes('ai-mcq-quiz')) targetUrl = '/StaffPortal/ai-mcq-quiz';
             } else if (pathname.includes('/StudentPortal/')) {
                 if (targetUrl.includes('ai-notemaker')) targetUrl = '/StudentPortal/ai-notemaker';
                 else if (targetUrl.includes('ai-performance-analysis')) targetUrl = '/StudentPortal/ai-performance-analysis';
                 else if (targetUrl.includes('ai-question-paper-generator')) targetUrl = '/StudentPortal/ai-question-paper-generator';
+                else if (targetUrl.includes('ai-mcq-quiz')) targetUrl = '/StudentPortal/ai-mcq-quiz';
             }
         }
 

@@ -16,6 +16,7 @@ const studentGroq = new Groq({
 async function getNavigationContext() {
     try {
         const modulesResponse = await getUserAccessibleModules();
+        console.log("modulesResponse", modulesResponse);
         if (!modulesResponse.success || !modulesResponse.data) return '';
 
         let contextText = "AVAILABLE PAGES AND NAVIGATION PATHS:\n";
