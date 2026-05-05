@@ -6,7 +6,7 @@ import { CollapsibleContent } from '@/components/ui/collapsible';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
-import { getSopiaExamReportItoIV } from '@/server/exam/exam-module/reports/SopiaExamReportItoIV';
+import { getSopiaExamReport } from '@/server/exam/exam-module/reports/SopiaExamReport';
 import {
     getClassDropDownByAcademicYearlist,
     getSectionsDropDownByAcademicYearandClasslist,
@@ -19,7 +19,7 @@ import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
-const sopiaExamReportItoIVSchema = z.object({
+const sopiaExamReportSchema = z.object({
     asmaY_Id: z.number().min(1, 'Select Academic Year'),
     asmcL_Id: z.number().min(1, 'Select Class'),
     asmS_Id: z.number().min(1, 'Select Section'),
@@ -27,15 +27,15 @@ const sopiaExamReportItoIVSchema = z.object({
     studentList: z.array(z.object({ amsT_Id: z.number() })).min(1, 'Select at least one student'),
 });
 
-type SopiaExamReportItoIVSchema = z.infer<typeof sopiaExamReportItoIVSchema>;
+type SopiaExamReportSchema = z.infer<typeof sopiaExamReportSchema>;
 
 export default function SopiaExamReportItoIVForm({
     onSuccess
 }: {
     onSuccess?: (payload: any) => Promise<void> | void;
 }) {
-    const methods = useForm<SopiaExamReportItoIVSchema>({
-        resolver: zodResolver(sopiaExamReportItoIVSchema),
+    const methods = useForm<SopiaExamReportSchema>({
+        resolver: zodResolver(sopiaExamReportSchema),
         mode: 'all',
         defaultValues: {
             asmaY_Id: 0,
@@ -174,7 +174,7 @@ export default function SopiaExamReportItoIVForm({
         })();
     }, [selectedYear, selectedClass, selectedSection, selectedExam, setValue]);
 
-    const onSubmit = async (data: SopiaExamReportItoIVSchema) => {
+    const onSubmit = async (data: SopiaExamReportSchema) => {
         try {
             const payload = {
                 EME_Id: data.emE_Id,
@@ -185,9 +185,10 @@ export default function SopiaExamReportItoIVForm({
                 selectedclass: data.studentList.map(s => ({ yearid: s.amsT_Id }))
             };
 
-            const response: any = await getSopiaExamReportItoIV(payload);
+            const response: any = await getSopiaExamReport(payload);
 
             if (response?.success && response?.data) {
+                // Find selected exam name for header
                 const examName = exams.find(e => e.emE_Id === data.emE_Id)?.emE_ExamName || '';
                 const yearName = academicYears.find(y => y.asmaY_Id === data.asmaY_Id)?.asmaY_Year || '';
 
@@ -206,6 +207,7 @@ export default function SopiaExamReportItoIVForm({
                 <FormProvider {...methods}>
                     <form onSubmit={handleSubmit(onSubmit)} className='space-y-6' noValidate>
                         <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
+                            {/* Left column */}
                             <div className='space-y-6'>
                                 <Controller
                                     control={control}
@@ -336,6 +338,7 @@ export default function SopiaExamReportItoIVForm({
                                 />
                             </div>
 
+                            {/* Right column — Students */}
                             <div className='space-y-6'>
                                 <div className='flex flex-col gap-2 sm:flex-row sm:items-start'>
                                     <Label className='flex items-center gap-2 font-medium text-sm sm:w-32'>

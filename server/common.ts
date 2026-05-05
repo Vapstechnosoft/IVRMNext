@@ -3042,6 +3042,8 @@ export async function getUserAccessibleModules() {
                                             title: 'BRS Progress Card X Report',
                                             description: 'BRS Progress Card X Report'
                                         },
+
+
                                         {
                                             id: 21044,
                                             name: 'St. James Consolidate Report',
@@ -3139,12 +3141,38 @@ export async function getUserAccessibleModules() {
                                             description: 'Sophia Exam Report Term Exam'
                                         },
                                         {
-                                            id: 21051,
+                                            id: 21200,
                                             name: 'Sophia Exam Report I to IV',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/Sophia/SopiaExamReportItoIV',
                                             title: 'Sophia Exam Report I to IV',
                                             description: 'Sophia Exam Report I to IV'
+
+                                        },
+                                        {
+                                            id: 21201,
+                                            name: 'Sophia Exam Report IV Term',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Sophia/SopiaExamReportIVTerm',
+                                            title: 'Sophia Exam Report IV Term',
+                                            description: 'Sophia Exam Report IV Term'
+                                        },
+                                        {
+                                            id: 21202,
+                                            name: 'Sophia Report Card Pre',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Sophia/SophiaReportCardPre',
+                                            title: 'Sophia Report Card Pre',
+                                            description: 'Sophia Report Card Pre'
+                                        },
+                                        {
+                                            id: 21203,
+                                            name: 'Sophia Exam Report V to VIII',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Sophia/SopiaExamReportVtoVIII',
+                                            title: 'Sophia Exam Report V to VIII',
+                                            description: 'Sophia Exam Report V to VIII'
+
                                         }
                                     ]
                                 }
