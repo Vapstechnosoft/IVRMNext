@@ -144,12 +144,12 @@ export default function SopiaExamReportVtoVIIIForm({
                 setStudents(
                     Array.isArray(data)
                         ? data.map((item: any) => ({
-                              amsT_Id: item.amsT_Id,
-                              studentName:
-                                  item.studentName ||
-                                  `${item.amsT_FirstName || ''} ${item.amsT_MiddleName || ''} ${item.amsT_LastName || ''}`.trim(),
-                              amsT_AdmNo: item.amsT_AdmNo || ''
-                          }))
+                            amsT_Id: item.amsT_Id,
+                            studentName:
+                                item.studentName ||
+                                `${item.amsT_FirstName || ''} ${item.amsT_MiddleName || ''} ${item.amsT_LastName || ''}`.trim(),
+                            amsT_AdmNo: item.amsT_AdmNo || ''
+                        }))
                         : []
                 );
                 setValue('studentList', []);
