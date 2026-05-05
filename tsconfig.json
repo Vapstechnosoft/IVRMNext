@@ -23,6 +23,6 @@
             "@/*": ["./*"]
         }
     },
-    "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/(root)/Exam/exam-module/exam-mapping/exam-subject-group-mapping"],
+    "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/(root)/Exam/exam-module/exam-mapping/exam-subject-group-mapping", ".next/types/app/(root)/Exam/exam-module/reports/Burnpur/Burnpur_ProgressCardReportXI/page.tsx"],
     "exclude": ["node_modules"]
 }

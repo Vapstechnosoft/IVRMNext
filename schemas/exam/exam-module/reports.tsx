@@ -691,6 +691,26 @@ export const gmvpsProgressCardIXSchema = z.object({
 
 export type GmvpsProgressCardIXSchema = z.infer<typeof gmvpsProgressCardIXSchema>;
 
+export const burnpurProgressCardXIISchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    date: z.string().min(1, 'Date is required'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
+});
+
+export type BurnpurProgressCardXIISchema = z.infer<typeof burnpurProgressCardXIISchema>;
+
+export const burnpurProgressCardXISchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    date: z.string().min(1, 'Date is required'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
+});
+
+export type BurnpurProgressCardXISchema = z.infer<typeof burnpurProgressCardXISchema>;
+
 export const promotionReportCardSophiaSchema = z.object({
     mI_Id: z.number().optional(),
     asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
