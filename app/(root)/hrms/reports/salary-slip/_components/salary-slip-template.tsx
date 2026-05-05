@@ -157,7 +157,7 @@ export function SalarySlipTemplate({
     }
 
     return (
-        <div className='mx-auto w-full max-w-[900px] bg-white p-8 shadow-md print:p-0 print:shadow-none mb-8'>
+        <div className=' w-full  bg-white p-8 shadow-md print:p-0 print:shadow-none mb-8'>
             <div id="EmpPaySlip" className="w-full">
                 {/* Header Section */}
                 <div className="mb-6 flex items-center justify-between border-b-2 border-black pb-4">

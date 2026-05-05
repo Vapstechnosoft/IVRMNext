@@ -2770,14 +2770,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Sophia_Report Card IX-X',
                                             description: 'Sophia_Report Card IX-X'
                                         },
-                                        {
-                                            id: 21014,
-                                            name: 'Sophia_Report Card Pre-II',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/Sophia/sophia-report-card-pre-II',
-                                            title: 'Sophia_Report Card Pre-II',
-                                            description: 'Sophia_Report Card Pre-II'
-                                        },
+                                        // {
+                                        //     id: 21014,
+                                        //     name: 'Sophia_Report Card Pre-II',
+                                        //     icon: 'BookOpen',
+                                        //     url: '/Exam/exam-module/reports/Sophia/sophia-report-card-pre-II',
+                                        //     title: 'Sophia_Report Card Pre-II',
+                                        //     description: 'Sophia_Report Card Pre-II'
+                                        // },
                                         {
                                             id: 21015,
                                             name: 'Sophia_Topper List Report',
@@ -3042,6 +3042,24 @@ export async function getUserAccessibleModules() {
                                             title: 'BRS Progress Card X Report',
                                             description: 'BRS Progress Card X Report'
                                         },
+
+
+                                        {
+                                            id: 21044,
+                                            name: 'St. James Consolidate Report',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/StJames/stjames-consolidated-report',
+                                            title: 'St. James Consolidate Report',
+                                            description: 'St. James Consolidate Report'
+                                        },
+                                        {
+                                            id: 21045,
+                                            name: 'MES Progress Card Report',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/MES/mes-progresscardreport',
+                                            title: 'MES Progress Card Report',
+                                            description: 'MES Progress Card Report'
+                                        },
                                         {
                                             id: 21055,
                                             name: 'BRS Progress Card XII Report',
@@ -3057,6 +3075,15 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/Burnpur/Burnpur_ProgressCardReportXI',
                                             title: 'BRS Progress Card XI Report',
                                             description: 'BRS Progress Card XI Report'
+                                        },
+                                        {
+                                            id: 21057,
+                                            name: 'BRS Progress Card Report',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/Burnpur/Burnpur_ProgressCardReport',
+                                            title: 'BRS Progress Card Report',
+                                            description: 'BRS Progress Card Report'
+
                                         },
                                         {
                                             id: 21044,
@@ -3123,12 +3150,45 @@ export async function getUserAccessibleModules() {
                                             description: 'Sophia Exam Report Term Exam'
                                         },
                                         {
-                                            id: 21051,
+                                            id: 21200,
                                             name: 'Sophia Exam Report I to IV',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/Sophia/SopiaExamReportItoIV',
                                             title: 'Sophia Exam Report I to IV',
                                             description: 'Sophia Exam Report I to IV'
+
+                                        },
+                                        {
+                                            id: 21201,
+                                            name: 'Sophia Exam Report IV Term',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Sophia/SopiaExamReportIVTerm',
+                                            title: 'Sophia Exam Report IV Term',
+                                            description: 'Sophia Exam Report IV Term'
+                                        },
+                                        {
+                                            id: 21202,
+                                            name: 'Sophia Report Card Pre',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Sophia/SophiaReportCardPre',
+                                            title: 'Sophia Report Card Pre',
+                                            description: 'Sophia Report Card Pre'
+                                        },
+                                        {
+                                            id: 21203,
+                                            name: 'Sophia Exam Report V to VIII',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Sophia/SopiaExamReportVtoVIII',
+                                            title: 'Sophia Exam Report V to VIII',
+                                        },
+                                        {
+                                            id: 21204,
+                                            name: 'Sophia Report Card Pre III',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Sophia/SophiaReportCardPreIII',
+                                            title: 'Sophia Report Card Pre III',
+                                            description: 'Sophia Report Card Pre III'
+
                                         }
                                     ]
                                 }
@@ -3789,114 +3849,114 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 },
-                        {
-                            id: 2,
-                            name: 'Transactions',
-                            icon: 'FileText',
-                            pages: [
-                                {
-                                    id: 1,
-                                    name: 'Add Candidate',
-                                    icon: 'UserPlus',
-                                    url: '/hrms/recruitment/transaction/add-candidate',
-                                    title: 'Add Candidate',
-                                    description: 'Add New Candidates'
-                                },
                                 {
                                     id: 2,
-                                    name: 'Add Candidate Interview',
-                                    icon: 'Calendar',
-                                    url: '/hrms/recruitment/transaction/add-candidate-interview',
-                                    title: 'Add Candidate Interview',
-                                    description: 'Add Candidate Interview'
+                                    name: 'Transactions',
+                                    icon: 'FileText',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Add Candidate',
+                                            icon: 'UserPlus',
+                                            url: '/hrms/recruitment/transaction/add-candidate',
+                                            title: 'Add Candidate',
+                                            description: 'Add New Candidates'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Add Candidate Interview',
+                                            icon: 'Calendar',
+                                            url: '/hrms/recruitment/transaction/add-candidate-interview',
+                                            title: 'Add Candidate Interview',
+                                            description: 'Add Candidate Interview'
+                                        },
+                                        //         {
+                                        //             id: 3,
+                                        //             name: 'Candidate Interview List',
+                                        //             icon: 'List',
+                                        //             url: '/hrms/recruitment/transaction/candidate-interview-list',
+                                        //             title: 'Candidate Interview List',
+                                        //             description: 'View All Candidate Interviews'
+                                        //         },
+                                        //         {
+                                        //             id: 4,
+                                        //             name: 'Interviewer Feedback',
+                                        //             icon: 'MessageSquare',
+                                        //             url: '/hrms/recruitment/transaction/interviewer-feedback',
+                                        //             title: 'Interviewer Feedback',
+                                        //             description: 'Manage Interviewer Feedback'
+                                        //         },
+                                        //         {
+                                        //             id: 5,
+                                        //             name: 'Job List',
+                                        //             icon: 'Briefcase',
+                                        //             url: '/hrms/recruitment/transaction/job-list',
+                                        //             title: 'Job List',
+                                        //             description: 'View All Jobs'
+                                        //         },
+                                        //         {
+                                        //             id: 6,
+                                        //             name: 'Job Posting List',
+                                        //             icon: 'FileText',
+                                        //             url: '/hrms/recruitment/transaction/job-posting-list',
+                                        //             title: 'Job Posting List',
+                                        //             description: 'View All Job Postings'
+                                        //         }
+                                    ]
                                 },
-                        //         {
-                        //             id: 3,
-                        //             name: 'Candidate Interview List',
-                        //             icon: 'List',
-                        //             url: '/hrms/recruitment/transaction/candidate-interview-list',
-                        //             title: 'Candidate Interview List',
-                        //             description: 'View All Candidate Interviews'
-                        //         },
-                        //         {
-                        //             id: 4,
-                        //             name: 'Interviewer Feedback',
-                        //             icon: 'MessageSquare',
-                        //             url: '/hrms/recruitment/transaction/interviewer-feedback',
-                        //             title: 'Interviewer Feedback',
-                        //             description: 'Manage Interviewer Feedback'
-                        //         },
-                        //         {
-                        //             id: 5,
-                        //             name: 'Job List',
-                        //             icon: 'Briefcase',
-                        //             url: '/hrms/recruitment/transaction/job-list',
-                        //             title: 'Job List',
-                        //             description: 'View All Jobs'
-                        //         },
-                        //         {
-                        //             id: 6,
-                        //             name: 'Job Posting List',
-                        //             icon: 'FileText',
-                        //             url: '/hrms/recruitment/transaction/job-posting-list',
-                        //             title: 'Job Posting List',
-                        //             description: 'View All Job Postings'
-                        //         }
-                            ]
-                        },
-                        // {
-                        //     id: 3,
-                        //     name: 'MRF Approval',
-                        //     icon: 'CheckSquare',
-                        //     pages: [
-                        //         {
-                        //             id: 1,
-                        //             name: 'MRF Requisition Form',
-                        //             icon: 'FileCheck',
-                        //             url: '/hrms/recruitment/mrf-approval/mrf-requisition-form',
-                        //             title: 'MRF Requisition Form',
-                        //             description: 'Approve MRF Requests'
-                        //         }
-                        //     ]
-                        // },
-                        // {
-                        //     id: 4,
-                        //     name: 'Feedback',
-                        //     icon: 'MessageSquare',
-                        //     pages: [
-                        //         {
-                        //             id: 1,
-                        //             name: 'Candidate Feedback',
-                        //             icon: 'Star',
-                        //             url: '/hrms/recruitment/feedback/candidate-feedback',
-                        //             title: 'Candidate Feedback',
-                        //             description: 'Record Candidate Feedback'
-                        //         }
-                        //     ]
-                        // },
-                        // {
-                        //     id: 5,
-                        //     name: 'Reports',
-                        //     icon: 'FileText',
-                        //     pages: [
-                        //         {
-                        //             id: 1,
-                        //             name: 'Candidate Report',
-                        //             icon: 'Users',
-                        //             url: '/hrms/recruitment/reports/candidate-report',
-                        //             title: 'Candidate Report',
-                        //             description: 'Candidate Summary Report'
-                        //         },
-                        //         {
-                        //             id: 2,
-                        //             name: 'Interview Report',
-                        //             icon: 'ClipboardList',
-                        //             url: '/hrms/recruitment/reports/interview-report',
-                        //             title: 'Interview Report',
-                        //             description: 'Interview Summary Report'
-                        //         }
-                        //     ]
-                        // }
+                                // {
+                                //     id: 3,
+                                //     name: 'MRF Approval',
+                                //     icon: 'CheckSquare',
+                                //     pages: [
+                                //         {
+                                //             id: 1,
+                                //             name: 'MRF Requisition Form',
+                                //             icon: 'FileCheck',
+                                //             url: '/hrms/recruitment/mrf-approval/mrf-requisition-form',
+                                //             title: 'MRF Requisition Form',
+                                //             description: 'Approve MRF Requests'
+                                //         }
+                                //     ]
+                                // },
+                                // {
+                                //     id: 4,
+                                //     name: 'Feedback',
+                                //     icon: 'MessageSquare',
+                                //     pages: [
+                                //         {
+                                //             id: 1,
+                                //             name: 'Candidate Feedback',
+                                //             icon: 'Star',
+                                //             url: '/hrms/recruitment/feedback/candidate-feedback',
+                                //             title: 'Candidate Feedback',
+                                //             description: 'Record Candidate Feedback'
+                                //         }
+                                //     ]
+                                // },
+                                // {
+                                //     id: 5,
+                                //     name: 'Reports',
+                                //     icon: 'FileText',
+                                //     pages: [
+                                //         {
+                                //             id: 1,
+                                //             name: 'Candidate Report',
+                                //             icon: 'Users',
+                                //             url: '/hrms/recruitment/reports/candidate-report',
+                                //             title: 'Candidate Report',
+                                //             description: 'Candidate Summary Report'
+                                //         },
+                                //         {
+                                //             id: 2,
+                                //             name: 'Interview Report',
+                                //             icon: 'ClipboardList',
+                                //             url: '/hrms/recruitment/reports/interview-report',
+                                //             title: 'Interview Report',
+                                //             description: 'Interview Summary Report'
+                                //         }
+                                //     ]
+                                // }
                             ]
                         },
                         {
@@ -8050,22 +8110,22 @@ export async function getUserAccessibleModules() {
                                     name: 'Transaction',
                                     icon: 'FileBarChart',
                                     pages: [
-                                        {
-                                            id: 1,
-                                            name: 'IVRM Interaction',
-                                            icon: 'BookOpenText',
-                                            url: '/StaffPortal/Interactions/IVRM_Interactions',
-                                            title: 'IVRM Interaction',
-                                            description: 'IVRM Interaction'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'NDA IVRM Interaction',
-                                            icon: 'BookOpenText',
-                                            url: '/StaffPortal/Interactions/NDA_IVRM_Interactions',
-                                            title: 'NDA IVRM Interaction',
-                                            description: 'NDA IVRM Interaction'
-                                        },
+                                        // {
+                                        //     id: 1,
+                                        //     name: 'IVRM Interaction',
+                                        //     icon: 'BookOpenText',
+                                        //     url: '/StaffPortal/Interactions/IVRM_Interactions',
+                                        //     title: 'IVRM Interaction',
+                                        //     description: 'IVRM Interaction'
+                                        // },
+                                        // {
+                                        //     id: 2,
+                                        //     name: 'NDA IVRM Interaction',
+                                        //     icon: 'BookOpenText',
+                                        //     url: '/StaffPortal/Interactions/NDA_IVRM_Interactions',
+                                        //     title: 'NDA IVRM Interaction',
+                                        //     description: 'NDA IVRM Interaction'
+                                        // },
                                         {
                                             id: 3,
                                             name: 'SCS Interaction',
