@@ -2,14 +2,6 @@
 import { type ApiResponse, api } from '@/lib/apiService';
 import { auth } from '@/lib/auth';
 import type { IDropdown, IUserAccessibleModules, UserNotification } from '@/types';
-import { admissionModule } from './modules/admission';
-import { feesModule } from './modules/fees';
-import { examModule } from './modules/exam';
-import { hrmsModule } from './modules/hrms';
-import { iframeModule } from './modules/iframe';
-import { timetableModule } from './modules/timetable';
-import { libraryModule } from './modules/library';
-import { transportModule } from './modules/transport';
 
 export async function getCommonDropdown(name: string) {
     const url = `/v1/common/common_drop_down_list/${name}`;
@@ -2009,12 +2001,20 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Fee Trail Audit Reoport ST JAMES'
                                         },
                                         {
-                                            id: 522,
+                                            id: 524,
                                             name: 'Fee Demand Register Report GMVPS',
                                             icon: 'BadgeIndianRupee',
                                             url: '/fees/feereports/feedemandregisterreportgmvps',
                                             title: 'Fee Demand Register Report GMVPS',
                                             description: 'Manage Fee Demand Register Report GMVPS'
+                                        },
+                                        {
+                                            id: 525,
+                                            name: 'Fee Summarized Report ST JAMES',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feesummerizedreportstjames',
+                                            title: 'Fee Summarized Report ST JAMES',
+                                            description: 'Manage Fee Summarized Report ST JAMES'
                                         },
                                         {
                                             id: 43,
