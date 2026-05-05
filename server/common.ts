@@ -8034,22 +8034,22 @@ export async function getUserAccessibleModules() {
                                     name: 'Transaction',
                                     icon: 'FileBarChart',
                                     pages: [
-                                        {
-                                            id: 1,
-                                            name: 'IVRM Interaction',
-                                            icon: 'BookOpenText',
-                                            url: '/StaffPortal/Interactions/IVRM_Interactions',
-                                            title: 'IVRM Interaction',
-                                            description: 'IVRM Interaction'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'NDA IVRM Interaction',
-                                            icon: 'BookOpenText',
-                                            url: '/StaffPortal/Interactions/NDA_IVRM_Interactions',
-                                            title: 'NDA IVRM Interaction',
-                                            description: 'NDA IVRM Interaction'
-                                        },
+                                        // {
+                                        //     id: 1,
+                                        //     name: 'IVRM Interaction',
+                                        //     icon: 'BookOpenText',
+                                        //     url: '/StaffPortal/Interactions/IVRM_Interactions',
+                                        //     title: 'IVRM Interaction',
+                                        //     description: 'IVRM Interaction'
+                                        // },
+                                        // {
+                                        //     id: 2,
+                                        //     name: 'NDA IVRM Interaction',
+                                        //     icon: 'BookOpenText',
+                                        //     url: '/StaffPortal/Interactions/NDA_IVRM_Interactions',
+                                        //     title: 'NDA IVRM Interaction',
+                                        //     description: 'NDA IVRM Interaction'
+                                        // },
                                         {
                                             id: 3,
                                             name: 'SCS Interaction',
