@@ -3,13 +3,11 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-<<<<<<<< HEAD:app/(root)/pettycash/master/masterparticulars/page.tsx
+
 import { useMasterParticulars } from '@/hooks/pettycash/master/useMasters';
 import type { IMasterParticulars } from '@/types/pettycash/master/masters';
-========
 import { useExamTTSession } from '@/hooks/exam/exammodule/exam-mapping';
 import type { IExamTTSession } from '@/types/exam/exam-module/exam-mapping';
->>>>>>>> a2d96c9bdb9477a8b51fcf2f0aa4352f4b668f93:app/(root)/Exam/exam-module/exam-mapping/ExamTTsession/page.tsx
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddExamTTSessionForm from './_components/add-form';

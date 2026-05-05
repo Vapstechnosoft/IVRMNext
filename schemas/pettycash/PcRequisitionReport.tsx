@@ -2,13 +2,7 @@ import { z } from 'zod';
 
 export const UsePcRequisitionReportSchemas = {
     addOrUpdate: z.object({
-        mI_Id: z.number({ required_error: 'Organization is required' }).min(1, 'Organization is required'),
-        fromDate: z.date({
-            required_error: "Requisition From Date is required",
-        }),
-        toDate: z.date({
-            required_error: "Requisition To Date is required",
-        }),
+        mI_Id: z.number({ required_error: 'Building Name is required' }).min(1, 'Building Name is required'),
     })
 };
 

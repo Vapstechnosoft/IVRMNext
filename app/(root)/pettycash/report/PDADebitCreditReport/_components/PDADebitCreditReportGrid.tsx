@@ -11,7 +11,7 @@ interface PDADebitCreditReportGridProps {
     student: IPDADebitCreditStudentDetail[];
     fromDate: Date | null;
     toDate: Date | null;
-    printRef: React.RefObject<HTMLDivElement | null>;
+    printRef: React.RefObject<HTMLDivElement>;
 }
 
 export default function PDADebitCreditReportGrid({

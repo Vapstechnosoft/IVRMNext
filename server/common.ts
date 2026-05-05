@@ -7644,136 +7644,136 @@ export async function getUserAccessibleModules() {
                                             url: '/pettycash/report/BankCopyReportVVVS',
                                             title: 'Bank Credit And Debit Report',
                                             description: 'View Bank Credit And Debit Reports'
-                                        },
-                                        {
-                                            id: 60321233,
-                                            name: 'PDA Head Wise Report',
-                                            icon: 'BadgeIndianRupee',
-                                            url: '/pettycash/report/pdaHeadWiseReport',
-                                            title: 'PDA Head Wise Report',
-                                            description: 'View PDA Head Wise Report'
-                                        },
-                                        {
-                                            id: 60321234,
-                                            name: 'PDA Debit Credit Report',
-                                            icon: 'BadgeIndianRupee',
-                                            url: '/pettycash/report/PDADebitCreditReport',
-                                            title: 'PDA Debit CreditReport',
-                                            description: 'View PDA Student Debit/Credit Report'
                                         }
+                                        // {
+                                        //     id: 60321233,
+                                        //     name: 'PDA Head Wise Report',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/pettycash/report/pdaHeadWiseReport',
+                                        //     title: 'PDA Head Wise Report',
+                                        //     description: 'View PDA Head Wise Report'
+                                        // },
+                                        // {
+                                        //     id: 60321234,
+                                        //     name: 'PDA Debit Credit Report',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/pettycash/report/PDADebitCreditReport',
+                                        //     title: 'PDA Debit CreditReport',
+                                        //     description: 'View PDA Student Debit/Credit Report'
+                                        // }
                                     ]
                                 }
                             ]
                         }
                     ]
                 },
-                {
-                    id: 999021,
-                    name: 'PDA',
-                    icon: 'BadgeIndianRupee',
-                    menu: [
-                        {
-                            id: 1,
-                            name: 'PDA',
-                            icon: 'BadgeIndianRupee',
-                            sub_menu: [
-                                {
-                                    id: 1,
-                                    name: 'Masters',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 601,
-                                            name: 'PDA Master Head',
-                                            icon: 'Settings',
-                                            url: '/pda/master/pda-master-head',
-                                            title: 'PDA Master Head',
-                                            description: 'Manage PDA Master Head Details'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 2,
-                                    name: 'Transactions',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 6021,
-                                            name: 'PDA Transactions SRS',
-                                            icon: 'Settings',
-                                            url: '/pda/transaction/pdatransactionsrs',
-                                            title: 'PDA Transactions SRS',
-                                            description: 'Manage PDA Transactions SRS'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 3,
-                                    name: 'Reports',
-                                    icon: 'BarChart',
-                                    pages: [
-                                        {
-                                            id: 603212,
-                                            name: 'PDA Debit Credit Report',
-                                            icon: 'BarChart',
-                                            url: '/pda/report/PDADebitCreditReport',
-                                            title: 'PDA Debit Credit Report',
-                                            description: 'View PDA Debit Credit Reports'
-                                        },
-                                        {
-                                            id: 603213,
-                                            name: 'PDA Head Wise Report',
-                                            icon: 'BarChart',
-                                            url: '/pda/report/pdaHeadWiseReport',
-                                            title: 'PDA Head Wise Report',
-                                            description: 'View PDA Head Wise Reports'
-                                        },
-                                        {
-                                            id: 603214,
-                                            name: 'PDA Debit Credit Report SRS',
-                                            icon: 'BarChart',
-                                            url: '/pda/report/PDADebitCreditReportSRS',
-                                            title: 'PDA Debit Credit Report SRS',
-                                            description: 'View PDA Debit Credit Report SRS'
-                                        },
-                                        {
-                                            id: 603215,
-                                            name: 'PDA Expenditure Import',
-                                            icon: 'BarChart',
-                                            url: '/pda/report/pda-expenditure-import',
-                                            title: 'PDA Expenditure Import',
-                                            description: 'View PDA Expenditure Import'
-                                        },
-                                        {
-                                            id: 603216,
-                                            name: 'PDA Over All Report',
-                                            icon: 'BarChart',
-                                            url: '/pda/report/PDAOverAllReport',
-                                            title: 'PDA OverAll Report',
-                                            description: 'View PDA OverAll Report'
-                                        },
-                                        {
-                                            id: 603217,
-                                            name: 'PDA Report',
-                                            icon: 'BarChart',
-                                            url: '/pda/report/PDAReport',
-                                            title: 'PDA Report',
-                                            description: 'View PDA Report'
-                                        },
-                                        {
-                                            id: 603218,
-                                            name: 'PDA Summary Report',
-                                            icon: 'BarChart',
-                                            url: '/pda/report/PDASummaryReport',
-                                            title: 'PDA Summary Report',
-                                            description: 'View PDA Summary Report'
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                }
+                // {
+                //     id: 999021,
+                //     name: 'PDA',
+                //     icon: 'BadgeIndianRupee',
+                //     menu: [
+                //         {
+                //             id: 1,
+                //             name: 'PDA',
+                //             icon: 'BadgeIndianRupee',
+                //             sub_menu: [
+                //                 {
+                //                     id: 1,
+                //                     name: 'Masters',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 601,
+                //                             name: 'PDA Master Head',
+                //                             icon: 'Settings',
+                //                             url: '/pda/master/pda-master-head',
+                //                             title: 'PDA Master Head',
+                //                             description: 'Manage PDA Master Head Details'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 2,
+                //                     name: 'Transactions',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 6021,
+                //                             name: 'PDA Transactions SRS',
+                //                             icon: 'Settings',
+                //                             url: '/pda/transaction/pdatransactionsrs',
+                //                             title: 'PDA Transactions SRS',
+                //                             description: 'Manage PDA Transactions SRS'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 3,
+                //                     name: 'Reports',
+                //                     icon: 'BarChart',
+                //                     pages: [
+                //                         {
+                //                             id: 603212,
+                //                             name: 'PDA Debit Credit Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDADebitCreditReport',
+                //                             title: 'PDA Debit Credit Report',
+                //                             description: 'View PDA Debit Credit Reports'
+                //                         },
+                //                         {
+                //                             id: 603213,
+                //                             name: 'PDA Head Wise Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/pdaHeadWiseReport',
+                //                             title: 'PDA Head Wise Report',
+                //                             description: 'View PDA Head Wise Reports'
+                //                         },
+                //                         {
+                //                             id: 603214,
+                //                             name: 'PDA Debit Credit Report SRS',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDADebitCreditReportSRS',
+                //                             title: 'PDA Debit Credit Report SRS',
+                //                             description: 'View PDA Debit Credit Report SRS'
+                //                         },
+                //                         {
+                //                             id: 603215,
+                //                             name: 'PDA Expenditure Import',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/pda-expenditure-import',
+                //                             title: 'PDA Expenditure Import',
+                //                             description: 'View PDA Expenditure Import'
+                //                         },
+                //                         {
+                //                             id: 603216,
+                //                             name: 'PDA Over All Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDAOverAllReport',
+                //                             title: 'PDA OverAll Report',
+                //                             description: 'View PDA OverAll Report'
+                //                         },
+                //                         {
+                //                             id: 603217,
+                //                             name: 'PDA Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDAReport',
+                //                             title: 'PDA Report',
+                //                             description: 'View PDA Report'
+                //                         },
+                //                         {
+                //                             id: 603218,
+                //                             name: 'PDA Summary Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDASummaryReport',
+                //                             title: 'PDA Summary Report',
+                //                             description: 'View PDA Summary Report'
+                //                         }
+                //                     ]
+                //                 }
+                //             ]
+                //         }
+                //     ]
+                // }
             ]
         };
     } else if (session?.role.toUpperCase() === 'STAFF') {
@@ -8870,113 +8870,113 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 },
-                {
-                    id: 999021,
-                    name: 'PDA',
-                    icon: 'BadgeIndianRupee',
-                    menu: [
-                        {
-                            id: 1,
-                            name: 'PDA',
-                            icon: 'BadgeIndianRupee',
-                            sub_menu: [
-                                {
-                                    id: 1,
-                                    name: 'Masters',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 601,
-                                            name: 'PDA Master Head',
-                                            icon: 'Settings',
-                                            url: '/pda/master/pda-master-head',
-                                            title: 'PDA Master Head',
-                                            description: 'Manage PDA Master Head Details'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 2,
-                                    name: 'Transactions',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 6021,
-                                            name: 'PDA Transactions SRS',
-                                            icon: 'Settings',
-                                            url: '/pda/transaction/pdatransactionsrs',
-                                            title: 'PDA Transactions SRS',
-                                            description: 'Manage PDA Transactions SRS'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 3,
-                                    name: 'Reports',
-                                    icon: 'BarChart',
-                                    pages: [
-                                        {
-                                            id: 603212,
-                                            name: 'PDA Debit Credit Report',
-                                            icon: 'BarChart',
-                                            url: '/pda/report/pda-debit-credit-report',
-                                            title: 'PDA Debit Credit Report',
-                                            description: 'View PDA Debit Credit Reports'
-                                        },
-                                        {
-                                            id: 603213,
-                                            name: 'PDA Head Wise Report',
-                                            icon: 'BarChart',
-                                            url: '/pda/report/pda-head-wise-report',
-                                            title: 'PDA Head Wise Report',
-                                            description: 'View PDA Head Wise Reports'
-                                        },
-                                        {
-                                            id: 603214,
-                                            name: 'PDA Debit Credit Report SRS',
-                                            icon: 'BarChart',
-                                            url: '/pda/report/PDADebitCreditReportSRS',
-                                            title: 'PDA Debit Credit Report SRS',
-                                            description: 'View PDA Debit Credit Report SRS'
-                                        },
-                                        {
-                                            id: 603215,
-                                            name: 'PDA Expenditure Import',
-                                            icon: 'BarChart',
-                                            url: '/pda/report/pda-expenditure-import',
-                                            title: 'PDA Expenditure Import',
-                                            description: 'View PDA Expenditure Import'
-                                        },
-                                        {
-                                            id: 603216,
-                                            name: 'PDA Over All Report',
-                                            icon: 'BarChart',
-                                            url: '/pda/report/PDAOverAllReport',
-                                            title: 'PDA OverAll Report',
-                                            description: 'View PDA OverAll Report'
-                                        },
-                                        {
-                                            id: 603217,
-                                            name: 'PDA Report',
-                                            icon: 'BarChart',
-                                            url: '/pda/report/PDAReport',
-                                            title: 'PDA Report',
-                                            description: 'View PDA Report'
-                                        },
-                                        {
-                                            id: 603218,
-                                            name: 'PDA Summary Report',
-                                            icon: 'BarChart',
-                                            url: '/pda/report/PDASummaryReport',
-                                            title: 'PDA Summary Report',
-                                            description: 'View PDA Summary Report'
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                }
+                // {
+                //     id: 999021,
+                //     name: 'PDA',
+                //     icon: 'BadgeIndianRupee',
+                //     menu: [
+                //         {
+                //             id: 1,
+                //             name: 'PDA',
+                //             icon: 'BadgeIndianRupee',
+                //             sub_menu: [
+                //                 {
+                //                     id: 1,
+                //                     name: 'Masters',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 601,
+                //                             name: 'PDA Master Head',
+                //                             icon: 'Settings',
+                //                             url: '/pda/master/pda-master-head',
+                //                             title: 'PDA Master Head',
+                //                             description: 'Manage PDA Master Head Details'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 2,
+                //                     name: 'Transactions',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 6021,
+                //                             name: 'PDA Transactions SRS',
+                //                             icon: 'Settings',
+                //                             url: '/pda/transaction/pdatransactionsrs',
+                //                             title: 'PDA Transactions SRS',
+                //                             description: 'Manage PDA Transactions SRS'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 3,
+                //                     name: 'Reports',
+                //                     icon: 'BarChart',
+                //                     pages: [
+                //                         {
+                //                             id: 603212,
+                //                             name: 'PDA Debit Credit Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/pda-debit-credit-report',
+                //                             title: 'PDA Debit Credit Report',
+                //                             description: 'View PDA Debit Credit Reports'
+                //                         },
+                //                         {
+                //                             id: 603213,
+                //                             name: 'PDA Head Wise Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/pda-head-wise-report',
+                //                             title: 'PDA Head Wise Report',
+                //                             description: 'View PDA Head Wise Reports'
+                //                         },
+                //                         {
+                //                             id: 603214,
+                //                             name: 'PDA Debit Credit Report SRS',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDADebitCreditReportSRS',
+                //                             title: 'PDA Debit Credit Report SRS',
+                //                             description: 'View PDA Debit Credit Report SRS'
+                //                         },
+                //                         {
+                //                             id: 603215,
+                //                             name: 'PDA Expenditure Import',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/pda-expenditure-import',
+                //                             title: 'PDA Expenditure Import',
+                //                             description: 'View PDA Expenditure Import'
+                //                         },
+                //                         {
+                //                             id: 603216,
+                //                             name: 'PDA Over All Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDAOverAllReport',
+                //                             title: 'PDA OverAll Report',
+                //                             description: 'View PDA OverAll Report'
+                //                         },
+                //                         {
+                //                             id: 603217,
+                //                             name: 'PDA Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDAReport',
+                //                             title: 'PDA Report',
+                //                             description: 'View PDA Report'
+                //                         },
+                //                         {
+                //                             id: 603218,
+                //                             name: 'PDA Summary Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDASummaryReport',
+                //                             title: 'PDA Summary Report',
+                //                             description: 'View PDA Summary Report'
+                //                         }
+                //                     ]
+                //                 }
+                //             ]
+                //         }
+                //     ]
+                // }
             ]
         };
     } else {
@@ -9013,113 +9013,113 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 },
-                {
-                    id: 999021,
-                    name: 'PDA',
-                    icon: 'BadgeIndianRupee',
-                    menu: [
-                        {
-                            id: 1,
-                            name: 'PDA',
-                            icon: 'BadgeIndianRupee',
-                            sub_menu: [
-                                {
-                                    id: 1,
-                                    name: 'Masters',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 601,
-                                            name: 'PDA Master Head',
-                                            icon: 'Settings',
-                                            url: '/pda/master/pda-master-head',
-                                            title: 'PDA Master Head',
-                                            description: 'Manage PDA Master Head Details'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 2,
-                                    name: 'Transactions',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 6021,
-                                            name: 'PDA Transactions SRS',
-                                            icon: 'Settings',
-                                            url: '/pda/transaction/pdatransactionsrs',
-                                            title: 'PDA Transactions SRS',
-                                            description: 'Manage PDA Transactions SRS'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 3,
-                                    name: 'Reports',
-                                    icon: 'BarChart',
-                                    pages: [
-                                        {
-                                            id: 603212,
-                                            name: 'PDA Debit Credit Report',
-                                            icon: 'BarChart',
-                                            url: '/pda/report/PDADebitCreditReport',
-                                            title: 'PDA Debit Credit Report',
-                                            description: 'View PDA Debit Credit Reports'
-                                        },
-                                        {
-                                            id: 603213,
-                                            name: 'PDA Head Wise Report',
-                                            icon: 'BarChart',
-                                            url: '/pda/report/PDAHeadWiseReport',
-                                            title: 'PDA Head Wise Report',
-                                            description: 'View PDA Head Wise Reports'
-                                        },
-                                        {
-                                            id: 603214,
-                                            name: 'PDA Debit Credit Report SRS',
-                                            icon: 'BarChart',
-                                            url: '/pda/report/PDADebitCreditReportSRS',
-                                            title: 'PDA Debit Credit Report SRS',
-                                            description: 'View PDA Debit Credit Report SRS'
-                                        },
-                                        {
-                                            id: 603215,
-                                            name: 'PDA Expenditure Import',
-                                            icon: 'BarChart',
-                                            url: '/pda/report/pda-expenditure-import',
-                                            title: 'PDA Expenditure Import',
-                                            description: 'View PDA Expenditure Import'
-                                        },
-                                        {
-                                            id: 603216,
-                                            name: 'PDA Over All Report',
-                                            icon: 'BarChart',
-                                            url: '/pda/report/PDAOverAllReport',
-                                            title: 'PDA OverAll Report',
-                                            description: 'View PDA OverAll Report'
-                                        },
-                                        {
-                                            id: 603217,
-                                            name: 'PDA Report',
-                                            icon: 'BarChart',
-                                            url: '/pda/report/PDAReport',
-                                            title: 'PDA Report',
-                                            description: 'View PDA Report'
-                                        },
-                                        {
-                                            id: 603218,
-                                            name: 'PDA Summary Report',
-                                            icon: 'BarChart',
-                                            url: '/pda/report/PDASummaryReport',
-                                            title: 'PDA Summary Report',
-                                            description: 'View PDA Summary Report'
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                },
+                // {
+                //     id: 999021,
+                //     name: 'PDA',
+                //     icon: 'BadgeIndianRupee',
+                //     menu: [
+                //         {
+                //             id: 1,
+                //             name: 'PDA',
+                //             icon: 'BadgeIndianRupee',
+                //             sub_menu: [
+                //                 {
+                //                     id: 1,
+                //                     name: 'Masters',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 601,
+                //                             name: 'PDA Master Head',
+                //                             icon: 'Settings',
+                //                             url: '/pda/master/pda-master-head',
+                //                             title: 'PDA Master Head',
+                //                             description: 'Manage PDA Master Head Details'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 2,
+                //                     name: 'Transactions',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 6021,
+                //                             name: 'PDA Transactions SRS',
+                //                             icon: 'Settings',
+                //                             url: '/pda/transaction/pdatransactionsrs',
+                //                             title: 'PDA Transactions SRS',
+                //                             description: 'Manage PDA Transactions SRS'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 3,
+                //                     name: 'Reports',
+                //                     icon: 'BarChart',
+                //                     pages: [
+                //                         {
+                //                             id: 603212,
+                //                             name: 'PDA Debit Credit Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDADebitCreditReport',
+                //                             title: 'PDA Debit Credit Report',
+                //                             description: 'View PDA Debit Credit Reports'
+                //                         },
+                //                         {
+                //                             id: 603213,
+                //                             name: 'PDA Head Wise Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDAHeadWiseReport',
+                //                             title: 'PDA Head Wise Report',
+                //                             description: 'View PDA Head Wise Reports'
+                //                         },
+                //                         {
+                //                             id: 603214,
+                //                             name: 'PDA Debit Credit Report SRS',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDADebitCreditReportSRS',
+                //                             title: 'PDA Debit Credit Report SRS',
+                //                             description: 'View PDA Debit Credit Report SRS'
+                //                         },
+                //                         {
+                //                             id: 603215,
+                //                             name: 'PDA Expenditure Import',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/pda-expenditure-import',
+                //                             title: 'PDA Expenditure Import',
+                //                             description: 'View PDA Expenditure Import'
+                //                         },
+                //                         {
+                //                             id: 603216,
+                //                             name: 'PDA Over All Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDAOverAllReport',
+                //                             title: 'PDA OverAll Report',
+                //                             description: 'View PDA OverAll Report'
+                //                         },
+                //                         {
+                //                             id: 603217,
+                //                             name: 'PDA Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDAReport',
+                //                             title: 'PDA Report',
+                //                             description: 'View PDA Report'
+                //                         },
+                //                         {
+                //                             id: 603218,
+                //                             name: 'PDA Summary Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDASummaryReport',
+                //                             title: 'PDA Summary Report',
+                //                             description: 'View PDA Summary Report'
+                //                         }
+                //                     ]
+                //                 }
+                //             ]
+                //         }
+                //     ]
+                // },
 
                 // ,
                 // {

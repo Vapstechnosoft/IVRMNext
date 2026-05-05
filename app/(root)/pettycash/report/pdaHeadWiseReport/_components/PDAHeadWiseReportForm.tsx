@@ -164,12 +164,6 @@ export function PDAHeadWiseReportForm({ setReportData, reportData }: PDAHeadWise
     setReportData(null);
   };
 
-  const onError = (errors: any) => {
-    Object.values(errors).forEach((error: any) => {
-      toast.error(error.message as string);
-    });
-  };
-
   const exportToExcel = () => {
     if (!reportData || !reportData.employees) return;
 
@@ -213,7 +207,7 @@ export function PDAHeadWiseReportForm({ setReportData, reportData }: PDAHeadWise
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit, onError)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-3 gap-y-3">
               <FormField
                 control={form.control}
