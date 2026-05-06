@@ -164,25 +164,17 @@ export default function SophiaReportCardPreForm({
 
     const onSubmit = async (data: SophiaReportCardPreSchema) => {
         try {
-            const selectedExamObj = exams.find(e => e.emE_Id === data.emE_Id);
-            const payload = {
-                ASMAY_Id: data.asmaY_Id,
-                ASMCL_Id: data.asmcL_Id,
-                ASMS_Id: data.asmS_Id,
-                examlist: selectedExamObj ? [{ EME_Id: selectedExamObj.emE_Id, EME_ExamName: selectedExamObj.emE_ExamName }] : [],
-                flagtype: "Adilie",
-                Temp_AmstIds: data.studentList.map(s => ({ AMST_Id: s.amsT_Id }))
-            };
+            const response = await getSophiaReportCardPre(data);
 
-            const response: any = await getSophiaReportCardPre(payload);
-
-            if (response?.success && response?.data) {
-                const yearName = academicYears.find(y => y.asmaY_Id === data.asmaY_Id)?.asmaY_Year || '';
-                if (onSuccess) await onSuccess({ apiData: response.data, payload: { ...payload, yearName, examName: selectedExamObj?.emE_ExamName || '' } });
+            if (response.success && response.data) {
+                if (onSuccess) {
+                    await onSuccess(response.data);
+                }
             } else {
-                toast.error(response?.message || 'Failed to fetch report data');
+                toast.error(response.message || 'Failed to fetch report data');
             }
         } catch (err: any) {
+            console.error('Error submitting form:', err);
             toast.error(err?.message || 'Unexpected error occurred');
         }
     };
