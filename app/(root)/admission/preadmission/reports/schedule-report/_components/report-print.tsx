@@ -18,9 +18,16 @@ export default function ScheduleReportPrint({
     if (!data || data.length === 0) return null;
 
     return (
-        <div className="p-8 print:pt-12 print:px-0 bg-white printable-content" style={{ color: 'black', background: 'white' }}>
+        <div className="p-8 print:pt-12 print:px-12 bg-white printable-content" style={{ color: 'black', background: 'white' }}>
             <div className="mb-6 text-center">
-                {logo && <img src={logo} alt="Logo" className="mx-auto mb-2 max-h-24" />}
+                {logo && logo.trim() !== "" && (
+                    <img 
+                        src={logo} 
+                        alt="Logo" 
+                        className="mx-auto mb-2 max-h-24" 
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                    />
+                )}
                 <h1 className="font-bold text-2xl uppercase underline" style={{ color: 'black' }}>
                     SCHEDULE REPORT
                 </h1>
@@ -49,11 +56,11 @@ export default function ScheduleReportPrint({
                             <td className="border border-black p-2" style={{ border: '1px solid black' }}>{user.class}</td>
                             <td className="border border-black p-2" style={{ border: '1px solid black' }}>{user.gender}</td>
                             <td className="border border-black p-2" style={{ border: '1px solid black' }}>
-                                {user.ScheduleDate ? format(new Date(user.ScheduleDate), 'dd.MM.yyyy') : ''}
+                                {(user.ScheduleDate || user.scheduledate) ? format(new Date(user.ScheduleDate || user.scheduledate || ''), 'dd.MM.yyyy') : ''}
                             </td>
-                            <td className="border border-black p-2 text-center" style={{ border: '1px solid black' }}>{user.ScheduleTime}</td>
-                            <td className="border border-black p-2 text-center" style={{ border: '1px solid black' }}>{user.ScheduleTimeTo}</td>
-                            <td className="border border-black p-2" style={{ border: '1px solid black' }}>{user.PAOTS_Remarks}</td>
+                            <td className="border border-black p-2 text-center" style={{ border: '1px solid black' }}>{user.ScheduleTime || user.scheduletime || ''}</td>
+                            <td className="border border-black p-2 text-center" style={{ border: '1px solid black' }}>{user.ScheduleTimeTo || user.scheduletimeto || ''}</td>
+                            <td className="border border-black p-2" style={{ border: '1px solid black' }}>{user.PAOTS_Remarks || user.remarks || ''}</td>
                         </tr>
                     ))}
                 </tbody>

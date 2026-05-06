@@ -2,31 +2,37 @@
 import { api } from '@/lib/apiService';
 import { IOralTestScheduleDetails } from '@/types/admission/preadmission/transactions/oral-test-schedule';
 
-export async function getOralReScheduleDetails() {
-    return await api.get<IOralTestScheduleDetails>('admission', '/api/OralTestReSchedule/Getdetails');
+export async function getOralReScheduleDetails(classId: number) {
+    const response = await api.get<any>('preadmission', `/OralTestReSchedule/Getdetails?ASMCL_ID=${classId}`);
+    return response.data.data || response.data;
 }
 
-export async function getReScheduleReportDetails(paotsId: number) {
-    return await api.post<any>('admission', '/api/OralTestReSchedule/Getreportdetails', { schids: paotsId });
+export async function getReScheduleReportDetails(schids: string) {
+    const response = await api.post<any>('preadmission', `/OralTestReSchedule/Getreportdetails?schids=${schids}`, {});
+    return response.data;
 }
 
 export async function getReScheduleStudentDetails(pasrId: number) {
-    return await api.get<any>('admission', `/api/OralTestReSchedule/GetStudentdetails/${pasrId}`);
+    const response = await api.post<any>('preadmission', `/OralTestReSchedule/GetStudentdetails?pasr_id=${pasrId}`, {});
+    return response.data;
+}
+
+export async function getReScheduleSelectedRowDetails(paotsId: number) {
+    const response = await api.post<any>('preadmission', `/OralTestReSchedule/GetSelectedRowDetails?PAOTS_Id=${paotsId}`, {});
+    return response.data;
 }
 
 export async function deleteReScheduleStudent(paotsId: number, pasrId: number) {
-    const data = { PAOTS_Id: paotsId, PASR_Id: pasrId };
-    return await api.post<any>('admission', '/api/OralTestReSchedule/OralTestScheduleDeletesStudentData', data);
+    const response = await api.post<any>('preadmission', `/OralTestReSchedule/OralTestScheduleDeletesStudentData?PASR_Id=${pasrId}&PAOTS_Id=${paotsId}`, {});
+    return response.data;
 }
 
 export async function deleteOralReSchedule(id: number) {
-    return await api.delete<any>('admission', `/api/OralTestReSchedule/OralTestScheduleDeletesData/${id}`);
-}
-
-export async function getReScheduleSelectedRowDetails(id: number) {
-    return await api.get<any>('admission', `/api/OralTestReSchedule/GetSelectedRowDetails/${id}`);
+    const response = await api.post<any>('preadmission', `/OralTestReSchedule/OralTestScheduleDeletesData?PAOTS_Id=${id}`, {});
+    return response.data;
 }
 
 export async function saveOralReSchedule(data: any) {
-    return await api.post<any>('admission', '/api/OralTestReSchedule/', data);
+    const response = await api.post<any>('preadmission', '/OralTestReSchedule/SaveOraltest', data);
+    return response.data;
 }

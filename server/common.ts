@@ -148,6 +148,22 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/reports/document-view-report',
                                             title: 'Document View',
                                             description: 'Document View'
+                                        },
+                                        {
+                                            id: 8,
+                                            name: 'Oral Test Schedule',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/transactions/interview-schedule/oschedule',
+                                            title: 'Oral Test Schedule',
+                                            description: 'Oral Test Schedule'
+                                        },
+                                        {
+                                            id: 9,
+                                            name: 'Oral Test ReSchedule',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/transactions/interview-schedule/oralreschedule',
+                                            title: 'Oral Test ReSchedule',
+                                            description: 'Oral Test ReSchedule'
                                         }
                                     ]
                                 }
