@@ -83,10 +83,7 @@ function CalendarYear({ className, classNames, showOutsideDays = true, ...props 
                         caption_label: 'text-xs font-medium',
                         caption_dropdowns: cn('flex justify-between gap-1', props.captionLayout === 'dropdown' && 'w-full'),
                         nav: 'space-x-1 flex items-center',
-                        nav_button: cn(
-                            buttonVariants({ variant: 'outline' }),
-                            'h-6 w-6 bg-transparent p-0 opacity-50 hover:opacity-100'
-                        ),
+                        nav_button: cn(buttonVariants({ variant: 'outline' }), 'h-6 w-6 bg-transparent p-0 opacity-50 hover:opacity-100'),
                         nav_button_previous: 'absolute left-1',
                         nav_button_next: 'absolute right-1',
                         table: 'w-full border-collapse space-y-1',
@@ -139,9 +136,6 @@ function CalendarYear({ className, classNames, showOutsideDays = true, ...props 
                     onMonthChange={handleMonthChange}
                     {...props}
                 />
-            </div>
-        </div>
-    );
             </div>
         </div>
     );
