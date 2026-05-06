@@ -13,6 +13,7 @@ import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText, TrendingDown, TrendingUp, XCircle, FileDown } from 'lucide-react';
 import xlsx, { IJsonSheet } from 'json-as-xlsx';
+import { toast } from 'sonner';
 
 export default function PDAReportPage() {
     const [incomeData, setIncomeData] = useState<IPDAReportIncome[]>([]);
@@ -43,7 +44,6 @@ export default function PDAReportPage() {
     useEffect(() => {
         if (reportResponse) {
             console.log("response", reportResponse?.data);
-            // Extract data handling different potential response structures (camelCase, PascalCase, $values)
             const reportData = reportResponse?.data || (reportResponse as any);
 
             const incomeRaw = reportData?.incomereport || reportData?.income;
@@ -60,15 +60,17 @@ export default function PDAReportPage() {
             setSummaryData(summary);
 
             if (income.length === 0 && expense.length === 0) {
-                // Only alert if we actually finished searching
                 if (!isQueryLoading) {
-                    alert("No data found for the selected criteria.");
+                    toast.info("No records found for the selected criteria.");
                 }
+            } else {
+                toast.success("Report generated successfully!");
             }
             setIsSearching(false);
         }
         if (queryError) {
             console.error('Error fetching report:', queryError);
+            toast.error("An error occurred while fetching the report.");
             setIncomeData([]);
             setExpenseData([]);
             setSummaryData([]);
