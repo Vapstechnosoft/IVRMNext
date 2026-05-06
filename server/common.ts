@@ -3181,6 +3181,46 @@ export async function getUserAccessibleModules() {
                                             title: 'Sophia Report Card Pre III',
                                             description: 'Sophia Report Card Pre III'
 
+                                        },
+                                          {
+                                            id: 21205,
+                                            name: 'St. James IV Progress Card',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/StJames/st-james-iv-report',
+                                            title: 'St. James IV Progress Card',
+                                            description: 'St. James IV Progress Card'
+                                        },
+                                        {
+                                            id: 21206,
+                                            name: 'IX-X St. James  Report',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/StJames/ix-x_st-jamesreport',
+                                            title: 'IX-X St. James  Report',
+                                            description: 'IX-X St. James  Report'
+                                        },
+                                        {
+                                            id: 21207,
+                                            name: 'St.James Progress Card New',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/StJames/progresscard-stjames-new',
+                                            title: 'St.James Progress Card New',
+                                            description: 'St.James  Progress Card New'
+                                        },
+                                        {
+                                            id: 21208,
+                                            name: 'St.James Progress Card',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/StJames/progresscard-st-james',
+                                            title: 'St.James Progress Card',
+                                            description: 'St.James Progress Card'
+                                        },
+                                        {
+                                            id: 21209,
+                                            name: 'XI-XII St.James Progress Card',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/StJames/xi-xii-progresscard-st-james',
+                                            title: 'XI-XII St.James Progress Card',
+                                            description: 'XI-XII St.James Progress Card'
                                         }
                                     ]
                                 }
