@@ -6269,6 +6269,29 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage COE Month End Report'
                                         }
                                     ]
+                                },
+                                {
+                                    id: 3,
+                                    name: 'Digital Signage',
+                                    icon: 'Monitor',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Configuration',
+                                            icon: 'Settings',
+                                            url: '/digital-signage/configuration',
+                                            title: 'Configuration',
+                                            description: 'Digital Signage Configuration'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Upload and Schedule',
+                                            icon: 'Upload',
+                                            url: '/digital-signage/upload-and-schedule',
+                                            title: 'Upload and Schedule',
+                                            description: 'Upload and Schedule Signage Content'
+                                        }
+                                    ]
                                 }
                             ]
                         }
@@ -8212,6 +8235,58 @@ export async function getUserAccessibleModules() {
                     ]
                 },
                 {
+                    id: 25,
+                    name: 'COE',
+                    icon: 'Calendar',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Calendar of Events',
+                            icon: 'Calendar',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'COE',
+                                    icon: 'Calendar',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'School Events',
+                                            icon: 'Calendar',
+                                            url: '/StudentPortal/coe/',
+                                            title: 'Calendar of Events',
+                                            description: 'View Calendar of Events'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Digital Signage',
+                                    icon: 'Monitor',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Configuration',
+                                            icon: 'Settings',
+                                            url: '/digital-signage/configuration',
+                                            title: 'Configuration',
+                                            description: 'Digital Signage Configuration'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Upload and Schedule',
+                                            icon: 'Upload',
+                                            url: '/digital-signage/upload-and-schedule',
+                                            title: 'Upload and Schedule',
+                                            description: 'Upload and Schedule Signage Content'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
                     id: 5,
                     name: 'AI Edge',
                     icon: 'Sparkles',
@@ -8479,6 +8554,29 @@ export async function getUserAccessibleModules() {
                                             url: '/StudentPortal/coe/',
                                             title: 'Calendar of Events',
                                             description: 'View Calendar of Events'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Digital Signage',
+                                    icon: 'Monitor',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Configuration',
+                                            icon: 'Settings',
+                                            url: '/digital-signage/configuration',
+                                            title: 'Configuration',
+                                            description: 'Digital Signage Configuration'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Upload and Schedule',
+                                            icon: 'Upload',
+                                            url: '/digital-signage/upload-and-schedule',
+                                            title: 'Upload and Schedule',
+                                            description: 'Upload and Schedule Signage Content'
                                         }
                                     ]
                                 }
@@ -8837,8 +8935,32 @@ export async function getUserAccessibleModules() {
                                             description: 'View Calendar of Events'
                                         }
                                     ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Digital Signage',
+                                    icon: 'Monitor',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Configuration',
+                                            icon: 'Settings',
+                                            url: '/digital-signage/configuration',
+                                            title: 'Configuration',
+                                            description: 'Digital Signage Configuration'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Upload and Schedule',
+                                            icon: 'Upload',
+                                            url: '/digital-signage/upload-and-schedule',
+                                            title: 'Upload and Schedule',
+                                            description: 'Upload and Schedule Signage Content'
+                                        }
+                                    ]
                                 }
                             ]
+
                         },
                         {
                             id: 6,
@@ -8986,6 +9108,7 @@ export async function getUserAccessibleModules() {
                 //     ]
                 // }
             ]
+
         };
     } else {
         response = {
@@ -9360,6 +9483,7 @@ export async function getUserAccessibleModules() {
                 //     ]
                 // }
             ]
+
         };
     }
 
