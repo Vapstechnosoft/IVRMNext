@@ -12,18 +12,18 @@ import {
 import { PREADMISSION_QUERY_KEYS } from '@/constants/query-keys';
 import { toast } from 'sonner';
 
-export function useOralReScheduleDetails() {
+export function useOralReScheduleDetails(classId: number = 0) {
     return useQuery({
-        queryKey: [PREADMISSION_QUERY_KEYS.ORAL_TEST_RESCHEDULE_DETAILS],
-        queryFn: () => getOralReScheduleDetails()
+        queryKey: [PREADMISSION_QUERY_KEYS.ORAL_TEST_RESCHEDULE_DETAILS, classId],
+        queryFn: () => getOralReScheduleDetails(classId)
     });
 }
 
-export function useReScheduleReportDetails(paotsId: number) {
+export function useReScheduleReportDetails(schids: string) {
     return useQuery({
-        queryKey: [PREADMISSION_QUERY_KEYS.RESCHEDULE_REPORT, paotsId],
-        queryFn: () => getReScheduleReportDetails(paotsId),
-        enabled: !!paotsId
+        queryKey: [PREADMISSION_QUERY_KEYS.RESCHEDULE_REPORT, schids],
+        queryFn: () => getReScheduleReportDetails(schids),
+        enabled: !!schids
     });
 }
 

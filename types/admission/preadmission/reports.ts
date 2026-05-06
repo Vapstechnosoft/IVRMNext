@@ -107,6 +107,10 @@ export interface IScheduleReportList {
     ScheduleTime: string;
     ScheduleTimeTo: string;
     PAOTS_Remarks: string;
+    scheduledate?: string; // Lowercase from backend
+    scheduletime?: string; // Lowercase from backend
+    scheduletimeto?: string; // Lowercase from backend
+    remarks?: string | null; // From backend
     age: string;
     place: string;
     fathername: string;
@@ -128,10 +132,12 @@ export interface IScheduleReportInitialDetailsResponse {
     classname: { asmcL_Id: number; asmcL_ClassName: string }[];
 }
 
-export interface IScheduleListResponse {
+export type IScheduleListResponse = {
     writentestlist: { disid: number; disname: string }[];
-}
+} | { disid: number; disname: string }[];
 
-export interface IScheduleReportDetailsResponse {
-    searchstudentlist: IScheduleReportList[];
-}
+export type IScheduleReportDetailsResponse = {
+    searchstudentlist?: IScheduleReportList[];
+    student?: IScheduleReportList[];
+    StudentList?: IScheduleReportList[];
+} | IScheduleReportList[];
