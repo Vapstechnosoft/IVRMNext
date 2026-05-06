@@ -6,10 +6,13 @@ import { useFormContext } from '@/components/ui/form/form-provider';
 import type { IMasterVendorList } from '@/types/library/masters/masters';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
+import { useMasterVendor } from '@/hooks/library/useMasters';
+import { toggleMasterVendor } from '@/server/library/masters/library_vendor';
+import { toast } from 'sonner';
 
 export const masterVendorColumns: ColumnDef<IMasterVendorList>[] = [
     {
-        accessorKey: 'lmaL_Id',
+        accessorKey: 'lmV_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl. No' className='w-full pl-6' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;

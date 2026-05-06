@@ -113,6 +113,8 @@ export default function NdaStudentTcPage() {
           asmcl_Id: s.ASMCL_Id,
           asms_Id: s.ASMS_Id,
           astc_Remarks: s.astc_Remarks,
+          astc_TCApplicationDate: s.ASTC_TCApplicationDate,
+          astc_TCDate: s.ASTC_TCDate,
           astc_LeavingReason: s.astc_LeavingReason,
           astc_SubjectsStudied: s.astc_SubjectsStudied,
           astc_MediumOfINStruction: s.astc_MediumOfINStruction,
@@ -123,16 +125,16 @@ export default function NdaStudentTcPage() {
           astc_NCCDetails: s.astc_NCCDetails,
           astc_ExtraActivities: s.astc_ExtraActivities,
           astc_Conduct: s.astc_Conduct,
-          astc_FeePaid: String(s.astc_FeePaid),
+          astc_FeePaid: String(s.astc_FeePaid || 0),
           astc_FeeConcession: s.astc_FeeConcession,
           astc_LastExamDetails: s.astc_LastExamDetails,
           astc_Result: s.astc_Result,
           astc_ResultDetails: s.astc_ResultDetails,
           astc_Qual_Class: s.astc_Qual_Class,
           astc_Qual_PromotionFlag: s.astc_Qual_PromotionFlag,
-          astc_WorkingDays: Number(s.astc_WorkingDays),
-          astc_AttendedDays: Number(s.astc_AttendedDays),
-          astc_TemporaryFlag: Number(s.astc_TemporaryFlag),
+          astc_WorkingDays: Number(s.astc_WorkingDays || 0),
+          astc_AttendedDays: Number(s.astc_AttendedDays || 0),
+          astc_TemporaryFlag: Number(s.astc_TemporaryFlag || 0),
         })),
         tcflagexists: '',
         transnumconfigsettings: {
@@ -168,31 +170,41 @@ export default function NdaStudentTcPage() {
       setPrintModal({ isOpen: true, data: null });
       const res = (await pdfMutation.mutateAsync({ AMST_Id: student.AMST_Id ?? student.amst_id })) as any;
       
-      const tcList = res?.studenttcpdf;
+      let tcList = [];
+      if (Array.isArray(res)) {
+        tcList = res;
+      } else if (res?.data && Array.isArray(res.data)) {
+        tcList = res.data;
+      } else if (res?.studenttcpdf && Array.isArray(res.studenttcpdf)) {
+        tcList = res.studenttcpdf;
+      }
+
       if (tcList && tcList.length > 0) {
         const tcData = tcList[0] as any;
-        // Map to expected fields for NdaTcPrint
+        // Map to expected fields for NdaTcPrint, handling both lowercase and PascalCase from API
         const mappedData = {
            ...tcData,
-           lblstdname: tcData.studentname,
-           lblfathername: tcData.amsT_FatherName,
-           lblmothername: tcData.amsT_MotherName,
-           lblreligioncaste: tcData.religion,
-           studcaste: tcData.caste,
-           lblnationality: tcData.nationality,
-           lbldob: tcData.amsT_DOB,
-           lbldoa: tcData.amsT_Date,
-           lbllastschool: 'N/A',
-           lblconduct: tcData.astC_Conduct || 'Good',
-           last_date_attended: tcData.tcdatess,
-           Last_Class_Studied: tcData.Last_Class_Studied,
-           asmC_SectionName: tcData.asmC_SectionName,
-           ASTC_Remarks: tcData.astC_Remarks,
-           govtno: tcData.govtno,
-           AMST_PENNo: tcData.AMST_PENNo,
-           tcno: tcData.astC_TCNO,
-           admno: tcData.amsT_AdmNo,
-           AMST_APAAANO: tcData.AMST_APAAANO,
+           lblstdname: tcData.studentname || tcData.StudentName,
+           lblfathername: tcData.amst_fathername || tcData.amsT_FatherName,
+           lblmothername: tcData.amst_mothername || tcData.amsT_MotherName,
+           lblreligioncaste: tcData.religion || tcData.Religion,
+           studcaste: tcData.caste || tcData.Caste,
+           lblnationality: tcData.nationality || tcData.Nationality,
+           lbldob: tcData.amst_dob || tcData.amsT_DOB,
+           lbldoa: tcData.amst_date || tcData.amsT_Date,
+           lbllastschool: tcData.astc_lastschoolattended || tcData.astc_LastSchoolAttended || 'N/A',
+           lblconduct: tcData.astc_conduct || tcData.astC_Conduct || 'Good',
+           last_date_attended: tcData.tcdatess || tcData.tcDate || tcData.astC_TCDate,
+           Last_Class_Studied: tcData.last_class_studied || tcData.Last_Class_Studied,
+           asmC_SectionName: tcData.asmc_sectionname || tcData.asmC_SectionName,
+           ASTC_Remarks: tcData.astc_remarks || tcData.astC_Remarks,
+           govtno: tcData.govtno || tcData.GovtNo || 'N/A',
+           AMST_PENNo: tcData.amst_pen_no || tcData.AMST_PENNo || 'N/A',
+           tcno: tcData.astc_tcno || tcData.astC_TCNO,
+           admno: tcData.amst_admno || tcData.amsT_AdmNo,
+           AMST_APAAANO: tcData.amst_apaar_no || tcData.amst_aadharno || tcData.AMST_APAAANO || 'N/A',
+           institutionname: tcData.institutionname || tcData.mI_Name,
+           logo: tcData.logo || tcData.mI_Logo,
         };
 
         setPrintModal({ isOpen: true, data: mappedData });

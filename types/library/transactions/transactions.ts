@@ -29,6 +29,7 @@ export interface ILostBookList {
     lmbanO_ModeOfPayment?: string;
     lmbanO_LostDamagedReason?: string;
     lmbanO_LostDamagedDate?: string;
+    lmB_ActiveFlag?: boolean;
     staff?: string;
     dept?: string;
 }

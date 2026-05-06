@@ -17,12 +17,17 @@ export const ReportList = ({ data, params }: ReportListProps) => {
     const printRef = useRef<HTMLDivElement>(null);
     const { institution, YearName, stream, section, empG_GroupName, Left_FlagAverage,
         getstudentmarksdetails_temp = [],
+        getstudentmarksdetails = [],
         piotsubjets = [],
         getskill = [],
         getallgrade = [],
         getstudentwisesubjectlist = [],
-        St_ThomosTotal = []
+        St_ThomosTotal = [],
+        st_ThomosTotal = []
     } = data || {};
+
+    const studentMarksDetails = getstudentmarksdetails_temp.length > 0 ? getstudentmarksdetails_temp : getstudentmarksdetails;
+    const finalTotal = St_ThomosTotal.length > 0 ? St_ThomosTotal : st_ThomosTotal;
 
     // const handlePrint = useReactToPrint({
     //     content: () => printRef.current
@@ -36,7 +41,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
         }
     };
 
-    if (!data || getstudentmarksdetails_temp.length === 0) {
+    if (!data || studentMarksDetails.length === 0) {
         return (
             <Card>
                 <CardContent className='flex h-40 items-center justify-center p-6'>
@@ -47,6 +52,25 @@ export const ReportList = ({ data, params }: ReportListProps) => {
     }
 
     const renderNormalReport = () => {
+        // Extract dynamic columns from subject_Marks if present
+        const dynamicColumns: string[] = [];
+        studentMarksDetails.forEach((report: any) => {
+            try {
+                if (report.subject_Marks) {
+                    const parsed = JSON.parse(report.subject_Marks);
+                    parsed.forEach((m: any) => {
+                        if (m.subject_name && !dynamicColumns.includes(m.subject_name)) {
+                            dynamicColumns.push(m.subject_name);
+                        }
+                    });
+                }
+            } catch (e) {
+                // ignore
+            }
+        });
+
+        const columnsToRender = dynamicColumns.length > 0 ? dynamicColumns : piotsubjets;
+
         return (
             <div className='w-full overflow-x-auto'>
                 <table className='w-full border-collapse border border-gray-300 text-sm'>
@@ -76,9 +100,12 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                             <th className='border border-gray-300 p-2 text-center [writing-mode:horizontal-tb]'>S. NO</th>
                             <th className='border border-gray-300 p-2 text-center [writing-mode:horizontal-tb]'>STUDENT&apos;S-ID</th>
                             <th className='border border-gray-300 p-2 text-left'>STUDENT&apos;S NAME</th>
-                            {piotsubjets.map((subject: any, idx: number) => (
+                            {studentMarksDetails[0]?.empg_GroupName && (
+                                <th className='border border-gray-300 p-2 text-left'>EXAM</th>
+                            )}
+                            {columnsToRender.map((subject: any, idx: number) => (
                                 <th key={`subj-${idx}`} className='border border-gray-300 p-2 text-center min-w-[100px]'>
-                                    {subject.Flag === 0 ? subject.ISMS_SubjectName?.toUpperCase() : `${subject.SubjectName}(50)`}
+                                    {typeof subject === 'string' ? subject : (subject.Flag === 0 ? (subject.ISMS_SubjectName || subject.ismS_SubjectName)?.toUpperCase() : `${subject.SubjectName || subject.subjectName}(50)`)}
                                 </th>
                             ))}
                             {getskill.map((skill: any, idx: number) => (
@@ -91,46 +118,71 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                         </tr>
                     </thead>
                     <tbody>
-                        {getstudentmarksdetails_temp.map((report: any, idx: number) => (
-                            <tr key={`row-${idx}`} className='hover:bg-gray-50'>
-                                <td className='border border-gray-300 p-2 text-center'>{idx + 1}</td>
-                                <td className='border border-gray-300 p-2 text-center'>{report.AMST_AdmNo}</td>
-                                <td className='border border-gray-300 p-2 font-medium'>{report.studentname}</td>
+                        {studentMarksDetails.map((report: any, idx: number) => {
+                            let parsedMarks: any[] = [];
+                            try {
+                                if (report.subject_Marks) {
+                                    parsedMarks = JSON.parse(report.subject_Marks);
+                                }
+                            } catch (e) {
+                                // ignore
+                            }
 
-                                {/* Marks */}
-                                {piotsubjets.map((user: any, sIdx: number) => {
-                                    const mark = report[user.ISMS_SubjectName];
-                                    let displayMark: string | number = '';
-                                    if (mark > 0) displayMark = mark;
-                                    else if (mark === 0) displayMark = 'AB';
-                                    else if (mark === -2) displayMark = 0;
-                                    else if (mark === -3) displayMark = 0;
+                            return (
+                                <tr key={`row-${idx}`} className='hover:bg-gray-50'>
+                                    <td className='border border-gray-300 p-2 text-center'>{idx + 1}</td>
+                                    <td className='border border-gray-300 p-2 text-center'>{report.AMST_AdmNo || report.amsT_AdmNo}</td>
+                                    <td className='border border-gray-300 p-2 font-medium'>{report.studentname || report.studentName}</td>
+                                    {report.empg_GroupName && (
+                                        <td className='border border-gray-300 p-2 font-medium'>{report.empg_GroupName}</td>
+                                    )}
 
-                                    return (
-                                        <td key={`mark-${sIdx}`} className='border border-gray-300 p-2 text-center'>
-                                            {displayMark}
-                                        </td>
-                                    );
-                                })}
+                                    {/* Marks */}
+                                    {columnsToRender.map((col: any, sIdx: number) => {
+                                        let mark: any;
 
-                                {/* Skills */}
-                                {getskill.map((ccce: any, skIdx: number) => {
-                                    const cceMatch = getallgrade.find((cce: any) => cce.AMST_Id === report.AMST_Id && ccce.ECACT_Id === cce.ECACT_Id);
-                                    return (
-                                        <td key={`skill-val-${skIdx}`} className='border border-gray-300 p-2 text-center'>
-                                            {cceMatch ? cceMatch.EMGD_Name : ''}
-                                        </td>
-                                    );
-                                })}
+                                        if (typeof col === 'string') {
+                                            // Handle dynamic parsed marks
+                                            const markObj = parsedMarks.find(m => m.subject_name === col);
+                                            mark = markObj ? markObj.subject_marks : '';
+                                        } else {
+                                            // Handle fallback piotsubjets
+                                            mark = report[col.ISMS_SubjectName || col.ismS_SubjectName];
+                                        }
 
-                                <td className='border border-gray-300 p-2 text-center font-bold'>
-                                    {report.TotalMarks}
-                                </td>
-                                <td className='border border-gray-300 p-2 text-center font-bold'>
-                                    {report.TotalPercentage}
-                                </td>
-                            </tr>
-                        ))}
+                                        let displayMark: string | number = '';
+                                        if (mark > 0) displayMark = mark;
+                                        else if (mark === 0) displayMark = 'AB';
+                                        else if (mark === -2) displayMark = 0;
+                                        else if (mark === -3) displayMark = 0;
+                                        else displayMark = mark;
+
+                                        return (
+                                            <td key={`mark-${sIdx}`} className='border border-gray-300 p-2 text-center'>
+                                                {displayMark}
+                                            </td>
+                                        );
+                                    })}
+
+                                    {/* Skills */}
+                                    {getskill.map((ccce: any, skIdx: number) => {
+                                        const cceMatch = getallgrade.find((cce: any) => (cce.AMST_Id || cce.amsT_Id) === (report.AMST_Id || report.amsT_Id) && (ccce.ECACT_Id || ccce.ecacT_Id) === (cce.ECACT_Id || cce.ecacT_Id));
+                                        return (
+                                            <td key={`skill-val-${skIdx}`} className='border border-gray-300 p-2 text-center'>
+                                                {cceMatch ? cceMatch.EMGD_Name : ''}
+                                            </td>
+                                        );
+                                    })}
+
+                                    <td className='border border-gray-300 p-2 text-center font-bold'>
+                                        {report.TotalMarks || report.totalMarks}
+                                    </td>
+                                    <td className='border border-gray-300 p-2 text-center font-bold'>
+                                        {report.TotalPercentage || report.totalPercentage}
+                                    </td>
+                                </tr>
+                            );
+                        })}
                     </tbody>
                 </table>
             </div>
@@ -169,7 +221,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                             <th className='border border-gray-300 p-2 text-left'>STUDENT&apos;S NAME</th>
                             {getstudentwisesubjectlist.map((subject: any, idx: number) => (
                                 <th key={`subj-${idx}`} className='border border-gray-300 p-2 text-center'>
-                                    {subject.ISMS_SubjectName}
+                                    {subject.ISMS_SubjectName || subject.ismS_SubjectName}
                                 </th>
                             ))}
                             <th className='border border-gray-300 p-2 text-center'>TOTAL</th>
@@ -177,18 +229,18 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                         </tr>
                     </thead>
                     <tbody>
-                        {getstudentmarksdetails_temp.map((report: any, idx: number) => {
-                            const totalRecord = St_ThomosTotal.find((dd: any) => report.AMST_Id === dd.AMST_Id);
+                        {studentMarksDetails.map((report: any, idx: number) => {
+                            const totalRecord = finalTotal.find((dd: any) => (report.AMST_Id || report.amsT_Id) === (dd.AMST_Id || dd.amsT_Id));
 
                             return (
                                 <tr key={`row-${idx}`} className='hover:bg-gray-50'>
                                     <td className='border border-gray-300 p-2 text-center'>{idx + 1}</td>
-                                    <td className='border border-gray-300 p-2 text-center'>{report.AMST_AdmNo}</td>
-                                    <td className='border border-gray-300 p-2 font-medium'>{report.studentname}</td>
+                                    <td className='border border-gray-300 p-2 text-center'>{report.AMST_AdmNo || report.amsT_AdmNo}</td>
+                                    <td className='border border-gray-300 p-2 font-medium'>{report.studentname || report.studentName}</td>
 
                                     {/* Marks */}
                                     {getstudentwisesubjectlist.map((user: any, sIdx: number) => {
-                                        const mark = report[user.ISMS_SubjectName];
+                                        const mark = report[user.ISMS_SubjectName || user.ismS_SubjectName];
                                         let displayMark: string | number = '';
                                         if (mark > 0) displayMark = mark;
                                         else if (mark === 0) displayMark = 'AB';
@@ -203,10 +255,10 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                     })}
 
                                     <td className='border border-gray-300 p-2 text-center font-bold'>
-                                        {totalRecord ? totalRecord.ESTMPPSG_GroupObtMarks : ''}
+                                        {totalRecord ? (totalRecord.ESTMPPSG_GroupObtMarks ?? totalRecord.estmppsG_GroupObtMarks ?? '') : ''}
                                     </td>
                                     <td className='border border-gray-300 p-2 text-center font-bold'>
-                                        {totalRecord ? totalRecord.TotalPercentage : ''}
+                                        {totalRecord ? (totalRecord.TotalPercentage ?? totalRecord.totalPercentage ?? '') : ''}
                                     </td>
                                 </tr>
                             );

@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
 
 export function usePrevious<T>(value: T): T | undefined {
-    const ref = useRef<T>();
+    const ref = useRef<T | undefined>(undefined);
 
     useEffect(() => {
         ref.current = value;
@@ -55,10 +55,10 @@ export const useUserAccessibleModules = () => {
         ...useQuery({
             queryKey: [QUERY_KEYS.USER_ACCESSIBLE_MODULES],
             queryFn: async () => getUserAccessibleModules(),
-            staleTime: 10 * 60 * 1000, // 10 minutes - user modules don't change frequently
+            staleTime: 0,
             gcTime: 30 * 60 * 1000, // 30 minutes cache
-            refetchOnWindowFocus: false,
-            refetchOnMount: false,
+            refetchOnWindowFocus: true,
+            refetchOnMount: true,
             refetchOnReconnect: false
             // Removed refetchInterval - no need to poll every 10 seconds
         }),

@@ -1,348 +1,264 @@
-// Refactored by automation script on 2025-10-28T15:40:35.903Z
-// TODO: Complete refactoring by:
-// 1. Import columns from _components/columns.tsx
-// 2. Import form from _components/position-type-form.tsx
-// 3. Extract column definitions and form to the respective files
-// 4. Update handlers to use the new structure
 'use client';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
-import type { ColumnDef } from '@tanstack/react-table';
-import { Edit, MoreHorizontal, Plus, RefreshCw, Save, Trash2, X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-import { type SubmitHandler, useForm } from 'react-hook-form';
+import {
+    useGetInstitutionByLogin,
+    useGetMasterPositionTypeGrid,
+    useSaveOrUpdatePositionType,
+} from '@/hooks/hrms/recruitment/masters/useMasters';
+import { recruitmentMasterPositionTypeSchema } from '@/schemas/hrms/recruitment/masters';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { RefreshCw, Save } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-interface MasterPositionType extends BaseEntity {
-    institution: string;
-    positionType: string;
-    description: string;
-    isActive: boolean;
-}
-type MasterPositionTypeForm = {
-    institution: string;
-    positionType: string;
-    description: string;
-    isActive: boolean;
-};
-const institutions = ['VAPS School', 'VAPS College', 'VAPS University', 'VAPS Institute', 'VAPS Academy'];
+import { z } from 'zod';
+import { type MasterPositionType, getMasterPositionTypeColumns } from './_components/columns';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import ToggleMasterPositionTypeModal from './_components/toggle-modal';
+
+type MasterPositionTypeForm = z.infer<typeof recruitmentMasterPositionTypeSchema>;
+
 export default function MasterPositionTypePage() {
-    const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
-    const [positionTypes, setPositionTypes] = useState<MasterPositionType[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [resetkey, setResetkey] = useState(0);
+    const [isToggleOpen, setIsToggleOpen] = useState(false);
+    const [selectedPositionType, setSelectedPositionType] = useState<MasterPositionType | null>(null);
     const formRef = useRef<HTMLDivElement>(null);
-    const positionTypeDB = createLocalCrud<MasterPositionType>('master:positionType');
+
+    const { data: institutionData, isLoading: institutionLoading } = useGetInstitutionByLogin();
+    const { mutateAsync: saveMutation, isPending: isSubmittingMutation } = useSaveOrUpdatePositionType();
+
     const {
+        control,
         register,
         handleSubmit,
         reset,
-        setValue,
         watch,
-        formState: { errors, isSubmitting }
+        formState: { errors }
     } = useForm<MasterPositionTypeForm>({
+        resolver: zodResolver(recruitmentMasterPositionTypeSchema),
         mode: 'onChange',
         defaultValues: {
-            isActive: true
+            hrmpT_Institution: '',
+            hrmpT_Name: '',
+            hrmpT_Desc: '',
+            hrmpT_ActiveFlg: true,
+            mI_Id: 0,
+            hrmpT_Id: 0,
         }
     });
-    const institution = watch('institution');
-    // Load data on component mount
-    useEffect(() => {
-        loadPositionTypes();
-    }, []);
-    const loadPositionTypes = () => {
-        try {
-            setPositionTypes(positionTypeDB.list());
-        } catch (_error) {
-            toast.error('Failed to load position types');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-    const handleAddClick = () => {
-        setIsFormOpen(true);
+
+    const selectedInstitutionId = watch('hrmpT_Institution');
+
+    const { data: positionTypeGridData, isLoading: isLoadingMasterPositionType, refetchAll: refetchMasterPositionType } = useGetMasterPositionTypeGrid(
+        selectedInstitutionId ? Number(selectedInstitutionId) : 0
+    );
+
+    const gridData = positionTypeGridData?.data ?? [];
+
+    // Clears only name/desc — keeps institution so the grid query stays active
+    const handleClear = () => {
         setEditingId(null);
-        reset({ isActive: true });
-        // Scroll to form after state update
-        setTimeout(() => {
-            formRef.current?.scrollIntoView({
-                behavior: 'smooth',
-                block: 'end'
-            });
-        }, 100);
+        const currentInstitution = watch('hrmpT_Institution');
+        reset({
+            hrmpT_Id: 0,
+            hrmpT_ActiveFlg: true,
+            hrmpT_Institution: currentInstitution, // preserve so grid stays visible
+            hrmpT_Name: '',
+            hrmpT_Desc: '',
+            mI_Id: currentInstitution ? Number(currentInstitution) : 0
+        });
+        setResetkey(prev => prev + 1);
     };
-    const handleFormClose = () => {
-        setIsFormOpen(false);
+
+    const handleFullClear = () => {
         setEditingId(null);
-        reset({ isActive: true });
+        reset({ hrmpT_Id: 0, hrmpT_ActiveFlg: true, hrmpT_Institution: '', hrmpT_Name: '', hrmpT_Desc: '', mI_Id: 0 });
+        setResetkey(prev => prev + 1);
     };
-    const onSubmit: SubmitHandler<MasterPositionTypeForm> = async (data: MasterPositionTypeForm) => {
+
+    const onSubmit: SubmitHandler<MasterPositionTypeForm> = async (data) => {
         try {
-            if (editingId) {
-                positionTypeDB.update(editingId, data);
-                toast.success('Position type updated successfully');
+            const payload = {
+                hrmpT_Id: editingId || 0,
+                mi_id: Number(data.hrmpT_Institution),
+                hrmpT_Name: data.hrmpT_Name,
+                hrmpT_Desc: data.hrmpT_Desc,
+            };
+            const result = await saveMutation(payload);
+            if (result.success) {
+                toast.success(editingId ? 'Position type updated successfully' : 'Position type created successfully');
+                // Refetch FIRST (institution still set), THEN clear fields
+                await refetchMasterPositionType();
+                handleFullClear();
             } else {
-                positionTypeDB.create(data as Omit<MasterPositionType, 'id' | 'createdAt'>);
-                toast.success('Position type created successfully');
+                toast.error(result.message || 'Operation failed');
             }
-            loadPositionTypes();
-            handleFormClose();
         } catch (error: any) {
             toast.error(error.message || 'Operation failed');
         }
     };
+
     const handleEdit = (positionType: MasterPositionType) => {
-        setEditingId(positionType.id);
-        setValue('institution', positionType.institution);
-        setValue('positionType', positionType.positionType);
-        setValue('description', positionType.description);
-        setValue('isActive', positionType.isActive);
-        setIsFormOpen(true);
-        // Scroll to form after state update
+        setEditingId(positionType.hrmpT_Id);
+        const institutionId = positionType.mI_Id?.toString() ?? selectedInstitutionId;
+        reset({
+            hrmpT_Id: positionType.hrmpT_Id,
+            hrmpT_Institution: institutionId,
+            hrmpT_Name: positionType.hrmpT_Name,
+            hrmpT_Desc: positionType.hrmpT_Desc,
+            hrmpT_ActiveFlg: positionType.hrmpT_ActiveFlg,
+            mI_Id: positionType.mI_Id
+        });
         setTimeout(() => {
-            formRef.current?.scrollIntoView({
-                behavior: 'smooth',
-                block: 'end'
-            });
+            formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
         }, 100);
     };
-    const handleDelete = (id: number) => {
-        try {
-            positionTypeDB.remove(id);
-            toast.success('Position type deleted successfully');
-            loadPositionTypes();
-        } catch (_error: any) {
-            toast.error('Failed to delete position type');
-        }
+
+    const handleToggle = (positionType: MasterPositionType) => {
+        setSelectedPositionType(positionType);
+        setIsToggleOpen(true);
     };
+
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                {/* Header */}
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    {/* <div className='space-y-1'>
-                        <Heading
-                            title='Master Position Type Management'
-                            description='Manage different types of positions and their descriptions'
-                        />
-                    </div> */}
-                    <Button
-                        type='button'
-                        onClick={handleAddClick}
-                        size='lg'
-                        className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                        <Plus className='h-4 w-4' />
-                        Add Master Position Type
-                    </Button>
-                </div>
-                {/* Data Table Section - Collapsible but default open */}
-                <CollapsibleSection
-                    // title='Master Position Types Data'
-                    // description='View, search, and manage all position type details in the system'
-                    defaultOpen={true}
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
-                    headerClassName=''>
-                    <PositionTypeTable positionTypes={positionTypes} isLoading={isLoading} onEdit={handleEdit} onDelete={handleDelete} />
-                </CollapsibleSection>
-                {/* Add Form Section - Conditionally Rendered */}
-                {isFormOpen && (
-                    <div ref={formRef} className='slide-in-from-top-4 animate-in duration-300'>
-                        <CollapsibleSection
-                            title={editingId ? 'Update Master Position Type' : 'Add New Master Position Type'}
-                            description='Fill in the details below to create a new position type'
-                            defaultOpen={true}
-                            variant='outline'
-                            size='md'
-                            className='shadow-lg'
-                            headerClassName=''>
-                            <div className='relative'>
-                                <Button
-                                    onClick={handleFormClose}
-                                    variant='ghost'
-                                    size='sm'
-                                    className='-top-[4rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                    <X className='h-4 w-4 text-destructive' /> Close
-                                </Button>
-                                <form onSubmit={handleSubmit(onSubmit)} className='max-w-full space-y-6'>
-                                    {/* Primary Information Section */}
-                                    <div className='space-y-4'>
-                                        <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
-                                            <div className='space-y-2'>
-                                                <span className='font-medium text-sm'>
-                                                    Institution <span className='text-red-500'>*</span>
-                                                </span>
-                                                <Select value={institution || ''} onValueChange={(value) => setValue('institution', value)}>
-                                                    <SelectTrigger className={errors.institution ? 'border-red-500' : ''}>
-                                                        <SelectValue placeholder='Select Institution' />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {institutions.map((inst) => (
-                                                            <SelectItem key={inst} value={inst}>
-                                                                {inst}
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                                {!institution && (
-                                                    <input
-                                                        type='hidden'
-                                                        {...register('institution', {
-                                                            required: 'Institution is required'
-                                                        })}
-                                                    />
+                <div ref={formRef} className='slide-in-from-top-4 animate-in duration-300'>
+                    <CollapsibleSection
+                        title={editingId ? 'Update Master Position Type' : 'Add New Master Position Type'}
+                        description='Fill in the details below to manage a position type'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='shadow-lg'
+                        headerClassName=''>
+                        <div className='relative'>
+                            <form onSubmit={handleSubmit(onSubmit)} className='max-w-full space-y-6'>
+                                <div className='space-y-4'>
+                                    <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
+                                        <div className='flex flex-col gap-1.5'>
+                                            <span className='font-medium text-sm'>
+                                                Institution <span className='text-red-500'>*</span>
+                                            </span>
+                                            <Controller
+                                                key={resetkey}
+                                                name='hrmpT_Institution'
+                                                control={control}
+                                                render={({ field }) => (
+                                                    <Select value={field.value || ''} onValueChange={field.onChange}
+                                                        disabled={institutionLoading}
+                                                    >
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder={institutionLoading ? 'Loading Institution...' : 'Select Institution'} />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {institutionData?.data?.map((inst: any) => (
+                                                                <SelectItem key={inst.mI_Id} value={inst.mI_Id.toString()}>
+                                                                    {inst.mI_Name}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
                                                 )}
-                                                {errors.institution && <FormError>{errors.institution.message}</FormError>}
-                                            </div>
-                                            <InputText
-                                                label='Description'
-                                                required
-                                                id='description'
-                                                {...register('description', { required: 'Description is required' })}
-                                                error={errors.description?.message}
-                                                className='transition-colors focus:ring-2 focus:ring-primary/20'
                                             />
+                                            {errors.hrmpT_Institution && <FormError>{errors.hrmpT_Institution.message}</FormError>}
                                         </div>
-                                        <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
-                                            <InputText
-                                                label='Position Type'
-                                                required
-                                                id='positionType'
-                                                {...register('positionType', { required: 'Position Type is required' })}
-                                                error={errors.positionType?.message}
-                                                className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                            />
-                                            <div className='flex items-center space-y-2 pt-6'>
-                                                <input
-                                                    type='checkbox'
-                                                    id='isActive'
-                                                    {...register('isActive')}
-                                                    className='mr-2 border-border text-primary focus:ring-primary'
-                                                />
-                                                <label htmlFor='isActive' className='font-medium text-foreground text-sm'>
-                                                    Active
-                                                </label>
+                                        <InputText
+                                            key={`name-${resetkey}`}
+                                            label='Position Type'
+                                            required
+                                            id='hrmpT_Name'
+                                            {...register('hrmpT_Name')}
+                                            error={errors.hrmpT_Name?.message}
+                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                            placeholder='Enter Position Type'
+                                        />
+                                    </div>
+                                    <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
+                                        <InputText
+                                            key={`desc-${resetkey}`}
+                                            label='Description'
+                                            required
+                                            id='hrmpT_Desc'
+                                            {...register('hrmpT_Desc')}
+                                            error={errors.hrmpT_Desc?.message}
+                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                            placeholder='Enter Description'
+                                        />
+                                    </div>
+                                    {errors.root && <FormError>{errors.root.message}</FormError>}
+                                </div>
+                                {/* Action Buttons */}
+                                <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
+                                    <Button
+                                        type='button'
+                                        variant='outline'
+                                        onClick={handleFullClear}
+                                        disabled={isSubmittingMutation}
+                                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        type='submit'
+                                        disabled={isSubmittingMutation}
+                                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
+                                        {isSubmittingMutation ? (
+                                            <div className='flex items-center'>
+                                                <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
+                                                Saving...
                                             </div>
-                                        </div>
-                                        {/* Root Error */}
-                                        {errors.root && <FormError>{errors.root.message}</FormError>}
-                                    </div>
-                                    {/* Action Buttons */}
-                                    <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
-                                        <Button
-                                            type='button'
-                                            variant='outline'
-                                            onClick={handleFormClose}
-                                            disabled={isSubmitting}
-                                            className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                                            Cancel
-                                        </Button>
-                                        <Button
-                                            type='submit'
-                                            disabled={isSubmitting}
-                                            className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
-                                            {isSubmitting ? (
-                                                <div className='flex items-center'>
-                                                    <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
-                                                    Saving...
-                                                </div>
-                                            ) : (
-                                                <div className='flex items-center'>
-                                                    <Save className='mr-2 h-4 w-4' />
-                                                    {editingId ? 'Update Master Position Type' : 'Save Master Position Type'}
-                                                </div>
-                                            )}
-                                        </Button>
-                                    </div>
-                                </form>
+                                        ) : (
+                                            <div className='flex items-center'>
+                                                <Save className='mr-2 h-4 w-4' />
+                                                {editingId ? 'Update Master Position Type' : 'Save Master Position Type'}
+                                            </div>
+                                        )}
+                                    </Button>
+                                </div>
+                            </form>
+                        </div>
+                    </CollapsibleSection>
+                </div>
+
+                {/* Data Table Section */}
+                <CollapsibleSection
+                    title='Master Position Types List'
+                    description='Manage position types for the selected institution'
+                    defaultOpen={true}
+                    size='lg'
+                    className='shadow-lg'
+                >
+                    {
+                        (isLoadingMasterPositionType || gridData.length > 0 || selectedInstitutionId) ? (
+                            <GenericDataTable
+                                data={gridData || []}
+                                columns={getMasterPositionTypeColumns({ onEdit: handleEdit, onToggle: handleToggle })}
+                                isLoading={isLoadingMasterPositionType}
+                                totalItems={gridData?.length || 0}
+                                showViewOptions={false}
+                            />
+                        ) : (
+                            <div className='flex items-center justify-center py-10'>
+                                <p className='text-muted-foreground text-md'>Please Select Institution to View Data</p>
                             </div>
-                        </CollapsibleSection>
-                    </div>
+                        )
+                    }
+                </CollapsibleSection>
+
+                {/* Toggle Modal */}
+                {selectedPositionType && (
+                    <ToggleMasterPositionTypeModal
+                        isOpen={isToggleOpen}
+                        rowData={selectedPositionType}
+                        onClose={() => setIsToggleOpen(false)}
+                        onSuccess={() => refetchMasterPositionType()}
+                    />
                 )}
             </div>
         </div>
-    );
-}
-interface PositionTypeTableProps {
-    positionTypes: MasterPositionType[];
-    isLoading: boolean;
-    onEdit: (positionType: MasterPositionType) => void;
-    onDelete: (id: number) => void;
-}
-function PositionTypeTable({ positionTypes, isLoading, onEdit, onDelete }: PositionTypeTableProps) {
-    const positionTypeColumns: ColumnDef<MasterPositionType>[] = [
-        {
-            id: 'serialNumber',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Sl No' />,
-            cell: ({ row }) => <div className='font-medium'>{row.index + 1}</div>,
-            enableSorting: false
-        },
-        {
-            accessorKey: 'positionType',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Position Type' />,
-            cell: ({ row }) => <div className='font-medium'>{row.getValue('positionType')}</div>
-        },
-        {
-            accessorKey: 'description',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Description' />,
-            cell: ({ row }) => <div>{row.getValue('description')}</div>
-        },
-        {
-            accessorKey: 'isActive',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
-            cell: ({ row }) => {
-                const isActive = row.getValue('isActive') as boolean;
-                return <Badge variant={isActive ? 'default' : 'secondary'}>{isActive ? 'Active' : 'Inactive'}</Badge>;
-            }
-        },
-        {
-            id: 'actions',
-            header: 'Actions',
-            cell: ({ row }) => {
-                const positionType = row.original;
-                return (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant='ghost' className='h-8 w-8 p-0'>
-                                <MoreHorizontal className='h-4 w-4' />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align='end'>
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <Button variant='ghost' size='sm' onClick={() => onEdit(positionType)} className='w-full justify-start'>
-                                <Edit className='mr-2 h-4 w-4' />
-                                Edit
-                            </Button>
-                            <Button
-                                variant='ghost'
-                                size='sm'
-                                onClick={() => onDelete(positionType.id)}
-                                className='w-full justify-start text-red-600 hover:text-red-900'>
-                                <Trash2 className='mr-2 h-4 w-4' />
-                                Delete
-                            </Button>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                );
-            }
-        }
-    ];
-    return (
-        <GenericDataTable
-            isLoading={isLoading}
-            columns={positionTypeColumns}
-            data={positionTypes}
-            totalItems={positionTypes.length}
-            showViewOptions={true}
-        />
     );
 }

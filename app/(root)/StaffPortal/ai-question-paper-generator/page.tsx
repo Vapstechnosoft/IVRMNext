@@ -59,7 +59,7 @@ export default function AIQuestionPaperGenerator() {
     // State
     const [file, setFile] = useState<File | null>(null);
     const [activeTab, setActiveTab] = useState("upload");
-    const [chapters, setChapters] = useState<string>("");
+    const [chapters, setChapters] = useState<string>("1");
     const [isLoading, setIsLoading] = useState(false);
     const [generatedPaper, setGeneratedPaper] = useState<QuestionPaper | null>(null);
     const [errorLog, setErrorLog] = useState<string | null>(null);
@@ -312,22 +312,52 @@ export default function AIQuestionPaperGenerator() {
                                     <CardContent className="space-y-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                         <div className="grid w-full items-center gap-1.5">
                                             <Label htmlFor="pdf-upload" className="after:content-['*'] after:ml-0.5 after:text-red-500">Textbook (PDF)</Label>
-                                            <Input
-                                                id="pdf-upload"
-                                                type="file"
-                                                accept=".pdf"
-                                                onChange={handleFileChange}
-                                                className="cursor-pointer file:text-primary file:font-semibold"
-                                            />
+                                            {file ? (
+                                                <div className="flex items-center justify-between p-3 rounded-lg border bg-primary/5 border-primary/20 animate-in fade-in slide-in-from-top-1 duration-300">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                                                            <FileText className="h-5 w-5 text-primary" />
+                                                        </div>
+                                                        <div className="flex flex-col max-w-[200px]">
+                                                            <span className="text-sm font-bold text-slate-900 truncate">{file.name}</span>
+                                                            <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-tighter">
+                                                                {(file.size / 1024 / 1024).toFixed(2)} MB • PDF
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <Button 
+                                                        variant="ghost" 
+                                                        size="sm" 
+                                                        onClick={() => setFile(null)}
+                                                        className="h-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                                    >
+                                                        Change
+                                                    </Button>
+                                                </div>
+                                            ) : (
+                                                <Input
+                                                    id="pdf-upload"
+                                                    type="file"
+                                                    accept=".pdf"
+                                                    onChange={handleFileChange}
+                                                    className="cursor-pointer file:text-primary file:font-semibold"
+                                                />
+                                            )}
                                         </div>
 
                                         <div className="grid w-full items-center gap-1.5 pt-2">
                                             <Label htmlFor="chapters" className="after:content-['*'] after:ml-0.5 after:text-red-500">Chapter Numbers</Label>
                                             <Input
                                                 id="chapters"
-                                                placeholder="e.g. 1, 2, 5.1"
+                                                placeholder="e.g. 1, 2, 5"
                                                 value={chapters}
-                                                onChange={(e) => setChapters(e.target.value)}
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    // Allow numbers, commas, and dots only
+                                                    if (/^[0-9,.\s]*$/.test(val)) {
+                                                        setChapters(val);
+                                                    }
+                                                }}
                                                 className="h-10"
                                             />
                                         </div>
@@ -472,7 +502,7 @@ export default function AIQuestionPaperGenerator() {
                                         <Button
                                             size="lg"
                                             onClick={handleGenerate}
-                                            disabled={isLoading || !file}
+                                            disabled={isLoading}
                                             className="min-w-[200px]"
                                         >
                                             {isLoading ? (
