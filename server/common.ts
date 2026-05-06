@@ -2017,12 +2017,20 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Fee Summarized Report ST JAMES'
                                         },
                                         {
-                                            id: 43,
+                                            id: 526,
                                             name: 'Fee Waivedoff Sophia',
                                             icon: 'BadgeIndianRupee',
                                             url: '/fees/transactions/waivedoff',
                                             title: 'Fee Waivedoff Sophia',
                                             description: 'Manage Fee Waivedoff Sophia'
+                                        },
+                                        {
+                                            id: 527,
+                                            name: 'Fee PreAdmission Transaction ST Marys',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/feepreadmissionstmarys',
+                                            title: 'Fee PreAdmission Transaction ST Marys',
+                                            description: 'Manage Fee PreAdmission Transaction ST Marys'
                                         }
                                     ]
                                 }
