@@ -3,6 +3,7 @@
 import Groq from 'groq-sdk';
 import pdf from 'pdf-parse';
 
+
 const groq = new Groq({
     apiKey: process.env.GROQ_API_KEY || process.env.note_Groq_api_key || ''
 });
