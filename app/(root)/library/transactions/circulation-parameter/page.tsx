@@ -3,7 +3,6 @@
 import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { Form } from '@/components/ui/form';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import {
     useCirculationParameterDetails,
     useSaveCirculationParameter,
@@ -112,37 +111,47 @@ export default function CirculationParameterPage() {
             <FormProvider {...form}>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)}>
-                        <CollapsibleSection title='CIRCULATION PARAMETER'>
-                            <CirculationParameterForm
-                                categoryList={categoryList}
-                                bookTypeList={bookTypeList}
-                                classList={classList}
-                                departmentList={departmentList}
-                                employeeGroupList={employeeGroupList}
-                                guestList={guestList}
-                            />
-                            <div className='mt-8 flex justify-center gap-4'>
-                                <Button type='submit' disabled={saveMutation.isPending}>
-                                    {saveMutation.isPending ? (
-                                        <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                                    ) : (
-                                        <Save className='mr-2 h-4 w-4' />
-                                    )}
-                                    {editingId ? 'Update' : 'Save'}
-                                </Button>
-                                <Button type='button' variant='outline' onClick={handleCancel}>
-                                    <XCircle className='mr-2 h-4 w-4' />
-                                    Cancel
-                                </Button>
+                        <div className='bg-white rounded-lg shadow-sm border border-t-4 border-t-orange-400 overflow-hidden'>
+                            <div className='bg-[#4251b1] text-white px-4 py-2 font-semibold text-sm'>
+                                CIRCULATION PARAMETER
                             </div>
-                        </CollapsibleSection>
+                            <div className='p-6'>
+                                <CirculationParameterForm
+                                    categoryList={categoryList}
+                                    bookTypeList={bookTypeList}
+                                    classList={classList}
+                                    departmentList={departmentList}
+                                    employeeGroupList={employeeGroupList}
+                                    guestList={guestList}
+                                />
+                                <div className='mt-8 flex justify-center gap-4'>
+                                    <Button type='submit' disabled={saveMutation.isPending} className='w-auto h-8 px-8 py-1 text-xs min-w-[120px] bg-[#4251b1] hover:bg-[#35418e] text-white shadow-sm rounded-sm'>
+                                        {saveMutation.isPending ? (
+                                            <Loader2 className='mr-1.5 h-3.5 w-3.5 animate-spin' />
+                                        ) : (
+                                            <Save className='mr-1.5 h-3.5 w-3.5' />
+                                        )}
+                                        {editingId ? 'UPDATE' : 'SAVE'}
+                                    </Button>
+                                    <Button type='button' onClick={handleCancel} className='w-auto h-8 px-8 py-1 text-xs min-w-[120px] bg-[#ff5a30] hover:bg-[#e64d26] text-white shadow-sm rounded-sm'>
+                                        <XCircle className='mr-1.5 h-3.5 w-3.5' />
+                                        CANCEL
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
                     </form>
                 </Form>
             </FormProvider>
 
-            <CollapsibleSection title='CIRCULATION PARAMETER LIST'>
-                <GenericDataTable columns={columns as any} data={gridData} isLoading={isDetailsLoading} />
-            </CollapsibleSection>
+            <div className='bg-white rounded-lg shadow-sm border border-t-4 border-t-orange-400 overflow-hidden'>
+                <div className='bg-[#4251b1] text-white px-4 py-2 font-semibold text-sm'>
+                    CIRCULATION PARAMETER LIST
+                </div>
+                <div className='p-6'>
+                    <GenericDataTable columns={columns as any} data={gridData} isLoading={isDetailsLoading} />
+                </div>
+            </div>
         </div>
     );
 }

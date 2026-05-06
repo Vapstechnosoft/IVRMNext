@@ -6206,6 +6206,16 @@ export async function getUserAccessibleModules() {
                                             url: '/library/reports/library-month-end-report',
                                             title: 'Library Month End Report',
                                             description: 'View Library Month End Report'
+                                        },
+
+
+                                        {
+                                            id: 30028,
+                                            name: 'Library Month End Report',
+                                            icon: 'FileText',
+                                            url: '/library/reports/import-library',
+                                            title: 'Library Month End Report',
+                                            description: 'import-library'
                                         }
                                     ]
                                 }
