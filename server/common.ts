@@ -2,14 +2,6 @@
 import { type ApiResponse, api } from '@/lib/apiService';
 import { auth } from '@/lib/auth';
 import type { IDropdown, IUserAccessibleModules, UserNotification } from '@/types';
-import { admissionModule } from './modules/admission';
-import { feesModule } from './modules/fees';
-import { examModule } from './modules/exam';
-import { hrmsModule } from './modules/hrms';
-import { iframeModule } from './modules/iframe';
-import { timetableModule } from './modules/timetable';
-import { libraryModule } from './modules/library';
-import { transportModule } from './modules/transport';
 
 export async function getCommonDropdown(name: string) {
     const url = `/v1/common/common_drop_down_list/${name}`;
@@ -3006,7 +2998,7 @@ export async function getUserAccessibleModules() {
                                             id: 21050,
                                             name: 'NDS_Co_Scholasticreport',
                                             icon: 'Ticket',
-                                            url: '/Exam/exam-module/reports/NDS/NDS_Co_Scholasticreport',
+                                            url: '/Exam/exam-module/reports/nds/NDS_Co_Scholasticreport',
                                             title: 'NDS_Co_Scholasticreport',
                                             description: 'NDS_Co_Scholasticreport'
                                         },
@@ -3014,7 +3006,7 @@ export async function getUserAccessibleModules() {
                                             id: 21051,
                                             name: 'NDS_I_To_VIII_ReportCard',
                                             icon: 'Ticket',
-                                            url: '/Exam/exam-module/reports/NDS/NDS_I_To_VIII_ReportCard',
+                                            url: '/Exam/exam-module/reports/nds/NDS_I_To_VIII_ReportCard',
                                             title: 'NDS_I_To_VIII_ReportCard',
                                             description: 'NDS_I_To_VIII_ReportCard'
                                         },
@@ -3089,7 +3081,7 @@ export async function getUserAccessibleModules() {
                                             id: 21044,
                                             name: 'NDS_9_ProgressNewCardReport',
                                             icon: 'Ticket',
-                                            url: '/Exam/exam-module/reports/NDS/NDS_9_ProgressNewCardReport',
+                                            url: '/Exam/exam-module/reports/nds/NDS_9_ProgressNewCardReport',
                                             title: 'NDS_9_ProgressNewCardReport',
                                             description: 'NDS_9_ProgressNewCardReport'
                                         },
@@ -3097,7 +3089,7 @@ export async function getUserAccessibleModules() {
                                             id: 21046,
                                             name: 'NDS_9_ProgressCardReport',
                                             icon: 'Ticket',
-                                            url: '/Exam/exam-module/reports/NDS/NDS_9_ProgressCardReport',
+                                            url: '/Exam/exam-module/reports/nds/NDS_9_ProgressCardReport',
                                             title: 'NDS_9_ProgressCardReport',
                                             description: 'NDS_9_ProgressCardReport'
                                         },
@@ -3105,7 +3097,7 @@ export async function getUserAccessibleModules() {
                                             id: 21047,
                                             name: 'NDS_1_5_ProgressCardReport',
                                             icon: 'Ticket',
-                                            url: '/Exam/exam-module/reports/NDS/NDS_1_5_ProgressCardReport',
+                                            url: '/Exam/exam-module/reports/nds/NDS_1_5_ProgressCardReport',
                                             title: 'NDS_1_5_ProgressCardReport',
                                             description: 'NDS_1_5_ProgressCardReport'
                                         },
@@ -3113,7 +3105,7 @@ export async function getUserAccessibleModules() {
                                             id: 21045,
                                             name: 'NDS Promotion Report Card',
                                             icon: 'Ticket',
-                                            url: '/Exam/exam-module/reports/NDS/NDS_Promotionreportcard',
+                                            url: '/Exam/exam-module/reports/nds/NDS_Promotionreportcard',
                                             title: 'NDS Promotion Report Card',
                                             description: 'NDS Promotion Report Card'
                                         },
@@ -3129,7 +3121,7 @@ export async function getUserAccessibleModules() {
                                             id: 21047,
                                             name: 'NDS_9 Progress Card Report',
                                             icon: 'FileText',
-                                            url: '/Exam/exam-module/reports/NDS/NDS9ProgressCardReport',
+                                            url: '/Exam/exam-module/reports/nds/NDS9ProgressCardReport',
                                             title: 'NDS_9 Progress Card Report',
                                             description: 'NDS 9 Progress Card Report'
                                         },
@@ -3189,6 +3181,54 @@ export async function getUserAccessibleModules() {
                                             title: 'Sophia Report Card Pre III',
                                             description: 'Sophia Report Card Pre III'
 
+                                        },
+                                        {
+                                            id: 21205,
+                                            name: 'St. James IV Progress Card',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/StJames/st-james-iv-report',
+                                            title: 'St. James IV Progress Card',
+                                            description: 'St. James IV Progress Card'
+                                        },
+                                        {
+                                            id: 21206,
+                                            name: 'IX-X St. James  Report',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/StJames/ix-x_st-jamesreport',
+                                            title: 'IX-X St. James  Report',
+                                            description: 'IX-X St. James  Report'
+                                        },
+                                        {
+                                            id: 21207,
+                                            name: 'St.James Progress Card New',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/StJames/progresscard-stjames-new',
+                                            title: 'St.James Progress Card New',
+                                            description: 'St.James  Progress Card New'
+                                        },
+                                        {
+                                            id: 21208,
+                                            name: 'St.James Progress Card',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/StJames/progresscard-st-james',
+                                            title: 'St.James Progress Card',
+                                            description: 'St.James Progress Card'
+                                        },
+                                        {
+                                            id: 21209,
+                                            name: 'XI-XII St.James Progress Card',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/StJames/xi-xii-progresscard-st-james',
+                                            title: 'XI-XII St.James Progress Card',
+                                            description: 'XI-XII St.James Progress Card'
+                                        },
+                                        {
+                                            id: 21505,
+                                            name: 'BRS PreBoard Report Card',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Burnpur/BRS_PreBoard_reportcard',
+                                            title: 'BRS PreBoard Report Card',
+                                            description: 'BRS PreBoard Report Card'
                                         }
                                     ]
                                 }
@@ -3791,12 +3831,19 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/reports/PFYearlyReport',
                                             title: 'PF Yearly Report',
                                             description: 'Manage PF Yearly Report'
+                                        },
+                                        {
+                                            id: 37,
+                                            name: 'Employee Salary Slip SRKVS Report',
+                                            icon: 'FileType',
+                                            url: '/hrms/reports/employeeSalarySlipSRKVS',
+                                            title: 'Employee Salary Slip SRKVS Report',
+                                            description: 'Employee Salary Slips'
                                         }
                                     ]
                                 }
                             ]
                         },
-
                         {
                             id: 2,
                             name: 'Recruitment',
@@ -6282,6 +6329,14 @@ export async function getUserAccessibleModules() {
                                             url: '/library/reports/library-month-end-report',
                                             title: 'Library Month End Report',
                                             description: 'View Library Month End Report'
+                                        },
+                                        {
+                                            id: 30028,
+                                            name: 'Import Library Data',
+                                            icon: 'Upload',
+                                            url: '/library/reports/importlibrarydata',
+                                            title: 'Import Library Data',
+                                            description: 'Import Bulk Library Data'
                                         }
                                     ]
                                 }
@@ -7655,7 +7710,7 @@ export async function getUserAccessibleModules() {
                                             id: 600,
                                             name: 'Master particulars',
                                             icon: 'BadgeIndianRupee',
-                                            url: '/pettycash/masterparticulars',
+                                            url: '/pettycash/master/masterparticulars',
                                             title: 'Master Particulars',
                                             description: 'Manage Master Particulars Details'
                                         }
@@ -7701,7 +7756,7 @@ export async function getUserAccessibleModules() {
                                             id: 60321230,
                                             name: 'Pc Requisition Report',
                                             icon: 'BadgeIndianRupee',
-                                            url: '/pettycash/PcRequisitionReport',
+                                            url: '/pettycash/report/PcRequisitionReport',
                                             title: 'Pc Requisition Report',
                                             description: 'View Pc Requisition Reports'
                                         },
@@ -7709,7 +7764,7 @@ export async function getUserAccessibleModules() {
                                             id: 60321231,
                                             name: 'Income Report',
                                             icon: 'BadgeIndianRupee',
-                                            url: '/pettycash/incomereport',
+                                            url: '/pettycash/report/incomereport',
                                             title: 'Income Report',
                                             description: 'View Income Reports'
                                         },
@@ -7717,16 +7772,139 @@ export async function getUserAccessibleModules() {
                                             id: 60321232,
                                             name: 'Bank Credit And Debit Report',
                                             icon: 'BadgeIndianRupee',
-                                            url: '/pettycash/BankCopyReportVVVS',
+                                            url: '/pettycash/report/BankCopyReportVVVS',
                                             title: 'Bank Credit And Debit Report',
                                             description: 'View Bank Credit And Debit Reports'
                                         }
+                                        // {
+                                        //     id: 60321233,
+                                        //     name: 'PDA Head Wise Report',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/pettycash/report/pdaHeadWiseReport',
+                                        //     title: 'PDA Head Wise Report',
+                                        //     description: 'View PDA Head Wise Report'
+                                        // },
+                                        // {
+                                        //     id: 60321234,
+                                        //     name: 'PDA Debit Credit Report',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/pettycash/report/PDADebitCreditReport',
+                                        //     title: 'PDA Debit CreditReport',
+                                        //     description: 'View PDA Student Debit/Credit Report'
+                                        // }
                                     ]
                                 }
                             ]
                         }
                     ]
-                }
+                },
+                // {
+                //     id: 999021,
+                //     name: 'PDA',
+                //     icon: 'BadgeIndianRupee',
+                //     menu: [
+                //         {
+                //             id: 1,
+                //             name: 'PDA',
+                //             icon: 'BadgeIndianRupee',
+                //             sub_menu: [
+                //                 {
+                //                     id: 1,
+                //                     name: 'Masters',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 601,
+                //                             name: 'PDA Master Head',
+                //                             icon: 'Settings',
+                //                             url: '/pda/master/pda-master-head',
+                //                             title: 'PDA Master Head',
+                //                             description: 'Manage PDA Master Head Details'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 2,
+                //                     name: 'Transactions',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 6021,
+                //                             name: 'PDA Transactions SRS',
+                //                             icon: 'Settings',
+                //                             url: '/pda/transaction/pdatransactionsrs',
+                //                             title: 'PDA Transactions SRS',
+                //                             description: 'Manage PDA Transactions SRS'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 3,
+                //                     name: 'Reports',
+                //                     icon: 'BarChart',
+                //                     pages: [
+                //                         {
+                //                             id: 603212,
+                //                             name: 'PDA Debit Credit Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDADebitCreditReport',
+                //                             title: 'PDA Debit Credit Report',
+                //                             description: 'View PDA Debit Credit Reports'
+                //                         },
+                //                         {
+                //                             id: 603213,
+                //                             name: 'PDA Head Wise Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/pdaHeadWiseReport',
+                //                             title: 'PDA Head Wise Report',
+                //                             description: 'View PDA Head Wise Reports'
+                //                         },
+                //                         {
+                //                             id: 603214,
+                //                             name: 'PDA Debit Credit Report SRS',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDADebitCreditReportSRS',
+                //                             title: 'PDA Debit Credit Report SRS',
+                //                             description: 'View PDA Debit Credit Report SRS'
+                //                         },
+                //                         {
+                //                             id: 603215,
+                //                             name: 'PDA Expenditure Import',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/pda-expenditure-import',
+                //                             title: 'PDA Expenditure Import',
+                //                             description: 'View PDA Expenditure Import'
+                //                         },
+                //                         {
+                //                             id: 603216,
+                //                             name: 'PDA Over All Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDAOverAllReport',
+                //                             title: 'PDA OverAll Report',
+                //                             description: 'View PDA OverAll Report'
+                //                         },
+                //                         {
+                //                             id: 603217,
+                //                             name: 'PDA Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDAReport',
+                //                             title: 'PDA Report',
+                //                             description: 'View PDA Report'
+                //                         },
+                //                         {
+                //                             id: 603218,
+                //                             name: 'PDA Summary Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDASummaryReport',
+                //                             title: 'PDA Summary Report',
+                //                             description: 'View PDA Summary Report'
+                //                         }
+                //                     ]
+                //                 }
+                //             ]
+                //         }
+                //     ]
+                // }
             ]
         };
     } else if (session?.role.toUpperCase() === 'STAFF') {
@@ -7739,28 +7917,7 @@ export async function getUserAccessibleModules() {
                     name: 'Staff Portal',
                     icon: 'Settings',
                     menu: [
-                        // {
-                        //     id: 1,
-                        //     name: 'Dashboard',
-                        //     icon: 'LayoutDashboard',
-                        //     sub_menu: [
-                        //         {
-                        //             id: 8000,
-                        //             name: 'Dashboard',
-                        //             icon: 'LayoutDashboard',
-                        //             pages: [
-                        //                 {
-                        //                     id: 8000,
-                        //                     name: 'Staff Dashboard',
-                        //                     icon: 'LayoutDashboard',
-                        //                     url: '/StaffPortal/staff-dashboard',
-                        //                     title: 'Staff Dashboard',
-                        //                     description: 'Overall Staff Statistics'
-                        //                 }
-                        //             ]
-                        //         }
-                        //     ]
-                        // },
+
                         {
                             id: 2,
                             name: 'Attendance',
@@ -8843,7 +9000,114 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                }
+                },
+                // {
+                //     id: 999021,
+                //     name: 'PDA',
+                //     icon: 'BadgeIndianRupee',
+                //     menu: [
+                //         {
+                //             id: 1,
+                //             name: 'PDA',
+                //             icon: 'BadgeIndianRupee',
+                //             sub_menu: [
+                //                 {
+                //                     id: 1,
+                //                     name: 'Masters',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 601,
+                //                             name: 'PDA Master Head',
+                //                             icon: 'Settings',
+                //                             url: '/pda/master/pda-master-head',
+                //                             title: 'PDA Master Head',
+                //                             description: 'Manage PDA Master Head Details'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 2,
+                //                     name: 'Transactions',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 6021,
+                //                             name: 'PDA Transactions SRS',
+                //                             icon: 'Settings',
+                //                             url: '/pda/transaction/pdatransactionsrs',
+                //                             title: 'PDA Transactions SRS',
+                //                             description: 'Manage PDA Transactions SRS'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 3,
+                //                     name: 'Reports',
+                //                     icon: 'BarChart',
+                //                     pages: [
+                //                         {
+                //                             id: 603212,
+                //                             name: 'PDA Debit Credit Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/pda-debit-credit-report',
+                //                             title: 'PDA Debit Credit Report',
+                //                             description: 'View PDA Debit Credit Reports'
+                //                         },
+                //                         {
+                //                             id: 603213,
+                //                             name: 'PDA Head Wise Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/pda-head-wise-report',
+                //                             title: 'PDA Head Wise Report',
+                //                             description: 'View PDA Head Wise Reports'
+                //                         },
+                //                         {
+                //                             id: 603214,
+                //                             name: 'PDA Debit Credit Report SRS',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDADebitCreditReportSRS',
+                //                             title: 'PDA Debit Credit Report SRS',
+                //                             description: 'View PDA Debit Credit Report SRS'
+                //                         },
+                //                         {
+                //                             id: 603215,
+                //                             name: 'PDA Expenditure Import',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/pda-expenditure-import',
+                //                             title: 'PDA Expenditure Import',
+                //                             description: 'View PDA Expenditure Import'
+                //                         },
+                //                         {
+                //                             id: 603216,
+                //                             name: 'PDA Over All Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDAOverAllReport',
+                //                             title: 'PDA OverAll Report',
+                //                             description: 'View PDA OverAll Report'
+                //                         },
+                //                         {
+                //                             id: 603217,
+                //                             name: 'PDA Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDAReport',
+                //                             title: 'PDA Report',
+                //                             description: 'View PDA Report'
+                //                         },
+                //                         {
+                //                             id: 603218,
+                //                             name: 'PDA Summary Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDASummaryReport',
+                //                             title: 'PDA Summary Report',
+                //                             description: 'View PDA Summary Report'
+                //                         }
+                //                     ]
+                //                 }
+                //             ]
+                //         }
+                //     ]
+                // }
             ]
         };
     } else {
@@ -8879,7 +9143,115 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                }
+                },
+                // {
+                //     id: 999021,
+                //     name: 'PDA',
+                //     icon: 'BadgeIndianRupee',
+                //     menu: [
+                //         {
+                //             id: 1,
+                //             name: 'PDA',
+                //             icon: 'BadgeIndianRupee',
+                //             sub_menu: [
+                //                 {
+                //                     id: 1,
+                //                     name: 'Masters',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 601,
+                //                             name: 'PDA Master Head',
+                //                             icon: 'Settings',
+                //                             url: '/pda/master/pda-master-head',
+                //                             title: 'PDA Master Head',
+                //                             description: 'Manage PDA Master Head Details'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 2,
+                //                     name: 'Transactions',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 6021,
+                //                             name: 'PDA Transactions SRS',
+                //                             icon: 'Settings',
+                //                             url: '/pda/transaction/pdatransactionsrs',
+                //                             title: 'PDA Transactions SRS',
+                //                             description: 'Manage PDA Transactions SRS'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 3,
+                //                     name: 'Reports',
+                //                     icon: 'BarChart',
+                //                     pages: [
+                //                         {
+                //                             id: 603212,
+                //                             name: 'PDA Debit Credit Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDADebitCreditReport',
+                //                             title: 'PDA Debit Credit Report',
+                //                             description: 'View PDA Debit Credit Reports'
+                //                         },
+                //                         {
+                //                             id: 603213,
+                //                             name: 'PDA Head Wise Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDAHeadWiseReport',
+                //                             title: 'PDA Head Wise Report',
+                //                             description: 'View PDA Head Wise Reports'
+                //                         },
+                //                         {
+                //                             id: 603214,
+                //                             name: 'PDA Debit Credit Report SRS',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDADebitCreditReportSRS',
+                //                             title: 'PDA Debit Credit Report SRS',
+                //                             description: 'View PDA Debit Credit Report SRS'
+                //                         },
+                //                         {
+                //                             id: 603215,
+                //                             name: 'PDA Expenditure Import',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/pda-expenditure-import',
+                //                             title: 'PDA Expenditure Import',
+                //                             description: 'View PDA Expenditure Import'
+                //                         },
+                //                         {
+                //                             id: 603216,
+                //                             name: 'PDA Over All Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDAOverAllReport',
+                //                             title: 'PDA OverAll Report',
+                //                             description: 'View PDA OverAll Report'
+                //                         },
+                //                         {
+                //                             id: 603217,
+                //                             name: 'PDA Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDAReport',
+                //                             title: 'PDA Report',
+                //                             description: 'View PDA Report'
+                //                         },
+                //                         {
+                //                             id: 603218,
+                //                             name: 'PDA Summary Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDASummaryReport',
+                //                             title: 'PDA Summary Report',
+                //                             description: 'View PDA Summary Report'
+                //                         }
+                //                     ]
+                //                 }
+                //             ]
+                //         }
+                //     ]
+                // },
+
                 // ,
                 // {
                 //     id: 9,
