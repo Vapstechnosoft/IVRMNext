@@ -6,14 +6,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import * as React from 'react';
-import { DayPicker, type DropdownProps } from 'react-day-picker';
+import { DayPicker } from 'react-day-picker';
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
-function CalendarYear({ className, classNames, showOutsideDays = true, selected, ...props }: CalendarProps) {
+function CalendarYear({ className, classNames, showOutsideDays = true, ...props }: CalendarProps) {
+    // Cast to any: v9 DayPicker props are a discriminated union based on `mode`,
+    // so `selected` doesn't exist on all branches at the type level.
+    const selected = (props as any).selected;
+
     // Helper to derive an initial month from `selected` (Date | Date[] | Range)
     const getInitialMonthFromSelected = (): Date => {
-        const sel = selected as any;
+        const sel = selected;
         if (!sel) return props.month || new Date();
 
         if (sel instanceof Date) return sel;
@@ -27,9 +31,6 @@ function CalendarYear({ className, classNames, showOutsideDays = true, selected,
 
     // Reference to track the current displayed month
     const [currentMonth, setCurrentMonth] = React.useState<Date>(getInitialMonthFromSelected());
-
-    // State to track calendar open status
-    const [_calendarOpen, setCalendarOpen] = React.useState<boolean>(false);
 
     // Update the internal month state when the `month` prop or `selected` prop changes
     React.useEffect(() => {
@@ -45,11 +46,12 @@ function CalendarYear({ className, classNames, showOutsideDays = true, selected,
     // Range of years to show in the year dropdown
     const years = React.useMemo(() => {
         const currentYear = new Date().getFullYear();
-        const endYear = props.toDate ? props.toDate.getFullYear() : currentYear;
-        const startYear = endYear - 50; // adjust range as desired
+        // v9: endMonth replaces toDate
+        const endYear = props.endMonth ? props.endMonth.getFullYear() : currentYear;
+        const startYear = endYear - 50;
 
         return Array.from({ length: endYear - startYear + 1 }, (_, i) => startYear + i);
-    }, [props.toDate]);
+    }, [props.endMonth]);
 
     // Handle year change
     const handleYearChange = (year: string) => {
@@ -58,16 +60,12 @@ function CalendarYear({ className, classNames, showOutsideDays = true, selected,
         newDate.setFullYear(newYear);
 
         setCurrentMonth(newDate);
-
-        // Call the onMonthChange prop if provided
         props.onMonthChange?.(newDate);
     };
 
     // Custom month change handler to update our internal state
     const handleMonthChange = (month: Date) => {
         setCurrentMonth(month);
-
-        // Call the original onMonthChange if provided
         props.onMonthChange?.(month);
     };
 
@@ -75,109 +73,74 @@ function CalendarYear({ className, classNames, showOutsideDays = true, selected,
         <div className='relative'>
             {/* Calendar Container with fixed positioning */}
             <div className={cn('overflow-hidden rounded-md border bg-popover shadow-md', 'flex w-auto flex-col', className)}>
-                {/* Year Selector - inside the calendar container */}
-                {/* <div className='flex justify-end px-2 pt-1 pb-0'>
-                    <Select value={currentMonth.getFullYear().toString()} onValueChange={handleYearChange} searchable={false}>
-                        <SelectTrigger className='h-6 w-20 px-2 text-xs focus:ring-0'>
-                            <SelectValue>{currentMonth.getFullYear()}</SelectValue>
-                        </SelectTrigger>
-                        <SelectContent position='popper' sideOffset={4} className='max-h-40'>
-                            <ScrollArea className='h-40'>
-                                {years.map((year) => (
-                                    <SelectItem key={year} value={year.toString()} className='py-1 text-xs'>
-                                        {year}
-                                    </SelectItem>
-                                ))}
-                            </ScrollArea>
-                        </SelectContent>
-                    </Select>
-                </div> */}
-
                 {/* Main Calendar */}
                 <DayPicker
                     showOutsideDays={showOutsideDays}
                     className={cn('p-1 py-2', className)}
                     classNames={{
+                        // v9 classNames
                         months: 'flex flex-col sm:flex-row space-y-2 sm:space-x-2 sm:space-y-0',
-                        month: 'space-y-2',
-                        vhidden: 'vhidden hidden',
-                        caption: 'flex justify-center pt-0 relative items-center',
+                        month_caption: 'flex justify-center pt-0 relative items-center', // was: caption
                         caption_label: 'text-xs font-medium',
-                        caption_dropdowns: cn('flex justify-between gap-1', props.captionLayout === 'dropdown' && 'w-full'),
+                        dropdowns: cn('flex justify-between gap-1', props.captionLayout === 'dropdown' && 'w-full'), // was: caption_dropdowns
                         nav: 'space-x-1 flex items-center',
-                        nav_button: cn(buttonVariants({ variant: 'outline' }), 'h-6 w-6 bg-transparent p-0 opacity-50 hover:opacity-100'),
-                        nav_button_previous: 'absolute left-1',
-                        nav_button_next: 'absolute right-1',
-                        table: 'w-full border-collapse space-y-1',
-                        head_row: 'flex',
-                        head_cell: 'text-muted-foreground rounded-md w-8 font-normal text-[0.7rem]',
-                        row: 'flex w-full mt-1',
-                        cell: 'text-center text-xs p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20',
-                        day: cn(buttonVariants({ variant: 'ghost' }), 'h-7 w-8 p-0 font-normal aria-selected:opacity-100'),
-                        day_selected:
-                            'bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground',
-                        day_today: 'bg-accent text-accent-foreground',
-                        day_outside: 'text-muted-foreground opacity-50',
-                        day_disabled: 'text-muted-foreground opacity-50',
-                        day_range_middle: 'aria-selected:bg-accent aria-selected:text-accent-foreground',
-                        day_hidden: 'invisible',
+                        button_previous: cn(buttonVariants({ variant: 'outline' }), 'h-6 w-6 bg-transparent p-0 opacity-50 hover:opacity-100 absolute left-1'), // was: nav_button + nav_button_previous
+                        button_next: cn(buttonVariants({ variant: 'outline' }), 'h-6 w-6 bg-transparent p-0 opacity-50 hover:opacity-100 absolute right-1'),    // was: nav_button + nav_button_next
+                        month_grid: 'w-full border-collapse space-y-1', // was: table
+                        weekdays: 'flex',                               // was: head_row
+                        weekday: 'text-muted-foreground rounded-md w-8 font-normal text-[0.7rem]', // was: head_cell
+                        week: 'flex w-full mt-1',                      // was: row
+                        day: 'text-center text-xs p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20', // was: cell
+                        day_button: cn(buttonVariants({ variant: 'ghost' }), 'h-7 w-8 p-0 font-normal aria-selected:opacity-100'), // was: day
+                        selected: 'bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground', // was: day_selected
+                        today: 'bg-accent text-accent-foreground',     // was: day_today
+                        outside: 'text-muted-foreground opacity-50',   // was: day_outside
+                        disabled: 'text-muted-foreground opacity-50',  // was: day_disabled
+                        range_middle: 'aria-selected:bg-accent aria-selected:text-accent-foreground', // was: day_range_middle
+                        hidden: 'invisible',                           // was: day_hidden
                         ...classNames
                     }}
                     components={{
-                        Dropdown: ({ value, onChange, children, ...dropdownProps }: DropdownProps) => {
-                            // Only show month dropdown from the original component
-                            const options = React.Children.toArray(children) as React.ReactElement<React.HTMLProps<HTMLOptionElement>>[];
-                            const selected = options.find((child) => child.props.value === value);
-                            const handleChange = (value: string) => {
-                                const changeEvent = {
-                                    target: { value }
-                                } as React.ChangeEvent<HTMLSelectElement>;
+                        // v9: single Chevron component replaces IconLeft + IconRight
+                        Chevron: ({ orientation }) => {
+                            if (orientation === 'left') return <ChevronLeft className='h-3 w-3' />;
+                            return <ChevronRight className='h-3 w-3' />;
+                        },
+                        // v9: Dropdown with options array (not children)
+                        Dropdown: ({ value, onChange, options }) => {
+                            // Skip rendering year dropdown - handled externally via the year Select above
+                            const handleChange = (val: string) => {
+                                const changeEvent = { target: { value: val } } as React.ChangeEvent<HTMLSelectElement>;
                                 onChange?.(changeEvent);
                             };
-
-                            // Skip rendering year dropdown in the original component
-                            if (dropdownProps.name === 'year') {
-                                return null;
-                            }
-
+                            const selectedOption = options?.find((opt) => opt.value === value);
                             return (
-                                <Select
-                                    value={value?.toString()}
-                                    onValueChange={(value) => {
-                                        handleChange(value);
-                                    }}
-                                    searchable={false}>
+                                <Select value={value?.toString()} onValueChange={handleChange}>
                                     <SelectTrigger className='h-6 pr-1.5 text-xs focus:ring-0'>
-                                        <SelectValue>{selected?.props?.children}</SelectValue>
+                                        <SelectValue>{selectedOption?.label}</SelectValue>
                                     </SelectTrigger>
                                     <SelectContent position='popper' sideOffset={4} className='max-h-40'>
                                         <ScrollArea className='h-40'>
-                                            {options.map((option, id: number) => (
+                                            {options?.map((option) => (
                                                 <SelectItem
-                                                    key={`${option.props.value}-${id}`}
-                                                    value={option.props.value?.toString() ?? ''}
+                                                    key={option.value}
+                                                    value={option.value?.toString() ?? ''}
+                                                    disabled={option.disabled}
                                                     className='py-1 text-xs'>
-                                                    {option.props.children}
+                                                    {option.label}
                                                 </SelectItem>
                                             ))}
                                         </ScrollArea>
                                     </SelectContent>
                                 </Select>
                             );
-                        },
-                        IconLeft: () => <ChevronLeft className='h-3 w-3' />,
-                        IconRight: () => <ChevronRight className='h-3 w-3' />
+                        }
                     }}
                     month={currentMonth}
-                    selected={selected as any}
                     onMonthChange={handleMonthChange}
                     {...props}
                     onDayClick={(day, modifiers, e) => {
                         props.onDayClick?.(day, modifiers, e);
-                        if (modifiers.selected && !props.mode?.includes('range')) {
-                            // Close the calendar when a date is selected (for single mode)
-                            setCalendarOpen(false);
-                        }
                     }}
                 />
             </div>
