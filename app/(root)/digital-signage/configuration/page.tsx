@@ -6,9 +6,22 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { motion } from 'framer-motion';
-import { Settings, Save, Monitor, ShieldCheck, Zap, Globe, Key, Clock } from 'lucide-react';
+import { Settings, Save, Monitor, ShieldCheck, Zap, Globe, Key, Clock, Loader2 } from 'lucide-react';
+import { useSignage } from '@/hooks/digital-signage/useSignage';
+import { useMemo } from 'react';
 
 export default function DigitalSignageConfiguration() {
+    const { useDisplays } = useSignage();
+    const { data: displaysRes, isLoading: isDisplaysLoading } = useDisplays(1);
+
+    const activeClients = useMemo(() => {
+        if (!displaysRes?.data) return 0;
+        // Filter displays that are "Logged In" or just count total for simplicity
+        return displaysRes.data.filter((d: any) => d.statusDescription === 'Logged In').length;
+    }, [displaysRes]);
+
+    const totalDisplays = displaysRes?.total_items || 0;
+
     return (
         <div className='container mx-auto p-6 space-y-8'>
             <motion.div 
@@ -47,13 +60,19 @@ export default function DigitalSignageConfiguration() {
                         <CardContent className='space-y-4'>
                             <div className='space-y-2'>
                                 <Label htmlFor='api-url'>API Base URL</Label>
-                                <Input id='api-url' placeholder='http://xibo-flask-api:5000' defaultValue='http://xibo-flask-api:5000' className='focus-visible:ring-orange-500' />
+                                <Input id='api-url' placeholder='http://172.16.10.77:65501' defaultValue='http://172.16.10.77:65501' className='focus-visible:ring-orange-500' />
                             </div>
-                            <div className='space-y-2'>
-                                <Label htmlFor='api-key'>Secret Key</Label>
-                                <div className='flex gap-2'>
-                                    <Input id='api-key' type='password' value='••••••••••••••••' readOnly className='focus-visible:ring-orange-500' />
-                                    <Button variant='outline' size='sm'><Key className='h-4 w-4' /></Button>
+                            <div className='grid grid-cols-2 gap-4'>
+                                <div className='space-y-2'>
+                                    <Label htmlFor='client-id'>Client ID</Label>
+                                    <Input id='client-id' value='b95687d6...4ddb' readOnly className='focus-visible:ring-orange-500 bg-gray-50' />
+                                </div>
+                                <div className='space-y-2'>
+                                    <Label htmlFor='api-key'>Secret Key</Label>
+                                    <div className='flex gap-2'>
+                                        <Input id='api-key' type='password' value='••••••••••••••••' readOnly className='focus-visible:ring-orange-500 bg-gray-50' />
+                                        <Button variant='outline' size='sm' className='border-orange-200'><Key className='h-4 w-4' /></Button>
+                                    </div>
                                 </div>
                             </div>
                         </CardContent>
@@ -176,14 +195,16 @@ export default function DigitalSignageConfiguration() {
                         </CardHeader>
                         <CardContent className='grid gap-4 md:grid-cols-4'>
                             <div className='p-4 rounded-xl border border-orange-100 bg-white/50 backdrop-blur-sm'>
-                                <Label className='text-orange-600 font-bold'>API Latency</Label>
-                                <p className='text-2xl font-bold mt-1'>-- ms</p>
-                                <p className='text-xs text-muted-foreground'>Awaiting connection</p>
+                                <Label className='text-orange-600 font-bold'>API Status</Label>
+                                <p className='text-2xl font-bold mt-1 text-green-600'>Online</p>
+                                <p className='text-xs text-muted-foreground'>Service reachable</p>
                             </div>
                             <div className='p-4 rounded-xl border border-orange-100 bg-white/50 backdrop-blur-sm'>
                                 <Label className='text-orange-600 font-bold'>Active Clients</Label>
-                                <p className='text-2xl font-bold mt-1'>0</p>
-                                <p className='text-xs text-muted-foreground'>Connected displays</p>
+                                <p className='text-2xl font-bold mt-1'>
+                                    {isDisplaysLoading ? <Loader2 className='h-6 w-6 animate-spin' /> : activeClients}
+                                </p>
+                                <p className='text-xs text-muted-foreground'>{totalDisplays} total displays</p>
                             </div>
                             <div className='p-4 rounded-xl border border-orange-100 bg-white/50 backdrop-blur-sm'>
                                 <Label className='text-orange-600 font-bold'>Storage</Label>

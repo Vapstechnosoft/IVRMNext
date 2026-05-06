@@ -2,7 +2,6 @@
 
 import Groq from 'groq-sdk';
 import pdf from 'pdf-parse';
-import mammoth from 'mammoth';
 
 const groq = new Groq({
     apiKey: process.env.GROQ_API_KEY || process.env.note_Groq_api_key || ''
@@ -17,8 +16,9 @@ async function extractTextFromFile(file: File): Promise<string> {
         const data = await pdf(buffer);
         return data.text;
     } else if (fileName.endsWith('.docx')) {
-        const data = await mammoth.extractRawText({ buffer });
-        return data.value;
+        // Mammoth removed as requested. .docx JD text extraction skipped locally.
+        // The backend API still receives the file and handles parsing.
+        return '';
     } else if (fileName.endsWith('.doc')) {
         // Simple fallback for older .doc if needed, otherwise treat as text
         return buffer.toString('utf-8');
@@ -106,15 +106,18 @@ export async function analyzeResume(formData: FormData) {
         const data = await response.json();
 
         // 4. Augment backend response with our accurately extracted experience
-        if (data.job) {
+        // ONLY if we successfully extracted it locally (e.g. from PDF/Text)
+        if (data.job && extractedMinExp > 0) {
             data.job.min_experience = extractedMinExp;
         }
+
+        const finalMinExp = data.job?.min_experience || extractedMinExp || 0;
         
         // Update experience breakdown
         if (data.score?.breakdown?.experience) {
-            data.score.breakdown.experience.required = extractedMinExp;
-            data.score.breakdown.experience.meets = (data.candidate?.experience_years || 0) >= extractedMinExp;
-            data.score.breakdown.experience.note = extractedMinExp === 0 ? "No minimum specified" : `${extractedMinExp}+ years required`;
+            data.score.breakdown.experience.required = finalMinExp;
+            data.score.breakdown.experience.meets = (data.candidate?.experience_years || 0) >= finalMinExp;
+            data.score.breakdown.experience.note = finalMinExp === 0 ? "No minimum specified" : `${finalMinExp}+ years required`;
         }
 
         // 5. Handle Report/Summary Fallback

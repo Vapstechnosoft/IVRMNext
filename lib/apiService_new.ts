@@ -12,7 +12,8 @@ export type ApiBaseUrlKey =
     | 'hrmsfrontoffice'
     | 'hmslms'
     | 'timetable'
-    | 'hrmsrecruitment';
+    | 'hrmsrecruitment'
+    | 'signage';
 
 class ApiServiceNew {
     private instances: Map<string, AxiosInstance>;
@@ -32,7 +33,8 @@ class ApiServiceNew {
             hrmsfrontoffice: process.env.NEXT_PUBLIC_HRMS_FRONTOFFICE_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             hmslms: process.env.NEXT_PUBLIC_HRMS_LMS_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             timetable: process.env.NEXT_PUBLIC_TIMETABLE_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
-            hrmsrecruitment: process.env.NEXT_PUBLIC_HRMS_RECRUITMENT_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || ''
+            hrmsrecruitment: process.env.NEXT_PUBLIC_HRMS_RECRUITMENT_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
+            signage: process.env.NEXT_PUBLIC_SIGNAGE_API_BASE_URL || process.env.SIGNAGE_API_BASE_URL || 'http://172.16.10.77:65501'
         };
 
         // Initialize default instance

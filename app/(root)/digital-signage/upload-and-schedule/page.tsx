@@ -16,11 +16,14 @@ import {
     Trash2, 
     Play, 
     RefreshCw,
-    Search
+    Search,
+    Loader2
 } from 'lucide-react';
 import { useState } from 'react';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import type { ColumnDef } from '@tanstack/react-table';
+import { useSignage } from '@/hooks/digital-signage/useSignage';
+import { toast } from 'sonner';
 
 // Interfaces for our data
 interface MediaItem {
@@ -54,29 +57,58 @@ interface DisplayItem {
 }
 
 export default function UploadAndSchedule() {
-    const [isUploading, setIsUploading] = useState(false);
+    const { 
+        useLibrary, 
+        deleteMedia, 
+        useSchedule, 
+        deleteSchedule, 
+        useDisplays, 
+        requestScreenshot, 
+        uploadAndSchedule 
+    } = useSignage();
 
-    // Data will be fetched from backend
-    const mediaData: MediaItem[] = [];
-    const scheduleData: ScheduleItem[] = [];
-    const displayData: DisplayItem[] = [];
+    // Pagination States
+    const [libraryPage, setLibraryPage] = useState(1);
+    const [schedulePage, setSchedulePage] = useState(1);
+    const [displaysPage, setDisplaysPage] = useState(1);
+
+    // Fetch Data
+    const { data: libraryRes, isLoading: isLibraryLoading } = useLibrary(libraryPage);
+    const { data: scheduleRes, isLoading: isScheduleLoading } = useSchedule(schedulePage);
+    const { data: displaysRes, isLoading: isDisplaysLoading } = useDisplays(displaysPage);
+
+    // Form States
+    const [file, setFile] = useState<File | null>(null);
+    const [startDt, setStartDt] = useState('');
+    const [endDt, setEndDt] = useState('');
+    const [displayId, setDisplayId] = useState('');
+
+    const mediaData: MediaItem[] = libraryRes?.data || [];
+    const scheduleData: ScheduleItem[] = scheduleRes?.data || [];
+    const displayData: DisplayItem[] = displaysRes?.data || [];
 
     // Column Definitions
     const mediaColumns: ColumnDef<MediaItem>[] = [
-        { accessorKey: 'mediaId', header: 'mediaId' },
-        { accessorKey: 'name', header: 'name' },
-        { accessorKey: 'mediaType', header: 'mediaType' },
-        { accessorKey: 'fileName', header: 'fileName', cell: ({ row }) => <span className='truncate max-w-[150px] inline-block'>{row.original.fileName}</span> },
-        { accessorKey: 'fileSizeFormatted', header: 'size' },
-        { accessorKey: 'width', header: 'width' },
-        { accessorKey: 'height', header: 'height' },
-        { accessorKey: 'orientation', header: 'orientation' },
-        { accessorKey: 'createdDt', header: 'createdDt' },
+        { accessorKey: 'mediaId', header: 'ID' },
+        { accessorKey: 'name', header: 'Name' },
+        { accessorKey: 'mediaType', header: 'Type' },
+        { accessorKey: 'fileName', header: 'File', cell: ({ row }) => <span className='truncate max-w-[150px] inline-block'>{row.original.fileName}</span> },
+        { accessorKey: 'fileSizeFormatted', header: 'Size' },
+        { accessorKey: 'width', header: 'Width' },
+        { accessorKey: 'height', header: 'Height' },
+        { accessorKey: 'orientation', header: 'Orientation' },
+        { accessorKey: 'createdDt', header: 'Created' },
         {
             id: 'actions',
             header: 'Action',
-            cell: () => (
-                <Button variant='destructive' size='sm' className='h-8 px-2'>
+            cell: ({ row }) => (
+                <Button 
+                    variant='destructive' 
+                    size='sm' 
+                    className='h-8 px-2'
+                    disabled={deleteMedia.isPending}
+                    onClick={() => deleteMedia.mutate({ mediaId: row.original.mediaId })}
+                >
                     <Trash2 className='h-4 w-4 mr-1' /> Delete
                 </Button>
             )
@@ -84,18 +116,24 @@ export default function UploadAndSchedule() {
     ];
 
     const scheduleColumns: ColumnDef<ScheduleItem>[] = [
-        { accessorKey: 'eventId', header: 'eventId' },
-        { accessorKey: 'campaign', header: 'campaign' },
-        { accessorKey: 'displayGroupList', header: 'displayGroupList' },
-        { accessorKey: 'eventTypeName', header: 'eventTypeName' },
-        { accessorKey: 'displayFromDt', header: 'displayFromDt' },
-        { accessorKey: 'displayToDt', header: 'displayToDt' },
-        { accessorKey: 'createdOn', header: 'createdOn' },
+        { accessorKey: 'eventId', header: 'ID' },
+        { accessorKey: 'campaign', header: 'Campaign' },
+        { accessorKey: 'displayGroupList', header: 'Display' },
+        { accessorKey: 'eventTypeName', header: 'Type' },
+        { accessorKey: 'displayFromDt', header: 'From' },
+        { accessorKey: 'displayToDt', header: 'To' },
+        { accessorKey: 'createdOn', header: 'Created' },
         {
             id: 'actions',
             header: 'Action',
-            cell: () => (
-                <Button variant='destructive' size='sm' className='h-8 px-2'>
+            cell: ({ row }) => (
+                <Button 
+                    variant='destructive' 
+                    size='sm' 
+                    className='h-8 px-2'
+                    disabled={deleteSchedule.isPending}
+                    onClick={() => deleteSchedule.mutate(row.original.eventId)}
+                >
                     <Trash2 className='h-4 w-4 mr-1' /> Delete
                 </Button>
             )
@@ -103,25 +141,51 @@ export default function UploadAndSchedule() {
     ];
 
     const displayColumns: ColumnDef<DisplayItem>[] = [
-        { accessorKey: 'displayId', header: 'displayId' },
-        { accessorKey: 'display', header: 'display' },
-        { accessorKey: 'clientType', header: 'clientType' },
-        { accessorKey: 'statusDescription', header: 'statusDescription' },
-        { accessorKey: 'lastAccessed', header: 'lastAccessed' },
+        { accessorKey: 'displayId', header: 'ID' },
+        { accessorKey: 'display', header: 'Display' },
+        { accessorKey: 'clientType', header: 'Client' },
+        { accessorKey: 'statusDescription', header: 'Status' },
+        { accessorKey: 'lastAccessed', header: 'Last Access' },
         {
             id: 'actions',
             header: 'Action',
-            cell: () => (
-                <Button variant='default' size='sm' className='h-8 px-2 bg-blue-600 hover:bg-blue-700'>
+            cell: ({ row }) => (
+                <Button 
+                    variant='default' 
+                    size='sm' 
+                    className='h-8 px-2 bg-blue-600 hover:bg-blue-700'
+                    disabled={requestScreenshot.isPending}
+                    onClick={() => requestScreenshot.mutate(row.original.displayId)}
+                >
                     <RefreshCw className='h-4 w-4 mr-1' /> Request Shot
                 </Button>
             )
         }
     ];
 
-    const handleUpload = () => {
-        setIsUploading(true);
-        setTimeout(() => setIsUploading(false), 2000);
+    const handleUpload = async () => {
+        if (!file || !startDt || !endDt || !displayId) {
+            toast.error('All fields are required');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('start_date', startDt);
+        formData.append('end_date', endDt);
+        formData.append('display_id', displayId);
+
+        uploadAndSchedule.mutate(formData, {
+            onSuccess: () => {
+                // Clear form
+                setFile(null);
+                setStartDt('');
+                setEndDt('');
+                setDisplayId('');
+                const fileInput = document.getElementById('media-file') as HTMLInputElement;
+                if (fileInput) fileInput.value = '';
+            }
+        });
     };
 
     return (
@@ -151,15 +215,26 @@ export default function UploadAndSchedule() {
                         </CardHeader>
                         <CardContent className='p-6 space-y-6'>
                             <div className='space-y-2'>
-                                <Label htmlFor='media-file' className='font-bold'>Image File</Label>
+                                <Label htmlFor='media-file' className='font-bold'>Media File</Label>
                                 <div className='flex items-center justify-center w-full'>
                                     <label htmlFor='media-file' className='flex flex-col items-center justify-center w-full h-32 border-2 border-orange-200 border-dashed rounded-lg cursor-pointer bg-orange-50/30 hover:bg-orange-50 transition-colors'>
-                                        <div className='flex flex-col items-center justify-center pt-5 pb-6'>
+                                        <div className='flex flex-col items-center justify-center pt-5 pb-6 text-center px-4'>
                                             <Upload className='w-8 h-8 mb-3 text-orange-500' />
-                                            <p className='mb-2 text-sm text-orange-700'><span className='font-semibold'>Click to upload</span> or drag and drop</p>
-                                            <p className='text-xs text-orange-600/60'>PNG, JPG or MP4 (MAX. 500MB)</p>
+                                            {file ? (
+                                                <p className='mb-2 text-sm text-green-700 font-bold truncate max-w-full'>{file.name}</p>
+                                            ) : (
+                                                <>
+                                                    <p className='mb-2 text-sm text-orange-700'><span className='font-semibold'>Click to upload</span> or drag and drop</p>
+                                                    <p className='text-xs text-orange-600/60'>PNG, JPG or MP4 (MAX. 500MB)</p>
+                                                </>
+                                            )}
                                         </div>
-                                        <input id='media-file' type='file' className='hidden' />
+                                        <input 
+                                            id='media-file' 
+                                            type='file' 
+                                            className='hidden' 
+                                            onChange={(e) => setFile(e.target.files?.[0] || null)}
+                                        />
                                     </label>
                                 </div>
                             </div>
@@ -167,24 +242,47 @@ export default function UploadAndSchedule() {
                             <div className='space-y-4'>
                                 <div className='space-y-2'>
                                     <Label htmlFor='start-dt' className='font-bold'>Start Date & Time</Label>
-                                    <Input id='start-dt' type='datetime-local' className='focus-visible:ring-orange-500' />
+                                    <Input 
+                                        id='start-dt' 
+                                        type='datetime-local' 
+                                        className='focus-visible:ring-orange-500' 
+                                        value={startDt}
+                                        onChange={(e) => setStartDt(e.target.value)}
+                                    />
                                 </div>
                                 <div className='space-y-2'>
                                     <Label htmlFor='end-dt' className='font-bold'>End Date & Time</Label>
-                                    <Input id='end-dt' type='datetime-local' className='focus-visible:ring-orange-500' />
+                                    <Input 
+                                        id='end-dt' 
+                                        type='datetime-local' 
+                                        className='focus-visible:ring-orange-500' 
+                                        value={endDt}
+                                        onChange={(e) => setEndDt(e.target.value)}
+                                    />
                                 </div>
                                 <div className='space-y-2'>
-                                    <Label htmlFor='display-id' className='font-bold'>Display ID</Label>
-                                    <Input id='display-id' placeholder='Enter Display ID' className='focus-visible:ring-orange-500' />
+                                    <Label htmlFor='display-id' className='font-bold'>Display Group ID</Label>
+                                    <Input 
+                                        id='display-id' 
+                                        placeholder='Enter Display ID' 
+                                        className='focus-visible:ring-orange-500' 
+                                        value={displayId}
+                                        onChange={(e) => setDisplayId(e.target.value)}
+                                    />
                                 </div>
                             </div>
 
                             <Button 
                                 className='w-full bg-[#1e6355] hover:bg-[#154d42] text-white font-bold py-6 shadow-lg' 
                                 onClick={handleUpload}
-                                disabled={isUploading}
+                                disabled={uploadAndSchedule.isPending}
                             >
-                                {isUploading ? 'Processing...' : 'Upload and Schedule'}
+                                {uploadAndSchedule.isPending ? (
+                                    <>
+                                        <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                                        Processing...
+                                    </>
+                                ) : 'Upload and Schedule'}
                             </Button>
                         </CardContent>
                     </Card>
@@ -211,10 +309,11 @@ export default function UploadAndSchedule() {
                             <GenericDataTable 
                                 data={mediaData} 
                                 columns={mediaColumns} 
-                                isLoading={false}
+                                isLoading={isLibraryLoading}
                                 isSearchRequired={false}
                                 isPaginationRequired={true}
-                                totalItems={mediaData.length}
+                                totalItems={libraryRes?.total_items || 0}
+                                onPageChange={(page) => setLibraryPage(page)}
                                 maxHeight='400px'
                                 scrollable={true}
                             />
@@ -231,10 +330,11 @@ export default function UploadAndSchedule() {
                             <GenericDataTable 
                                 data={scheduleData} 
                                 columns={scheduleColumns} 
-                                isLoading={false}
+                                isLoading={isScheduleLoading}
                                 isSearchRequired={false}
                                 isPaginationRequired={true}
-                                totalItems={scheduleData.length}
+                                totalItems={scheduleRes?.total_items || 0}
+                                onPageChange={(page) => setSchedulePage(page)}
                             />
                         </CardContent>
                     </Card>
@@ -249,15 +349,14 @@ export default function UploadAndSchedule() {
                             <GenericDataTable 
                                 data={displayData} 
                                 columns={displayColumns} 
-                                isLoading={false}
+                                isLoading={isDisplaysLoading}
                                 isSearchRequired={false}
                                 isPaginationRequired={true}
-                                totalItems={displayData.length}
+                                totalItems={displaysRes?.total_items || 0}
+                                onPageChange={(page) => setDisplaysPage(page)}
                             />
                         </CardContent>
                     </Card>
-
-
                 </motion.div>
             </div>
         </div>
