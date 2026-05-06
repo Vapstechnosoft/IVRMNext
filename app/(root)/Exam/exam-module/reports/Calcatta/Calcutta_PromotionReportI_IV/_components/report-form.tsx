@@ -2,7 +2,6 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { CollapsibleContent } from '@/components/ui/collapsible';
 import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -192,241 +191,240 @@ export default function CalcuttaPromotionReportForm({
     };
 
     return (
-        <div className='rounded-lg border bg-card text-card-foreground shadow-sm'>
-            <CollapsibleContent className='p-6'>
-                <FormProvider {...methods}>
-                    <form onSubmit={handleSubmit(onSubmit)} className='space-y-6' noValidate>
-                        <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
-                            <div className='space-y-6'>
-                                <Controller
-                                    control={control}
-                                    name='asmaY_Id'
-                                    render={({ field, fieldState }) => (
-                                        <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                                            <Label className='font-medium text-sm sm:w-32'>
-                                                Academic Year <span className='text-red-500'>*</span>
-                                            </Label>
-                                            <div className='flex-1'>
-                                                <Select
-                                                    key={field.value}
-                                                    onValueChange={(v) => field.onChange(Number(v))}
-                                                    value={field.value ? String(field.value) : ''}>
-                                                    <SelectTrigger className='w-full'>
-                                                        <SelectValue placeholder='Select Academic Year' />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {academicYearLoading ? (
-                                                            <SelectItem value='0' disabled>
-                                                                Academic Year is loading...
+        <div className='mx-auto w-full rounded-lg border border-gray-200 bg-white p-4 shadow-md'>
+            <div className='mb-4 flex items-center justify-between border-b pb-2'>
+                <h3 className='font-semibold text-gray-800 text-lg'>Calcutta Promotion Report</h3>
+            </div>
+            <FormProvider {...methods}>
+                <form onSubmit={handleSubmit(onSubmit)} className='space-y-6' noValidate>
+                    <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
+                        <div className='space-y-6'>
+                            <Controller
+                                control={control}
+                                name='asmaY_Id'
+                                render={({ field, fieldState }) => (
+                                    <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
+                                        <Label className='font-medium text-sm sm:w-32'>
+                                            Academic Year <span className='text-red-500'>*</span>
+                                        </Label>
+                                        <div className='flex-1'>
+                                            <Select
+                                                key={field.value}
+                                                onValueChange={(v) => field.onChange(Number(v))}
+                                                value={field.value ? String(field.value) : ''}>
+                                                <SelectTrigger className='w-full'>
+                                                    <SelectValue placeholder='Select Academic Year' />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {academicYearLoading ? (
+                                                        <SelectItem value='0' disabled>
+                                                            Academic Year is loading...
+                                                        </SelectItem>
+                                                    ) : academicYears.length === 0 ? (
+                                                        <SelectItem value='0' disabled>
+                                                            No Academic Year found
+                                                        </SelectItem>
+                                                    ) : (
+                                                        academicYears.map((y) => (
+                                                            <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
+                                                                {y.asmaY_Year}
                                                             </SelectItem>
-                                                        ) : academicYears.length === 0 ? (
-                                                            <SelectItem value='0' disabled>
-                                                                No Academic Year found
-                                                            </SelectItem>
-                                                        ) : (
-                                                            academicYears.map((y) => (
-                                                                <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
-                                                                    {y.asmaY_Year}
-                                                                </SelectItem>
-                                                            ))
-                                                        )}
-                                                    </SelectContent>
-                                                </Select>
-                                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                            </div>
+                                                        ))
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                         </div>
-                                    )}
-                                />
-
-                                <Controller
-                                    control={control}
-                                    name='asmcL_Id'
-                                    render={({ field, fieldState }) => (
-                                        <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                                            <Label className='font-medium text-sm sm:w-32'>
-                                                Class <span className='text-red-500'>*</span>
-                                            </Label>
-                                            <div className='flex-1'>
-                                                <Select
-                                                    key={field.value}
-                                                    onValueChange={(v) => field.onChange(Number(v))}
-                                                    value={field.value ? String(field.value) : ''}>
-                                                    <SelectTrigger className='w-full'>
-                                                        <SelectValue placeholder='Select Class' />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {loadingClasses ? (
-                                                            <SelectItem value='0' disabled>
-                                                                Classes are loading...
-                                                            </SelectItem>
-                                                        ) : classes.length === 0 ? (
-                                                            <SelectItem value='0' disabled>
-                                                                No Classes found
-                                                            </SelectItem>
-                                                        ) : (
-                                                            classes.map((c) => (
-                                                                <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
-                                                                    {c.asmcL_ClassName}
-                                                                </SelectItem>
-                                                            ))
-                                                        )}
-                                                    </SelectContent>
-                                                </Select>
-                                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                            </div>
-                                        </div>
-                                    )}
-                                />
-
-                                <Controller
-                                    control={control}
-                                    name='asmS_Id'
-                                    render={({ field, fieldState }) => (
-                                        <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                                            <Label className='font-medium text-sm sm:w-32'>
-                                                Section <span className='text-red-500'>*</span>
-                                            </Label>
-                                            <div className='flex-1'>
-                                                <Select
-                                                    key={field.value}
-                                                    onValueChange={(v) => field.onChange(Number(v))}
-                                                    value={field.value ? String(field.value) : ''}>
-                                                    <SelectTrigger className='w-full'>
-                                                        <SelectValue placeholder='Select Section' />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {loadingSections ? (
-                                                            <SelectItem value='0' disabled>
-                                                                Sections are loading...
-                                                            </SelectItem>
-                                                        ) : sections.length === 0 ? (
-                                                            <SelectItem value='0' disabled>
-                                                                No Sections found
-                                                            </SelectItem>
-                                                        ) : (
-                                                            sections.map((s) => (
-                                                                <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
-                                                                    {s.asmC_SectionName}
-                                                                </SelectItem>
-                                                            ))
-                                                        )}
-                                                    </SelectContent>
-                                                </Select>
-                                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                            </div>
-                                        </div>
-                                    )}
-                                />
-
-                                <Controller
-                                    control={control}
-                                    name='empG_GroupName'
-                                    render={({ field, fieldState }) => (
-                                        <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                                            <Label className='font-medium text-sm sm:w-32'>
-                                                Term
-                                            </Label>
-                                            <div className='flex-1'>
-                                                <Select
-                                                    key={field.value}
-                                                    onValueChange={field.onChange}
-                                                    value={field.value || ''}>
-                                                    <SelectTrigger className='w-full'>
-                                                        <SelectValue placeholder='Select Term' />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {loadingTerms ? (
-                                                            <SelectItem value='0' disabled>
-                                                                Terms are loading...
-                                                            </SelectItem>
-                                                        ) : terms.length === 0 ? (
-                                                            <SelectItem value='0' disabled>
-                                                                No Terms found
-                                                            </SelectItem>
-                                                        ) : (
-                                                            terms.map((t, idx) => (
-                                                                <SelectItem key={idx} value={t.empG_GroupName}>
-                                                                    {t.empG_GroupName}
-                                                                </SelectItem>
-                                                            ))
-                                                        )}
-                                                    </SelectContent>
-                                                </Select>
-                                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                            </div>
-                                        </div>
-                                    )}
-                                />
-                            </div>
-
-                            <div className='space-y-6'>
-                                <div className='flex flex-col gap-2 sm:flex-row sm:items-start'>
-                                    <Label className='flex items-center gap-2 font-medium text-sm sm:w-32'>
-                                        <Checkbox
-                                            checked={selectedStudentsList?.length === students.length && students.length > 0}
-                                            onCheckedChange={(checked) => {
-                                                if (checked) {
-                                                    setValue(
-                                                        'studentList',
-                                                        students.map((e) => ({ amsT_Id: e.amsT_Id })),
-                                                        { shouldValidate: true }
-                                                    );
-                                                } else {
-                                                    setValue('studentList', [], { shouldValidate: true });
-                                                }
-                                            }}
-                                        />
-                                        Students <span className='text-red-500'>*</span>
-                                    </Label>
-                                    <div className='flex-1'>
-                                        <Controller
-                                            control={control}
-                                            name='studentList'
-                                            render={({ field, fieldState }) => (
-                                                <CustomMultiSelectBox
-                                                    options={students.map((s) => ({
-                                                        label: `${s.studentName?.trim() || 'Unknown'}`,
-                                                        value: s.amsT_Id.toString()
-                                                    }))}
-                                                    onChange={(selectedValues) => {
-                                                        field.onChange(selectedValues.map(id => ({ amsT_Id: Number(id) })));
-                                                    }}
-                                                    value={field.value?.map(v => String(v.amsT_Id)) ?? []}
-                                                    placeholder='Select Students'
-                                                    height='300px'
-                                                    isSearchRequired
-                                                    error={fieldState.error?.message}
-                                                />
-                                            )}
-                                        />
                                     </div>
+                                )}
+                            />
+
+                            <Controller
+                                control={control}
+                                name='asmcL_Id'
+                                render={({ field, fieldState }) => (
+                                    <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
+                                        <Label className='font-medium text-sm sm:w-32'>
+                                            Class <span className='text-red-500'>*</span>
+                                        </Label>
+                                        <div className='flex-1'>
+                                            <Select
+                                                key={field.value}
+                                                onValueChange={(v) => field.onChange(Number(v))}
+                                                value={field.value ? String(field.value) : ''}>
+                                                <SelectTrigger className='w-full'>
+                                                    <SelectValue placeholder='Select Class' />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {loadingClasses ? (
+                                                        <SelectItem value='0' disabled>
+                                                            Classes are loading...
+                                                        </SelectItem>
+                                                    ) : classes.length === 0 ? (
+                                                        <SelectItem value='0' disabled>
+                                                            No Classes found
+                                                        </SelectItem>
+                                                    ) : (
+                                                        classes.map((c) => (
+                                                            <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
+                                                                {c.asmcL_ClassName}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                        </div>
+                                    </div>
+                                )}
+                            />
+
+                            <Controller
+                                control={control}
+                                name='asmS_Id'
+                                render={({ field, fieldState }) => (
+                                    <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
+                                        <Label className='font-medium text-sm sm:w-32'>
+                                            Section <span className='text-red-500'>*</span>
+                                        </Label>
+                                        <div className='flex-1'>
+                                            <Select
+                                                key={field.value}
+                                                onValueChange={(v) => field.onChange(Number(v))}
+                                                value={field.value ? String(field.value) : ''}>
+                                                <SelectTrigger className='w-full'>
+                                                    <SelectValue placeholder='Select Section' />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {loadingSections ? (
+                                                        <SelectItem value='0' disabled>
+                                                            Sections are loading...
+                                                        </SelectItem>
+                                                    ) : sections.length === 0 ? (
+                                                        <SelectItem value='0' disabled>
+                                                            No Sections found
+                                                        </SelectItem>
+                                                    ) : (
+                                                        sections.map((s) => (
+                                                            <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
+                                                                {s.asmC_SectionName}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                        </div>
+                                    </div>
+                                )}
+                            />
+
+                            <Controller
+                                control={control}
+                                name='empG_GroupName'
+                                render={({ field, fieldState }) => (
+                                    <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
+                                        <Label className='font-medium text-sm sm:w-32'>
+                                            Term
+                                        </Label>
+                                        <div className='flex-1'>
+                                            <Select
+                                                key={field.value}
+                                                onValueChange={field.onChange}
+                                                value={field.value || ''}>
+                                                <SelectTrigger className='w-full'>
+                                                    <SelectValue placeholder='Select Term' />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {loadingTerms ? (
+                                                        <SelectItem value='0' disabled>
+                                                            Terms are loading...
+                                                        </SelectItem>
+                                                    ) : terms.length === 0 ? (
+                                                        <SelectItem value='0' disabled>
+                                                            No Terms found
+                                                        </SelectItem>
+                                                    ) : (
+                                                        terms.map((t, idx) => (
+                                                            <SelectItem key={idx} value={t.empG_GroupName}>
+                                                                {t.empG_GroupName}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                        </div>
+                                    </div>
+                                )}
+                            />
+                        </div>
+
+                        <div className='space-y-6'>
+                            <div className='flex flex-col gap-2 sm:flex-row sm:items-start'>
+                                <Label className='flex items-center gap-2 font-medium text-sm sm:w-32'>
+                                    <Checkbox
+                                        checked={selectedStudentsList?.length === students.length && students.length > 0}
+                                        onCheckedChange={(checked) => {
+                                            if (checked) {
+                                                setValue(
+                                                    'studentList',
+                                                    students.map((e) => ({ amsT_Id: e.amsT_Id })),
+                                                    { shouldValidate: true }
+                                                );
+                                            } else {
+                                                setValue('studentList', [], { shouldValidate: true });
+                                            }
+                                        }}
+                                    />
+                                    Students <span className='text-red-500'>*</span>
+                                </Label>
+                                <div className='flex-1'>
+                                    <Controller
+                                        control={control}
+                                        name='studentList'
+                                        render={({ field, fieldState }) => (
+                                            <CustomMultiSelectBox
+                                                options={students.map((s) => ({
+                                                    label: `${s.studentName?.trim() || 'Unknown'}`,
+                                                    value: s.amsT_Id.toString()
+                                                }))}
+                                                onChange={(selectedValues) => {
+                                                    field.onChange(selectedValues.map(id => ({ amsT_Id: Number(id) })));
+                                                }}
+                                                value={field.value?.map(v => String(v.amsT_Id)) ?? []}
+                                                placeholder='Select Students'
+                                                height='300px'
+                                                isSearchRequired
+                                                error={fieldState.error?.message}
+                                            />
+                                        )}
+                                    />
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <hr className='my-6 border-gray-300' />
-
-                        <div className='flex justify-center gap-3'>
-                            <Button
-                                type='submit'
-                                isLoading={isSubmitting}
-                                disabled={isSubmitting || selectedStudentsList?.length === 0}
-                                className='min-w-[140px]'>
-                                {isSubmitting ? 'Generating...' : 'Report'}
-                            </Button>
-                            <Button
-                                type='button'
-                                variant='outline'
-                                onClick={() => {
-                                    reset();
-                                }}
-                                className='min-w-[100px]'>
-                                Clear
-                            </Button>
-                        </div>
-                    </form>
-                </FormProvider>
-            </CollapsibleContent>
+                    <div className='mt-8 flex justify-center gap-4 border-t pt-6'>
+                        <Button
+                            type='submit'
+                            isLoading={isSubmitting}
+                            disabled={isSubmitting || selectedStudentsList?.length === 0}
+                            className='min-w-[140px]'>
+                            {isSubmitting ? 'Generating...' : 'Report'}
+                        </Button>
+                        <Button
+                            type='button'
+                            variant='outline'
+                            onClick={() => {
+                                reset();
+                            }}
+                            className='min-w-[100px]'>
+                            Clear
+                        </Button>
+                    </div>
+                </form>
+            </FormProvider>
         </div>
     );
 }

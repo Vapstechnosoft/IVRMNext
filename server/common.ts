@@ -3229,6 +3229,14 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/Burnpur/BRS_PreBoard_reportcard',
                                             title: 'BRS PreBoard Report Card',
                                             description: 'BRS PreBoard Report Card'
+                                        },
+                                        {
+                                            id: 21506,
+                                            name: 'Calcutta Promotion Report I-IV',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportI_IV',
+                                            title: 'Calcutta Promotion Report I-IV',
+                                            description: 'Calcutta Promotion Report I-IV'
                                         }
                                     ]
                                 }
