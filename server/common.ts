@@ -3182,7 +3182,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Sophia Report Card Pre III'
 
                                         },
-                                          {
+                                        {
                                             id: 21205,
                                             name: 'St. James IV Progress Card',
                                             icon: 'Ticket',
@@ -3221,6 +3221,14 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/StJames/xi-xii-progresscard-st-james',
                                             title: 'XI-XII St.James Progress Card',
                                             description: 'XI-XII St.James Progress Card'
+                                        },
+                                        {
+                                            id: 21505,
+                                            name: 'BRS PreBoard Report Card',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Burnpur/BRS_PreBoard_reportcard',
+                                            title: 'BRS PreBoard Report Card',
+                                            description: 'BRS PreBoard Report Card'
                                         }
                                     ]
                                 }
