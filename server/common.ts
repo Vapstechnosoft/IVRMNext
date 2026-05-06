@@ -3783,12 +3783,19 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/reports/PFYearlyReport',
                                             title: 'PF Yearly Report',
                                             description: 'Manage PF Yearly Report'
+                                        },
+                                        {
+                                            id: 37,
+                                            name: 'Employee Salary Slip SRKVS Report',
+                                            icon: 'FileType',
+                                            url: '/hrms/reports/employeeSalarySlipSRKVS',
+                                            title: 'Employee Salary Slip SRKVS Report',
+                                            description: 'Employee Salary Slips'
                                         }
                                     ]
                                 }
                             ]
                         },
-
                         {
                             id: 2,
                             name: 'Recruitment',

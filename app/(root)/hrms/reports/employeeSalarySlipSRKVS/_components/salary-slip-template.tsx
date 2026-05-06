@@ -226,11 +226,11 @@ export function SalarySlipTemplate({
                                 <td className="w-[10px] py-1">:</td>
                                 <td className="py-1">{salarySlipData.employeeCode}</td>
                             </tr>
-                            {/* <tr>
+                            <tr>
                                 <td className="font-semibold py-1">Date Of Joining</td>
                                 <td className="py-1">:</td>
                                 <td className="py-1">{salarySlipData.dateOfJoining ? new Date(salarySlipData.dateOfJoining).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-') : '-'}</td>
-                            </tr> */}
+                            </tr>
                             {showPanCardNo && salarySlipData.panNo && (
                                 <tr>
                                     <td className="font-semibold py-1">PAN No.</td>
@@ -255,11 +255,7 @@ export function SalarySlipTemplate({
                                 <td className="py-1">:</td>
                                 <td className="py-1">{salarySlipData.paySlipSeq || 0}</td>
                             </tr> */}
-                            <tr>
-                                <td className="font-semibold py-1">Date of Joining</td>
-                                <td className="py-1">:</td>
-                                <td className="py-1">{salarySlipData.dateOfJoining?.split('T')[0] || '-'}</td>
-                            </tr>
+                            
                         </tbody>
                     </table>
                 </div>
