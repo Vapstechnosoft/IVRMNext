@@ -39,7 +39,6 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import * as XLSX from 'xlsx';
-// mammoth will be imported dynamically to avoid build-time resolution issues
 
 interface ViewReplyModalProps {
     isOpen: boolean;
@@ -197,24 +196,10 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id 
                 setXlsxPreviewData(jsonData as any[][]);
             };
             reader.readAsArrayBuffer(blob);
-        } else if (blob && name.toLowerCase().endsWith('.docx')) {
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                const arrayBuffer = e.target?.result as ArrayBuffer;
-                try {
-                    const mammothModule = await import('mammoth');
-                    const mammoth = mammothModule.default || mammothModule;
-                    const result = await mammoth.convertToHtml({ arrayBuffer });
-                    setDocxPreviewHtml(result.value);
-                } catch (err) {
-                    setDocxPreviewHtml('<p class="text-red-500 font-bold">Failed to load Word document.</p>');
-                }
-            };
-            reader.readAsArrayBuffer(blob);
-        } else {
-            setXlsxPreviewData(null);
-            setDocxPreviewHtml(null);
-        }
+            } else {
+                setXlsxPreviewData(null);
+                setDocxPreviewHtml(null);
+            }
     };
 
     const handleDownload = async (url: string) => {
@@ -468,7 +453,7 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id 
                                     <audio src={previewFileObj.url} controls className="w-full" autoPlay />
                                     <p className="text-xs font-bold text-slate-500 uppercase tracking-tighter">{previewFileObj.name}</p>
                                 </div>
-                            ) : (previewFileObj.type === 'application/pdf' || previewFileObj.type?.startsWith('image/')) ? (
+                            ) : (previewFileObj.type === 'application/pdf' || previewFileObj.type?.startsWith('image/') || previewFileObj.name.toLowerCase().endsWith('.docx') || previewFileObj.name.toLowerCase().endsWith('.doc')) ? (
                                 <iframe
                                     src={previewFileObj.url}
                                     className="w-full h-full min-h-[600px] border-none"
@@ -501,16 +486,6 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id 
                                                 </div>
                                             )}
                                         </div>
-                                    </ScrollArea>
-                                </div>
-                            ) : docxPreviewHtml ? (
-                                <div className="w-full h-full min-h-[500px] bg-white border border-slate-200 overflow-hidden flex flex-col shadow-inner">
-                                    <div className="bg-slate-100 px-4 py-2 border-b flex items-center justify-between">
-                                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Word Document Preview</span>
-                                        <Badge variant="outline" className="text-[9px] bg-blue-50 text-blue-700 border-blue-200 rounded-none">DOCX CONTENT</Badge>
-                                    </div>
-                                    <ScrollArea className="flex-1 w-full overflow-auto bg-white p-8">
-                                        <div dangerouslySetInnerHTML={{ __html: docxPreviewHtml || '' }} className="prose prose-sm max-w-none text-slate-700" />
                                     </ScrollArea>
                                 </div>
                             ) : (

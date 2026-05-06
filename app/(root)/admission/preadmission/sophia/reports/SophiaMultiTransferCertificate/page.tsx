@@ -2,7 +2,7 @@
 
 import { format } from 'date-fns';
 import { Loader2, Printer, RotateCcw, FileText, Download, Check, Search } from 'lucide-react';
-import { useRef, useState, useMemo } from 'react';
+import { useRef, useState, useMemo, useEffect } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { toast } from 'sonner';
 
@@ -26,11 +26,20 @@ export default function SophiaMultiTransferCertificatePage() {
     const printRef = useRef<HTMLDivElement>(null);
 
     /* -------------------- Masters & State -------------------- */
-    const { data: loadData, isLoading: isLoadDataLoading } = useSophiaMultiTCLoadData();
+    const { data: loadDataResponse, isLoading: isLoadDataLoading } = useSophiaMultiTCLoadData();
     const yearChangeMutation = useSophiaMultiTCOnChangeYear();
     const classChangeMutation = useSophiaMultiTCOnChangeClass();
     const sectionChangeMutation = useSophiaMultiTCOnChangeSection();
     const reportMutation = useSophiaMultiTCGetReport();
+
+    const loadData = useMemo(() => {
+        const data = loadDataResponse?.data || (loadDataResponse as any);
+        return {
+            accyear: Array.isArray(data?.accyear) ? data.accyear : [],
+            accclass: Array.isArray(data?.accclass) ? data.accclass : [],
+            accsection: Array.isArray(data?.accsection) ? data.accsection : [],
+        };
+    }, [loadDataResponse]);
 
     const [academicYearId, setAcademicYearId] = useState<number | null>(null);
     const [classId, setClassId] = useState<number | null>(null);
@@ -46,6 +55,12 @@ export default function SophiaMultiTransferCertificatePage() {
     const [showReport, setShowReport] = useState(false);
     const [lastClassStudied, setLastClassStudied] = useState<string>('');
     const [issType, setIssType] = useState<string>('');
+
+    // Effect to initialize class and section lists from loadData
+    useEffect(() => {
+        if (loadData.accclass.length > 0) setClassList(loadData.accclass);
+        if (loadData.accsection.length > 0) setSectionList(loadData.accsection);
+    }, [loadData]);
 
     /* -------------------- Helpers -------------------- */
     const convertToRomanClass = (classValue: string) => {
@@ -75,7 +90,8 @@ export default function SophiaMultiTransferCertificatePage() {
         setSelectedStudentIds([]);
         try {
             const res = await yearChangeMutation.mutateAsync({ ASMAY_Id: id });
-            const list = res?.getclassdetails || res?.data?.getclassdetails || [];
+            const data = res?.data || res;
+            const list = data?.getclassdetails || [];
             setClassList(Array.isArray(list) ? list : []);
         } catch (e) {
             toast.error('Failed to load classes');
@@ -91,7 +107,8 @@ export default function SophiaMultiTransferCertificatePage() {
         if (!academicYearId) return;
         try {
             const res = await classChangeMutation.mutateAsync({ ASMAY_Id: academicYearId, ASMCL_Id: id });
-            const list = res?.getSectiondetails || res?.data?.getSectiondetails || [];
+            const data = res?.data || res;
+            const list = data?.getSectiondetails || data?.getsectiondetails || [];
             setSectionList(Array.isArray(list) ? list : []);
         } catch (e) {
             toast.error('Failed to load sections');
@@ -105,8 +122,16 @@ export default function SophiaMultiTransferCertificatePage() {
         if (!academicYearId || !classId) return;
         try {
             const res = await sectionChangeMutation.mutateAsync({ ASMAY_Id: academicYearId, ASMCL_Id: classId, ASMS_Id: id });
-            const list = res?.getstudentdetails || res?.data?.getstudentdetails || [];
-            setStudentList(Array.isArray(list) ? list : []);
+            const rawData = res?.data || res;
+            
+            // Handle both direct array and object with list property
+            const list = Array.isArray(rawData) ? rawData : (rawData?.getstudentdetails || []);
+            
+            setStudentList(Array.isArray(list) ? list.map((s: any) => ({
+                ...s,
+                amsT_Id: s.amsT_Id || s.AMST_Id,
+                studentname: s.studentName || s.studentname || s.student_name
+            })) : []);
         } catch (e) {
             toast.error('Failed to load students');
         }
@@ -138,11 +163,16 @@ export default function SophiaMultiTransferCertificatePage() {
             return;
         }
 
+        const selectedStudents = studentList.filter(s => selectedStudentIds.includes(s.amsT_Id));
+
         const payload = {
-            ASMAY_Id: academicYearId,
-            ASMCL_Id: classId,
-            ASMS_Id: sectionId,
-            Temp_AmstId: selectedStudentIds.map(id => ({ AMST_Id: id }))
+            asmaY_Id: academicYearId,
+            asmcL_Id: classId,
+            asmS_Id: sectionId,
+            studentTempList: selectedStudents.map(s => ({
+                amsT_Id: s.amsT_Id,
+                studentName: s.studentname
+            }))
         };
 
         try {
@@ -208,7 +238,7 @@ export default function SophiaMultiTransferCertificatePage() {
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {(loadData as any)?.accyear?.map((item: any) => (
+                                        {loadData.accyear.map((item: any) => (
                                             <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
                                                 {item.asmaY_Year}
                                             </SelectItem>
