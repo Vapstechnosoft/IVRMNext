@@ -3181,6 +3181,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Sophia Report Card Pre III',
                                             description: 'Sophia Report Card Pre III'
 
+                                        },
+                                        {
+                                            id: 21505,
+                                            name: 'BRS PreBoard Report Card',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Burnpur/BRS_PreBoard_reportcard',
+                                            title: 'BRS PreBoard Report Card',
+                                            description: 'BRS PreBoard Report Card'
                                         }
                                     ]
                                 }
