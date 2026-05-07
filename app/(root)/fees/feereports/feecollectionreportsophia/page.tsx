@@ -1,6 +1,6 @@
 'use client';
 
-import { useAcademicYearDropdown, useMasterTermsDropdowndataOnlinegroupheadmapping } from '@/hooks/fees/useMasters';
+import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { useFeeClassListDefaulterreport, useFeeSectionListDefaulterreport } from '@/hooks/fees/useReports';
 
 import { Button } from '@/components/ui/button';
@@ -11,11 +11,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormError } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { Input } from '@/components/ui/input';
 import { feeCollectionReportSophiaSchema } from '@/schemas/fees/reports';
 import { feeClassWiseDueListreportSophia } from '@/server/fees/reports/sophia_reports';
 import type { IFeeClassDropdownList, IFeeSectionDropdownList } from '@/types/fees/reports/reports';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -28,24 +29,21 @@ interface IAcademicYear {
     asmaY_Order?: number;
 }
 
-export interface IFeeClassWiseDueListReportofSophia {
+export interface IFeeCollectionReportofSophia {
     id: number;
+    amsT_Id: number;
     studentName: string;
     amsT_AdmNo: string;
     asmcL_ClassName: string;
-    asmcL_Id: number;
-    asmS_SectionName?: string;
-    fmT_Name: string;
+    fsS_PaidAmount: number;
     balance: number;
+    concession: number;
+    waived: number;
+    rebate: number;
     fine: number;
-    fine_calc: number;
-    totalDue: number;
-}
-
-// Group key interface
-interface IGroupKey {
-    className: string;
-    sectionName: string;
+    totalpayable: number;
+    adjusted: number;
+    excess: number;
 }
 
 export default function FeeCollectionReportofSophia() {
@@ -61,14 +59,12 @@ export default function FeeCollectionReportofSophia() {
             academicYearId: undefined,
             classId: undefined,
             sectionId: undefined,
-            studentwise: false,
-            classwise: false,
             active: false,
             deactive: false,
             left: false
         }
     });
-    const classWiseChecked = watch('classwise');
+
     const selectedClassId = watch('classId');
     const selctedAcademicYearId = watch('academicYearId');
     const selectedSectionId = watch('sectionId');
@@ -76,58 +72,30 @@ export default function FeeCollectionReportofSophia() {
     const [academicYears, setAcademicYears] = useState<IAcademicYear[]>([]);
     const [classes, setClasses] = useState<IFeeClassDropdownList[]>([]);
     const [sections, setSections] = useState<IFeeSectionDropdownList[]>([]);
-    const [reportData, setReportData] = useState<IFeeClassWiseDueListReportofSophia[]>([]);
+    const [reportData, setReportData] = useState<IFeeCollectionReportofSophia[]>([]);
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
-
+    const [filters, setFilters] = useState({
+        reportType: 'StudentWise'
+    });
     const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
 
     const { data: classListResponse, isLoading: loadingClasses, error: classListError } = useFeeClassListDefaulterreport();
 
     const { data: sectionListResponse, isLoading: loadingSections, error: sectionListError } = useFeeSectionListDefaulterreport();
 
-    const { data: masterTerms, isLoading: masterTermsLoading } = useMasterTermsDropdowndataOnlinegroupheadmapping();
-
-    // Group report data by Class Name and Section Name
-    const groupedReportData = useMemo(() => {
-        const grouped: Record<
-            string,
-            {
-                className: string;
-                sectionName: string;
-                students: IFeeClassWiseDueListReportofSophia[];
-            }
-        > = {};
-
-        reportData.forEach((item) => {
-            const className = item.asmcL_ClassName || 'Unknown Class';
-            const sectionName = item.asmS_SectionName || 'No Section';
-            const groupKey = `${className}-${sectionName}`;
-
-            if (!grouped[groupKey]) {
-                grouped[groupKey] = {
-                    className: className,
-                    sectionName: sectionName,
-                    students: []
-                };
-            }
-            grouped[groupKey].students.push(item);
-        });
-
-        // Sort groups by class name
-        return Object.values(grouped).sort((a, b) => a.className.localeCompare(b.className));
-    }, [reportData]);
-
     // Calculate summary totals for a group
-    const calculateGroupTotals = (students: IFeeClassWiseDueListReportofSophia[]) => {
+    const calculateGroupTotals = (students: IFeeCollectionReportofSophia[]) => {
         return students.reduce(
             (acc, student) => ({
-                totalDue: acc.totalDue + (student.totalDue || 0),
-                totalFine: acc.totalFine + (student.fine || 0),
-                totalBalance: acc.totalBalance + (student.balance || 0)
+                totalpayable: acc.totalpayable + (student.totalpayable || 0),
+                fsS_PaidAmount: acc.fsS_PaidAmount + (student.fsS_PaidAmount || 0),
+                fine: acc.fine + (student.fine || 0),
+                balance: acc.balance + (student.balance || 0)
             }),
-            { totalDue: 0, totalFine: 0, totalBalance: 0 }
+            { totalpayable: 0, fsS_PaidAmount: 0, fine: 0, balance: 0 }
         );
     };
+    const totals = calculateGroupTotals(reportData);
 
     useEffect(() => {
         if (academicError) {
@@ -170,7 +138,7 @@ export default function FeeCollectionReportofSophia() {
     useEffect(() => {
         setReportData([]);
         setSelectedIds([]);
-    }, [selctedAcademicYearId, selectedClassId, selectedSectionId, classWiseChecked]);
+    }, [selctedAcademicYearId, selectedClassId, selectedSectionId, filters.reportType]);
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         setReportData([]);
@@ -181,14 +149,18 @@ export default function FeeCollectionReportofSophia() {
         }
         try {
             const payload = {
-                classlist: data.classwise === true ? [data.classId] : [],
-                sectionlist: data.classwise === true ? [data.sectionId] : [],
-                customflag: 'DUELIST',
+                classlist: filters.reportType === 'ClassWise' ? [data.classId] : [],
+                sectionlist: filters.reportType === 'ClassWise' ? [data.sectionId] : [],
+                customflag: 'FEESTDCLSWISE',
                 asmaY_Id: data.academicYearId,
-                radioval: '',
+                radioval: filters.reportType === 'ClassWise' ? 'FCW' : 'FSW',
                 active: data.active === true ? 1 : 0,
                 deactive: data.deactive === true ? 1 : 0,
-                left: data.left === true ? 1 : 0
+                left: data.left === true ? 1 : 0,
+                fromdate: '',
+                todate: '',
+                fmT_Ids: [],
+                typeflag: ''
             };
 
             const apiData = await feeClassWiseDueListreportSophia(payload);
@@ -203,14 +175,8 @@ export default function FeeCollectionReportofSophia() {
         }
     };
 
-    const toggleAllstudents = () => {
-        if (selectedIds.length === reportData.length) {
-            setSelectedIds([]);
-        } else {
-            setSelectedIds(reportData.map((r) => r.id));
-        }
-    };
-
+    const allIdsInGroup = reportData.map((item) => item.amsT_Id);
+    const allSelectedInGroup = reportData.length > 0 && reportData.every((item) => selectedIds.includes(item.amsT_Id));
     const toggleRow = (id: number) => {
         setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
     };
@@ -224,14 +190,6 @@ export default function FeeCollectionReportofSophia() {
         }
     };
 
-    const formatDate = (date: Date) => {
-        return date.toLocaleDateString('en-GB', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric'
-        });
-    };
-
     return (
         <div className='min-h-screen bg-gray-50 py-8'>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-8'>
@@ -240,7 +198,34 @@ export default function FeeCollectionReportofSophia() {
                         <div className='place-items-center p-8'>
                             <div className='space-y-8'>
                                 <div className='flex items-center gap-12'>
-                                    {/* Academic Year */}
+                                    <Card className='px-10 py-6'>
+                                        <div className='flex justify-center gap-6'>
+                                            {['StudentWise', 'ClassWise'].map((option) => (
+                                                <Label key={option} className='flex cursor-pointer items-center gap-3'>
+                                                    <Input
+                                                        type='radio'
+                                                        name='reportType'
+                                                        checked={filters.reportType === option}
+                                                        onChange={() => {
+                                                            setFilters((prev) => ({
+                                                                ...prev,
+                                                                reportType: option
+                                                            }));
+                                                            // setValue(
+                                                            //   "reportType",
+                                                            //   option as
+                                                            //     | "StudentWise"
+                                                            //     | "ClassWise"
+                                                            // );
+                                                        }}
+                                                        className='h-4 w-4'
+                                                    />
+                                                    <span className='font-medium'>{option}</span>
+                                                </Label>
+                                            ))}
+                                        </div>
+                                    </Card>
+
                                     <div className='flex w-[420px] items-center gap-4'>
                                         <Label className='w-36 text-right'>
                                             Academic Year <span className='text-red-500'>*</span>
@@ -276,42 +261,9 @@ export default function FeeCollectionReportofSophia() {
                                             {errors.academicYearId && <FormError>{errors.academicYearId.message}</FormError>}
                                         </div>
                                     </div>
-
-                                    <div className='flex items-center gap-3'>
-                                        <Controller
-                                            name='studentwise'
-                                            control={control}
-                                            render={({ field }) => (
-                                                <input
-                                                    type='checkbox'
-                                                    checked={field.value ?? false}
-                                                    onChange={(e) => field.onChange(e.target.checked)}
-                                                    className='h-4 w-4'
-                                                />
-                                            )}
-                                        />
-                                        <Label className='font-medium'>Student Wise</Label>
-                                    </div>
-                                    <div className='flex items-center gap-3'>
-                                        <Controller
-                                            name='classwise'
-                                            control={control}
-                                            render={({ field }) => (
-                                                <input
-                                                    type='checkbox'
-                                                    checked={field.value ?? false}
-                                                    onChange={(e) => field.onChange(e.target.checked)}
-                                                    className='h-4 w-4'
-                                                />
-                                            )}
-                                        />
-                                        <Label className='font-medium'>Class Wise</Label>
-                                    </div>
                                 </div>
 
-                                {/* Dates */}
-
-                                {classWiseChecked && (
+                                {filters.reportType === 'ClassWise' && (
                                     <div className='mt-4 flex items-center gap-12'>
                                         {/* Class */}
                                         <div className='flex w-[420px] items-center gap-4'>
@@ -481,133 +433,102 @@ export default function FeeCollectionReportofSophia() {
                                                 </div>
 
                                                 <div className='px-8 pb-8'>
-                                                    {/* Render each group */}
-                                                    {groupedReportData.map((group, groupIndex) => {
-                                                        const groupTotals = calculateGroupTotals(group.students);
-                                                        const studentIds = group.students.map((s) => s.id);
-                                                        const allSelectedInGroup = studentIds.every((id) => selectedIds.includes(id));
-
-                                                        return (
-                                                            <div key={`${group.className}-${group.sectionName}`} className='mb-8'>
-                                                                {/* Group Header */}
-                                                                <div className='mt-6 rounded-t-lg border-primary border-b-2 bg-gray-100 p-3'>
-                                                                    <div className='flex items-center justify-between'>
-                                                                        <div>
-                                                                            <h3 className='font-bold text-lg text-primary'>
-                                                                                Class: {group.className}
-                                                                                {group.sectionName !== 'No Section' &&
-                                                                                    ` - Division ${group.sectionName}`}
-                                                                            </h3>
-                                                                            <p className='text-gray-500 text-sm'>
-                                                                                Total Students: {group.students.length}
-                                                                            </p>
-                                                                        </div>
-                                                                        <div className='text-right'>
-                                                                            <p className='font-semibold text-sm'>
-                                                                                Group Total Due: ₹{groupTotals.totalDue.toLocaleString()}
-                                                                            </p>
-                                                                            <p className='text-gray-500 text-xs'>
-                                                                                Fine: ₹{groupTotals.totalFine.toLocaleString()}
-                                                                            </p>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
-                                                                {/* Group Table */}
-                                                                <div className='overflow-x-auto rounded-b-lg border'>
-                                                                    <table className='w-full border-collapse text-sm'>
-                                                                        <thead className='bg-gray-200'>
-                                                                            <tr>
-                                                                                <th className='w-10 p-2 text-center'>
-                                                                                    <Checkbox
-                                                                                        checked={
-                                                                                            allSelectedInGroup && group.students.length > 0
-                                                                                        }
-                                                                                        onCheckedChange={() => toggleAllInGroup(studentIds)}
-                                                                                    />
-                                                                                </th>
-                                                                                <th className='w-16 border px-2 py-2 text-center font-semibold'>
-                                                                                    Sl No
-                                                                                </th>
-                                                                                <th className='border px-2 py-2 text-center font-semibold'>
-                                                                                    Admission No
-                                                                                </th>
-                                                                                <th className='border px-2 py-2 text-center font-semibold'>
-                                                                                    Student Name
-                                                                                </th>
-                                                                                <th className='border px-2 py-2 text-center font-semibold'>
-                                                                                    Term
-                                                                                </th>
-                                                                                <th className='border px-2 py-2 text-center font-semibold'>
-                                                                                    Due amount till {formatDate(new Date())}
-                                                                                </th>
-                                                                                <th className='border px-2 py-2 text-center font-semibold'>
-                                                                                    Fine amount till {formatDate(new Date())}
-                                                                                </th>
-                                                                                <th className='border px-2 py-2 text-center font-semibold'>
-                                                                                    Total due amount {formatDate(new Date())}
-                                                                                </th>
-                                                                            </tr>
-                                                                        </thead>
-                                                                        <tbody>
-                                                                            {group.students.map((row, idx) => (
-                                                                                <tr
-                                                                                    key={row.id}
-                                                                                    className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                                                                                    <td className='p-2 text-center'>
-                                                                                        <Checkbox
-                                                                                            checked={selectedIds.includes(row.id)}
-                                                                                            onCheckedChange={() => toggleRow(row.id)}
-                                                                                        />
-                                                                                    </td>
-                                                                                    <td className='border px-2 py-2 text-center'>
-                                                                                        {idx + 1}
-                                                                                    </td>
-                                                                                    <td className='border px-2 py-2 text-left'>
-                                                                                        {row.amsT_AdmNo}
-                                                                                    </td>
-                                                                                    <td className='border px-2 py-2 text-left font-medium'>
-                                                                                        {row.studentName || '-'}
-                                                                                    </td>
-                                                                                    <td className='border px-2 py-2 text-left'>
-                                                                                        {row.fmT_Name || '-'}
-                                                                                    </td>
-                                                                                    <td className='border px-2 py-2 text-right'>
-                                                                                        ₹{(row.balance || 0).toLocaleString()}
-                                                                                    </td>
-                                                                                    <td className='border px-2 py-2 text-right'>
-                                                                                        ₹{(row.fine || 0).toLocaleString()}
-                                                                                    </td>
-                                                                                    <td className='border px-2 py-2 text-right font-semibold'>
-                                                                                        ₹{(row.totalDue || 0).toLocaleString()}
-                                                                                    </td>
-                                                                                </tr>
-                                                                            ))}
-                                                                        </tbody>
-                                                                        {/* Group Footer with Totals */}
-                                                                        <tfoot className='bg-gray-100'>
-                                                                            <tr>
-                                                                                <td
-                                                                                    colSpan={5}
-                                                                                    className='border px-2 py-2 text-right font-bold'>
-                                                                                    Group Total:
-                                                                                </td>
-                                                                                <td className='border px-2 py-2 text-right font-bold'>
-                                                                                    ₹{groupTotals.totalBalance.toLocaleString()}
-                                                                                </td>
-                                                                                <td className='border px-2 py-2 text-right font-bold'>
-                                                                                    ₹{groupTotals.totalFine.toLocaleString()}
-                                                                                </td>
-                                                                                <td className='border px-2 py-2 text-right font-bold'>
-                                                                                    ₹{groupTotals.totalDue.toLocaleString()}
-                                                                                </td>
-                                                                            </tr>
-                                                                        </tfoot>
-                                                                    </table>
-                                                                </div>
-                                                            </div>
-                                                        );
-                                                    })}
+                                                    <div className='overflow-x-auto rounded-b-lg border'>
+                                                        <table className='w-full border-collapse text-sm'>
+                                                            <thead className='bg-gray-200'>
+                                                                <tr>
+                                                                    <th className='w-10 p-2 text-center'>
+                                                                        <Checkbox
+                                                                            checked={allSelectedInGroup && reportData.length > 0}
+                                                                            onCheckedChange={() => toggleAllInGroup(allIdsInGroup)}
+                                                                        />
+                                                                    </th>
+                                                                    <th className='w-16 border px-2 py-2 text-center font-semibold'>
+                                                                        Sl No
+                                                                    </th>
+                                                                    <th className='border px-2 py-2 text-center font-semibold'>
+                                                                        Admission No
+                                                                    </th>
+                                                                    <th className='border px-2 py-2 text-center font-semibold'>
+                                                                        Student Name
+                                                                    </th>
+                                                                    <th className='border px-2 py-2 text-center font-semibold'>
+                                                                        Class & Division
+                                                                    </th>
+                                                                    <th className='border px-2 py-2 text-center font-semibold'>
+                                                                        Total Fee
+                                                                    </th>
+                                                                    <th className='border px-2 py-2 text-center font-semibold'>Fee Paid</th>
+                                                                    <th className='border px-2 py-2 text-center font-semibold'>
+                                                                        Fine Collected
+                                                                    </th>
+                                                                    <th className='border px-2 py-2 text-center font-semibold'>Balance</th>
+                                                                    <th className='border px-2 py-2 text-center font-semibold'>Action</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {reportData.map((row, idx) => (
+                                                                    <tr
+                                                                        key={row.amsT_Id}
+                                                                        className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                                                                        <td className='p-2 text-center'>
+                                                                            <Checkbox
+                                                                                checked={selectedIds.includes(row.amsT_Id)}
+                                                                                onCheckedChange={() => toggleRow(row.amsT_Id)}
+                                                                            />
+                                                                        </td>
+                                                                        <td className='border px-2 py-2 text-center'>{idx + 1}</td>
+                                                                        <td className='border px-2 py-2 text-left'>{row.amsT_AdmNo}</td>
+                                                                        <td className='border px-2 py-2 text-left font-medium'>
+                                                                            {row.studentName || '-'}
+                                                                        </td>
+                                                                        <td className='border px-2 py-2 text-left'>
+                                                                            {row.asmcL_ClassName || '-'}
+                                                                        </td>
+                                                                        <td className='border px-2 py-2 text-right font-semibold'>
+                                                                            ₹{(row.totalpayable || 0).toLocaleString()}
+                                                                        </td>
+                                                                        <td className='border px-2 py-2 text-right font-semibold'>
+                                                                            ₹{(row.fsS_PaidAmount || 0).toLocaleString()}
+                                                                        </td>
+                                                                        <td className='border px-2 py-2 text-right font-semibold'>
+                                                                            ₹{(row.fine || 0).toLocaleString()}
+                                                                        </td>
+                                                                        <td className='border px-2 py-2 text-right font-semibold'>
+                                                                            ₹{(row.balance || 0).toLocaleString()}
+                                                                        </td>
+                                                                        <td className='border px-2 py-2 text-right font-semibold'>
+                                                                            <Button
+                                                                                size='sm'
+                                                                                variant='outline'
+                                                                                className='h-8 w-auto px-3 text-xs'>
+                                                                                View
+                                                                            </Button>
+                                                                        </td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                            <tfoot className='bg-gray-100'>
+                                                                <tr>
+                                                                    <td colSpan={5} className='border px-2 py-2 text-right font-bold'>
+                                                                        Group Total:
+                                                                    </td>
+                                                                    <td className='border px-2 py-2 text-right font-bold'>
+                                                                        ₹{totals.totalpayable.toLocaleString()}
+                                                                    </td>
+                                                                    <td className='border px-2 py-2 text-right font-bold'>
+                                                                        ₹{totals.fsS_PaidAmount.toLocaleString()}
+                                                                    </td>
+                                                                    <td className='border px-2 py-2 text-right font-bold'>
+                                                                        ₹{totals.fine.toLocaleString()}
+                                                                    </td>
+                                                                    <td className='border px-2 py-2 text-right font-bold'>
+                                                                        ₹{totals.balance.toLocaleString()}
+                                                                    </td>
+                                                                </tr>
+                                                            </tfoot>
+                                                        </table>
+                                                    </div>
                                                 </div>
                                             </CollapsibleSection>
                                         </div>
