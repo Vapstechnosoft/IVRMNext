@@ -12,67 +12,90 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { useForm, FormProvider } from 'react-hook-form';
+import ReportModal from './components/report-modal';
+import { FileText } from 'lucide-react';
+
 
 export default function OralReSchedulePage() {
-    const { data: details, isLoading, refetch } = useOralReScheduleDetails() as any;
+    const { data: details, isLoading, refetch } = useOralReScheduleDetails(0) as any;
     const { mutate: deleteSchedule } = useDeleteOralReSchedule();
     const [isAddMode, setIsAddMode] = useState(false);
     const [selectedSchedule, setSelectedSchedule] = useState<any>(null);
+    const [reportSchedule, setReportSchedule] = useState<any>(null);
+    const [isReportOpen, setIsReportOpen] = useState(false);
+
 
     const methods = useForm();
 
     const columns: ColumnDef<any>[] = [
         {
+            id: 'slno',
+            header: () => <div className="text-center">SL.NO</div>,
+            cell: ({ row }) => <div className="text-center">{row.index + 1}</div>,
+        },
+        {
             accessorKey: 'paotS_ScheduleName',
-            header: 'Schedule Name',
+            header: () => <div className="text-center">Schedule Name</div>,
+            cell: ({ row }) => <div className="text-center">{row.original.paotS_ScheduleName}</div>,
         },
         {
             accessorKey: 'paotS_ScheduleDate',
-            header: 'Date',
-            cell: ({ row }) => format(new Date(row.original.paotS_ScheduleDate), 'dd-MM-yyyy'),
+            header: () => <div className="text-center">Date</div>,
+            cell: ({ row }) => <div className="text-center">{format(new Date(row.original.paotS_ScheduleDate), 'dd-MM-yyyy')}</div>,
         },
         {
             accessorKey: 'paotS_ScheduleTime',
-            header: 'From',
+            header: () => <div className="text-center">From</div>,
+            cell: ({ row }) => <div className="text-center">{row.original.paotS_ScheduleTime}</div>,
         },
         {
             accessorKey: 'paotS_ScheduleTimeTo',
-            header: 'To',
-        },
-        {
-            accessorKey: 'paotS_Strength',
-            header: 'Strength',
-        },
-        {
-            id: 'actions',
-            header: 'Actions',
-            cell: ({ row }) => (
-                <div className="flex gap-2">
-                    <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => {
-                            setSelectedSchedule(row.original);
-                            setIsAddMode(true);
-                        }}
-                    >
-                        <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                        variant="ghost" 
-                        size="icon"
-                        className="text-destructive"
-                        onClick={() => {
-                            if (confirm('Are you sure you want to delete this schedule?')) {
-                                deleteSchedule(row.original.paotS_Id);
-                            }
-                        }}
-                    >
-                        <Trash className="h-4 w-4" />
-                    </Button>
-                </div>
-            )
+            header: () => <div className="text-center">To</div>,
+            cell: ({ row }) => <div className="text-center">{row.original.paotS_ScheduleTimeTo}</div>,
         }
+        // {
+        //     id: 'actions',
+        //     header: () => <div className="text-center">Action</div>,
+        //     cell: ({ row }) => (
+        //         <div className="flex gap-2 justify-center">
+        //             <Button 
+        //                 variant="ghost" 
+        //                 size="icon"
+        //                 className="text-blue-600 h-8 w-8"
+        //                 onClick={() => {
+        //                     setSelectedSchedule(row.original);
+        //                     setIsAddMode(true);
+        //                 }}
+        //             >
+        //                 <Edit className="h-4 w-4" />
+        //             </Button>
+        //             <Button 
+        //                 variant="ghost" 
+        //                 size="icon"
+        //                 className="text-blue-600 h-8 w-8"
+        //                 onClick={() => {
+        //                     setReportSchedule(row.original);
+        //                     setIsReportOpen(true);
+        //                 }}
+        //                 title="View Report"
+        //             >
+        //                 <FileText className="h-4 w-4" />
+        //             </Button>
+        //             <Button 
+        //                 variant="ghost" 
+        //                 size="icon"
+        //                 className="text-destructive h-8 w-8"
+        //                 onClick={() => {
+        //                     if (confirm('Are you sure you want to delete this schedule?')) {
+        //                         deleteSchedule(row.original.paotS_Id);
+        //                     }
+        //                 }}
+        //             >
+        //                 <Trash className="h-4 w-4" />
+        //             </Button>
+        //         </div>
+        //     )
+        // }
     ];
 
     if (isAddMode) {
@@ -84,7 +107,7 @@ export default function OralReSchedulePage() {
                         <Button variant="outline" onClick={() => setIsAddMode(false)}>Back to List</Button>
                     </CardHeader>
                     <CardContent>
-                        <OralReScheduleForm 
+                        <OralReScheduleForm
                             onSuccess={() => {
                                 setIsAddMode(false);
                                 refetch();
@@ -121,15 +144,22 @@ export default function OralReSchedulePage() {
                         <Plus className="mr-2 h-4 w-4" /> Add Re-Schedule
                     </Button>
                 </CardHeader>
-                <CardContent>
-                    <GenericDataTable 
-                        data={details?.oralTestSchedule || []} 
-                        columns={columns}
-                        isLoading={isLoading}
-                        isSearchRequired={true}
-                    />
+                <CardContent className="p-0">
+                    <div className="[&_th]:text-black [&_th]:font-bold [&_th]:text-[13px]">
+                        <GenericDataTable
+                            data={details?.oralTestSchedule || []}
+                            columns={columns}
+                            isLoading={isLoading}
+                            isSearchRequired={true}
+                        />
+                    </div>
                 </CardContent>
             </Card>
+            <ReportModal
+                isOpen={isReportOpen}
+                onClose={() => setIsReportOpen(false)}
+                rowData={reportSchedule}
+            />
         </div>
     );
 }

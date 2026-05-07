@@ -2,14 +2,17 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useUpdateParticipants, useOralTestScheduleDetails } from '@/hooks/admission/preadmission/transactions/use-oral-test-schedule';
-import { IOralTestSchedule } from '@/types/admission/preadmission/transactions/oral-test-schedule';
+import { IOralTestSchedule, IStaffDetails } from '@/types/admission/preadmission/transactions/oral-test-schedule';
 import { useState, useEffect } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { MultiSelect } from '@/components/ui/multi-select';
-import { Loader2, Save, X } from 'lucide-react';
+import { Loader2, Save, X, Search } from 'lucide-react';
 import { toast } from 'sonner';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { Input } from '@/components/ui/input';
+import { Card } from '@/components/ui/card';
 
 interface ParticipantsModalProps {
     rowData: IOralTestSchedule;
@@ -27,7 +30,8 @@ export default function ParticipantsModal({ rowData, isOpen, onClose }: Particip
         managerMapping: false,
         anybodyCanStart: false,
     });
-    const [selectedStaffIds, setSelectedStaffIds] = useState<string[]>([]);
+    const [selectedStaffIds, setSelectedStaffIds] = useState<number[]>([]);
+    const [staffSearch, setStaffSearch] = useState('');
 
     // Initialize from rowData if available
     useEffect(() => {
@@ -118,16 +122,60 @@ export default function ParticipantsModal({ rowData, isOpen, onClose }: Particip
                     </div>
 
                     {flags.staffMapping && (
-                        <div className="space-y-2 animate-in fade-in slide-in-from-top-1">
-                            <Label className="text-sm font-semibold">Select Staff Members</Label>
-                            <MultiSelect
-                                options={staffOptions}
-                                defaultValue={selectedStaffIds}
-                                onValueChange={setSelectedStaffIds}
-                                placeholder="Select staff..."
-                                maxCount={5}
-                            />
-                        </div>
+                        <Card className="border-blue-100 overflow-hidden">
+                            <div className="bg-blue-800 px-4 py-2 flex items-center justify-between">
+                                <h3 className="text-white font-bold text-[10px] uppercase">Staff Participants</h3>
+                                <div className="relative w-40">
+                                    <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-blue-200" />
+                                    <Input 
+                                        placeholder="Search..." 
+                                        className="h-6 pl-7 text-[10px] bg-blue-700/50 border-blue-600 text-white placeholder:text-blue-300"
+                                        value={staffSearch}
+                                        onChange={(e) => setStaffSearch(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                            <div className="max-h-[300px] overflow-auto [&_thead_tr_th]:text-black [&_thead_tr_th]:font-bold [&_thead_tr_th]:py-2 [&_thead_tr_th]:text-[10px] [&_thead_tr_th_button]:hover:bg-transparent [&_thead_tr_th_button]:hover:text-black [&_tbody_tr:nth-child(even)]:bg-slate-50">
+                                <GenericDataTable<IStaffDetails>
+                                    data={details?.stafflist?.filter((s: any) => 
+                                        `${s.hrmE_EmployeeFirstName} ${s.hrmE_EmployeeMiddleName || ''} ${s.hrmE_EmployeeLastName || ''}`
+                                        .toLowerCase().includes(staffSearch.toLowerCase())
+                                    ) || []}
+                                    columns={[
+                                        {
+                                            id: 'slno',
+                                            header: ({ column }) => <DataTableColumnHeader column={column} title="SL.NO" />,
+                                            cell: ({ row }) => row.index + 1,
+                                            size: 40,
+                                        },
+                                        {
+                                            accessorKey: 'hrmE_EmployeeFirstName',
+                                            header: ({ column }) => <DataTableColumnHeader column={column} title="Staff Name" />,
+                                            cell: ({ row }) => `${row.original.hrmE_EmployeeFirstName} ${row.original.hrmE_EmployeeMiddleName || ''} ${row.original.hrmE_EmployeeLastName || ''}`,
+                                        },
+                                        {
+                                            id: 'select',
+                                            header: ({ column }) => <DataTableColumnHeader column={column} title="Action" />,
+                                            cell: ({ row }) => (
+                                                <Checkbox 
+                                                    checked={selectedStaffIds.includes(row.original.userid)}
+                                                    onCheckedChange={(checked) => {
+                                                        if (checked) {
+                                                            setSelectedStaffIds(prev => [...new Set([...prev, row.original.userid])]);
+                                                        } else {
+                                                            setSelectedStaffIds(prev => prev.filter(id => id !== row.original.userid));
+                                                        }
+                                                    }}
+                                                />
+                                            ),
+                                            size: 60,
+                                        }
+                                    ]}
+                                    isLoading={false}
+                                    isSearchRequired={false}
+                                />
+                            </div>
+                        </Card>
                     )}
                 </div>
 

@@ -148,6 +148,22 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/reports/document-view-report',
                                             title: 'Document View',
                                             description: 'Document View'
+                                        },
+                                        {
+                                            id: 8,
+                                            name: 'Oral Test Schedule',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/transactions/interview-schedule/oschedule',
+                                            title: 'Oral Test Schedule',
+                                            description: 'Oral Test Schedule'
+                                        },
+                                        {
+                                            id: 9,
+                                            name: 'Oral Test ReSchedule',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/transactions/interview-schedule/oralreschedule',
+                                            title: 'Oral Test ReSchedule',
+                                            description: 'Oral Test ReSchedule'
                                         }
                                     ]
                                 }
@@ -1099,7 +1115,7 @@ export async function getUserAccessibleModules() {
                                         //     id: 604,
                                         //     name: 'SophiaMultiTransferCertificate',
                                         //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/Sophia/reports/SophiaMultiTransferCertificate',
+                                        //     url: '/admission/preadmission/sophia/reports/SophiaMultiTransferCertificate',
                                         //     title: 'SophiaMultiTransferCertificate',
                                         //     description: 'SophiaMultiTransferCertificate'
                                         // },
@@ -1121,187 +1137,187 @@ export async function getUserAccessibleModules() {
                                         // }
                                     ]
                                 },
-                                {
-                                    id: 16,
-                                    name: 'St. Thomas Church School',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 61,
-                                            name: 'St. Thomas Admission Form',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/stthomas/admission-form',
-                                            title: 'St. Thomas Admission Form',
-                                            description: 'St. Thomas Admission Form'
-                                        },
-                                        {
-                                            id: 62,
-                                            name: 'Total Strength',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/STCS/total-strength',
-                                            title: 'Total Strength',
-                                            description: 'Total Strength'
-                                        },
-                                        {
-                                            id: 63,
-                                            name: 'St. Thomas TC Custom Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/stthomas/reports/stthomas-tc-custom-report',
-                                            title: 'St. Thomas TC Custom Report',
-                                            description: 'St. Thomas TC Custom Report'
-                                        }
-                                    ]
-                                },
+                                // {
+                                //     id: 16,
+                                //     name: 'St. Thomas Church School',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         {
+                                //             id: 61,
+                                //             name: 'St. Thomas Admission Form',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/stthomas/admission-form',
+                                //             title: 'St. Thomas Admission Form',
+                                //             description: 'St. Thomas Admission Form'
+                                //         },
+                                //         {
+                                //             id: 62,
+                                //             name: 'Total Strength',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/reports/STCS/total-strength',
+                                //             title: 'Total Strength',
+                                //             description: 'Total Strength'
+                                //         },
+                                //         {
+                                //             id: 63,
+                                //             name: 'St. Thomas TC Custom Report',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/stthomas/reports/stthomas-tc-custom-report',
+                                //             title: 'St. Thomas TC Custom Report',
+                                //             description: 'St. Thomas TC Custom Report'
+                                //         }
+                                //     ]
+                                // },
 
-                                {
-                                    id: 17,
-                                    name: 'Samartha',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 71,
-                                            name: 'SamarthaBonafideCertificate',
-                                            icon: 'Settings',
-                                            url: '/admission/samartha/reports/SamarthaBonafideCertificate',
-                                            title: 'Samartha Bonafide Certificate',
-                                            description: 'Samartha Bonafide Certificate'
-                                        },
-                                        {
-                                            id: 72,
-                                            name: 'SamarthaTC',
-                                            icon: 'Settings',
-                                            url: '/admission/samartha/reports/SamarthaTC',
-                                            title: 'SamarthaTC',
-                                            description: 'SamarthaTC'
-                                        },
-                                        {
-                                            id: 73,
-                                            name: 'OverAllViewReportt',
-                                            icon: 'Settings',
-                                            url: '/admission/samartha/reports/Over-All-View-Reportt',
-                                            title: 'OverAllViewReportt',
-                                            description: 'OverAllViewReportt'
-                                        }
-                                    ]
-                                },
+                                // {
+                                //     id: 17,
+                                //     name: 'Samartha',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         {
+                                //             id: 71,
+                                //             name: 'SamarthaBonafideCertificate',
+                                //             icon: 'Settings',
+                                //             url: '/admission/samartha/reports/SamarthaBonafideCertificate',
+                                //             title: 'Samartha Bonafide Certificate',
+                                //             description: 'Samartha Bonafide Certificate'
+                                //         },
+                                //         {
+                                //             id: 72,
+                                //             name: 'SamarthaTC',
+                                //             icon: 'Settings',
+                                //             url: '/admission/samartha/reports/SamarthaTC',
+                                //             title: 'SamarthaTC',
+                                //             description: 'SamarthaTC'
+                                //         },
+                                //         {
+                                //             id: 73,
+                                //             name: 'OverAllViewReportt',
+                                //             icon: 'Settings',
+                                //             url: '/admission/samartha/reports/Over-All-View-Reportt',
+                                //             title: 'OverAllViewReportt',
+                                //             description: 'OverAllViewReportt'
+                                //         }
+                                //     ]
+                                // },
 
-                                {
-                                    id: 18,
-                                    name: 'Danvantari Phisiotheraphy',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 71,
-                                            name: 'DCPS Bonified Certificate',
-                                            icon: 'Settings',
-                                            url: '/admission/Danvantari/reports/DCPS_BonifiedCertificate',
-                                            title: 'DCPS Bonified Certificate',
-                                            description: 'Bonified Certificate'
-                                        },
-                                        {
-                                            id: 72,
-                                            name: 'DCPS Transfer Certificate',
-                                            icon: 'Settings',
-                                            url: '/admission/Danvantari/reports/DCPS_TransferCertificate',
-                                            title: 'DCPS Transfer Certificate',
-                                            description: 'DCPS Transfer Certificate'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 19,
-                                    name: 'SRKVS',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 74,
-                                            name: 'SRKVS Student Address Book',
-                                            icon: 'Settings',
-                                            url: '/admission/srkvs/reports/SRKVSStudentAddressBook',
-                                            title: 'SRKVSStudentAddressBook',
-                                            description: 'SRKVSStudentAddressBook'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 20,
-                                    name: 'St. Peters School Durgapur',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 74,
-                                            name: 'Employee IDcard Report STpeter',
-                                            icon: 'Settings',
-                                            url: '/admission/stpeter/reports/EmployeeIDcardReportSTpeter',
-                                            title: 'EmployeeIDcardReportSTpeter',
-                                            description: 'EmployeeIDcardReportSTpeter'
-                                        },
+                                // {
+                                //     id: 18,
+                                //     name: 'Danvantari Phisiotheraphy',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         {
+                                //             id: 71,
+                                //             name: 'DCPS Bonified Certificate',
+                                //             icon: 'Settings',
+                                //             url: '/admission/Danvantari/reports/DCPS_BonifiedCertificate',
+                                //             title: 'DCPS Bonified Certificate',
+                                //             description: 'Bonified Certificate'
+                                //         },
+                                //         {
+                                //             id: 72,
+                                //             name: 'DCPS Transfer Certificate',
+                                //             icon: 'Settings',
+                                //             url: '/admission/Danvantari/reports/DCPS_TransferCertificate',
+                                //             title: 'DCPS Transfer Certificate',
+                                //             description: 'DCPS Transfer Certificate'
+                                //         }
+                                //     ]
+                                // },
+                                // {
+                                //     id: 19,
+                                //     name: 'SRKVS',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         {
+                                //             id: 74,
+                                //             name: 'SRKVS Student Address Book',
+                                //             icon: 'Settings',
+                                //             url: '/admission/srkvs/reports/SRKVSStudentAddressBook',
+                                //             title: 'SRKVSStudentAddressBook',
+                                //             description: 'SRKVSStudentAddressBook'
+                                //         }
+                                //     ]
+                                // },
+                                // {
+                                //     id: 20,
+                                //     name: 'St. Peters School Durgapur',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         {
+                                //             id: 74,
+                                //             name: 'Employee IDcard Report STpeter',
+                                //             icon: 'Settings',
+                                //             url: '/admission/stpeter/reports/EmployeeIDcardReportSTpeter',
+                                //             title: 'EmployeeIDcardReportSTpeter',
+                                //             description: 'EmployeeIDcardReportSTpeter'
+                                //         },
 
-                                        {
-                                            id: 75,
-                                            name: 'Student IDcard Report STPeter',
-                                            icon: 'Settings',
-                                            url: '/admission/stpeter/reports/StudentIDcardReportSTPeter',
-                                            title: 'StudentIDcardReportSTPeter',
-                                            description: 'StudentIDcardReportSTPeter'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 21,
-                                    name: 'GNANA DEEPA ACADEMY RESIDENTIAL SCHOOL',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 74,
-                                            name: 'GDARSStudyCertificate',
-                                            icon: 'Settings',
-                                            url: '/admission/gnanadeepa/reports/GDARSStudyCertificate',
-                                            title: 'GDARSStudyCertificate',
-                                            description: 'GDARSStudyCertificate'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 22,
-                                    name: 'SMS degree college',
-                                    icon: 'Settings',
-                                    pages: [
-                                        //Need to create UI
-                                        // {
-                                        //     id: 74,
-                                        //     name: 'SMSCollegeStudentTc',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/sms/transaction/SMSCollegeStudentTc',
-                                        //     title: 'SMSCollegeStudentTc',
-                                        //     description: 'SMSCollegeStudentTc'
-                                        // },
+                                //         {
+                                //             id: 75,
+                                //             name: 'Student IDcard Report STPeter',
+                                //             icon: 'Settings',
+                                //             url: '/admission/stpeter/reports/StudentIDcardReportSTPeter',
+                                //             title: 'StudentIDcardReportSTPeter',
+                                //             description: 'StudentIDcardReportSTPeter'
+                                //         }
+                                //     ]
+                                // },
+                                // {
+                                //     id: 21,
+                                //     name: 'GNANA DEEPA ACADEMY RESIDENTIAL SCHOOL',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         {
+                                //             id: 74,
+                                //             name: 'GDARSStudyCertificate',
+                                //             icon: 'Settings',
+                                //             url: '/admission/gnanadeepa/reports/GDARSStudyCertificate',
+                                //             title: 'GDARSStudyCertificate',
+                                //             description: 'GDARSStudyCertificate'
+                                //         }
+                                //     ]
+                                // },
+                                // {
+                                //     id: 22,
+                                //     name: 'SMS degree college',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         //Need to create UI
+                                //         // {
+                                //         //     id: 74,
+                                //         //     name: 'SMSCollegeStudentTc',
+                                //         //     icon: 'Settings',
+                                //         //     url: '/admission/sms/transaction/SMSCollegeStudentTc',
+                                //         //     title: 'SMSCollegeStudentTc',
+                                //         //     description: 'SMSCollegeStudentTc'
+                                //         // },
 
-                                        {
-                                            id: 75,
-                                            name: 'SMSCConductCertificate',
-                                            icon: 'Settings',
-                                            url: '/admission/sms/reports/SMSCConductCertificate',
-                                            title: 'SMSCConductCertificate',
-                                            description: 'SMSCConductCertificate'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 23,
-                                    name: 'GM Vidya Nikethan School',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 75,
-                                            name: 'Smartcarddetails',
-                                            icon: 'Settings',
-                                            url: '/admission/GMVPS/reports/Smartcarddetails',
-                                            title: 'Smartcarddetails',
-                                            description: 'Smartcarddetails'
-                                        }
-                                    ]
-                                }
+                                //         {
+                                //             id: 75,
+                                //             name: 'SMSCConductCertificate',
+                                //             icon: 'Settings',
+                                //             url: '/admission/sms/reports/SMSCConductCertificate',
+                                //             title: 'SMSCConductCertificate',
+                                //             description: 'SMSCConductCertificate'
+                                //         }
+                                //     ]
+                                // },
+                                // {
+                                //     id: 23,
+                                //     name: 'GM Vidya Nikethan School',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         {
+                                //             id: 75,
+                                //             name: 'Smartcarddetails',
+                                //             icon: 'Settings',
+                                //             url: '/admission/GMVPS/reports/Smartcarddetails',
+                                //             title: 'Smartcarddetails',
+                                //             description: 'Smartcarddetails'
+                                //         }
+                                //     ]
+                                // }
                             ]
                         }
                     ]
@@ -3181,6 +3197,62 @@ export async function getUserAccessibleModules() {
                                             title: 'Sophia Report Card Pre III',
                                             description: 'Sophia Report Card Pre III'
 
+                                        },
+                                        {
+                                            id: 21205,
+                                            name: 'St. James IV Progress Card',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/StJames/st-james-iv-report',
+                                            title: 'St. James IV Progress Card',
+                                            description: 'St. James IV Progress Card'
+                                        },
+                                        {
+                                            id: 21206,
+                                            name: 'IX-X St. James  Report',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/StJames/ix-x_st-jamesreport',
+                                            title: 'IX-X St. James  Report',
+                                            description: 'IX-X St. James  Report'
+                                        },
+                                        {
+                                            id: 21207,
+                                            name: 'St.James Progress Card New',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/StJames/progresscard-stjames-new',
+                                            title: 'St.James Progress Card New',
+                                            description: 'St.James  Progress Card New'
+                                        },
+                                        {
+                                            id: 21208,
+                                            name: 'St.James Progress Card',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/StJames/progresscard-st-james',
+                                            title: 'St.James Progress Card',
+                                            description: 'St.James Progress Card'
+                                        },
+                                        {
+                                            id: 21209,
+                                            name: 'XI-XII St.James Progress Card',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/StJames/xi-xii-progresscard-st-james',
+                                            title: 'XI-XII St.James Progress Card',
+                                            description: 'XI-XII St.James Progress Card'
+                                        },
+                                        {
+                                            id: 21505,
+                                            name: 'BRS PreBoard Report Card',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Burnpur/BRS_PreBoard_reportcard',
+                                            title: 'BRS PreBoard Report Card',
+                                            description: 'BRS PreBoard Report Card'
+                                        },
+                                        {
+                                            id: 21506,
+                                            name: 'Calcutta Promotion Report I-IV',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportI_IV',
+                                            title: 'Calcutta Promotion Report I-IV',
+                                            description: 'Calcutta Promotion Report I-IV'
                                         }
                                     ]
                                 }
@@ -3783,12 +3855,19 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/reports/PFYearlyReport',
                                             title: 'PF Yearly Report',
                                             description: 'Manage PF Yearly Report'
+                                        },
+                                        {
+                                            id: 37,
+                                            name: 'Employee Salary Slip SRKVS Report',
+                                            icon: 'FileType',
+                                            url: '/hrms/reports/employeeSalarySlipSRKVS',
+                                            title: 'Employee Salary Slip SRKVS Report',
+                                            description: 'Employee Salary Slips'
                                         }
                                     ]
                                 }
                             ]
                         },
-
                         {
                             id: 2,
                             name: 'Recruitment',
@@ -7655,7 +7734,7 @@ export async function getUserAccessibleModules() {
                                             id: 600,
                                             name: 'Master particulars',
                                             icon: 'BadgeIndianRupee',
-                                            url: '/pettycash/masterparticulars',
+                                            url: '/pettycash/master/masterparticulars',
                                             title: 'Master Particulars',
                                             description: 'Manage Master Particulars Details'
                                         }
@@ -7701,7 +7780,7 @@ export async function getUserAccessibleModules() {
                                             id: 60321230,
                                             name: 'Pc Requisition Report',
                                             icon: 'BadgeIndianRupee',
-                                            url: '/pettycash/PcRequisitionReport',
+                                            url: '/pettycash/report/PcRequisitionReport',
                                             title: 'Pc Requisition Report',
                                             description: 'View Pc Requisition Reports'
                                         },
@@ -7709,7 +7788,7 @@ export async function getUserAccessibleModules() {
                                             id: 60321231,
                                             name: 'Income Report',
                                             icon: 'BadgeIndianRupee',
-                                            url: '/pettycash/incomereport',
+                                            url: '/pettycash/report/incomereport',
                                             title: 'Income Report',
                                             description: 'View Income Reports'
                                         },
@@ -7717,16 +7796,139 @@ export async function getUserAccessibleModules() {
                                             id: 60321232,
                                             name: 'Bank Credit And Debit Report',
                                             icon: 'BadgeIndianRupee',
-                                            url: '/pettycash/BankCopyReportVVVS',
+                                            url: '/pettycash/report/BankCopyReportVVVS',
                                             title: 'Bank Credit And Debit Report',
                                             description: 'View Bank Credit And Debit Reports'
                                         }
+                                        // {
+                                        //     id: 60321233,
+                                        //     name: 'PDA Head Wise Report',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/pettycash/report/pdaHeadWiseReport',
+                                        //     title: 'PDA Head Wise Report',
+                                        //     description: 'View PDA Head Wise Report'
+                                        // },
+                                        // {
+                                        //     id: 60321234,
+                                        //     name: 'PDA Debit Credit Report',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/pettycash/report/PDADebitCreditReport',
+                                        //     title: 'PDA Debit CreditReport',
+                                        //     description: 'View PDA Student Debit/Credit Report'
+                                        // }
                                     ]
                                 }
                             ]
                         }
                     ]
-                }
+                },
+                // {
+                //     id: 999021,
+                //     name: 'PDA',
+                //     icon: 'BadgeIndianRupee',
+                //     menu: [
+                //         {
+                //             id: 1,
+                //             name: 'PDA',
+                //             icon: 'BadgeIndianRupee',
+                //             sub_menu: [
+                //                 {
+                //                     id: 1,
+                //                     name: 'Masters',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 601,
+                //                             name: 'PDA Master Head',
+                //                             icon: 'Settings',
+                //                             url: '/pda/master/pda-master-head',
+                //                             title: 'PDA Master Head',
+                //                             description: 'Manage PDA Master Head Details'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 2,
+                //                     name: 'Transactions',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 6021,
+                //                             name: 'PDA Transactions SRS',
+                //                             icon: 'Settings',
+                //                             url: '/pda/transaction/pdatransactionsrs',
+                //                             title: 'PDA Transactions SRS',
+                //                             description: 'Manage PDA Transactions SRS'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 3,
+                //                     name: 'Reports',
+                //                     icon: 'BarChart',
+                //                     pages: [
+                //                         {
+                //                             id: 603212,
+                //                             name: 'PDA Debit Credit Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDADebitCreditReport',
+                //                             title: 'PDA Debit Credit Report',
+                //                             description: 'View PDA Debit Credit Reports'
+                //                         },
+                //                         {
+                //                             id: 603213,
+                //                             name: 'PDA Head Wise Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/pdaHeadWiseReport',
+                //                             title: 'PDA Head Wise Report',
+                //                             description: 'View PDA Head Wise Reports'
+                //                         },
+                //                         {
+                //                             id: 603214,
+                //                             name: 'PDA Debit Credit Report SRS',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDADebitCreditReportSRS',
+                //                             title: 'PDA Debit Credit Report SRS',
+                //                             description: 'View PDA Debit Credit Report SRS'
+                //                         },
+                //                         {
+                //                             id: 603215,
+                //                             name: 'PDA Expenditure Import',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/pda-expenditure-import',
+                //                             title: 'PDA Expenditure Import',
+                //                             description: 'View PDA Expenditure Import'
+                //                         },
+                //                         {
+                //                             id: 603216,
+                //                             name: 'PDA Over All Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDAOverAllReport',
+                //                             title: 'PDA OverAll Report',
+                //                             description: 'View PDA OverAll Report'
+                //                         },
+                //                         {
+                //                             id: 603217,
+                //                             name: 'PDA Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDAReport',
+                //                             title: 'PDA Report',
+                //                             description: 'View PDA Report'
+                //                         },
+                //                         {
+                //                             id: 603218,
+                //                             name: 'PDA Summary Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDASummaryReport',
+                //                             title: 'PDA Summary Report',
+                //                             description: 'View PDA Summary Report'
+                //                         }
+                //                     ]
+                //                 }
+                //             ]
+                //         }
+                //     ]
+                // }
             ]
         };
     } else if (session?.role.toUpperCase() === 'STAFF') {
@@ -7739,28 +7941,7 @@ export async function getUserAccessibleModules() {
                     name: 'Staff Portal',
                     icon: 'Settings',
                     menu: [
-                        // {
-                        //     id: 1,
-                        //     name: 'Dashboard',
-                        //     icon: 'LayoutDashboard',
-                        //     sub_menu: [
-                        //         {
-                        //             id: 8000,
-                        //             name: 'Dashboard',
-                        //             icon: 'LayoutDashboard',
-                        //             pages: [
-                        //                 {
-                        //                     id: 8000,
-                        //                     name: 'Staff Dashboard',
-                        //                     icon: 'LayoutDashboard',
-                        //                     url: '/StaffPortal/staff-dashboard',
-                        //                     title: 'Staff Dashboard',
-                        //                     description: 'Overall Staff Statistics'
-                        //                 }
-                        //             ]
-                        //         }
-                        //     ]
-                        // },
+
                         {
                             id: 2,
                             name: 'Attendance',
@@ -8843,7 +9024,114 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                }
+                },
+                // {
+                //     id: 999021,
+                //     name: 'PDA',
+                //     icon: 'BadgeIndianRupee',
+                //     menu: [
+                //         {
+                //             id: 1,
+                //             name: 'PDA',
+                //             icon: 'BadgeIndianRupee',
+                //             sub_menu: [
+                //                 {
+                //                     id: 1,
+                //                     name: 'Masters',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 601,
+                //                             name: 'PDA Master Head',
+                //                             icon: 'Settings',
+                //                             url: '/pda/master/pda-master-head',
+                //                             title: 'PDA Master Head',
+                //                             description: 'Manage PDA Master Head Details'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 2,
+                //                     name: 'Transactions',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 6021,
+                //                             name: 'PDA Transactions SRS',
+                //                             icon: 'Settings',
+                //                             url: '/pda/transaction/pdatransactionsrs',
+                //                             title: 'PDA Transactions SRS',
+                //                             description: 'Manage PDA Transactions SRS'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 3,
+                //                     name: 'Reports',
+                //                     icon: 'BarChart',
+                //                     pages: [
+                //                         {
+                //                             id: 603212,
+                //                             name: 'PDA Debit Credit Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/pda-debit-credit-report',
+                //                             title: 'PDA Debit Credit Report',
+                //                             description: 'View PDA Debit Credit Reports'
+                //                         },
+                //                         {
+                //                             id: 603213,
+                //                             name: 'PDA Head Wise Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/pda-head-wise-report',
+                //                             title: 'PDA Head Wise Report',
+                //                             description: 'View PDA Head Wise Reports'
+                //                         },
+                //                         {
+                //                             id: 603214,
+                //                             name: 'PDA Debit Credit Report SRS',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDADebitCreditReportSRS',
+                //                             title: 'PDA Debit Credit Report SRS',
+                //                             description: 'View PDA Debit Credit Report SRS'
+                //                         },
+                //                         {
+                //                             id: 603215,
+                //                             name: 'PDA Expenditure Import',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/pda-expenditure-import',
+                //                             title: 'PDA Expenditure Import',
+                //                             description: 'View PDA Expenditure Import'
+                //                         },
+                //                         {
+                //                             id: 603216,
+                //                             name: 'PDA Over All Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDAOverAllReport',
+                //                             title: 'PDA OverAll Report',
+                //                             description: 'View PDA OverAll Report'
+                //                         },
+                //                         {
+                //                             id: 603217,
+                //                             name: 'PDA Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDAReport',
+                //                             title: 'PDA Report',
+                //                             description: 'View PDA Report'
+                //                         },
+                //                         {
+                //                             id: 603218,
+                //                             name: 'PDA Summary Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDASummaryReport',
+                //                             title: 'PDA Summary Report',
+                //                             description: 'View PDA Summary Report'
+                //                         }
+                //                     ]
+                //                 }
+                //             ]
+                //         }
+                //     ]
+                // }
             ]
         };
     } else {
@@ -8879,7 +9167,115 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                }
+                },
+                // {
+                //     id: 999021,
+                //     name: 'PDA',
+                //     icon: 'BadgeIndianRupee',
+                //     menu: [
+                //         {
+                //             id: 1,
+                //             name: 'PDA',
+                //             icon: 'BadgeIndianRupee',
+                //             sub_menu: [
+                //                 {
+                //                     id: 1,
+                //                     name: 'Masters',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 601,
+                //                             name: 'PDA Master Head',
+                //                             icon: 'Settings',
+                //                             url: '/pda/master/pda-master-head',
+                //                             title: 'PDA Master Head',
+                //                             description: 'Manage PDA Master Head Details'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 2,
+                //                     name: 'Transactions',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 6021,
+                //                             name: 'PDA Transactions SRS',
+                //                             icon: 'Settings',
+                //                             url: '/pda/transaction/pdatransactionsrs',
+                //                             title: 'PDA Transactions SRS',
+                //                             description: 'Manage PDA Transactions SRS'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 3,
+                //                     name: 'Reports',
+                //                     icon: 'BarChart',
+                //                     pages: [
+                //                         {
+                //                             id: 603212,
+                //                             name: 'PDA Debit Credit Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDADebitCreditReport',
+                //                             title: 'PDA Debit Credit Report',
+                //                             description: 'View PDA Debit Credit Reports'
+                //                         },
+                //                         {
+                //                             id: 603213,
+                //                             name: 'PDA Head Wise Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDAHeadWiseReport',
+                //                             title: 'PDA Head Wise Report',
+                //                             description: 'View PDA Head Wise Reports'
+                //                         },
+                //                         {
+                //                             id: 603214,
+                //                             name: 'PDA Debit Credit Report SRS',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDADebitCreditReportSRS',
+                //                             title: 'PDA Debit Credit Report SRS',
+                //                             description: 'View PDA Debit Credit Report SRS'
+                //                         },
+                //                         {
+                //                             id: 603215,
+                //                             name: 'PDA Expenditure Import',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/pda-expenditure-import',
+                //                             title: 'PDA Expenditure Import',
+                //                             description: 'View PDA Expenditure Import'
+                //                         },
+                //                         {
+                //                             id: 603216,
+                //                             name: 'PDA Over All Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDAOverAllReport',
+                //                             title: 'PDA OverAll Report',
+                //                             description: 'View PDA OverAll Report'
+                //                         },
+                //                         {
+                //                             id: 603217,
+                //                             name: 'PDA Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDAReport',
+                //                             title: 'PDA Report',
+                //                             description: 'View PDA Report'
+                //                         },
+                //                         {
+                //                             id: 603218,
+                //                             name: 'PDA Summary Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDASummaryReport',
+                //                             title: 'PDA Summary Report',
+                //                             description: 'View PDA Summary Report'
+                //                         }
+                //                     ]
+                //                 }
+                //             ]
+                //         }
+                //     ]
+                // },
+
                 // ,
                 // {
                 //     id: 9,
