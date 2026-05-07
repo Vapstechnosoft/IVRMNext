@@ -2031,6 +2031,14 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/transactions/feepreadmissionstmarys',
                                             title: 'Fee PreAdmission Transaction ST Marys',
                                             description: 'Manage Fee PreAdmission Transaction ST Marys'
+                                        },
+                                        {
+                                            id: 528,
+                                            name: 'Mess Attendance Entry Vishwadarshana',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/messattendanceentryvishwa',
+                                            title: 'Mess Attendance Entry Vishwadarshana',
+                                            description: 'Manage Mess Attendance Entry Vishwadarshana'
                                         }
                                     ]
                                 }
