@@ -7689,7 +7689,7 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                },
+                }
                 // {
                 //     id: 999021,
                 //     name: 'PDA',
@@ -7809,7 +7809,6 @@ export async function getUserAccessibleModules() {
                     name: 'Staff Portal',
                     icon: 'Settings',
                     menu: [
-
                         {
                             id: 2,
                             name: 'Attendance',
@@ -8258,29 +8257,6 @@ export async function getUserAccessibleModules() {
                                             description: 'View Calendar of Events'
                                         }
                                     ]
-                                },
-                                {
-                                    id: 2,
-                                    name: 'Digital Signage',
-                                    icon: 'Monitor',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Configuration',
-                                            icon: 'Settings',
-                                            url: '/digital-signage/configuration',
-                                            title: 'Configuration',
-                                            description: 'Digital Signage Configuration'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Upload and Schedule',
-                                            icon: 'Upload',
-                                            url: '/digital-signage/upload-and-schedule',
-                                            title: 'Upload and Schedule',
-                                            description: 'Upload and Schedule Signage Content'
-                                        }
-                                    ]
                                 }
                             ]
                         }
@@ -8554,29 +8530,6 @@ export async function getUserAccessibleModules() {
                                             url: '/StudentPortal/coe/',
                                             title: 'Calendar of Events',
                                             description: 'View Calendar of Events'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 2,
-                                    name: 'Digital Signage',
-                                    icon: 'Monitor',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Configuration',
-                                            icon: 'Settings',
-                                            url: '/digital-signage/configuration',
-                                            title: 'Configuration',
-                                            description: 'Digital Signage Configuration'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Upload and Schedule',
-                                            icon: 'Upload',
-                                            url: '/digital-signage/upload-and-schedule',
-                                            title: 'Upload and Schedule',
-                                            description: 'Upload and Schedule Signage Content'
                                         }
                                     ]
                                 }
@@ -8935,32 +8888,8 @@ export async function getUserAccessibleModules() {
                                             description: 'View Calendar of Events'
                                         }
                                     ]
-                                },
-                                {
-                                    id: 2,
-                                    name: 'Digital Signage',
-                                    icon: 'Monitor',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Configuration',
-                                            icon: 'Settings',
-                                            url: '/digital-signage/configuration',
-                                            title: 'Configuration',
-                                            description: 'Digital Signage Configuration'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Upload and Schedule',
-                                            icon: 'Upload',
-                                            url: '/digital-signage/upload-and-schedule',
-                                            title: 'Upload and Schedule',
-                                            description: 'Upload and Schedule Signage Content'
-                                        }
-                                    ]
                                 }
                             ]
-
                         },
                         {
                             id: 6,
@@ -8999,7 +8928,7 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                },
+                }
                 // {
                 //     id: 999021,
                 //     name: 'PDA',
@@ -9108,7 +9037,6 @@ export async function getUserAccessibleModules() {
                 //     ]
                 // }
             ]
-
         };
     } else {
         response = {
@@ -9143,7 +9071,7 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                },
+                }
                 // {
                 //     id: 999021,
                 //     name: 'PDA',
@@ -9483,7 +9411,6 @@ export async function getUserAccessibleModules() {
                 //     ]
                 // }
             ]
-
         };
     }
 
