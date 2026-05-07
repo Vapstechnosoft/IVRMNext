@@ -1123,7 +1123,7 @@ export async function getUserAccessibleModules() {
                                         //     id: 604,
                                         //     name: 'SophiaMultiTransferCertificate',
                                         //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/Sophia/reports/SophiaMultiTransferCertificate',
+                                        //     url: '/admission/preadmission/sophia/reports/SophiaMultiTransferCertificate',
                                         //     title: 'SophiaMultiTransferCertificate',
                                         //     description: 'SophiaMultiTransferCertificate'
                                         // },
@@ -1145,187 +1145,187 @@ export async function getUserAccessibleModules() {
                                         // }
                                     ]
                                 },
-                                {
-                                    id: 16,
-                                    name: 'St. Thomas Church School',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 61,
-                                            name: 'St. Thomas Admission Form',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/stthomas/admission-form',
-                                            title: 'St. Thomas Admission Form',
-                                            description: 'St. Thomas Admission Form'
-                                        },
-                                        {
-                                            id: 62,
-                                            name: 'Total Strength',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/STCS/total-strength',
-                                            title: 'Total Strength',
-                                            description: 'Total Strength'
-                                        },
-                                        {
-                                            id: 63,
-                                            name: 'St. Thomas TC Custom Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/stthomas/reports/stthomas-tc-custom-report',
-                                            title: 'St. Thomas TC Custom Report',
-                                            description: 'St. Thomas TC Custom Report'
-                                        }
-                                    ]
-                                },
+                                // {
+                                //     id: 16,
+                                //     name: 'St. Thomas Church School',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         {
+                                //             id: 61,
+                                //             name: 'St. Thomas Admission Form',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/stthomas/admission-form',
+                                //             title: 'St. Thomas Admission Form',
+                                //             description: 'St. Thomas Admission Form'
+                                //         },
+                                //         {
+                                //             id: 62,
+                                //             name: 'Total Strength',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/reports/STCS/total-strength',
+                                //             title: 'Total Strength',
+                                //             description: 'Total Strength'
+                                //         },
+                                //         {
+                                //             id: 63,
+                                //             name: 'St. Thomas TC Custom Report',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/stthomas/reports/stthomas-tc-custom-report',
+                                //             title: 'St. Thomas TC Custom Report',
+                                //             description: 'St. Thomas TC Custom Report'
+                                //         }
+                                //     ]
+                                // },
 
-                                {
-                                    id: 17,
-                                    name: 'Samartha',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 71,
-                                            name: 'SamarthaBonafideCertificate',
-                                            icon: 'Settings',
-                                            url: '/admission/samartha/reports/SamarthaBonafideCertificate',
-                                            title: 'Samartha Bonafide Certificate',
-                                            description: 'Samartha Bonafide Certificate'
-                                        },
-                                        {
-                                            id: 72,
-                                            name: 'SamarthaTC',
-                                            icon: 'Settings',
-                                            url: '/admission/samartha/reports/SamarthaTC',
-                                            title: 'SamarthaTC',
-                                            description: 'SamarthaTC'
-                                        },
-                                        {
-                                            id: 73,
-                                            name: 'OverAllViewReportt',
-                                            icon: 'Settings',
-                                            url: '/admission/samartha/reports/Over-All-View-Reportt',
-                                            title: 'OverAllViewReportt',
-                                            description: 'OverAllViewReportt'
-                                        }
-                                    ]
-                                },
+                                // {
+                                //     id: 17,
+                                //     name: 'Samartha',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         {
+                                //             id: 71,
+                                //             name: 'SamarthaBonafideCertificate',
+                                //             icon: 'Settings',
+                                //             url: '/admission/samartha/reports/SamarthaBonafideCertificate',
+                                //             title: 'Samartha Bonafide Certificate',
+                                //             description: 'Samartha Bonafide Certificate'
+                                //         },
+                                //         {
+                                //             id: 72,
+                                //             name: 'SamarthaTC',
+                                //             icon: 'Settings',
+                                //             url: '/admission/samartha/reports/SamarthaTC',
+                                //             title: 'SamarthaTC',
+                                //             description: 'SamarthaTC'
+                                //         },
+                                //         {
+                                //             id: 73,
+                                //             name: 'OverAllViewReportt',
+                                //             icon: 'Settings',
+                                //             url: '/admission/samartha/reports/Over-All-View-Reportt',
+                                //             title: 'OverAllViewReportt',
+                                //             description: 'OverAllViewReportt'
+                                //         }
+                                //     ]
+                                // },
 
-                                {
-                                    id: 18,
-                                    name: 'Danvantari Phisiotheraphy',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 71,
-                                            name: 'DCPS Bonified Certificate',
-                                            icon: 'Settings',
-                                            url: '/admission/Danvantari/reports/DCPS_BonifiedCertificate',
-                                            title: 'DCPS Bonified Certificate',
-                                            description: 'Bonified Certificate'
-                                        },
-                                        {
-                                            id: 72,
-                                            name: 'DCPS Transfer Certificate',
-                                            icon: 'Settings',
-                                            url: '/admission/Danvantari/reports/DCPS_TransferCertificate',
-                                            title: 'DCPS Transfer Certificate',
-                                            description: 'DCPS Transfer Certificate'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 19,
-                                    name: 'SRKVS',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 74,
-                                            name: 'SRKVS Student Address Book',
-                                            icon: 'Settings',
-                                            url: '/admission/srkvs/reports/SRKVSStudentAddressBook',
-                                            title: 'SRKVSStudentAddressBook',
-                                            description: 'SRKVSStudentAddressBook'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 20,
-                                    name: 'St. Peters School Durgapur',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 74,
-                                            name: 'Employee IDcard Report STpeter',
-                                            icon: 'Settings',
-                                            url: '/admission/stpeter/reports/EmployeeIDcardReportSTpeter',
-                                            title: 'EmployeeIDcardReportSTpeter',
-                                            description: 'EmployeeIDcardReportSTpeter'
-                                        },
+                                // {
+                                //     id: 18,
+                                //     name: 'Danvantari Phisiotheraphy',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         {
+                                //             id: 71,
+                                //             name: 'DCPS Bonified Certificate',
+                                //             icon: 'Settings',
+                                //             url: '/admission/Danvantari/reports/DCPS_BonifiedCertificate',
+                                //             title: 'DCPS Bonified Certificate',
+                                //             description: 'Bonified Certificate'
+                                //         },
+                                //         {
+                                //             id: 72,
+                                //             name: 'DCPS Transfer Certificate',
+                                //             icon: 'Settings',
+                                //             url: '/admission/Danvantari/reports/DCPS_TransferCertificate',
+                                //             title: 'DCPS Transfer Certificate',
+                                //             description: 'DCPS Transfer Certificate'
+                                //         }
+                                //     ]
+                                // },
+                                // {
+                                //     id: 19,
+                                //     name: 'SRKVS',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         {
+                                //             id: 74,
+                                //             name: 'SRKVS Student Address Book',
+                                //             icon: 'Settings',
+                                //             url: '/admission/srkvs/reports/SRKVSStudentAddressBook',
+                                //             title: 'SRKVSStudentAddressBook',
+                                //             description: 'SRKVSStudentAddressBook'
+                                //         }
+                                //     ]
+                                // },
+                                // {
+                                //     id: 20,
+                                //     name: 'St. Peters School Durgapur',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         {
+                                //             id: 74,
+                                //             name: 'Employee IDcard Report STpeter',
+                                //             icon: 'Settings',
+                                //             url: '/admission/stpeter/reports/EmployeeIDcardReportSTpeter',
+                                //             title: 'EmployeeIDcardReportSTpeter',
+                                //             description: 'EmployeeIDcardReportSTpeter'
+                                //         },
 
-                                        {
-                                            id: 75,
-                                            name: 'Student IDcard Report STPeter',
-                                            icon: 'Settings',
-                                            url: '/admission/stpeter/reports/StudentIDcardReportSTPeter',
-                                            title: 'StudentIDcardReportSTPeter',
-                                            description: 'StudentIDcardReportSTPeter'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 21,
-                                    name: 'GNANA DEEPA ACADEMY RESIDENTIAL SCHOOL',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 74,
-                                            name: 'GDARSStudyCertificate',
-                                            icon: 'Settings',
-                                            url: '/admission/gnanadeepa/reports/GDARSStudyCertificate',
-                                            title: 'GDARSStudyCertificate',
-                                            description: 'GDARSStudyCertificate'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 22,
-                                    name: 'SMS degree college',
-                                    icon: 'Settings',
-                                    pages: [
-                                        //Need to create UI
-                                        // {
-                                        //     id: 74,
-                                        //     name: 'SMSCollegeStudentTc',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/sms/transaction/SMSCollegeStudentTc',
-                                        //     title: 'SMSCollegeStudentTc',
-                                        //     description: 'SMSCollegeStudentTc'
-                                        // },
+                                //         {
+                                //             id: 75,
+                                //             name: 'Student IDcard Report STPeter',
+                                //             icon: 'Settings',
+                                //             url: '/admission/stpeter/reports/StudentIDcardReportSTPeter',
+                                //             title: 'StudentIDcardReportSTPeter',
+                                //             description: 'StudentIDcardReportSTPeter'
+                                //         }
+                                //     ]
+                                // },
+                                // {
+                                //     id: 21,
+                                //     name: 'GNANA DEEPA ACADEMY RESIDENTIAL SCHOOL',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         {
+                                //             id: 74,
+                                //             name: 'GDARSStudyCertificate',
+                                //             icon: 'Settings',
+                                //             url: '/admission/gnanadeepa/reports/GDARSStudyCertificate',
+                                //             title: 'GDARSStudyCertificate',
+                                //             description: 'GDARSStudyCertificate'
+                                //         }
+                                //     ]
+                                // },
+                                // {
+                                //     id: 22,
+                                //     name: 'SMS degree college',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         //Need to create UI
+                                //         // {
+                                //         //     id: 74,
+                                //         //     name: 'SMSCollegeStudentTc',
+                                //         //     icon: 'Settings',
+                                //         //     url: '/admission/sms/transaction/SMSCollegeStudentTc',
+                                //         //     title: 'SMSCollegeStudentTc',
+                                //         //     description: 'SMSCollegeStudentTc'
+                                //         // },
 
-                                        {
-                                            id: 75,
-                                            name: 'SMSCConductCertificate',
-                                            icon: 'Settings',
-                                            url: '/admission/sms/reports/SMSCConductCertificate',
-                                            title: 'SMSCConductCertificate',
-                                            description: 'SMSCConductCertificate'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 23,
-                                    name: 'GM Vidya Nikethan School',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 75,
-                                            name: 'Smartcarddetails',
-                                            icon: 'Settings',
-                                            url: '/admission/GMVPS/reports/Smartcarddetails',
-                                            title: 'Smartcarddetails',
-                                            description: 'Smartcarddetails'
-                                        }
-                                    ]
-                                }
+                                //         {
+                                //             id: 75,
+                                //             name: 'SMSCConductCertificate',
+                                //             icon: 'Settings',
+                                //             url: '/admission/sms/reports/SMSCConductCertificate',
+                                //             title: 'SMSCConductCertificate',
+                                //             description: 'SMSCConductCertificate'
+                                //         }
+                                //     ]
+                                // },
+                                // {
+                                //     id: 23,
+                                //     name: 'GM Vidya Nikethan School',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         {
+                                //             id: 75,
+                                //             name: 'Smartcarddetails',
+                                //             icon: 'Settings',
+                                //             url: '/admission/GMVPS/reports/Smartcarddetails',
+                                //             title: 'Smartcarddetails',
+                                //             description: 'Smartcarddetails'
+                                //         }
+                                //     ]
+                                // }
                             ]
                         }
                     ]

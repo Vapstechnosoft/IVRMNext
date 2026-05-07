@@ -36,7 +36,6 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import * as XLSX from 'xlsx';
-// mammoth will be imported dynamically to avoid build-time resolution issues
 
 import {
     getRecipientsByRole,
@@ -296,20 +295,6 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                     const worksheet = workbook.Sheets[firstSheetName];
                     const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
                     setXlsxPreviewData(jsonData as any[][]);
-                };
-                reader.readAsArrayBuffer(fileObj.file);
-            } else if (fileObj.name.toLowerCase().endsWith('.docx')) {
-                const reader = new FileReader();
-                reader.onload = async (e) => {
-                    const arrayBuffer = e.target?.result as ArrayBuffer;
-                    try {
-                        const mammothModule = await import('mammoth');
-                        const mammoth = mammothModule.default || mammothModule;
-                        const result = await mammoth.convertToHtml({ arrayBuffer });
-                        setDocxPreviewHtml(result.value);
-                    } catch (err) {
-                        setDocxPreviewHtml('<p class="text-red-500 font-bold">Failed to load Word document. Please download to view.</p>');
-                    }
                 };
                 reader.readAsArrayBuffer(fileObj.file);
             } else {
@@ -728,10 +713,10 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                                     <audio src={previewFile.url} controls className="w-full" autoPlay />
                                     <p className="text-xs font-bold text-slate-500 uppercase tracking-tighter">{previewFile.name}</p>
                                 </div>
-                            ) : (previewFile.type === 'application/pdf' || previewFile.type?.startsWith('image/')) ? (
+                            ) : (previewFile.type === 'application/pdf' || previewFile.type?.startsWith('image/') || previewFile.name.toLowerCase().endsWith('.docx') || previewFile.name.toLowerCase().endsWith('.doc')) ? (
                                 <iframe
                                     src={previewFile.url}
-                                    className="w-full h-full min-h-[600px] border-none"
+                                    className="w-full h-full min-h-[600px] border-none rounded-lg"
                                     title={previewFile.name}
                                 />
                             ) : (xlsxPreviewData && (previewFile.name.toLowerCase().endsWith('.xlsx') || previewFile.name.toLowerCase().endsWith('.xls'))) ? (
@@ -761,16 +746,6 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                                                 </div>
                                             )}
                                         </div>
-                                    </ScrollArea>
-                                </div>
-                            ) : docxPreviewHtml ? (
-                                <div className="w-full h-full min-h-[500px] bg-white border border-slate-200 overflow-hidden flex flex-col shadow-inner">
-                                    <div className="bg-slate-100 px-4 py-2 border-b flex items-center justify-between">
-                                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Word Document Preview</span>
-                                        <Badge variant="outline" className="text-[9px] bg-blue-50 text-blue-700 border-blue-200 rounded-none">DOCX CONTENT</Badge>
-                                    </div>
-                                    <ScrollArea className="flex-1 w-full overflow-auto bg-white p-8">
-                                        <div dangerouslySetInnerHTML={{ __html: docxPreviewHtml || '' }} className="prose prose-sm max-w-none text-slate-700" />
                                     </ScrollArea>
                                 </div>
                             ) : (
