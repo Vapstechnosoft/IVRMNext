@@ -2039,6 +2039,14 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/transactions/messattendanceentryvishwa',
                                             title: 'Mess Attendance Entry Vishwadarshana',
                                             description: 'Manage Mess Attendance Entry Vishwadarshana'
+                                        },
+                                        {
+                                            id: 529,
+                                            name: 'Fee Collection Sophia',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feecollectionreportsophia',
+                                            title: 'Fee Collection Sophia',
+                                            description: 'Manage Fee Collection Sophia'
                                         }
                                     ]
                                 }

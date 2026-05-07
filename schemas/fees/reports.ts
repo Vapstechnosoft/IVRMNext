@@ -818,3 +818,45 @@ export const feeSummerizedReportStjamesSchema = z.object({
 //         }
 //     }
 // });
+
+export const feeCollectionReportSophiaSchema = z
+    .object({
+        academicYearId: z.preprocess(
+            (val) => {
+                if (val === '' || val === undefined || val === null) return undefined;
+                const num = Number(val);
+                return Number.isNaN(num) ? undefined : num;
+            },
+            z
+                .number({
+                    required_error: 'Academic Year is required',
+                    invalid_type_error: 'Academic Year is required'
+                })
+                .min(1, 'Academic Year is required')
+        ),
+        classId: z.number().optional(),
+        sectionId: z.number().optional(),
+        studentwise: z.boolean().optional(),
+        classwise: z.boolean().optional(),
+        active: z.boolean().optional(),
+        deactive: z.boolean().optional(),
+        left: z.boolean().optional()
+    })
+    .superRefine((data, ctx) => {
+        if (data.classwise === true) {
+            if (!data.classId || data.classId === 0) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Class is required',
+                    path: ['classId']
+                });
+            }
+            if (!data.sectionId || data.sectionId === 0) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Section is required',
+                    path: ['sectionId']
+                });
+            }
+        }
+    });
