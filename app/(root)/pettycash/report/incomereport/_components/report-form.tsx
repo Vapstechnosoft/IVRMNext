@@ -48,7 +48,7 @@ export default function PDAReportForm({
         resolver: zodResolver(formSchema),
         defaultValues: {
             ASMAY_Id: '',
-            From_Date: new Date(),
+            From_Date: undefined,
         },
     });
 
@@ -64,7 +64,10 @@ export default function PDAReportForm({
     }
 
     const handleReset = () => {
-        reset();
+        reset({
+            ASMAY_Id: '',
+            From_Date: undefined,
+        });
         onCancel();
     };
 
@@ -80,7 +83,7 @@ export default function PDAReportForm({
                         name="ASMAY_Id"
                         control={control}
                         render={({ field }) => (
-                            <Select onValueChange={field.onChange} value={field.value}>
+                            <Select key={field.value} onValueChange={field.onChange} value={field.value}>
                                 <SelectTrigger className='w-full'>
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>
@@ -106,7 +109,7 @@ export default function PDAReportForm({
                         name="From_Date"
                         control={control}
                         render={({ field }) => (
-                            <DatePicker date={field.value} setDate={field.onChange} />
+                            <DatePicker date={field.value} setDate={field.onChange} placeholder="Select Date" />
                         )}
                     />
                     {errors.From_Date && <span className='text-red-500 text-xs font-medium'>{errors.From_Date.message}</span>}

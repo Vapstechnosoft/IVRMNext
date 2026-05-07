@@ -52,3 +52,15 @@ export async function getExamReportCard(data: any) {
     const url = '/individual_exam_report_card/exam_report_card';
     return await api.post<any>('exam', url, data);
 }
+
+
+
+export async function getExamsStjames(data: any) {
+    const url = `/JSHSExamReportsFacade/get_exam_groups`;
+    return await api.post<any>('exam', url, data);
+}
+
+export async function getStJamesExamReport(data: any) {
+    const url = `/JSHSExamReportsFacade/st_james_exam_report`;
+    return await api.post<any>('exam', url, data);
+}
