@@ -739,6 +739,49 @@ export const promotionReportCardSophiaSchema = z.object({
 
 export type PromotionReportCardSophiaSchema = z.infer<typeof promotionReportCardSophiaSchema>;
 
+export const stJamesNurseryReportSchema = z.object({
+    asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
+    asmcL_Id: z.number({ required_error: 'Class Name is required' }).min(1, { message: 'Please select Class Name' }),
+    asmS_Id: z.number({ required_error: 'Section Name is required' }).min(1, { message: 'Please select Section Name' }),
+    emE_Id: z.number({ required_error: 'Exam is required' }).min(1, { message: 'Please select Exam' }),
+    readmit: z.boolean().default(false),
+    displayattendance: z.boolean().default(false)
+});
+
+export type StJamesNurseryReportSchema = z.infer<typeof stJamesNurseryReportSchema>;
+
+export const stJamesTransitionReportSchema = z.object({
+    asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
+    asmcL_Id: z.number({ required_error: 'Class Name is required' }).min(1, { message: 'Please select Class Name' }),
+    asmS_Id: z.number({ required_error: 'Section Name is required' }).min(1, { message: 'Please select Section Name' }),
+    emE_Id: z.number({ required_error: 'Exam is required' }).min(1, { message: 'Please select Exam' }),
+    readmit: z.boolean().default(false),
+    displayattendance: z.boolean().default(false)
+});
+
+export type StJamesTransitionReportSchema = z.infer<typeof stJamesTransitionReportSchema>;
+
+export const stJamesI_IIIReportSchema = z.object({
+    asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
+    asmcL_Id: z.number({ required_error: 'Class Name is required' }).min(1, { message: 'Please select Class Name' }),
+    asmS_Id: z.number({ required_error: 'Section Name is required' }).min(1, { message: 'Please select Section Name' }),
+    emE_Id: z.number({ required_error: 'Exam is required' }).min(1, { message: 'Please select Exam' }),
+    readmit: z.boolean().default(false),
+    displayattendance: z.boolean().default(false),
+    displayMarks: z.boolean().default(false)
+});
+
+export type StJamesI_IIIReportSchema = z.infer<typeof stJamesI_IIIReportSchema>;
+
+export const stJamesConsolidatedPointsReportSchema = z.object({
+    asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
+    asmcL_Id: z.number({ required_error: 'Class Name is required' }).min(1, { message: 'Please select Class Name' }),
+    asmS_Id: z.number({ required_error: 'Section Name is required' }).min(1, { message: 'Please select Section Name' }),
+    StjamesPoints: z.boolean().default(true)
+});
+
+export type StJamesConsolidatedPointsReportSchema = z.infer<typeof stJamesConsolidatedPointsReportSchema>;
+
 export const calcuttaPromotionReportItoIVSchema = z
     .object({
         mI_Id: z.number().optional(),
@@ -766,6 +809,7 @@ export const calcuttaPromotionReportItoIVSchema = z
     });
 
 export type CalcuttaPromotionReportItoIVSchema = z.infer<typeof calcuttaPromotionReportItoIVSchema>;
+
 
 export const calcuttaPromotionReportItoIXSchema = z
     .object({
@@ -796,3 +840,4 @@ export const calcuttaPromotionReportItoIXSchema = z
     });
 
 export type CalcuttaPromotionReportItoIXSchema = z.infer<typeof calcuttaPromotionReportItoIXSchema>;
+
