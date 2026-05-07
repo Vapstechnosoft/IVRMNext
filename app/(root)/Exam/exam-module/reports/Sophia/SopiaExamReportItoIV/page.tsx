@@ -5,7 +5,6 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import SopiaExamReportItoIVForm from './_components/report-form';
 import SopiaExamReportItoIVView from './_components/report-list';
 
-
 export default function SopiaExamReportItoIVPage() {
     const [reportData, setReportData] = useState<any>(null);
     const [isReportVisible, setIsReportVisible] = useState(false);
