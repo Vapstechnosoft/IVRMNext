@@ -16,7 +16,7 @@ export async function getTermsCalcutta(data: any) {
  * so the frontend UI can simply render without complex client-side mapping.
  */
 export async function getCalcuttaPromotionReportI_IV(data: any) {
-    const url = '/JSHSExamReports/PromotionReportI_IV';
+    const url = '/JSHSExamReports_/cbs_PromotionReportI_IV';
     const res = await api.post<any>('exam', url, data);
     const response = res?.data || res || {};
 
@@ -42,7 +42,7 @@ export async function getCalcuttaPromotionReportI_IV(data: any) {
 
     // 1. Group wise exam list construction
     const groupwiseexamlist = [];
-    
+
     for (const dd of getgroupdetails) {
         let counttotal = 0;
         const groupewiseexamTemp = [];
@@ -50,7 +50,7 @@ export async function getCalcuttaPromotionReportI_IV(data: any) {
         for (const d of getgroupexamdetails) {
             if (dd.empG_DistplayName === d.empG_DistplayName) {
                 counttotal += d.empsgE_ForMaxMarkrs || 0;
-                
+
                 const examMap = {
                     EMPG_GroupName: d.empG_GroupName,
                     EME_Id: d.emE_Id,
@@ -117,10 +117,10 @@ export async function getCalcuttaPromotionReportI_IV(data: any) {
     const studentListDetails = getstudentdetails.map((stu: any) => {
         // Subjects
         const studentSubjects = getstudentwisesubjectlist.filter((s: any) => s.AMST_Id === stu.amsT_Id || s.amsT_Id === stu.amsT_Id);
-        
+
         // Marks
         const studentMarks = getstudentmarksdetails.filter((m: any) => m.AMST_Id === stu.amsT_Id || m.amsT_Id === stu.amsT_Id);
-        
+
         // Exam wise total marks
         const studentExamMarks = getstudent_examwisemarks.filter((m: any) => m.AMST_Id === stu.amsT_Id || m.amsT_Id === stu.amsT_Id);
 
@@ -150,7 +150,7 @@ export async function getCalcuttaPromotionReportI_IV(data: any) {
             if (subj.EYCES_MarksDisplayFlg || subj.eyceS_MarksDisplayFlg) {
                 const subjectName = subj.ISMS_SubjectName || subj.ismS_SubjectName;
                 const examTotal = examwisetotal.find((t: any) => t.ISMS_SubjectName === subjectName || t.ismS_SubjectName === subjectName);
-                
+
                 chartData.push({
                     subject: subjectName,
                     highest: examTotal?.ESTMPPS_ClassHighest || examTotal?.estmppS_ClassHighest || 0,
@@ -159,6 +159,9 @@ export async function getCalcuttaPromotionReportI_IV(data: any) {
                 });
             }
         }
+
+        // Skills for the specific student
+        const studentSkills = getstudentwiseskillslist.filter((s: any) => s.AMST_Id === stu.amsT_Id || s.amsT_Id === stu.amsT_Id);
 
         return {
             ...stu,
@@ -170,15 +173,25 @@ export async function getCalcuttaPromotionReportI_IV(data: any) {
             promotedclass,
             attendance,
             suggestions,
-            chartData
+            chartData,
+            studentSkills
         };
     });
+
+    // Unique skills list (skilllist_temp)
+    const skilllist_temp: any[] = [];
+    for (const dev of getstudentwiseskillslist) {
+        if (!skilllist_temp.find(emp => emp.ECS_Id === dev.ECS_Id)) {
+            skilllist_temp.push(dev);
+        }
+    }
 
     return {
         getinstitution,
         getgroupdetails,
         groupwiseexamlist,
         gettermdetails,
+        skilllist_temp,
         studentdetails: studentListDetails,
     };
 }

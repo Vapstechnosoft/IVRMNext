@@ -3253,6 +3253,22 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportI_IV',
                                             title: 'Calcutta Promotion Report I-IV',
                                             description: 'Calcutta Promotion Report I-IV'
+                                        },
+                                        {
+                                            id: 21507,
+                                            name: 'Calcutta Promotion Report I-IX',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportI_X',
+                                            title: 'Calcutta Promotion Report I-IX',
+                                            description: 'Calcutta Promotion Report I-IX'
+                                        },
+                                        {
+                                            id: 21508,
+                                            name: 'Calcutta Promotion Report IX-X',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportIX_X',
+                                            title: 'Calcutta Promotion Report IX-X',
+                                            description: 'Calcutta Promotion Report IX-X'
                                         }
                                     ]
                                 }
