@@ -1,19 +1,19 @@
 'use client';
-
+ 
 import React from 'react';
 import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { IPDADebitCreditReportRow, IPDADebitCreditStudentDetail } from '@/types/pettycash/report/PDADebitCreditReport';
 import { BookOpen } from 'lucide-react';
-
+ 
 interface PDADebitCreditReportGridProps {
     rows: IPDADebitCreditReportRow[];
     student: IPDADebitCreditStudentDetail[];
     fromDate: Date | null;
     toDate: Date | null;
-    printRef: React.RefObject<HTMLDivElement>;
+    printRef: React.RefObject<HTMLDivElement | null>;
 }
-
+ 
 export default function PDADebitCreditReportGrid({
     rows,
     student,
@@ -22,15 +22,15 @@ export default function PDADebitCreditReportGrid({
     printRef,
 }: PDADebitCreditReportGridProps) {
     if (!rows || rows.length === 0) return null;
-
+ 
     const totalDebit = rows.reduce((acc, r) => acc + (Number(r.DEBIT) || 0), 0);
     const totalCredit = rows.reduce((acc, r) => acc + (Number(r.CREDIT) || 0), 0);
     const lastRecord = rows[rows.length - 1];
     const closingBalance = lastRecord?.BALANCE ?? 0;
     const balType = lastRecord?.TYPEORG1 ?? '';
-
+ 
     const studentInfo = student?.[0];
-
+ 
     return (
         <Card className="shadow-md border-purple-50 overflow-hidden bg-white animate-in fade-in duration-500">
             <CardHeader className="bg-slate-50/50 border-b py-3 px-4">
@@ -39,7 +39,7 @@ export default function PDADebitCreditReportGrid({
                     PDA Debit Credit Report — Statement of Personal Expense Account
                 </CardTitle>
             </CardHeader>
-
+ 
             <CardContent className="p-4">
                 {/* Printable section */}
                 <div id="pdaDebitCreditPrintSection">
@@ -57,7 +57,7 @@ export default function PDADebitCreditReportGrid({
                             </p>
                         )}
                     </div>
-
+ 
                     {/* Student Info */}
                     {studentInfo && (
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-4 text-xs text-slate-700 bg-orange-50 rounded-lg px-4 py-3 border border-orange-100">
@@ -77,7 +77,7 @@ export default function PDADebitCreditReportGrid({
                             </div>
                         </div>
                     )}
-
+ 
                     {/* Data Table */}
                     <div className="overflow-x-auto rounded-lg border border-slate-200">
                         <table className="w-full text-xs border-collapse">
@@ -134,7 +134,7 @@ export default function PDADebitCreditReportGrid({
                             </tfoot>
                         </table>
                     </div>
-
+ 
                     {/* Closing Balance */}
                     <div className="mt-4 text-center">
                         <span className="inline-block bg-orange-50 border border-orange-200 rounded-lg px-6 py-2 text-sm font-bold text-slate-800">
