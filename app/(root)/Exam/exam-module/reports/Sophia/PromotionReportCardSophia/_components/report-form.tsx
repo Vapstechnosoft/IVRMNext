@@ -140,15 +140,17 @@ export default function PromotionReportCardSophiaForm({
     // on submit
     const onSubmit = async (data: PromotionReportCardSophiaSchema) => {
         try {
-            // We still trigger onSuccess even for hardcoded reports to show the report view
-            if (onSuccess) {
-                await onSuccess({});
+            const response = await getPromotionReportSophia(data);
+            if (response.success && response.data) {
+                if (onSuccess) {
+                    await onSuccess(response.data);
+                }
+            } else {
+                toast.error(response.message || 'Failed to fetch report data');
             }
         } catch (error) {
             console.error('Error submitting form:', error);
-            if (onSuccess) {
-                await onSuccess({});
-            }
+            toast.error('An error occurred while generating report');
         }
     };
 

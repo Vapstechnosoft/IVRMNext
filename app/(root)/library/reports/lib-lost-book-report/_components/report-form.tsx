@@ -17,7 +17,7 @@ import * as z from 'zod';
 const formSchema = z
     .object({
         lmaL_Id: z.preprocess((val) => Number(val), z.number().min(1, 'Library Name is required')),
-        bnbFlg: z.enum(['Book', 'Non-Book']),
+        bnbFlg: z.enum(['Book', 'Non-Book', 'ALL']),
         bookType: z.enum(['Issue', 'Reference']),
         datewised: z.boolean().default(false),
         fromdate: z.date().optional(),
@@ -49,7 +49,8 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
         handleSubmit,
         watch,
         formState: { errors },
-        reset
+        reset,
+        setValue
     } = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -61,14 +62,24 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
 
     const isDateEnabled = watch('datewised');
 
+    // Auto-select library if only one is available or to show the first one by default
+    useEffect(() => {
+        if (initialData && initialData.length > 0) {
+            const currentLmaLId = watch('lmaL_Id');
+            if (!currentLmaLId) {
+                setValue('lmaL_Id', initialData[0].lmaL_Id);
+            }
+        }
+    }, [initialData, setValue, watch]);
+
     const onSubmit = (values: z.infer<typeof formSchema>) => {
         onSearch({
-            ...values,
-            fromdate: values.fromdate ? values.fromdate.toISOString() : "",
-            toDate: values.toDate ? values.toDate.toISOString() : "",
-            IVRMUL_Id: 0,
-            reportlist: [""],
-            lib_list: [""]
+            MI_Id: 30, // Using the provided MI_Id
+            p_booktype: values.bookType,
+            p_bnbflg: values.bnbFlg,
+            p_fromdate: values.fromdate ? values.fromdate.toISOString() : "",
+            p_todate: values.toDate ? values.toDate.toISOString() : "",
+            p_lmal_id: values.lmaL_Id
         });
     };
 
@@ -89,7 +100,7 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                                     <SelectValue placeholder='Select' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {initialData?.map((item) => (
+                                    {(initialData || []).map((item) => (
                                         <SelectItem key={item.lmaL_Id} value={item.lmaL_Id.toString()}>
                                             {item.lmaL_LibraryName}
                                         </SelectItem>
@@ -118,6 +129,10 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='Non-Book' id='r-nonbook' />
                                     <Label htmlFor='r-nonbook' className='font-normal cursor-pointer'>NON-BOOK</Label>
+                                </div>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='ALL' id='r-all' />
+                                    <Label htmlFor='r-all' className='font-normal cursor-pointer'>ALL</Label>
                                 </div>
                             </RadioGroup>
                         )}

@@ -16,8 +16,7 @@ export default function LibLostBookReportPage() {
     const handleSearch = (data: ILibLostBookReportRequest) => {
         searchMutation.mutate(data, {
             onSuccess: (response) => {
-                const data = (response.reportlist || []) as ILibLostBookReportGridData[];
-                setReportData(data);
+                setReportData(response || []);
             }
         });
     };
