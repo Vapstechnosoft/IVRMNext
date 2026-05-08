@@ -3189,6 +3189,14 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/Burnpur/BRS_PreBoard_reportcard',
                                             title: 'BRS PreBoard Report Card',
                                             description: 'BRS PreBoard Report Card'
+                                        },
+                                        {
+                                            id: 21507,
+                                            name: 'NDS Final Report Card',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/NDS/FinalNdasReportCard',
+                                            title: 'NDS Final Report Card',
+                                            description: 'NDS Final Report Card'
                                         }
                                     ]
                                 }
