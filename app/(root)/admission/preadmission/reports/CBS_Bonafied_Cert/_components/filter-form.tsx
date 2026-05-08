@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { StjamesBonafiedReportSchema, type StjamesBonafiedReportFields } from '@/schemas/admission/preadmission/reports/stjames-bonafied-report';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { FormError } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -191,7 +191,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                         name="allorindi"
                         render={({ field }) => (
                             <FormItem className="space-y-3 p-4 border rounded-lg bg-slate-50/50">
-                                <FormLabel className="font-bold">Report Type</FormLabel>
+                                <Label className="font-bold">Report Type</Label>
                                 <FormControl>
                                     <RadioGroup
                                         onValueChange={field.onChange}
@@ -208,7 +208,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                         </div>
                                     </RadioGroup>
                                 </FormControl>
-                                <FormMessage />
+                                {errors.allorindi && <FormError>{errors.allorindi.message}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -219,7 +219,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                         name="optradio"
                         render={({ field }) => (
                             <FormItem className="space-y-3 p-4 border rounded-lg bg-slate-50/50">
-                                <FormLabel className="font-bold">Student Status</FormLabel>
+                                <Label className="font-bold">Student Status</Label>
                                 <FormControl>
                                     <RadioGroup
                                         onValueChange={field.onChange}
@@ -244,7 +244,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                         </div>
                                     </RadioGroup>
                                 </FormControl>
-                                <FormMessage />
+                                {errors.optradio && <FormError>{errors.optradio.message}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -257,7 +257,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                         name="ASMAY_Id"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className="font-bold">Academic Year <span className="text-red-500">*</span></FormLabel>
+                                <Label className="font-bold">Academic Year <span className="text-red-500">*</span></Label>
                                 <Select
                                     onValueChange={(v) => field.onChange(Number(v))}
                                     value={field.value?.toString() || ""}
@@ -286,9 +286,9 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                         name="ASMCL_Id"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className={cn("font-bold", allorindi === 'I' && "after:content-['*'] after:ml-0.5 after:text-red-500")}>
+                                <Label className={cn("font-bold", allorindi === 'I' && "after:content-['*'] after:ml-0.5 after:text-red-500")}>
                                     Class
-                                </FormLabel>
+                                </Label>
                                 <Select
                                     disabled={allorindi === 'A'}
                                     onValueChange={(v) => field.onChange(Number(v))}
@@ -307,7 +307,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {errors.ASMCL_Id && <FormError>{errors.ASMCL_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -318,9 +318,9 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                         name="ASMS_Id"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className={cn("font-bold", allorindi === 'I' && "after:content-['*'] after:ml-0.5 after:text-red-500")}>
+                                <Label className={cn("font-bold", allorindi === 'I' && "after:content-['*'] after:ml-0.5 after:text-red-500")}>
                                     Section
-                                </FormLabel>
+                                </Label>
                                 <Select
                                     disabled={allorindi === 'A'}
                                     onValueChange={(v) => field.onChange(Number(v))}
@@ -339,7 +339,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {errors.ASMS_Id && <FormError>{errors.ASMS_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -350,14 +350,14 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                         name="ASA_FromDate"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className="font-bold">Date <span className="text-red-500">*</span></FormLabel>
+                                <Label className="font-bold">Date <span className="text-red-500">*</span></Label>
                                 <FormControl>
                                     <DatePicker
                                         date={field.value}
                                         setDate={(date) => field.onChange(date)}
                                     />
                                 </FormControl>
-                                <FormMessage />
+                                {errors.ASA_FromDate && <FormError>{errors.ASA_FromDate.message}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -368,7 +368,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                         name="AMST_Id"
                         render={({ field }) => (
                             <FormItem className="flex flex-col">
-                                <FormLabel className="font-bold">Student <span className="text-red-500">*</span></FormLabel>
+                                <Label className="font-bold">Student <span className="text-red-500">*</span></Label>
                                 <Popover open={studentOpen} onOpenChange={setStudentOpen}>
                                     <PopoverTrigger asChild>
                                         <FormControl>

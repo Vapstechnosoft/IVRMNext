@@ -4,7 +4,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CbsStudentTcSchema, type CbsStudentTcFields } from '@/schemas/admission/preadmission/reports/cbs-student-tc.schema';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
+import { FormError } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -265,7 +266,7 @@ export function FilterForm({ onSubmit, onReset, onPrint }: FilterFormProps) {
                             name="asmaY_Id"
                             render={({ field }) => (
                                 <FormItem className="grid grid-cols-3 items-center space-y-0">
-                                    <FormLabel className="col-span-1 text-sm font-bold text-slate-700">Year:<span className="text-red-500">*</span></FormLabel>
+                                    <Label className="col-span-1 text-sm font-bold text-slate-700">Year:<span className="text-red-500">*</span></Label>
                                     <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString() || ""}>
                                         <FormControl className="col-span-2">
                                             <SelectTrigger className="bg-white border-slate-300 h-8">
@@ -284,7 +285,7 @@ export function FilterForm({ onSubmit, onReset, onPrint }: FilterFormProps) {
                                             })()}
                                         </SelectContent>
                                     </Select>
-                                    <FormMessage className="col-start-2 col-span-2" />
+                                    {form.formState.errors.asmaY_Id && <FormError className="col-start-2 col-span-2">{form.formState.errors.asmaY_Id.message}</FormError>}
                                 </FormItem>
                             )}
                         />
@@ -296,7 +297,7 @@ export function FilterForm({ onSubmit, onReset, onPrint }: FilterFormProps) {
                                     name="asmcL_Id"
                                     render={({ field }) => (
                                         <FormItem className="grid grid-cols-3 items-center space-y-0">
-                                            <FormLabel className="col-span-1 text-sm font-bold text-slate-700">Class:</FormLabel>
+                                            <Label className="col-span-1 text-sm font-bold text-slate-700">Class:</Label>
                                             <Select
                                                 onValueChange={(v) => field.onChange(Number(v))}
                                                 value={field.value?.toString() || ""}>
@@ -314,7 +315,7 @@ export function FilterForm({ onSubmit, onReset, onPrint }: FilterFormProps) {
                                                     ))}
                                                 </SelectContent>
                                             </Select>
-                                            <FormMessage className="col-start-2 col-span-2" />
+                                            {form.formState.errors.asmcL_Id && <FormError className="col-start-2 col-span-2">{form.formState.errors.asmcL_Id.message}</FormError>}
                                         </FormItem>
                                     )}
                                 />
@@ -324,7 +325,7 @@ export function FilterForm({ onSubmit, onReset, onPrint }: FilterFormProps) {
                                     name="asmS_Id"
                                     render={({ field }) => (
                                         <FormItem className="grid grid-cols-3 items-center space-y-0">
-                                            <FormLabel className="col-span-1 text-sm font-bold text-slate-700">Section:</FormLabel>
+                                            <Label className="col-span-1 text-sm font-bold text-slate-700">Section:</Label>
                                             <Select
                                                 onValueChange={(v) => field.onChange(Number(v))}
                                                 value={field.value?.toString() || ""}>
@@ -342,7 +343,7 @@ export function FilterForm({ onSubmit, onReset, onPrint }: FilterFormProps) {
                                                     ))}
                                                 </SelectContent>
                                             </Select>
-                                            <FormMessage className="col-start-2 col-span-2" />
+                                            {form.formState.errors.asmS_Id && <FormError className="col-start-2 col-span-2">{form.formState.errors.asmS_Id.message}</FormError>}
                                         </FormItem>
                                     )}
                                 />
@@ -354,7 +355,7 @@ export function FilterForm({ onSubmit, onReset, onPrint }: FilterFormProps) {
                             name="BSPID"
                             render={({ field }) => (
                                 <FormItem className="grid grid-cols-3 items-center space-y-0">
-                                    <FormLabel className="col-span-1 text-sm font-bold text-slate-700">BSP ID:</FormLabel>
+                                    <Label className="col-span-1 text-sm font-bold text-slate-700">BSP ID:</Label>
                                     <FormControl className="col-span-2">
                                         <Input {...field} className="bg-white border-slate-300 h-8" />
                                     </FormControl>
@@ -367,7 +368,7 @@ export function FilterForm({ onSubmit, onReset, onPrint }: FilterFormProps) {
                             name="Previous_School_Name"
                             render={({ field }) => (
                                 <FormItem className="grid grid-cols-3 items-center space-y-0">
-                                    <FormLabel className="col-span-1 text-sm font-bold text-slate-700">Previous School Name:</FormLabel>
+                                    <Label className="col-span-1 text-sm font-bold text-slate-700">Previous School Name:</Label>
                                     <FormControl className="col-span-2">
                                         <Input {...field} className="bg-white border-slate-300 h-8" />
                                     </FormControl>
@@ -408,7 +409,7 @@ export function FilterForm({ onSubmit, onReset, onPrint }: FilterFormProps) {
                             name="amsT_Id"
                             render={({ field }) => (
                                 <FormItem className="grid grid-cols-4 items-center space-y-0">
-                                    <FormLabel className="col-span-1 text-sm font-bold text-slate-700 pr-2">Student Name:<span className="text-red-500">*</span></FormLabel>
+                                    <Label className="col-span-1 text-sm font-bold text-slate-700 pr-2">Student Name:<span className="text-red-500">*</span></Label>
                                     <div className="col-span-3">
                                         <Popover open={studentOpen} onOpenChange={setStudentOpen}>
                                             <PopoverTrigger asChild>
@@ -478,7 +479,6 @@ export function FilterForm({ onSubmit, onReset, onPrint }: FilterFormProps) {
                                                 </Command>
                                             </PopoverContent>
                                         </Popover>
-                                        <FormMessage className="mt-1" />
                                     </div>
                                 </FormItem>
                             )}
@@ -489,7 +489,7 @@ export function FilterForm({ onSubmit, onReset, onPrint }: FilterFormProps) {
                             name="Boardtype"
                             render={({ field }) => (
                                 <FormItem className="grid grid-cols-4 items-center space-y-0">
-                                    <FormLabel className="col-span-1 text-sm font-bold text-slate-700 pr-2">Board Type:</FormLabel>
+                                    <Label className="col-span-1 text-sm font-bold text-slate-700 pr-2">Board Type:</Label>
                                     <Select onValueChange={field.onChange} value={field.value || ""}>
                                         <FormControl className="col-span-3">
                                             <SelectTrigger className="bg-white border-slate-300 h-8">
@@ -510,7 +510,7 @@ export function FilterForm({ onSubmit, onReset, onPrint }: FilterFormProps) {
                             name="resulttype"
                             render={({ field }) => (
                                 <FormItem className="grid grid-cols-4 items-center space-y-0">
-                                    <FormLabel className="col-span-1 text-sm font-bold text-slate-700 pr-2">Result Type:</FormLabel>
+                                    <Label className="col-span-1 text-sm font-bold text-slate-700 pr-2">Result Type:</Label>
                                     <Select onValueChange={field.onChange} value={field.value || ""}>
                                         <FormControl className="col-span-3">
                                             <SelectTrigger className="bg-white border-slate-300 h-8">
@@ -525,7 +525,7 @@ export function FilterForm({ onSubmit, onReset, onPrint }: FilterFormProps) {
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    <FormMessage className="col-start-2 col-span-3" />
+                                    {form.formState.errors.resulttype && <FormError className="col-start-2 col-span-3">{form.formState.errors.resulttype.message}</FormError>}
                                 </FormItem>
                             )}
                         />
