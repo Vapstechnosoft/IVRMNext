@@ -670,7 +670,7 @@ export const stJamesIX_XReportSchema = z.object({
     asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
     asmcL_Id: z.number({ required_error: 'Class Name is required' }).min(1, { message: 'Please select Class Name' }),
     asmS_Id: z.number({ required_error: 'Section Name is required' }).min(1, { message: 'Please select Section Name' }),
-    type: z.enum(['indi', 'prom'], { required_error: 'Type is required' }),
+    reporttype: z.enum(['indi', 'groupwise'], { required_error: 'Type is required' }),
     displayAttendance: z.boolean().default(true),
     emE_Id: z
         .array(
@@ -738,3 +738,31 @@ export const promotionReportCardSophiaSchema = z.object({
 });
 
 export type PromotionReportCardSophiaSchema = z.infer<typeof promotionReportCardSophiaSchema>;
+
+export const calcuttaPromotionReportItoIVSchema = z
+    .object({
+        mI_Id: z.number().optional(),
+        asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
+        asmcL_Id: z.number({ required_error: 'Class is required' }).min(1, { message: 'Please select Class' }),
+        asmS_Id: z.number({ required_error: 'Section is required' }).min(1, { message: 'Please select Section' }),
+        empG_GroupName: z.string().optional(), // Term
+        studentList: z
+            .array(
+                z.object({
+                    amsT_Id: z.number({ required_error: 'Student is required' }).min(1, { message: 'Please select a Students' })
+                })
+            )
+            .min(1, { message: 'At least one Student must be selected' })
+    })
+    .superRefine((data, ctx) => {
+        const studentIds = data.studentList?.map((s) => s.amsT_Id) || [];
+        if (new Set(studentIds).size !== studentIds.length) {
+            ctx.addIssue({
+                path: ['studentList'],
+                code: z.ZodIssueCode.custom,
+                message: 'Duplicate Students are not allowed'
+            });
+        }
+    });
+
+export type CalcuttaPromotionReportItoIVSchema = z.infer<typeof calcuttaPromotionReportItoIVSchema>;

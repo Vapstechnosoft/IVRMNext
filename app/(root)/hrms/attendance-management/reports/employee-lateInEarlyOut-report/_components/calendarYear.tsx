@@ -7,9 +7,9 @@ import { cn } from '@/lib/utils';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import * as React from 'react';
 import { DayPicker, type DropdownProps } from 'react-day-picker';
- 
+
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
- 
+
 function CalendarYear({ className, classNames, showOutsideDays = true, selected, ...props }: CalendarProps) {
     // Helper to derive an initial month from `selected` (Date | Date[] | Range)
     const getInitialMonthFromSelected = (): Date => {
@@ -27,10 +27,10 @@ function CalendarYear({ className, classNames, showOutsideDays = true, selected,
  
     // Reference to track the current displayed month
     const [currentMonth, setCurrentMonth] = React.useState<Date>(getInitialMonthFromSelected());
- 
+
     // State to track calendar open status
     const [_calendarOpen, setCalendarOpen] = React.useState<boolean>(false);
- 
+
     // Update the internal month state when the `month` prop or `selected` prop changes
     React.useEffect(() => {
         if (props.month) {
@@ -47,10 +47,10 @@ function CalendarYear({ className, classNames, showOutsideDays = true, selected,
         const currentYear = new Date().getFullYear();
         const endYear = props.toDate ? props.toDate.getFullYear() : currentYear;
         const startYear = endYear - 50; // adjust range as desired
- 
+
         return Array.from({ length: endYear - startYear + 1 }, (_, i) => startYear + i);
     }, [props.toDate]);
- 
+
     // Handle year change
     const handleYearChange = (year: string) => {
         const newYear = Number.parseInt(year);
@@ -58,7 +58,6 @@ function CalendarYear({ className, classNames, showOutsideDays = true, selected,
         newDate.setFullYear(newYear);
  
         setCurrentMonth(newDate);
- 
         // Call the onMonthChange prop if provided
         props.onMonthChange?.(newDate);
     };
@@ -66,7 +65,6 @@ function CalendarYear({ className, classNames, showOutsideDays = true, selected,
     // Custom month change handler to update our internal state
     const handleMonthChange = (month: Date) => {
         setCurrentMonth(month);
- 
         // Call the original onMonthChange if provided
         props.onMonthChange?.(month);
     };
@@ -92,7 +90,6 @@ function CalendarYear({ className, classNames, showOutsideDays = true, selected,
                         </SelectContent>
                     </Select>
                 </div> */}
- 
                 {/* Main Calendar */}
                 <DayPicker
                     showOutsideDays={showOutsideDays}
@@ -134,12 +131,10 @@ function CalendarYear({ className, classNames, showOutsideDays = true, selected,
                                 } as React.ChangeEvent<HTMLSelectElement>;
                                 onChange?.(changeEvent);
                             };
- 
                             // Skip rendering year dropdown in the original component
                             if (dropdownProps.name === 'year') {
                                 return null;
                             }
- 
                             return (
                                 <Select
                                     value={value?.toString()}
@@ -185,6 +180,5 @@ function CalendarYear({ className, classNames, showOutsideDays = true, selected,
     );
 }
 CalendarYear.displayName = 'Calendar Year';
- 
+
 export { CalendarYear };
- 

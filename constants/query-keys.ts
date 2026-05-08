@@ -19,6 +19,7 @@ export const SUPER_ADMIN_QUERY_KEYS = {
 };
 
 export const ADMISSION_QUERY_KEYS = {
+    TRANSACTIONS: 'transactions',
     REPORTS: 'reports',
     MASTER_CLASS: 'master_class',
     MASTER_CATEGORY: 'master_category',

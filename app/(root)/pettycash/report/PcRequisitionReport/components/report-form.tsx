@@ -27,9 +27,6 @@ interface SimpleRequisitionReportProps {
 // RequisitionReport
 
 export default function SimpleRequisitionReport({ onSearch }: SimpleRequisitionReportProps) {
-  const [organization, setOrganization] = useState('');
-  const [fromDate, setFromDate] = useState<Date | undefined>();
-  const [toDate, setToDate] = useState<Date | undefined>();
   const [reportType, setReportType] = useState<'Overall' | 'Particular'>('Overall');
 
   const {
@@ -43,14 +40,16 @@ export default function SimpleRequisitionReport({ onSearch }: SimpleRequisitionR
     resolver: zodResolver(UsePcRequisitionReportSchemas.addOrUpdate),
     mode: 'onChange',
     defaultValues: {
-      mI_Id: undefined
+      mI_Id: undefined,
+      fromDate: undefined,
+      toDate: undefined
     }
   });
   const handleReport = (data: UsePcRequisitionReport) => {
     const payload = {
       mI_Id: data.mI_Id,
-      fromDate: fromDate ? format(fromDate, 'yyyy-MM-dd') : null,
-      toDate: toDate ? format(toDate, 'yyyy-MM-dd') : null,
+      fromDate: data.fromDate ? format(data.fromDate, 'yyyy-MM-dd') : null,
+      toDate: data.toDate ? format(data.toDate, 'yyyy-MM-dd') : null,
       reportType: reportType
     };
 
@@ -67,11 +66,11 @@ export default function SimpleRequisitionReport({ onSearch }: SimpleRequisitionR
 
   const handleCancel = () => {
     reset({
-      mI_Id: undefined
+      mI_Id: undefined,
+      fromDate: undefined,
+      toDate: undefined
     });
 
-    setFromDate(undefined);
-    setToDate(undefined);
     setReportType('Overall');
   };
 
@@ -129,19 +128,33 @@ export default function SimpleRequisitionReport({ onSearch }: SimpleRequisitionR
         {/* From Date */}
         <div className="space-y-3">
           <Label className="text-purple-900 font-semibold">Requisition From Date: <span className='text-red-500'>*</span></Label>
-          <DatePicker
-            date={fromDate}
-            setDate={setFromDate}
+          <Controller
+            name="fromDate"
+            control={control}
+            render={({ field }) => (
+              <DatePicker
+                date={field.value}
+                setDate={field.onChange}
+              />
+            )}
           />
+          {errors.fromDate && <span className='text-red-500 text-sm'>{errors.fromDate.message}</span>}
         </div>
 
         {/* To Date */}
         <div className="space-y-3">
           <Label className="text-purple-900 font-semibold">Requisition To Date: <span className='text-red-500'>*</span></Label>
-          <DatePicker
-            date={toDate}
-            setDate={setToDate}
+          <Controller
+            name="toDate"
+            control={control}
+            render={({ field }) => (
+              <DatePicker
+                date={field.value}
+                setDate={field.onChange}
+              />
+            )}
           />
+          {errors.toDate && <span className='text-red-500 text-sm'>{errors.toDate.message}</span>}
         </div>
       </div>
 
