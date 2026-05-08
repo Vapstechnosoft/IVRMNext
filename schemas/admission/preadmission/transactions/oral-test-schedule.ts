@@ -8,19 +8,17 @@ export const oralTestScheduleSchema = z.object({
         required_error: 'Schedule Date is required',
         invalid_type_error: 'Invalid Date',
     }),
-    paotS_ScheduleTime: z.date({
-        required_error: 'Start Time is required',
-    }),
-    paotS_ScheduleTimeTo: z.date({
-        required_error: 'End Time is required',
-    }),
-    paotS_Remarks: z.string().optional(),
-    paotS_Superviser: z.string().optional(),
-    paotS_Skills: z.string().optional(),
+    paotS_ScheduleTime: z.string().min(1, 'Please select Schedule Time From'),
+    paotS_ScheduleTimeTo: z.string().min(1, 'Please select Schedule Time To'),
+    paotS_Remarks: z.string().optional().nullable(),
+    paotS_Superviser: z.string().optional().nullable(),
+    paotS_Skills: z.string().optional().nullable(),
     paotS_TPFlag: z.boolean().default(false),
-    paotS_TimePeriod: z.union([z.number(), z.string().transform(Number)]).optional(),
+    paotS_TimePeriod: z.union([z.number(), z.string().transform(Number)]).refine(n => n > 0, {
+        message: 'Interaction time must be at least 1 minute',
+    }),
     paotS_Strength: z.union([z.number(), z.string().transform(Number)]).refine(n => n > 0, {
-        message: 'Number of students must be at least 1',
+        message: 'No. of Students must be at least 1',
     }),
     autoschedule: z.boolean().default(false),
     meetingvc: z.boolean().default(false),
@@ -30,12 +28,14 @@ export const oralTestScheduleSchema = z.object({
     principalflg: z.boolean().default(false),
     managerflg: z.boolean().default(false),
     anybodystart: z.boolean().default(false),
+    addParticipants: z.boolean().default(false),
 });
 
 export type OralTestScheduleFormValues = z.infer<typeof oralTestScheduleSchema>;
 
 export const oralReScheduleSchema = oralTestScheduleSchema.extend({
-    previousScheduleId: z.string().min(1, 'Previous Schedule is required'),
+    previousScheduleId: z.string().min(1, 'Please select a Previous Schedule'),
+    asmcL_Id: z.string().optional().default('0'),
 });
 
 export type OralReScheduleFormValues = z.infer<typeof oralReScheduleSchema>;

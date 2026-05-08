@@ -39,9 +39,6 @@ export const ReportList = ({ data, params }: ReportListProps) => {
     };
 
     // Derived data mapping based on angular logic
-    console.log("DATA KEYS", Object.keys(data));
-    const getstudentwisesubjectlistnew = data.getstudentwisesubjectlistnew || data.getstudentwisesubjectlist || [];
-
     const {
         getstudentdetails = [],
         getstudentmarksdetails = [],
@@ -49,10 +46,14 @@ export const ReportList = ({ data, params }: ReportListProps) => {
         getgroupexamdetails = [],
         getstudentwiseattendancedetails = [],
         getexamwisetotaldetails = [],
+        getstudentwisesubjectlistnew = [],
+        getstudentwisesubjectlist = [],
         asmaY_Year = '',
         asmcL_ClassName = '',
         asmC_SectionName = ''
     } = data;
+
+    const allSubjectList = getstudentwisesubjectlist.length > 0 ? getstudentwisesubjectlist : getstudentwisesubjectlistnew;
 
     // Extend exam details with 'Final Average' like Angular controller does
     const extendedExamDetails = [
@@ -60,62 +61,14 @@ export const ReportList = ({ data, params }: ReportListProps) => {
         { empG_GroupName: "Final Average", empsG_Order: 10001, empG_DistplayName: "FI" }
     ];
 
-    const extendedGroupExamDetails = [
-        ...getgroupexamdetails,
-        { empG_GroupName: "Final Average", emE_Id: 50001, emE_ExamName: "Final Average", empG_DistplayName: "FI" }
-    ];
-
-    // Map the relationships
-    const studentListWithDetails = getstudentdetails.map((stu: any) => {
-        const studentAmstId = stu.AMST_Id ?? stu.amsT_Id;
-        const studentSubjects = getstudentwisesubjectlistnew
-            .filter((sub: any) => parseInt(studentAmstId) === parseInt(sub.AMST_Id ?? sub.amsT_Id))
-            .map((sub: any) => ({
-                ISMS_SubjectName: sub.subjectname,
-                ISMS_Id: sub.subid,
-                EYCES_AplResultFlg: sub.EYCES_AplResultFlg,
-                subjectorder: sub.subjectorder
-            }));
-
-        const studentMarks = getstudentmarksdetails.filter((subd: any) => parseInt(studentAmstId) === parseInt(subd.AMST_Id ?? subd.amsT_Id));
-        const studentMarksTotal = getexamwisetotaldetails.filter((su: any) => parseInt(studentAmstId) === parseInt(su.AMST_Id ?? su.amsT_Id));
-        const studentAttendance = getstudentwiseattendancedetails.filter((d: any) => parseInt(studentAmstId) === parseInt(d.AMST_Id ?? d.amsT_Id));
-
-        // Process house name
-        const houseName = stu.SPCCMH_HouseName ?? stu.spccmH_HouseName;
-        const shortHouseName = houseName
-            ? houseName.split(' ').map((word: string) => word.charAt(0).toUpperCase()).join('')
-            : '';
-
-        return {
-            ...stu,
-            rollno: stu.rollno ?? stu.rollNo,
-            studentname: stu.studentname ?? stu.studentName,
-            regno: stu.regno ?? stu.regNo,
-            subjects: studentSubjects,
-            marks: studentMarks,
-            markstotal: studentMarksTotal,
-            attendance: studentAttendance,
-            shortHouseName: shortHouseName
-        };
-    });
-
-    const getstudentwisesubjectlist = data.getstudentwisesubjectlist || data.getstudentwisesubjectlistnew || [];
-
-    const cleanLabel = (text: string) => {
-        return text ? text.replace(/[\r\n]+/g, ' ').trim() : '';
-    };
-
-    // Build distinct subjects from BOTH the subject list and the marks list to ensure NO subjects are missed
+    // Build distinct subjects
     const subjectMap = new Map();
-
-    // First, add all subjects from the subject list
-    getstudentwisesubjectlist.forEach((sub: any) => {
+    allSubjectList.forEach((sub: any) => {
         const id = String(sub.subid ?? sub.ismS_Id ?? sub.ISMS_Id);
         if (id && id !== 'undefined' && id !== 'null') subjectMap.set(id, sub);
     });
 
-    // Then, add any missing subjects found in the marks array
+    // Add missing subjects from marks
     getstudentmarksdetails.forEach((mark: any) => {
         const id = String(mark.ismS_Id ?? mark.ISMS_Id);
         if (id && id !== 'undefined' && id !== 'null' && !subjectMap.has(id)) {
@@ -124,7 +77,8 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                 ismS_Id: id,
                 subjectname: mark.ismS_SubjectName ?? mark.ISMS_SubjectName,
                 EYCES_AplResultFlg: mark.empS_AppToResultFlg ?? mark.EYCES_AplResultFlg,
-                subjectorder: mark.empS_SubjOrder ?? mark.subjectgrporder
+                subjectorder: mark.empS_SubjOrder ?? mark.subjectgrporder,
+                ismS_SubjectCode: mark.ismS_SubjectCode ?? mark.ISMS_SubjectCode
             });
         }
     });
@@ -136,19 +90,42 @@ export const ReportList = ({ data, params }: ReportListProps) => {
     });
 
     const subjectsWithResultFlag = distinctSubjects.filter((sub: any) => {
-        const flag = sub.EYCES_AplResultFlg ?? sub.eyceS_AplResultFlg ?? sub.eyces_aplresultflg ?? sub.EYCES_MarksDisplayFlg ?? sub.empS_AppToResultFlg;
-        return flag === true || flag === 1 || flag === 'true' || flag === '1' || flag === 'Y' || flag === 'y';
+        const flag = sub.EYCES_AplResultFlg ?? sub.eyceS_AplResultFlg ?? sub.eyces_aplresultflg ?? sub.empS_AppToResultFlg;
+        return flag === true || flag === 1 || String(flag).toLowerCase() === 'true' || String(flag).toLowerCase() === 'y';
     });
 
-    console.log("Subjects with result flag", subjectsWithResultFlag);
-
-    // Anything that doesn't strictly have a 'true' flag goes into WithoutResultFlag, ensuring NO subjects vanish
     const subjectsWithoutResultFlag = distinctSubjects.filter((sub: any) => {
-        const flag = sub.EYCES_AplResultFlg ?? sub.eyceS_AplResultFlg ?? sub.eyces_aplresultflg ?? sub.EYCES_MarksDisplayFlg ?? sub.empS_AppToResultFlg;
-        return !(flag === true || flag === 1 || flag === 'true' || flag === '1' || flag === 'Y' || flag === 'y');
+        const flag = sub.EYCES_AplResultFlg ?? sub.eyceS_AplResultFlg ?? sub.eyces_aplresultflg ?? sub.empS_AppToResultFlg;
+        return !(flag === true || flag === 1 || String(flag).toLowerCase() === 'true' || String(flag).toLowerCase() === 'y');
     });
 
-    console.log("Subjects without result flag", subjectsWithoutResultFlag);
+    // Map student details
+    const studentListWithDetails = getstudentdetails.map((stu: any) => {
+        const studentId = stu.amsT_Id ?? stu.AMST_Id;
+        const marks = getstudentmarksdetails.filter((m: any) => Number(m.amsT_Id ?? m.AMST_Id) === Number(studentId));
+        const markstotal = getexamwisetotaldetails.filter((t: any) => Number(t.amsT_Id ?? t.AMST_Id) === Number(studentId));
+        const attendance = getstudentwiseattendancedetails.filter((a: any) => Number(a.amsT_Id ?? a.AMST_Id) === Number(studentId));
+
+        const houseName = stu.spccmH_HouseName ?? stu.SPCCMH_HouseName;
+        const shortHouseName = houseName
+            ? houseName.split(' ').map((word: string) => word.charAt(0).toUpperCase()).join('')
+            : '';
+
+        return {
+            ...stu,
+            rollno: stu.rollno ?? stu.rollNo,
+            studentname: stu.studentname ?? stu.studentName,
+            regno: stu.regno ?? stu.regNo,
+            marks,
+            markstotal,
+            attendance,
+            shortHouseName
+        };
+    });
+
+    const cleanLabel = (text: string) => {
+        return text ? text.replace(/[\r\n]+/g, ' ').trim() : '';
+    };
 
     return (
         <div className='rounded-lg border bg-white p-6 shadow-sm'>
@@ -160,10 +137,14 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                     text-align: center;
                     white-space: nowrap;
                 }
+                .report-table th, .report-table td {
+                    border: 1px solid black;
+                    padding: 4px;
+                }
                 `}
             </style>
             <div className='mb-6 flex items-center justify-between no-print'>
-                <h2 className='text-lg font-semibold'>Progress Card Report</h2>
+                <h2 className='text-lg font-semibold'>Consolidated Report</h2>
                 <div className='flex gap-2'>
                     <Button variant='outline' onClick={() => handlePrint()} className='gap-2'>
                         <Printer className='h-4 w-4' /> Print
@@ -175,181 +156,152 @@ export const ReportList = ({ data, params }: ReportListProps) => {
             </div>
 
             <div className='overflow-x-auto overflow-y-auto' style={{ maxHeight: '80vh' }}>
-                <div ref={printRef} className='p-4 min-w-[1200px]'>
+                <div ref={printRef} className='p-4 min-w-[1200px] bg-white'>
                     <div className="text-center mb-4">
-                        <h5 className="font-bold text-xl">CONSOLIDATED FINAL REPORT</h5>
+                        <h5 className="font-bold text-xl uppercase">CONSOLIDATED FINAL REPORT</h5>
                     </div>
 
                     <div className="flex justify-between uppercase mb-4 font-bold text-sm">
-                        <div>
-                            <label>CLASS & SEC : {asmcL_ClassName}-{asmC_SectionName}</label>
-                        </div>
-                        <div>
-                            <label>ACADEMIC YEAR : {asmaY_Year}</label>
-                        </div>
+                        <div>CLASS & SEC : {asmcL_ClassName}-{asmC_SectionName}</div>
+                        <div>ACADEMIC YEAR : {asmaY_Year}</div>
                     </div>
 
-                    <table id="report-table" className="w-full border-collapse border border-black text-sm">
+                    <table id="report-table" className="report-table w-full border-collapse border border-black text-sm">
                         <thead>
                             <tr>
-                                <th className="border border-black p-1 vertical-text h-[200px] w-12 align-middle">
-                                    <b>Roll Number</b>
-                                </th>
-                                <th className="border border-black p-1 h-[200px] align-middle w-48">
-                                    <b>NAME</b>
-                                </th>
-                                <th className="border border-black p-1 vertical-text align-middle">
-                                    <b>Reg.No.</b>
-                                </th>
-                                <th className="border border-black p-1 vertical-text align-middle">
-                                    <b>House</b>
-                                </th>
-                                <th className="border border-black p-1 vertical-text align-middle">
-                                    <b>Term</b>
-                                </th>
-                                {subjectsWithResultFlag.map((col: any, idx: number) => (
-                                    <th key={`sub-true-${idx}`} className="border border-black p-1 vertical-text align-middle">
-                                        <b>{cleanLabel(col.subjectname || col.ISMS_SubjectName || col.ismS_SubjectName)}</b>
+                                <th className="vertical-text h-[120px] w-12">Roll No</th>
+                                <th className="w-48">NAME</th>
+                                <th className="vertical-text">Reg.No.</th>
+                                <th className="vertical-text">House</th>
+                                <th className="vertical-text">Term</th>
+                                {subjectsWithResultFlag.map((sub: any, idx: number) => (
+                                    <th key={`h-true-${idx}`} className="vertical-text">
+                                        {cleanLabel(sub.subjectname || sub.ismS_SubjectName || sub.ISMS_SubjectName)}
                                     </th>
                                 ))}
-                                {subjectsWithoutResultFlag.map((col: any, idx: number) => (
-                                    <th key={`sub-false-${idx}`} className="border border-black p-1 vertical-text align-middle">
-                                        <b>{cleanLabel(col.subjectname || col.ISMS_SubjectName || col.ismS_SubjectName)}</b>
+                                {subjectsWithoutResultFlag.map((sub: any, idx: number) => (
+                                    <th key={`h-false-${idx}`} className="vertical-text">
+                                        {cleanLabel(sub.subjectname || sub.ISMS_SubjectName || sub.ismS_SubjectName)}
                                     </th>
                                 ))}
-                                <th className="border border-black p-1 vertical-text align-middle"><b>Total</b></th>
-                                <th className="border border-black p-1 vertical-text align-middle"><b>Grand Total</b></th>
-                                <th className="border border-black p-1 vertical-text align-middle"><b>Percentage</b></th>
-                                <th className="border border-black p-1 vertical-text align-middle"><b>Rank</b></th>
-                                <th className="border border-black p-1 vertical-text align-middle"><b>Attendance</b></th>
-                                <th className="border border-black p-1 align-middle min-w-[200px]"><b>Remarks</b></th>
+                                <th className="vertical-text">Total</th>
+                                <th className="vertical-text">Grand Total</th>
+                                <th className="vertical-text">Percentage</th>
+                                <th className="vertical-text">Rank</th>
+                                <th className="vertical-text">Attendance</th>
+                                <th className="min-w-[150px]">Remarks</th>
                             </tr>
                         </thead>
 
                         <tbody>
-                            {studentListWithDetails.map((mn: any, studentIdx: number) => {
-                                return (
-                                    <React.Fragment key={`student-${studentIdx}`}>
-                                        {extendedExamDetails.length > 0 && (
-                                            <>
-                                                <tr>
-                                                    <td className="border border-black text-center font-bold text-lg" rowSpan={extendedExamDetails.length + 1}>
-                                                        {mn.rollno}
+                            {studentListWithDetails.map((stu: any, sIdx: number) => (
+                                <React.Fragment key={sIdx}>
+                                    {extendedExamDetails.map((grp: any, gIdx: number) => (
+                                        <tr key={gIdx}>
+                                            {gIdx === 0 && (
+                                                <>
+                                                    <td rowSpan={extendedExamDetails.length} className="text-center font-bold">{stu.rollno}</td>
+                                                    <td rowSpan={extendedExamDetails.length} className="px-2 text-left font-bold">{stu.studentname}</td>
+                                                    <td rowSpan={extendedExamDetails.length} className="text-center font-bold vertical-text">{stu.regno}</td>
+                                                    <td rowSpan={extendedExamDetails.length} className="text-center font-bold">{stu.shortHouseName}</td>
+                                                </>
+                                            )}
+                                            <td className="text-center font-bold">{grp.empG_DistplayName}</td>
+
+                                            {/* Subjects With Result Flag */}
+                                            {subjectsWithResultFlag.map((sub: any, idx: number) => {
+                                                const mId = String(sub.subid ?? sub.ismS_Id ?? sub.ISMS_Id);
+                                                const subName = (sub.subjectname || sub.ismS_SubjectName || sub.ISMS_SubjectName)?.toLowerCase().trim();
+                                                const gName = grp.empG_GroupName?.toLowerCase().trim();
+
+                                                const getMarkGroupName = (m: any) => {
+                                                    const name = m.empsG_GroupName || m.EMPSG_GroupName || m.empG_GroupName || m.EMPG_GroupName || m.groupname || m.GROUPNAME || m.mGroup || m.MGroup || m.emE_ExamName || m.EME_ExamName;
+                                                    return name?.toLowerCase().trim();
+                                                };
+
+                                                const subjectMarks = stu.marks?.filter((m: any) => {
+                                                    const mSubId = String(m.ismS_Id ?? m.ISMS_Id);
+                                                    const mSubName = (m.ismS_SubjectName ?? m.ISMS_SubjectName)?.toLowerCase().trim();
+                                                    return mSubId === mId && mSubName === subName;
+                                                }) || [];
+
+                                                let mark = subjectMarks.find((m: any) => getMarkGroupName(m) === gName);
+                                                if (!mark && subjectMarks.length > 0 && !subjectMarks.some(m => getMarkGroupName(m))) {
+                                                    mark = subjectMarks[gIdx];
+                                                }
+
+                                                const obtMarks = mark?.estmppsG_GroupObtMarks ?? mark?.ESTMPPSG_GroupObtMarks;
+                                                return (
+                                                    <td key={`m-true-${idx}`} className="text-center font-bold">
+                                                        {mark ? (obtMarks !== 0 ? (obtMarks ?? '') : 'AB') : ''}
                                                     </td>
-                                                    <td className="border border-black px-2 text-left font-bold text-lg" rowSpan={extendedExamDetails.length + 1}>
-                                                        {mn.studentname}
-                                                    </td>
-                                                    <td className="border border-black text-center font-bold text-lg vertical-text" rowSpan={extendedExamDetails.length + 1}>
-                                                        {mn.regno}
-                                                    </td>
-                                                    <td className="border border-black text-center font-bold text-lg" rowSpan={extendedExamDetails.length + 1}>
-                                                        {mn.shortHouseName}
-                                                    </td>
-                                                </tr>
-                                                {extendedExamDetails.map((grp: any, grpIdx: number) => (
-                                                    <tr key={`grp-${studentIdx}-${grpIdx}`}>
-                                                        <td className="border border-black p-1 font-bold">
-                                                            {grp.empG_DistplayName}
-                                                        </td>
+                                                );
+                                            })}
 
-                                                        {subjectsWithResultFlag.map((sub: any, subIdx: number) => {
-                                                            const markObj = mn.marks.find((m: any) => {
-                                                                const mSubId = String(m.ismS_Id ?? m.ISMS_Id);
-                                                                console.log("mSubId>>>>", mSubId);
-                                                                const subId = String(sub.subid ?? sub.ismS_Id ?? sub.ISMS_Id);
-                                                                console.log("subId>>>>", subId);
+                                            {/* Subjects Without Result Flag */}
+                                            {subjectsWithoutResultFlag.map((sub: any, idx: number) => {
+                                                const mId = String(sub.subid ?? sub.ismS_Id ?? sub.ISMS_Id);
+                                                const subName = (sub.subjectname || sub.ismS_SubjectName || sub.ISMS_SubjectName)?.toLowerCase().trim();
+                                                const gName = grp.empG_GroupName?.toLowerCase().trim();
 
-                                                                const mGroup = (m.empsG_GroupName ?? m.EMPSG_GroupName ?? m.empsg_groupname ?? '').toString().trim().toLowerCase();
-                                                                console.log("mGroup>>>>", mGroup);
-                                                                const grpGroup = (grp.empG_GroupName ?? grp.EMPG_GroupName ?? grp.empsG_GroupName ?? grp.EMPSG_GroupName ?? '').toString().trim().toLowerCase();
-                                                                console.log("grpGroup>>>>", grpGroup);
-                                                                const mSubName = (m.ismS_SubjectName ?? m.ISMS_SubjectName ?? '').toString().trim().toLowerCase();
-                                                                console.log("mSubName>>>>", mSubName);
-                                                                const subName = (sub.subjectname ?? sub.ISMS_SubjectName ?? sub.ismS_SubjectName ?? '').toString().trim().toLowerCase();
-                                                                console.log("subName>>>>", subName);
-                                                                // Match exactly like legacy: subid == ISMS_Id && empG_GroupName == EMPSG_GroupName && ISMS_SubjectName == subjectname
-                                                                return mSubId === subId && mGroup === grpGroup && mSubName === subName;
+                                                const getMarkGroupName = (m: any) => {
+                                                    const name = m.empsG_GroupName || m.EMPSG_GroupName || m.empG_GroupName || m.EMPG_GroupName || m.groupname || m.GROUPNAME || m.mGroup || m.MGroup || m.emE_ExamName || m.EME_ExamName;
+                                                    return name?.toLowerCase().trim();
+                                                };
 
+                                                const subjectMarks = stu.marks?.filter((m: any) => {
+                                                    const mSubId = String(m.ismS_Id ?? m.ISMS_Id);
+                                                    const mSubName = (m.ismS_SubjectName ?? m.ISMS_SubjectName)?.toLowerCase().trim();
+                                                    return mSubId === mId && mSubName === subName;
+                                                }) || [];
 
-                                                            });
-                                                            const obtMarks = markObj?.estmppsG_GroupObtMarks ?? markObj?.ESTMPPSG_GroupObtMarks;
-                                                            console.log("obtMarks>>>>", obtMarks);
-                                                            return (
-                                                                <td key={`mark-true-${subIdx}`} className="border border-black p-1 text-center font-bold text-base">
-                                                                    {markObj ? (
-                                                                        obtMarks !== 0 ? obtMarks : 'AB'
-                                                                    ) : ''}
-                                                                </td>
-                                                            );
-                                                        })}
+                                                let mark = subjectMarks.find((m: any) => getMarkGroupName(m) === gName);
+                                                if (!mark && subjectMarks.length > 0 && !subjectMarks.some(m => getMarkGroupName(m))) {
+                                                    mark = subjectMarks[gIdx];
+                                                }
+                                                
+                                                let displayValue: any = '';
+                                                if (mark) {
+                                                    const obtGrade = mark.estmppsG_GroupObtGrade ?? mark.ESTMPPSG_GroupObtGrade;
+                                                    const obtMarks = mark.estmppsG_GroupObtMarks ?? mark.ESTMPPSG_GroupObtMarks;
+                                                    const gradeDisplay = mark.gradedisplay ?? mark.Gradedisplay;
+                                                    const marksDisplay = mark.marksdispaly ?? mark.Marksdispaly;
+                                                    const subCode = sub.ismS_SubjectCode ?? sub.ISMS_SubjectCode;
 
-                                                        {subjectsWithoutResultFlag.map((sub: any, subIdx: number) => {
-                                                            const markObj = mn.marks.find((m: any) => {
-                                                                const mSubId = String(m.ismS_Id ?? m.ISMS_Id);
-                                                                const subId = String(sub.subid ?? sub.ismS_Id ?? sub.ISMS_Id);
+                                                    if (subCode !== 'CCA') {
+                                                        if (gradeDisplay === 1) displayValue = obtGrade;
+                                                        else if (marksDisplay === 1) displayValue = obtMarks;
+                                                        else displayValue = obtGrade || obtMarks; // Fallback
+                                                    } else {
+                                                        displayValue = obtMarks;
+                                                    }
+                                                }
+                                                return <td key={`m-false-${idx}`} className="text-center font-bold">{displayValue}</td>;
+                                            })}
 
-                                                                const mGroup = (m.empsG_GroupName ?? m.EMPSG_GroupName ?? m.empsg_groupname ?? '').toString().trim().toLowerCase();
-                                                                const grpGroup = (grp.empG_GroupName ?? grp.EMPG_GroupName ?? grp.empsG_GroupName ?? grp.EMPSG_GroupName ?? '').toString().trim().toLowerCase();
-
-                                                                const mSubName = (m.ismS_SubjectName ?? m.ISMS_SubjectName ?? '').toString().trim().toLowerCase();
-                                                                const subName = (sub.subjectname ?? sub.ISMS_SubjectName ?? sub.ismS_SubjectName ?? '').toString().trim().toLowerCase();
-
-                                                                return mSubId === subId && mGroup === grpGroup && mSubName === subName;
-                                                            });
-
-                                                            let displayValue = '';
-                                                            if (markObj) {
-                                                                const obtGrade = markObj.estmppsG_GroupObtGrade || markObj.ESTMPPSG_GroupObtGrade || '';
-                                                                const obtMarks = markObj.estmppsG_GroupObtMarks ?? markObj.ESTMPPSG_GroupObtMarks ?? '';
-                                                                const gradeDisplay = markObj.gradedisplay ?? markObj.Gradedisplay;
-                                                                const marksDisplay = markObj.marksdispaly ?? markObj.Marksdispaly;
-
-                                                                if (sub.ISMS_SubjectCode !== 'CCA') {
-                                                                    if (gradeDisplay === 1) {
-                                                                        displayValue = obtGrade;
-                                                                    } else if (marksDisplay === 1) {
-                                                                        displayValue = obtMarks;
-                                                                    }
-                                                                } else {
-                                                                    displayValue = obtMarks;
-                                                                }
-                                                            }
-
-                                                            return (
-                                                                <td key={`mark-false-${subIdx}`} className="border border-black p-1 text-center font-bold text-base">
-                                                                    {displayValue}
-                                                                </td>
-                                                            );
-                                                        })}
-
-                                                        <td className="border border-black p-1 text-center font-bold text-base">
-                                                            {mn.markstotal.find((mt: any) => (mt.GROUPNAME || mt.groupname) === (grp.empG_GroupName || grp.empsG_GroupName || grp.EMPG_GroupName || grp.EMPSG_GroupName))?.TOTALOBTAINEDMARKS ?? mn.markstotal.find((mt: any) => (mt.GROUPNAME || mt.groupname) === (grp.empG_GroupName || grp.empsG_GroupName || grp.EMPG_GroupName || grp.EMPSG_GroupName))?.totalobtainedmarks ?? ''}
-                                                        </td>
-                                                        <td className="border border-black p-1 text-center font-bold text-base">
-                                                            {mn.markstotal.find((mt: any) => (mt.GROUPNAME || mt.groupname) === (grp.empG_GroupName || grp.empsG_GroupName || grp.EMPG_GroupName || grp.EMPSG_GroupName))?.GRANDTOTALOBRAINEDMARKS ?? mn.markstotal.find((mt: any) => (mt.GROUPNAME || mt.groupname) === (grp.empG_GroupName || grp.empsG_GroupName || grp.EMPG_GroupName || grp.EMPSG_GroupName))?.grandtotalobrainedmarks ?? ''}
-                                                        </td>
-                                                        <td className="border border-black p-1 text-center font-bold text-base">
-                                                            {mn.markstotal.find((mt: any) => (mt.GROUPNAME || mt.groupname) === (grp.empG_GroupName || grp.empsG_GroupName || grp.EMPG_GroupName || grp.EMPSG_GroupName))?.PERCENTAGEOBTAINED ?? mn.markstotal.find((mt: any) => (mt.GROUPNAME || mt.groupname) === (grp.empG_GroupName || grp.empsG_GroupName || grp.EMPG_GroupName || grp.EMPSG_GroupName))?.percentageobtained ?? ''}
-                                                        </td>
-                                                        <td className="border border-black p-1 text-center font-bold text-base">
-                                                            {mn.markstotal.find((mt: any) => (mt.GROUPNAME || mt.groupname) === (grp.empG_GroupName || grp.empsG_GroupName || grp.EMPG_GroupName || grp.EMPSG_GroupName))?.POSITION ?? mn.markstotal.find((mt: any) => (mt.GROUPNAME || mt.groupname) === (grp.empG_GroupName || grp.empsG_GroupName || grp.EMPG_GroupName || grp.EMPSG_GroupName))?.position ?? ''}
-                                                        </td>
-                                                        <td className="border border-black p-1 text-center font-bold text-base">
-                                                            {mn.attendance.find((mt: any) => (mt.GROUPNAME || mt.groupname) === (grp.empG_GroupName || grp.empsG_GroupName || grp.EMPG_GroupName || grp.EMPSG_GroupName))?.PERCENTAGEOBTAINED ?? mn.attendance.find((mt: any) => (mt.GROUPNAME || mt.groupname) === (grp.empG_GroupName || grp.empsG_GroupName || grp.EMPG_GroupName || grp.EMPSG_GroupName))?.percentageobtained ?? ''}
-                                                        </td>
-                                                        <td className="border border-black p-1">
-                                                            &nbsp;
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </>
-                                        )}
-                                    </React.Fragment>
-                                );
-                            })}
+                                            {/* Totals */}
+                                            <td className="text-center font-bold">
+                                                {stu.markstotal?.find((mt: any) => (mt.GROUPNAME || mt.groupname)?.toLowerCase() === grp.empG_GroupName?.toLowerCase())?.TOTALOBTAINEDMARKS ?? ''}
+                                            </td>
+                                            <td className="text-center font-bold">
+                                                {stu.markstotal?.find((mt: any) => (mt.GROUPNAME || mt.groupname)?.toLowerCase() === grp.empG_GroupName?.toLowerCase())?.GRANDTOTALOBRAINEDMARKS ?? ''}
+                                            </td>
+                                            <td className="text-center font-bold">
+                                                {stu.markstotal?.find((mt: any) => (mt.GROUPNAME || mt.groupname)?.toLowerCase() === grp.empG_GroupName?.toLowerCase())?.PERCENTAGEOBTAINED ?? ''}
+                                            </td>
+                                            <td className="text-center font-bold">
+                                                {stu.markstotal?.find((mt: any) => (mt.GROUPNAME || mt.groupname)?.toLowerCase() === grp.empG_GroupName?.toLowerCase())?.POSITION ?? ''}
+                                            </td>
+                                            <td className="text-center font-bold">
+                                                {stu.attendance?.find((at: any) => (at.GROUPNAME || at.groupname)?.toLowerCase() === grp.empG_GroupName?.toLowerCase())?.PERCENTAGEOBTAINED ?? ''}
+                                            </td>
+                                            <td className="text-center font-bold">&nbsp;</td>
+                                        </tr>
+                                    ))}
+                                </React.Fragment>
+                            ))}
                         </tbody>
                     </table>
-
                 </div>
             </div>
         </div>

@@ -26,9 +26,16 @@ export default function VerificationListPrint({
     if (!data || data.length === 0) return null;
 
     return (
-        <div className="p-8 bg-white printable-content" style={{ color: 'black', background: 'white' }}>
+        <div className="p-8 print:px-12 bg-white printable-content" style={{ color: 'black', background: 'white' }}>
             <div className="text-center mb-4">
-                {logo && <img src={logo} alt="Logo" className="mx-auto mb-2 max-h-24" />}
+                {logo && logo.trim() !== "" && (
+                    <img 
+                        src={logo} 
+                        alt="Logo" 
+                        className="mx-auto mb-2 max-h-24" 
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                    />
+                )}
             </div>
 
             <div className="flex flex-row justify-between items-center mb-4 border-b-2 border-black pb-2 text-[10px] font-bold">
@@ -64,7 +71,7 @@ export default function VerificationListPrint({
                             <td className="border border-black p-1" style={{ border: '1px solid black' }}>{user.Medium}</td>
                             <td className="border border-black p-1" style={{ border: '1px solid black' }}>{user.Syllabus}</td>
                             <td className="border border-black p-1" style={{ border: '1px solid black' }}>{user.place}</td>
-                            <td className="border border-black p-1" style={{ border: '1px solid black' }}></td>
+                            <td className="border border-black p-1" style={{ border: '1px solid black' }}>{user.PAOTS_Remarks || user.remarks || ''}</td>
                         </tr>
                     ))}
                 </tbody>
