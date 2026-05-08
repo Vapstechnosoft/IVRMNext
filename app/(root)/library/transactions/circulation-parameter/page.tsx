@@ -57,9 +57,9 @@ export default function CirculationParameterPage() {
                 fillemp: []
             };
             categoryMutation.mutate(payload, {
-                onSuccess: (res) => {
+                onSuccess: (res: any) => {
                     if (res?.categorylist) {
-                        setDynamicCategoryList(res.categorylist);
+                        setDynamicCategoryList(res.categorylist as any[]);
                     }
                 }
             });
@@ -69,7 +69,7 @@ export default function CirculationParameterPage() {
     // Extracting data from API response
     const details = apiResponse?.data || {};
     const gridData: CirculationParameterGridData[] = details.getdetails || [];
-    
+
     // Fallback to dynamicCategoryList if NBP, otherwise use what comes from details
     const categoryList = bookParameterFlag === 'NBP' ? dynamicCategoryList : (details.categorylist || []);
     const bookTypeList = details.booktypelist || [];

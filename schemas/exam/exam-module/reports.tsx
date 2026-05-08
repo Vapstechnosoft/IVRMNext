@@ -820,6 +820,8 @@ export const calcuttaPromotionReportItoIXSchema = z
         allTerm: z.boolean().default(false),
         empG_GroupName: z.string().optional(),
         issueDate: z.date({ required_error: 'Issue Date is required' }).optional(),
+        academicDate: z.date({ required_error: 'New Academic Date is required' }),
+        reportPrintedDate: z.date().optional(),
         studentList: z
             .array(
                 z.object({
