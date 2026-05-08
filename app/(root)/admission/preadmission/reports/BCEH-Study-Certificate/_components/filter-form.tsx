@@ -11,6 +11,7 @@ import {
     FormLabel,
     FormMessage
 } from '@/components/ui/form';
+import { FormError } from '@/components/ui/extension/field';
 import {
     Select,
     SelectContent,
@@ -62,11 +63,12 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
         },
     });
 
-    const watchAllOrIndi = form.watch('allorindii');
-    const watchStudyingLeft = form.watch('optradio');
-    const watchYear = form.watch('asmaY_Id');
-    const watchClass = form.watch('asmcL_Id');
-    const watchSection = form.watch('asmS_Id');
+    const { watch, formState: { errors } } = form;
+    const watchAllOrIndi = watch('allorindii');
+    const watchStudyingLeft = watch('optradio');
+    const watchYear = watch('asmaY_Id');
+    const watchClass = watch('asmcL_Id');
+    const watchSection = watch('asmS_Id');
 
     // Cascading resets
     useEffect(() => {
@@ -260,7 +262,7 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    <FormMessage />
+                                    {errors.asmcL_Id && <FormError>{errors.asmcL_Id.message}</FormError>}
                                 </FormItem>
                             )}
                         />
@@ -289,7 +291,7 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    <FormMessage />
+                                    {errors.asmS_Id && <FormError>{errors.asmS_Id.message}</FormError>}
                                 </FormItem>
                             )}
                         />
