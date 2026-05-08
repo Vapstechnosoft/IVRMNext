@@ -66,9 +66,9 @@ export default function UploadAndSchedule() {
     );
     const { data: displaysRes, isLoading: isDisplaysLoading } = useDisplays(displaysPage);
 
-    const mediaData: MediaItem[] = Array.isArray(libraryRes) ? libraryRes : libraryRes?.data || [];
-    const scheduleData: ScheduleItem[] = Array.isArray(scheduleRes) ? scheduleRes : scheduleRes?.data || [];
-    const displayData: DisplayItem[] = Array.isArray(displaysRes) ? displaysRes : displaysRes?.data || [];
+    const mediaData: MediaItem[] = Array.isArray(libraryRes?.data) ? libraryRes.data : [];
+    const scheduleData: ScheduleItem[] = Array.isArray(scheduleRes?.data) ? scheduleRes.data : [];
+    const displayData: DisplayItem[] = Array.isArray(displaysRes?.data) ? displaysRes.data : [];
 
     // Column Definitions
     const mediaColumns: ColumnDef<MediaItem>[] = [
@@ -307,7 +307,7 @@ export default function UploadAndSchedule() {
                                 isLoading={isLibraryLoading}
                                 isSearchRequired={false}
                                 isPaginationRequired={true}
-                                totalItems={Array.isArray(libraryRes) ? libraryRes.length : libraryRes?.total_items || 0}
+                                totalItems={mediaData.length}
                                 onPageChange={(page) => setLibraryPage(page)}
                                 maxHeight='400px'
                                 scrollable={true}
@@ -328,7 +328,7 @@ export default function UploadAndSchedule() {
                                 isLoading={isScheduleLoading}
                                 isSearchRequired={false}
                                 isPaginationRequired={true}
-                                totalItems={Array.isArray(scheduleRes) ? scheduleRes.length : scheduleRes?.total_items || 0}
+                                totalItems={scheduleData.length}
                                 onPageChange={(page) => setSchedulePage(page)}
                             />
                         </CardContent>
@@ -347,7 +347,7 @@ export default function UploadAndSchedule() {
                                 isLoading={isDisplaysLoading}
                                 isSearchRequired={false}
                                 isPaginationRequired={true}
-                                totalItems={Array.isArray(displaysRes) ? displaysRes.length : displaysRes?.total_items || 0}
+                                totalItems={displayData.length}
                                 onPageChange={(page) => setDisplaysPage(page)}
                             />
                         </CardContent>
