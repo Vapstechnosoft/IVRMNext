@@ -2017,7 +2017,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Fee Trail Audit Reoport ST JAMES'
                                         },
                                         {
-                                            id: 522,
+                                            id: 524,
                                             name: 'Fee Demand Register Report GMVPS',
                                             icon: 'BadgeIndianRupee',
                                             url: '/fees/feereports/feedemandregisterreportgmvps',
@@ -2025,12 +2025,44 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Fee Demand Register Report GMVPS'
                                         },
                                         {
-                                            id: 43,
+                                            id: 525,
+                                            name: 'Fee Summarized Report ST JAMES',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feesummerizedreportstjames',
+                                            title: 'Fee Summarized Report ST JAMES',
+                                            description: 'Manage Fee Summarized Report ST JAMES'
+                                        },
+                                        {
+                                            id: 526,
                                             name: 'Fee Waivedoff Sophia',
                                             icon: 'BadgeIndianRupee',
                                             url: '/fees/transactions/waivedoff',
                                             title: 'Fee Waivedoff Sophia',
                                             description: 'Manage Fee Waivedoff Sophia'
+                                        },
+                                        {
+                                            id: 527,
+                                            name: 'Fee PreAdmission Transaction ST Marys',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/feepreadmissionstmarys',
+                                            title: 'Fee PreAdmission Transaction ST Marys',
+                                            description: 'Manage Fee PreAdmission Transaction ST Marys'
+                                        },
+                                        {
+                                            id: 528,
+                                            name: 'Mess Attendance Entry Vishwadarshana',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/messattendanceentryvishwa',
+                                            title: 'Mess Attendance Entry Vishwadarshana',
+                                            description: 'Manage Mess Attendance Entry Vishwadarshana'
+                                        },
+                                        {
+                                            id: 529,
+                                            name: 'Fee Collection Sophia',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feecollectionreportsophia',
+                                            title: 'Fee Collection Sophia',
+                                            description: 'Manage Fee Collection Sophia'
                                         }
                                     ]
                                 }
@@ -3014,7 +3046,7 @@ export async function getUserAccessibleModules() {
                                             id: 21050,
                                             name: 'NDS_Co_Scholasticreport',
                                             icon: 'Ticket',
-                                            url: '/Exam/exam-module/reports/nds/NDS_Co_Scholasticreport',
+                                            url: '/Exam/exam-module/reports/NDS/NDS_Co_Scholasticreport',
                                             title: 'NDS_Co_Scholasticreport',
                                             description: 'NDS_Co_Scholasticreport'
                                         },
@@ -3022,7 +3054,7 @@ export async function getUserAccessibleModules() {
                                             id: 21051,
                                             name: 'NDS_I_To_VIII_ReportCard',
                                             icon: 'Ticket',
-                                            url: '/Exam/exam-module/reports/nds/NDS_I_To_VIII_ReportCard',
+                                            url: '/Exam/exam-module/reports/NDS/NDS_I_To_VIII_ReportCard',
                                             title: 'NDS_I_To_VIII_ReportCard',
                                             description: 'NDS_I_To_VIII_ReportCard'
                                         },
@@ -3097,7 +3129,7 @@ export async function getUserAccessibleModules() {
                                             id: 21044,
                                             name: 'NDS_9_ProgressNewCardReport',
                                             icon: 'Ticket',
-                                            url: '/Exam/exam-module/reports/nds/NDS_9_ProgressNewCardReport',
+                                            url: '/Exam/exam-module/reports/NDS/NDS_9_ProgressNewCardReport',
                                             title: 'NDS_9_ProgressNewCardReport',
                                             description: 'NDS_9_ProgressNewCardReport'
                                         },
@@ -3105,7 +3137,7 @@ export async function getUserAccessibleModules() {
                                             id: 21046,
                                             name: 'NDS_9_ProgressCardReport',
                                             icon: 'Ticket',
-                                            url: '/Exam/exam-module/reports/nds/NDS_9_ProgressCardReport',
+                                            url: '/Exam/exam-module/reports/NDS/NDS_9_ProgressCardReport',
                                             title: 'NDS_9_ProgressCardReport',
                                             description: 'NDS_9_ProgressCardReport'
                                         },
@@ -3113,7 +3145,7 @@ export async function getUserAccessibleModules() {
                                             id: 21047,
                                             name: 'NDS_1_5_ProgressCardReport',
                                             icon: 'Ticket',
-                                            url: '/Exam/exam-module/reports/nds/NDS_1_5_ProgressCardReport',
+                                            url: '/Exam/exam-module/reports/NDS/NDS_1_5_ProgressCardReport',
                                             title: 'NDS_1_5_ProgressCardReport',
                                             description: 'NDS_1_5_ProgressCardReport'
                                         },
@@ -3121,7 +3153,7 @@ export async function getUserAccessibleModules() {
                                             id: 21045,
                                             name: 'NDS Promotion Report Card',
                                             icon: 'Ticket',
-                                            url: '/Exam/exam-module/reports/nds/NDS_Promotionreportcard',
+                                            url: '/Exam/exam-module/reports/NDS/NDS_Promotionreportcard',
                                             title: 'NDS Promotion Report Card',
                                             description: 'NDS Promotion Report Card'
                                         },
@@ -3137,7 +3169,7 @@ export async function getUserAccessibleModules() {
                                             id: 21047,
                                             name: 'NDS_9 Progress Card Report',
                                             icon: 'FileText',
-                                            url: '/Exam/exam-module/reports/nds/NDS9ProgressCardReport',
+                                            url: '/Exam/exam-module/reports/NDS/NDS9ProgressCardReport',
                                             title: 'NDS_9 Progress Card Report',
                                             description: 'NDS 9 Progress Card Report'
                                         },
@@ -3253,6 +3285,30 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportI_IV',
                                             title: 'Calcutta Promotion Report I-IV',
                                             description: 'Calcutta Promotion Report I-IV'
+                                        },
+                                        {
+                                            id: 21507,
+                                            name: 'Rainbow Progress Card',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/RainBow/RainBow_ProgressCardReport',
+                                            title: 'Rainbow Progress Card',
+                                            description: 'Rainbow Progress Card'
+                                        },
+                                        {
+                                            id: 21508,
+                                            name: 'GMVPS Promotion Report Card',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/GMVPS/PromotionReportCard',
+                                            title: 'GMVPS Promotion Report Card',
+                                            description: 'GMVPS Promotion Report Card'
+                                        },
+                                        {
+                                            id: 21509,
+                                            name: 'GMGS Promotion Report Card',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/GMGS/PromotionReportCard',
+                                            title: 'GMGS Promotion Report Card',
+                                            description: 'GMGS Promotion Report Card'
                                         },
                                         {
                                             id: 212111,

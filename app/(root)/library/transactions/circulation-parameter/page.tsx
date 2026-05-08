@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { Form } from '@/components/ui/form';
 import {
+    useCirculationData,
     useCirculationParameterDetails,
     useSaveCirculationParameter,
     useToggleCirculationParameterStatus
@@ -11,13 +12,14 @@ import {
 import { type CirculationParameterFormValues, circulationParameterSchema } from '@/types/library/transactions/circulationParameter';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, Save, XCircle } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { CirculationParameterForm } from './_components/CirculationParameterForm';
 import { type CirculationParameterGridData, createCirculationParameterColumns } from './_components/columns';
 
 export default function CirculationParameterPage() {
     const [editingId, setEditingId] = useState<number | null>(null);
+    const [dynamicCategoryList, setDynamicCategoryList] = useState<any[]>([]);
 
     // Form initialization
     const form = useForm<CirculationParameterFormValues>({
@@ -25,21 +27,51 @@ export default function CirculationParameterPage() {
         defaultValues: {
             bookParameterFlag: 'BP',
             issuerType: 'STUDENT',
-            status: true
+            status: true,
+            bookType: 'Issue'
         }
     });
 
     const bookParameterFlag = form.watch('bookParameterFlag');
 
     // Hooks
-    const { data: apiResponse, isLoading: isDetailsLoading } = useCirculationParameterDetails(bookParameterFlag);
+    const { data: apiResponse, isLoading: isDetailsLoading } = useCirculationParameterDetails({ MI_Id: 30, IVRMUL_Id: 21602 });
+    const categoryMutation = useCirculationData();
     const saveMutation = useSaveCirculationParameter();
     const toggleStatusMutation = useToggleCirculationParameterStatus();
+
+    // Fetch category list when Non-Book Parameter is selected
+    useEffect(() => {
+        if (bookParameterFlag === 'NBP') {
+            const payload = {
+                pk_id: 0,
+                lmC_CategoryName: "BP",
+                reflag: "Y",
+                issue: 5,
+                items: 10,
+                renewal: 2,
+                activeflg: true,
+                flgtype: "Non-Book",
+                type: "Library",
+                alldata: [],
+                fillemp: []
+            };
+            categoryMutation.mutate(payload, {
+                onSuccess: (res: any) => {
+                    if (res?.categorylist) {
+                        setDynamicCategoryList(res.categorylist as any[]);
+                    }
+                }
+            });
+        }
+    }, [bookParameterFlag]);
 
     // Extracting data from API response
     const details = apiResponse?.data || {};
     const gridData: CirculationParameterGridData[] = details.getdetails || [];
-    const categoryList = details.categorylist || [];
+
+    // Fallback to dynamicCategoryList if NBP, otherwise use what comes from details
+    const categoryList = bookParameterFlag === 'NBP' ? dynamicCategoryList : (details.categorylist || []);
     const bookTypeList = details.booktypelist || [];
     const classList = details.classlist || [];
     const departmentList = details.departmentlist || [];
@@ -54,13 +86,14 @@ export default function CirculationParameterPage() {
                     form.reset({
                         id: data.lmC_Id,
                         bookParameterFlag: data.lmB_BookTypeflag || 'BP',
-                        // Mapping logic based on how backend returns and form expects
-                        // This might need refinement based on exact field names in data
+                        issuerType: data.schclgflag || 'STUDENT',
                         maxIssueItems: data.lmC_MaxIssueItems,
                         maxIssueDays: data.lmC_MaxIssueDays,
                         maxRenewals: data.lmC_MaxRenewals,
-                        status: data.lmC_ActiveFlag
-                        // Add specific logic for categoryId/bookType/etc if available in grid row
+                        status: data.lmC_ActiveFlag,
+                        bookType: data.lmB_BookTypeflag === 'BP' ? data.lmC_CategoryName : undefined,
+                        categoryId: data.lmB_BookTypeflag === 'NBP' ? data.lmC_Id : undefined,
+                        categoryName: data.lmB_BookTypeflag === 'NBP' ? data.lmC_CategoryName : undefined
                     });
                 },
                 onToggleStatus: (data) => {
@@ -75,14 +108,15 @@ export default function CirculationParameterPage() {
             LMC_Id: editingId || 0,
             LMB_BookTypeflag: values.bookParameterFlag,
             schclgflag: values.issuerType,
-            LMC_CategoryName: values.bookParameterFlag === 'BP' ? values.categoryName : values.bookType,
+            LMC_CategoryName: values.bookParameterFlag === 'BP' ? values.bookType : values.categoryName,
             asmcl_id: values.classId || 0,
             HRMGT_Id: values.employeeGroupId || 0,
             HRMD_Id: values.departmentId || 0,
             Guest_Id: values.guestId || 0,
             Max_Issue_Items: values.maxIssueItems || 0,
             Max_Issue_Days: values.maxIssueDays || 0,
-            Max_No_Renewals: values.maxRenewals || 0
+            Max_No_Renewals: values.maxRenewals || 0,
+            MI_Id: 30
         };
 
         saveMutation.mutate(payload, {
@@ -90,7 +124,8 @@ export default function CirculationParameterPage() {
                 form.reset({
                     bookParameterFlag: values.bookParameterFlag,
                     issuerType: values.issuerType,
-                    status: true
+                    status: true,
+                    bookType: 'Issue'
                 });
                 setEditingId(null);
             }
@@ -101,7 +136,8 @@ export default function CirculationParameterPage() {
         form.reset({
             bookParameterFlag: 'BP',
             issuerType: 'STUDENT',
-            status: true
+            status: true,
+            bookType: 'Issue'
         });
         setEditingId(null);
     };

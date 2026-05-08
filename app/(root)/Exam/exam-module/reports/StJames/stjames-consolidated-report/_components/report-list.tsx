@@ -226,7 +226,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                 }) || [];
 
                                                 let mark = subjectMarks.find((m: any) => getMarkGroupName(m) === gName);
-                                                if (!mark && subjectMarks.length > 0 && !subjectMarks.some(m => getMarkGroupName(m))) {
+                                                if (!mark && subjectMarks.length > 0 && !subjectMarks.some((m: any) => getMarkGroupName(m))) {
                                                     mark = subjectMarks[gIdx];
                                                 }
 
@@ -256,10 +256,10 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                 }) || [];
 
                                                 let mark = subjectMarks.find((m: any) => getMarkGroupName(m) === gName);
-                                                if (!mark && subjectMarks.length > 0 && !subjectMarks.some(m => getMarkGroupName(m))) {
+                                                if (!mark && subjectMarks.length > 0 && !subjectMarks.some((m: any) => getMarkGroupName(m))) {
                                                     mark = subjectMarks[gIdx];
                                                 }
-                                                
+
                                                 let displayValue: any = '';
                                                 if (mark) {
                                                     const obtGrade = mark.estmppsG_GroupObtGrade ?? mark.ESTMPPSG_GroupObtGrade;

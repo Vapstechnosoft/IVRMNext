@@ -146,7 +146,7 @@ export default function StJamesConsolidatedPointsReportList({ data, institution 
 
                                         // FALLBACK: If no group name in marks and only one mark exists, or matching by index
                                         if (!markEntry && subjectMarks.length > 0) {
-                                            const hasGroupInfo = subjectMarks.some(m => getMarkGroupName(m));
+                                            const hasGroupInfo = subjectMarks.some((m: any) => getMarkGroupName(m));
                                             if (!hasGroupInfo) {
                                                 // If NO mark has group info, match by index (gIdx)
                                                 markEntry = subjectMarks[gIdx];
@@ -161,7 +161,7 @@ export default function StJamesConsolidatedPointsReportList({ data, institution 
                                             } else {
                                                 const obtMarks = markEntry.estmppsG_GroupObtMarks ?? markEntry.ESTMPPSG_GroupObtMarks;
                                                 const obtGrade = markEntry.estmppsG_GroupObtGrade ?? markEntry.ESTMPPSG_GroupObtGrade;
-                                                
+
                                                 if (sub.EYCES_AplResultFlg) {
                                                     displayValue = (obtMarks !== null && obtMarks !== undefined && String(obtMarks) !== '0') ? obtMarks : 'AB';
                                                 } else {
