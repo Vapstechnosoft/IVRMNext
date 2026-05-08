@@ -54,17 +54,20 @@ class ApiServiceNew {
                 }
             });
 
-            this.setupInterceptors(instance);
+            this.setupInterceptors(instance, key);
             this.instances.set(key, instance);
         }
 
         return this.instances.get(key)!;
     }
 
-    private setupInterceptors(instance: AxiosInstance): void {
+    private setupInterceptors(instance: AxiosInstance, key: string): void {
         // Request Interceptor
         instance.interceptors.request.use(
             async (config) => {
+                // Skip portal auth for signage as it uses its own X-API-Key system
+                if (key === 'signage') return config;
+
                 try {
                     const session = await auth();
                     if (session?.token) {
@@ -83,7 +86,9 @@ class ApiServiceNew {
         instance.interceptors.response.use(
             (response) => response,
             async (error) => {
-                if (error.response?.status === 401) {
+                // Only trigger global logout for the main application API (default)
+                // and avoid logging out if the signage module has an auth error.
+                if (error.response?.status === 401 && key !== 'signage') {
                     try {
                         await signOut();
                         // Only redirect in browser environment
