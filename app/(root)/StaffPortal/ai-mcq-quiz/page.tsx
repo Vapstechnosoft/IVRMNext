@@ -52,6 +52,7 @@ export default function OnlineMcqQuizPage() {
     const [file, setFile] = useState<File | null>(null);
     const [questionCount, setQuestionCount] = useState('5');
     const [difficulty, setDifficulty] = useState('Medium');
+    const [topic, setTopic] = useState('');
 
     // Workflow Modes: 'dashboard' | 'create' | 'preview' | 'publish'
     const [viewMode, setViewMode] = useState<'dashboard' | 'create' | 'preview' | 'publish'>('dashboard');
@@ -111,6 +112,7 @@ export default function OnlineMcqQuizPage() {
         formData.append('file', file);
         formData.append('questionCount', questionCount);
         formData.append('difficulty', difficulty);
+        formData.append('topic', topic);
 
         try {
             const response = await fetch('/api/exam/generate-quiz', {
@@ -903,6 +905,16 @@ export default function OnlineMcqQuizPage() {
                                                 <p className="font-black text-slate-700">{file ? file.name : "Choose File"}</p>
                                             </div>
                                         </div>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <Label className="ml-1 font-black text-slate-400 text-sm uppercase tracking-widest after:ml-0.5 after:text-red-500 after:content-['*']">Topic</Label>
+                                        <Input 
+                                            placeholder="e.g. Photosynthesis, World War II, Calculus..." 
+                                            value={topic} 
+                                            onChange={(e) => setTopic(e.target.value)} 
+                                            className='h-16 rounded-2xl border-none bg-slate-50 font-black' 
+                                        />
                                     </div>
 
                                     <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>

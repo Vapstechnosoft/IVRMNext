@@ -8039,14 +8039,7 @@ export async function getUserAccessibleModules() {
                                             title: 'AI MCQ Quiz',
                                             description: 'Conduct and manage online MCQ quizzes'
                                         },
-                                        {
-                                            id: 9003,
-                                            name: 'AI Performance Analysis',
-                                            icon: 'BarChart',
-                                            url: '/Exam/exam-module/ai-performance-analysis',
-                                            title: 'AI Performance Analysis',
-                                            description: 'Analyze student performance using AI insights'
-                                        },
+
                                         {
                                             id: 9002,
                                             name: 'OMR Sheet Evaluator',
@@ -8385,17 +8378,10 @@ export async function getUserAccessibleModules() {
                                     ]
                                 }
                             ]
-                        }
-                    ]
-                },
-                {
-                    id: 25,
-                    name: 'COE',
-                    icon: 'Calendar',
-                    menu: [
+                        },
                         {
-                            id: 1,
-                            name: 'Calendar of Events',
+                            id: 25,
+                            name: 'COE',
                             icon: 'Calendar',
                             sub_menu: [
                                 {
