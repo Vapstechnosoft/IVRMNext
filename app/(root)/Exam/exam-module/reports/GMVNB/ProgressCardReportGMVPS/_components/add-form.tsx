@@ -109,7 +109,7 @@ export default function ProgressCardReportForm({
         (async () => {
             try {
                 setLoadingSections(true);
-                const { data } = await getSectionsDropDownByAcademicYearandClasslist(selectedClass, selectedYear);
+                const { data } = await getSectionsDropDownByAcademicYearandClasslist(selectedYear, selectedClass);
                 if (!data || (Array.isArray(data) && data.length === 0)) {
                     toast.info('No sections found');
                 }
