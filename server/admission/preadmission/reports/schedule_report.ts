@@ -1,10 +1,10 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import type { 
-    IScheduleReportInitialDetailsResponse, 
-    IScheduleListResponse, 
-    IScheduleReportDetailsResponse 
+import type {
+    IScheduleReportInitialDetailsResponse,
+    IScheduleListResponse,
+    IScheduleReportDetailsResponse
 } from '@/types/admission/preadmission/reports';
 
 /**
@@ -24,7 +24,7 @@ export async function getScheduleList(data: {
     asmay_id: number;
 }) {
     const url = `/ScheduleReport/schedulelist?oralwrittenscheduleflag=${data.oralwrittenscheduleflag}&yearorbtwndates=${data.yearorbtwndates}&yearid=${data.asmay_id}`;
-    return await api.get<IScheduleListResponse>('preadmission', url);
+    return await api.post<IScheduleListResponse>('preadmission', url);
 }
 
 /**
@@ -40,7 +40,7 @@ export async function getScheduleReportDetails(data: {
     stype: number;
 }) {
     const url = `/ScheduleReport/Getreportdetails?asmayid=${data.asmayid}&asmclid=${data.asmclid}&fromdate=${data.fromdate}&todate=${data.todate}&flagows=${data.flagows}&schids=${data.schids}&stype=${data.stype}`;
-    return await api.get<IScheduleReportDetailsResponse>('preadmission', url);
+    return await api.post<IScheduleReportDetailsResponse>('preadmission', url);
 }
 
 /**

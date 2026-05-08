@@ -17,9 +17,11 @@ export default function AvailableBooksReportPage() {
     const handleSearch = (data: IAvailableBooksReportRequest) => {
         searchMutation.mutate(data, {
             onSuccess: (response) => {
-                setReportData((response.griddata as IAvailableBooksReportGridData[]) || []);
+                const gridData = (response.data as any)?.griddata;
+                const extractedData = gridData?.$values ?? gridData ?? [];
+                setReportData(extractedData as IAvailableBooksReportGridData[]);
 
-                //  if (response.griddata?.length > 0) {
+                //  if (extractedData.length > 0) {
                 //      setView('grid');
                 // }
             }

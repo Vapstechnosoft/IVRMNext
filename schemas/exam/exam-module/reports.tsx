@@ -480,6 +480,16 @@ export const reportCardXiSchema = z.object({
 
 export type ReportCardXiSchema = z.infer<typeof reportCardXiSchema>;
 
+export const burnpurProgressCardSchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    date: z.string().min(1, 'Date is required'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
+});
+
+export type BurnpurProgressCardSchema = z.infer<typeof burnpurProgressCardSchema>;
+
 export const reportCardViViiiSchema = z.object({
     ASMAY_Id: z.string().min(1, 'Academic Year is required'),
     ASMCL_Id: z.string().min(1, 'Class is required'),
@@ -660,7 +670,7 @@ export const stJamesIX_XReportSchema = z.object({
     asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
     asmcL_Id: z.number({ required_error: 'Class Name is required' }).min(1, { message: 'Please select Class Name' }),
     asmS_Id: z.number({ required_error: 'Section Name is required' }).min(1, { message: 'Please select Section Name' }),
-    type: z.enum(['indi', 'prom'], { required_error: 'Type is required' }),
+    reporttype: z.enum(['indi', 'groupwise'], { required_error: 'Type is required' }),
     displayAttendance: z.boolean().default(true),
     emE_Id: z
         .array(
@@ -691,6 +701,26 @@ export const gmvpsProgressCardIXSchema = z.object({
 
 export type GmvpsProgressCardIXSchema = z.infer<typeof gmvpsProgressCardIXSchema>;
 
+export const burnpurProgressCardXIISchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    date: z.string().min(1, 'Date is required'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
+});
+
+export type BurnpurProgressCardXIISchema = z.infer<typeof burnpurProgressCardXIISchema>;
+
+export const burnpurProgressCardXISchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    date: z.string().min(1, 'Date is required'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
+});
+
+export type BurnpurProgressCardXISchema = z.infer<typeof burnpurProgressCardXISchema>;
+
 export const promotionReportCardSophiaSchema = z.object({
     mI_Id: z.number().optional(),
     asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
@@ -708,3 +738,31 @@ export const promotionReportCardSophiaSchema = z.object({
 });
 
 export type PromotionReportCardSophiaSchema = z.infer<typeof promotionReportCardSophiaSchema>;
+
+export const calcuttaPromotionReportItoIVSchema = z
+    .object({
+        mI_Id: z.number().optional(),
+        asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
+        asmcL_Id: z.number({ required_error: 'Class is required' }).min(1, { message: 'Please select Class' }),
+        asmS_Id: z.number({ required_error: 'Section is required' }).min(1, { message: 'Please select Section' }),
+        empG_GroupName: z.string().optional(), // Term
+        studentList: z
+            .array(
+                z.object({
+                    amsT_Id: z.number({ required_error: 'Student is required' }).min(1, { message: 'Please select a Students' })
+                })
+            )
+            .min(1, { message: 'At least one Student must be selected' })
+    })
+    .superRefine((data, ctx) => {
+        const studentIds = data.studentList?.map((s) => s.amsT_Id) || [];
+        if (new Set(studentIds).size !== studentIds.length) {
+            ctx.addIssue({
+                path: ['studentList'],
+                code: z.ZodIssueCode.custom,
+                message: 'Duplicate Students are not allowed'
+            });
+        }
+    });
+
+export type CalcuttaPromotionReportItoIVSchema = z.infer<typeof calcuttaPromotionReportItoIVSchema>;

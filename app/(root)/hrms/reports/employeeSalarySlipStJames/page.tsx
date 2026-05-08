@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import {
     useReportGroupTypes,
@@ -51,6 +51,8 @@ export default function SalarySlipPage() {
         logo: ''
     });
 
+    const reportRef = useRef<HTMLDivElement>(null);
+
     // Cascading Dropdown Hooks
     const { data: yearsData } = useLeaveYearDropdown();
     const { data: groupTypesData } = useReportGroupTypes();
@@ -75,6 +77,15 @@ export default function SalarySlipPage() {
             });
         }
     }, [onloadData]);
+
+    useEffect(() => {
+  if (showReport && reportRef.current) {
+    reportRef.current.scrollIntoView({ 
+      behavior: "smooth", 
+      block: "start" 
+    });
+  }
+}, [showReport]);
 
     const handleFilterChange = (newFilters: SalarySlipFiltersType) => {
         setFilters(newFilters);
@@ -320,7 +331,7 @@ export default function SalarySlipPage() {
             />
 
             {showReport && (
-                <div className="space-y-6">
+                <div className="space-y-6" ref = {reportRef}>
                     {/* Global Action Bar */}
                     <div className="flex flex-wrap items-center justify-between gap-4 bg-card p-4 rounded-xl border shadow-sm print:hidden">
                         <div className="flex items-center gap-2">
