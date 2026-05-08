@@ -820,6 +820,29 @@ export const calcuttaPromotionReportItoIVSchema = z
 
 export type CalcuttaPromotionReportItoIVSchema = z.infer<typeof calcuttaPromotionReportItoIVSchema>;
 
+export const rainbowProgressCardReportSchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    empsG_PercentValue: z.string()
+        .min(1, 'Percentage is required')
+        .regex(/^(100|[1-9]?[0-9])$/, 'Please enter a value between 0 and 100'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
+});
+
+export type RainbowProgressCardReportSchema = z.infer<typeof rainbowProgressCardReportSchema>;
+
+export const gmvpsPromotionReportCardSchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    performanceanalysis: z.boolean().default(true),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student'),
+    date: z.coerce.date().optional()
+});
+
+export type GmvpsPromotionReportCardSchema = z.infer<typeof gmvpsPromotionReportCardSchema>;
+
 
 export const calcuttaPromotionReportItoIXSchema = z
     .object({
