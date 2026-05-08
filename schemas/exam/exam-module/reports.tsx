@@ -739,7 +739,6 @@ export const promotionReportCardSophiaSchema = z.object({
 
 export type PromotionReportCardSophiaSchema = z.infer<typeof promotionReportCardSophiaSchema>;
 
-<<<<<<< HEAD
 export const stJamesNurseryReportSchema = z.object({
     asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
     asmcL_Id: z.number({ required_error: 'Class Name is required' }).min(1, { message: 'Please select Class Name' }),
@@ -782,7 +781,7 @@ export const stJamesConsolidatedPointsReportSchema = z.object({
 });
 
 export type StJamesConsolidatedPointsReportSchema = z.infer<typeof stJamesConsolidatedPointsReportSchema>;
-=======
+
 export const calcuttaPromotionReportItoIVSchema = z
     .object({
         mI_Id: z.number().optional(),
@@ -810,4 +809,27 @@ export const calcuttaPromotionReportItoIVSchema = z
     });
 
 export type CalcuttaPromotionReportItoIVSchema = z.infer<typeof calcuttaPromotionReportItoIVSchema>;
->>>>>>> f535f29ee0c16d7b2da2bc7713309aeee75573a7
+
+export const rainbowProgressCardReportSchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    empsG_PercentValue: z.string()
+        .min(1, 'Percentage is required')
+        .regex(/^(100|[1-9]?[0-9])$/, 'Please enter a value between 0 and 100'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
+});
+
+export type RainbowProgressCardReportSchema = z.infer<typeof rainbowProgressCardReportSchema>;
+
+export const gmvpsPromotionReportCardSchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    performanceanalysis: z.boolean().default(true),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student'),
+    date: z.coerce.date().optional()
+});
+
+export type GmvpsPromotionReportCardSchema = z.infer<typeof gmvpsPromotionReportCardSchema>;
+
