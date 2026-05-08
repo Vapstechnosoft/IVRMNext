@@ -2017,7 +2017,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Fee Trail Audit Reoport ST JAMES'
                                         },
                                         {
-                                            id: 522,
+                                            id: 524,
                                             name: 'Fee Demand Register Report GMVPS',
                                             icon: 'BadgeIndianRupee',
                                             url: '/fees/feereports/feedemandregisterreportgmvps',
@@ -2025,12 +2025,44 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Fee Demand Register Report GMVPS'
                                         },
                                         {
-                                            id: 43,
+                                            id: 525,
+                                            name: 'Fee Summarized Report ST JAMES',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feesummerizedreportstjames',
+                                            title: 'Fee Summarized Report ST JAMES',
+                                            description: 'Manage Fee Summarized Report ST JAMES'
+                                        },
+                                        {
+                                            id: 526,
                                             name: 'Fee Waivedoff Sophia',
                                             icon: 'BadgeIndianRupee',
                                             url: '/fees/transactions/waivedoff',
                                             title: 'Fee Waivedoff Sophia',
                                             description: 'Manage Fee Waivedoff Sophia'
+                                        },
+                                        {
+                                            id: 527,
+                                            name: 'Fee PreAdmission Transaction ST Marys',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/feepreadmissionstmarys',
+                                            title: 'Fee PreAdmission Transaction ST Marys',
+                                            description: 'Manage Fee PreAdmission Transaction ST Marys'
+                                        },
+                                        {
+                                            id: 528,
+                                            name: 'Mess Attendance Entry Vishwadarshana',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/messattendanceentryvishwa',
+                                            title: 'Mess Attendance Entry Vishwadarshana',
+                                            description: 'Manage Mess Attendance Entry Vishwadarshana'
+                                        },
+                                        {
+                                            id: 529,
+                                            name: 'Fee Collection Sophia',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feecollectionreportsophia',
+                                            title: 'Fee Collection Sophia',
+                                            description: 'Manage Fee Collection Sophia'
                                         }
                                     ]
                                 }
