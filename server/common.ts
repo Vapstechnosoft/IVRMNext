@@ -6456,6 +6456,29 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage COE Month End Report'
                                         }
                                     ]
+                                },
+                                {
+                                    id: 3,
+                                    name: 'Digital Signage',
+                                    icon: 'Monitor',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Configuration',
+                                            icon: 'Settings',
+                                            url: '/digital-signage/configuration',
+                                            title: 'Configuration',
+                                            description: 'Digital Signage Configuration'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Upload and Schedule',
+                                            icon: 'Upload',
+                                            url: '/digital-signage/upload-and-schedule',
+                                            title: 'Upload and Schedule',
+                                            description: 'Upload and Schedule Signage Content'
+                                        }
+                                    ]
                                 }
                             ]
                         }
@@ -7853,7 +7876,7 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                },
+                }
                 // {
                 //     id: 999021,
                 //     name: 'PDA',
@@ -7973,7 +7996,6 @@ export async function getUserAccessibleModules() {
                     name: 'Staff Portal',
                     icon: 'Settings',
                     menu: [
-
                         {
                             id: 2,
                             name: 'Attendance',
@@ -8043,11 +8065,19 @@ export async function getUserAccessibleModules() {
                                     pages: [
                                         {
                                             id: 9001,
-                                            name: 'AI MCQ QUIZ',
+                                            name: 'AI MCQ Quiz',
                                             icon: 'Trophy',
                                             url: '/StaffPortal/ai-mcq-quiz',
-                                            title: 'AI MCQ QUIZ',
+                                            title: 'AI MCQ Quiz',
                                             description: 'Conduct and manage online MCQ quizzes'
+                                        },
+                                        {
+                                            id: 9003,
+                                            name: 'AI Performance Analysis',
+                                            icon: 'BarChart',
+                                            url: '/Exam/exam-module/ai-performance-analysis',
+                                            title: 'AI Performance Analysis',
+                                            description: 'Analyze student performance using AI insights'
                                         },
                                         {
                                             id: 9002,
@@ -8383,6 +8413,35 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/reports/Sophia/ClassWiseDailyAttendance',
                                             title: 'Sophia Classwise Report',
                                             description: 'Sophia Classwise Report'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    id: 25,
+                    name: 'COE',
+                    icon: 'Calendar',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Calendar of Events',
+                            icon: 'Calendar',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'COE',
+                                    icon: 'Calendar',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'School Events',
+                                            icon: 'Calendar',
+                                            url: '/StudentPortal/coe/',
+                                            title: 'Calendar of Events',
+                                            description: 'View Calendar of Events'
                                         }
                                     ]
                                 }
@@ -9056,7 +9115,7 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                },
+                }
                 // {
                 //     id: 999021,
                 //     name: 'PDA',
@@ -9199,7 +9258,7 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                },
+                }
                 // {
                 //     id: 999021,
                 //     name: 'PDA',
