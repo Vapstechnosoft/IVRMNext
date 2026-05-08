@@ -7,6 +7,7 @@ import type { ILibLostBookReportGridData, ILibLostBookReportRequest } from '@/ty
 import { useState } from 'react';
 import { LibLostBookReportColumns } from './_components/columns';
 import { ReportForm } from './_components/report-form';
+import { toast } from 'sonner';
 
 export default function LibLostBookReportPage() {
     const [reportData, setReportData] = useState<ILibLostBookReportGridData[]>([]);
@@ -17,6 +18,13 @@ export default function LibLostBookReportPage() {
         searchMutation.mutate(data, {
             onSuccess: (response) => {
                 setReportData(response || []);
+                if(response.length === 0) {
+                    toast.warning('No records found for the given criteria.');
+                    return;
+                }
+                if(response.length > 0) {
+                    toast.success(`Report fetched successfully with ${response.length} records.`);
+                }
             }
         });
     };

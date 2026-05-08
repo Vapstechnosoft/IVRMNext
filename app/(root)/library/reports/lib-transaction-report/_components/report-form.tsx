@@ -5,11 +5,12 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useLibTransactionReportInitialData } from '@/hooks/library/reports/useLibTransactionReport';
+import { useLibTransactionReportInitialData, useLibTransactionReportYearList } from '@/hooks/library/reports/useLibTransactionReport';
 import type { ILibTransactionReportRequest } from '@/types/library/reports/lib-transaction-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, Search, X } from 'lucide-react';
 import { Controller, useForm } from 'react-hook-form';
+import { useEffect } from 'react';
 import * as z from 'zod';
 
 const formSchema = z.object({
@@ -28,11 +29,13 @@ interface ReportFormProps {
 export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
     const { data: initialDataWrapper, isLoading: isInitialLoading } = useLibTransactionReportInitialData();
     const initialData = (initialDataWrapper as any)?.data || initialDataWrapper;
-
+    const { data: yearListData, isLoading: isYearListLoading } = useLibTransactionReportYearList();
+    const YearData = (yearListData as any)?.data || yearListData;
     const {
         control,
         handleSubmit,
         formState: { errors },
+        setValue,
         reset
     } = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -40,6 +43,15 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
             statuscount: false
         }
     });
+
+    useEffect(() => {
+        if (initialData?.msterliblist1?.length === 1) {
+            setValue('LMAL_Id', initialData.msterliblist1[0].lmaL_Id);
+        }
+        if (initialData?.yearlist?.length === 1) {
+            setValue('ASMAY_Id', initialData.yearlist[0].asmaY_Id);
+        }
+    }, [initialData, setValue]);
 
     const onSubmit = (values: z.infer<typeof formSchema>) => {
         onSearch({
@@ -100,8 +112,8 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                                             <SelectValue placeholder='Select' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {Array.isArray(initialData?.yearlist) &&
-                                                initialData?.yearlist?.map((item: any) => (
+                                            {Array.isArray(YearData?.departmentList) &&
+                                                YearData?.departmentList?.map((item: any) => (
                                                     <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
                                                         {item.asmaY_Year}
                                                     </SelectItem>
