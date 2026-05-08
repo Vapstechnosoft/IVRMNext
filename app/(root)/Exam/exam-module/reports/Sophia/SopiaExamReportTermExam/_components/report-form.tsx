@@ -176,26 +176,17 @@ export default function SopiaExamReportTermExamForm({
 
     const onSubmit = async (data: SopiaExamReportTermExamSchema) => {
         try {
-            const payload = {
-                EME_Id: data.emE_Id,
-                ASMAY_Id: data.asmaY_Id,
-                ASMCL_Id: data.asmcL_Id,
-                ASMS_Id: data.asmS_Id,
-                Temp_AmstIds: data.studentList.map(s => ({ AMST_Id: s.amsT_Id })),
-                selectedclass: data.studentList.map(s => ({ yearid: s.amsT_Id }))
-            };
+            const response = await getSopiaExamReportTermExam(data);
 
-            const response: any = await getSopiaExamReportTermExam(payload);
-
-            if (response?.success && response?.data) {
-                const examName = exams.find(e => e.emE_Id === data.emE_Id)?.emE_ExamName || '';
-                const yearName = academicYears.find(y => y.asmaY_Id === data.asmaY_Id)?.asmaY_Year || '';
-
-                if (onSuccess) await onSuccess({ apiData: response.data, payload: { ...payload, examName, yearName } });
+            if (response.success && response.data) {
+                if (onSuccess) {
+                    await onSuccess(response.data);
+                }
             } else {
-                toast.error(response?.message || 'Failed to fetch report data');
+                toast.error(response.message || 'Failed to fetch report data');
             }
         } catch (err: any) {
+            console.error('Error submitting form:', err);
             toast.error(err?.message || 'Unexpected error occurred');
         }
     };

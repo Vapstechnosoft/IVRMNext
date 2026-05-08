@@ -1,5 +1,5 @@
 'use client';
-
+ 
 import { Button } from '@/components/ui/button';
 import { CalendarYear } from '@/components/ui/calendar_year';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -9,7 +9,7 @@ import { Calendar } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { FormError, Label } from './extension/field';
-
+ 
 interface DateFieldProps {
     field: any;
     fieldState: any;
@@ -23,7 +23,7 @@ interface DateFieldProps {
     required?: boolean;
     outputFormat?: 'date' | 'string';
 }
-
+ 
 export const DateField: React.FC<DateFieldProps> = ({
     field,
     fieldState,
@@ -38,7 +38,7 @@ export const DateField: React.FC<DateFieldProps> = ({
     outputFormat = 'string'
 }) => {
     const [isOpen, setIsOpen] = useState(false);
-
+ 
     const parseInputDate = (val: any): Date | null => {
         if (!val && val !== 0) return null;
         if (val instanceof Date) return val;
@@ -50,23 +50,23 @@ export const DateField: React.FC<DateFieldProps> = ({
             // Try ISO / RFC parsing first
             const iso = new Date(val);
             if (isValid(iso)) return iso;
-
+ 
             // Try common formats dd/MM/yyyy and dd-MM-yyyy
             const fmt1 = parse(val, 'dd/MM/yyyy', new Date());
             if (isValid(fmt1)) return fmt1;
-
+ 
             const fmt2 = parse(val, 'dd-MM-yyyy', new Date());
             if (isValid(fmt2)) return fmt2;
         }
         return null;
     };
-
+ 
     const [selectedDate, setSelectedDate] = useState<Date | null>(parseInputDate(field.value));
-
+ 
     useEffect(() => {
         setSelectedDate(parseInputDate(field.value));
     }, [field.value]);
-
+ 
     const handleSelect = (date: Date | undefined) => {
         if (!date) return;
         if (toDate && date > toDate) {
@@ -81,14 +81,14 @@ export const DateField: React.FC<DateFieldProps> = ({
         field.onChange(outputFormat === 'date' ? date : date.toISOString());
         setIsOpen(false);
     };
-
+ 
     return (
         <div className='mt-5 flex flex-col gap-1.5'>
             <Label htmlFor={field.name}>
                 {label}
                 {required && <span className='ml-1 text-red-500'>*</span>}
             </Label>
-
+ 
             <Popover open={isOpen} onOpenChange={setIsOpen}>
                 <PopoverTrigger asChild>
                     <Button
@@ -99,25 +99,20 @@ export const DateField: React.FC<DateFieldProps> = ({
                         <Calendar className='ml-auto h-4 w-4 opacity-50' />
                     </Button>
                 </PopoverTrigger>
-
+ 
                 <PopoverContent className='flex w-auto items-start p-0' align='start'>
                     <CalendarYear
                         mode='single'
+                        captionLayout='buttons'
                         selected={selectedDate ?? undefined}
                         onSelect={handleSelect}
                         onDayClick={() => setIsOpen(false)}
-                        // v9: startMonth/endMonth replace fromDate/toDate for navigation limits
-                        startMonth={fromDate}
-                        endMonth={toDate}
-                        // v9: hidden replaces fromDate/toDate for disabling dates
-                        hidden={[
-                            ...(fromDate ? [{ before: fromDate }] : []),
-                            ...(toDate ? [{ after: toDate }] : [])
-                        ]}
+                        fromDate={fromDate}
+                        toDate={toDate}
                     />
                 </PopoverContent>
             </Popover>
-
+ 
             {fieldState?.error && <FormError>{fieldState.error.message}</FormError>}
         </div>
     );
