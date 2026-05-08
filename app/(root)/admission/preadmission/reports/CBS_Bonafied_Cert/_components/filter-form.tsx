@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { StjamesBonafiedReportSchema, type StjamesBonafiedReportFields } from '@/schemas/admission/preadmission/reports/stjames-bonafied-report';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { FormError } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -48,7 +49,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
         },
     });
 
-    const { watch, setValue, reset } = form;
+    const { watch, setValue, reset, formState: { errors } } = form;
     const allorindi = watch('allorindi');
     const optradio = watch('optradio');
     const asmayId = watch('ASMAY_Id');
@@ -274,7 +275,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {errors.ASMAY_Id && <FormError>{errors.ASMAY_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -426,7 +427,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                         </Command>
                                     </PopoverContent>
                                 </Popover>
-                                <FormMessage />
+                                {errors.AMST_Id && <FormError>{errors.AMST_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />

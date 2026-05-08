@@ -1,17 +1,18 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, FormState } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { cbsNoObjectionCertSchema, type TCbsNoObjectionCertSchema } from '@/schemas/admission/preadmission/reports/cbs-no-objection-cert.schema';
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
+import { 
+    Form, 
+    FormControl, 
+    FormField, 
+    FormItem, 
+    FormLabel, 
+    FormMessage 
 } from '@/components/ui/form';
+import { FormError } from '@/components/ui/extension/field';
 import {
     Select,
     SelectContent,
@@ -25,7 +26,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, Loader2, X, FileText, Printer, Check } from 'lucide-react';
 import { useCBSNoObjectionSearchFilter, useCBSNoObjectionAcademicYearChange, useCBSNoObjectionStudentStatusChange } from '@/hooks/admission/preadmission/reports/useCBSNoObjectionCert';
-import { toast } from 'sonner';
 import { useDebounce } from '@/hooks/utils/use-debounce';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
@@ -65,13 +65,9 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
         },
     });
 
-    const handleFormError = (errors: any) => {
-        const firstError = Object.values(errors)[0] as any;
-        if (firstError?.message) {
-            toast.error(firstError.message);
-        }
-    };
+    const { formState: { errors } } = form;
 
+    
     const watchAllOrIndi = form.watch('allorindi');
     const watchAcademicYear = form.watch('asmaY_Id');
     const watchStatus = form.watch('optradio');
@@ -100,7 +96,6 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                         setStudentList(response.data);
                     } else if (response.data && response.data.count === 0) {
                         setStudentList([]);
-                        toast.info('No students found for your search');
                     }
                 } catch (error) {
                     console.error('Student search error:', error);
@@ -157,7 +152,7 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit, handleFormError)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Filter Type */}
@@ -270,7 +265,7 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    <FormMessage />
+                                    {errors.asmaY_Id && <FormError>{errors.asmaY_Id.message}</FormError>}
                                 </FormItem>
                             )}
                         />
@@ -300,7 +295,7 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    <FormMessage />
+                                    {errors.asmcL_Id && <FormError>{errors.asmcL_Id.message}</FormError>}
                                 </FormItem>
                             )}
                         />
@@ -330,7 +325,7 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    <FormMessage />
+                                    {errors.asmS_Id && <FormError>{errors.asmS_Id.message}</FormError>}
                                 </FormItem>
                             )}
                         />
@@ -349,7 +344,7 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                                         date={field.value}
                                         setDate={field.onChange}
                                     />
-                                    <FormMessage />
+                                    {errors.date && <FormError>{errors.date.message}</FormError>}
                                 </FormItem>
                             )}
                         />
@@ -434,7 +429,7 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                                                 </Command>
                                             </PopoverContent>
                                         </Popover>
-                                        <FormMessage />
+                                        {errors.amsT_Id && <FormError>{errors.amsT_Id.message}</FormError>}
                                     </FormItem>
                                 );
                             }}

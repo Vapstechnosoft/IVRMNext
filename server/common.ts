@@ -2017,7 +2017,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Fee Trail Audit Reoport ST JAMES'
                                         },
                                         {
-                                            id: 522,
+                                            id: 524,
                                             name: 'Fee Demand Register Report GMVPS',
                                             icon: 'BadgeIndianRupee',
                                             url: '/fees/feereports/feedemandregisterreportgmvps',
@@ -2025,12 +2025,44 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Fee Demand Register Report GMVPS'
                                         },
                                         {
-                                            id: 43,
+                                            id: 525,
+                                            name: 'Fee Summarized Report ST JAMES',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feesummerizedreportstjames',
+                                            title: 'Fee Summarized Report ST JAMES',
+                                            description: 'Manage Fee Summarized Report ST JAMES'
+                                        },
+                                        {
+                                            id: 526,
                                             name: 'Fee Waivedoff Sophia',
                                             icon: 'BadgeIndianRupee',
                                             url: '/fees/transactions/waivedoff',
                                             title: 'Fee Waivedoff Sophia',
                                             description: 'Manage Fee Waivedoff Sophia'
+                                        },
+                                        {
+                                            id: 527,
+                                            name: 'Fee PreAdmission Transaction ST Marys',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/feepreadmissionstmarys',
+                                            title: 'Fee PreAdmission Transaction ST Marys',
+                                            description: 'Manage Fee PreAdmission Transaction ST Marys'
+                                        },
+                                        {
+                                            id: 528,
+                                            name: 'Mess Attendance Entry Vishwadarshana',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/messattendanceentryvishwa',
+                                            title: 'Mess Attendance Entry Vishwadarshana',
+                                            description: 'Manage Mess Attendance Entry Vishwadarshana'
+                                        },
+                                        {
+                                            id: 529,
+                                            name: 'Fee Collection Sophia',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feecollectionreportsophia',
+                                            title: 'Fee Collection Sophia',
+                                            description: 'Manage Fee Collection Sophia'
                                         }
                                     ]
                                 }
@@ -3239,7 +3271,7 @@ export async function getUserAccessibleModules() {
                                             description: 'XI-XII St.James Progress Card'
                                         },
                                         {
-                                            id: 21505,
+                                            id: 21210,
                                             name: 'BRS PreBoard Report Card',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/Burnpur/BRS_PreBoard_reportcard',
@@ -3247,7 +3279,7 @@ export async function getUserAccessibleModules() {
                                             description: 'BRS PreBoard Report Card'
                                         },
                                         {
-                                            id: 21506,
+                                            id: 21211,
                                             name: 'Calcutta Promotion Report I-IV',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportI_IV',
@@ -3277,6 +3309,78 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/GMGS/PromotionReportCard',
                                             title: 'GMGS Promotion Report Card',
                                             description: 'GMGS Promotion Report Card'
+                                        },
+                                        {
+                                            id: 212111,
+                                            name: 'Calcutta Promotion Report I-V',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportI_V',
+                                            title: 'Calcutta Promotion Report I-V',
+                                            description: 'Calcutta Promotion Report I-V'
+                                        },
+                                        {
+                                            id: 21212,
+                                            name: 'Calcutta Promotion Report I-IX',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportI_IX',
+                                            title: 'Calcutta Promotion Report I-IX',
+                                            description: 'Calcutta Promotion Report I-IX'
+                                        },
+                                        {
+                                            id: 21213,
+                                            name: 'Calcutta Promotion Report IX-X',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportIX_X',
+                                            title: 'Calcutta Promotion Report IX-X',
+                                            description: 'Calcutta Promotion Report IX-X'
+                                        },
+                                        {
+                                            id: 21214,
+                                            name: 'St.James XI_XII Progress Card New',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/StJames/stjamesxi_xiiprogress-card-report-new',
+                                            title: 'St.James XI_XII Progress Card New',
+                                            description: 'St.James XI_XII Progress Card New'
+                                        },
+                                        {
+                                            id: 21215,
+                                            name: 'St.James Nursery Progress Card',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/StJames/Stjames-nursery-progresscard',
+                                            title: 'St.James Nursery Progress Card',
+                                            description: 'St.James Nursery Progress Card'
+                                        },
+                                        {
+                                            id: 21216,
+                                            name: 'St.James Transition Progress Card',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/StJames/stjames-transition-progress-card',
+                                            title: 'St.James Transition Progress Card',
+                                            description: 'St.James Transition Progress Card'
+                                        },
+                                        {
+                                            id: 21217,
+                                            name: 'St.James I-III Progress Card',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/StJames/stjamesi_iii_progress-card-report',
+                                            title: 'St.James I-III Progress Card',
+                                            description: 'St.James I-III Progress Card'
+                                        },
+                                        {
+                                            id: 21218,
+                                            name: 'St.James Consolidated Points Report',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/StJames/stjames-consolidated-points-report',
+                                            title: 'St.James Consolidated Points Report',
+                                            description: 'St.James Consolidated Points Report'
+                                        },
+                                        {
+                                            id: 21507,
+                                            name: 'NDS Final Report Card',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/NDS/FinalNdasReportCard',
+                                            title: 'NDS Final Report Card',
+                                            description: 'NDS Final Report Card'
                                         }
                                     ]
                                 }
