@@ -1136,7 +1136,7 @@ export async function getUserAccessibleModules() {
                                         //     description: 'SophiaStudentParticulars'
                                         // }
                                     ]
-                                },
+                                }
                                 // {
                                 //     id: 16,
                                 //     name: 'St. Thomas Church School',
@@ -2955,14 +2955,6 @@ export async function getUserAccessibleModules() {
                                             description: 'Studentportal Exam Report'
                                         },
                                         {
-                                            id: 21030,
-                                            name: 'AI Performance Analysis',
-                                            icon: 'BarChart',
-                                            url: '/Exam/exam-module/ai-performance-analysis',
-                                            title: 'AI Performance Analysis',
-                                            description: 'AI Performance Analysis'
-                                        },
-                                        {
                                             id: 21031,
                                             name: 'TBS Report School',
                                             icon: 'BookOpen',
@@ -3083,7 +3075,6 @@ export async function getUserAccessibleModules() {
                                             description: 'BRS Progress Card X Report'
                                         },
 
-
                                         {
                                             id: 21044,
                                             name: 'St. James Consolidate Report',
@@ -3123,7 +3114,6 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/Burnpur/Burnpur_ProgressCardReport',
                                             title: 'BRS Progress Card Report',
                                             description: 'BRS Progress Card Report'
-
                                         },
                                         {
                                             id: 21044,
@@ -3196,7 +3186,6 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/Sophia/SopiaExamReportItoIV',
                                             title: 'Sophia Exam Report I to IV',
                                             description: 'Sophia Exam Report I to IV'
-
                                         },
                                         {
                                             id: 21201,
@@ -3219,7 +3208,7 @@ export async function getUserAccessibleModules() {
                                             name: 'Sophia Exam Report V to VIII',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/Sophia/SopiaExamReportVtoVIII',
-                                            title: 'Sophia Exam Report V to VIII',
+                                            title: 'Sophia Exam Report V to VIII'
                                         },
                                         {
                                             id: 21204,
@@ -3228,7 +3217,6 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/Sophia/SophiaReportCardPreIII',
                                             title: 'Sophia Report Card Pre III',
                                             description: 'Sophia Report Card Pre III'
-
                                         },
                                         {
                                             id: 21205,
@@ -3972,7 +3960,7 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/recruitment/transaction/add-candidate-interview',
                                             title: 'Add Candidate Interview',
                                             description: 'Add Candidate Interview'
-                                        },
+                                        }
                                         //         {
                                         //             id: 3,
                                         //             name: 'Candidate Interview List',
@@ -4006,7 +3994,7 @@ export async function getUserAccessibleModules() {
                                         //             description: 'View All Job Postings'
                                         //         }
                                     ]
-                                },
+                                }
                                 // {
                                 //     id: 3,
                                 //     name: 'MRF Approval',
@@ -8450,22 +8438,6 @@ export async function getUserAccessibleModules() {
                                     name: 'AI Tools',
                                     icon: 'Database',
                                     pages: [
-                                        {
-                                            id: 1,
-                                            name: 'AI Question Paper Generator',
-                                            icon: 'FileText',
-                                            url: '/StaffPortal/ai-question-paper-generator',
-                                            title: 'AI Question Paper Generator',
-                                            description: 'Generate question papers from textbooks using AI'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'AI Notemaker',
-                                            icon: 'FileText',
-                                            url: '/StaffPortal/ai-notemaker',
-                                            title: 'AI Notemaker',
-                                            description: 'Summarize and create structured notes from textbooks using AI'
-                                        },
                                         {
                                             id: 3,
                                             name: 'AI Performance Analysis',
