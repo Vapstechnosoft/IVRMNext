@@ -817,6 +817,43 @@ export const calcuttaPromotionReportItoIXSchema = z
         asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
         asmcL_Id: z.number({ required_error: 'Class is required' }).min(1, { message: 'Please select Class' }),
         asmS_Id: z.number({ required_error: 'Section is required' }).min(1, { message: 'Please select Section' }),
+        allTerm: z.boolean().default(false),
+        empG_GroupName: z.string().optional(),
+        issueDate: z.date({ required_error: 'Issue Date is required' }).optional(),
+        studentList: z
+            .array(
+                z.object({
+                    amsT_Id: z.number({ required_error: 'Student is required' }).min(1, { message: 'Please select a Students' })
+                })
+            )
+            .min(1, { message: 'At least one Student must be selected' })
+    })
+    .superRefine((data, ctx) => {
+        if (!data.allTerm && !data.empG_GroupName) {
+            ctx.addIssue({
+                path: ['empG_GroupName'],
+                code: z.ZodIssueCode.custom,
+                message: 'Term is required when All Term is not selected'
+            });
+        }
+        const studentIds = data.studentList?.map((s) => s.amsT_Id) || [];
+        if (new Set(studentIds).size !== studentIds.length) {
+            ctx.addIssue({
+                path: ['studentList'],
+                code: z.ZodIssueCode.custom,
+                message: 'Duplicate Students are not allowed'
+            });
+        }
+    });
+
+export type CalcuttaPromotionReportItoIXSchema = z.infer<typeof calcuttaPromotionReportItoIXSchema>;
+
+export const calcuttaPromotionReportItoVSchema = z
+    .object({
+        mI_Id: z.number().optional(),
+        asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
+        asmcL_Id: z.number({ required_error: 'Class is required' }).min(1, { message: 'Please select Class' }),
+        asmS_Id: z.number({ required_error: 'Section is required' }).min(1, { message: 'Please select Section' }),
         academicDate: z.date({ required_error: 'New Academic Date is required' }),
         reportPrintedDate: z.date().optional(),
         issueDate: z.date({ required_error: 'Issue Date is required' }),
@@ -839,5 +876,4 @@ export const calcuttaPromotionReportItoIXSchema = z
         }
     });
 
-export type CalcuttaPromotionReportItoIXSchema = z.infer<typeof calcuttaPromotionReportItoIXSchema>;
-
+export type CalcuttaPromotionReportItoVSchema = z.infer<typeof calcuttaPromotionReportItoVSchema>;
