@@ -16,7 +16,7 @@ import { updateStudentPreadmissionStatus } from '@/server/admission/preadmission
 import type { IPreadmissionApplicationList } from '@/types/admission/preadmission/transactions';
 import { CheckSquare } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
-import { use, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { AdmissionStatusUpdateDialog } from './_components/admission-status-update-form';
 import { transferAdmissionColumns } from './_components/columns';
@@ -24,7 +24,7 @@ import { transferAdmissionColumns } from './_components/columns';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function TransferAdmissionStatusPage(props: { searchParams: SearchParams }) {
-    const searchParams = use(props.searchParams);
+    const searchParams = (React as any).use(props.searchParams);
     const router = useRouter();
     const pathname = usePathname();
 
@@ -34,17 +34,52 @@ export default function TransferAdmissionStatusPage(props: { searchParams: Searc
         tableRef.current?.resetSelection();
     };
 
+    const [classId, setClassId] = useState<number>(() => {
+        const val = searchParams.asmcL_Id;
+        return val ? Number(val) : 0;
+    });
+    const [statusId, setStatusId] = useState<number>(() => {
+        const val = searchParams.pamsT_Id;
+        return val ? Number(val) : 0;
+    });
+
+    // Sync local state if searchParams change externally (e.g. back button)
+    useEffect(() => {
+        const currentClass = searchParams.asmcL_Id ? Number(searchParams.asmcL_Id) : 0;
+        const currentStatus = searchParams.pamsT_Id ? Number(searchParams.pamsT_Id) : 0;
+
+        if (currentClass !== classId) setClassId(currentClass);
+        if (currentStatus !== statusId) setStatusId(currentStatus);
+    }, [searchParams.asmcL_Id, searchParams.pamsT_Id]);
+
     const handleFilterChange = (filterType: 'class' | 'status', value: number) => {
+        const params = new URLSearchParams(searchParams as any);
+
         if (filterType === 'class') {
             setClassId(value);
+            if (value === 0) {
+                params.delete('asmcL_Id');
+            } else {
+                params.set('asmcL_Id', value.toString());
+            }
         } else {
             setStatusId(value);
+            if (value === 0) {
+                params.delete('pamsT_Id');
+            } else {
+                params.set('pamsT_Id', value.toString());
+            }
         }
 
         // Reset to page 1 when filter changes
-        const params = new URLSearchParams(searchParams as any);
         params.set('page', '1');
-        router.replace(`${pathname}?${params.toString()}`);
+
+        const newSearch = params.toString();
+        const currentSearch = new URLSearchParams(searchParams as any).toString();
+
+        if (newSearch !== currentSearch) {
+            router.replace(`${pathname}?${newSearch}`);
+        }
     };
 
     const { data: activePreadmission, isLoading: activePreadmissionDeLoading } = useActivePreadmissionDetails();
@@ -60,18 +95,36 @@ export default function TransferAdmissionStatusPage(props: { searchParams: Searc
         isError: admissionStatusError
     } = usePreadmissionAdmissionStatusDropdown();
 
-    const [classId, setClassId] = useState<number>(0);
-    const [statusId, setStatusId] = useState<number>(0);
-
     const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
     const [selectedStudents, setSelectedStudents] = useState<IPreadmissionApplicationList[]>([]);
+
+    // Memoize the search parameters to ensure stable hook arguments
+    const stableSearchParams = useMemo(() => {
+        return {
+            page: Number(searchParams?.page || 1),
+            page_size: Number(searchParams?.page_size || 10),
+            sort_column: String(searchParams?.sort_column || ''),
+            sort_direction: (searchParams?.sort_direction as any) || 'asc',
+            search_query: String(searchParams?.search_query || ''),
+            asmcL_Id: searchParams?.asmcL_Id ? String(searchParams.asmcL_Id) : undefined,
+            pamsT_Id: searchParams?.pamsT_Id ? String(searchParams.pamsT_Id) : undefined
+        };
+    }, [
+        searchParams?.page,
+        searchParams?.page_size,
+        searchParams?.sort_column,
+        searchParams?.sort_direction,
+        searchParams?.search_query,
+        searchParams?.asmcL_Id,
+        searchParams?.pamsT_Id
+    ]);
 
     const {
         data: response,
         isLoading,
         error,
         refetch: refetchAdmissionStudents
-    } = usePreadmissionStudentList(activePreadmission?.data?.asmaY_Id ?? 0, classId, statusId, searchParams);
+    } = usePreadmissionStudentList(activePreadmission?.data?.asmaY_Id ?? 0, classId, statusId, stableSearchParams);
     const tableProps = useDataTableProps(response);
 
     const onUpdateAdmissionStatusClose = () => {
@@ -158,11 +211,14 @@ export default function TransferAdmissionStatusPage(props: { searchParams: Searc
                         </Label>
                         <Select
                             onValueChange={(value) => handleFilterChange('status', Number(value))}
-                            value={statusId !== 0 ? statusId?.toString() || undefined : undefined}>
+                            value={statusId?.toString() || undefined}>
                             <SelectTrigger>
                                 <SelectValue placeholder='Select Admission Status' />
                             </SelectTrigger>
                             <SelectContent>
+                                <SelectItem key={0} value={'0'}>
+                                    All
+                                </SelectItem>
                                 {admissionStatusLoading ? (
                                     <SelectItem value='loading' disabled>
                                         Loading...
@@ -206,10 +262,14 @@ export default function TransferAdmissionStatusPage(props: { searchParams: Searc
                         isLoading={activePreadmissionDeLoading || isLoading}
                         error={error}
                         showViewOptions={false}
-                        loadingMessage='Loading preadmission admissions...'
-                        noDataTitle='No Data Found'
-                        noDataDescription='No preadmission admissions found.'
-                        errorTitle='Error Loading Preadmission Admissions'
+                        loadingMessage='Loading preadmission students...'
+                        noDataTitle={!classId || !statusId ? 'Select Filters' : 'No Students Found'}
+                        noDataDescription={
+                            !classId || !statusId
+                                ? 'Please select a Class and Admission Status to view the student list.'
+                                : 'No students matching the selected criteria were found.'
+                        }
+                        errorTitle='Error Loading Students'
                         onRowSelectionChange={handleSelectStudent}
                     />
                 </CollapsibleSection>

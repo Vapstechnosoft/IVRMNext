@@ -14,7 +14,7 @@ export const homeWorkSchema = {
             )
             .min(1, 'At least one section is required'),
         ismS_Id: z.number({ required_error: 'Subject is required' }).min(1, 'Subject is required'),
-        ihW_Topic: z.string().min(1, 'Topic is required'),
+        ihW_Topic: z.string().min(1, 'Topic is required').max(250, 'Topic name cannot exceed 250 characters'),
         ihW_Date: z.date({ required_error: 'Date is required' }),
         ihW_Assignment: z.string().optional().nullable(),
         ihW_AssignmentNo: z.string().optional().nullable(),

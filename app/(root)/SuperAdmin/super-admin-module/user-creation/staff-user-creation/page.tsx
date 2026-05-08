@@ -3,52 +3,52 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-    changeInstitution,
-    getStaffData,
-    getStaffUserCreationOnload,
-    saveStaffUser,
-    getRoleTypeDropdown,
-    getTrustDropdown,
-    getInstitutionDropdown,
-    getStaffDropdownByInstitution,
-    getMultipleStaffUsers,
-    getModuleDropdownByInstitution,
-    getCategoryDropdownByInstitution,
     getAdminUserList,
-    getUsernameOnStaffSelection,
+    getCategoryDropdownByInstitution,
+    getInstitutionDropdown,
     getMasterPageListGridOnChangeOfStaff,
     getMobileAppMasterPageListOnChangeOfStaff,
-    getSavedMobileAppPageListOnChangeOfStaff,
+    getModuleDropdownByInstitution,
+    getMultipleStaffUsers,
+    getRoleTypeDropdown,
     getSavedListGridOnChangeOfStaff,
+    getSavedMobileAppPageListOnChangeOfStaff,
+    getStaffData,
+    getStaffDropdownByInstitution,
+    getStaffUserCreationOnload,
+    getTrustDropdown,
+    getUsernameOnStaffSelection,
+    saveStaffUser,
     sendOTPSms,
-    verifyOTP,
-    updateUsername
+    updateUsername,
+    verifyOTP
 } from '@/server/super-admin/user-creation/staff-user-creation';
 import type { ApiSearchparams } from '@/types';
 import type {
-    RoleTypeDTO,
-    TrustDTO,
+    CategoryDTO,
     EmployeeListDTO,
     InstitutionDTO,
-    StaffDTO,
-    CategoryDTO,
+    MobilePageDTO,
     ModuleDTO,
     PageDTO,
+    RoleTypeDTO,
+    SavedMobilePageDTO,
     SavedPageDTO,
-    MobilePageDTO,
-    SavedMobilePageDTO
+    StaffDTO,
+    TrustDTO
 } from '@/types/super-admin/user-creation/staff-user-creation';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { z } from 'zod';
+import ChangeUsernameModal from './_components/change-username-modal';
+import PageMappingGrids from './_components/page-mapping-grids';
 import SelectionForm from './_components/selection-form';
 import UserDetails from './_components/user-details';
-import PageMappingGrids from './_components/page-mapping-grids';
 import ViewUsernamesModal from './_components/view-usernames-modal';
-import ChangeUsernameModal from './_components/change-username-modal';
 import { RotateCcw, Save, X } from 'lucide-react';
-import { toast } from 'sonner';
 
 const formSchema = z.object({
     roleType: z.string().min(1, 'Select Role Type'),
@@ -97,6 +97,7 @@ export default function StaffUserCreationPage() {
     const [machineIp] = useState<string>('127.0.0.1');
     const [isChangeModalOpen, setIsChangeModalOpen] = useState(false);
     const [staffMobileNo, setStaffMobileNo] = useState<string>('');
+    const [isSaving, setIsSaving] = useState(false);
 
     // Pagination states for Master Page List
     const [webPageTotal, setWebPageTotal] = useState(0);
@@ -159,13 +160,7 @@ export default function StaffUserCreationPage() {
     };
 
     const handleReload = () => {
-        methods.reset();
-        clearGrids();
-        setStaffList([]);
-        setCategories([]);
-        setModules([]);
-        setExistingUsers([]);
-        toast.info('Form settings reloaded');
+        window.location.reload();
     };
 
     useEffect(() => {
@@ -213,7 +208,7 @@ export default function StaffUserCreationPage() {
                 methods.setValue('staffId', '');
                 methods.setValue('userName', '');
 
-                const selectedRole = roleTypes.find(r => String(r.ivrmrT_Id) === watchRoleType);
+                const selectedRole = roleTypes.find((r) => String(r.ivrmrT_Id) === watchRoleType);
                 const roleName = selectedRole?.ivrmrT_Role || '';
                 const isStaff = !(roleName.toUpperCase() === 'ADMIN' || roleName.toUpperCase() === 'SUPER ADMIN');
 
@@ -269,7 +264,7 @@ export default function StaffUserCreationPage() {
     const handleViewAdminUsernames = async () => {
         if (!watchInstitution || !watchRoleType) return;
 
-        const selectedRole = roleTypes.find(r => String(r.ivrmrT_Id) === watchRoleType);
+        const selectedRole = roleTypes.find((r) => String(r.ivrmrT_Id) === watchRoleType);
         const roleName = selectedRole?.ivrmrT_Role || '';
         const roleFlag = selectedRole?.flag || '';
 
@@ -357,13 +352,25 @@ export default function StaffUserCreationPage() {
             }
         };
         handleStaffChange();
-    }, [watchStaffId, watchFilterData, watchInstitution, watchRoleType, methods, webPageParams, mobilePageParams, savedMobilePageParams, savedGridParams]);
+    }, [
+        watchStaffId,
+        watchFilterData,
+        watchInstitution,
+        watchRoleType,
+        methods,
+        webPageParams,
+        mobilePageParams,
+        savedMobilePageParams,
+        savedGridParams
+    ]);
 
     const fetchMasterPages = async (params: ApiSearchparams) => {
         if (!watchStaffId || !watchInstitution || !watchRoleType) return;
         try {
             setIsWebPageLoading(true);
-            console.info(`📡 [CLIENT] Fetching Master Page List for StaffId: ${watchStaffId}, MI_Id: ${watchInstitution}, RoleId: ${watchRoleType}`);
+            console.info(
+                `📡 [CLIENT] Fetching Master Page List for StaffId: ${watchStaffId}, MI_Id: ${watchInstitution}, RoleId: ${watchRoleType}`
+            );
             const result = await getMasterPageListGridOnChangeOfStaff(
                 Number(watchStaffId),
                 Number(watchInstitution),
@@ -372,10 +379,12 @@ export default function StaffUserCreationPage() {
             );
 
             if (result.success && result.data) {
-                setWebPages(result.data.map((p: PageDTO) => ({
-                    ...p,
-                    checked: stagedWebPages.some(s => s.pageMappingId === p.pageMappingId)
-                })));
+                setWebPages(
+                    result.data.map((p: PageDTO) => ({
+                        ...p,
+                        checked: stagedWebPages.some((s) => s.pageMappingId === p.pageMappingId)
+                    }))
+                );
                 setWebPageTotal(result.total);
             }
         } catch (error) {
@@ -386,12 +395,13 @@ export default function StaffUserCreationPage() {
         }
     };
 
-
     const fetchMobileMasterPages = async (params: ApiSearchparams) => {
         if (!watchStaffId || !watchInstitution || !watchRoleType) return;
         try {
             setIsMobilePageLoading(true);
-            console.info(`📡 [CLIENT] Fetching Mobile App Master Page List for StaffId: ${watchStaffId}, MI_Id: ${watchInstitution}, RoleId: ${watchRoleType}`);
+            console.info(
+                `📡 [CLIENT] Fetching Mobile App Master Page List for StaffId: ${watchStaffId}, MI_Id: ${watchInstitution}, RoleId: ${watchRoleType}`
+            );
             const result = await getMobileAppMasterPageListOnChangeOfStaff(
                 Number(watchStaffId),
                 Number(watchInstitution),
@@ -411,12 +421,13 @@ export default function StaffUserCreationPage() {
         }
     };
 
-
     const fetchSavedMobilePages = async (params: ApiSearchparams) => {
         if (!watchStaffId || !watchInstitution || !watchRoleType) return;
         try {
             setIsSavedMobilePageLoading(true);
-            console.info(`📡 [CLIENT] Fetching Saved Mobile App Page List for StaffId: ${watchStaffId}, MI_Id: ${watchInstitution}, RoleId: ${watchRoleType}`);
+            console.info(
+                `📡 [CLIENT] Fetching Saved Mobile App Page List for StaffId: ${watchStaffId}, MI_Id: ${watchInstitution}, RoleId: ${watchRoleType}`
+            );
             const result = await getSavedMobileAppPageListOnChangeOfStaff(
                 Number(watchStaffId),
                 Number(watchInstitution),
@@ -436,12 +447,13 @@ export default function StaffUserCreationPage() {
         }
     };
 
-
     const fetchSavedListPages = async (params: ApiSearchparams) => {
         if (!watchStaffId || !watchInstitution || !watchRoleType) return;
         try {
             setIsSavedGridLoading(true);
-            console.info(`📡 [CLIENT] Fetching Saved List for StaffId: ${watchStaffId}, MI_Id: ${watchInstitution}, RoleId: ${watchRoleType}`);
+            console.info(
+                `📡 [CLIENT] Fetching Saved List for StaffId: ${watchStaffId}, MI_Id: ${watchInstitution}, RoleId: ${watchRoleType}`
+            );
             const result = await getSavedListGridOnChangeOfStaff(
                 Number(watchStaffId),
                 Number(watchInstitution),
@@ -460,7 +472,6 @@ export default function StaffUserCreationPage() {
             setIsSavedGridLoading(false);
         }
     };
-
 
     const handleSelectAllCategories = () => {
         const allChecked = categories.every((cat) => cat.catid);
@@ -538,12 +549,12 @@ export default function StaffUserCreationPage() {
         const selectedCategories = categories.filter((c) => c.catid).map((c) => ({ amC_Id: c.amC_Id }));
         const selectedModules = modules.filter((m) => m.model).map((m) => ({ ivrmM_Id: m.ivrmM_Id }));
 
-        const selectedRole = roleTypes.find(r => String(r.ivrmrT_Id) === data.roleType);
+        const selectedRole = roleTypes.find((r) => String(r.ivrmrT_Id) === data.roleType);
         const isAdmin = selectedRole?.ivrmrT_Role.toUpperCase() === 'ADMIN' || selectedRole?.ivrmrT_Role.toUpperCase() === 'SUPER ADMIN';
 
         let selectedInstitutes = [];
         if (isAdmin && data.filterData === 'Multiple') {
-            selectedInstitutes = institutions.filter(i => i.Selected).map(i => ({ mi_id: i.mI_Id }));
+            selectedInstitutes = institutions.filter((i) => i.Selected).map((i) => ({ mi_id: i.mI_Id }));
         } else {
             selectedInstitutes = [{ mi_id: Number(data.institution) }];
         }
@@ -563,15 +574,17 @@ export default function StaffUserCreationPage() {
             userId: userId || 0,
             multipleInstitutes: selectedInstitutes,
             tempararyArrayList: selectedModules,
-            datasaved: savedGrid.filter(p => !p.checked).map(p => ({
-                ivrmrP_AddFlag: p.ivrmrP_AddFlag,
-                ivrmrP_DeleteFlag: p.ivrmrP_DeleteFlag,
-                ivrmrP_UpdateFlag: p.ivrmrP_UpdateFlag,
-                ivrmrP_ProcessFlag: p.ivrmrP_ProcessFlag,
-                ivrmrP_ReportFlag: p.ivrmrP_ReportFlag,
-                ivrmstauP_Id: p.ivrmstauP_Id
-            })),
-            savetmpdata: stagedWebPages.map(p => ({
+            datasaved: savedGrid
+                .filter((p) => !p.checked)
+                .map((p) => ({
+                    ivrmrP_AddFlag: p.ivrmrP_AddFlag,
+                    ivrmrP_DeleteFlag: p.ivrmrP_DeleteFlag,
+                    ivrmrP_UpdateFlag: p.ivrmrP_UpdateFlag,
+                    ivrmrP_ProcessFlag: p.ivrmrP_ProcessFlag,
+                    ivrmrP_ReportFlag: p.ivrmrP_ReportFlag,
+                    ivrmstauP_Id: p.ivrmstauP_Id
+                })),
+            savetmpdata: stagedWebPages.map((p) => ({
                 ivrmrP_AddFlag: p.addFlag,
                 ivrmrP_DeleteFlag: p.deleteFlag,
                 ivrmrP_UpdateFlag: p.updateFlag,
@@ -580,35 +593,51 @@ export default function StaffUserCreationPage() {
                 ivrmimP_Id: p.pageMappingId,
                 ivrmP_Id: 0 // Default or if available
             })),
-            deletesaved: savedGrid.filter(p => p.checked).map(p => ({
-                ivrmstauP_Id: p.ivrmstauP_Id
-            })),
-            savetmpdatamobile: mobilePages.filter(p => p.checked).map(p => ({
-                ivrmmaP_Id: p.ivrmmaP_Id,
-                ivrmmaP_AddFlg: p.ivrmmaP_AddFlg,
-                ivrmmaP_UpdateFlg: p.ivrmmaP_UpdateFlg,
-                ivrmmaP_DeleteFlg: p.ivrmmaP_DeleteFlg
-            })),
-            updatemobilepagespre: savedMobilePages.filter(p => !p.checked).map(p => ({
-                ivrmumalP_Id: p.ivrmumalP_Id,
-                ivrmumalP_AddFlg: p.ivrmumalP_AddFlg,
-                ivrmumalP_UpdateFlg: p.ivrmumalP_UpdateFlg,
-                ivrmumalP_DeleteFlg: p.ivrmumalP_DeleteFlg
-            })),
-            deletmobile: savedMobilePages.filter(p => p.checked).map(p => ({
-                ivrmumalP_Id: p.ivrmumalP_Id,
-                ivrmumalP_AddFlg: p.ivrmumalP_AddFlg,
-                ivrmumalP_UpdateFlg: p.ivrmumalP_UpdateFlg,
-                ivrmumalP_DeleteFlg: p.ivrmumalP_DeleteFlg
-            }))
+            deletesaved: savedGrid
+                .filter((p) => p.checked)
+                .map((p) => ({
+                    ivrmstauP_Id: p.ivrmstauP_Id
+                })),
+            savetmpdatamobile: mobilePages
+                .filter((p) => p.checked)
+                .map((p) => ({
+                    ivrmmaP_Id: p.ivrmmaP_Id,
+                    ivrmmaP_AddFlg: p.ivrmmaP_AddFlg,
+                    ivrmmaP_UpdateFlg: p.ivrmmaP_UpdateFlg,
+                    ivrmmaP_DeleteFlg: p.ivrmmaP_DeleteFlg
+                })),
+            updatemobilepagespre: savedMobilePages
+                .filter((p) => !p.checked)
+                .map((p) => ({
+                    ivrmumalP_Id: p.ivrmumalP_Id,
+                    ivrmumalP_AddFlg: p.ivrmumalP_AddFlg,
+                    ivrmumalP_UpdateFlg: p.ivrmumalP_UpdateFlg,
+                    ivrmumalP_DeleteFlg: p.ivrmumalP_DeleteFlg
+                })),
+            deletmobile: savedMobilePages
+                .filter((p) => p.checked)
+                .map((p) => ({
+                    ivrmumalP_Id: p.ivrmumalP_Id,
+                    ivrmumalP_AddFlg: p.ivrmumalP_AddFlg,
+                    ivrmumalP_UpdateFlg: p.ivrmumalP_UpdateFlg,
+                    ivrmumalP_DeleteFlg: p.ivrmumalP_DeleteFlg
+                }))
         };
 
-        const result = await saveStaffUser(payload);
-        if (result.success) {
-            toast.success(result.message || 'Saved successfully');
-            // Optionally refresh or reset
-        } else {
-            toast.error(result.message || 'Failed to save staff user privileges');
+        setIsSaving(true);
+        try {
+            const result = await saveStaffUser(payload);
+            if (result.success) {
+                toast.success(result.message || 'Saved successfully');
+                // Optionally refresh or reset
+            } else {
+                toast.error(result.message || 'Failed to save staff user privileges');
+            }
+        } catch (error) {
+            console.error('Submit error:', error);
+            toast.error('An unexpected error occurred while saving');
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -673,22 +702,18 @@ export default function StaffUserCreationPage() {
                                     onWebPageParamsChange={setWebPageParams}
                                     currentWebPageParams={webPageParams}
                                     isWebPageLoading={isWebPageLoading}
-
                                     savedGridTotal={savedGridTotal}
                                     onSavedGridParamsChange={setSavedGridParams}
                                     currentSavedGridParams={savedGridParams}
                                     isSavedGridLoading={isSavedGridLoading}
-
                                     mobilePageTotal={mobilePageTotal}
                                     onMobilePageParamsChange={setMobilePageParams}
                                     currentMobilePageParams={mobilePageParams}
                                     isMobilePageLoading={isMobilePageLoading}
-
                                     savedMobilePageTotal={savedMobilePageTotal}
                                     onSavedMobilePageParamsChange={setSavedMobilePageParams}
                                     currentSavedMobilePageParams={savedMobilePageParams}
                                     isSavedMobilePageLoading={isSavedMobilePageLoading}
-
                                     mobilePages={mobilePages}
                                     onMobilePageUpdate={setMobilePages}
                                     savedGrid={savedGrid}
@@ -698,7 +723,6 @@ export default function StaffUserCreationPage() {
                                     showInstitution={!!watchTrust}
                                 />
                             )}
-
 
                             <div className='flex justify-center gap-4'>
                                 <Button
@@ -729,7 +753,7 @@ export default function StaffUserCreationPage() {
                 isOpen={isViewModalOpen}
                 onClose={() => setIsViewModalOpen(false)}
                 users={existingUsers}
-                roleName={roleTypes.find(r => String(r.ivrmrT_Id) === watchRoleType)?.ivrmrT_Role}
+                roleName={roleTypes.find((r) => String(r.ivrmrT_Id) === watchRoleType)?.ivrmrT_Role}
             />
 
             <ChangeUsernameModal

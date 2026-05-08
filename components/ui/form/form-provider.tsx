@@ -8,12 +8,17 @@ interface FormContextType<T = any> {
     isEditFormOpen: boolean;
     isToggleFormOpen: boolean;
     isDeleteFormOpen: boolean;
-    isDetailsViewOpen: boolean; // 👈 New for Grade details view
+    isDetailsViewOpen: boolean;
     isOrderDetailsOpen: boolean;
     isMappedviewOpen: boolean;
     isFacilityViewOpen: boolean;
     isWardenViewOpen: boolean;
     isDocumentViewOpen: boolean;
+    isMarksEntryOpen: boolean;
+    isCopyFormOpen: boolean;
+    isStatusOpen: boolean;
+    isRemarkOpen: boolean;
+    isReportOpen: boolean;
     selectedRow: T | null;
 
     // Actions
@@ -37,6 +42,16 @@ interface FormContextType<T = any> {
     closeWardenView: () => void;
     openDocumentView: (row: T) => void;
     closeDocumentView: () => void;
+    openMarksEntry: (row: T) => void;
+    closeMarksEntry: () => void;
+    openCopyForm: (row: T) => void;
+    closeCopyForm: () => void;
+    openStatus: (row: T) => void;
+    closeStatus: () => void;
+    openRemark: (row: T) => void;
+    closeRemark: () => void;
+    openReport: (row: T) => void;
+    closeReport: () => void;
     closeAllForms: () => void;
 
     // Refs for scrolling
@@ -69,13 +84,18 @@ export function FormProvider<T = any>({
     const [isFacilityViewOpen, setIsFacilityViewOpen] = useState(false);
     const [isWardenViewOpen, setIsWardenViewOpen] = useState(false);
     const [isDocumentViewOpen, setIsDocumentViewOpen] = useState(false);
+    const [isMarksEntryOpen, setIsMarksEntryOpen] = useState(false);
+    const [isCopyFormOpen, setIsCopyFormOpen] = useState(false);
+    const [isStatusOpen, setIsStatusOpen] = useState(false);
+    const [isRemarkOpen, setIsRemarkOpen] = useState(false);
+    const [isReportOpen, setIsReportOpen] = useState(false);
     const [selectedRow, setSelectedRow] = useState<T | null>(null);
 
-    const addFormRef = useRef<HTMLDivElement>(null);
-    const editFormRef = useRef<HTMLDivElement>(null);
+    const addFormRef = useRef<HTMLDivElement>(null!);
+    const editFormRef = useRef<HTMLDivElement>(null!);
 
     const scrollToElement = useCallback(
-        (ref: React.RefObject<HTMLDivElement>) => {
+        (ref: React.RefObject<HTMLDivElement | null>) => {
             if (scrollToForm) {
                 setTimeout(() => {
                     ref.current?.scrollIntoView({
@@ -108,6 +128,11 @@ export function FormProvider<T = any>({
         setIsFacilityViewOpen(false);
         setIsWardenViewOpen(false);
         setIsDocumentViewOpen(false);
+        setIsMarksEntryOpen(false);
+        setIsCopyFormOpen(false);
+        setIsStatusOpen(false);
+        setIsRemarkOpen(false);
+        setIsReportOpen(false);
         setSelectedRow(null);
         scrollToTop();
     }, [scrollToTop]);
@@ -252,6 +277,81 @@ export function FormProvider<T = any>({
         scrollToTop();
     }, [scrollToTop]);
 
+    const openMarksEntry = useCallback(
+        (row: T) => {
+            closeAllForms();
+            setSelectedRow(row);
+            setIsMarksEntryOpen(true);
+        },
+        [closeAllForms]
+    );
+
+    const openCopyForm = useCallback(
+        (row: T) => {
+            closeAllForms();
+            setSelectedRow(row);
+            setIsCopyFormOpen(true);
+        },
+        [closeAllForms]
+    );
+
+    const closeMarksEntry = useCallback(() => {
+        setIsMarksEntryOpen(false);
+        setSelectedRow(null);
+        scrollToTop();
+    }, [scrollToTop]);
+
+    const closeCopyForm = useCallback(() => {
+        setIsCopyFormOpen(false);
+        setSelectedRow(null);
+        scrollToTop();
+    }, [scrollToTop]);
+
+    const openStatus = useCallback(
+        (row: T) => {
+            closeAllForms();
+            setSelectedRow(row);
+            setIsStatusOpen(true);
+        },
+        [closeAllForms]
+    );
+
+    const closeStatus = useCallback(() => {
+        setIsStatusOpen(false);
+        setSelectedRow(null);
+        scrollToTop();
+    }, [scrollToTop]);
+
+    const openRemark = useCallback(
+        (row: T) => {
+            closeAllForms();
+            setSelectedRow(row);
+            setIsRemarkOpen(true);
+        },
+        [closeAllForms]
+    );
+
+    const closeRemark = useCallback(() => {
+        setIsRemarkOpen(false);
+        setSelectedRow(null);
+        scrollToTop();
+    }, [scrollToTop]);
+
+    const openReport = useCallback(
+        (row: T) => {
+            closeAllForms();
+            setSelectedRow(row);
+            setIsReportOpen(true);
+        },
+        [closeAllForms]
+    );
+
+    const closeReport = useCallback(() => {
+        setIsReportOpen(false);
+        setSelectedRow(null);
+        scrollToTop();
+    }, [scrollToTop]);
+
     return (
         <FormContext.Provider
             value={{
@@ -265,6 +365,11 @@ export function FormProvider<T = any>({
                 isFacilityViewOpen,
                 isWardenViewOpen,
                 isDocumentViewOpen,
+                isMarksEntryOpen,
+                isCopyFormOpen,
+                isStatusOpen,
+                isRemarkOpen,
+                isReportOpen,
                 selectedRow,
                 openAddForm,
                 closeAddForm,
@@ -286,6 +391,16 @@ export function FormProvider<T = any>({
                 closeWardenView,
                 openDocumentView,
                 closeDocumentView,
+                openMarksEntry,
+                closeMarksEntry,
+                openCopyForm,
+                closeCopyForm,
+                openStatus,
+                closeStatus,
+                openRemark,
+                closeRemark,
+                openReport,
+                closeReport,
                 closeAllForms,
                 addFormRef,
                 editFormRef

@@ -716,3 +716,126 @@ export const feeCollectionReportVVVS = z.object({
     fromDate: z.string().min(1, 'From Date is required'),
     toDate: z.string().min(1, 'To Date is required')
 });
+
+export const feeIncomeTaxReportSchema = z.object({
+    asmaY_Id: z.number({ required_error: 'Academic Year is required' }),
+    asmcL_Id: z.number({ required_error: 'Class is required' }),
+    asmS_Id: z.number({ required_error: 'Section is required' }),
+    amst_Id: z.number({ required_error: 'Student is required' })
+});
+
+export const feeUserWiseDailyCollectionReportSchema = z
+    .object({
+        type: z.enum(['STW', 'TCW']).default('STW'), // Student Wise or Total Collection
+        ASMAY: z.number().min(1, 'Academic Year is required'),
+        groupIds: z.array(z.number()).min(1, 'Select at least one Group'),
+        fromDate: z.string().min(1, 'From Date is required'),
+        toDate: z.string().min(1, 'To Date is required')
+    })
+    .superRefine((data, ctx) => {
+        const fromDate = new Date(data.fromDate);
+        const toDate = new Date(data.toDate);
+        if (fromDate > toDate) {
+            ctx.addIssue({
+                path: ['fromDate'],
+                message: 'From date should not be greater than to date',
+                code: z.ZodIssueCode.custom
+            });
+        }
+    });
+
+export const feeDemandRegisterReportGMVPSSchema = z.object({
+    report: z.enum(['All', 'Individual']).default('All'),
+    rpttyp: z.enum(['All', 'Individual']).default('Individual'),
+    reportdate: z.enum(['As On Date', 'Between Date']).default('As On Date'),
+    asmaY_Id: z.number().min(1, { message: 'Academic Year is required' }),
+    asmcL_Id: z.number().min(1, { message: 'Class Name is required' }),
+    asms_Id: z.number().min(1, { message: 'Section Name is required' }),
+    groupIds: z.array(z.number()).min(1, { message: 'Select at least one Group' }),
+    chequeDate: z.boolean().default(false),
+    acdmyr: z.boolean().default(false),
+    headwise: z.boolean().default(false),
+    paymentwise: z.boolean().default(false),
+    detailed: z.boolean().default(false),
+    grandTotal: z.boolean().default(false),
+    active: z.boolean().default(false),
+    deactive: z.boolean().default(false),
+    left: z.boolean().default(false),
+    total: z.boolean().default(false),
+    userSelection: z.boolean().default(false),
+    newAdmissionStudent: z.boolean().default(false),
+    fromDate: z.string().min(1, { message: 'From Date is required' }),
+    toDate: z.string().min(1, { message: 'To Date is required' })
+});
+
+export const feeChequeBounceSchema = z.object({
+    asmaY_Id: z.number({ required_error: 'Academic Year is required' }),
+    asmcL_Id: z.number({ required_error: 'Class is required' }),
+    asmS_Id: z.number({ required_error: 'Section is required' }),
+    amst_Id: z.number({ required_error: 'Student is required' }),
+    FYP_ID: z.string().min(1, 'Receipt No is required'),
+    FCB_DATE: z.date({ required_error: 'Date is required' }),
+    FCB_Remarks: z.string().optional()
+});
+
+export const feeSummerizedReportStjamesSchema = z.object({
+    academicYearId: z.preprocess(
+        (val) => {
+            if (val === '' || val === undefined || val === null) return undefined;
+            const num = Number(val);
+            return Number.isNaN(num) ? undefined : num;
+        },
+        z
+            .number({
+                required_error: 'Academic Year is required',
+                invalid_type_error: 'Academic Year is required'
+            })
+            .min(1, 'Academic Year is required')
+    ),
+    filter: z.enum(['individual', 'headwise']).default('individual'),
+    classId: z.number().optional(),
+    sectionId: z.number().optional(),
+    studentId: z.number().optional(),
+    customGroupIds: z.array(z.number()).min(1, 'Please select at least one Custom Group'),
+    feeGroupIds: z.array(z.number()).min(1, 'Please select at least one Fee Group'),
+    termIds: z.array(z.number()).min(1, 'Please select at least one Term')
+});
+// .superRefine((data, ctx) => {
+//     if (data.classwise === true) {
+//         if (!data.classId || data.classId === 0) {
+//             ctx.addIssue({
+//                 code: z.ZodIssueCode.custom,
+//                 message: 'Class is required',
+//                 path: ['classId']
+//             });
+//         }
+//         if (!data.sectionId || data.sectionId === 0) {
+//             ctx.addIssue({
+//                 code: z.ZodIssueCode.custom,
+//                 message: 'Section is required',
+//                 path: ['sectionId']
+//             });
+//         }
+//     }
+// });
+
+export const feeCollectionReportSophiaSchema = z.object({
+    academicYearId: z.preprocess(
+        (val) => {
+            if (val === '' || val === undefined || val === null) return undefined;
+            const num = Number(val);
+            return Number.isNaN(num) ? undefined : num;
+        },
+        z
+            .number({
+                required_error: 'Academic Year is required',
+                invalid_type_error: 'Academic Year is required'
+            })
+            .min(1, 'Academic Year is required')
+    ),
+    classId: z.number().optional(),
+    sectionId: z.number().optional(),
+    active: z.boolean().optional(),
+    deactive: z.boolean().optional(),
+    left: z.boolean().optional()
+});

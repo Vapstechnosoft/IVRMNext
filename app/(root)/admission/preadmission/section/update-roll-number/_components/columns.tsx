@@ -51,5 +51,12 @@ export const masterUpdateRollNumberColumns: ColumnDef<Student>[] = [
         cell: ({ row }) => <div>{row.getValue('admission_no')}</div>,
         enableSorting: true,
         enableHiding: true
+    },
+    {
+        accessorKey: 'roll_no',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Roll No' className='font-bold text-black' />,
+        cell: ({ row }) => <div>{row.getValue('roll_no')}</div>,
+        enableSorting: true,
+        enableHiding: true
     }
 ];

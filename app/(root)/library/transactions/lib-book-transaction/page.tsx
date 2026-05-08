@@ -1,15 +1,12 @@
 'use client';
 
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useBookIssueInitialData } from '@/hooks/library/useBookIssue';
 import type { IBookReturnList } from '@/types/library/transactions/book-return';
-import { useState } from 'react';
 import { BookIssueColumns } from './_components/columns';
+import { IssueForm } from './_components/issue-form';
 
 export default function LibBookTransactionPage() {
-    const [view, setView] = useState<'entry' | 'list'>('entry');
-
     // Initial load with default params
     const { data, isLoading } = useBookIssueInitialData({
         booktype: 'issue',
@@ -18,36 +15,37 @@ export default function LibBookTransactionPage() {
     });
 
     return (
-        <div className='space-y-4'>
-            {/* <CollapsibleSection
-                title='Lib Book Transaction: Entry'
-                isOpen={view === 'entry'}
-                onToggle={() => setView(view === 'entry' ? 'list' : 'entry')}
-                defaultOpen={true}
-            >
-                <IssueForm onSuccess={() => setView('list')} />
-            </CollapsibleSection> */}
+        <div className='mx-auto max-w-7xl space-y-6 py-6'>
+            
+            <div className='bg-white rounded-lg shadow-sm border border-t-4 border-t-orange-400 overflow-hidden'>
+                <div className='bg-[#4251b1] text-white px-4 py-2 font-semibold text-sm'>
+                    BOOK TRANSACTION
+                </div>
+                <IssueForm onSuccess={() => {}} />
+            </div>
 
-            <CollapsibleSection
-                title='Lib Book Transaction: List'
-                isOpen={view === 'list'}
-                onToggle={() => setView(view === 'list' ? 'entry' : 'list')}>
-                <GenericDataTable
-                    columns={BookIssueColumns}
-                    data={(data?.alldata as IBookReturnList[]) || []}
-                    isLoading={isLoading}
-                    defaultVisibility={{
-                        slNo: true,
-                        memberName: true,
-                        lmbanO_AccessionNo: true,
-                        lmB_BookTitle: true,
-                        issue_Date: true,
-                        due_Date: true,
-                        book_Trans_Status: true,
-                        actions: true
-                    }}
-                />
-            </CollapsibleSection>
+            <div className='bg-white rounded-lg shadow-sm border border-t-4 border-t-orange-400 overflow-hidden'>
+                <div className='bg-[#4251b1] text-white px-4 py-2 font-semibold text-sm'>
+                    TRANSACTION LIST
+                </div>
+                <div className='p-6'>
+                    <GenericDataTable
+                        columns={BookIssueColumns}
+                        data={(data?.alldata as IBookReturnList[]) || []}
+                        isLoading={isLoading}
+                        defaultVisibility={{
+                            slNo: true,
+                            memberName: true,
+                            lmbanO_AccessionNo: true,
+                            lmB_BookTitle: true,
+                            issue_Date: true,
+                            due_Date: true,
+                            book_Trans_Status: true,
+                            actions: true
+                        }}
+                    />
+                </div>
+            </div>
         </div>
     );
 }

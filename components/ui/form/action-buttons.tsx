@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Edit, Eye, Trash2 } from 'lucide-react';
+import { Edit, Eye, Plus, Trash2 } from 'lucide-react';
 
 // Types for the component props
 interface ActionButtonsProps {
@@ -13,16 +13,19 @@ interface ActionButtonsProps {
         delete?: boolean;
         toggle?: boolean;
         view?: boolean;
+        copy?: boolean;
     };
     onEdit?: (data: any) => void;
     onDelete?: (data: any) => void;
     onToggle?: (data: any, newState: boolean) => void;
     onView?: (data: any) => void;
+    onCopy?: (data: any) => void;
     disabled?: {
         edit?: boolean;
         delete?: boolean;
         toggle?: boolean;
         view?: boolean;
+        copy?: boolean;
     };
     toggleConditionKey?: string;
     className?: string;
@@ -32,12 +35,13 @@ interface ActionButtonsProps {
 
 export function ActionButtons({
     rowData,
-    buttons = { edit: true, delete: false, toggle: false, view: false },
-    disabled = { edit: false, delete: false, toggle: false, view: false },
+    buttons = { edit: true, delete: false, toggle: false, view: false, copy: false },
+    disabled = { edit: false, delete: false, toggle: false, view: false, copy: false },
     onEdit,
     onDelete,
     onToggle,
     onView,
+    onCopy,
     toggleConditionKey = 'active_flag',
     className = '',
     size = 'sm',
@@ -71,9 +75,34 @@ export function ActionButtons({
         }
     };
 
+    const handleCopy = () => {
+        if (onCopy) {
+            onCopy(rowData);
+        }
+    };
+
     return (
         <TooltipProvider>
             <div className={`flex items-center gap-3 ${className}`}>
+                {/* Copy/Add Button */}
+                {buttons.copy && (
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                variant={variant}
+                                size={size}
+                                onClick={handleCopy}
+                                disabled={disabled.copy}
+                                className='h-8 w-8 p-0 transition-all duration-200 text-green-600 hover:text-green-700 hover:bg-green-50'>
+                                <Plus className='h-4 w-4' />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>Add Copy</p>
+                        </TooltipContent>
+                    </Tooltip>
+                )}
+
                 {/* View Button */}
                 {buttons.view && (
                     <Tooltip>

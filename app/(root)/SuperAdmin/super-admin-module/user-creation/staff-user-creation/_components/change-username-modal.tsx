@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
 interface ChangeUsernameModalProps {
@@ -72,61 +72,65 @@ export default function ChangeUsernameModal({
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className='sm:max-w-md'>
                 <DialogHeader>
-                    <DialogTitle className="text-primary font-bold">Change Username</DialogTitle>
+                    <DialogTitle className='font-bold text-primary'>Change Username</DialogTitle>
                 </DialogHeader>
 
-                <div className="space-y-4 py-4">
+                <div className='space-y-4 py-4'>
                     {step === 'details' ? (
-                        <div className="space-y-4">
-                            <div className="space-y-2">
+                        <div className='space-y-4'>
+                            <div className='space-y-2'>
                                 <Label>Current Username:</Label>
-                                <Input value={currentUsername} readOnly className="bg-gray-100" />
+                                <Input value={currentUsername} readOnly className='bg-gray-100' />
                             </div>
-                            <div className="space-y-2">
+                            <div className='space-y-2'>
                                 <Label>New Username:</Label>
                                 <Input
                                     value={newUsername}
                                     onChange={(e) => setNewUsername(e.target.value.toUpperCase())}
-                                    placeholder="ENTER NEW USERNAME"
-                                    className="uppercase font-bold"
+                                    placeholder='ENTER NEW USERNAME'
+                                    className='font-bold uppercase'
                                 />
                             </div>
                         </div>
                     ) : (
-                        <div className="space-y-4">
-                            <div className="text-center p-4 bg-blue-50 rounded-lg">
-                                <p className="text-sm font-medium text-blue-800">
+                        <div className='space-y-4'>
+                            <div className='rounded-lg bg-blue-50 p-4 text-center'>
+                                <p className='font-medium text-blue-800 text-sm'>
                                     An OTP (One Time Password) has been sent to your mobile number.
                                 </p>
                             </div>
-                            <div className="space-y-2">
+                            <div className='space-y-2'>
                                 <Label>Enter OTP:</Label>
                                 <Input
                                     value={otp}
                                     onChange={(e) => setOtp(e.target.value)}
-                                    placeholder="Enter 6-digit OTP"
+                                    placeholder='Enter 6-digit OTP'
                                     maxLength={6}
-                                    className="text-center text-lg tracking-widest font-bold"
+                                    className='text-center font-bold text-lg tracking-widest'
                                 />
                             </div>
                         </div>
                     )}
                 </div>
 
-                <DialogFooter className="sm:justify-center gap-2">
+                <DialogFooter className='gap-2 sm:justify-center'>
                     {step === 'details' ? (
                         <>
-                            <Button variant="outline" onClick={onClose}>Cancel</Button>
-                            <Button onClick={handleSendOTP} disabled={isLoading} className="bg-[#2669bc]">
+                            <Button variant='outline' onClick={onClose}>
+                                Cancel
+                            </Button>
+                            <Button onClick={handleSendOTP} disabled={isLoading} className='bg-[#2669bc]'>
                                 {isLoading ? 'Sending...' : 'Send OTP'}
                             </Button>
                         </>
                     ) : (
                         <>
-                            <Button variant="outline" onClick={() => setStep('details')}>Back</Button>
-                            <Button onClick={handleVerifyAndChange} disabled={isLoading} className="bg-green-600 hover:bg-green-700">
+                            <Button variant='outline' onClick={() => setStep('details')}>
+                                Back
+                            </Button>
+                            <Button onClick={handleVerifyAndChange} disabled={isLoading} className='bg-green-600 hover:bg-green-700'>
                                 {isLoading ? 'Verifying...' : 'Verify & Update'}
                             </Button>
                         </>

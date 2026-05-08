@@ -12,6 +12,7 @@ import {
     FormLabel,
     FormMessage
 } from '@/components/ui/form';
+import { FormError } from '@/components/ui/extension/field';
 import {
     Select,
     SelectContent,
@@ -77,11 +78,12 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
         },
     });
 
-    const watchAllOrIndi = form.watch('allorindii');
-    const watchYear = form.watch('asmaY_Id');
-    const watchClass = form.watch('asmcL_Id');
-    const watchSection = form.watch('asmS_Id');
-    const watchOptRadio = form.watch('optradio');
+    const { watch, setValue, reset, formState: { errors } } = form;
+    const watchAllOrIndi = watch('allorindii');
+    const watchYear = watch('asmaY_Id');
+    const watchClass = watch('asmcL_Id');
+    const watchSection = watch('asmS_Id');
+    const watchOptRadio = watch('optradio');
 
     // Fetch students when debounced search or filters change
     useEffect(() => {
@@ -249,7 +251,7 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    <FormMessage />
+                                    {errors.asmaY_Id && <FormError>{errors.asmaY_Id.message}</FormError>}
                                 </FormItem>
                             )}
                         />
@@ -278,7 +280,7 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    <FormMessage />
+                                    {errors.asmcL_Id && <FormError>{errors.asmcL_Id.message}</FormError>}
                                 </FormItem>
                             )}
                         />
@@ -429,7 +431,7 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                                                 </Command>
                                             </PopoverContent>
                                         </Popover>
-                                        <FormMessage />
+                                        {errors.amsT_Id && <FormError>{errors.amsT_Id.message}</FormError>}
                                     </div>
                                 </FormItem>
                             )}

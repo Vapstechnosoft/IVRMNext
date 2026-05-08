@@ -11,21 +11,22 @@ import { use, useEffect } from 'react';
 import AddMasterVendorForm from './_components/add-form';
 import { masterVendorColumns } from './_components/columns';
 import UpdateMasterVendorForm from './_components/update-form';
+import ToggleMasterVendorForm from './_components/toggle-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-export default function MasterClassPage(props: { searchParams: SearchParams }) {
+export default function LibraryVendorPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error, refetch } = useMasterVendor(searchParams);
 
     return (
         <FormProvider<IMasterVendorList>>
-            <MasterClassPageContent response={response} isLoading={isLoading} error={error} refetch={refetch} />
+            <LibraryVendorPageContent response={response} isLoading={isLoading} error={error} refetch={refetch} />
         </FormProvider>
     );
 }
 
-function MasterClassPageContent({
+function LibraryVendorPageContent({
     response,
     isLoading,
     error,
@@ -59,23 +60,21 @@ function MasterClassPageContent({
                 </div>
 
                 {/* Data Table Section */}
-                <CollapsibleSection
-                    defaultOpen
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<IMasterVendorList>
-                        {...tableProps}
-                        columns={masterVendorColumns}
-                        isLoading={isLoading}
-                        error={error}
-                        columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading Master Vendor...'
-                        noDataTitle='No Records Found'
-                        noDataDescription='Start by adding a new Master Vendor'
-                        errorTitle='Error Loading Data'
-                    />
-                </CollapsibleSection>
+                <div className='rounded-xl border bg-card text-card-foreground shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                    <div className='p-0'>
+                        <GenericDataTable<IMasterVendorList>
+                            {...tableProps}
+                            columns={masterVendorColumns}
+                            isLoading={isLoading}
+                            error={error}
+                            columnPinning={{ right: ['actions'] }}
+                            loadingMessage='Loading Master Vendor...'
+                            noDataTitle='No Records Found'
+                            noDataDescription='Start by adding a new Master Vendor'
+                            errorTitle='Error Loading Data'
+                        />
+                    </div>
+                </div>
 
                 {/* Forms */}
                 <FormSections refetch={refetch} />
@@ -141,25 +140,13 @@ function FormSections({ refetch }: { refetch: () => void }) {
                 </div>
             )}
 
-            {/* Delete Form */}
-            {/* {isDeleteFormOpen && selectedRow && (
-                <DeleteMasterVendorForm
-                    rowData={selectedRow}
-                    onClose={closeDeleteForm}
-                     onSuccess={() => {
-                         handleSuccess();
-                         closeDeleteForm();
-                     }}
-                />
-            )} */}
-
             {/* Edit Form */}
 
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Master Library'
-                        description='Update the Master Library details below'
+                        title='Edit Master Vendor'
+                        description='Update the Master Vendor details below'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -178,9 +165,16 @@ function FormSections({ refetch }: { refetch: () => void }) {
                     </CollapsibleSection>
                 </div>
             )}
-            {/* 
-             {isToggleFormOpen && selectedRow && <ToggleMasterVendorForm rowData={selectedRow} onClose={closeToggleForm} />}
-             */}
+            {isToggleFormOpen && selectedRow && (
+                <ToggleMasterVendorForm
+                    rowData={selectedRow}
+                    onClose={closeToggleForm}
+                    onSuccess={() => {
+                        handleSuccess();
+                        closeToggleForm();
+                    }}
+                />
+            )}
         </>
     );
 }

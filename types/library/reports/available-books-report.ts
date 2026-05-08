@@ -1,23 +1,24 @@
 export interface IAvailableBooksReportInitialData {
-    msterliblist1: Array<{
+    libraryList: Array<{
         lmaL_Id: number;
         lmaL_LibraryName: string;
     }>;
 
-    deptlist: Array<{
+    departmentList: Array<{
         lmD_Id: number;
         lmD_DepartmentName: string;
     }>;
 }
 
 export interface IAvailableBooksReportRequest {
-    Type: string;
-    Type2: string;
-    Fromdate?: string;
-    ToDate?: string;
-    LMD_Id: number;
+    type: string;
+    type2: string;
+    fromdate?: string;
+    toDate?: string;
+    lmD_Id: number;
     statuscount: boolean;
-    LMAL_Id: number;
+    lmaL_Id: number;
+    subjectsthomos: boolean;
 }
 
 export interface IAvailableBooksReportGridData {

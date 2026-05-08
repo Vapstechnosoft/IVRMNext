@@ -1,10 +1,9 @@
 export interface IMasterStudentCountReportList {
-    type: number;
-    asmay_id: string;
-    from_date: string;
-    to_date: string;
-    report_type: number;
-    asmcl_id: number;
+    user_id: number;
+    user_name: string;
+    email: string;
+    phone_number: string;
+    entry_date: string;
 }
 export interface IParentsDashboardStudentResponse {
     pasr_id: number;
@@ -98,3 +97,47 @@ export type StudyCertificateResponse = {
 export type GenerateQRCodeResponse = {
     ascisS_QRCode: string;
 };
+
+export interface IScheduleReportList {
+    name: string;
+    regno: string;
+    class: string;
+    gender: string;
+    ScheduleDate: string;
+    ScheduleTime: string;
+    ScheduleTimeTo: string;
+    PAOTS_Remarks: string;
+    scheduledate?: string; // Lowercase from backend
+    scheduletime?: string; // Lowercase from backend
+    scheduletimeto?: string; // Lowercase from backend
+    remarks?: string | null; // From backend
+    age: string;
+    place: string;
+    fathername: string;
+    PASR_DOB: string;
+    PASR_emailId: string;
+    PASR_MobileNo: string;
+    PASR_PerStreet: string;
+    PASR_PerArea: string;
+    PASR_PerCity: string;
+    PASR_PerPincode: string;
+    Category: string;
+    Medium: string;
+    Syllabus: string;
+    selected?: boolean;
+}
+
+export interface IScheduleReportInitialDetailsResponse {
+    year: { asmaY_Id: number; asmaY_Year: string }[];
+    classname: { asmcL_Id: number; asmcL_ClassName: string }[];
+}
+
+export type IScheduleListResponse = {
+    writentestlist: { disid: number; disname: string }[];
+} | { disid: number; disname: string }[];
+
+export type IScheduleReportDetailsResponse = {
+    searchstudentlist?: IScheduleReportList[];
+    student?: IScheduleReportList[];
+    StudentList?: IScheduleReportList[];
+} | IScheduleReportList[];

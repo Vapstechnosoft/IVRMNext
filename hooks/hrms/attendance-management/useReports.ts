@@ -77,6 +77,7 @@ export function useEmployeeAbsentReport(searchParams?: ApiSearchparams) {
                     hrme_ids: (searchParams?.employee as string) || '0',
                     type: 'absent'
                 };
+                // Debug log for request payload
                 return getEmployeeMonthlyReport(payload, searchParams);
             },
             staleTime: 0,
@@ -134,9 +135,9 @@ export function useEmployeeMonthlyReport(searchParams?: ApiSearchparams) {
                     hrme_ids: (searchParams?.employee as string) || '0',
                     type: 'monthly'
                 };
-                return getEmployeeMonthlyReport(payload, searchParams);
+                return getEmployeeMonthlyReport(payload, { ...searchParams });
             },
-            staleTime: 0,
+            staleTime: 5 * 60 * 1000,
             enabled: !!searchParams?.fromDate && !!searchParams?.toDate
         }),
         refetchAll: () => {

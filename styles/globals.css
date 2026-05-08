@@ -349,12 +349,12 @@ body {
     }
 
     .grid-header-cell {
-        @apply px-4 py-3.5 text-[11px] font-bold text-slate-500 uppercase tracking-widest text-left whitespace-nowrap;
+        @apply px-4 py-3.5 text-[11px] font-bold text-black tracking-widest text-left whitespace-nowrap;
         @apply transition-all duration-300 hover:bg-slate-100/50;
     }
 
     .dark .grid-header-cell {
-        @apply text-slate-400 hover:bg-white/5;
+        @apply text-white hover:bg-white/5;
     }
 
     .grid-header-cell span {
@@ -604,23 +604,49 @@ input[type="radio"]:checked::after,
 }
 
 @media print {
-    body * {
-        visibility: hidden;
+    body {
+        visibility: hidden !important;
     }
 
+    /* Force the printable content and all its ancestors to be visible */
     .printable-content,
     .printable-content * {
-        visibility: visible;
+        visibility: visible !important;
     }
 
     .printable-content {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        z-index: 9999 !important;
+        background: white !important;
+    }
+
+    /* Ensure parents of printable content are not hidden via display:none */
+    :has(> .printable-content),
+    :has(> * > .printable-content) {
+        display: block !important;
+        visibility: visible !important;
     }
 
     .no-print {
         display: none !important;
+    }
+
+    /* Standardize table printing */
+    table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+    }
+
+    th, td {
+        border: 1px solid #ddd !important;
+        padding: 8px !important;
+        text-align: left !important;
+    }
+
+    thead {
+        display: table-header-group !important;
     }
 }

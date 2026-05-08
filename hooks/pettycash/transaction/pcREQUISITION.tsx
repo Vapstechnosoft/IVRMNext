@@ -20,15 +20,23 @@ export const usePcRequisition = (searchParams?: ApiSearchparams) => {
 };
 
 export const useDepartmentName = ({ id, enabled }: { id?: number; enabled: boolean }) => {
-    return useQuery({
-        queryKey: [PETTYCASH_QUERY_KEYS.DEPARTMENT_NAME, id],
-        queryFn: async () => {
-            if (!id) return null;
-            return GetDepartmentName(id);
-        },
-        enabled: enabled && !!id,
-        staleTime: 0
-    });
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [PETTYCASH_QUERY_KEYS.DEPARTMENT_NAME, id],
+            queryFn: async () => {
+                if (!id) return null;
+                return GetDepartmentName(id);
+            },
+            enabled: enabled && !!id,
+            staleTime: 0
+        }),
+        refetchAll: () =>
+            queryClient.invalidateQueries({
+                queryKey: [PETTYCASH_QUERY_KEYS.DEPARTMENT_NAME]
+            })
+    };
 };
 
 export const useEmployeeName = ({ id, enabled }: { id?: number; enabled: boolean }) => {

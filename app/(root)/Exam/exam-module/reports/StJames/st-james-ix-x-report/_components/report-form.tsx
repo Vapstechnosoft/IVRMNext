@@ -11,6 +11,7 @@ import { type StJamesIX_XReportSchema, stJamesIX_XReportSchema } from '@/schemas
 import {
     getClassDropDownByAcademicYearlist,
     getExamsDropDownByAcademicYearandClassandSectionlist,
+    getExamsStjames,
     getSectionsDropDownByAcademicYearandClasslist
 } from '@/server/exam/exam-module/reports/cumulative-report';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -30,7 +31,7 @@ export default function StJamesIX_XReportForm({
             asmaY_Id: 0,
             asmcL_Id: 0,
             asmS_Id: 0,
-            type: 'indi',
+            reporttype: 'indi',
             displayAttendance: true
         } as any
     });
@@ -118,8 +119,15 @@ export default function StJamesIX_XReportForm({
         if (!selectedYear || !selectedClass || !selectedSection) return;
         (async () => {
             try {
+                const payload: any = {
+                    asmaY_Id: selectedYear,
+                    asmcL_Id: selectedClass,
+                    asmS_Id: selectedSection,
+                    reporttype: "indi",
+
+                };
                 setLoadingExams(true);
-                const { data } = await getExamsDropDownByAcademicYearandClassandSectionlist(selectedYear, selectedClass, selectedSection);
+                const { data } = await getExamsStjames(payload);
                 if (!data || (Array.isArray(data) && data.length === 0)) {
                     toast.info('No exams found');
                 }
@@ -139,11 +147,18 @@ export default function StJamesIX_XReportForm({
             asmaY_Id: data.asmaY_Id,
             asmcL_Id: data.asmcL_Id,
             asmS_Id: data.asmS_Id,
-            emE_Ids: data.emE_Id.map((e) => e.emE_Id).join(','),
-            type: data.type,
+            examlist: data.emE_Id.map((e: any) => {
+                const exam = exams.find((x) => x.emE_Id === e.emE_Id);
+                return {
+                    emE_Id: e.emE_Id,
+                    emE_ExamName: exam?.emE_ExamName || ''
+                };
+            }),
+            reporttype: data.reporttype,
             displayAttendance: data.displayAttendance
         };
         if (onSuccess) {
+            console.log("reportpayload", payload);
             await onSuccess(payload);
         }
     };
@@ -156,7 +171,7 @@ export default function StJamesIX_XReportForm({
                         <div>
                             <Controller
                                 control={control}
-                                name='type'
+                                name='reporttype'
                                 render={({ field, fieldState }) => (
                                     <div className='flex h-8 flex-1 justify-center gap-2 rounded-md bg-gray-100 sm:flex-row sm:items-center '>
                                         <RadioGroup onValueChange={field.onChange} value={field.value} className='flex flex-row space-x-4'>
@@ -167,7 +182,7 @@ export default function StJamesIX_XReportForm({
                                                 </Label>
                                             </div>
                                             <div className='flex items-center space-x-2'>
-                                                <RadioGroupItem value='prom' id='r2' />
+                                                <RadioGroupItem value='groupwise' id='r2' />
                                                 <Label htmlFor='r2' className='font-normal'>
                                                     Promotion
                                                 </Label>
@@ -345,7 +360,7 @@ export default function StJamesIX_XReportForm({
                                                             <div className='flex flex-col gap-3'>
                                                                 {exams.map((e) => {
                                                                     const isChecked =
-                                                                        field.value?.some((val) => val.emE_Id === e.emE_Id) || false;
+                                                                        field.value?.some((val: any) => val.emE_Id === e.emE_Id) || false;
                                                                     return (
                                                                         <div key={e.emE_Id} className='flex items-center space-x-2'>
                                                                             <Checkbox
@@ -360,7 +375,7 @@ export default function StJamesIX_XReportForm({
                                                                                     } else {
                                                                                         field.onChange(
                                                                                             (field.value || []).filter(
-                                                                                                (val) => val.emE_Id !== e.emE_Id
+                                                                                                (val: any) => val.emE_Id !== e.emE_Id
                                                                                             )
                                                                                         );
                                                                                     }

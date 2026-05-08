@@ -6,8 +6,9 @@ import {
     getDanvantariTCLoadData,
     changeYearDanvantariTC,
     changeCourseDanvantariTC,
+    changeBranchDanvantariTC,
     changeSemesterDanvantariTC,
-    getDanvantariTCDetails
+    getDanvantariTCDetails, getDanvantariStudentName
 } from '@/server/admission/preadmission/reports/danvantari_transfer_certificate';
 
 export const useDanvantariTCLoadData = () => {
@@ -29,14 +30,37 @@ export const useChangeCourseDanvantariTC = () => {
     });
 };
 
+export const useChangeBranchDanvantariTC = () => {
+    return useMutation({
+        mutationFn: (data: { ASMAY_Id: number; AMCO_Id: number; AMB_Id: number; tctemporper: string }) => changeBranchDanvantariTC(data)
+    });
+};
+
 export const useChangeSemesterDanvantariTC = () => {
     return useMutation({
         mutationFn: (data: { ASMAY_Id: number; AMCO_Id: number; AMB_Id: number; AMSE_Id: number; tctemporper: string }) => changeSemesterDanvantariTC(data)
     });
 };
 
+export const useDanvantariStudentName = () => {
+    return useMutation({
+        mutationFn: (data: { AMCO_Id: number; ASMAY_Id: number; AMB_Id: number; searchfilter: string; AMCST_SOL: string }) => getDanvantariStudentName(data)
+    });
+};
+
 export const useDanvantariTCDetails = () => {
     return useMutation({
-        mutationFn: (data: { ASMAY_Id: number; AMCST_Id: number; tctemporper: string }) => getDanvantariTCDetails(data)
+        mutationFn: (data: {
+            ASMAY_Id: number;
+            AMCST_Id: number;
+            AMCO_Id: number;
+            AMB_Id: number;
+            AMSE_Id: number;
+            ACMS_Id: number;
+            miId: number;
+            admNo: string;
+            studentName: string;
+            tctemporper: string;
+        }) => getDanvantariTCDetails(data)
     });
 };

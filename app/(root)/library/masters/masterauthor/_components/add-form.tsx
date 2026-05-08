@@ -45,30 +45,21 @@ export default function AddMasterAuthorForm({ onSuccess, className = '' }: AddMa
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const { lmaU_MobileNo, lmaU_AuthorFirstName, lmaU_Address, lmaU_EmailId, lmaU_PhoneNo } = data;
-
             const payload = {
-                IMCC_ID: 0,
-                lmaU_MobileNo,
-                lmaU_AuthorFirstName,
-                lmaU_Address,
-                lmaU_EmailId,
-                lmaU_ActiveFlag: true,
-                lmaU_PhoneNo
+                ...data,
+                mI_Id: 30,
+                lmaU_Id: 0
             };
-
-            // const js = JSON.stringify(payload);
-            //console.log('Payload JSON:', js);
 
             const response = await addOrUpdateMasterAuthor(payload);
 
             if (response.success) {
-                toast.success(response.message || 'Class Category saved successfully');
+                toast.success(response.message || 'Master Author saved successfully');
                 reset();
                 refetchAll();
                 onSuccess?.();
             } else {
-                toast.error(response.message || 'Failed to save Class Category');
+                toast.error(response.message || 'Failed to save Master Author');
             }
         } catch (error: any) {
             toast.error(error?.message || 'Something went wrong');
@@ -125,19 +116,7 @@ export default function AddMasterAuthorForm({ onSuccess, className = '' }: AddMa
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
-                <div className='space-y-4'>
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        <InputText
-                            label='Phone No'
-                            id='lmaU_PhoneNo'
-                            {...register('lmaU_PhoneNo')}
-                            error={errors.lmaU_PhoneNo?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-                    </div>
-
-                    {errors.root && <FormError>{errors.root.message}</FormError>}
-                </div>
+              
 
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button

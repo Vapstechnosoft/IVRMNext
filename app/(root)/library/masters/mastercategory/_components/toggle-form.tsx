@@ -2,78 +2,63 @@
 
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
-import { FormError } from '@/components/ui/extension/field';
-import { useMasterLibrary } from '@/hooks/library/useMasters';
-import { masterLibrarySchema } from '@/schemas/library/masters';
-import { toggleMasterLibrary } from '@/server/library/masters/master_library';
-import type { IMasterLibraryList } from '@/types/library/masters/masters';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { type SubmitHandler, useForm } from 'react-hook-form';
+import { useMasterCategoryListData } from '@/hooks/library/useMasters';
+import { toggleMasterCategory } from '@/server/library/masters/library_category';
+import { IMasterCategoryList } from '@/types/library/masters/masters';
 import { toast } from 'sonner';
-import type { z } from 'zod';
+import { useState } from 'react';
 
-type FormFields = z.infer<typeof masterLibrarySchema.delete>;
-
-interface toggleMasterLibraryFormProps {
-    rowData: IMasterLibraryList;
+interface ToggleMasterCategoryFormProps {
+    rowData: IMasterCategoryList;
     onClose: () => void;
 }
 
-export default function ToggleMasterLibraryForm({ rowData, onClose }: toggleMasterLibraryFormProps) {
-    const { refetchAll } = useMasterLibrary();
-    const isActive = rowData.lmaL_ActiveFlag;
+export default function ToggleMasterCategoryForm({ rowData, onClose }: ToggleMasterCategoryFormProps) {
+    const { refetchAll } = useMasterCategoryListData();
+    const isActive = rowData.lmC_ActiveFlag;
+    const [isPending, setIsPending] = useState(false);
 
-    const {
-        register,
-        handleSubmit,
-        reset,
-        formState: { errors, isSubmitting }
-    } = useForm<FormFields>({
-        resolver: zodResolver(masterLibrarySchema.delete),
-        mode: 'onChange'
-    });
-
-    function closeDialog() {
-        onClose();
-        reset();
-    }
-
-    const onSubmit: SubmitHandler<FormFields | any> = async () => {
+    const handleToggle = async () => {
+        setIsPending(true);
         try {
-            const response = await toggleMasterLibrary(Number(rowData.lmaL_Id));
+            const response = await toggleMasterCategory(rowData.lmC_Id);
 
-            if (response.success) {
-                toast.success(response.message);
+            // Handle unusual backend where success: false but message is positive
+            if (response?.success || response?.message?.toLowerCase().includes('success')) {
+                toast.success(response.message || 'Status updated successfully');
                 refetchAll();
-                closeDialog();
+                onClose();
             } else {
-                toast.error(response.message);
+                toast.error(response.message || 'Failed to update status');
             }
         } catch (error: any) {
-            toast.error(error.message);
+            toast.error(error?.message || 'An error occurred');
+        } finally {
+            setIsPending(false);
         }
     };
 
     return (
-        <AdaptiveDialog title='Toggle Library Master' isOpen={true} onClose={closeDialog}>
-            <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
-                <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden' {...register('lmaL_Id')} defaultValue={rowData.lmaL_Id} />
-                    <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.lmaL_LibraryName}</strong>?
+        <AdaptiveDialog title='Confirmation' isOpen={true} onClose={onClose}>
+            <AdaptiveBody>
+                <div className='py-4 text-center'>
+                    <p className='text-lg font-medium'>
+                        Do You Want To {isActive ? 'Inactivate' : 'Activate'} Record?
                     </p>
-                    <FormError>{errors.lmaL_Id?.message}</FormError>
-                    <FormError>{errors.root?.message}</FormError>
-                </AdaptiveBody>
-                <AdaptiveFooter>
-                    <Button variant='secondary' onClick={closeDialog} type='button'>
-                        Cancel
-                    </Button>
-                    <Button type='submit' isLoading={isSubmitting} variant={isActive ? 'destructive' : 'default'}>
-                        {isActive ? 'Deactivate' : 'Activate'}
-                    </Button>
-                </AdaptiveFooter>
-            </form>
+                </div>
+            </AdaptiveBody>
+            <AdaptiveFooter className='justify-center border-t pt-4'>
+                <Button variant='outline' onClick={onClose} disabled={isPending}>
+                    Cancel
+                </Button>
+                <Button
+                    variant='destructive'
+                    onClick={handleToggle}
+                    isLoading={isPending}
+                    loadingText={isActive ? 'Inactivating...' : 'Activating...'}>
+                    {isActive ? 'Inactivate' : 'Activate'}
+                </Button>
+            </AdaptiveFooter>
         </AdaptiveDialog>
     );
 }

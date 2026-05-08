@@ -7,40 +7,39 @@ import { Plus, X } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { use, useEffect } from 'react';
 import AddCandidateForm from './_components/add-form';
-import { candidateColumns } from './_components/columns';
+import { getCandidateColumns, type Candidate } from './_components/columns';
+import { useGetCandidateGridData, useToggleCandidateStatus } from '@/hooks/hrms/recruitment/transactions/useTransactions';
+import ToggleCandidateModal from './_components/toggle-modal';
+import { useState } from 'react';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-export default function AddCandidatePage(props: {
-    searchParams: SearchParams;
-}) {
-    const _searchParams = use(props.searchParams);
-    // Mock data for now - replace with actual API call
-    const response = { data: [], totalItems: 0, isLoading: false, error: null };
-    const refetchAll = () => {};
+
+export default function AddCandidatePage() {
     return (
         <FormProvider<any>>
-            <AddCandidatePageContent response={response} isLoading={false} error={null} refetch={refetchAll} />
+            <AddCandidatePageContent />
         </FormProvider>
     );
 }
-function AddCandidatePageContent({
-    response,
-    isLoading,
-    error,
-    refetch
-}: {
-    response: any;
-    isLoading: boolean;
-    error: any;
-    refetch: () => void;
-}) {
-    const { openAddForm } = useFormContext();
+
+function AddCandidatePageContent() {
+    const { data: response, isLoading, error, refetchAll } = useGetCandidateGridData();
+    const { openAddForm, openEditForm } = useFormContext();
+    const [isToggleOpen, setIsToggleOpen] = useState(false);
+    const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
+
+    const handleToggle = (row: Candidate) => {
+        setSelectedCandidate(row);
+        setIsToggleOpen(true);
+    };
+
+    const columns = getCandidateColumns({
+        onEdit: (row) => openEditForm(row),
+        onToggle: handleToggle
+    });
+
     const tableProps = useDataTableProps(response);
-    const session = useSession();
-    useEffect(() => {
-        if (session?.data?.role === undefined) {
-            window.location.reload();
-        }
-    }, [session?.data?.role]);
+    
+
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -62,7 +61,7 @@ function AddCandidatePageContent({
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <GenericDataTable<any>
                         {...tableProps}
-                        columns={candidateColumns}
+                        columns={columns}
                         isLoading={isLoading}
                         error={error}
                         showViewOptions={false}
@@ -74,11 +73,21 @@ function AddCandidatePageContent({
                     />
                 </CollapsibleSection>
                 {/* Forms - Below Table */}
-                <FormSections refetch={refetch} />
+                <FormSections refetch={refetchAll} />
             </div>
+
+            {selectedCandidate && (
+                <ToggleCandidateModal
+                    isOpen={isToggleOpen}
+                    rowData={selectedCandidate}
+                    onClose={() => setIsToggleOpen(false)}
+                    onSuccess={() => refetchAll()}
+                />
+            )}
         </div>
     );
 }
+
 function FormSections({
     refetch
 }: {
@@ -89,7 +98,7 @@ function FormSections({
         <>
             {/* Add Form */}
             {isAddFormOpen && (
-                <div ref={addFormRef}>
+                <div ref={addFormRef as any}>
                     <CollapsibleSection
                         title='Candidate Details'
                         description='Fill in the details below to create a new candidate'
@@ -119,7 +128,7 @@ function FormSections({
             )}
             {/* Edit Form */}
             {isEditFormOpen && (
-                <div ref={editFormRef}>
+                <div ref={editFormRef as any}>
                     <CollapsibleSection
                         title='Edit Candidate Details'
                         description='Update the details below to edit the candidate'

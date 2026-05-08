@@ -27,9 +27,17 @@ export const usePcIndent = (filters: IIndentFilters, enabled: boolean = false) =
  * Hook to fetch organization dropdown data.
  */
 export const useOrganizationDropdown = () => {
-    return useQuery({
-        queryKey: [PETTYCASH_QUERY_KEYS.ORGANIZATION_DROPDOWN],
-        queryFn: async () => getOrganizationDropdown(),
-        staleTime: Infinity // Organizations don't change often
-    });
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [PETTYCASH_QUERY_KEYS.ORGANIZATION_DROPDOWN],
+            queryFn: async () => getOrganizationDropdown(),
+            staleTime: 0
+        }),
+        refetchAll: () =>
+            queryClient.invalidateQueries({
+                queryKey: [PETTYCASH_QUERY_KEYS.ORGANIZATION_DROPDOWN]
+            })
+    };
 };
