@@ -1136,7 +1136,7 @@ export async function getUserAccessibleModules() {
                                         //     description: 'SophiaStudentParticulars'
                                         // }
                                     ]
-                                },
+                                }
                                 // {
                                 //     id: 16,
                                 //     name: 'St. Thomas Church School',
@@ -2017,7 +2017,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Fee Trail Audit Reoport ST JAMES'
                                         },
                                         {
-                                            id: 522,
+                                            id: 524,
                                             name: 'Fee Demand Register Report GMVPS',
                                             icon: 'BadgeIndianRupee',
                                             url: '/fees/feereports/feedemandregisterreportgmvps',
@@ -2025,12 +2025,44 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Fee Demand Register Report GMVPS'
                                         },
                                         {
-                                            id: 43,
+                                            id: 525,
+                                            name: 'Fee Summarized Report ST JAMES',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feesummerizedreportstjames',
+                                            title: 'Fee Summarized Report ST JAMES',
+                                            description: 'Manage Fee Summarized Report ST JAMES'
+                                        },
+                                        {
+                                            id: 526,
                                             name: 'Fee Waivedoff Sophia',
                                             icon: 'BadgeIndianRupee',
                                             url: '/fees/transactions/waivedoff',
                                             title: 'Fee Waivedoff Sophia',
                                             description: 'Manage Fee Waivedoff Sophia'
+                                        },
+                                        {
+                                            id: 527,
+                                            name: 'Fee PreAdmission Transaction ST Marys',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/feepreadmissionstmarys',
+                                            title: 'Fee PreAdmission Transaction ST Marys',
+                                            description: 'Manage Fee PreAdmission Transaction ST Marys'
+                                        },
+                                        {
+                                            id: 528,
+                                            name: 'Mess Attendance Entry Vishwadarshana',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/messattendanceentryvishwa',
+                                            title: 'Mess Attendance Entry Vishwadarshana',
+                                            description: 'Manage Mess Attendance Entry Vishwadarshana'
+                                        },
+                                        {
+                                            id: 529,
+                                            name: 'Fee Collection Sophia',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feecollectionreportsophia',
+                                            title: 'Fee Collection Sophia',
+                                            description: 'Manage Fee Collection Sophia'
                                         }
                                     ]
                                 }
@@ -3051,7 +3083,6 @@ export async function getUserAccessibleModules() {
                                             description: 'BRS Progress Card X Report'
                                         },
 
-
                                         {
                                             id: 21044,
                                             name: 'St. James Consolidate Report',
@@ -3091,7 +3122,6 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/Burnpur/Burnpur_ProgressCardReport',
                                             title: 'BRS Progress Card Report',
                                             description: 'BRS Progress Card Report'
-
                                         },
                                         {
                                             id: 21044,
@@ -3164,7 +3194,6 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/Sophia/SopiaExamReportItoIV',
                                             title: 'Sophia Exam Report I to IV',
                                             description: 'Sophia Exam Report I to IV'
-
                                         },
                                         {
                                             id: 21201,
@@ -3187,7 +3216,7 @@ export async function getUserAccessibleModules() {
                                             name: 'Sophia Exam Report V to VIII',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/Sophia/SopiaExamReportVtoVIII',
-                                            title: 'Sophia Exam Report V to VIII',
+                                            title: 'Sophia Exam Report V to VIII'
                                         },
                                         {
                                             id: 21204,
@@ -3196,7 +3225,6 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/Sophia/SophiaReportCardPreIII',
                                             title: 'Sophia Report Card Pre III',
                                             description: 'Sophia Report Card Pre III'
-
                                         },
                                         {
                                             id: 21205,
@@ -3940,7 +3968,7 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/recruitment/transaction/add-candidate-interview',
                                             title: 'Add Candidate Interview',
                                             description: 'Add Candidate Interview'
-                                        },
+                                        }
                                         //         {
                                         //             id: 3,
                                         //             name: 'Candidate Interview List',
@@ -3974,7 +4002,7 @@ export async function getUserAccessibleModules() {
                                         //             description: 'View All Job Postings'
                                         //         }
                                     ]
-                                },
+                                }
                                 // {
                                 //     id: 3,
                                 //     name: 'MRF Approval',
@@ -7821,7 +7849,7 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                },
+                }
                 // {
                 //     id: 999021,
                 //     name: 'PDA',
@@ -7941,7 +7969,6 @@ export async function getUserAccessibleModules() {
                     name: 'Staff Portal',
                     icon: 'Settings',
                     menu: [
-
                         {
                             id: 2,
                             name: 'Attendance',
@@ -9024,7 +9051,7 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                },
+                }
                 // {
                 //     id: 999021,
                 //     name: 'PDA',
@@ -9167,7 +9194,7 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                },
+                }
                 // {
                 //     id: 999021,
                 //     name: 'PDA',
