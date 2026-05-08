@@ -6211,10 +6211,10 @@ export async function getUserAccessibleModules() {
 
                                         {
                                             id: 30028,
-                                            name: 'Library Month End Report',
+                                            name: 'import-library',
                                             icon: 'FileText',
                                             url: '/library/reports/import-library',
-                                            title: 'Library Month End Report',
+                                            title: 'import-library',
                                             description: 'import-library'
                                         }
                                     ]
