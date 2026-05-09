@@ -4,7 +4,7 @@ import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 
 export async function getMasterDepartment(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'lmD_DepartmentName,lmD_DepartmentCode');
     const url = `/MasterDepartmentFacade/get-master-department-list?${urlParams}`;
     const response = await api.get<any[]>('library', url);
     return response;

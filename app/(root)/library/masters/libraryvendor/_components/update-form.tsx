@@ -101,8 +101,9 @@ export default function UpdateMasterVendorForm({ onSuccess, className = '', sele
                             }}
                             {...register('lmV_VendorName')}
                             error={errors.lmV_VendorName?.message}
+                            placeholder='e.g. Acme Books Dist'
                         />
-                        <InputText label='Email Id' id='lmV_EMailId' {...register('lmV_EMailId')} error={errors.lmV_EMailId?.message} />
+                        <InputText label='Email Id' id='lmV_EMailId' {...register('lmV_EMailId')} error={errors.lmV_EMailId?.message} placeholder='e.g. contact@vendor.com' />
                     </div>
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
@@ -122,6 +123,7 @@ export default function UpdateMasterVendorForm({ onSuccess, className = '', sele
                             {...register('lmV_MobileNo')}
                             error={errors.lmV_MobileNo?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
+                            placeholder='10-digit mobile number'
                         />
 
                         <InputText
@@ -135,6 +137,7 @@ export default function UpdateMasterVendorForm({ onSuccess, className = '', sele
                             {...register('lmV_Address')}
                             error={errors.lmV_Address?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
+                            placeholder='Enter full office address'
                         />
                     </div>
                     {errors.root && <FormError>{errors.root.message}</FormError>}

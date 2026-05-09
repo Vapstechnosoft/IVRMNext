@@ -43,8 +43,7 @@ export default function UpdateMasterPublisherForm({ onSuccess, className = '', s
                 lmP_PublisherName: row.lmP_PublisherName,
                 lmP_EMailId: row.lmP_EMailId,
                 lmP_MobileNo: row.lmP_MobileNo,
-                lmP_Address: row.lmP_Address,
-                lmP_PhoneNo: row.lmP_PhoneNo
+                lmP_Address: row.lmP_Address
             });
         }
     }, [row, reset]);
@@ -102,14 +101,6 @@ export default function UpdateMasterPublisherForm({ onSuccess, className = '', s
                             placeholder='10-digit mobile number'
                             {...register('lmP_MobileNo')}
                             error={errors.lmP_MobileNo?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-                        <InputText
-                            label='Phone No'
-                            required
-                            placeholder='10-digit phone number'
-                            {...register('lmP_PhoneNo')}
-                            error={errors.lmP_PhoneNo?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                     </div>
