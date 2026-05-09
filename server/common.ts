@@ -1137,187 +1137,187 @@ export async function getUserAccessibleModules() {
                                         // }
                                     ]
                                 },
-                                // {
-                                //     id: 16,
-                                //     name: 'St. Thomas Church School',
-                                //     icon: 'Settings',
-                                //     pages: [
-                                //         {
-                                //             id: 61,
-                                //             name: 'St. Thomas Admission Form',
-                                //             icon: 'Settings',
-                                //             url: '/admission/preadmission/stthomas/admission-form',
-                                //             title: 'St. Thomas Admission Form',
-                                //             description: 'St. Thomas Admission Form'
-                                //         },
-                                //         {
-                                //             id: 62,
-                                //             name: 'Total Strength',
-                                //             icon: 'Settings',
-                                //             url: '/admission/preadmission/reports/STCS/total-strength',
-                                //             title: 'Total Strength',
-                                //             description: 'Total Strength'
-                                //         },
-                                //         {
-                                //             id: 63,
-                                //             name: 'St. Thomas TC Custom Report',
-                                //             icon: 'Settings',
-                                //             url: '/admission/preadmission/stthomas/reports/stthomas-tc-custom-report',
-                                //             title: 'St. Thomas TC Custom Report',
-                                //             description: 'St. Thomas TC Custom Report'
-                                //         }
-                                //     ]
-                                // },
+                                {
+                                    id: 16,
+                                    name: 'St. Thomas Church School',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 61,
+                                            name: 'St. Thomas Admission Form',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/stthomas/admission-form',
+                                            title: 'St. Thomas Admission Form',
+                                            description: 'St. Thomas Admission Form'
+                                        },
+                                        {
+                                            id: 62,
+                                            name: 'Total Strength',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/STCS/total-strength',
+                                            title: 'Total Strength',
+                                            description: 'Total Strength'
+                                        },
+                                        {
+                                            id: 63,
+                                            name: 'St. Thomas TC Custom Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/stthomas/reports/stthomas-tc-custom-report',
+                                            title: 'St. Thomas TC Custom Report',
+                                            description: 'St. Thomas TC Custom Report'
+                                        }
+                                    ]
+                                },
 
-                                // {
-                                //     id: 17,
-                                //     name: 'Samartha',
-                                //     icon: 'Settings',
-                                //     pages: [
-                                //         {
-                                //             id: 71,
-                                //             name: 'SamarthaBonafideCertificate',
-                                //             icon: 'Settings',
-                                //             url: '/admission/samartha/reports/SamarthaBonafideCertificate',
-                                //             title: 'Samartha Bonafide Certificate',
-                                //             description: 'Samartha Bonafide Certificate'
-                                //         },
-                                //         {
-                                //             id: 72,
-                                //             name: 'SamarthaTC',
-                                //             icon: 'Settings',
-                                //             url: '/admission/samartha/reports/SamarthaTC',
-                                //             title: 'SamarthaTC',
-                                //             description: 'SamarthaTC'
-                                //         },
-                                //         {
-                                //             id: 73,
-                                //             name: 'OverAllViewReportt',
-                                //             icon: 'Settings',
-                                //             url: '/admission/samartha/reports/Over-All-View-Reportt',
-                                //             title: 'OverAllViewReportt',
-                                //             description: 'OverAllViewReportt'
-                                //         }
-                                //     ]
-                                // },
+                                {
+                                    id: 17,
+                                    name: 'Samartha',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 71,
+                                            name: 'SamarthaBonafideCertificate',
+                                            icon: 'Settings',
+                                            url: '/admission/samartha/reports/SamarthaBonafideCertificate',
+                                            title: 'Samartha Bonafide Certificate',
+                                            description: 'Samartha Bonafide Certificate'
+                                        },
+                                        {
+                                            id: 72,
+                                            name: 'SamarthaTC',
+                                            icon: 'Settings',
+                                            url: '/admission/samartha/reports/SamarthaTC',
+                                            title: 'SamarthaTC',
+                                            description: 'SamarthaTC'
+                                        },
+                                        {
+                                            id: 73,
+                                            name: 'OverAllViewReportt',
+                                            icon: 'Settings',
+                                            url: '/admission/samartha/reports/Over-All-View-Reportt',
+                                            title: 'OverAllViewReportt',
+                                            description: 'OverAllViewReportt'
+                                        }
+                                    ]
+                                },
 
-                                // {
-                                //     id: 18,
-                                //     name: 'Danvantari Phisiotheraphy',
-                                //     icon: 'Settings',
-                                //     pages: [
-                                //         {
-                                //             id: 71,
-                                //             name: 'DCPS Bonified Certificate',
-                                //             icon: 'Settings',
-                                //             url: '/admission/Danvantari/reports/DCPS_BonifiedCertificate',
-                                //             title: 'DCPS Bonified Certificate',
-                                //             description: 'Bonified Certificate'
-                                //         },
-                                //         {
-                                //             id: 72,
-                                //             name: 'DCPS Transfer Certificate',
-                                //             icon: 'Settings',
-                                //             url: '/admission/Danvantari/reports/DCPS_TransferCertificate',
-                                //             title: 'DCPS Transfer Certificate',
-                                //             description: 'DCPS Transfer Certificate'
-                                //         }
-                                //     ]
-                                // },
-                                // {
-                                //     id: 19,
-                                //     name: 'SRKVS',
-                                //     icon: 'Settings',
-                                //     pages: [
-                                //         {
-                                //             id: 74,
-                                //             name: 'SRKVS Student Address Book',
-                                //             icon: 'Settings',
-                                //             url: '/admission/srkvs/reports/SRKVSStudentAddressBook',
-                                //             title: 'SRKVSStudentAddressBook',
-                                //             description: 'SRKVSStudentAddressBook'
-                                //         }
-                                //     ]
-                                // },
-                                // {
-                                //     id: 20,
-                                //     name: 'St. Peters School Durgapur',
-                                //     icon: 'Settings',
-                                //     pages: [
-                                //         {
-                                //             id: 74,
-                                //             name: 'Employee IDcard Report STpeter',
-                                //             icon: 'Settings',
-                                //             url: '/admission/stpeter/reports/EmployeeIDcardReportSTpeter',
-                                //             title: 'EmployeeIDcardReportSTpeter',
-                                //             description: 'EmployeeIDcardReportSTpeter'
-                                //         },
+                                {
+                                    id: 18,
+                                    name: 'Danvantari Phisiotheraphy',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 71,
+                                            name: 'DCPS Bonified Certificate',
+                                            icon: 'Settings',
+                                            url: '/admission/Danvantari/reports/DCPS_BonifiedCertificate',
+                                            title: 'DCPS Bonified Certificate',
+                                            description: 'Bonified Certificate'
+                                        },
+                                        {
+                                            id: 72,
+                                            name: 'DCPS Transfer Certificate',
+                                            icon: 'Settings',
+                                            url: '/admission/Danvantari/reports/DCPS_TransferCertificate',
+                                            title: 'DCPS Transfer Certificate',
+                                            description: 'DCPS Transfer Certificate'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 19,
+                                    name: 'SRKVS',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 74,
+                                            name: 'SRKVS Student Address Book',
+                                            icon: 'Settings',
+                                            url: '/admission/srkvs/reports/SRKVSStudentAddressBook',
+                                            title: 'SRKVSStudentAddressBook',
+                                            description: 'SRKVSStudentAddressBook'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 20,
+                                    name: 'St. Peters School Durgapur',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 74,
+                                            name: 'Employee IDcard Report STpeter',
+                                            icon: 'Settings',
+                                            url: '/admission/stpeter/reports/EmployeeIDcardReportSTpeter',
+                                            title: 'EmployeeIDcardReportSTpeter',
+                                            description: 'EmployeeIDcardReportSTpeter'
+                                        },
 
-                                //         {
-                                //             id: 75,
-                                //             name: 'Student IDcard Report STPeter',
-                                //             icon: 'Settings',
-                                //             url: '/admission/stpeter/reports/StudentIDcardReportSTPeter',
-                                //             title: 'StudentIDcardReportSTPeter',
-                                //             description: 'StudentIDcardReportSTPeter'
-                                //         }
-                                //     ]
-                                // },
-                                // {
-                                //     id: 21,
-                                //     name: 'GNANA DEEPA ACADEMY RESIDENTIAL SCHOOL',
-                                //     icon: 'Settings',
-                                //     pages: [
-                                //         {
-                                //             id: 74,
-                                //             name: 'GDARSStudyCertificate',
-                                //             icon: 'Settings',
-                                //             url: '/admission/gnanadeepa/reports/GDARSStudyCertificate',
-                                //             title: 'GDARSStudyCertificate',
-                                //             description: 'GDARSStudyCertificate'
-                                //         }
-                                //     ]
-                                // },
-                                // {
-                                //     id: 22,
-                                //     name: 'SMS degree college',
-                                //     icon: 'Settings',
-                                //     pages: [
-                                //         //Need to create UI
-                                //         // {
-                                //         //     id: 74,
-                                //         //     name: 'SMSCollegeStudentTc',
-                                //         //     icon: 'Settings',
-                                //         //     url: '/admission/sms/transaction/SMSCollegeStudentTc',
-                                //         //     title: 'SMSCollegeStudentTc',
-                                //         //     description: 'SMSCollegeStudentTc'
-                                //         // },
+                                        {
+                                            id: 75,
+                                            name: 'Student IDcard Report STPeter',
+                                            icon: 'Settings',
+                                            url: '/admission/stpeter/reports/StudentIDcardReportSTPeter',
+                                            title: 'StudentIDcardReportSTPeter',
+                                            description: 'StudentIDcardReportSTPeter'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 21,
+                                    name: 'GNANA DEEPA ACADEMY RESIDENTIAL SCHOOL',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 74,
+                                            name: 'GDARSStudyCertificate',
+                                            icon: 'Settings',
+                                            url: '/admission/gnanadeepa/reports/GDARSStudyCertificate',
+                                            title: 'GDARSStudyCertificate',
+                                            description: 'GDARSStudyCertificate'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 22,
+                                    name: 'SMS degree college',
+                                    icon: 'Settings',
+                                    pages: [
+                                        //Need to create UI
+                                        // {
+                                        //     id: 74,
+                                        //     name: 'SMSCollegeStudentTc',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/sms/transaction/SMSCollegeStudentTc',
+                                        //     title: 'SMSCollegeStudentTc',
+                                        //     description: 'SMSCollegeStudentTc'
+                                        // },
 
-                                //         {
-                                //             id: 75,
-                                //             name: 'SMSCConductCertificate',
-                                //             icon: 'Settings',
-                                //             url: '/admission/sms/reports/SMSCConductCertificate',
-                                //             title: 'SMSCConductCertificate',
-                                //             description: 'SMSCConductCertificate'
-                                //         }
-                                //     ]
-                                // },
-                                // {
-                                //     id: 23,
-                                //     name: 'GM Vidya Nikethan School',
-                                //     icon: 'Settings',
-                                //     pages: [
-                                //         {
-                                //             id: 75,
-                                //             name: 'Smartcarddetails',
-                                //             icon: 'Settings',
-                                //             url: '/admission/GMVPS/reports/Smartcarddetails',
-                                //             title: 'Smartcarddetails',
-                                //             description: 'Smartcarddetails'
-                                //         }
-                                //     ]
-                                // }
+                                        {
+                                            id: 75,
+                                            name: 'SMSCConductCertificate',
+                                            icon: 'Settings',
+                                            url: '/admission/sms/reports/SMSCConductCertificate',
+                                            title: 'SMSCConductCertificate',
+                                            description: 'SMSCConductCertificate'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 23,
+                                    name: 'GM Vidya Nikethan School',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 75,
+                                            name: 'Smartcarddetails',
+                                            icon: 'Settings',
+                                            url: '/admission/GMVPS/reports/Smartcarddetails',
+                                            title: 'Smartcarddetails',
+                                            description: 'Smartcarddetails'
+                                        }
+                                    ]
+                                }
                             ]
                         }
                     ]
@@ -3083,7 +3083,6 @@ export async function getUserAccessibleModules() {
                                             description: 'BRS Progress Card X Report'
                                         },
 
-
                                         {
                                             id: 21044,
                                             name: 'St. James Consolidate Report',
@@ -3123,7 +3122,6 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/Burnpur/Burnpur_ProgressCardReport',
                                             title: 'BRS Progress Card Report',
                                             description: 'BRS Progress Card Report'
-
                                         },
                                         {
                                             id: 21044,
@@ -3196,7 +3194,6 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/Sophia/SopiaExamReportItoIV',
                                             title: 'Sophia Exam Report I to IV',
                                             description: 'Sophia Exam Report I to IV'
-
                                         },
                                         {
                                             id: 21201,
@@ -3219,7 +3216,7 @@ export async function getUserAccessibleModules() {
                                             name: 'Sophia Exam Report V to VIII',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/Sophia/SopiaExamReportVtoVIII',
-                                            title: 'Sophia Exam Report V to VIII',
+                                            title: 'Sophia Exam Report V to VIII'
                                         },
                                         {
                                             id: 21204,
@@ -3228,7 +3225,6 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/Sophia/SophiaReportCardPreIII',
                                             title: 'Sophia Report Card Pre III',
                                             description: 'Sophia Report Card Pre III'
-
                                         },
                                         {
                                             id: 21205,
@@ -4004,168 +4000,168 @@ export async function getUserAccessibleModules() {
                                 }
                             ]
                         },
-                        {
-                            id: 2,
-                            name: 'Recruitment',
-                            icon: 'UserPlus',
-                            sub_menu: [
-                                {
-                                    id: 1,
-                                    name: 'Masters',
-                                    icon: 'Database',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Master Job',
-                                            icon: 'Briefcase',
-                                            url: '/hrms/recruitment/masters/master-job',
-                                            title: 'Master Job',
-                                            description: 'Manage Job Positions'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Master Location',
-                                            icon: 'MapPin',
-                                            url: '/hrms/recruitment/masters/master-location',
-                                            title: 'Master Location',
-                                            description: 'Manage Locations'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Master Position',
-                                            icon: 'Target',
-                                            url: '/hrms/recruitment/masters/master-position',
-                                            title: 'Master Position',
-                                            description: 'Manage Positions'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'Master Position Type',
-                                            icon: 'Tag',
-                                            url: '/hrms/recruitment/masters/master-positionType',
-                                            title: 'Master Position Type',
-                                            description: 'Manage Position Types'
-                                        },
-                                        {
-                                            id: 5,
-                                            name: 'Master Priority',
-                                            icon: 'Flag',
-                                            url: '/hrms/recruitment/masters/master-priority',
-                                            title: 'Master Priority',
-                                            description: 'Manage Priority Levels'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 2,
-                                    name: 'Transactions',
-                                    icon: 'FileText',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Add Candidate',
-                                            icon: 'UserPlus',
-                                            url: '/hrms/recruitment/transaction/add-candidate',
-                                            title: 'Add Candidate',
-                                            description: 'Add New Candidates'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Add Candidate Interview',
-                                            icon: 'Calendar',
-                                            url: '/hrms/recruitment/transaction/add-candidate-interview',
-                                            title: 'Add Candidate Interview',
-                                            description: 'Add Candidate Interview'
-                                        },
-                                        //         {
-                                        //             id: 3,
-                                        //             name: 'Candidate Interview List',
-                                        //             icon: 'List',
-                                        //             url: '/hrms/recruitment/transaction/candidate-interview-list',
-                                        //             title: 'Candidate Interview List',
-                                        //             description: 'View All Candidate Interviews'
-                                        //         },
-                                        //         {
-                                        //             id: 4,
-                                        //             name: 'Interviewer Feedback',
-                                        //             icon: 'MessageSquare',
-                                        //             url: '/hrms/recruitment/transaction/interviewer-feedback',
-                                        //             title: 'Interviewer Feedback',
-                                        //             description: 'Manage Interviewer Feedback'
-                                        //         },
-                                        //         {
-                                        //             id: 5,
-                                        //             name: 'Job List',
-                                        //             icon: 'Briefcase',
-                                        //             url: '/hrms/recruitment/transaction/job-list',
-                                        //             title: 'Job List',
-                                        //             description: 'View All Jobs'
-                                        //         },
-                                        //         {
-                                        //             id: 6,
-                                        //             name: 'Job Posting List',
-                                        //             icon: 'FileText',
-                                        //             url: '/hrms/recruitment/transaction/job-posting-list',
-                                        //             title: 'Job Posting List',
-                                        //             description: 'View All Job Postings'
-                                        //         }
-                                    ]
-                                },
-                                // {
-                                //     id: 3,
-                                //     name: 'MRF Approval',
-                                //     icon: 'CheckSquare',
-                                //     pages: [
-                                //         {
-                                //             id: 1,
-                                //             name: 'MRF Requisition Form',
-                                //             icon: 'FileCheck',
-                                //             url: '/hrms/recruitment/mrf-approval/mrf-requisition-form',
-                                //             title: 'MRF Requisition Form',
-                                //             description: 'Approve MRF Requests'
-                                //         }
-                                //     ]
-                                // },
-                                // {
-                                //     id: 4,
-                                //     name: 'Feedback',
-                                //     icon: 'MessageSquare',
-                                //     pages: [
-                                //         {
-                                //             id: 1,
-                                //             name: 'Candidate Feedback',
-                                //             icon: 'Star',
-                                //             url: '/hrms/recruitment/feedback/candidate-feedback',
-                                //             title: 'Candidate Feedback',
-                                //             description: 'Record Candidate Feedback'
-                                //         }
-                                //     ]
-                                // },
-                                // {
-                                //     id: 5,
-                                //     name: 'Reports',
-                                //     icon: 'FileText',
-                                //     pages: [
-                                //         {
-                                //             id: 1,
-                                //             name: 'Candidate Report',
-                                //             icon: 'Users',
-                                //             url: '/hrms/recruitment/reports/candidate-report',
-                                //             title: 'Candidate Report',
-                                //             description: 'Candidate Summary Report'
-                                //         },
-                                //         {
-                                //             id: 2,
-                                //             name: 'Interview Report',
-                                //             icon: 'ClipboardList',
-                                //             url: '/hrms/recruitment/reports/interview-report',
-                                //             title: 'Interview Report',
-                                //             description: 'Interview Summary Report'
-                                //         }
-                                //     ]
-                                // }
-                            ]
-                        },
+                        // {
+                        //     id: 2,
+                        //     name: 'Recruitment',
+                        //     icon: 'UserPlus',
+                        //     sub_menu: [
+                        //         {
+                        //             id: 1,
+                        //             name: 'Masters',
+                        //             icon: 'Database',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Master Job',
+                        //                     icon: 'Briefcase',
+                        //                     url: '/hrms/recruitment/masters/master-job',
+                        //                     title: 'Master Job',
+                        //                     description: 'Manage Job Positions'
+                        //                 },
+                        //                 {
+                        //                     id: 2,
+                        //                     name: 'Master Location',
+                        //                     icon: 'MapPin',
+                        //                     url: '/hrms/recruitment/masters/master-location',
+                        //                     title: 'Master Location',
+                        //                     description: 'Manage Locations'
+                        //                 },
+                        //                 {
+                        //                     id: 3,
+                        //                     name: 'Master Position',
+                        //                     icon: 'Target',
+                        //                     url: '/hrms/recruitment/masters/master-position',
+                        //                     title: 'Master Position',
+                        //                     description: 'Manage Positions'
+                        //                 },
+                        //                 {
+                        //                     id: 4,
+                        //                     name: 'Master Position Type',
+                        //                     icon: 'Tag',
+                        //                     url: '/hrms/recruitment/masters/master-positionType',
+                        //                     title: 'Master Position Type',
+                        //                     description: 'Manage Position Types'
+                        //                 },
+                        //                 {
+                        //                     id: 5,
+                        //                     name: 'Master Priority',
+                        //                     icon: 'Flag',
+                        //                     url: '/hrms/recruitment/masters/master-priority',
+                        //                     title: 'Master Priority',
+                        //                     description: 'Manage Priority Levels'
+                        //                 }
+                        //             ]
+                        //         },
+                        //         {
+                        //             id: 2,
+                        //             name: 'Transactions',
+                        //             icon: 'FileText',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Add Candidate',
+                        //                     icon: 'UserPlus',
+                        //                     url: '/hrms/recruitment/transaction/add-candidate',
+                        //                     title: 'Add Candidate',
+                        //                     description: 'Add New Candidates'
+                        //                 },
+                        //                 {
+                        //                     id: 2,
+                        //                     name: 'Add Candidate Interview',
+                        //                     icon: 'Calendar',
+                        //                     url: '/hrms/recruitment/transaction/add-candidate-interview',
+                        //                     title: 'Add Candidate Interview',
+                        //                     description: 'Add Candidate Interview'
+                        //                 }
+                        //                 //         {
+                        //                 //             id: 3,
+                        //                 //             name: 'Candidate Interview List',
+                        //                 //             icon: 'List',
+                        //                 //             url: '/hrms/recruitment/transaction/candidate-interview-list',
+                        //                 //             title: 'Candidate Interview List',
+                        //                 //             description: 'View All Candidate Interviews'
+                        //                 //         },
+                        //                 //         {
+                        //                 //             id: 4,
+                        //                 //             name: 'Interviewer Feedback',
+                        //                 //             icon: 'MessageSquare',
+                        //                 //             url: '/hrms/recruitment/transaction/interviewer-feedback',
+                        //                 //             title: 'Interviewer Feedback',
+                        //                 //             description: 'Manage Interviewer Feedback'
+                        //                 //         },
+                        //                 //         {
+                        //                 //             id: 5,
+                        //                 //             name: 'Job List',
+                        //                 //             icon: 'Briefcase',
+                        //                 //             url: '/hrms/recruitment/transaction/job-list',
+                        //                 //             title: 'Job List',
+                        //                 //             description: 'View All Jobs'
+                        //                 //         },
+                        //                 //         {
+                        //                 //             id: 6,
+                        //                 //             name: 'Job Posting List',
+                        //                 //             icon: 'FileText',
+                        //                 //             url: '/hrms/recruitment/transaction/job-posting-list',
+                        //                 //             title: 'Job Posting List',
+                        //                 //             description: 'View All Job Postings'
+                        //                 //         }
+                        //             ]
+                        //         }
+                        //         // {
+                        //         //     id: 3,
+                        //         //     name: 'MRF Approval',
+                        //         //     icon: 'CheckSquare',
+                        //         //     pages: [
+                        //         //         {
+                        //         //             id: 1,
+                        //         //             name: 'MRF Requisition Form',
+                        //         //             icon: 'FileCheck',
+                        //         //             url: '/hrms/recruitment/mrf-approval/mrf-requisition-form',
+                        //         //             title: 'MRF Requisition Form',
+                        //         //             description: 'Approve MRF Requests'
+                        //         //         }
+                        //         //     ]
+                        //         // },
+                        //         // {
+                        //         //     id: 4,
+                        //         //     name: 'Feedback',
+                        //         //     icon: 'MessageSquare',
+                        //         //     pages: [
+                        //         //         {
+                        //         //             id: 1,
+                        //         //             name: 'Candidate Feedback',
+                        //         //             icon: 'Star',
+                        //         //             url: '/hrms/recruitment/feedback/candidate-feedback',
+                        //         //             title: 'Candidate Feedback',
+                        //         //             description: 'Record Candidate Feedback'
+                        //         //         }
+                        //         //     ]
+                        //         // },
+                        //         // {
+                        //         //     id: 5,
+                        //         //     name: 'Reports',
+                        //         //     icon: 'FileText',
+                        //         //     pages: [
+                        //         //         {
+                        //         //             id: 1,
+                        //         //             name: 'Candidate Report',
+                        //         //             icon: 'Users',
+                        //         //             url: '/hrms/recruitment/reports/candidate-report',
+                        //         //             title: 'Candidate Report',
+                        //         //             description: 'Candidate Summary Report'
+                        //         //         },
+                        //         //         {
+                        //         //             id: 2,
+                        //         //             name: 'Interview Report',
+                        //         //             icon: 'ClipboardList',
+                        //         //             url: '/hrms/recruitment/reports/interview-report',
+                        //         //             title: 'Interview Report',
+                        //         //             description: 'Interview Summary Report'
+                        //         //         }
+                        //         //     ]
+                        //         // }
+                        //     ]
+                        // },
                         {
                             id: 404,
                             name: 'Attendance Management',
@@ -6560,6 +6556,29 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage COE Month End Report'
                                         }
                                     ]
+                                },
+                                {
+                                    id: 3,
+                                    name: 'Digital Signage',
+                                    icon: 'Monitor',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Configuration',
+                                            icon: 'Settings',
+                                            url: '/digital-signage/configuration',
+                                            title: 'Configuration',
+                                            description: 'Digital Signage Configuration'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Upload and Schedule',
+                                            icon: 'Upload',
+                                            url: '/digital-signage/upload-and-schedule',
+                                            title: 'Upload and Schedule',
+                                            description: 'Upload and Schedule Signage Content'
+                                        }
+                                    ]
                                 }
                             ]
                         }
@@ -7957,7 +7976,7 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                },
+                }
                 // {
                 //     id: 999021,
                 //     name: 'PDA',
@@ -8077,7 +8096,6 @@ export async function getUserAccessibleModules() {
                     name: 'Staff Portal',
                     icon: 'Settings',
                     menu: [
-
                         {
                             id: 2,
                             name: 'Attendance',
@@ -8147,11 +8165,19 @@ export async function getUserAccessibleModules() {
                                     pages: [
                                         {
                                             id: 9001,
-                                            name: 'AI MCQ QUIZ',
+                                            name: 'AI MCQ Quiz',
                                             icon: 'Trophy',
                                             url: '/StaffPortal/ai-mcq-quiz',
-                                            title: 'AI MCQ QUIZ',
+                                            title: 'AI MCQ Quiz',
                                             description: 'Conduct and manage online MCQ quizzes'
+                                        },
+                                        {
+                                            id: 9003,
+                                            name: 'AI Performance Analysis',
+                                            icon: 'BarChart',
+                                            url: '/Exam/exam-module/ai-performance-analysis',
+                                            title: 'AI Performance Analysis',
+                                            description: 'Analyze student performance using AI insights'
                                         },
                                         {
                                             id: 9002,
@@ -8487,6 +8513,35 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/reports/Sophia/ClassWiseDailyAttendance',
                                             title: 'Sophia Classwise Report',
                                             description: 'Sophia Classwise Report'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    id: 25,
+                    name: 'COE',
+                    icon: 'Calendar',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Calendar of Events',
+                            icon: 'Calendar',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'COE',
+                                    icon: 'Calendar',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'School Events',
+                                            icon: 'Calendar',
+                                            url: '/StudentPortal/coe/',
+                                            title: 'Calendar of Events',
+                                            description: 'View Calendar of Events'
                                         }
                                     ]
                                 }
@@ -9160,7 +9215,7 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                },
+                }
                 // {
                 //     id: 999021,
                 //     name: 'PDA',
@@ -9303,7 +9358,7 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                },
+                }
                 // {
                 //     id: 999021,
                 //     name: 'PDA',
