@@ -3987,6 +3987,14 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/reports/employeeSalarySlipSRKVS',
                                             title: 'Employee Salary Slip SRKVS Report',
                                             description: 'Employee Salary Slips'
+                                        },
+                                        {
+                                            id: 38,
+                                            name: 'Employee Salary Slip St Mary Report',
+                                            icon: 'FileType',
+                                            url: '/hrms/reports/EmployeeSalarySlipStMary',
+                                            title: 'Employee Salary Slip St Mary Report',
+                                            description: 'Employee Salary Slips'
                                         }
                                     ]
                                 }
