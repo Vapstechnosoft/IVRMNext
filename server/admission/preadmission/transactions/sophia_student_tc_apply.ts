@@ -3,13 +3,14 @@
 import { api } from '@/lib/apiService';
 
 export async function getSophiaStudentTCApplyLoadData(data: { TCData: number }) {
-    const url = '/StudentTC/TCloaddata/';
+    const url = '/StudentTc/NDATCloaddata';
     return await api.post<any>('admission', url, data);
 }
 
 export async function getSophiaStudentTCApplyOnChangeClass(data: { ASMAY_Id: number; ASMCL_Id: number }) {
-    const url = '/StudentTC/onchangeclass/';
-    return await api.post<any>('admission', url, data);
+    const url = '/StudentTc/NDAonchangeclass';
+    const res = await api.post<any>('admission', url, data);
+    return res?.data || res;
 }
 
 export async function getSophiaStudentTCApplyStudentList(data: {
@@ -17,24 +18,28 @@ export async function getSophiaStudentTCApplyStudentList(data: {
     ASMCL_Id: number;
     ASMS_Id: number;
 }) {
-    const url = '/StudentTC/Studentlistdata/';
-    return await api.post<any>('admission', url, data);
+    const url = `/StudentTc/NDAStudentlistdata?ASMAY_Id=${data.ASMAY_Id}&ASMCL_Id=${data.ASMCL_Id}&ASMS_Id=${data.ASMS_Id}`;
+    const res = await api.post<any>('admission', url);
+    return res?.data || res;
 }
 
 export async function saveSophiaStudentTCApply(data: {
-    StudentTCdata: any[];
+    studentTCdata: any[];
+    tcflagexists: string;
     transnumconfigsettings: any;
 }) {
-    const url = '/StudentTC/SavestudentTCdata/';
-    return await api.post<any>('admission', url, data);
+    const url = '/StudentTc/NDASavestudentTCdata';
+    const res = await api.post<any>('admission', url, data);
+    return res?.data || res;
 }
 
 export async function getSophiaStudentTCTCPdf(data: { AMST_Id: number }) {
-    const url = '/StudentTC/tcpdf';
-    return await api.post<any>('admission', url, data);
+    const url = `/StudentTc/tcpdf?AMST_Id=${data.AMST_Id}`;
+    const res = await api.post<any>('admission', url);
+    return res?.data || res;
 }
-
-export async function getSophiaStudentTCViewStatus(data: { AMST_Id: number }) {
-    const url = '/StudentTC/viewstatus';
-    return await api.post<any>('admission', url, data);
+export async function getSophiaStudentTCViewStatus(data: { AMST_Id: number; ASMAY_Id: number }) {
+    const url = `/StudentTc/viewstatus?AMST_Id=${data.AMST_Id}&ASMAY_Id=${data.ASMAY_Id}`;
+    const res = await api.get<any>('admission', url);
+    return res?.data || res;
 }

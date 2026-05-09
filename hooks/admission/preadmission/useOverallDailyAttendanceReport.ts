@@ -26,7 +26,7 @@ export const useOverallDailyAttendanceReportDetails = () => {
 
 export const useOverallDailyAttendanceReportStudentDetails = () => {
     return useMutation({
-        mutationFn: (data: { ASMCL_className: number; ASMC_SectionName: number; ASMAY_Id: number; fromdate: string }) =>
+        mutationFn: (data: { ASMCL_Id: number; ASMS_Id: number; ASMAY_Id: number; fromdate: string }) =>
             getOverallDailyAttendanceReportStudentDetails(data)
     });
 };
