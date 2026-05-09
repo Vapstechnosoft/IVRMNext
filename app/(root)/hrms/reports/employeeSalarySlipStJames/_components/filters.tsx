@@ -46,6 +46,7 @@ interface SalarySlipFiltersProps {
   selectedCount: number;
   isFiltering: boolean;
   isGenerating: boolean;
+  selectedEmployeeIds: Set<number>;
   onFilterChange: (filters: SalarySlipFilters) => void;
   onSearchChange: (searchTerm: string) => void;
   onOptionChange: (
@@ -79,6 +80,7 @@ export function SalarySlipFilters({
   onSelectEmployee,
   onGenerateSlip,
   onReset,
+  selectedEmployeeIds,
 }: SalarySlipFiltersProps) {
   const handleReset = () => {
     onReset();
@@ -87,7 +89,11 @@ export function SalarySlipFilters({
   useEffect(() => {
     setCurrentYear(new Date().getFullYear());
   }, []);
-  const columns = getSalarySlipColumns({ onSelectAll, onSelectEmployee });
+
+  const isAllSelected = filteredEmployees.length > 0 && filteredEmployees.every(emp => selectedEmployeeIds.has(emp.id));
+  const isSomeSelected = filteredEmployees.length > 0 && !isAllSelected && filteredEmployees.some(emp => selectedEmployeeIds.has(emp.id));
+
+  const columns = getSalarySlipColumns({ onSelectAll, onSelectEmployee, selectedEmployeeIds, isAllSelected, isSomeSelected });
 
   return (
     <CollapsibleSection

@@ -121,6 +121,31 @@ export const CirculationParameterForm = ({
                 {bookParameterFlag === 'BP' ? (
                     <FormField
                         control={form.control}
+                        name='bookType'
+                        render={({ field }) => (
+                            <FormItem className='flex flex-col'>
+                                <FormLabel>
+                                    Book Type <span className='text-red-500'>*</span>
+                                </FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value || undefined}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select Book Type' />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        <SelectItem value='Issue'>Issue</SelectItem>
+                                        <SelectItem value='Reference'>Reference</SelectItem>
+                                        <SelectItem value='Both'>Both</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                ) : (
+                    <FormField
+                        control={form.control}
                         name='categoryId'
                         render={({ field }) => (
                             <FormItem className='flex flex-col'>
@@ -133,43 +158,16 @@ export const CirculationParameterForm = ({
                                         const category = categoryList.find((c: any) => c.lmC_Id === Number(val));
                                         if (category) setValue('categoryName', category.lmC_CategoryName);
                                     }}
-                                    value={field.value?.toString()}>
+                                    value={field.value ? String(field.value) : undefined}>
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder='Select Category' />
+                                            <SelectValue placeholder='Select Category Name' />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
                                         {categoryList.map((c: any) => (
-                                            <SelectItem key={c.lmC_Id} value={c.lmC_Id.toString()}>
+                                            <SelectItem key={c.lmC_Id} value={String(c.lmC_Id)}>
                                                 {c.lmC_CategoryName}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                ) : (
-                    <FormField
-                        control={form.control}
-                        name='bookType'
-                        render={({ field }) => (
-                            <FormItem className='flex flex-col'>
-                                <FormLabel>
-                                    Book Type <span className='text-red-500'>*</span>
-                                </FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                    <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder='Select Book Type' />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        {bookTypeList.map((b: any) => (
-                                            <SelectItem key={b.lmB_BookType} value={b.lmB_BookType}>
-                                                {b.lmB_BookType}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -190,7 +188,7 @@ export const CirculationParameterForm = ({
                                 <FormLabel>
                                     Class <span className='text-red-500'>*</span>
                                 </FormLabel>
-                                <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                                <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value ? String(field.value) : undefined}>
                                     <FormControl>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Class' />
@@ -198,7 +196,7 @@ export const CirculationParameterForm = ({
                                     </FormControl>
                                     <SelectContent>
                                         {classList.map((c: any) => (
-                                            <SelectItem key={c.asmcL_Id} value={c.asmcL_Id.toString()}>
+                                            <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
                                                 {c.asmcL_ClassName}
                                             </SelectItem>
                                         ))}
@@ -219,7 +217,7 @@ export const CirculationParameterForm = ({
                                 <FormLabel>
                                     Employee Group <span className='text-red-500'>*</span>
                                 </FormLabel>
-                                <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                                <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value ? String(field.value) : undefined}>
                                     <FormControl>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Employee Group' />
@@ -227,7 +225,7 @@ export const CirculationParameterForm = ({
                                     </FormControl>
                                     <SelectContent>
                                         {employeeGroupList.map((e: any) => (
-                                            <SelectItem key={e.hrmgT_Id} value={e.hrmgT_Id.toString()}>
+                                            <SelectItem key={e.hrmgT_Id} value={String(e.hrmgT_Id)}>
                                                 {e.hrmgT_EmployeeGroupType}
                                             </SelectItem>
                                         ))}
@@ -248,7 +246,7 @@ export const CirculationParameterForm = ({
                                 <FormLabel>
                                     Department <span className='text-red-500'>*</span>
                                 </FormLabel>
-                                <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                                <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value ? String(field.value) : undefined}>
                                     <FormControl>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Department' />
@@ -256,7 +254,7 @@ export const CirculationParameterForm = ({
                                     </FormControl>
                                     <SelectContent>
                                         {departmentList.map((d: any) => (
-                                            <SelectItem key={d.hrmD_Id} value={d.hrmD_Id.toString()}>
+                                            <SelectItem key={d.hrmD_Id} value={String(d.hrmD_Id)}>
                                                 {d.hrmD_DepartmentName}
                                             </SelectItem>
                                         ))}
@@ -277,7 +275,7 @@ export const CirculationParameterForm = ({
                                 <FormLabel>
                                     Guest Name <span className='text-red-500'>*</span>
                                 </FormLabel>
-                                <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                                <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value ? String(field.value) : undefined}>
                                     <FormControl>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Guest' />
@@ -285,7 +283,7 @@ export const CirculationParameterForm = ({
                                     </FormControl>
                                     <SelectContent>
                                         {guestList.map((g: any) => (
-                                            <SelectItem key={g.guest_Id} value={g.guest_Id.toString()}>
+                                            <SelectItem key={g.guest_Id} value={String(g.guest_Id)}>
                                                 {g.guest_Name}
                                             </SelectItem>
                                         ))}

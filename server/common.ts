@@ -1136,188 +1136,188 @@ export async function getUserAccessibleModules() {
                                         //     description: 'SophiaStudentParticulars'
                                         // }
                                     ]
+                                },
+                                {
+                                    id: 16,
+                                    name: 'St. Thomas Church School',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 61,
+                                            name: 'St. Thomas Admission Form',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/stthomas/admission-form',
+                                            title: 'St. Thomas Admission Form',
+                                            description: 'St. Thomas Admission Form'
+                                        },
+                                        {
+                                            id: 62,
+                                            name: 'Total Strength',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/STCS/total-strength',
+                                            title: 'Total Strength',
+                                            description: 'Total Strength'
+                                        },
+                                        {
+                                            id: 63,
+                                            name: 'St. Thomas TC Custom Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/stthomas/reports/stthomas-tc-custom-report',
+                                            title: 'St. Thomas TC Custom Report',
+                                            description: 'St. Thomas TC Custom Report'
+                                        }
+                                    ]
+                                },
+
+                                {
+                                    id: 17,
+                                    name: 'Samartha',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 71,
+                                            name: 'SamarthaBonafideCertificate',
+                                            icon: 'Settings',
+                                            url: '/admission/samartha/reports/SamarthaBonafideCertificate',
+                                            title: 'Samartha Bonafide Certificate',
+                                            description: 'Samartha Bonafide Certificate'
+                                        },
+                                        {
+                                            id: 72,
+                                            name: 'SamarthaTC',
+                                            icon: 'Settings',
+                                            url: '/admission/samartha/reports/SamarthaTC',
+                                            title: 'SamarthaTC',
+                                            description: 'SamarthaTC'
+                                        },
+                                        {
+                                            id: 73,
+                                            name: 'OverAllViewReportt',
+                                            icon: 'Settings',
+                                            url: '/admission/samartha/reports/Over-All-View-Reportt',
+                                            title: 'OverAllViewReportt',
+                                            description: 'OverAllViewReportt'
+                                        }
+                                    ]
+                                },
+
+                                {
+                                    id: 18,
+                                    name: 'Danvantari Phisiotheraphy',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 71,
+                                            name: 'DCPS Bonified Certificate',
+                                            icon: 'Settings',
+                                            url: '/admission/Danvantari/reports/DCPS_BonifiedCertificate',
+                                            title: 'DCPS Bonified Certificate',
+                                            description: 'Bonified Certificate'
+                                        },
+                                        {
+                                            id: 72,
+                                            name: 'DCPS Transfer Certificate',
+                                            icon: 'Settings',
+                                            url: '/admission/Danvantari/reports/DCPS_TransferCertificate',
+                                            title: 'DCPS Transfer Certificate',
+                                            description: 'DCPS Transfer Certificate'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 19,
+                                    name: 'SRKVS',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 74,
+                                            name: 'SRKVS Student Address Book',
+                                            icon: 'Settings',
+                                            url: '/admission/srkvs/reports/SRKVSStudentAddressBook',
+                                            title: 'SRKVSStudentAddressBook',
+                                            description: 'SRKVSStudentAddressBook'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 20,
+                                    name: 'St. Peters School Durgapur',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 74,
+                                            name: 'Employee IDcard Report STpeter',
+                                            icon: 'Settings',
+                                            url: '/admission/stpeter/reports/EmployeeIDcardReportSTpeter',
+                                            title: 'EmployeeIDcardReportSTpeter',
+                                            description: 'EmployeeIDcardReportSTpeter'
+                                        },
+
+                                        {
+                                            id: 75,
+                                            name: 'Student IDcard Report STPeter',
+                                            icon: 'Settings',
+                                            url: '/admission/stpeter/reports/StudentIDcardReportSTPeter',
+                                            title: 'StudentIDcardReportSTPeter',
+                                            description: 'StudentIDcardReportSTPeter'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 21,
+                                    name: 'GNANA DEEPA ACADEMY RESIDENTIAL SCHOOL',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 74,
+                                            name: 'GDARSStudyCertificate',
+                                            icon: 'Settings',
+                                            url: '/admission/gnanadeepa/reports/GDARSStudyCertificate',
+                                            title: 'GDARSStudyCertificate',
+                                            description: 'GDARSStudyCertificate'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 22,
+                                    name: 'SMS degree college',
+                                    icon: 'Settings',
+                                    pages: [
+                                        //Need to create UI
+                                        // {
+                                        //     id: 74,
+                                        //     name: 'SMSCollegeStudentTc',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/sms/transaction/SMSCollegeStudentTc',
+                                        //     title: 'SMSCollegeStudentTc',
+                                        //     description: 'SMSCollegeStudentTc'
+                                        // },
+
+                                        {
+                                            id: 75,
+                                            name: 'SMSCConductCertificate',
+                                            icon: 'Settings',
+                                            url: '/admission/sms/reports/SMSCConductCertificate',
+                                            title: 'SMSCConductCertificate',
+                                            description: 'SMSCConductCertificate'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 23,
+                                    name: 'GM Vidya Nikethan School',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 75,
+                                            name: 'Smartcarddetails',
+                                            icon: 'Settings',
+                                            url: '/admission/GMVPS/reports/Smartcarddetails',
+                                            title: 'Smartcarddetails',
+                                            description: 'Smartcarddetails'
+                                        }
+                                    ]
                                 }
-                                // {
-                                //     id: 16,
-                                //     name: 'St. Thomas Church School',
-                                //     icon: 'Settings',
-                                //     pages: [
-                                //         {
-                                //             id: 61,
-                                //             name: 'St. Thomas Admission Form',
-                                //             icon: 'Settings',
-                                //             url: '/admission/preadmission/stthomas/admission-form',
-                                //             title: 'St. Thomas Admission Form',
-                                //             description: 'St. Thomas Admission Form'
-                                //         },
-                                //         {
-                                //             id: 62,
-                                //             name: 'Total Strength',
-                                //             icon: 'Settings',
-                                //             url: '/admission/preadmission/reports/STCS/total-strength',
-                                //             title: 'Total Strength',
-                                //             description: 'Total Strength'
-                                //         },
-                                //         {
-                                //             id: 63,
-                                //             name: 'St. Thomas TC Custom Report',
-                                //             icon: 'Settings',
-                                //             url: '/admission/preadmission/stthomas/reports/stthomas-tc-custom-report',
-                                //             title: 'St. Thomas TC Custom Report',
-                                //             description: 'St. Thomas TC Custom Report'
-                                //         }
-                                //     ]
-                                // },
-
-                                // {
-                                //     id: 17,
-                                //     name: 'Samartha',
-                                //     icon: 'Settings',
-                                //     pages: [
-                                //         {
-                                //             id: 71,
-                                //             name: 'SamarthaBonafideCertificate',
-                                //             icon: 'Settings',
-                                //             url: '/admission/samartha/reports/SamarthaBonafideCertificate',
-                                //             title: 'Samartha Bonafide Certificate',
-                                //             description: 'Samartha Bonafide Certificate'
-                                //         },
-                                //         {
-                                //             id: 72,
-                                //             name: 'SamarthaTC',
-                                //             icon: 'Settings',
-                                //             url: '/admission/samartha/reports/SamarthaTC',
-                                //             title: 'SamarthaTC',
-                                //             description: 'SamarthaTC'
-                                //         },
-                                //         {
-                                //             id: 73,
-                                //             name: 'OverAllViewReportt',
-                                //             icon: 'Settings',
-                                //             url: '/admission/samartha/reports/Over-All-View-Reportt',
-                                //             title: 'OverAllViewReportt',
-                                //             description: 'OverAllViewReportt'
-                                //         }
-                                //     ]
-                                // },
-
-                                // {
-                                //     id: 18,
-                                //     name: 'Danvantari Phisiotheraphy',
-                                //     icon: 'Settings',
-                                //     pages: [
-                                //         {
-                                //             id: 71,
-                                //             name: 'DCPS Bonified Certificate',
-                                //             icon: 'Settings',
-                                //             url: '/admission/Danvantari/reports/DCPS_BonifiedCertificate',
-                                //             title: 'DCPS Bonified Certificate',
-                                //             description: 'Bonified Certificate'
-                                //         },
-                                //         {
-                                //             id: 72,
-                                //             name: 'DCPS Transfer Certificate',
-                                //             icon: 'Settings',
-                                //             url: '/admission/Danvantari/reports/DCPS_TransferCertificate',
-                                //             title: 'DCPS Transfer Certificate',
-                                //             description: 'DCPS Transfer Certificate'
-                                //         }
-                                //     ]
-                                // },
-                                // {
-                                //     id: 19,
-                                //     name: 'SRKVS',
-                                //     icon: 'Settings',
-                                //     pages: [
-                                //         {
-                                //             id: 74,
-                                //             name: 'SRKVS Student Address Book',
-                                //             icon: 'Settings',
-                                //             url: '/admission/srkvs/reports/SRKVSStudentAddressBook',
-                                //             title: 'SRKVSStudentAddressBook',
-                                //             description: 'SRKVSStudentAddressBook'
-                                //         }
-                                //     ]
-                                // },
-                                // {
-                                //     id: 20,
-                                //     name: 'St. Peters School Durgapur',
-                                //     icon: 'Settings',
-                                //     pages: [
-                                //         {
-                                //             id: 74,
-                                //             name: 'Employee IDcard Report STpeter',
-                                //             icon: 'Settings',
-                                //             url: '/admission/stpeter/reports/EmployeeIDcardReportSTpeter',
-                                //             title: 'EmployeeIDcardReportSTpeter',
-                                //             description: 'EmployeeIDcardReportSTpeter'
-                                //         },
-
-                                //         {
-                                //             id: 75,
-                                //             name: 'Student IDcard Report STPeter',
-                                //             icon: 'Settings',
-                                //             url: '/admission/stpeter/reports/StudentIDcardReportSTPeter',
-                                //             title: 'StudentIDcardReportSTPeter',
-                                //             description: 'StudentIDcardReportSTPeter'
-                                //         }
-                                //     ]
-                                // },
-                                // {
-                                //     id: 21,
-                                //     name: 'GNANA DEEPA ACADEMY RESIDENTIAL SCHOOL',
-                                //     icon: 'Settings',
-                                //     pages: [
-                                //         {
-                                //             id: 74,
-                                //             name: 'GDARSStudyCertificate',
-                                //             icon: 'Settings',
-                                //             url: '/admission/gnanadeepa/reports/GDARSStudyCertificate',
-                                //             title: 'GDARSStudyCertificate',
-                                //             description: 'GDARSStudyCertificate'
-                                //         }
-                                //     ]
-                                // },
-                                // {
-                                //     id: 22,
-                                //     name: 'SMS degree college',
-                                //     icon: 'Settings',
-                                //     pages: [
-                                //         //Need to create UI
-                                //         // {
-                                //         //     id: 74,
-                                //         //     name: 'SMSCollegeStudentTc',
-                                //         //     icon: 'Settings',
-                                //         //     url: '/admission/sms/transaction/SMSCollegeStudentTc',
-                                //         //     title: 'SMSCollegeStudentTc',
-                                //         //     description: 'SMSCollegeStudentTc'
-                                //         // },
-
-                                //         {
-                                //             id: 75,
-                                //             name: 'SMSCConductCertificate',
-                                //             icon: 'Settings',
-                                //             url: '/admission/sms/reports/SMSCConductCertificate',
-                                //             title: 'SMSCConductCertificate',
-                                //             description: 'SMSCConductCertificate'
-                                //         }
-                                //     ]
-                                // },
-                                // {
-                                //     id: 23,
-                                //     name: 'GM Vidya Nikethan School',
-                                //     icon: 'Settings',
-                                //     pages: [
-                                //         {
-                                //             id: 75,
-                                //             name: 'Smartcarddetails',
-                                //             icon: 'Settings',
-                                //             url: '/admission/GMVPS/reports/Smartcarddetails',
-                                //             title: 'Smartcarddetails',
-                                //             description: 'Smartcarddetails'
-                                //         }
-                                //     ]
-                                // }
                             ]
                         }
                     ]
@@ -3038,7 +3038,7 @@ export async function getUserAccessibleModules() {
                                             id: 21050,
                                             name: 'NDS_Co_Scholasticreport',
                                             icon: 'Ticket',
-                                            url: '/Exam/exam-module/reports/nds/NDS_Co_Scholasticreport',
+                                            url: '/Exam/exam-module/reports/NDS/NDS_Co_Scholasticreport',
                                             title: 'NDS_Co_Scholasticreport',
                                             description: 'NDS_Co_Scholasticreport'
                                         },
@@ -3046,7 +3046,7 @@ export async function getUserAccessibleModules() {
                                             id: 21051,
                                             name: 'NDS_I_To_VIII_ReportCard',
                                             icon: 'Ticket',
-                                            url: '/Exam/exam-module/reports/nds/NDS_I_To_VIII_ReportCard',
+                                            url: '/Exam/exam-module/reports/NDS/NDS_I_To_VIII_ReportCard',
                                             title: 'NDS_I_To_VIII_ReportCard',
                                             description: 'NDS_I_To_VIII_ReportCard'
                                         },
@@ -3119,7 +3119,7 @@ export async function getUserAccessibleModules() {
                                             id: 21044,
                                             name: 'NDS_9_ProgressNewCardReport',
                                             icon: 'Ticket',
-                                            url: '/Exam/exam-module/reports/nds/NDS_9_ProgressNewCardReport',
+                                            url: '/Exam/exam-module/reports/NDS/NDS_9_ProgressNewCardReport',
                                             title: 'NDS_9_ProgressNewCardReport',
                                             description: 'NDS_9_ProgressNewCardReport'
                                         },
@@ -3127,7 +3127,7 @@ export async function getUserAccessibleModules() {
                                             id: 21046,
                                             name: 'NDS_9_ProgressCardReport',
                                             icon: 'Ticket',
-                                            url: '/Exam/exam-module/reports/nds/NDS_9_ProgressCardReport',
+                                            url: '/Exam/exam-module/reports/NDS/NDS_9_ProgressCardReport',
                                             title: 'NDS_9_ProgressCardReport',
                                             description: 'NDS_9_ProgressCardReport'
                                         },
@@ -3135,7 +3135,7 @@ export async function getUserAccessibleModules() {
                                             id: 21047,
                                             name: 'NDS_1_5_ProgressCardReport',
                                             icon: 'Ticket',
-                                            url: '/Exam/exam-module/reports/nds/NDS_1_5_ProgressCardReport',
+                                            url: '/Exam/exam-module/reports/NDS/NDS_1_5_ProgressCardReport',
                                             title: 'NDS_1_5_ProgressCardReport',
                                             description: 'NDS_1_5_ProgressCardReport'
                                         },
@@ -3143,7 +3143,7 @@ export async function getUserAccessibleModules() {
                                             id: 21045,
                                             name: 'NDS Promotion Report Card',
                                             icon: 'Ticket',
-                                            url: '/Exam/exam-module/reports/nds/NDS_Promotionreportcard',
+                                            url: '/Exam/exam-module/reports/NDS/NDS_Promotionreportcard',
                                             title: 'NDS Promotion Report Card',
                                             description: 'NDS Promotion Report Card'
                                         },
@@ -3159,7 +3159,7 @@ export async function getUserAccessibleModules() {
                                             id: 21047,
                                             name: 'NDS_9 Progress Card Report',
                                             icon: 'FileText',
-                                            url: '/Exam/exam-module/reports/nds/NDS9ProgressCardReport',
+                                            url: '/Exam/exam-module/reports/NDS/NDS9ProgressCardReport',
                                             title: 'NDS_9 Progress Card Report',
                                             description: 'NDS 9 Progress Card Report'
                                         },
@@ -3259,7 +3259,7 @@ export async function getUserAccessibleModules() {
                                             description: 'XI-XII St.James Progress Card'
                                         },
                                         {
-                                            id: 21505,
+                                            id: 21210,
                                             name: 'BRS PreBoard Report Card',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/Burnpur/BRS_PreBoard_reportcard',
@@ -3267,12 +3267,108 @@ export async function getUserAccessibleModules() {
                                             description: 'BRS PreBoard Report Card'
                                         },
                                         {
-                                            id: 21506,
+                                            id: 21211,
                                             name: 'Calcutta Promotion Report I-IV',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportI_IV',
                                             title: 'Calcutta Promotion Report I-IV',
                                             description: 'Calcutta Promotion Report I-IV'
+                                        },
+                                        {
+                                            id: 21507,
+                                            name: 'Rainbow Progress Card',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/RainBow/RainBow_ProgressCardReport',
+                                            title: 'Rainbow Progress Card',
+                                            description: 'Rainbow Progress Card'
+                                        },
+                                        {
+                                            id: 21508,
+                                            name: 'GMVPS Promotion Report Card',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/GMVPS/PromotionReportCard',
+                                            title: 'GMVPS Promotion Report Card',
+                                            description: 'GMVPS Promotion Report Card'
+                                        },
+                                        {
+                                            id: 21509,
+                                            name: 'GMGS Promotion Report Card',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/GMGS/PromotionReportCard',
+                                            title: 'GMGS Promotion Report Card',
+                                            description: 'GMGS Promotion Report Card'
+                                        },
+                                        {
+                                            id: 212111,
+                                            name: 'Calcutta Promotion Report I-V',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportI_V',
+                                            title: 'Calcutta Promotion Report I-V',
+                                            description: 'Calcutta Promotion Report I-V'
+                                        },
+                                        {
+                                            id: 21212,
+                                            name: 'Calcutta Promotion Report I-IX',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportI_IX',
+                                            title: 'Calcutta Promotion Report I-IX',
+                                            description: 'Calcutta Promotion Report I-IX'
+                                        },
+                                        {
+                                            id: 21213,
+                                            name: 'Calcutta Promotion Report IX-X',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportIX_X',
+                                            title: 'Calcutta Promotion Report IX-X',
+                                            description: 'Calcutta Promotion Report IX-X'
+                                        },
+                                        {
+                                            id: 21214,
+                                            name: 'St.James XI_XII Progress Card New',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/StJames/stjamesxi_xiiprogress-card-report-new',
+                                            title: 'St.James XI_XII Progress Card New',
+                                            description: 'St.James XI_XII Progress Card New'
+                                        },
+                                        {
+                                            id: 21215,
+                                            name: 'St.James Nursery Progress Card',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/StJames/Stjames-nursery-progresscard',
+                                            title: 'St.James Nursery Progress Card',
+                                            description: 'St.James Nursery Progress Card'
+                                        },
+                                        {
+                                            id: 21216,
+                                            name: 'St.James Transition Progress Card',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/StJames/stjames-transition-progress-card',
+                                            title: 'St.James Transition Progress Card',
+                                            description: 'St.James Transition Progress Card'
+                                        },
+                                        {
+                                            id: 21217,
+                                            name: 'St.James I-III Progress Card',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/StJames/stjamesi_iii_progress-card-report',
+                                            title: 'St.James I-III Progress Card',
+                                            description: 'St.James I-III Progress Card'
+                                        },
+                                        {
+                                            id: 21218,
+                                            name: 'St.James Consolidated Points Report',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/StJames/stjames-consolidated-points-report',
+                                            title: 'St.James Consolidated Points Report',
+                                            description: 'St.James Consolidated Points Report'
+                                        },
+                                        {
+                                            id: 21507,
+                                            name: 'NDS Final Report Card',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/NDS/FinalNdasReportCard',
+                                            title: 'NDS Final Report Card',
+                                            description: 'NDS Final Report Card'
                                         }
                                     ]
                                 }
