@@ -6,13 +6,12 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
 import {
     useActivePreadmissionDetails,
     useDocumentView,
-    usePreadmissionClassDropdown,
     usePreadmissionDocumentsDropdown
 } from '@/hooks/admission/preadmission/useTransactions';
+import { useScheduleReportInitialDetails } from '@/hooks/admission/preadmission/useReports';
 import type { IPreadmissionDocumentView } from '@/types/admission/preadmission/transactions';
 import { CheckSquare } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -29,9 +28,18 @@ export default function DocumentView(props: { searchParams: SearchParams }) {
     const tableRef = useRef<DataTableRef>(null);
 
     const { data: activePreadmission } = useActivePreadmissionDetails();
-    const { data: classOptions, isLoading: classLoading, isError: classError } = usePreadmissionClassDropdown();
-    const { data: academicYearOptions, isLoading: academicYearLoading, isError: academicYearError } = useAcademicYearDropdown();
+    const { data: initialDetails, isLoading: initialDetailsLoading, isError: initialDetailsError } = useScheduleReportInitialDetails();
     const { data: masterDocs } = usePreadmissionDocumentsDropdown();
+
+    console.log('initialDetails', {
+        data: initialDetails,
+        isLoading: initialDetailsLoading,
+        isError: initialDetailsError
+    });
+
+    console.log('masterDocs', {
+        data: masterDocs
+    });
 
     // Filters
     const [classId, setClassId] = useState(0);
@@ -51,10 +59,10 @@ export default function DocumentView(props: { searchParams: SearchParams }) {
 
     // Auto-select first academic year when options load so details populate
     useEffect(() => {
-        if ((academicYearId ?? 0) === 0 && academicYearOptions?.data && academicYearOptions.data.length > 0) {
-            setAcademicYearId(Number(academicYearOptions.data[0].asmaY_Id));
+        if ((academicYearId ?? 0) === 0 && initialDetails?.year && initialDetails.year.length > 0) {
+            setAcademicYearId(Number(initialDetails.year[0].asmaY_Id));
         }
-    }, [academicYearOptions]);
+    }, [initialDetails]);
 
     // When academic year changes, ensure students data is fetched immediately
     useEffect(() => {
@@ -129,7 +137,14 @@ export default function DocumentView(props: { searchParams: SearchParams }) {
         }
 
         // Reset to page 1 when filter changes
-        const params = new URLSearchParams(searchParams as any);
+        const params = new URLSearchParams();
+        if (searchParams) {
+            Object.entries(searchParams).forEach(([key, value]) => {
+                if (value !== undefined) {
+                    params.set(key, String(value));
+                }
+            });
+        }
         params.set('page', '1');
         router.replace(`${pathname}?${params.toString()}`);
     };
@@ -154,16 +169,16 @@ export default function DocumentView(props: { searchParams: SearchParams }) {
                                 <SelectValue placeholder='Select Academic Year' />
                             </SelectTrigger>
                             <SelectContent>
-                                {academicYearLoading ? (
+                                {initialDetailsLoading ? (
                                     <SelectItem value='loading' disabled>
                                         Loading...
                                     </SelectItem>
-                                ) : academicYearError ? (
+                                ) : initialDetailsError ? (
                                     <SelectItem value='error' disabled>
                                         Error loading
                                     </SelectItem>
                                 ) : (
-                                    academicYearOptions?.data?.map((item) => (
+                                    initialDetails?.year?.map((item) => (
                                         <SelectItem key={item.asmaY_Id} value={String(item.asmaY_Id)}>
                                             {item.asmaY_Year}
                                         </SelectItem>
@@ -188,16 +203,16 @@ export default function DocumentView(props: { searchParams: SearchParams }) {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value='0'>All</SelectItem>
-                                {classLoading ? (
+                                {initialDetailsLoading ? (
                                     <SelectItem value='loading' disabled>
                                         Loading...
                                     </SelectItem>
-                                ) : classError ? (
+                                ) : initialDetailsError ? (
                                     <SelectItem value='error' disabled>
                                         Error loading
                                     </SelectItem>
                                 ) : (
-                                    classOptions?.data?.map((item) => (
+                                    initialDetails?.classname?.map((item) => (
                                         <SelectItem key={item.asmcL_Id} value={String(item.asmcL_Id)}>
                                             {item.asmcL_ClassName}
                                         </SelectItem>
