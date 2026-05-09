@@ -5,13 +5,11 @@ import { useFeeClassListDefaulterreport, useFeeSectionListDefaulterreport } from
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
-import { Checkbox } from '@/components/ui/checkbox';
 import { FormError } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { feeClassWiseDueListReportSophia } from '@/schemas/fees/reports';
 import { feeClassWiseDueListreportSophia } from '@/server/fees/reports/sophia_reports';
 import type { IFeeClassDropdownList, IFeeSectionDropdownList } from '@/types/fees/reports/reports';
@@ -21,6 +19,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
+import { exportToExcel } from './excelandprint';
 
 type FormFields = z.infer<typeof feeClassWiseDueListReportSophia>;
 
@@ -45,10 +44,6 @@ export interface IFeeClassWiseDueListReportofSophia {
 }
 
 // Group key interface
-interface IGroupKey {
-    className: string;
-    sectionName: string;
-}
 
 export default function FeeClassWiseDueListReportofSophia() {
     const {
@@ -86,7 +81,7 @@ export default function FeeClassWiseDueListReportofSophia() {
     const [classes, setClasses] = useState<IFeeClassDropdownList[]>([]);
     const [sections, setSections] = useState<IFeeSectionDropdownList[]>([]);
     const [reportData, setReportData] = useState<IFeeClassWiseDueListReportofSophia[]>([]);
-    const [selectedIds, setSelectedIds] = useState<number[]>([]);
+    // const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
     const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
 
@@ -178,12 +173,12 @@ export default function FeeClassWiseDueListReportofSophia() {
 
     useEffect(() => {
         setReportData([]);
-        setSelectedIds([]);
+        // setSelectedIds([]);
     }, [selctedAcademicYearId, selectedClassId, selectedSectionId, selectedTermId, classWiseChecked, dateWiseChecked, termWiseChecked]);
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         setReportData([]);
-        setSelectedIds([]);
+        // setSelectedIds([]);
         if (data.active === false && data.deactive === false && data.left === false) {
             toast.error('Please Select Any One CheckBox Active or Deactive or Left ..');
             return;
@@ -215,26 +210,26 @@ export default function FeeClassWiseDueListReportofSophia() {
         }
     };
 
-    const toggleAllstudents = () => {
-        if (selectedIds.length === reportData.length) {
-            setSelectedIds([]);
-        } else {
-            setSelectedIds(reportData.map((r) => r.id));
-        }
-    };
+    // const toggleAllstudents = () => {
+    //     if (selectedIds.length === reportData.length) {
+    //         setSelectedIds([]);
+    //     } else {
+    //         setSelectedIds(reportData.map((r) => r.id));
+    //     }
+    // };
 
-    const toggleRow = (id: number) => {
-        setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-    };
+    // const toggleRow = (id: number) => {
+    //     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+    // };
 
-    const toggleAllInGroup = (studentIds: number[]) => {
-        const allSelected = studentIds.every((id) => selectedIds.includes(id));
-        if (allSelected) {
-            setSelectedIds((prev) => prev.filter((id) => !studentIds.includes(id)));
-        } else {
-            setSelectedIds((prev) => [...prev, ...studentIds.filter((id) => !prev.includes(id))]);
-        }
-    };
+    // const toggleAllInGroup = (studentIds: number[]) => {
+    //     const allSelected = studentIds.every((id) => selectedIds.includes(id));
+    //     if (allSelected) {
+    //         setSelectedIds((prev) => prev.filter((id) => !studentIds.includes(id)));
+    //     } else {
+    //         setSelectedIds((prev) => [...prev, ...studentIds.filter((id) => !prev.includes(id))]);
+    //     }
+    // };
 
     const formatDate = (date: Date) => {
         return date.toLocaleDateString('en-GB', {
@@ -243,7 +238,234 @@ export default function FeeClassWiseDueListReportofSophia() {
             year: 'numeric'
         });
     };
+    const handleExport = () => {
+        exportToExcel(groupedReportData, 'Fee Class Wise Due List Report');
+    };
 
+    // Update your printTable function to handle grouped data
+    const handlePrint = () => {
+        // Create a print window with the grouped report structure
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) {
+            alert('Please allow pop-ups to print the report');
+            return;
+        }
+
+        const currentDate = new Date().toLocaleDateString();
+
+        // Build HTML content for printing
+        let printContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Fee Class Wise Due List Report</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    margin: 20px;
+                    padding: 0;
+                }
+                .header {
+                    text-align: center;
+                    margin-bottom: 30px;
+                }
+                .header h1 {
+                    margin: 0;
+                    color: #1e40af;
+                }
+                .header p {
+                    margin: 5px 0;
+                    color: #666;
+                }
+                .date {
+                    text-align: right;
+                    margin-bottom: 20px;
+                    font-size: 12px;
+                }
+                .group-section {
+                    margin-bottom: 40px;
+                    page-break-after: avoid;
+                }
+                .group-header {
+                    background-color: #f3f4f6;
+                    padding: 10px;
+                    border: 1px solid #d1d5db;
+                    border-bottom: 2px solid #1e40af;
+                    margin-top: 20px;
+                }
+                .group-title {
+                    font-size: 18px;
+                    font-weight: bold;
+                    color: #1e40af;
+                    margin: 0;
+                }
+                .group-info {
+                    font-size: 14px;
+                    color: #6b7280;
+                    margin: 5px 0 0 0;
+                }
+                .group-totals {
+                    text-align: right;
+                    font-size: 14px;
+                }
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-top: 10px;
+                }
+                th {
+                    background-color: #374151;
+                    color: white;
+                    padding: 8px;
+                    border: 1px solid #d1d5db;
+                    text-align: center;
+                    font-size: 12px;
+                }
+                td {
+                    padding: 6px;
+                    border: 1px solid #d1d5db;
+                    font-size: 12px;
+                }
+                .text-left {
+                    text-align: left;
+                }
+                .text-center {
+                    text-align: center;
+                }
+                .text-right {
+                    text-align: right;
+                }
+                .font-bold {
+                    font-weight: bold;
+                }
+                .bg-gray-100 {
+                    background-color: #f3f4f6;
+                }
+                .tfoot-row {
+                    background-color: #f3f4f6;
+                    font-weight: bold;
+                }
+                .page-break {
+                    page-break-before: always;
+                }
+                @media print {
+                    body {
+                        margin: 0;
+                        padding: 10px;
+                    }
+                    .group-section {
+                        page-break-inside: avoid;
+                    }
+                    th {
+                        background-color: #374151 !important;
+                        color: white !important;
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                    }
+                    .group-header {
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                    }
+                    .tfoot-row {
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                    }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>Fee Class Wise Due List Report</h1>
+                <p>Generated on: ${currentDate}</p>
+            </div>
+    `;
+
+        // Loop through each group
+        groupedReportData.forEach((group, groupIndex) => {
+            const groupTotals = calculateGroupTotals(group.students);
+
+            printContent += `
+            <div class="group-section">
+                <div class="group-header">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div class="group-title">
+                                Class: ${group.className}
+                                ${group.sectionName !== 'No Section' ? ` - Division ${group.sectionName}` : ''}
+                            </div>
+                            <div class="group-info">
+                                Total Students: ${group.students.length}
+                            </div>
+                        </div>
+                        <div class="group-totals">
+                            <div><strong>Group Total Due:</strong> ₹${groupTotals.totalDue.toLocaleString()}</div>
+                            <div><strong>Fine:</strong> ₹${groupTotals.totalFine.toLocaleString()}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="text-center" width="50">Sl No</th>
+                            <th class="text-left" width="100">Admission No</th>
+                            <th class="text-left" width="150">Student Name</th>
+                            <th class="text-left" width="120">Term</th>
+                            <th class="text-right" width="130">Due amount till ${currentDate}</th>
+                            <th class="text-right" width="130">Fine amount till ${currentDate}</th>
+                            <th class="text-right" width="130">Total due amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+            // Add student rows
+            group.students.forEach((row, idx) => {
+                printContent += `
+                        <tr class="${idx % 2 === 0 ? '' : 'bg-gray-100'}">
+                            <td class="text-center">${idx + 1}</td>
+                            <td class="text-left">${row.amsT_AdmNo || '-'}</td>
+                            <td class="text-left font-bold">${row.studentName || '-'}</td>
+                            <td class="text-left">${row.fmT_Name || '-'}</td>
+                            <td class="text-right">₹${(row.balance || 0).toLocaleString()}</td>
+                            <td class="text-right">₹${(row.fine || 0).toLocaleString()}</td>
+                            <td class="text-right font-bold">₹${(row.totalDue || 0).toLocaleString()}</td>
+                        </tr>
+            `;
+            });
+
+            // Add group totals row
+            printContent += `
+                    </tbody>
+                    <tfoot>
+                        <tr class="tfoot-row">
+                            <td colspan="4" class="text-right font-bold">Group Total:</td>
+                            <td class="text-right font-bold">₹${groupTotals.totalBalance.toLocaleString()}</td>
+                            <td class="text-right font-bold">₹${groupTotals.totalFine.toLocaleString()}</td>
+                            <td class="text-right font-bold">₹${groupTotals.totalDue.toLocaleString()}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        `;
+
+            // Add page break between groups (except after the last group)
+            if (groupIndex < groupedReportData.length - 1) {
+                printContent += `<div class="page-break"></div>`;
+            }
+        });
+
+        printContent += `
+        </body>
+        </html>
+    `;
+
+        // Write to print window and print
+        printWindow.document.write(printContent);
+        printWindow.document.close();
+        printWindow.focus();
+        printWindow.print();
+    };
     return (
         <div className='min-h-screen bg-gray-50 py-8'>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-8'>
@@ -588,10 +810,14 @@ export default function FeeClassWiseDueListReportofSophia() {
                                                         </p>
                                                     </div>
                                                     <div className='flex gap-3'>
-                                                        <Button size='sm' className='h-8 w-auto px-3 text-xs'>
+                                                        <Button size='sm' className='h-8 w-auto px-3 text-xs' onClick={handleExport}>
                                                             Export Excel
                                                         </Button>
-                                                        <Button size='sm' variant='outline' className='h-8 w-auto px-3 text-xs'>
+                                                        <Button
+                                                            size='sm'
+                                                            variant='outline'
+                                                            className='h-8 w-auto px-3 text-xs'
+                                                            onClick={handlePrint}>
                                                             Print
                                                         </Button>
                                                     </div>
@@ -599,10 +825,10 @@ export default function FeeClassWiseDueListReportofSophia() {
 
                                                 <div className='px-8 pb-8'>
                                                     {/* Render each group */}
-                                                    {groupedReportData.map((group, groupIndex) => {
+                                                    {groupedReportData.map((group) => {
                                                         const groupTotals = calculateGroupTotals(group.students);
-                                                        const studentIds = group.students.map((s) => s.id);
-                                                        const allSelectedInGroup = studentIds.every((id) => selectedIds.includes(id));
+                                                        // const studentIds = group.students.map((s) => s.id);
+                                                        // const allSelectedInGroup = studentIds.every((id) => selectedIds.includes(id));
 
                                                         return (
                                                             <div key={`${group.className}-${group.sectionName}`} className='mb-8'>
@@ -635,14 +861,14 @@ export default function FeeClassWiseDueListReportofSophia() {
                                                                     <table className='w-full border-collapse text-sm'>
                                                                         <thead className='bg-gray-200'>
                                                                             <tr>
-                                                                                <th className='w-10 p-2 text-center'>
+                                                                                {/* <th className='w-10 p-2 text-center'>
                                                                                     <Checkbox
                                                                                         checked={
                                                                                             allSelectedInGroup && group.students.length > 0
                                                                                         }
                                                                                         onCheckedChange={() => toggleAllInGroup(studentIds)}
                                                                                     />
-                                                                                </th>
+                                                                                </th> */}
                                                                                 <th className='w-16 border px-2 py-2 text-center font-semibold'>
                                                                                     Sl No
                                                                                 </th>
@@ -671,12 +897,12 @@ export default function FeeClassWiseDueListReportofSophia() {
                                                                                 <tr
                                                                                     key={row.id}
                                                                                     className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                                                                                    <td className='p-2 text-center'>
+                                                                                    {/* <td className='p-2 text-center'>
                                                                                         <Checkbox
                                                                                             checked={selectedIds.includes(row.id)}
                                                                                             onCheckedChange={() => toggleRow(row.id)}
                                                                                         />
-                                                                                    </td>
+                                                                                    </td> */}
                                                                                     <td className='border px-2 py-2 text-center'>
                                                                                         {idx + 1}
                                                                                     </td>
