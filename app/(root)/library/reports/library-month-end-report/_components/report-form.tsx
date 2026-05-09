@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLibraryMonthEndReportInitialData } from '@/hooks/library/reports/useLibraryMonthEndReport';
@@ -14,6 +15,7 @@ import * as z from 'zod';
 const formSchema = z.object({
     ASMAY_Id: z.preprocess((val) => Number(val), z.number().min(1, 'Academic Year is required')),
     IVRM_Month_Id: z.preprocess((val) => Number(val), z.number().min(1, 'Month is required')),
+    ieName: z.string().optional(),
     year: z.string().min(1, 'Year is required')
 });
 
@@ -64,7 +66,12 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
     }, [selectedAcademicYearId, initialData]);
 
     const onSubmit = (values: z.infer<typeof formSchema>) => {
-        onSearch(values);
+        onSearch({
+            ASMAY_Id: values.ASMAY_Id,
+            IVRM_Month_Id: values.IVRM_Month_Id,
+            year: values.year,
+            ieName: values.ieName || ''
+        });
     };
 
     return (
@@ -136,6 +143,27 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                         </div>
                     </div>
 
+                    {/* IE Name */}
+                    <div className='flex items-center gap-4'>
+                        <Label className='min-w-[150px] text-right font-medium text-sm'>
+                            IE Name:
+                        </Label>
+                        <div className='flex-1'>
+                            <Controller
+                                control={control}
+                                name='ieName'
+                                render={({ field }) => (
+                                    <Input
+                                        {...field}
+                                        value={field.value ?? ''}
+                                        placeholder='Enter IE Name'
+                                        className='w-full border-muted-foreground/30'
+                                    />
+                                )}
+                            />
+                        </div>
+                    </div>
+
                     {/* Year */}
                     <div className='flex items-center gap-4'>
                         <Label className='min-w-[150px] text-right font-medium text-sm'>
@@ -146,7 +174,7 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                                 control={control}
                                 name='year'
                                 render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value} disabled={yearsList.length === 0}>
+                                    <Select onValueChange={field.onChange} value={field.value}>
                                         <SelectTrigger className='w-full border-muted-foreground/30'>
                                             <SelectValue placeholder='Select' />
                                         </SelectTrigger>

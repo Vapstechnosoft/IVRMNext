@@ -23,15 +23,19 @@ export const columns: ColumnDef<IMasterCourseList>[] = [
     },
     {
         accessorKey: 'hrmC_QulaificationName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Qualification Name' className='whitespace-nowrap' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Qualification Name' className='whitespace-nowrap' />,
+        meta: { title: 'Qualification Name' }
     },
     {
         accessorKey: 'hrmC_QualificationDesc',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Description' className='whitespace-nowrap' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Description' className='whitespace-nowrap' />,
+        meta: { title: 'Qualification Description' }
     },
     {
         accessorKey: 'hrmC_Order',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Order' className='whitespace-nowrap' />,
+        meta: { title: 'Order' },
+        filterFn: 'equalsString',
         cell: ({ row }) => {
             const orderValue = row.original.hrmC_Order;
             return <div>{orderValue ?? '-'}</div>;
@@ -40,6 +44,7 @@ export const columns: ColumnDef<IMasterCourseList>[] = [
     {
         accessorKey: 'hrmC_DefaultQualFag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Default' className='whitespace-nowrap' />,
+        meta: { title: 'Default Qual', disableSearch: true },
         cell: ({ row }) => (
             <div className='flex justify-center'>
                 {row.original.hrmC_DefaultQualFag ? (
@@ -57,6 +62,7 @@ export const columns: ColumnDef<IMasterCourseList>[] = [
     {
         accessorKey: 'hrmC_SpecialisationFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Has Specialization' className='whitespace-nowrap' />,
+        meta: { title: 'Specialisation', disableSearch: true },
         cell: ({ row }) => (
             <div className='flex justify-center'>
                 {row.original.hrmC_SpecialisationFlag ? (
