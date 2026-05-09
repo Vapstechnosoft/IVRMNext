@@ -101,8 +101,8 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                 try {
                     setLoadingSections(true);
                     const response = await getSectionsDropDownByAcademicYearandClasslist(
-                        Number(watchClass),
-                        Number(watchYear)
+                        Number(watchYear),
+                        Number(watchClass)
                     );
                     if (response?.success && Array.isArray(response.data)) {
                         setSections(response.data);

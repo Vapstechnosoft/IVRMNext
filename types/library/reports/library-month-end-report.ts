@@ -2,6 +2,7 @@ export interface ILibraryMonthEndReportRequest {
     ASMAY_Id: number;
     IVRM_Month_Id: number;
     year: string;
+    ieName?: string;
     LMRA_Id?: number; // Optional Library ID
 }
 

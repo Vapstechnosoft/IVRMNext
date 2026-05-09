@@ -2,6 +2,7 @@
 
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
+import { getStJamesExamReport } from '@/server/exam/exam-module/reports/cumulative-report';
 import type { IMasterInstitution, Institution } from '@/types/exam/exam-module/report';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -9,7 +10,7 @@ import StJamesIX_XReportForm from './_components/report-form';
 import StJamesIxXReportList from './_components/report-list';
 
 export default function StellaProgressReportPage() {
-    const [reportData, _setReportData] = useState<any[]>([]);
+    const [reportData, _setReportData] = useState<any>(null);
     const [isReportVisible, setIsReportVisible] = useState(false);
     const [institution, setInstitution] = useState<IMasterInstitution | Institution | null>(null);
     const printRef = useRef<HTMLDivElement>(null);
@@ -20,8 +21,18 @@ export default function StellaProgressReportPage() {
         }
     });
 
-    const handleReportSuccess = async (_payload: any) => {
-        setIsReportVisible(true);
+    const handleReportSuccess = async (payload: any) => {
+        try {
+            const response = await getStJamesExamReport(payload);
+            if (response?.data) {
+                _setReportData({ ...response.data, year: payload.asmaY_Id, displayAttendance: payload.displayAttendance });
+                setIsReportVisible(true);
+            } else {
+                toast.error('No data found');
+            }
+        } catch (error) {
+            toast.error('Failed to generate report');
+        }
     };
 
     useEffect(() => {
