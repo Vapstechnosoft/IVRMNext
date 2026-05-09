@@ -74,7 +74,7 @@ export default function UpdateMasterTimeSlabForm({ onloaddata, onSuccess, classN
                 lfsE_Id: (row as any).lfsE_Id ?? (row as any).LFSE_Id,
                 lfsE_UserType: data.lfsE_UserType,
                 lfsE_SlabTypeFlg: data.lfsE_SlabTypeFlg,
-                lfsE_PerDayFlg: data.lfsE_PerDayFlg === 1 || data.lfsE_PerDayFlg === true,
+              lfsE_PerDayFlg: data.lfsE_PerDayFlg === 1 ?true : false,
                 lfsE_FromDay: Number(data.lfsE_FromDay),
                 lfsE_ToDay: data.lfsE_SlabTypeFlg === 'BETWEEN' ? Number(data.lfsE_ToDay) : 0,
                 lfsE_Amount: Number(data.lfsE_Amount),

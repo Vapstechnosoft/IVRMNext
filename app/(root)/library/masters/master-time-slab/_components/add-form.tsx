@@ -54,7 +54,7 @@ export default function AddMasterTimeSlabForm({ onloaddata, onSuccess, className
                 lfsE_Id: 0,
                 lfsE_UserType: data.lfsE_UserType,
                 lfsE_SlabTypeFlg: data.lfsE_SlabTypeFlg,
-                lfsE_PerDayFlg: data.lfsE_PerDayFlg === 1 || data.lfsE_PerDayFlg === true,
+                lfsE_PerDayFlg: data.lfsE_PerDayFlg === 1 ?true : false,
                 lfsE_FromDay: Number(data.lfsE_FromDay),
                 lfsE_ToDay: data.lfsE_SlabTypeFlg === 'BETWEEN' ? Number(data.lfsE_ToDay) : 0,
                 lfsE_Amount: Number(data.lfsE_Amount),

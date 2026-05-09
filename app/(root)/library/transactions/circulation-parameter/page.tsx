@@ -41,30 +41,33 @@ export default function CirculationParameterPage() {
     const toggleStatusMutation = useToggleCirculationParameterStatus();
 
     // Fetch category list when Non-Book Parameter is selected
-    useEffect(() => {
-        if (bookParameterFlag === 'NBP') {
-            const payload = {
-                pk_id: 0,
-                lmC_CategoryName: "BP",
-                reflag: "Y",
-                issue: 5,
-                items: 10,
-                renewal: 2,
-                activeflg: true,
-                flgtype: "Non-Book",
-                type: "Library",
-                alldata: [],
-                fillemp: []
-            };
-            categoryMutation.mutate(payload, {
-                onSuccess: (res) => {
-                    if (res?.categorylist) {
-                        setDynamicCategoryList(res.categorylist);
-                    }
-                }
-            });
-        }
-    }, [bookParameterFlag]);
+   useEffect(() => {
+    if (bookParameterFlag === 'NBP') {
+        const payload = {
+            pk_id: 0,
+            lmC_CategoryName: "BP",
+            reflag: "Y",
+            issue: 5,
+            items: 10,
+            renewal: 2,
+            activeflg: true,
+            flgtype: "Non-Book",
+            type: "Library",
+            alldata: [],
+            fillemp: []
+        };
+
+        categoryMutation.mutate(payload, {
+            onSuccess: (res) => {
+                setDynamicCategoryList(
+                    Array.isArray(res?.categorylist)
+                        ? res.categorylist
+                        : []
+                );
+            }
+        });
+    }
+}, [bookParameterFlag]);
 
     // Extracting data from API response
     const details = apiResponse?.data || {};
