@@ -21,6 +21,7 @@ import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
+import { exportToExcel, printTable } from './excelandprint';
 
 type FormFields = z.infer<typeof feeItemWiseReportSophia>;
 
@@ -145,15 +146,76 @@ export default function FeeItemWiseReportofSophia() {
             console.log('apiData', apiData);
             const responseJson = typeof apiData === 'string' ? JSON.parse(apiData) : apiData;
             if (responseJson?.data) {
-                setReportData(responseJson.data);
+                const report = responseJson.data ?? [];
+                const mapApiToReportRows = (apiData: any[]): IFeeItemWiseReportofSophia[] => {
+                    return apiData.map((item, index) => ({
+                        id: index + 1,
+                        fee_ItemName: item.fee_ItemName,
+                        actual: item.actual,
+                        paid: item.paid,
+                        balance: item.balance,
+                        fine: item.fine,
+                        discount: item.discount,
+                        excess: item.excess,
+                        asmcL_Id: item.asmcL_Id,
+                        asmcL_ClassName: item.asmcL_ClassName,
+                        asmS_Id: item.asmS_Id,
+                        asmC_SectionName: item.asmC_SectionName,
+                        asmcL_Order: item.asmcL_Order
+                    }));
+                };
+                const list = mapApiToReportRows(report);
+
+                setReportData(list || []);
+                // setReportData(responseJson.data);
+                // setShowReport(true);
                 toast.success('Report Generated Successfully');
+                // setReportData(responseJson.data);
+                if (list.length > 0) {
+                    toast.success('Report Generated Successfully');
+                } else {
+                    toast.error('No Data Found');
+                }
+            } else {
+                toast.error(responseJson.message || 'No Data Found');
             }
         } catch (error: any) {
             console.error('Error generating report:', error);
             toast.error(error.message || 'Failed to generate report');
         }
     };
+    const selectedRows = reportData.filter((r) => selectedIds.includes(r.id));
+    const handleExport = () => {
+        if (!selectedRows.length) {
+            toast.error('Please select at least one record');
+            return;
+        }
+        exportToExcel(selectedRows, 'Fee-Item-Wise-Report');
+    };
 
+    const handlePrint = () => {
+        const selected = reportData.filter((row) => selectedIds.includes(row.id));
+
+        if (!selected || selected.length === 0) {
+            toast.error('No data selected to print');
+            return;
+        }
+        const columnHeaders = ['Sl No', 'Item Name', 'Actual Amount', 'Paid Amount', 'Fine', 'Discount', 'Excess'];
+
+        const printableRows = selected.map((row, index) => {
+            const baseRow = {
+                'Sl No': index + 1,
+                'Item Name': row.fee_ItemName || '',
+                'Actual Amount': row.actual || '',
+                'Paid Amount': row.paid || '',
+                Fine: row.fine || '',
+                Discount: row.discount || '',
+                Excess: row.excess || ''
+            };
+            return baseRow;
+        });
+        printTable(columnHeaders, printableRows, 'Fee-Item-Wise-Report');
+    };
     return (
         <div className='min-h-screen bg-gray-50 py-8'>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-8'>
@@ -366,11 +428,7 @@ export default function FeeItemWiseReportofSophia() {
                                                     </div>
                                                     <div className='flex gap-3'>
                                                         <div className='mb-4 flex justify-end gap-2'>
-                                                            <Button
-                                                                size='sm'
-                                                                className='h-8 w-auto px-3 text-xs'
-                                                                // onClick={handleExportExcel}
-                                                            >
+                                                            <Button size='sm' className='h-8 w-auto px-3 text-xs' onClick={handleExport}>
                                                                 Export Excel
                                                             </Button>
 
@@ -378,8 +436,7 @@ export default function FeeItemWiseReportofSophia() {
                                                                 size='sm'
                                                                 variant='outline'
                                                                 className='h-8 w-auto px-3 text-xs'
-                                                                // onClick={handlePrint}
-                                                            >
+                                                                onClick={handlePrint}>
                                                                 Print
                                                             </Button>
                                                         </div>
