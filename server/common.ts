@@ -3481,6 +3481,14 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/Baldwin/BCOEDIIReport',
                                             title: 'BCOEDII Report',
                                             description: 'BCOEDII Report'
+                                        },
+                                        {
+                                            id:22000,
+                                            name: 'Final Promotion Report St Peter',
+                                            icon:'BookOpen',
+                                            url:'/Exam/exam-module/reports/StPeter/FinalPromReportstpeter',
+                                            title: 'Final Promotion Report St Peter',
+                                            description: 'Final Promotion Report St Peter'
                                         }
                                     ]
                                 }
