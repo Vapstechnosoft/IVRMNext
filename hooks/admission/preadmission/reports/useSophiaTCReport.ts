@@ -10,19 +10,21 @@ export const useTCInitialData = () => {
 
 export const useTCYearChange = () => {
     return useMutation({
-        mutationFn: (asmayId: number) => server.onTCYearChange(asmayId),
+        mutationFn: (asmayId: number) => server.onTCYearChange({ ASMAY_Id: asmayId }),
     });
 };
 
 export const useTCClassChange = () => {
     return useMutation({
-        mutationFn: (payload: { asmayId: number; asmclId: number }) => server.onTCClassChange(payload.asmayId, payload.asmclId),
+        mutationFn: (payload: { asmayId: number; asmclId: number }) => 
+            server.onTCClassChange({ ASMAY_Id: payload.asmayId, ASMCL_Id: payload.asmclId }),
     });
 };
 
 export const useTCSectionChange = () => {
     return useMutation({
-        mutationFn: (payload: { asmayId: number; asmclId: number; asmsId: number }) => server.onTCSectionChange(payload.asmayId, payload.asmclId, payload.asmsId),
+        mutationFn: (payload: { asmayId: number; asmclId: number; asmsId: number }) => 
+            server.onTCSectionChange({ ASMAY_Id: payload.asmayId, ASMCL_Id: payload.asmclId, ASMS_Id: payload.asmsId }),
     });
 };
 
@@ -34,7 +36,8 @@ export const useStudentNameRegNo = () => {
 
 export const useStudentNameChange = () => {
     return useMutation({
-        mutationFn: (payload: { asmayId: number; amstId: number }) => server.onStudentNameChange(payload.asmayId, payload.amstId),
+        mutationFn: (payload: { asmayId: number; amstId: number }) => 
+            server.onStudentNameChange({ ASMAY_Id: payload.asmayId, AMST_Id: payload.amstId }),
     });
 };
 

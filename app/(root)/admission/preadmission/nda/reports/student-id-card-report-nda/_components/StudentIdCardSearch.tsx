@@ -187,8 +187,8 @@ export function StudentIdCardSearch({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent className="rounded-2xl border-slate-200 shadow-2xl">
-                      {academicList?.map((year) => (
-                        <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()} className="focus:bg-indigo-50 focus:text-indigo-700 py-3 px-4 rounded-xl mx-1 my-1">
+                      {academicList?.map((year, index) => (
+                        <SelectItem key={`${year.asmaY_Id}-${index}`} value={year.asmaY_Id.toString()} className="focus:bg-indigo-50 focus:text-indigo-700 py-3 px-4 rounded-xl mx-1 my-1">
                           {year.asmaY_Year}
                         </SelectItem>
                       ))}
@@ -212,8 +212,8 @@ export function StudentIdCardSearch({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent className="rounded-2xl border-slate-200 shadow-2xl">
-                      {classList.map((cls) => (
-                        <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()} className="focus:bg-indigo-50 focus:text-indigo-700 py-3 px-4 rounded-xl mx-1 my-1">
+                      {classList.map((cls, index) => (
+                        <SelectItem key={`${cls.asmcL_Id}-${index}`} value={cls.asmcL_Id.toString()} className="focus:bg-indigo-50 focus:text-indigo-700 py-3 px-4 rounded-xl mx-1 my-1">
                           {cls.asmcL_ClassName}
                         </SelectItem>
                       ))}
@@ -237,8 +237,8 @@ export function StudentIdCardSearch({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent className="rounded-2xl border-slate-200 shadow-2xl">
-                      {sectionList.map((sec) => (
-                        <SelectItem key={sec.asmS_Id} value={sec.asmS_Id.toString()} className="focus:bg-indigo-50 focus:text-indigo-700 py-3 px-4 rounded-xl mx-1 my-1">
+                      {sectionList.map((sec, index) => (
+                        <SelectItem key={`${sec.asmS_Id}-${index}`} value={sec.asmS_Id.toString()} className="focus:bg-indigo-50 focus:text-indigo-700 py-3 px-4 rounded-xl mx-1 my-1">
                           {sec.asmC_SectionName}
                         </SelectItem>
                       ))}
@@ -309,9 +309,9 @@ export function StudentIdCardSearch({
 
             <div className="h-64 overflow-y-auto pr-2 custom-scrollbar space-y-2">
               {filteredStudents.length > 0 ? (
-                filteredStudents.map((student) => (
+                filteredStudents.map((student, index) => (
                   <div
-                    key={student.amsT_Id}
+                    key={`${student.amsT_Id}-${index}`}
                     className={`flex items-center justify-between p-4 rounded-xl transition-all cursor-pointer ${student.selected
                       ? 'bg-indigo-50 border-indigo-200 ring-1 ring-indigo-200 shadow-sm'
                       : 'bg-white border-slate-100 hover:border-slate-300'

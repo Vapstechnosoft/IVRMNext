@@ -6,6 +6,7 @@ export async function getSophiaMultiTCDetails() {
     const url = `/BBKVCustomReport/getdetails`;
     return await api.get<any>('admission', url);
 }
+
 export async function getSophiaMultiTCOnChangeYear(data: { ASMAY_Id: number }) {
     const url = `/BBKVCustomReport/onchangeyear?ASMAY_Id=${data.ASMAY_Id}`;
     return await api.get<any>('admission', url);
