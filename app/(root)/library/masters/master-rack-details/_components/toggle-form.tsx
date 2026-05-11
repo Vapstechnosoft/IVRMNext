@@ -1,19 +1,12 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
-import { FormError } from '@/components/ui/extension/field';
+import { AdaptiveDialog } from '@/components/ui/extension/adaptive-dialog';
 import { useMasterRackDetails } from '@/hooks/library/useMasters';
-import { masterRackDetailsSchema } from '@/schemas/library/masters';
 import { deactivateMasterRack } from '@/server/library/masters/rack-details';
 import type { IMasterRackDetails } from '@/types/library/masters/rack-details';
-
-import { zodResolver } from '@hookform/resolvers/zod';
-import { type SubmitHandler, useForm } from 'react-hook-form';
+import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import type { z } from 'zod';
-
-type FormFields = z.infer<typeof masterRackDetailsSchema.delete>;
+import { Button } from '@/components/ui/button';
 
 interface ToggleRackFormProps {
     rowData: IMasterRackDetails;
@@ -24,58 +17,53 @@ export default function ToggleRackForm({ rowData, onClose }: ToggleRackFormProps
     const { refetchAll } = useMasterRackDetails();
     const isActive = rowData.lmrA_ActiveFlag;
 
-    const {
-        register,
-        handleSubmit,
-        reset,
-        formState: { errors, isSubmitting }
-    } = useForm<FormFields>({
-        resolver: zodResolver(masterRackDetailsSchema.delete),
-        mode: 'onChange'
+    const mutation = useMutation({
+        mutationFn: deactivateMasterRack,
+        onSuccess: async (data) => {
+            if (data.returnval) {
+                toast.success(`Record ${isActive ? 'Deactivated' : 'Activated'} Successfully!!!`);
+                await refetchAll();
+                onClose();
+            } else {
+                toast.error(`Failed to ${isActive ? 'Deactivate' : 'Activate'} Record`);
+            }
+        },
+        onError: (error) => {
+            toast.error('An error occurred while updating status');
+            console.error(error);
+        }
     });
 
-    function closeDialog() {
-        onClose();
-        reset();
-    }
-
-    const onSubmit: SubmitHandler<FormFields | any> = async () => {
-        try {
-            const payload = { ...rowData, lmrA_Id: rowData.lmrA_Id };
-            const response = await deactivateMasterRack(payload);
-
-            if (response.returnval) {
-                toast.success('Record Status Updated Successfully!!!');
-                refetchAll();
-                closeDialog();
-            } else {
-                toast.error('Failed to update status');
-            }
-        } catch (error: any) {
-            toast.error(error.message);
-        }
+    const handleConfirm = () => {
+        mutation.mutate(rowData);
     };
 
     return (
-        <AdaptiveDialog title='Toggle Rack Status' isOpen={true} onClose={closeDialog}>
-            <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
-                <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden' {...register('lmrA_Id')} defaultValue={rowData.lmrA_Id} />
-                    <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.lmrA_Location}</strong>?
-                    </p>
-                    <FormError>{errors.lmrA_Id?.message}</FormError>
-                    <FormError>{errors.root?.message}</FormError>
-                </AdaptiveBody>
-                <AdaptiveFooter>
-                    <Button variant='secondary' onClick={closeDialog} type='button'>
+        <AdaptiveDialog
+            title={isActive ? 'Deactivate Rack' : 'Activate Rack'}
+            isOpen={true}
+            onClose={onClose}>
+            <div className='flex flex-col gap-4'>
+                <p className='text-sm'>
+                    Are you sure you want to {isActive ? 'deactivate' : 'activate'} the record{' '}
+                    <span className='font-bold'>{rowData.lmrA_Location}</span>?
+                </p>
+                <div className='flex justify-end gap-3 pt-2'>
+                    <Button variant='outline' onClick={onClose} disabled={mutation.isPending}>
                         Cancel
                     </Button>
-                    <Button type='submit' isLoading={isSubmitting} variant={isActive ? 'destructive' : 'default'}>
-                        {isActive ? 'Deactivate' : 'Activate'}
+                    <Button
+                        variant={isActive ? 'destructive' : 'default'}
+                        onClick={handleConfirm}
+                        disabled={mutation.isPending}
+                        className='min-w-[100px]'>
+                        {mutation.isPending
+                            ? isActive ? 'Deactivating...' : 'Activating...'
+                            : isActive ? 'Yes, Deactivate' : 'Yes, Activate'}
                     </Button>
-                </AdaptiveFooter>
-            </form>
+                </div>
+            </div>
         </AdaptiveDialog>
     );
 }
+
