@@ -50,6 +50,8 @@ export default function BankCopyReportForm({
 }: BankCopyReportFormProps) {
     const { data: yearList } = useAcademicYearList();
 
+    console.log('academic year')
+
     const {
         control,
         handleSubmit,

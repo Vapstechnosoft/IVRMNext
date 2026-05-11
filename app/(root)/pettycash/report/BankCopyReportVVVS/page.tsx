@@ -146,10 +146,7 @@ export default function BankCopyReportPage() {
         <div className="container mx-auto p-4 space-y-8 bg-gray-50/50 min-h-screen">
             <div className="flex flex-col space-y-1">
                 <div className="flex items-center gap-2">
-                    <Landmark className="h-6 w-6 text-indigo-600" />
-                    <h1 className="text-2xl font-bold tracking-tight text-gray-900">Bank Credit And Debit Report</h1>
                 </div>
-                <p className="text-sm text-muted-foreground ml-8">Monitor monthly bank transactions and detailed credit/debit histories.</p>
             </div>
 
             <BankCopyReportForm
