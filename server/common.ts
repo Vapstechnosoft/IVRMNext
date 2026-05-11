@@ -2785,7 +2785,8 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/StThomos/promotion-details-report',
                                             title: 'StThomos_Promotion Details Report',
                                             description: 'StThomos_Promotion Details Report'
-                                        },
+                                        }
+                                        ,
                                         {
                                             id: 21011,
                                             name: 'Stella_Marks Entry Report',
@@ -3333,6 +3334,22 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportIX_X',
                                             title: 'Calcutta Promotion Report IX-X',
                                             description: 'Calcutta Promotion Report IX-X'
+                                        },
+                                        {
+                                            id: 21214,
+                                            name: 'Calcutta Promotion Report I_X',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportI_X',
+                                            title: 'Calcutta Promotion Report I_X',
+                                            description: 'Calcutta Promotion Report I_X'
+                                        },
+                                        {
+                                            id: 21216,
+                                            name: 'Multiple Exam Cumulative Report Calcutta',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Calcatta/MultipleExamCumulativeReportCalcutta',
+                                            title: 'Multiple Exam Cumulative Report Calcutta',
+                                            description: 'Multiple Exam Cumulative Report Calcutta'
                                         },
                                         {
                                             id: 21214,
@@ -9640,3 +9657,5 @@ export async function getUserAccessibleModules() {
 
     return response;
 }
+
+
