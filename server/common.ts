@@ -3450,6 +3450,14 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/NDS/FinalNdasReportCard',
                                             title: 'NDS Final Report Card',
                                             description: 'NDS Final Report Card'
+                                        },
+                                        {
+                                            id:21508,
+                                            name:'St. Marys Final Promotion Report',
+                                            icon:'BookOpen',
+                                            url:'/Exam/exam-module/reports/Stella/FinalPromReportSTMary',
+                                            title:'St. Marys Final Promotion Report',
+                                            description:'St. Marys Final Promotion Report'
                                         }
                                     ]
                                 }

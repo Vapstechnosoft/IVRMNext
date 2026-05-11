@@ -932,3 +932,13 @@ export const multipleExamCumulativeReportCalcuttaSchema = z.object({
 
 export type MultipleExamCumulativeReportCalcuttaValues = z.infer<typeof multipleExamCumulativeReportCalcuttaSchema>;
 
+export const finalPromReportSTMarySchema = z.object({
+    ASMAY_Id: z.string({ required_error: 'Academic Year is required' }).min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string({ required_error: 'Class is required' }).min(1, 'Class is required'),
+    ASMS_Id: z.string({ required_error: 'Section is required' }).min(1, 'Section is required'),
+    date: z.string({ required_error: 'Reopen Date is required' }).min(1, 'Reopen Date is required'),
+    remarks: z.string({ required_error: 'Promoted to std is required' }).min(1, 'Promoted to std is required'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
+});
+
+export type FinalPromReportSTMarySchema = z.infer<typeof finalPromReportSTMarySchema>;
