@@ -11,12 +11,12 @@ export const useRackReportLibraries = () => {
     });
 };
 
-export const useRackReportInitialData = (lmalId = 0) => {
+export const useRackReportInitialData = () => {
     return useQuery({
-        queryKey: ['rack-report-initial', lmalId],
-        queryFn: () => getRackReportInitialData(lmalId),
+        queryKey: ['rack-report-initial'],
+        queryFn: () => getRackReportInitialData(),
         refetchOnWindowFocus: false,
-        enabled: lmalId > 0
+        enabled: true
     });
 };
 

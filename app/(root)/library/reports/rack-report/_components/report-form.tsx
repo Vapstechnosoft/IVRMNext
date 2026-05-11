@@ -41,7 +41,7 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
     const selectedLmalId = watch('LMAL_Id');
     
     const { data: librariesWrapper } = useRackReportLibraries();
-    const { data: initialDataWrapper } = useRackReportInitialData(selectedLmalId || 0);
+    const { data: initialDataWrapper } = useRackReportInitialData();
     
     const libraries = Array.isArray(librariesWrapper) ? librariesWrapper : (librariesWrapper as any)?.lib_list || (librariesWrapper as any)?.libraryList || [];
     const initialData = (initialDataWrapper as any)?.data || initialDataWrapper;
@@ -54,16 +54,10 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
     }, [libraries, setValue]);
 
     const onSubmit = (data: ReportFormValues) => {
-        // Updated payload to match the user's successful backend request exactly.
-        // Removed FromDate and ToDate as they were absent in the user's latest working example.
+        // Updated payload to match the user's requested structure exactly: { "LMAL_Id": 2, "LMRA_Id": 4 }
         const payload: IRackReportRequest = {
-            MI_Id: 30, 
             LMAL_Id: data.LMAL_Id,
-            LMRA_Id: data.LMRA_Id,
-            LMB_Id: 0,
-            LMSU_Id: 0,
-            IssueStatus: 'All',
-            ReturnStatus: 'All'
+            LMRA_Id: data.LMRA_Id
         };
         onSearch(payload);
     };
