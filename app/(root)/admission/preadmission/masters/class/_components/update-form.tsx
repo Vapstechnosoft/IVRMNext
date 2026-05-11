@@ -115,6 +115,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
                         <InputText
                             label='Class Code'
+                            placeholder='Enter Class Code'
                             required
                             id='asmcl_classcode'
                             {...register('asmcl_classcode')}
@@ -124,6 +125,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                         />
                         <InputText
                             label='Class Name'
+                            placeholder='Enter Class Name'
                             required
                             id='asmcl_classname'
                             {...register('asmcl_classname')}
@@ -138,10 +140,11 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                 render={({ field }) => (
                                     <InputNumber
                                         label='Max Capacity'
+                                        placeholder='Enter Max Capacity'
                                         required
                                         id='asmcl_maxcapacity'
-                                        defaultValue={row.asmcL_MaxCapacity || 0}
-                                        onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
+                                        defaultValue={row.asmcL_MaxCapacity}
+                                        onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                         step={1}
                                     />
@@ -156,10 +159,11 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                 render={({ field }) => (
                                     <InputNumber
                                         label='Class Order'
+                                        placeholder='Enter Class Order'
                                         required
                                         id='asmcl_order'
                                         defaultValue={row.asmcL_Order}
-                                        onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
+                                        onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                         step={1}
                                     />
@@ -176,10 +180,11 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                 render={({ field }) => (
                                     <InputNumber
                                         label='Class Min Age (Year)'
+                                        placeholder='Enter Min Age Year'
                                         required
                                         id='asmcl_minageyear'
                                         defaultValue={row.asmcL_MinAgeYear}
-                                        onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
+                                        onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                         maxValue={100}
                                         step={1}
@@ -195,10 +200,11 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                 render={({ field }) => (
                                     <InputNumber
                                         label='Class Min Age (Month)'
+                                        placeholder='Enter Min Age Month'
                                         required
                                         id='asmcl_minagemonth'
                                         defaultValue={row.asmcL_MinAgeMonth}
-                                        onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
+                                        onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                         maxValue={11}
                                         step={1}
@@ -214,10 +220,11 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                 render={({ field }) => (
                                     <InputNumber
                                         label='Class Min Age (Days)'
+                                        placeholder='Enter Min Age Days'
                                         required
                                         id='asmcl_minagedays'
                                         defaultValue={row.asmcL_MinAgeDays}
-                                        onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
+                                        onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                         maxValue={31}
                                         step={1}
@@ -235,10 +242,11 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                 render={({ field }) => (
                                     <InputNumber
                                         label='Class Max Age (Year)'
+                                        placeholder='Enter Max Age Year'
                                         required
                                         id='asmcl_maxageyear'
                                         defaultValue={row.asmcL_MaxAgeYear}
-                                        onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
+                                        onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                         maxValue={100}
                                         step={1}
@@ -254,10 +262,11 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                 render={({ field }) => (
                                     <InputNumber
                                         label='Class Max Age (Month)'
+                                        placeholder='Enter Max Age Month'
                                         required
                                         id='asmcl_maxagemonth'
                                         defaultValue={row.asmcL_MaxAgeMonth}
-                                        onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
+                                        onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                         maxValue={11}
                                         step={1}
@@ -273,10 +282,11 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                 render={({ field }) => (
                                     <InputNumber
                                         label='Class Max Age (Days)'
+                                        placeholder='Enter Max Age Days'
                                         required
                                         id='asmcl_maxagedays'
                                         defaultValue={row.asmcL_MaxAgeDays}
-                                        onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
+                                        onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                         maxValue={31}
                                         step={1}
