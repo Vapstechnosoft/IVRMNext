@@ -4,10 +4,16 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+} from '@/components/ui/form';
+import { Label } from '@/components/ui/label';
+import { FormError } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
 import { useEffect, useState } from 'react';
 import { Loader2, Search, X, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -73,6 +79,7 @@ export function FilterForm({ onSubmit, onReset, isMIId6 = false }: FilterFormPro
     const [searchQuery, setSearchQuery] = useState('');
     const [dateOpen, setDateOpen] = useState(false);
 
+
     const form = useForm<FilterValues>({
         resolver: zodResolver(filterSchema),
         defaultValues: {
@@ -88,7 +95,7 @@ export function FilterForm({ onSubmit, onReset, isMIId6 = false }: FilterFormPro
             selectedDate: new Date(),
         },
     });
-
+    const { formState: { errors } } = form;
     const { watch, setValue, reset } = form;
     const allorindid = watch('allorindid');
     const asmayId = watch('asmaY_Id');
@@ -107,17 +114,17 @@ export function FilterForm({ onSubmit, onReset, isMIId6 = false }: FilterFormPro
         AMST_Id: 0,
         AMST_SOL: studentStatus
     }, !!asmayId);
-    
+
     // Fetch all students of year when "All" is selected
     const { data: academicYearChangeData } = useStudyCertificateAcademicYearChange({
         ASMAY_Id: asmayId,
         AMST_SOL: studentStatus
     }, !!asmayId && allorindid === 'A');
 
-    const rawStudents = (studentListData as any)?.data?.studentList || 
-                       (studentListData as any)?.data?.fillstudlist || 
-                       (academicYearChangeData as any)?.data?.fillstudlist ||
-                       (Array.isArray(studentListData) ? studentListData : []);
+    const rawStudents = (studentListData as any)?.data?.studentList ||
+        (studentListData as any)?.data?.fillstudlist ||
+        (academicYearChangeData as any)?.data?.fillstudlist ||
+        (Array.isArray(studentListData) ? studentListData : []);
 
     const students = (() => {
         const studentSource = searchQuery.length >= 3 ? studentListFromSearch : rawStudents;
@@ -163,47 +170,17 @@ export function FilterForm({ onSubmit, onReset, isMIId6 = false }: FilterFormPro
         return () => clearTimeout(timer);
     }, [searchQuery, asmayId, studentStatus]);
 
-    // Trigger validation only when Academic Year is selected or switching modes
-    useEffect(() => {
-        // Only show Student validation after Academic Year is selected
-        if (asmayId && asmayId > 0) {
-            if (!amstId || amstId === 0) {
-                form.setError('amst_Id', {
-                    type: 'manual',
-                    message: 'Please select a student'
-                });
-            } else {
-                form.clearErrors('amst_Id');
-            }
-        } else {
-            // Clear Student error when no Academic Year is selected
-            form.clearErrors('amst_Id');
-        }
+    // Handle validation and submission
+    const onFormSubmit = (data: FilterValues) => {
+        onSubmit(data);
+    };
 
-        if (allorindid === 'I') {
-            // Check and set errors for Individual mode specific fields only
-            if (!asmclId || asmclId === 0) {
-                form.setError('asmcL_Id', {
-                    type: 'manual',
-                    message: 'Class is required in Individual mode'
-                });
-            } else {
-                form.clearErrors('asmcL_Id');
-            }
-
-            if (!asmsId || asmsId === 0) {
-                form.setError('asmS_Id', {
-                    type: 'manual',
-                    message: 'Section is required in Individual mode'
-                });
-            } else {
-                form.clearErrors('asmS_Id');
-            }
-        } else {
-            // Clear Individual mode specific errors when switching to All mode
-            form.clearErrors(['asmcL_Id', 'asmS_Id']);
+    const onFormError = (errors: any) => {
+        const firstError = Object.values(errors)[0] as any;
+        if (firstError?.message) {
+            toast.error(firstError.message as string);
         }
-    }, [allorindid, asmayId, amstId, asmclId, asmsId, form]);
+    };
 
     const handleReset = () => {
         reset();
@@ -212,32 +189,12 @@ export function FilterForm({ onSubmit, onReset, isMIId6 = false }: FilterFormPro
         onReset();
     };
 
-    const handleSubmit = (data: FilterValues) => {
-        // Show toast messages for required fields before submission
-        if (!data.asmaY_Id || data.asmaY_Id === 0) {
-            toast.error('Please select Academic Year');
-            return;
-        }
-
-        // Student is required in both Individual and All modes
-        if (!data.amst_Id || data.amst_Id === 0) {
-            console.log('Student validation triggered:', data.amst_Id);
-            toast.error('Please select a Student');
-            return;
-        }
-
-        onSubmit(data);
-    };
 
     const selectedStudent = students.find((s: any) => s.amsT_Id === amstId);
 
     return (
         <Form {...form}>
-            <form onSubmit={(e) => {
-        e.preventDefault();
-        const data = form.getValues();
-        handleSubmit(data);
-    }} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onFormSubmit, onFormError)} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {/* Selection Mode */}
                     <FormField
@@ -329,9 +286,9 @@ export function FilterForm({ onSubmit, onReset, isMIId6 = false }: FilterFormPro
                         name="asmaY_Id"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className="font-bold">Academic Year <span className="text-red-500">*</span></FormLabel>
-                                <Select 
-                                    onValueChange={(v) => { field.onChange(Number(v)); setValue('amst_Id', 0); }} 
+                                <Label className="font-bold">Academic Year <span className="text-red-500">*</span></Label>
+                                <Select
+                                    onValueChange={(v) => { field.onChange(Number(v)); setValue('amst_Id', 0); }}
                                     value={field.value?.toString() || ""}
                                 >
                                     <FormControl>
@@ -356,7 +313,7 @@ export function FilterForm({ onSubmit, onReset, isMIId6 = false }: FilterFormPro
                                         })()}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {errors.asmaY_Id && <FormError>{errors.asmaY_Id.message as string}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -367,10 +324,10 @@ export function FilterForm({ onSubmit, onReset, isMIId6 = false }: FilterFormPro
                         name="asmcL_Id"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className="font-bold">Class {allorindid === 'I' && <span className="text-red-500">*</span>}</FormLabel>
-                                <Select 
+                                <Label className="font-bold">Class {allorindid === 'I' && <span className="text-red-500">*</span>}</Label>
+                                <Select
                                     disabled={allorindid === 'A'}
-                                    onValueChange={(v) => { field.onChange(Number(v)); setValue('amst_Id', 0); }} 
+                                    onValueChange={(v) => { field.onChange(Number(v)); setValue('amst_Id', 0); }}
                                     value={field.value?.toString() || ""}
                                 >
                                     <FormControl>
@@ -395,7 +352,7 @@ export function FilterForm({ onSubmit, onReset, isMIId6 = false }: FilterFormPro
                                         })()}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {errors.asmcL_Id && <FormError>{errors.asmcL_Id.message as string}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -406,10 +363,10 @@ export function FilterForm({ onSubmit, onReset, isMIId6 = false }: FilterFormPro
                         name="asmS_Id"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className="font-bold">Section {allorindid === 'I' && <span className="text-red-500">*</span>}</FormLabel>
-                                <Select 
+                                <Label className="font-bold">Section {allorindid === 'I' && <span className="text-red-500">*</span>}</Label>
+                                <Select
                                     disabled={allorindid === 'A'}
-                                    onValueChange={(v) => { field.onChange(Number(v)); setValue('amst_Id', 0); }} 
+                                    onValueChange={(v) => { field.onChange(Number(v)); setValue('amst_Id', 0); }}
                                     value={field.value?.toString() || ""}
                                 >
                                     <FormControl>
@@ -434,7 +391,7 @@ export function FilterForm({ onSubmit, onReset, isMIId6 = false }: FilterFormPro
                                         })()}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {errors.asmS_Id && <FormError>{errors.asmS_Id.message as string}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -445,7 +402,7 @@ export function FilterForm({ onSubmit, onReset, isMIId6 = false }: FilterFormPro
                         name="selectedDate"
                         render={({ field }) => (
                             <FormItem className="flex flex-col">
-                                <FormLabel className="font-bold">Date <span className="text-red-500">*</span></FormLabel>
+                                <Label className="font-bold">Date <span className="text-red-500">*</span></Label>
                                 <Popover open={dateOpen} onOpenChange={setDateOpen}>
                                     <PopoverTrigger asChild>
                                         <FormControl>
@@ -471,7 +428,7 @@ export function FilterForm({ onSubmit, onReset, isMIId6 = false }: FilterFormPro
                                         />
                                     </PopoverContent>
                                 </Popover>
-                                <FormMessage />
+                                {errors.selectedDate && <FormError>{errors.selectedDate.message as string}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -482,7 +439,7 @@ export function FilterForm({ onSubmit, onReset, isMIId6 = false }: FilterFormPro
                         name="amst_Id"
                         render={({ field }) => (
                             <FormItem className="flex flex-col">
-                                <FormLabel className="font-bold">Student <span className="text-red-500">*</span></FormLabel>
+                                <Label className="font-bold">Student <span className="text-red-500">*</span></Label>
                                 <Popover open={studentOpen} onOpenChange={setStudentOpen}>
                                     <PopoverTrigger asChild>
                                         <FormControl>
@@ -499,8 +456,8 @@ export function FilterForm({ onSubmit, onReset, isMIId6 = false }: FilterFormPro
                                                     : "Select Student"}
                                                 <div className="flex items-center gap-2">
                                                     {field.value ? (
-                                                        <X 
-                                                            className="h-4 w-4 opacity-50 hover:opacity-100" 
+                                                        <X
+                                                            className="h-4 w-4 opacity-50 hover:opacity-100"
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
                                                                 field.onChange(0);
@@ -515,8 +472,8 @@ export function FilterForm({ onSubmit, onReset, isMIId6 = false }: FilterFormPro
                                     </PopoverTrigger>
                                     <PopoverContent className="w-[400px] p-0" align="start">
                                         <Command shouldFilter={false}>
-                                            <CommandInput 
-                                                placeholder="Search student (min 3 chars)..." 
+                                            <CommandInput
+                                                placeholder="Search student (min 3 chars)..."
                                                 onValueChange={setSearchQuery}
                                             />
                                             <CommandList>
@@ -550,7 +507,7 @@ export function FilterForm({ onSubmit, onReset, isMIId6 = false }: FilterFormPro
                                         </Command>
                                     </PopoverContent>
                                 </Popover>
-                                <FormMessage />
+                                {errors.amst_Id && <FormError>{errors.amst_Id.message as string}</FormError>}
                             </FormItem>
                         )}
                     />

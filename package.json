@@ -123,6 +123,7 @@
         "path": "^0.12.7",
         "pdf-lib": "^1.17.1",
         "pdf-parse": "^1.1.1",
+        "pdfjs-dist": "^5.7.284",
         "react": "18.3.1",
         "react-aria-components": "^1.5.0",
         "react-chartjs-2": "^5.3.1",
@@ -165,8 +166,6 @@
         "typescript": "^5.7.2"
     },
     "lint-staged": {
-        "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": [
-            "biome check --write --no-errors-on-unmatched"
-        ]
+        "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": ["biome check --write --no-errors-on-unmatched"]
     }
 }

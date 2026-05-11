@@ -4,10 +4,11 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CustomTcSchema, type CustomTcFields } from '@/schemas/admission/preadmission/reports/custom-tc';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
+import { Label } from '@/components/ui/label';
+import { FormError } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import {
@@ -123,7 +124,7 @@ export function FilterForm({ onSubmit, onReset, onStudentListUpdate }: FilterFor
                             name="ASMAY_Id"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="font-semibold text-slate-700">Left Year <span className="text-red-500">*</span></FormLabel>
+                                    <Label className="font-semibold text-slate-700">Left Year <span className="text-red-500">*</span></Label>
                                     <Select
                                         onValueChange={(v) => field.onChange(Number(v))}
                                         value={field.value > 0 ? field.value.toString() : ""}
@@ -141,7 +142,7 @@ export function FilterForm({ onSubmit, onReset, onStudentListUpdate }: FilterFor
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    <FormMessage />
+                                    {form.formState.errors.ASMAY_Id && <FormError>{form.formState.errors.ASMAY_Id.message}</FormError>}
                                 </FormItem>
                             )}
                         />
@@ -167,7 +168,7 @@ export function FilterForm({ onSubmit, onReset, onStudentListUpdate }: FilterFor
                                             </div>
                                         </RadioGroup>
                                     </FormControl>
-                                    <FormMessage />
+                                    {form.formState.errors.admnoorname && <FormError>{form.formState.errors.admnoorname.message}</FormError>}
                                 </FormItem>
                             )}
                         />
@@ -196,7 +197,7 @@ export function FilterForm({ onSubmit, onReset, onStudentListUpdate }: FilterFor
                                             </div>
                                         </RadioGroup>
                                     </FormControl>
-                                    <FormMessage />
+                                    {form.formState.errors.tctemporper && <FormError>{form.formState.errors.tctemporper.message}</FormError>}
                                 </FormItem>
                             )}
                         />
@@ -206,7 +207,7 @@ export function FilterForm({ onSubmit, onReset, onStudentListUpdate }: FilterFor
                             name="AMST_Id"
                             render={({ field }) => (
                                 <FormItem className="flex flex-col">
-                                    <FormLabel className="font-semibold text-slate-700">Student :</FormLabel>
+                                    <Label className="font-semibold text-slate-700">Student <span className="text-red-500">*</span></Label>
                                     <Popover open={studentOpen} onOpenChange={setStudentOpen}>
                                         <PopoverTrigger asChild>
                                             <FormControl>
@@ -220,7 +221,7 @@ export function FilterForm({ onSubmit, onReset, onStudentListUpdate }: FilterFor
                                                 >
                                                     {field.value && selectedStudent
                                                         ? selectedStudent.studentname
-                                                        : "All Students (Summary List)"}
+                                                        : "Select Or Search Student"}
                                                     <div className="flex items-center gap-2">
                                                         {field.value ? (
                                                             <X
@@ -261,7 +262,7 @@ export function FilterForm({ onSubmit, onReset, onStudentListUpdate }: FilterFor
                                             </Command>
                                         </PopoverContent>
                                     </Popover>
-                                    <FormMessage />
+                                    {form.formState.errors.AMST_Id && <FormError>{form.formState.errors.AMST_Id.message}</FormError>}
                                 </FormItem>
                             )}
                         />
