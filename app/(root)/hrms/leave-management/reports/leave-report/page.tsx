@@ -34,7 +34,7 @@ export default function LeaveReportPage() {
     const { data: departmentsData } = useReportDepartments(groupTypeIds);
     const deptIds = filters.selectedDepartments.join(',');
     const { data: designationsData } = useReportDesignations(groupTypeIds, deptIds);
-    const { data: leavesData } = useMasterLeaveDropdown();
+    const { data: leavesData, isLoading: isLoadingLeaves } = useMasterLeaveDropdown();
 
     // Fetch employees based on selected departments and designations
     // NOTE: Using PeriodLeaveReportEmployees API which is specifically designed for leave reports
@@ -220,6 +220,7 @@ export default function LeaveReportPage() {
                     isLoadingDepartments={false}
                     isLoadingDesignations={false}
                     isLoadingEmployees={isLoadingEmployees}
+                    isLoadingLeaves={isLoadingLeaves}
                     errors={errors}
                     isGenerating={isGenerating}
                     onFilterChange={handleFilterChange}

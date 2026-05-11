@@ -13,37 +13,37 @@ export type LeaveStatusReportData = {
 export const columns: ColumnDef<LeaveStatusReportData>[] = [
     {
         id: 'serialNumber',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
+        header: ({ column }) => <div className='font-bold text-black text-center'><DataTableColumnHeader column={column} title='Sl.No' /></div>,
         cell: ({ row }) => <div className='text-center'>{row.index + 1}</div>
     },
     {
         accessorKey: 'hrmE_EmployeeCode',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Code' />,
+        header: ({ column }) => <div className='font-bold text-black'><DataTableColumnHeader column={column} title='Employee Code' /></div>,
         cell: ({ row }) => <div className='font-medium'>{row.getValue('hrmE_EmployeeCode')}</div>
     },
     {
         accessorKey: 'hrmE_EmployeeName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
+        header: ({ column }) => <div className='font-bold text-black'><DataTableColumnHeader column={column} title='Employee Name' /></div>,
         cell: ({ row }) => <div className='font-medium'>{row.getValue('hrmE_EmployeeName')}</div>
     },
     {
         accessorKey: 'hrmL_LeaveName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Leave Type' />,
+        header: ({ column }) => <div className='font-bold text-black text-center'><DataTableColumnHeader column={column} title='Leave Type' /></div>,
         cell: ({ row }) => <div className='text-center'>{row.getValue('hrmL_LeaveName')}</div>
     },
     {
         accessorKey: 'hrelS_TotalLeaves',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Total Leave' />,
+        header: ({ column }) => <div className='font-bold text-black text-center'><DataTableColumnHeader column={column} title='Total Leave' /></div>,
         cell: ({ row }) => <div className='text-center'>{row.getValue('hrelS_TotalLeaves')}</div>
     },
     {
         accessorKey: 'hrelS_TransLeaves',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Leave Used' />,
+        header: ({ column }) => <div className='font-bold text-black text-center'><DataTableColumnHeader column={column} title='Leave Used' /></div>,
         cell: ({ row }) => <div className='text-center'>{row.getValue('hrelS_TransLeaves')}</div>
     },
     {
         accessorKey: 'hrelS_CBLeaves',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Leave Balance' />,
+        header: ({ column }) => <div className='font-bold text-black text-center'><DataTableColumnHeader column={column} title='Leave Balance' /></div>,
         cell: ({ row }) => <div className='text-center font-bold'>{row.getValue('hrelS_CBLeaves')}</div>
     }
 ];

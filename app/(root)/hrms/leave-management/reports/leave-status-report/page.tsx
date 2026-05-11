@@ -331,7 +331,7 @@ function LeaveStatusReportContent() {
                                 control={control}
                                 render={({ field }) => (
                                     <Select onValueChange={field.onChange} value={field.value.toString()} >
-                                        <SelectTrigger>
+                                        <SelectTrigger className={!field.value || field.value.length === 0 ? 'text-muted-foreground font-medium' : ''}>
                                             <SelectValue placeholder='Select Leave Types' />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -357,7 +357,7 @@ function LeaveStatusReportContent() {
 
                                 render={({ field }) => (
                                     <Select onValueChange={field.onChange} value={field.value} key={field.value ?? 'empty'}>
-                                        <SelectTrigger>
+                                        <SelectTrigger className={!field.value ? 'text-muted-foreground font-medium' : ''}>
                                             <SelectValue placeholder='Select Year' />
                                         </SelectTrigger>
                                         <SelectContent>

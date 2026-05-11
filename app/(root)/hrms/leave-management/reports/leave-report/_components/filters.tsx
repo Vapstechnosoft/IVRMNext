@@ -31,6 +31,7 @@ interface LeaveReportFiltersProps {
     isLoadingDepartments?: boolean;
     isLoadingDesignations?: boolean;
     isLoadingEmployees?: boolean;
+    isLoadingLeaves?: boolean;
     errors?: Record<string, string>;
     isGenerating?: boolean;
     onFilterChange: (key: keyof LeaveReportFilters, value: any) => void;
@@ -48,6 +49,7 @@ export function LeaveReportFilters({
     isLoadingDepartments = false,
     isLoadingDesignations = false,
     isLoadingEmployees = false,
+    isLoadingLeaves = false,
     errors = {},
     isGenerating = false,
     onFilterChange,
@@ -224,12 +226,12 @@ export function LeaveReportFilters({
                             Leave <span className='text-red-500'>*</span>
                         </Label>
                         <Select value={filters.leave} onValueChange={(value) => onFilterChange('leave', value)}>
-                            <SelectTrigger id='leave-select'>
-                                <SelectValue placeholder='--Select--' />
+                            <SelectTrigger id='leave-select' className={!filters.leave || filters.leave.length === 0 ? ' font-medium text-gray-500' : ''}>
+                                <SelectValue placeholder={isLoadingLeaves ? 'Loading...' : 'Please select'} />
                             </SelectTrigger>
                             <SelectContent>
                                 {/* <SelectItem value='All'>All</SelectItem> */}
-                                {(leaves || []).map((l) => (
+                                {(leaves || []).map((l: any) => (
                                     <SelectItem key={l.id} value={String(l.id)}>
                                         {l.name}
                                     </SelectItem>
