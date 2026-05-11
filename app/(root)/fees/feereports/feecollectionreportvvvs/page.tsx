@@ -16,6 +16,7 @@ import { Input } from 'react-aria-components';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
+import { exportToExcel, printTable } from './excelandprint';
 
 type FormFields = z.infer<typeof feeCollectionReportVVVS>;
 
@@ -24,7 +25,25 @@ interface IAcademicYear {
     asmaY_Year: string;
     asmaY_Order?: number;
 }
-
+export interface IFeeCollectionReportVVVS {
+    id: number;
+    amsT_Id: number;
+    mI_Id: number;
+    asmaY_Id: number;
+    studentName: string;
+    asmcL_Id: number;
+    asmcL_ClassName: string;
+    amsT_MobileNo: string;
+    asmS_Id: number;
+    asmC_SectionName: string;
+    fyP_Receipt_No: string;
+    receiptDate: string;
+    totalAmount: number;
+    totalToBePaid: number;
+    totalPaidAmount: number;
+    payment_Mode: string;
+    fyppM_DDChequeNo: string;
+}
 export default function FeeCollectionReportVVVS() {
     const [filters, setFilters] = useState({
         reportType: 'All',
@@ -52,7 +71,7 @@ export default function FeeCollectionReportVVVS() {
     const [academicYears, setAcademicYears] = useState<IAcademicYear[]>([]);
     const [showReport, setShowReport] = useState(false);
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
-    const [reportData, setReportData] = useState<any[]>([]);
+    const [reportData, setReportData] = useState<IFeeCollectionReportVVVS[]>([]);
 
     const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
 
@@ -72,15 +91,15 @@ export default function FeeCollectionReportVVVS() {
         }
     }, [academicData, academicError]);
 
-    const toggleRow = (id: number) => {
-        setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+    const toggleRow = (id: any) => {
+        setSelectedIds((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]));
     };
 
     const toggleAll = () => {
         if (selectedIds.length === reportData.length) {
             setSelectedIds([]);
         } else {
-            setSelectedIds(reportData.map((r) => r.id));
+            setSelectedIds(reportData.map((row) => row.id));
         }
     };
 
@@ -91,45 +110,45 @@ export default function FeeCollectionReportVVVS() {
             toast.error('Please select at least one record');
             return;
         }
-        // `exportToExcel(selectedRows, filteredHeads, "Fee-Defaulter-Report");`
+        exportToExcel(selectedRows, 'Fee-Collection-Report');
     };
 
     const handlePrint = () => {
-        if (!selectedRows.length) {
-            toast.error('Please select at least one record');
+        const selected = reportData.filter((row) => selectedIds.includes(row.id));
+
+        if (!selected || selected.length === 0) {
+            toast.error('No data selected to print');
             return;
         }
+        const columnHeaders = [
+            'Sl No',
+            'Student Name',
+            'Mobile No',
+            'Class/Section Name',
+            'Receipt Date',
+            'Receipt No',
+            'Payment Mode',
+            'DD/Cheque No',
+            'Paid Amount',
+            'Balance'
+        ];
 
-        // const feeTermColumns = filteredHeads.map((head) => head.fmH_FeeName);
-
-        // const columns = [
-        //   "Sl No",
-        //   "Student Name",
-        //   "Adm.No",
-        //   "Class",
-        //   "Section",
-        //   ...feeTermColumns,
-        //   "Total Amount",
-        // ];
-
-        // const printableRows = selectedRows.map((row, index) => {
-        //   const feeTermData: Record<string, number> = {};
-        //   filteredHeads.forEach((term) => {
-        //     feeTermData[term.fmH_FeeName] = term.amount;
-        //   });
-
-        //   return {
-        //     "Sl No": index + 1,
-        //     "Student Name": row.studentName,
-        //     "Adm.No": row.regNo,
-        //     Class: row.class,
-        //     Section: row.section,
-        //     ...feeTermData,
-        //     "Total Amount": row.totalAmount,
-        //   };
-        // });
-
-        // printTabl(columns, printableRows);
+        const printableRows = selected.map((row, index) => {
+            const baseRow = {
+                'Sl No': index + 1,
+                'Student Name': row.studentName || '',
+                'Mobile No': row.amsT_MobileNo || '',
+                'Class/Section Name': row.asmC_SectionName || '',
+                'Receipt Date': row.receiptDate || '',
+                'Receipt No': row.fyP_Receipt_No || '',
+                'Payment Mode': row.payment_Mode || '',
+                'DD/Cheque No': row.fyppM_DDChequeNo || '',
+                'Paid Amount': row.totalPaidAmount || '',
+                Balance: row.totalToBePaid || ''
+            };
+            return baseRow;
+        });
+        printTable(columnHeaders, printableRows, 'Fee-Collection-Report');
     };
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
@@ -163,7 +182,32 @@ export default function FeeCollectionReportVVVS() {
             console.log('apiData', apiData);
             const responseJson = typeof apiData === 'string' ? JSON.parse(apiData) : apiData;
             if (responseJson?.data) {
-                setReportData(responseJson.data);
+                const report = responseJson.data ?? [];
+                const mapApiToReportRows = (apiData: any[]): IFeeCollectionReportVVVS[] => {
+                    return apiData.map((item, index) => ({
+                        id: index + 1,
+                        amsT_Id: item.amsT_Id,
+                        mI_Id: item.mI_Id,
+                        asmaY_Id: item.asmaY_Id,
+                        studentName: item.studentName,
+                        asmcL_Id: item.asmcL_Id,
+                        asmcL_ClassName: item.asmcL_ClassName,
+                        amsT_MobileNo: item.amsT_MobileNo,
+                        asmS_Id: item.asmS_Id,
+                        asmC_SectionName: item.asmC_SectionName,
+                        fyP_Receipt_No: item.fyP_Receipt_No,
+                        receiptDate: item.receiptDate,
+                        totalAmount: item.totalAmount,
+                        totalToBePaid: item.totalToBePaid,
+                        totalPaidAmount: item.totalPaidAmount,
+                        payment_Mode: item.payment_Mode,
+                        fyppM_DDChequeNo: item.fyppM_DDChequeNo
+                    }));
+                };
+                const list = mapApiToReportRows(report);
+
+                setReportData(list || []);
+                // setReportData(responseJson.data);
                 setShowReport(true);
                 toast.success('Report Generated Successfully');
             }
@@ -363,7 +407,10 @@ export default function FeeCollectionReportVVVS() {
                                                     <input
                                                         type='checkbox'
                                                         checked={selectedIds.length === reportData.length && reportData.length > 0}
-                                                        onChange={toggleAll}
+                                                        onChange={(e) => {
+                                                            e.stopPropagation();
+                                                            toggleAll();
+                                                        }}
                                                     />
                                                 </th>
                                                 <th className='border px-4 py-3'>Sl No</th>
@@ -394,19 +441,22 @@ export default function FeeCollectionReportVVVS() {
                                                         <input
                                                             type='checkbox'
                                                             checked={selectedIds.includes(row.id)}
-                                                            onChange={() => toggleRow(row.id)}
+                                                            onChange={(e) => {
+                                                                e.stopPropagation();
+                                                                toggleRow(row.id);
+                                                            }}
                                                         />
                                                     </td>
                                                     <td className='border px-4 py-2 text-center'>{index + 1}</td>
                                                     <td className='border px-4 py-2 font-semibold'>{row.studentName}</td>
-                                                    <td className='border px-4 py-2 text-center'>{row.mobilenumber}</td>
-                                                    <td className='border px-4 py-2 text-center'>{row.classsection}</td>
+                                                    <td className='border px-4 py-2 text-center'>{row.amsT_MobileNo}</td>
+                                                    <td className='border px-4 py-2 text-center'>{row.asmC_SectionName}</td>
                                                     <td className='border px-4 py-2 text-center'>{row.receiptDate}</td>
-                                                    <td className='border px-4 py-2 text-center'>{row.receiptNumber}</td>
-                                                    <td className='border px-4 py-2 text-center'>{row.paymentMode}</td>
-                                                    <td className='border px-4 py-2 text-center'>{row.chequeNo}</td>
-                                                    <td className='border px-4 py-2 text-center'>{row.paidAmount}</td>
-                                                    <td className='border px-4 py-2 text-center'>{row.balance}</td>
+                                                    <td className='border px-4 py-2 text-center'>{row.fyP_Receipt_No}</td>
+                                                    <td className='border px-4 py-2 text-center'>{row.payment_Mode}</td>
+                                                    <td className='border px-4 py-2 text-center'>{row.fyppM_DDChequeNo}</td>
+                                                    <td className='border px-4 py-2 text-center'>{row.totalPaidAmount}</td>
+                                                    <td className='border px-4 py-2 text-center'>{row.totalToBePaid}</td>
                                                 </tr>
                                             ))}
                                         </tbody>
