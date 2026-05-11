@@ -744,30 +744,41 @@ export const feeUserWiseDailyCollectionReportSchema = z
         }
     });
 
-export const feeDemandRegisterReportGMVPSSchema = z.object({
-    report: z.enum(['All', 'Individual']).default('All'),
-    reportdate: z.enum(['As On Date', 'Between Date']).default('As On Date'),
-    asmaY_Id: z.number().min(1, { message: 'Academic Year is required' }),
-    asmcL_Id: z.number().min(1, { message: 'Class Name is required' }),
-    asmt_Id: z.number().min(1, { message: 'Student Name is required' }),
-    asms_Id: z.number().min(1, { message: 'Section Name is required' }),
-    groupIds: z.array(z.number()).min(1, { message: 'Select at least one Group' }),
-    termIds: z.array(z.number()).min(1, { message: 'Select at least one Term' }),
-    chequeDate: z.boolean().default(false),
-    acdmyr: z.boolean().default(false),
-    headwise: z.boolean().default(false),
-    paymentwise: z.boolean().default(false),
-    detailed: z.boolean().default(false),
-    grandTotal: z.boolean().default(false),
-    active: z.boolean().default(false),
-    deactive: z.boolean().default(false),
-    left: z.boolean().default(false),
-    total: z.boolean().default(false),
-    userSelection: z.boolean().default(false),
-    newAdmissionStudent: z.boolean().default(false),
-    fromDate: z.string().min(1, { message: 'From Date is required' }),
-    toDate: z.string().min(1, { message: 'To Date is required' })
-});
+export const feeDemandRegisterReportGMVPSSchema = z
+    .object({
+        report: z.enum(['All', 'Individual']).default('All'),
+        reportdate: z.enum(['As On Date', 'Between Date']).default('As On Date'),
+        asmaY_Id: z.number().min(1, { message: 'Academic Year is required' }),
+        asmcL_Id: z.number().min(1, { message: 'Class Name is required' }),
+        asmt_Id: z.number().optional(),
+        asms_Id: z.number().optional(),
+        detailed: z.boolean().default(false),
+        grandTotal: z.boolean().default(false),
+        active: z.boolean().default(false),
+        deactive: z.boolean().default(false),
+        left: z.boolean().default(false),
+        total: z.boolean().default(false),
+        userSelection: z.boolean().default(false),
+        newAdmissionStudent: z.boolean().default(false)
+    })
+    .superRefine((data, ctx) => {
+        if (data.report === 'Individual') {
+            if (!data.asms_Id) {
+                ctx.addIssue({
+                    path: ['asms_Id'],
+                    message: 'Section Name is required',
+                    code: z.ZodIssueCode.custom
+                });
+            }
+            if (!data.asmt_Id) {
+                ctx.addIssue({
+                    path: ['asmt_Id'],
+                    message: 'Student Name Name is required',
+                    code: z.ZodIssueCode.custom
+                });
+            }
+        }
+    });
 
 export const feeChequeBounceSchema = z.object({
     asmaY_Id: z.number({ required_error: 'Academic Year is required' }),

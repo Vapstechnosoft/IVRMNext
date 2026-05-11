@@ -16,7 +16,7 @@ import {
     useFeeTermDropDownDataForReports
 } from '@/hooks/fees/useReports';
 import { feeDemandRegisterReportGMVPSSchema } from '@/schemas/fees/reports';
-import { getGroupsDropdown } from '@/server/fees/reports/daily_fee_collection_report';
+import { getFeeReceiptReportStudentDropdown } from '@/server/fees/reports/fee_receipt_report';
 import { getFeeDemandRegisterGMVPS } from '@/server/fees/reports/fee_refund_report_gmvps';
 import type { IFeeCustomGroupDropdownList, IFeeGroupDropdownList, IFeeTermDropdownList } from '@/types/fees/reports/reports';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -29,8 +29,6 @@ import type { z } from 'zod';
 
 type FormFields = z.infer<typeof feeDemandRegisterReportGMVPSSchema>;
 
-const today = new Date().toISOString().split('T')[0];
-
 export default function FeeDemandRegisterReportGMVPS() {
     const {
         control,
@@ -38,25 +36,17 @@ export default function FeeDemandRegisterReportGMVPS() {
         reset,
         register,
         setValue,
+        watch,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(feeDemandRegisterReportGMVPSSchema),
-        // mode: 'all',
         defaultValues: {
-            report: undefined,
-            reportdate: undefined,
+            report: 'All',
+            reportdate: 'As On Date',
             asmaY_Id: 0,
             asmcL_Id: 0,
             asms_Id: 0,
-            asmt_Id: 0,
-            groupIds: [],
-            termIds: [],
-            chequeDate: false,
-            acdmyr: false,
-            headwise: false,
-            paymentwise: false,
-            fromDate: today,
-            toDate: today
+            asmt_Id: 0
         }
     });
 
@@ -75,7 +65,10 @@ export default function FeeDemandRegisterReportGMVPS() {
         control,
         name: 'newAdmissionStudent'
     });
-
+    const asmayId = watch('asmaY_Id');
+    const amscL_Id = watch('asmcL_Id');
+    const asms_Id = watch('asms_Id');
+    const asmt_Id = watch('asmt_Id');
     const [refreshAY, setRefreshAY] = useState(0);
     const [tableSumRow, setTableSumRow] = useState<any>(null);
 
@@ -88,7 +81,8 @@ export default function FeeDemandRegisterReportGMVPS() {
     const [classes, setClasses] = useState<any[]>([]);
     const [section, setSection] = useState<any[]>([]);
     const [customGroups, setCustomGroups] = useState<IFeeCustomGroupDropdownList[]>([]);
-
+    const [studentid, setstudentids] = useState<any>([]);
+    const [studentLoading, setstudentsloading] = useState(false);
     const [selectedAsmayId, setSelectedAsmayId] = useState<number | null>(null);
     const [filters, setFilters] = useState({
         customGroupIds: [] as number[],
@@ -235,31 +229,6 @@ export default function FeeDemandRegisterReportGMVPS() {
             termIds: prev.termIds.includes(id) ? prev.termIds.filter((x) => x !== id) : [...prev.termIds, id]
         }));
 
-    const onYearChange = async (yearId: number) => {
-        try {
-            setGroupManualLoading(true);
-            const res = await getGroupsDropdown(yearId);
-
-            const groups =
-                res?.data?.map((i: any) => ({
-                    fmG_Id: i.fmG_Id,
-                    fmG_GroupName: i.fmG_GroupName
-                })) ?? [];
-
-            setFeeGroups(groups);
-
-            setValue(
-                'groupIds',
-                groups.map((g) => g.fmG_Id),
-                { shouldValidate: true }
-            );
-        } catch {
-            toast.error('Failed to load groups');
-        } finally {
-            setGroupManualLoading(false);
-        }
-    };
-
     const [loading, setLoading] = useState(false);
     const [tableColumns, setTableColumns] = useState<string[]>([]);
     const [tableRows, setTableRows] = useState<any[]>([]);
@@ -285,21 +254,21 @@ export default function FeeDemandRegisterReportGMVPS() {
             setLoading(true);
             setTableRows([]);
             let payload = {};
-            const selectedCGList = filters.customGroupIds.map((id) => ({ ...payload, fmgG_Id: id }));
-            const selectedGroupList = data.groupIds.map((id) => ({ ...payload, fmG_Id: id }));
+            const selectedCGList = filters.customGroupIds.map((id) => ({ ...payload, fmgG_Id: id.toString() }));
+            const selectedGroupList = filters.feeGroupIds.map((id) => ({ ...payload, fmG_Id: id.toString() }));
             payload = {
                 type: report === 'Individual' ? 'Indi' : 'All',
                 selectedCGList: selectedCGList,
                 selectedGroup: selectedGroupList,
                 selectedStudType: [
-                    active === true && {
-                        value: 'S'
+                    {
+                        value: active === true ? 'S' : '0'
                     },
-                    deactive === true && {
-                        value: 'D'
+                    {
+                        value: deactive === true ? 'D' : '0'
                     },
-                    left === true && {
-                        value: 'L'
+                    {
+                        value: left === true ? 'L' : '0'
                     }
                 ],
                 date: filters.dueDate,
@@ -311,7 +280,7 @@ export default function FeeDemandRegisterReportGMVPS() {
                 asmS_Id: data.asms_Id,
                 amsT_Id: data.asmt_Id
             };
-
+            console.log('payload', payload);
             const response = await getFeeDemandRegisterGMVPS(payload);
 
             const rawData: any = response?.data;
@@ -347,6 +316,33 @@ export default function FeeDemandRegisterReportGMVPS() {
         refetchAcademicYears();
         setRefreshAY((n) => n + 1);
     };
+
+    useEffect(() => {
+        const fetchStudents = async () => {
+            if (!asmayId || !amscL_Id || !asms_Id) {
+                setstudentids([]);
+
+                return;
+            }
+            setstudentsloading(true);
+            try {
+                const result = await getFeeReceiptReportStudentDropdown(Number(asmayId), amscL_Id, asms_Id);
+                const data = Array.isArray(result?.data) ? result.data : [];
+                setstudentids(data);
+
+                if (data.length === 0) {
+                    toast.info('No Students found ');
+                }
+            } catch (error: any) {
+                toast.error(error.message || 'Failed to load Students');
+                setstudentids([]);
+            } finally {
+                setstudentsloading(false);
+            }
+        };
+
+        fetchStudents();
+    }, [asmayId, amscL_Id, setValue, asms_Id, setstudentids]);
 
     return (
         <div className='rounded-lg border bg-card p-6 text-card-foreground shadow-sm'>
@@ -496,49 +492,38 @@ export default function FeeDemandRegisterReportGMVPS() {
                                 </Label>
                                 <Card className='border bg-gray-50 p-4'>
                                     <div className='max-h-64 space-y-3 overflow-y-auto'>
-                                        <Controller
-                                            name='groupIds'
-                                            control={control}
-                                            render={({ field }) => (
-                                                <>
-                                                    <Label
-                                                        htmlFor='feeGroupSelectAll'
-                                                        className='flex cursor-pointer items-center gap-3 rounded border-b bg-white px-2 py-2 font-medium hover:bg-gray-200'>
-                                                        <Checkbox
-                                                            id='feeGroupSelectAll'
-                                                            checked={
-                                                                feeGroups.length > 0 && filters.feeGroupIds.length === feeGroups.length
-                                                            }
-                                                            onCheckedChange={(checked: any) => selectAllFeeGroups(!!checked)}
-                                                        />
-                                                        <span>Select All</span>
-                                                    </Label>
+                                        <Label
+                                            htmlFor='feeGroupSelectAll'
+                                            className='flex cursor-pointer items-center gap-3 rounded border-b bg-white px-2 py-2 font-medium hover:bg-gray-200'>
+                                            <Checkbox
+                                                id='feeGroupSelectAll'
+                                                checked={feeGroups.length > 0 && filters.feeGroupIds.length === feeGroups.length}
+                                                onCheckedChange={(checked: any) => selectAllFeeGroups(!!checked)}
+                                            />
+                                            <span>Select All</span>
+                                        </Label>
 
-                                                    {loadingfeegroup ? (
-                                                        <div className='py-4 text-center text-gray-500'>Loading...</div>
-                                                    ) : feeGroups.length > 0 ? (
-                                                        feeGroups.map((group) => (
-                                                            <Label
-                                                                key={group.fmG_Id}
-                                                                htmlFor={`feeGroup-${group.fmG_Id}`}
-                                                                className='flex cursor-pointer items-center gap-3 rounded px-2 py-1 hover:bg-gray-100'>
-                                                                <Checkbox
-                                                                    id={`feeGroup-${group.fmG_Id}`}
-                                                                    checked={filters.feeGroupIds.includes(group.fmG_Id)}
-                                                                    onCheckedChange={() => toggleFeeGroup(group.fmG_Id)}
-                                                                />
-                                                                <span className='text-sm'>{group.fmG_GroupName}</span>
-                                                            </Label>
-                                                        ))
-                                                    ) : (
-                                                        <div className='py-4 text-center text-gray-500'>No fee groups</div>
-                                                    )}
-                                                </>
-                                            )}
-                                        />
+                                        {loadingfeegroup ? (
+                                            <div className='py-4 text-center text-gray-500'>Loading...</div>
+                                        ) : feeGroups.length > 0 ? (
+                                            feeGroups.map((group) => (
+                                                <Label
+                                                    key={group.fmG_Id}
+                                                    htmlFor={`feeGroup-${group.fmG_Id}`}
+                                                    className='flex cursor-pointer items-center gap-3 rounded px-2 py-1 hover:bg-gray-100'>
+                                                    <Checkbox
+                                                        id={`feeGroup-${group.fmG_Id}`}
+                                                        checked={filters.feeGroupIds.includes(group.fmG_Id)}
+                                                        onCheckedChange={() => toggleFeeGroup(group.fmG_Id)}
+                                                    />
+                                                    <span className='text-sm'>{group.fmG_GroupName}</span>
+                                                </Label>
+                                            ))
+                                        ) : (
+                                            <div className='py-4 text-center text-gray-500'>No fee groups</div>
+                                        )}
                                     </div>
                                 </Card>
-                                {errors.groupIds && <FormError>{errors.groupIds.message}</FormError>}
                             </div>
 
                             <div className='space-y-3'>
@@ -547,51 +532,39 @@ export default function FeeDemandRegisterReportGMVPS() {
                                 </Label>
                                 <Card className='border bg-gray-50 p-4'>
                                     <div className='max-h-64 space-y-3 overflow-y-auto'>
-                                        <Controller
-                                            name='termIds'
-                                            control={control}
-                                            rules={{
-                                                required: 'Please select at least one term',
-                                                validate: (value) => (value && value.length > 0) || 'Please select at least one term'
-                                            }}
-                                            render={({ field }) => (
-                                                <>
-                                                    <Label
-                                                        htmlFor='termSelectAll'
-                                                        className='flex cursor-pointer items-center gap-3 rounded border-b bg-white px-2 py-2 font-medium hover:bg-gray-200'>
-                                                        <Checkbox
-                                                            id='termSelectAll'
-                                                            checked={feeTerms.length > 0 && filters.termIds.length === feeTerms.length}
-                                                            onCheckedChange={(checked: any) => selectAllTerms(!!checked)}
-                                                        />
-                                                        <span>Select All</span>
-                                                    </Label>
+                                        <Label
+                                            htmlFor='termSelectAll'
+                                            className='flex cursor-pointer items-center gap-3 rounded border-b bg-white px-2 py-2 font-medium hover:bg-gray-200'>
+                                            <Checkbox
+                                                id='termSelectAll'
+                                                checked={feeTerms.length > 0 && filters.termIds.length === feeTerms.length}
+                                                onCheckedChange={(checked: any) => selectAllTerms(!!checked)}
+                                            />
+                                            <span>Select All</span>
+                                        </Label>
 
-                                                    {loadingfeeterm ? (
-                                                        <div className='py-4 text-center text-gray-500'>Loading...</div>
-                                                    ) : feeTerms.length > 0 ? (
-                                                        feeTerms.map((term) => (
-                                                            <Label
-                                                                key={term.fmT_Id}
-                                                                htmlFor={`term-${term.fmT_Id}`}
-                                                                className='flex cursor-pointer items-center gap-3 rounded px-2 py-1 hover:bg-gray-100'>
-                                                                <Checkbox
-                                                                    id={`term-${term.fmT_Id}`}
-                                                                    checked={filters.termIds.includes(term.fmT_Id)}
-                                                                    onCheckedChange={() => toggleTerm(term.fmT_Id)}
-                                                                />
-                                                                <span className='text-sm'>{term.fmT_Name}</span>
-                                                            </Label>
-                                                        ))
-                                                    ) : (
-                                                        <div className='py-4 text-center text-gray-500'>No terms</div>
-                                                    )}
-                                                </>
-                                            )}
-                                        />
+                                        {loadingfeeterm ? (
+                                            <div className='py-4 text-center text-gray-500'>Loading...</div>
+                                        ) : feeTerms.length > 0 ? (
+                                            feeTerms.map((term) => (
+                                                <Label
+                                                    key={term.fmT_Id}
+                                                    htmlFor={`term-${term.fmT_Id}`}
+                                                    className='flex cursor-pointer items-center gap-3 rounded px-2 py-1 hover:bg-gray-100'>
+                                                    <Checkbox
+                                                        id={`term-${term.fmT_Id}`}
+                                                        checked={filters.termIds.includes(term.fmT_Id)}
+                                                        onCheckedChange={() => toggleTerm(term.fmT_Id)}
+                                                    />
+                                                    <span className='text-sm'>{term.fmT_Name}</span>
+                                                </Label>
+                                            ))
+                                        ) : (
+                                            <div className='py-4 text-center text-gray-500'>No terms</div>
+                                        )}
                                     </div>
                                 </Card>
-                                {errors.termIds && <FormError>{errors.termIds.message}</FormError>}
+                                {/* {errors.termIds && <FormError>{errors.termIds.message}</FormError>} */}
                             </div>
                         </div>
                     </div>
@@ -674,22 +647,18 @@ export default function FeeDemandRegisterReportGMVPS() {
                                                     // onYearChange(num);
                                                 }}>
                                                 <SelectTrigger className='w-full'>
-                                                    <SelectValue placeholder={loadingAcademic ? 'Loading...' : 'Select Student Name'} />
+                                                    <SelectValue placeholder={studentLoading ? 'Loading...' : 'Select Student Name'} />
                                                 </SelectTrigger>
 
                                                 <SelectContent>
-                                                    {loadingAcademic ? (
+                                                    {studentLoading ? (
                                                         <SelectItem value='loading' disabled>
                                                             Loading...
                                                         </SelectItem>
-                                                    ) : academicError ? (
-                                                        <SelectItem value='error' disabled>
-                                                            Failed to load years
-                                                        </SelectItem>
                                                     ) : (
-                                                        academicYears.map((item) => (
-                                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                                {item.asmaY_Year}
+                                                        studentid.map((item: any) => (
+                                                            <SelectItem key={item.amst_Id} value={item.amst_Id.toString()}>
+                                                                {item.studentName}
                                                             </SelectItem>
                                                         ))
                                                     )}
