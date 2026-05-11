@@ -746,12 +746,13 @@ export const feeUserWiseDailyCollectionReportSchema = z
 
 export const feeDemandRegisterReportGMVPSSchema = z.object({
     report: z.enum(['All', 'Individual']).default('All'),
-    rpttyp: z.enum(['All', 'Individual']).default('Individual'),
     reportdate: z.enum(['As On Date', 'Between Date']).default('As On Date'),
     asmaY_Id: z.number().min(1, { message: 'Academic Year is required' }),
     asmcL_Id: z.number().min(1, { message: 'Class Name is required' }),
+    asmt_Id: z.number().min(1, { message: 'Student Name is required' }),
     asms_Id: z.number().min(1, { message: 'Section Name is required' }),
     groupIds: z.array(z.number()).min(1, { message: 'Select at least one Group' }),
+    termIds: z.array(z.number()).min(1, { message: 'Select at least one Term' }),
     chequeDate: z.boolean().default(false),
     acdmyr: z.boolean().default(false),
     headwise: z.boolean().default(false),
