@@ -5,7 +5,7 @@ const withPWA = require('@ducanh2912/next-pwa').default({
     aggressiveFrontEndNavCaching: true,
     reloadOnline: true,
     swcMinify: true,
-    disable: false,
+    disable: true, // Disable PWA features for now to avoid build issues in production
     workboxOptions: {
         disableDevLogs: true
     }
@@ -16,10 +16,10 @@ const nextConfig: NextConfig = {
     //Added below line productionBrowserSourceMaps do reduce build space
     productionBrowserSourceMaps: false,
     eslint: {
-        ignoreDuringBuilds: true,
+        ignoreDuringBuilds: true
     },
     typescript: {
-        ignoreBuildErrors: true,
+        ignoreBuildErrors: true
     },
     experimental: {
         serverActions: {
@@ -47,4 +47,3 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig; // Temporarily removed PWA wrapper for production stability
-
