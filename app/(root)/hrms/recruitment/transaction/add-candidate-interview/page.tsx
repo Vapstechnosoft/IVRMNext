@@ -275,8 +275,7 @@ export default function AddCandidateInterviewPage() {
                                             <SelectContent>
                                                 {interviewers?.map((interviewer: any, index: number) => (
                                                     <SelectItem
-                                                        key={`interviewer-${interviewer?.hrmE_Id || interviewer?.id
-                                                            }-${index}`}
+                                                        key={`${interviewer?.id}-${interviewer?.hrmE_Id}-${index}`}
                                                         value={
                                                             (interviewer?.hrmE_Id || interviewer?.id)?.toString() ||
                                                             ""

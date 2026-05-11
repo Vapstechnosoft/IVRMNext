@@ -72,7 +72,7 @@ function LibraryVendorPageContent({
                             noDataTitle='No Records Found'
                             noDataDescription='Start by adding a new Master Vendor'
                             errorTitle='Error Loading Data'
-                            searchPlaceholder='Search by Vendor Name, Email, Mobile or Address...'
+                          //  searchPlaceholder='Search by Vendor Name, Email, Mobile or Address...'
                         />
                     </div>
                 </div>

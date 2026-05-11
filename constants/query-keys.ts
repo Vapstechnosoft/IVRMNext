@@ -19,6 +19,7 @@ export const SUPER_ADMIN_QUERY_KEYS = {
 };
 
 export const ADMISSION_QUERY_KEYS = {
+    TRANSACTIONS: 'transactions',
     REPORTS: 'reports',
     MASTER_CLASS: 'master_class',
     MASTER_CATEGORY: 'master_category',
@@ -663,6 +664,7 @@ export const RECRUITMENT_QUERY_KEYS = {
     MASTER_POSITION_TYPE_GRID: 'master_position_type_grid',
     MASTER_PRIORITY_GRID: 'master_priority_grid',
     TRANSACTION_CANDIDATE_LIST: 'transaction_candidate_list',
-    TRANSACTION_CANDIDATE_INTERVIEW_LIST: 'transaction_candidate_interview_list'
+    TRANSACTION_CANDIDATE_INTERVIEW_LIST: 'transaction_candidate_interview_list',
+    TRANSACTION_INTERVIEW_FEEDBACK_LIST: 'transaction_interview_feedback_list'
    
 }

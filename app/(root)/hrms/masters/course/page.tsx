@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable, useDataTableProps } from './_components/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useMasterCourse } from '@/hooks/hrms/useMasters';
@@ -22,7 +22,8 @@ export default function MasterCoursePage(props: { searchParams: SearchParams }) 
     useEffect(() => {
         const fetchParams = async () => {
             const params = await props.searchParams;
-            setSearchParams(params);
+            // Override page and page_size to fetch all records for client-side filtering
+            setSearchParams({ ...params, page: 1, page_size: 10000 });
         };
         fetchParams();
     }, [props.searchParams]);
@@ -67,7 +68,7 @@ function MasterCoursePageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <div className='flex justify-end'>
+                    <div className='mb-4 flex justify-end'>
                         <ReorderCourseForm />
                     </div>
                     <GenericDataTable<IMasterCourseList>
@@ -75,10 +76,9 @@ function MasterCoursePageContent({
                         columns={columns}
                         getRowId={(row) => row.hrmC_Id.toString()}
                         isLoading={isLoading}
+                        isSearchRequired={false}
                         error={error}
                         showViewOptions={false}
-                        showSearchColumns={true}
-                        columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading courses...'
                         noDataTitle='No Courses Found'
                         noDataDescription='Get started by creating your first course'

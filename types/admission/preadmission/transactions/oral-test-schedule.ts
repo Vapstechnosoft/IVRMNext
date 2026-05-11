@@ -17,6 +17,7 @@ export interface IOralTestSchedule {
     fromtime?: string;
     totime?: string;
     childarray?: any[];
+    createdDate?: string;
 }
 
 export interface IStudentDetails {
@@ -29,6 +30,7 @@ export interface IStudentDetails {
     pasR_MobileNo: number;
     pasR_emailId: string;
     asmcL_Id: number;
+    mI_Id?: number;
     classname?: string;
     name?: string;
     checked?: boolean;
@@ -37,6 +39,11 @@ export interface IStudentDetails {
     ScheduleDate?: string;
     ScheduleTime?: string;
     ScheduleTimeTo?: string;
+    scheduledate?: string;
+    scheduletime?: string;
+    scheduletimeto?: string;
+    regno?: string;
+    pasr_id?: number;
 }
 
 export interface IStaffDetails {
