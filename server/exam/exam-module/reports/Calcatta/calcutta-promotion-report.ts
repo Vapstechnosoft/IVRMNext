@@ -385,3 +385,73 @@ export async function getCalcuttaPromotionReportI_V(data: any) {
         studentdetails: studentListDetails,
     };
 }
+
+
+/**
+ * Fetches grades and exams based on selection
+ */
+export async function getGradeExamCalcutta(data: any) {
+    const url = '/JSHSExamReports/get_Exam_grade';
+    const res = await api.post<any>('exam', url, data);
+    return res?.data || res || {};
+}
+
+/**
+ * Fetches and transforms the Multiple Exam Cumulative Report data
+ */
+export async function getMultipleExamCumulativeReportCalcutta(data: any) {
+    const url = '/JSHSExamReports_/Get_Multiple_Exam_Cumulative_CalcuttaAsync';
+    const res = await api.post<any>('exam', url, data);
+    const response = res?.data || res || {};
+
+    // Data transformation logic based on AngularJS controller
+    const {
+        getinstitution = [],
+        getcumulativereportdetails = [],
+        getsubjectslist = [],
+        getstudentlist = [],
+        gettermdetails = []
+    } = response;
+
+    // Sub columns processing
+    const subcolmns: any[] = [];
+    for (const dev of gettermdetails) {
+        const exists = subcolmns.find(emp =>
+            emp.ISMS_Id === dev.ISMS_Id &&
+            emp.EME_Id === dev.EME_Id &&
+            emp.EMSE_SubExamName === dev.EMSE_SubExamName
+        );
+        if (!exists) {
+            subcolmns.push(dev);
+        }
+    }
+
+    // Colspan calculation for subjects
+    for (const dev of getsubjectslist) {
+        let colspant = 0;
+        for (const dId of subcolmns) {
+            if (dId.ISMS_Id === dev.ISMS_Id) {
+                colspant++;
+            }
+        }
+        dev.colspan = colspant;
+    }
+
+    // Student wise marks mapping
+    const studentListWithMarks = getstudentlist.map((stu: any) => {
+        const markslist = getcumulativereportdetails.filter((m: any) => m.AMST_Id === stu.AMST_Id);
+        return {
+            ...stu,
+            markslist
+        };
+    });
+
+    return {
+        getinstitution,
+        getcumulativereportdetails,
+        getsubjectslist,
+        studentlistd: studentListWithMarks,
+        subcolmns,
+        colnspan: 6 + subcolmns.length
+    };
+}

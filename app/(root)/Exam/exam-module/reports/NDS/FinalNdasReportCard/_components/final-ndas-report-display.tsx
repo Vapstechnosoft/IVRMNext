@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, Fragment } from 'react';
 
 interface Props {
     data: any;
@@ -325,7 +325,7 @@ export default function FinalNdasReportDisplay({ data, date, onPrint }: Props) {
                                 {/* Scholastic Table */}
                                 <div className="w-full">
                                     <div className="w-full">
-                                        <table className="w-full border-collapse border border-black">
+                                        <table className="nds-table w-full border-collapse border border-black">
                                             <thead>
                                                 <tr>
                                                     <td className="text-left w-[100px] bg-[#0a58ca] text-white border border-black"><b></b> </td>
@@ -375,42 +375,40 @@ export default function FinalNdasReportDisplay({ data, date, onPrint }: Props) {
                                             <tbody>
                                                 <tr>
                                                     <td className="nds-text-left" style={{ fontSize: '20px' }}>TOTAL </td>
-                                                    <td colSpan={5}>&nbsp;</td>
-                                                    <td>
-                                                        {getstudent_examwisemarks.filter((mrks: any) => mrks.EMPSG_DisplayName === 'TERM I' && mrks.amsT_Id === report.amsT_Id).map((mrks: any, idx: number) => (
-                                                            <b key={idx}>{mrks.ObtainedMarks}</b>
-                                                        ))}
-                                                    </td>
-                                                    <td className="nds-text-center">
-                                                        {getstudent_examwisemarks.filter((mrks: any) => mrks.EMPSG_DisplayName === 'TERM I' && mrks.amsT_Id === report.amsT_Id).map((mrks: any, idx: number) => (
-                                                            <b key={idx}>{mrks.ObtainedGrade}</b>
-                                                        ))}
-                                                    </td>
-                                                    <td colSpan={5}>&nbsp;</td>
-                                                    <td>
-                                                        {getstudent_examwisemarks.filter((mrks: any) => mrks.EMPSG_DisplayName === 'TERM II' && mrks.amsT_Id === report.amsT_Id).map((mrks: any, idx: number) => (
-                                                            <b key={idx}>{mrks.ObtainedMarks}</b>
-                                                        ))}
-                                                    </td>
-                                                    <td className="nds-text-center">
-                                                        {getstudent_examwisemarks.filter((mrks: any) => mrks.EMPSG_DisplayName === 'TERM II' && mrks.amsT_Id === report.amsT_Id).map((mrks: any, idx: number) => (
-                                                            <b key={idx}>{mrks.ObtainedGrade}</b>
-                                                        ))}
-                                                    </td>
+                                                    {getgroupdetails.map((grp: any, idx: number) => {
+                                                        const spanEmpty = grp.groupewiseexam.length - 2;
+                                                        return (
+                                                            <Fragment key={idx}>
+                                                                {spanEmpty > 0 && <td colSpan={spanEmpty}>&nbsp;</td>}
+                                                                <td className="nds-text-center">
+                                                                    {getstudent_examwisemarks.filter((mrks: any) => mrks.EMPSG_DisplayName === grp.empG_DistplayName && mrks.amsT_Id === report.amsT_Id).map((mrks: any, i: number) => (
+                                                                        <b key={i}>{mrks.ObtainedMarks}</b>
+                                                                    ))}
+                                                                </td>
+                                                                <td className="nds-text-center">
+                                                                    {getstudent_examwisemarks.filter((mrks: any) => mrks.EMPSG_DisplayName === grp.empG_DistplayName && mrks.amsT_Id === report.amsT_Id).map((mrks: any, i: number) => (
+                                                                        <b key={i}>{mrks.ObtainedGrade}</b>
+                                                                    ))}
+                                                                </td>
+                                                            </Fragment>
+                                                        );
+                                                    })}
                                                 </tr>
                                                 <tr>
                                                     <td className="nds-text-left" style={{ fontSize: '20px' }}> PERCENTAGE</td>
-                                                    <td colSpan={5}>&nbsp;</td>
-                                                    <td className="nds-text-center" colSpan={2}>
-                                                        {getstudent_examwisemarks.filter((mrks: any) => mrks.EMPSG_DisplayName === 'TERM I' && mrks.amsT_Id === report.amsT_Id).map((mrks: any, idx: number) => (
-                                                            <b key={idx}>{Number(mrks.TotalPercentage).toFixed(2)}%</b>
-                                                        ))}
-                                                    </td>
-                                                    <td className="nds-text-center" colSpan={7}>
-                                                        {getstudent_examwisemarks.filter((mrks: any) => mrks.EMPSG_DisplayName === 'TERM II' && mrks.amsT_Id === report.amsT_Id).map((mrks: any, idx: number) => (
-                                                            <b key={idx} className="nds-text-right" style={{ marginRight: '-400px' }}>{Number(mrks.TotalPercentage).toFixed(2)}%</b>
-                                                        ))}
-                                                    </td>
+                                                    {getgroupdetails.map((grp: any, idx: number) => {
+                                                        const spanEmpty = grp.groupewiseexam.length - 2;
+                                                        return (
+                                                            <Fragment key={idx}>
+                                                                {spanEmpty > 0 && <td colSpan={spanEmpty}>&nbsp;</td>}
+                                                                <td className="nds-text-center" colSpan={2}>
+                                                                    {getstudent_examwisemarks.filter((mrks: any) => mrks.EMPSG_DisplayName === grp.empG_DistplayName && mrks.amsT_Id === report.amsT_Id).map((mrks: any, i: number) => (
+                                                                        <b key={i}>{Number(mrks.TotalPercentage).toFixed(2)}%</b>
+                                                                    ))}
+                                                                </td>
+                                                            </Fragment>
+                                                        );
+                                                    })}
                                                 </tr>
                                             </tbody>
                                         </table>
