@@ -2841,8 +2841,7 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/StThomos/promotion-details-report',
                                             title: 'StThomos_Promotion Details Report',
                                             description: 'StThomos_Promotion Details Report'
-                                        }
-                                        ,
+                                        },
                                         {
                                             id: 21011,
                                             name: 'Stella_Marks Entry Report',
@@ -3452,12 +3451,36 @@ export async function getUserAccessibleModules() {
                                             description: 'NDS Final Report Card'
                                         },
                                         {
-                                            id:21508,
-                                            name:'St. Marys Final Promotion Report',
-                                            icon:'BookOpen',
-                                            url:'/Exam/exam-module/reports/Stella/FinalPromReportSTMary',
-                                            title:'St. Marys Final Promotion Report',
-                                            description:'St. Marys Final Promotion Report'
+                                            id: 21508,
+                                            name: 'St. Marys Final Promotion Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Stella/FinalPromReportSTMary',
+                                            title: 'St. Marys Final Promotion Report',
+                                            description: 'St. Marys Final Promotion Report'
+                                        },
+                                        {
+                                            id: 21509,
+                                            name: 'BBII Progress Card',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Baldwin/BBIIReport',
+                                            title: 'BBII Progress Card',
+                                            description: 'BBII Progress Card'
+                                        },
+                                        {
+                                            id: 21510,
+                                            name: 'BCOEDI Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Baldwin/BCOEDIReport',
+                                            title: 'BCOEDI Report',
+                                            description: 'BCOEDI Report'
+                                        },
+                                        {
+                                            id: 21511,
+                                            name: 'BCOEDII Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Baldwin/BCOEDIIReport',
+                                            title: 'BCOEDII Report',
+                                            description: 'BCOEDII Report'
                                         }
                                     ]
                                 }
@@ -9784,5 +9807,3 @@ export async function getUserAccessibleModules() {
 
     return response;
 }
-
-
