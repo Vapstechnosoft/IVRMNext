@@ -285,7 +285,7 @@ export function FilterForm({ onSubmit, onReset, onPrint }: FilterFormProps) {
                                             })()}
                                         </SelectContent>
                                     </Select>
-                                    {form.formState.errors.asmaY_Id && <FormError className="col-start-2 col-span-2">{form.formState.errors.asmaY_Id.message}</FormError>}
+                                    {form.formState.errors.asmaY_Id && <FormError className="col-start-2 col-span-2">{form.formState.errors.asmaY_Id.message as string}</FormError>}
                                 </FormItem>
                             )}
                         />
@@ -315,7 +315,7 @@ export function FilterForm({ onSubmit, onReset, onPrint }: FilterFormProps) {
                                                     ))}
                                                 </SelectContent>
                                             </Select>
-                                            {form.formState.errors.asmcL_Id && <FormError className="col-start-2 col-span-2">{form.formState.errors.asmcL_Id.message}</FormError>}
+                                            {form.formState.errors.asmcL_Id && <FormError className="col-start-2 col-span-2">{form.formState.errors.asmcL_Id.message as string}</FormError>}
                                         </FormItem>
                                     )}
                                 />
@@ -343,7 +343,7 @@ export function FilterForm({ onSubmit, onReset, onPrint }: FilterFormProps) {
                                                     ))}
                                                 </SelectContent>
                                             </Select>
-                                            {form.formState.errors.asmS_Id && <FormError className="col-start-2 col-span-2">{form.formState.errors.asmS_Id.message}</FormError>}
+                                            {form.formState.errors.asmS_Id && <FormError className="col-start-2 col-span-2">{form.formState.errors.asmS_Id.message as string}</FormError>}
                                         </FormItem>
                                     )}
                                 />
@@ -479,6 +479,11 @@ export function FilterForm({ onSubmit, onReset, onPrint }: FilterFormProps) {
                                                 </Command>
                                             </PopoverContent>
                                         </Popover>
+                                        {form.formState.errors.amsT_Id && (
+                                            <FormError className="mt-1">
+                                                {form.formState.errors.amsT_Id.message as string}
+                                            </FormError>
+                                        )}
                                     </div>
                                 </FormItem>
                             )}
@@ -525,7 +530,7 @@ export function FilterForm({ onSubmit, onReset, onPrint }: FilterFormProps) {
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    {form.formState.errors.resulttype && <FormError className="col-start-2 col-span-3">{form.formState.errors.resulttype.message}</FormError>}
+                                    {form.formState.errors.resulttype && <FormError className="col-start-2 col-span-3">{form.formState.errors.resulttype.message as string}</FormError>}
                                 </FormItem>
                             )}
                         />
