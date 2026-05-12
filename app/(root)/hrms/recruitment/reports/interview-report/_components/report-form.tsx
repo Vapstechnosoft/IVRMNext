@@ -1,28 +1,88 @@
 'use client';
 import { Button } from '@/components/ui/button';
-import { FormError } from '@/components/ui/extension/field';
+import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { BarChart3, FileSpreadsheet, Printer } from 'lucide-react';
+import { BarChart3, FileSpreadsheet, Printer, Search, X } from 'lucide-react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { DatePicker } from '@/components/ui/date-picker';
+import { format } from 'date-fns';
 import { z } from 'zod';
 const interviewReportSchema = z.object({
-    fromDate: z.string().min(1, 'From Date is required'),
-    toDate: z.string().min(1, 'To Date is required'),
-    status: z.string().min(1, 'Status is required'),
-    interviewRound: z.string().min(1, 'Interview Round is required'),
-    grade: z.string().optional()
+    fromDate: z.string({ required_error: 'From Date is required' }).min(1, 'From Date is required'),
+    toDate: z.string({ required_error: 'To Date is required' }).min(1, 'To Date is required'),
+    status: z.string({ required_error: 'Status is required' }).min(1, 'Status is required'),
+    interviewRound: z.string({ required_error: 'Interview Round is required' }).min(1, 'Interview Round is required'),
+
+}).superRefine((data, ctx) => {
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+
+    if (data.fromDate) {
+        const from = new Date(data.fromDate);
+        if (from > today) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Future dates are not allowed',
+                path: ['fromDate'],
+            });
+        }
+    }
+
+    if (data.toDate) {
+        const to = new Date(data.toDate);
+        if (to > today) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Future dates are not allowed',
+                path: ['toDate'],
+            });
+        }
+    }
+
+    if (data.fromDate && data.toDate) {
+        const from = new Date(data.fromDate);
+        const to = new Date(data.toDate);
+
+        if (from > to) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'From Date must be less than or equal to To Date',
+                path: ['fromDate'],
+            });
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'To Date must be greater than or equal to From Date',
+                path: ['toDate'],
+            });
+        }
+    }
 });
 type FormFields = z.infer<typeof interviewReportSchema>;
+
+const INTERVIEW_ROUNDS = [
+    'All',
+    'Written',
+    'Technical',
+    'HR Round',
+    'Department Head',
+    'Managerial',
+    'MD Round',
+    'Face to Face',
+    'Third Party',
+    'Others'
+];
+
 interface InterviewReportFormProps {
     onGenerateReport?: (filters: FormFields) => void;
     className?: string;
 }
 export default function InterviewReportForm({ onGenerateReport, className = '' }: InterviewReportFormProps) {
     const {
+        reset,
         control,
         register,
         handleSubmit,
@@ -32,25 +92,23 @@ export default function InterviewReportForm({ onGenerateReport, className = '' }
         mode: 'onChange',
         defaultValues: {
             status: 'All',
-            interviewRound: 'All',
-            grade: 'All'
+            interviewRound: '',
+            fromDate: '',
+            toDate: '',
         }
     });
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             // Call the parent handler to generate report
-            onGenerateReport?.(data);
-            toast.success('Report generated successfully');
+            await onGenerateReport?.(data);
+            
         } catch (error: any) {
             toast.error(error.message || 'Failed to generate report');
         }
     };
-    const handleExportToExcel = () => {
-        // TODO: Implement Excel export
-        toast.info('Exporting to Excel...');
-    };
-    const handlePrint = () => {
-        window.print();
+
+    const handleReset = () => {
+        reset();
     };
     return (
         <form onSubmit={handleSubmit(onSubmit)} className={`flex flex-col gap-4 ${className}`}>
@@ -59,20 +117,26 @@ export default function InterviewReportForm({ onGenerateReport, className = '' }
                     {/* Left Column */}
                     <div className='space-y-4'>
                         <div className='space-y-2'>
-                            <label className='block font-medium text-sm'>
+                            <Label className='block font-medium text-sm'>
                                 From Date:<span className='text-red-500'>*</span>
-                            </label>
+                            </Label>
                             <div className='relative'>
-                                <InputText
-                                    type='date'
-                                    placeholder='Enter date'
-                                    {...register('fromDate')}
-                                    error={errors.fromDate?.message}
+                                <Controller
+                                    name="fromDate"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <DatePicker
+                                            date={field.value ? new Date(field.value) : undefined}
+                                            setDate={(date) => field.onChange(date ? format(date, 'yyyy-MM-dd') : '')}
+                                            disabled={(date) => date > new Date()}
+                                        />
+                                    )}
                                 />
+                                {errors.fromDate && <FormError>{errors.fromDate.message}</FormError>}
                             </div>
                         </div>
                         <div className='space-y-2'>
-                            <label className='block font-medium text-sm'>Status:</label>
+                            <Label className='block font-medium text-sm'>Status:</Label>
                             <Controller
                                 name='status'
                                 control={control}
@@ -80,31 +144,31 @@ export default function InterviewReportForm({ onGenerateReport, className = '' }
                                     <RadioGroup
                                         value={field.value}
                                         onValueChange={field.onChange}
-                                        className='rounded-md border bg-gray-50 p-4'>
-                                        <div className='flex flex-col gap-3'>
+                                        className='rounded-md border bg-gray-50 p-2'>
+                                        <div className='flex  gap-3'>
                                             <div className='flex items-center space-x-2'>
                                                 <RadioGroupItem value='All' id='all' />
-                                                <label htmlFor='all' className='cursor-pointer font-normal text-sm'>
+                                                <Label htmlFor='all' className='cursor-pointer font-normal text-sm'>
                                                     All
-                                                </label>
+                                                </Label>
                                             </div>
                                             <div className='flex items-center space-x-2'>
                                                 <RadioGroupItem value='UpComing' id='upcoming' />
-                                                <label htmlFor='upcoming' className='cursor-pointer font-normal text-sm'>
+                                                <Label htmlFor='upcoming' className='cursor-pointer font-normal text-sm'>
                                                     UpComing
-                                                </label>
+                                                </Label>
                                             </div>
                                             <div className='flex items-center space-x-2'>
                                                 <RadioGroupItem value='InProgress' id='inprogress' />
-                                                <label htmlFor='inprogress' className='cursor-pointer font-normal text-sm'>
+                                                <Label htmlFor='inprogress' className='cursor-pointer font-normal text-sm'>
                                                     InProgress
-                                                </label>
+                                                </Label>
                                             </div>
                                             <div className='flex items-center space-x-2'>
                                                 <RadioGroupItem value='Completed' id='completed' />
-                                                <label htmlFor='completed' className='cursor-pointer font-normal text-sm'>
+                                                <Label htmlFor='completed' className='cursor-pointer font-normal text-sm'>
                                                     Completed
-                                                </label>
+                                                </Label>
                                             </div>
                                         </div>
                                     </RadioGroup>
@@ -116,39 +180,52 @@ export default function InterviewReportForm({ onGenerateReport, className = '' }
                     {/* Right Column */}
                     <div className='space-y-4'>
                         <div className='space-y-2'>
-                            <label className='block font-medium text-sm'>
+                            <Label className='block font-medium text-sm'>
                                 To Date:<span className='text-red-500'>*</span>
-                            </label>
+                            </Label>
                             <div className='relative'>
-                                <InputText type='date' placeholder='Enter date' {...register('toDate')} error={errors.toDate?.message} />
+                                <Controller
+                                    name="toDate"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <DatePicker
+                                            date={field.value ? new Date(field.value) : undefined}
+                                            setDate={(date) => field.onChange(date ? format(date, 'yyyy-MM-dd') : '')}
+                                            disabled={(date) => date > new Date()}
+                                        />
+                                    )}
+                                />
+                                {errors.toDate && <FormError>{errors.toDate.message}</FormError>}
                             </div>
                         </div>
-                        <div className='space-y-2'>
-                            <label className='block font-medium text-sm'>
-                                Interview Rounds:<span className='text-red-500'>*</span>
-                            </label>
+                        <div className="space-y-2">
+                            <Label className="block text-sm font-medium">
+                                Interview Rounds:<span className="text-red-500">*</span>
+                            </Label>
                             <Controller
-                                name='interviewRound'
+                                name="interviewRound"
                                 control={control}
                                 render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value}>
+                                    <Select key={field.value} onValueChange={field.onChange} value={field.value || undefined}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder='--All--' />
+                                            <SelectValue placeholder="Select Round" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value='All'>--All--</SelectItem>
-                                            <SelectItem value='Technical Round'>Technical Round</SelectItem>
-                                            <SelectItem value='HR Round'>HR Round</SelectItem>
-                                            <SelectItem value='Management Round'>Management Round</SelectItem>
-                                            <SelectItem value='Technical + HR'>Technical + HR</SelectItem>
+                                            {INTERVIEW_ROUNDS.map((round) => (
+                                                <SelectItem key={round} value={round}>
+                                                    {round}
+                                                </SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
                                 )}
                             />
-                            {errors.interviewRound && <FormError>{errors.interviewRound.message}</FormError>}
+                            {errors.interviewRound && (
+                                <FormError>{errors.interviewRound.message}</FormError>
+                            )}
                         </div>
-                        <div className='space-y-2'>
-                            <label className='block font-medium text-sm'>Grade:</label>
+                        {/* <div className='space-y-2'>
+                            <Label className='block font-medium text-sm'>Grade:</Label>
                             <Controller
                                 name='grade'
                                 control={control}
@@ -167,7 +244,7 @@ export default function InterviewReportForm({ onGenerateReport, className = '' }
                                     </Select>
                                 )}
                             />
-                        </div>
+                        </div> */}
                     </div>
                 </div>
             </div>
@@ -177,17 +254,12 @@ export default function InterviewReportForm({ onGenerateReport, className = '' }
                     type='submit'
                     isLoading={isSubmitting}
                     className='bg-orange-500 text-white hover:bg-orange-600'
-                    disabled={isSubmitting}>
-                    <BarChart3 className='mr-2 h-4 w-4' />
+                    disabled={isSubmitting}
+                    prefix={<Search className='h-4 w-4' />}>
                     REPORT
                 </Button>
-                <Button type='button' variant='outline' onClick={handleExportToExcel} disabled={isSubmitting}>
-                    <FileSpreadsheet className='mr-2 h-4 w-4' />
-                    EXPORT TO EXCEL
-                </Button>
-                <Button type='button' variant='outline' onClick={handlePrint} disabled={isSubmitting}>
-                    <Printer className='mr-2 h-4 w-4' />
-                    PRINT
+                <Button type='button' variant='outline' onClick={() => handleReset()} prefix={<X className='h-4 w-4' />}>
+                    Cancel
                 </Button>
             </div>
         </form>

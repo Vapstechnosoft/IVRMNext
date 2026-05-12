@@ -1,5 +1,6 @@
 'use server';
 
+import { auth } from '@/lib/auth';
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type { IMasterAuthorList } from '@/types/library/masters/masters';
@@ -11,8 +12,13 @@ export async function getMasterAuthorList(searchParams?: ApiSearchparams) {
 }
 
 export async function addOrUpdateMasterAuthor(data: any) {
+    const session = await auth();
+    const payload = {
+        ...data,
+        mI_Id: session?.mi_id || data.mI_Id
+    };
     const url = '/MasterAuthor/add-or-update/';
-    return await api.post<any>('library', url, data);
+    return await api.post<any>('library', url, payload);
 }
 
 export async function toggleMasterAuthor(id: number) {
@@ -24,3 +30,4 @@ export async function deleteMasterAuthor(id: number) {
     const url = `/MasterAuthor/delete/${id}`;
     return await api.delete('library', url);
 }
+

@@ -44,6 +44,19 @@ export interface IDeputationDay {
     updatedDate: string;
 }
 
+
+export interface SectionDropDownDataTT {
+    asmS_Id: number;
+    mI_Id: number;
+    asmC_SectionName: string;
+    asmC_SectionCode: string;
+    asmC_Order: number;
+    asmC_ActiveFlag: number;   // API returns 1/0 (not boolean)
+    asmC_MaxCapacity: number;
+    createdDate: string;
+    updatedDate: string;
+}
+
 export interface IDeputationLoadData {
     stafflist: IDeputationStaff[];
     gridweeks: IDeputationDay[];

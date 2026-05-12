@@ -8,9 +8,9 @@ import {
     FormControl,
     FormField,
     FormItem,
-    FormLabel,
-    FormMessage
 } from '@/components/ui/form';
+import { Label } from '@/components/ui/label';
+import { FormError } from '@/components/ui/extension/field';
 import {
     Select,
     SelectContent,
@@ -62,11 +62,12 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
         },
     });
 
-    const watchAllOrIndi = form.watch('allorindii');
-    const watchStudyingLeft = form.watch('optradio');
-    const watchYear = form.watch('asmaY_Id');
-    const watchClass = form.watch('asmcL_Id');
-    const watchSection = form.watch('asmS_Id');
+    const { watch, formState: { errors } } = form;
+    const watchAllOrIndi = watch('allorindii');
+    const watchStudyingLeft = watch('optradio');
+    const watchYear = watch('asmaY_Id');
+    const watchClass = watch('asmcL_Id');
+    const watchSection = watch('asmS_Id');
 
     // Cascading resets
     useEffect(() => {
@@ -134,7 +135,7 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                         name="allorindii"
                         render={({ field }) => (
                             <FormItem className="space-y-3">
-                                <FormLabel className="font-semibold text-slate-700">Scope:</FormLabel>
+                                <Label className="font-semibold text-slate-700">Scope:</Label>
                                 <FormControl>
                                     <RadioGroup
                                         onValueChange={field.onChange}
@@ -160,7 +161,7 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                         name="optradio"
                         render={({ field }) => (
                             <FormItem className="space-y-3">
-                                <FormLabel className="font-semibold text-slate-700">Status:</FormLabel>
+                                <Label className="font-semibold text-slate-700">Status:</Label>
                                 <FormControl>
                                     <RadioGroup
                                         onValueChange={field.onChange}
@@ -186,7 +187,7 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                         name="Character"
                         render={({ field }) => (
                             <FormItem className="space-y-3">
-                                <FormLabel className="font-semibold text-slate-700">Certificate Type:</FormLabel>
+                                <Label className="font-semibold text-slate-700">Certificate Type:</Label>
                                 <FormControl>
                                     <RadioGroup
                                         onValueChange={field.onChange}
@@ -216,7 +217,7 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                             name="asmaY_Id"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="font-semibold text-slate-700">Academic Year:<span className="text-red-500">*</span></FormLabel>
+                                    <Label className="font-semibold text-slate-700">Academic Year:<span className="text-red-500">*</span></Label>
                                     <Select onValueChange={field.onChange} value={field.value}>
                                         <FormControl>
                                             <SelectTrigger className="bg-white border-slate-300">
@@ -231,7 +232,7 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    <FormMessage />
+                                    {errors.asmaY_Id && <FormError>{errors.asmaY_Id.message}</FormError>}
                                 </FormItem>
                             )}
                         />
@@ -241,7 +242,7 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                             name="asmcL_Id"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className={cn("font-semibold text-slate-700", watchAllOrIndi === 'A' && "opacity-50")}>Class:{watchAllOrIndi === 'I' && <span className="text-red-500">*</span>}</FormLabel>
+                                    <Label className={cn("font-semibold text-slate-700", watchAllOrIndi === 'A' && "opacity-50")}>Class:{watchAllOrIndi === 'I' && <span className="text-red-500">*</span>}</Label>
                                     <Select
                                         onValueChange={field.onChange}
                                         value={field.value}
@@ -260,7 +261,7 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    <FormMessage />
+                                    {errors.asmcL_Id && <FormError>{errors.asmcL_Id.message}</FormError>}
                                 </FormItem>
                             )}
                         />
@@ -270,7 +271,7 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                             name="asmS_Id"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className={cn("font-semibold text-slate-700", watchAllOrIndi === 'A' && "opacity-50")}>Section:{watchAllOrIndi === 'I' && <span className="text-red-500">*</span>}</FormLabel>
+                                    <Label className={cn("font-semibold text-slate-700", watchAllOrIndi === 'A' && "opacity-50")}>Section:{watchAllOrIndi === 'I' && <span className="text-red-500">*</span>}</Label>
                                     <Select
                                         onValueChange={field.onChange}
                                         value={field.value}
@@ -289,7 +290,7 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    <FormMessage />
+                                    {errors.asmS_Id && <FormError>{errors.asmS_Id.message}</FormError>}
                                 </FormItem>
                             )}
                         />
@@ -302,7 +303,7 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                             name="ASA_FromDate"
                             render={({ field }) => (
                                 <FormItem className="flex flex-col">
-                                    <FormLabel className="font-semibold text-slate-700 mb-1">Certificate Date:<span className="text-red-500">*</span></FormLabel>
+                                    <Label className="font-semibold text-slate-700 mb-1">Certificate Date:<span className="text-red-500">*</span></Label>
                                     <Popover>
                                         <PopoverTrigger asChild>
                                             <FormControl>
@@ -328,7 +329,7 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                                             />
                                         </PopoverContent>
                                     </Popover>
-                                    <FormMessage />
+                                    {errors.ASA_FromDate && <FormError>{errors.ASA_FromDate.message}</FormError>}
                                 </FormItem>
                             )}
                         />
@@ -338,7 +339,7 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                             name="amsT_Id"
                             render={({ field }) => (
                                 <FormItem className="flex flex-col">
-                                    <FormLabel className="font-semibold text-slate-700 mb-1">Student:<span className="text-red-500">*</span></FormLabel>
+                                    <Label className="font-semibold text-slate-700 mb-1">Student:<span className="text-red-500">*</span></Label>
                                     <Popover open={studentOpen} onOpenChange={setStudentOpen}>
                                         <PopoverTrigger asChild>
                                             <FormControl>
@@ -403,7 +404,7 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                                             </Command>
                                         </PopoverContent>
                                     </Popover>
-                                    <FormMessage />
+                                    {errors.amsT_Id && <FormError>{errors.amsT_Id.message}</FormError>}
                                 </FormItem>
                             )}
                         />

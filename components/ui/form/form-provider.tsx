@@ -8,7 +8,7 @@ interface FormContextType<T = any> {
     isEditFormOpen: boolean;
     isToggleFormOpen: boolean;
     isDeleteFormOpen: boolean;
-    isDetailsViewOpen: boolean; // 👈 New for Grade details view
+    isDetailsViewOpen: boolean;
     isOrderDetailsOpen: boolean;
     isMappedviewOpen: boolean;
     isFacilityViewOpen: boolean;
@@ -16,6 +16,9 @@ interface FormContextType<T = any> {
     isDocumentViewOpen: boolean;
     isMarksEntryOpen: boolean;
     isCopyFormOpen: boolean;
+    isStatusOpen: boolean;
+    isRemarkOpen: boolean;
+    isReportOpen: boolean;
     selectedRow: T | null;
 
     // Actions
@@ -43,11 +46,17 @@ interface FormContextType<T = any> {
     closeMarksEntry: () => void;
     openCopyForm: (row: T) => void;
     closeCopyForm: () => void;
+    openStatus: (row: T) => void;
+    closeStatus: () => void;
+    openRemark: (row: T) => void;
+    closeRemark: () => void;
+    openReport: (row: T) => void;
+    closeReport: () => void;
     closeAllForms: () => void;
 
     // Refs for scrolling
-    addFormRef: React.RefObject<HTMLDivElement | null>;
-    editFormRef: React.RefObject<HTMLDivElement | null>;
+    addFormRef: React.RefObject<HTMLDivElement>;
+    editFormRef: React.RefObject<HTMLDivElement>;
 }
 
 const FormContext = createContext<FormContextType | null>(null);
@@ -77,6 +86,9 @@ export function FormProvider<T = any>({
     const [isDocumentViewOpen, setIsDocumentViewOpen] = useState(false);
     const [isMarksEntryOpen, setIsMarksEntryOpen] = useState(false);
     const [isCopyFormOpen, setIsCopyFormOpen] = useState(false);
+    const [isStatusOpen, setIsStatusOpen] = useState(false);
+    const [isRemarkOpen, setIsRemarkOpen] = useState(false);
+    const [isReportOpen, setIsReportOpen] = useState(false);
     const [selectedRow, setSelectedRow] = useState<T | null>(null);
 
     const addFormRef = useRef<HTMLDivElement>(null!);
@@ -118,6 +130,9 @@ export function FormProvider<T = any>({
         setIsDocumentViewOpen(false);
         setIsMarksEntryOpen(false);
         setIsCopyFormOpen(false);
+        setIsStatusOpen(false);
+        setIsRemarkOpen(false);
+        setIsReportOpen(false);
         setSelectedRow(null);
         scrollToTop();
     }, [scrollToTop]);
@@ -292,6 +307,51 @@ export function FormProvider<T = any>({
         scrollToTop();
     }, [scrollToTop]);
 
+    const openStatus = useCallback(
+        (row: T) => {
+            closeAllForms();
+            setSelectedRow(row);
+            setIsStatusOpen(true);
+        },
+        [closeAllForms]
+    );
+
+    const closeStatus = useCallback(() => {
+        setIsStatusOpen(false);
+        setSelectedRow(null);
+        scrollToTop();
+    }, [scrollToTop]);
+
+    const openRemark = useCallback(
+        (row: T) => {
+            closeAllForms();
+            setSelectedRow(row);
+            setIsRemarkOpen(true);
+        },
+        [closeAllForms]
+    );
+
+    const closeRemark = useCallback(() => {
+        setIsRemarkOpen(false);
+        setSelectedRow(null);
+        scrollToTop();
+    }, [scrollToTop]);
+
+    const openReport = useCallback(
+        (row: T) => {
+            closeAllForms();
+            setSelectedRow(row);
+            setIsReportOpen(true);
+        },
+        [closeAllForms]
+    );
+
+    const closeReport = useCallback(() => {
+        setIsReportOpen(false);
+        setSelectedRow(null);
+        scrollToTop();
+    }, [scrollToTop]);
+
     return (
         <FormContext.Provider
             value={{
@@ -307,6 +367,9 @@ export function FormProvider<T = any>({
                 isDocumentViewOpen,
                 isMarksEntryOpen,
                 isCopyFormOpen,
+                isStatusOpen,
+                isRemarkOpen,
+                isReportOpen,
                 selectedRow,
                 openAddForm,
                 closeAddForm,
@@ -332,6 +395,12 @@ export function FormProvider<T = any>({
                 closeMarksEntry,
                 openCopyForm,
                 closeCopyForm,
+                openStatus,
+                closeStatus,
+                openRemark,
+                closeRemark,
+                openReport,
+                closeReport,
                 closeAllForms,
                 addFormRef,
                 editFormRef

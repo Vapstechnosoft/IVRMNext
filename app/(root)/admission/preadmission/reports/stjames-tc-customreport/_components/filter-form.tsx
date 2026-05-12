@@ -4,10 +4,11 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { StjamesTcCustomReportSchema, type StjamesTcCustomReportFields } from '@/schemas/admission/preadmission/reports/stjames-tc-custom-report';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
+import { Label } from '@/components/ui/label';
+import { FormError } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
 import { useStjamesTcLoadData, useStjamesTcYearChange, useStjamesTcClassChange, useStjamesTcSectionChange } from '@/hooks/admission/preadmission/useStjamesTcCustomReport';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -15,6 +16,9 @@ import { Loader2, Search, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+
+
+
 
 interface FilterFormProps {
     onSubmit: (data: StjamesTcCustomReportFields) => void;
@@ -121,7 +125,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                         name="reporttype"
                         render={({ field }) => (
                             <FormItem className="space-y-3 p-4 border rounded-lg bg-slate-50/50">
-                                <FormLabel className="font-bold">Report Type</FormLabel>
+                                <Label className="font-bold">Report Type</Label>
                                 <FormControl>
                                     <RadioGroup
                                         onValueChange={field.onChange}
@@ -138,7 +142,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                         </div>
                                     </RadioGroup>
                                 </FormControl>
-                                <FormMessage />
+                                {form.formState.errors.reporttype && <FormError>{form.formState.errors.reporttype.message}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -149,7 +153,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                         name="temporper"
                         render={({ field }) => (
                             <FormItem className="space-y-3 p-4 border rounded-lg bg-slate-50/50">
-                                <FormLabel className="font-bold">TC Type</FormLabel>
+                                <Label className="font-bold">TC Type</Label>
                                 <FormControl>
                                     <RadioGroup
                                         onValueChange={field.onChange}
@@ -166,7 +170,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                         </div>
                                     </RadioGroup>
                                 </FormControl>
-                                <FormMessage />
+                                {form.formState.errors.temporper && <FormError>{form.formState.errors.temporper.message}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -179,9 +183,9 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                         name="ASMAY_Id"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className="font-bold">Academic Year <span className="text-red-500">*</span></FormLabel>
-                                <Select 
-                                    onValueChange={(v) => field.onChange(Number(v))} 
+                                <Label className="font-bold">Academic Year <span className="text-red-500">*</span></Label>
+                                <Select
+                                    onValueChange={(v) => field.onChange(Number(v))}
                                     value={field.value?.toString() || ""}
                                 >
                                     <FormControl>
@@ -197,7 +201,9 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {form.formState.errors.ASMAY_Id && (
+                                    <FormError>{form.formState.errors.ASMAY_Id.message}</FormError>
+                                )}
                             </FormItem>
                         )}
                     />
@@ -208,12 +214,12 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                         name="ASMCL_Id"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className={cn("font-bold", reporttype === 'indi' && "after:content-['*'] after:ml-0.5 after:text-red-500")}>
+                                <Label className={cn("font-bold", reporttype === 'indi' && "after:content-['*'] after:ml-0.5 after:text-red-500")}>
                                     Class
-                                </FormLabel>
-                                <Select 
+                                </Label>
+                                <Select
                                     disabled={reporttype !== 'indi'}
-                                    onValueChange={(v) => field.onChange(Number(v))} 
+                                    onValueChange={(v) => field.onChange(Number(v))}
                                     value={field.value?.toString() || ""}
                                 >
                                     <FormControl>
@@ -229,7 +235,9 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {form.formState.errors.ASMCL_Id && (
+                                    <FormError>{form.formState.errors.ASMCL_Id.message}</FormError>
+                                )}
                             </FormItem>
                         )}
                     />
@@ -240,12 +248,12 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                         name="ASMS_Id"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className={cn("font-bold", reporttype === 'indi' && "after:content-['*'] after:ml-0.5 after:text-red-500")}>
+                                <Label className={cn("font-bold", reporttype === 'indi' && "after:content-['*'] after:ml-0.5 after:text-red-500")}>
                                     Section
-                                </FormLabel>
-                                <Select 
+                                </Label>
+                                <Select
                                     disabled={reporttype !== 'indi'}
-                                    onValueChange={(v) => field.onChange(Number(v))} 
+                                    onValueChange={(v) => field.onChange(Number(v))}
                                     value={field.value?.toString() || ""}
                                 >
                                     <FormControl>
@@ -261,7 +269,9 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {form.formState.errors.ASMS_Id && (
+                                    <FormError>{form.formState.errors.ASMS_Id.message}</FormError>
+                                )}
                             </FormItem>
                         )}
                     />
@@ -272,7 +282,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                         name="AMST_Id"
                         render={({ field }) => (
                             <FormItem className="flex flex-col">
-                                <FormLabel className="font-bold">Student Name</FormLabel>
+                                <Label className="font-bold">Student Name</Label>
                                 <Popover open={studentOpen} onOpenChange={setStudentOpen}>
                                     <PopoverTrigger asChild>
                                         <FormControl>
@@ -289,8 +299,8 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                                     : "Select Student"}
                                                 <div className="flex items-center gap-2">
                                                     {field.value ? (
-                                                        <X 
-                                                            className="h-4 w-4 opacity-50 hover:opacity-100" 
+                                                        <X
+                                                            className="h-4 w-4 opacity-50 hover:opacity-100"
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
                                                                 field.onChange(0);
@@ -325,7 +335,9 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                         </Command>
                                     </PopoverContent>
                                 </Popover>
-                                <FormMessage />
+                                {form.formState.errors.AMST_Id && (
+                                    <FormError>{form.formState.errors.AMST_Id.message}</FormError>
+                                )}
                             </FormItem>
                         )}
                     />

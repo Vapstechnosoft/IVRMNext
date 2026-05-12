@@ -108,10 +108,17 @@ export function HeaderSearch() {
     };
 
     const deleteFromHistory = (e: React.MouseEvent, term: string) => {
+        e.preventDefault();
         e.stopPropagation();
         setSearchHistory(prev => {
-            const next = prev.filter(item => item !== term);
-            setCookie('search_history', encodeURIComponent(JSON.stringify(next)), 30);
+            const next = prev.filter(item => item.trim().toLowerCase() !== term.trim().toLowerCase());
+            const stringified = JSON.stringify(next);
+            try {
+                setCookie('search_history', encodeURIComponent(stringified), 30);
+                localStorage.setItem('search_history', stringified);
+            } catch (err) {
+                console.error('Failed to delete from history', err);
+            }
             return next;
         });
     };
@@ -119,7 +126,12 @@ export function HeaderSearch() {
     const clearHistory = (e: React.MouseEvent) => {
         e.stopPropagation();
         setSearchHistory([]);
-        setCookie('search_history', JSON.stringify([]), -1);
+        try {
+            setCookie('search_history', encodeURIComponent(JSON.stringify([])), 30);
+            localStorage.setItem('search_history', JSON.stringify([]));
+        } catch (e) {
+            console.error('Failed to clear search history', e);
+        }
     };
 
     useEffect(() => {
@@ -403,7 +415,12 @@ export function HeaderSearch() {
     // Close on click outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+            const target = event.target as Node;
+            // If the target is no longer in the DOM, it was likely removed during the click 
+            // (e.g. deleting a history item). We don't want to close the dropdown in this case.
+            if (target && !document.body.contains(target)) return;
+
+            if (containerRef.current && !containerRef.current.contains(target)) {
                 setIsOpen(false);
             }
         };
@@ -423,7 +440,6 @@ export function HeaderSearch() {
 
         setIsOpen(false);
         if (query.trim()) saveToHistory(query);
-        setQuery('');
         router.push(result.url);
     };
 
@@ -474,7 +490,6 @@ export function HeaderSearch() {
             const route = guessModuleRoute(dbResult.source);
             setIsOpen(false);
             if (query.trim()) saveToHistory(query);
-            setQuery('');
             router.push(route);
         }
     };
@@ -499,8 +514,27 @@ export function HeaderSearch() {
                         setIsOpen(true);
                     }}
                     onKeyDown={handleKeyDown}
-                    className='w-[300px] pl-9 pr-9 transition-all focus:w-[400px] focus:ring-2 focus:ring-primary/20 bg-background'
+                    className={cn(
+                        'pl-9 transition-all focus:ring-2 focus:ring-primary/20 bg-background',
+                        query ? 'pr-20' : 'pr-12',
+                        isOpen || query ? 'w-[400px]' : 'w-[300px]'
+                    )}
                 />
+                {query && (
+                    <button
+                        onMouseDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setQuery('');
+                            setResults([]);
+                            setDbResults([]);
+                        }}
+                        className="absolute right-11 top-1/2 -translate-y-1/2 p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-full transition-all"
+                        title="Clear search"
+                    >
+                        <X size={14} />
+                    </button>
+                )}
                 <button
                     onClick={isRecording ? stopRecording : startRecording}
                     disabled={isTranscribing}
@@ -550,24 +584,41 @@ export function HeaderSearch() {
                             <div className="mb-2">
                                 <div className="flex items-center justify-between px-2 py-1.5 bg-muted/30">
                                     <span className="text-xs font-semibold text-muted-foreground uppercase">Recent Searches</span>
-                                    <button onClick={clearHistory} className="text-[10px] text-blue-500 hover:underline px-1">Clear all</button>
-                                </div>
-                                {searchHistory.map((item, idx) => (
-                                    <div
-                                        key={idx}
-                                        onClick={() => {
-                                            setQuery(item);
-                                            performSearch(item);
+                                    <button 
+                                        onMouseDown={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            clearHistory(e);
                                         }}
-                                        className="group flex items-center justify-between px-2 py-2 hover:bg-accent cursor-pointer rounded-sm transition-colors"
+                                        className="text-sm font-medium text-blue-500 hover:text-blue-600 hover:underline px-2.5 py-1 rounded-md hover:bg-blue-50 transition-colors"
                                     >
-                                        <div className="flex items-center flex-1 overflow-hidden">
+                                        Clear all
+                                    </button>
+                                </div>
+                                {searchHistory.map((item) => (
+                                    <div
+                                        key={item}
+                                        className="group flex items-center justify-between px-2 py-1 hover:bg-accent cursor-pointer rounded-sm transition-colors"
+                                    >
+                                        <div
+                                            className="flex items-center flex-1 overflow-hidden py-1 px-1"
+                                            onClick={() => {
+                                                setQuery(item);
+                                                performSearch(item);
+                                            }}
+                                        >
                                             <Clock className="h-3.5 w-3.5 mr-3 text-muted-foreground shrink-0" />
                                             <span className="text-sm truncate">{item}</span>
                                         </div>
                                         <button
-                                            onClick={(e) => deleteFromHistory(e, item)}
-                                            className="p-1 opacity-0 group-hover:opacity-100 hover:text-red-500 transition-opacity"
+                                            type="button"
+                                            onMouseDown={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                deleteFromHistory(e, item);
+                                            }}
+                                            className="delete-history-btn p-1.5 opacity-0 group-hover:opacity-100 hover:bg-red-50 hover:text-red-500 rounded-md transition-all relative z-10 mr-1"
+                                            title="Remove from history"
                                         >
                                             <X className="h-3.5 w-3.5" />
                                         </button>

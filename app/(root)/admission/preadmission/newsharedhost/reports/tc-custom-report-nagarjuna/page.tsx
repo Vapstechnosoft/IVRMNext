@@ -1,7 +1,8 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/extension/field';
+import { Label } from '@/components/ui/label';
+import { FormError } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Printer, RotateCcw, FileText } from 'lucide-react';
@@ -26,7 +27,7 @@ export default function TcCustomReportNagarjunaPage() {
 
     const [tctemporper, setTcTemporPer] = useState<'temp' | 'per'>('per');
     const [asmaY_Id, setAsmayId] = useState<number>(0);
-    const [admname, setAdmName] = useState<'regno' | 'stdname' | ''>('');
+    const [admname, setAdmName] = useState<'regno' | 'stdname' | ''>('stdname');
     const [amsT_Id, setAmstId] = useState<number>(0);
 
     const [studentList, setStudentList] = useState<any[]>([]);
@@ -42,8 +43,27 @@ export default function TcCustomReportNagarjunaPage() {
 
     const yearDropdown = useMemo(() => {
         const res: any = loadRes;
-        return (res?.accyear ?? res?.data?.accyear ?? []) as any[];
+        const years = (res?.accyear ?? res?.data?.accyear ?? []) as any[];
+        const seen = new Set();
+        return years.filter((y: any) => {
+            if (y.asmaY_Id && !seen.has(y.asmaY_Id)) {
+                seen.add(y.asmaY_Id);
+                return true;
+            }
+            return false;
+        });
     }, [loadRes]);
+
+    const deduplicatedStudentList = useMemo(() => {
+        const seen = new Set();
+        return studentList.filter((s: any) => {
+            if (s.amsT_Id && !seen.has(s.amsT_Id)) {
+                seen.add(s.amsT_Id);
+                return true;
+            }
+            return false;
+        });
+    }, [studentList]);
 
     const nameRegNoMutation = useMutation({
         mutationFn: getBbkvCustomReportNameRegNo,
@@ -253,37 +273,41 @@ export default function TcCustomReportNagarjunaPage() {
                                             ))}
                                         </SelectContent>
                                     </Select>
+                                    {submitted && !asmaY_Id && (
+                                        <FormError className="mt-1">please select academic year</FormError>
+                                    )}
                                 </div>
                             </div>
 
-                            {admname && (
-                                <div className="flex items-center gap-4 animate-in fade-in slide-in-from-top-1 duration-200">
-                                    <Label className="text-xs font-bold whitespace-nowrap w-24">Student Name:</Label>
-                                    <div className="flex-1">
-                                        <Select value={amsT_Id ? String(amsT_Id) : undefined} onValueChange={handleStudentChange}>
-                                            <SelectTrigger className="h-8 text-xs border-gray-300 rounded-sm">
-                                                <SelectValue placeholder={nameRegNoMutation.isPending ? 'Loading...' : 'Select Student'} />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {studentList?.map((s: any) => (
-                                                    <SelectItem key={s.amsT_Id} value={String(s.amsT_Id)} className="text-xs pb-2">
-                                                        <div className="flex flex-col">
-                                                            <span className="font-bold">{s.studentname}</span>
-                                                            {(s.amsT_RegistrationNo || s.asmcL_ClassName) && (
-                                                                <span className="text-[9px] text-gray-500">
-                                                                    {s.amsT_RegistrationNo && `REG: ${s.amsT_RegistrationNo}`}
-                                                                    {s.amsT_RegistrationNo && s.asmcL_ClassName && ' | '}
-                                                                    {s.asmcL_ClassName && `${s.asmcL_ClassName} (${s.asmC_SectionName || ''})`}
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
+                            <div className="flex items-center gap-4 animate-in fade-in slide-in-from-top-1 duration-200">
+                                <Label className="text-xs font-bold whitespace-nowrap w-24">Student Name:<span className="text-red-500">*</span></Label>
+                                <div className="flex-1">
+                                    <Select value={amsT_Id ? String(amsT_Id) : undefined} onValueChange={handleStudentChange}>
+                                        <SelectTrigger className="h-8 text-xs border-gray-300 rounded-sm">
+                                            <SelectValue placeholder={nameRegNoMutation.isPending ? 'Loading...' : 'Select Student'} />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {deduplicatedStudentList?.map((s: any) => (
+                                                <SelectItem key={s.amsT_Id} value={String(s.amsT_Id)} className="text-xs pb-2">
+                                                    <div className="flex flex-col">
+                                                        <span className="font-bold">{s.studentname}</span>
+                                                        {(s.amsT_RegistrationNo || s.asmcL_ClassName) && (
+                                                            <span className="text-[9px] text-gray-500">
+                                                                {s.amsT_RegistrationNo && `REG: ${s.amsT_RegistrationNo}`}
+                                                                {s.amsT_RegistrationNo && s.asmcL_ClassName && ' | '}
+                                                                {s.asmcL_ClassName && `${s.asmcL_ClassName} (${s.asmC_SectionName || ''})`}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {submitted && !amsT_Id && (
+                                        <FormError className="mt-1">please select student name</FormError>
+                                    )}
                                 </div>
-                            )}
+                            </div>
                         </div>
                     </div>
 

@@ -32,15 +32,6 @@ export default function NDSItoVIIIReportCardPage() {
 
     return (
         <div className="container mx-auto py-8 space-y-8 animate-in fade-in duration-700">
-            <div className="space-y-2">
-                <h1 className="text-3xl font-bold tracking-tight text-primary">1 to 8 Progress Card</h1>
-                <p className="text-muted-foreground">
-                    Generate and print comprehensive progress reports for students in classes I to VIII.
-                </p>
-            </div>
-            
-            <Separator />
-
             <div className="grid grid-cols-1 gap-8">
                 <section className="transition-all duration-500">
                     <ReportForm onReportGenerated={handleReportGenerated} onReset={handleReset} />

@@ -10,7 +10,7 @@ import { ndsCoScholasticReportSchema, type NDSCoScholasticReportSchema } from '@
 import {
     getClassDropDownByAcademicYearlist,
     getExamAcademicYearDropdown,
-    getExamReportCard,
+    getGmvpsProgressCardIXReport,
     getSectionsDropDownByAcademicYearandClasslist,
     getStudentsDropDownByAcademicYearandClassandSectionlist
 } from '@/server/exam/exam-module/reports/nds-co-scholastic-report';
@@ -31,7 +31,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     const [sections, setSections] = useState<any[]>([]);
     const [students, setStudents] = useState<any[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
-    
+
     const [loading, setLoading] = useState(true);
     const [loadingClasses, setLoadingClasses] = useState(false);
     const [loadingSections, setLoadingSections] = useState(false);
@@ -101,8 +101,8 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                 try {
                     setLoadingSections(true);
                     const response = await getSectionsDropDownByAcademicYearandClasslist(
-                        Number(watchClass),
-                        Number(watchYear)
+                        Number(watchYear),
+                        Number(watchClass)
                     );
                     if (response?.success && Array.isArray(response.data)) {
                         setSections(response.data);
@@ -153,20 +153,15 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     const onSubmit = async (data: NDSCoScholasticReportSchema) => {
         try {
             const payload = {
-                asmaY_Id: Number(data.ASMAY_Id),
-                asmcL_Id: Number(data.ASMCL_Id),
-                asmS_Id: Number(data.ASMS_Id),
-                empsG_PercentValue: 0,
-                flag: "2",
-                emE_Id: 0,
-                reporttype: "supverage",
-                temp_AmstIds: data.selectedStudents.map((id) => ({ amsT_Id: Number(id) })),
-                empG_GroupName: ""
+                ASMAY_Id: Number(data.ASMAY_Id),
+                ASMCL_Id: Number(data.ASMCL_Id),
+                ASMS_Id: Number(data.ASMS_Id),
+                Temp_AmstIds: data.selectedStudents.map((id) => ({ amsT_Id: Number(id) })),
             };
 
-            const response = await getExamReportCard(payload);
+            const response = await getGmvpsProgressCardIXReport(payload);
             const academicYear = years.find((y: any) => String(y.asmaY_Id) === data.ASMAY_Id)?.asmaY_Year || '';
-            
+
             if (response?.success && response.data) {
                 onReportGenerated(response.data, academicYear);
                 toast.success('Report generated successfully');
@@ -185,7 +180,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
         onReset();
     };
 
-    const filteredStudents = students.filter(s => 
+    const filteredStudents = students.filter(s =>
         (s.studentName || s.studentname)?.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
@@ -213,7 +208,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                     NDS_CO_SCHOLASTIC REPORT
                 </h3>
             </div>
-            
+
             <FormProvider {...methods}>
                 <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -257,8 +252,8 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                     name="ASMCL_Id"
                                     render={({ field, fieldState }) => (
                                         <>
-                                            <Select 
-                                                onValueChange={field.onChange} 
+                                            <Select
+                                                onValueChange={field.onChange}
                                                 value={field.value}
                                                 disabled={!watchYear || loadingClasses}
                                             >
@@ -293,8 +288,8 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                     name="ASMS_Id"
                                     render={({ field, fieldState }) => (
                                         <>
-                                            <Select 
-                                                onValueChange={field.onChange} 
+                                            <Select
+                                                onValueChange={field.onChange}
                                                 value={field.value}
                                                 disabled={!watchClass || loadingSections}
                                             >
@@ -324,8 +319,8 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                         <div className="space-y-3 border rounded-lg p-4 bg-slate-50/50">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                    <Checkbox 
-                                        id="selectAll" 
+                                    <Checkbox
+                                        id="selectAll"
                                         checked={students.length > 0 && watchSelectedStudents.length === students.length}
                                         onCheckedChange={(checked) => toggleSelectAll(!!checked)}
                                         disabled={students.length === 0}
@@ -372,8 +367,8 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                                         />
                                                     )}
                                                 />
-                                                <Label 
-                                                    htmlFor={`student-${student.amsT_Id}`} 
+                                                <Label
+                                                    htmlFor={`student-${student.amsT_Id}`}
                                                     className="text-xs font-medium cursor-pointer flex-1 py-1"
                                                 >
                                                     {student.studentName || student.studentname}
@@ -398,9 +393,9 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                     </div>
 
                     <div className="flex items-center justify-center gap-4 pt-6 border-t">
-                        <Button 
-                            type="submit" 
-                            disabled={isSubmitting} 
+                        <Button
+                            type="submit"
+                            disabled={isSubmitting}
                             className="min-w-[120px] bg-indigo-600 hover:bg-indigo-700 shadow-sm"
                         >
                             {isSubmitting ? (
@@ -410,9 +405,9 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                             )}
                             REPORT
                         </Button>
-                        <Button 
-                            type="button" 
-                            variant="destructive" 
+                        <Button
+                            type="button"
+                            variant="destructive"
                             onClick={handleClear}
                             disabled={isSubmitting}
                             className="min-w-[120px] bg-orange-500 hover:bg-orange-600 border-none"
@@ -420,16 +415,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                             <RefreshCcw className="mr-2 h-4 w-4" />
                             CANCEL
                         </Button>
-                        <Button 
-                            type="button"
-                            variant="secondary"
-                            onClick={() => handleSubmit(onSubmit)()}
-                            disabled={isSubmitting || students.length === 0}
-                            className="min-w-[120px] bg-blue-500 text-white hover:bg-blue-600"
-                        >
-                            <Printer className="mr-2 h-4 w-4" />
-                            PRINT
-                        </Button>
+
                     </div>
                 </form>
             </FormProvider>

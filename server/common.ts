@@ -148,6 +148,22 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/reports/document-view-report',
                                             title: 'Document View',
                                             description: 'Document View'
+                                        },
+                                        {
+                                            id: 8,
+                                            name: 'Oral Test Schedule',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/transactions/interview-schedule/oschedule',
+                                            title: 'Oral Test Schedule',
+                                            description: 'Oral Test Schedule'
+                                        },
+                                        {
+                                            id: 9,
+                                            name: 'Oral Test ReSchedule',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/transactions/interview-schedule/oralreschedule',
+                                            title: 'Oral Test ReSchedule',
+                                            description: 'Oral Test ReSchedule'
                                         }
                                     ]
                                 }
@@ -1022,7 +1038,7 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/reports/Sophia/ClassWiseDailyAttendance',
                                             title: 'ClassWise Daily Attendance',
                                             description: 'ClassWise Daily Attendance'
-                                        }
+                                        },
                                         // {
                                         //     id: 596,
                                         //     name: 'Student Search',
@@ -1047,19 +1063,19 @@ export async function getUserAccessibleModules() {
                                         //     title: 'Date Of Birth Certificate',
                                         //     description: 'Date Of Birth Certificate'
                                         // },
-                                        // {
-                                        //     id: 599,
-                                        //     name: 'Sophia study certificate',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/sophia/reports/SophiaStudyCertificate',
-                                        //     title: 'Sophia study certificate',
-                                        //     description: 'Sophia study certificate'
-                                        // },
+                                        {
+                                            id: 599,
+                                            name: 'Sophia study certificate',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/sophia/reports/SophiaStudyCertificate',
+                                            title: 'Sophia study certificate',
+                                            description: 'Sophia study certificate'
+                                        },
                                         // {
                                         //     id: 600,
                                         //     name: 'SophiaRegistrationXI',
                                         //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/Sophia/reports/SophiaRegistrationXI',
+                                        //     url: '/admission/preadmission/sophia/reports/SophiaRegistrationXI',
                                         //     title: 'SophiaRegistrationXI',
                                         //     description: 'SophiaRegistrationXI'
                                         // },
@@ -1067,58 +1083,114 @@ export async function getUserAccessibleModules() {
                                         //     id: 600,
                                         //     name: 'SophiaRegistration',
                                         //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/Sophia/reports/SophiaRegistration',
+                                        //     url: '/admission/preadmission/sophia/reports/SophiaRegistration',
                                         //     title: 'SophiaRegistration',
                                         //     description: 'SophiaRegistration'
                                         // },
-                                        // {
-                                        //     id: 601,
-                                        //     name: 'OverallDailyAttendanceReport',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/Sophia/reports/OverallDailyAttendanceReport',
-                                        //     title: 'OverallDailyAttendanceReport',
-                                        //     description: 'OverallDailyAttendanceReport'
-                                        // },
-                                        // {
-                                        //     id: 602,
-                                        //     name: 'Studenttcapply',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/Sophia/reports/Studenttcapply',
-                                        //     title: 'Studenttcapply',
-                                        //     description: 'Studenttcapply'
-                                        // },
-                                        // {
-                                        //     id: 603,
-                                        //     name: 'StudentTcApproval',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/Sophia/reports/StudentTcApproval',
-                                        //     title: 'StudentTcApproval',
-                                        //     description: 'StudentTcApproval'
-                                        // },
-                                        // {
-                                        //     id: 604,
-                                        //     name: 'SophiaMultiTransferCertificate',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/Sophia/reports/SophiaMultiTransferCertificate',
-                                        //     title: 'SophiaMultiTransferCertificate',
-                                        //     description: 'SophiaMultiTransferCertificate'
-                                        // },
+                                        {
+                                            id: 601,
+                                            name: 'OverallDailyAttendanceReport',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/sophia/reports/OverallDailyAttendanceReport',
+                                            title: 'OverallDailyAttendanceReport',
+                                            description: 'OverallDailyAttendanceReport'
+                                        },
+                                        {
+                                            id: 602,
+                                            name: 'Studenttcapply',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/sophia/transaction/Studenttcapply',
+                                            title: 'Studenttcapply',
+                                            description: 'Studenttcapply'
+                                        },
+
+                                        {
+                                            id: 603,
+                                            name: 'StudentTcApproval',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/sophia/transaction/StudentTcApproval',
+                                            title: 'StudentTcApproval',
+                                            description: 'StudentTcApproval'
+                                        },
+                                        {
+                                            id: 609,
+                                            name: 'StudentTcCancel',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/sophia/transaction/studentTCCancel',
+                                            title: 'StudentTcCancel',
+                                            description: 'StudentTcCancel'
+                                        },
+                                        {
+                                            id: 604,
+                                            name: 'SophiaMultiTransferCertificate',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/sophia/reports/SophiaMultiTransferCertificate',
+                                            title: 'SophiaMultiTransferCertificate',
+                                            description: 'SophiaMultiTransferCertificate'
+                                        },
                                         // {
                                         //     id: 605,
                                         //     name: 'Attendanceentry',
                                         //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/Sophia/reports/Attendanceentry',
+                                        //     url: '/admission/preadmission/sophia/transaction/Attendanceentry',
                                         //     title: 'Attendanceentry',
                                         //     description: 'Attendanceentry'
                                         // },
-                                        // {
-                                        //     id: 606,
-                                        //     name: 'SophiaStudentParticulars',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/Sophia/reports/SophiaStudentParticulars',
-                                        //     title: 'SophiaStudentParticulars',
-                                        //     description: 'SophiaStudentParticulars'
-                                        // }
+                                        {
+                                            id: 606,
+                                            name: 'SophiaStudentParticulars',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/sophia/reports/SophiaStudentParticulars',
+                                            title: 'SophiaStudentParticulars',
+                                            description: 'SophiaStudentParticulars'
+                                        },
+                                        {
+                                            id: 607,
+                                            name: 'Sophia Transfer Certificate',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/sophia/reports/SophiaTransferCertificate',
+                                            title: 'SophiaTransferCertificate',
+                                            description: 'SophiaTransferCertificate'
+                                        },
+                                        {
+                                            id: 608,
+                                            name: 'Sophia Transfer Certificate New',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/sophia/reports/SophiaTransferCertificateNew',
+                                            title: 'SophiaTransferCertificateNew',
+                                            description: 'SophiaTransferCertificateNew'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 16,
+                                    name: 'St. Thomas Church School',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 61,
+                                            name: 'St. Thomas Admission Form',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/stthomas/admission-form',
+                                            title: 'St. Thomas Admission Form',
+                                            description: 'St. Thomas Admission Form'
+                                        },
+                                        {
+                                            id: 62,
+                                            name: 'Total Strength',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/STCS/total-strength',
+                                            title: 'Total Strength',
+                                            description: 'Total Strength'
+                                        },
+                                        {
+                                            id: 63,
+                                            name: 'St. Thomas TC Custom Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/stthomas/reports/stthomas-tc-custom-report',
+                                            title: 'St. Thomas TC Custom Report',
+                                            description: 'St. Thomas TC Custom Report'
+                                        }
                                     ]
                                 },
                                 {
@@ -2794,14 +2866,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Sophia_Report Card IX-X',
                                             description: 'Sophia_Report Card IX-X'
                                         },
-                                        {
-                                            id: 21014,
-                                            name: 'Sophia_Report Card Pre-II',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/Sophia/sophia-report-card-pre-II',
-                                            title: 'Sophia_Report Card Pre-II',
-                                            description: 'Sophia_Report Card Pre-II'
-                                        },
+                                        // {
+                                        //     id: 21014,
+                                        //     name: 'Sophia_Report Card Pre-II',
+                                        //     icon: 'BookOpen',
+                                        //     url: '/Exam/exam-module/reports/Sophia/sophia-report-card-pre-II',
+                                        //     title: 'Sophia_Report Card Pre-II',
+                                        //     description: 'Sophia_Report Card Pre-II'
+                                        // },
                                         {
                                             id: 21015,
                                             name: 'Sophia_Topper List Report',
@@ -2809,6 +2881,22 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/Sophia/sophia-topper-list-report',
                                             title: 'Sophia_Topper List Report',
                                             description: 'Sophia_Topper List Report'
+                                        },
+                                        {
+                                            id: 21099,
+                                            name: 'Sophia_Promotion Report Card',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Sophia/PromotionReportCardSophia',
+                                            title: 'Sophia_Promotion Report Card',
+                                            description: 'Sophia_Promotion Report Card'
+                                        },
+                                        {
+                                            id: 21100,
+                                            name: 'Final Promotion VI_TO_VIII Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Sophia/FinalpromoreportVI_TO_VIII',
+                                            title: 'Final Promotion VI_TO_VIII Report',
+                                            description: 'Final Promotion VI_TO_VIII Report'
                                         },
                                         {
                                             id: 21016,
@@ -3014,15 +3102,15 @@ export async function getUserAccessibleModules() {
                                             id: 21050,
                                             name: 'NDS_Co_Scholasticreport',
                                             icon: 'Ticket',
-                                            url: '/Exam/exam-module/reports/nds/NDS_Co_Scholasticreport',
+                                            url: '/Exam/exam-module/reports/NDS/NDS_Co_Scholasticreport',
                                             title: 'NDS_Co_Scholasticreport',
                                             description: 'NDS_Co_Scholasticreport'
                                         },
                                         {
-                                            id: 21060,
+                                            id: 21051,
                                             name: 'NDS_I_To_VIII_ReportCard',
                                             icon: 'Ticket',
-                                            url: '/Exam/exam-module/reports/nds/NDS_I_To_VIII_ReportCard',
+                                            url: '/Exam/exam-module/reports/NDS/NDS_I_To_VIII_ReportCard',
                                             title: 'NDS_I_To_VIII_ReportCard',
                                             description: 'NDS_I_To_VIII_ReportCard'
                                         },
@@ -3049,6 +3137,350 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/Burnpur/brs_reportcardX',
                                             title: 'BRS Progress Card X Report',
                                             description: 'BRS Progress Card X Report'
+                                        },
+
+                                        {
+                                            id: 21044,
+                                            name: 'St. James Consolidate Report',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/StJames/stjames-consolidated-report',
+                                            title: 'St. James Consolidate Report',
+                                            description: 'St. James Consolidate Report'
+                                        },
+                                        {
+                                            id: 21045,
+                                            name: 'MES Progress Card Report',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/MES/mes-progresscardreport',
+                                            title: 'MES Progress Card Report',
+                                            description: 'MES Progress Card Report'
+                                        },
+                                        {
+                                            id: 21055,
+                                            name: 'BRS Progress Card XII Report',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/Burnpur/Burnpur_ProgressCardReportXII',
+                                            title: 'BRS Progress Card XII Report',
+                                            description: 'BRS Progress Card XII Report'
+                                        },
+                                        {
+                                            id: 21056,
+                                            name: 'BRS Progress Card XI Report',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/Burnpur/Burnpur_ProgressCardReportXI',
+                                            title: 'BRS Progress Card XI Report',
+                                            description: 'BRS Progress Card XI Report'
+                                        },
+                                        {
+                                            id: 21057,
+                                            name: 'BRS Progress Card Report',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/Burnpur/Burnpur_ProgressCardReport',
+                                            title: 'BRS Progress Card Report',
+                                            description: 'BRS Progress Card Report'
+                                        },
+                                        {
+                                            id: 21044,
+                                            name: 'NDS_9_ProgressNewCardReport',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/NDS/NDS_9_ProgressNewCardReport',
+                                            title: 'NDS_9_ProgressNewCardReport',
+                                            description: 'NDS_9_ProgressNewCardReport'
+                                        },
+                                        {
+                                            id: 21046,
+                                            name: 'NDS_9_ProgressCardReport',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/NDS/NDS_9_ProgressCardReport',
+                                            title: 'NDS_9_ProgressCardReport',
+                                            description: 'NDS_9_ProgressCardReport'
+                                        },
+                                        {
+                                            id: 21047,
+                                            name: 'NDS_1_5_ProgressCardReport',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/NDS/NDS_1_5_ProgressCardReport',
+                                            title: 'NDS_1_5_ProgressCardReport',
+                                            description: 'NDS_1_5_ProgressCardReport'
+                                        },
+                                        {
+                                            id: 21045,
+                                            name: 'NDS Promotion Report Card',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/NDS/NDS_Promotionreportcard',
+                                            title: 'NDS Promotion Report Card',
+                                            description: 'NDS Promotion Report Card'
+                                        },
+                                        {
+                                            id: 21046,
+                                            name: 'Chinmaya_Final Promotion Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Chinmaya/FinalPromReportSChinmaya',
+                                            title: 'Chinmaya_Final Promotion Report',
+                                            description: 'Chinmaya Final Promotion Report Card'
+                                        },
+                                        {
+                                            id: 21047,
+                                            name: 'NDS_9 Progress Card Report',
+                                            icon: 'FileText',
+                                            url: '/Exam/exam-module/reports/NDS/NDS9ProgressCardReport',
+                                            title: 'NDS_9 Progress Card Report',
+                                            description: 'NDS 9 Progress Card Report'
+                                        },
+                                        {
+                                            id: 21048,
+                                            name: 'Sophia Exam Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Sophia/SopiaExamReport',
+                                            title: 'Sophia Exam Report',
+                                            description: 'Sophia Exam Report'
+                                        },
+                                        {
+                                            id: 21049,
+                                            name: 'Sophia Exam Report Term Exam',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Sophia/SopiaExamReportTermExam',
+                                            title: 'Sophia Exam Report Term Exam',
+                                            description: 'Sophia Exam Report Term Exam'
+                                        },
+                                        {
+                                            id: 21200,
+                                            name: 'Sophia Exam Report I to IV',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Sophia/SopiaExamReportItoIV',
+                                            title: 'Sophia Exam Report I to IV',
+                                            description: 'Sophia Exam Report I to IV'
+                                        },
+                                        {
+                                            id: 21201,
+                                            name: 'Sophia Exam Report IV Term',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Sophia/SopiaExamReportIVTerm',
+                                            title: 'Sophia Exam Report IV Term',
+                                            description: 'Sophia Exam Report IV Term'
+                                        },
+                                        {
+                                            id: 21202,
+                                            name: 'Sophia Report Card Pre',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Sophia/SophiaReportCardPre',
+                                            title: 'Sophia Report Card Pre',
+                                            description: 'Sophia Report Card Pre'
+                                        },
+                                        {
+                                            id: 21203,
+                                            name: 'Sophia Exam Report V to VIII',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Sophia/SopiaExamReportVtoVIII',
+                                            title: 'Sophia Exam Report V to VIII'
+                                        },
+                                        {
+                                            id: 21204,
+                                            name: 'Sophia Report Card Pre III',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Sophia/SophiaReportCardPreIII',
+                                            title: 'Sophia Report Card Pre III',
+                                            description: 'Sophia Report Card Pre III'
+                                        },
+                                        {
+                                            id: 21205,
+                                            name: 'St. James IV Progress Card',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/StJames/st-james-iv-report',
+                                            title: 'St. James IV Progress Card',
+                                            description: 'St. James IV Progress Card'
+                                        },
+                                        {
+                                            id: 21206,
+                                            name: 'IX-X St. James  Report',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/StJames/ix-x_st-jamesreport',
+                                            title: 'IX-X St. James  Report',
+                                            description: 'IX-X St. James  Report'
+                                        },
+                                        {
+                                            id: 21207,
+                                            name: 'St.James Progress Card New',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/StJames/progresscard-stjames-new',
+                                            title: 'St.James Progress Card New',
+                                            description: 'St.James  Progress Card New'
+                                        },
+                                        {
+                                            id: 21208,
+                                            name: 'St.James Progress Card',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/StJames/progresscard-st-james',
+                                            title: 'St.James Progress Card',
+                                            description: 'St.James Progress Card'
+                                        },
+                                        {
+                                            id: 21209,
+                                            name: 'XI-XII St.James Progress Card',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/StJames/xi-xii-progresscard-st-james',
+                                            title: 'XI-XII St.James Progress Card',
+                                            description: 'XI-XII St.James Progress Card'
+                                        },
+                                        {
+                                            id: 21210,
+                                            name: 'BRS PreBoard Report Card',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Burnpur/BRS_PreBoard_reportcard',
+                                            title: 'BRS PreBoard Report Card',
+                                            description: 'BRS PreBoard Report Card'
+                                        },
+                                        {
+                                            id: 21211,
+                                            name: 'Calcutta Promotion Report I-IV',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportI_IV',
+                                            title: 'Calcutta Promotion Report I-IV',
+                                            description: 'Calcutta Promotion Report I-IV'
+                                        },
+                                        {
+                                            id: 21507,
+                                            name: 'Rainbow Progress Card',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/RainBow/RainBow_ProgressCardReport',
+                                            title: 'Rainbow Progress Card',
+                                            description: 'Rainbow Progress Card'
+                                        },
+                                        {
+                                            id: 21508,
+                                            name: 'GMVPS Promotion Report Card',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/GMVPS/PromotionReportCard',
+                                            title: 'GMVPS Promotion Report Card',
+                                            description: 'GMVPS Promotion Report Card'
+                                        },
+                                        {
+                                            id: 21509,
+                                            name: 'GMGS Promotion Report Card',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/GMGS/PromotionReportCard',
+                                            title: 'GMGS Promotion Report Card',
+                                            description: 'GMGS Promotion Report Card'
+                                        },
+                                        {
+                                            id: 212111,
+                                            name: 'Calcutta Promotion Report I-V',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportI_V',
+                                            title: 'Calcutta Promotion Report I-V',
+                                            description: 'Calcutta Promotion Report I-V'
+                                        },
+                                        {
+                                            id: 21212,
+                                            name: 'Calcutta Promotion Report I-IX',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportI_IX',
+                                            title: 'Calcutta Promotion Report I-IX',
+                                            description: 'Calcutta Promotion Report I-IX'
+                                        },
+                                        {
+                                            id: 21213,
+                                            name: 'Calcutta Promotion Report IX-X',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportIX_X',
+                                            title: 'Calcutta Promotion Report IX-X',
+                                            description: 'Calcutta Promotion Report IX-X'
+                                        },
+                                        {
+                                            id: 21214,
+                                            name: 'Calcutta Promotion Report I_X',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportI_X',
+                                            title: 'Calcutta Promotion Report I_X',
+                                            description: 'Calcutta Promotion Report I_X'
+                                        },
+                                        {
+                                            id: 21216,
+                                            name: 'Multiple Exam Cumulative Report Calcutta',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Calcatta/MultipleExamCumulativeReportCalcutta',
+                                            title: 'Multiple Exam Cumulative Report Calcutta',
+                                            description: 'Multiple Exam Cumulative Report Calcutta'
+                                        },
+                                        {
+                                            id: 21214,
+                                            name: 'St.James XI_XII Progress Card New',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/StJames/stjamesxi_xiiprogress-card-report-new',
+                                            title: 'St.James XI_XII Progress Card New',
+                                            description: 'St.James XI_XII Progress Card New'
+                                        },
+                                        {
+                                            id: 21215,
+                                            name: 'St.James Nursery Progress Card',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/StJames/Stjames-nursery-progresscard',
+                                            title: 'St.James Nursery Progress Card',
+                                            description: 'St.James Nursery Progress Card'
+                                        },
+                                        {
+                                            id: 21216,
+                                            name: 'St.James Transition Progress Card',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/StJames/stjames-transition-progress-card',
+                                            title: 'St.James Transition Progress Card',
+                                            description: 'St.James Transition Progress Card'
+                                        },
+                                        {
+                                            id: 21217,
+                                            name: 'St.James I-III Progress Card',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/StJames/stjamesi_iii_progress-card-report',
+                                            title: 'St.James I-III Progress Card',
+                                            description: 'St.James I-III Progress Card'
+                                        },
+                                        {
+                                            id: 21218,
+                                            name: 'St.James Consolidated Points Report',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/StJames/stjames-consolidated-points-report',
+                                            title: 'St.James Consolidated Points Report',
+                                            description: 'St.James Consolidated Points Report'
+                                        },
+                                        {
+                                            id: 21507,
+                                            name: 'NDS Final Report Card',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/NDS/FinalNdasReportCard',
+                                            title: 'NDS Final Report Card',
+                                            description: 'NDS Final Report Card'
+                                        },
+                                        {
+                                            id: 21508,
+                                            name: 'St. Marys Final Promotion Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Stella/FinalPromReportSTMary',
+                                            title: 'St. Marys Final Promotion Report',
+                                            description: 'St. Marys Final Promotion Report'
+                                        },
+                                        {
+                                            id: 21509,
+                                            name: 'BBII Progress Card',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Baldwin/BBIIReport',
+                                            title: 'BBII Progress Card',
+                                            description: 'BBII Progress Card'
+                                        },
+                                        {
+                                            id: 21510,
+                                            name: 'BCOEDI Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Baldwin/BCOEDIReport',
+                                            title: 'BCOEDI Report',
+                                            description: 'BCOEDI Report'
+                                        },
+                                        {
+                                            id: 21511,
+                                            name: 'BCOEDII Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Baldwin/BCOEDIIReport',
+                                            title: 'BCOEDII Report',
+                                            description: 'BCOEDII Report'
                                         }
                                     ]
                                 }
@@ -3651,12 +4083,27 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/reports/PFYearlyReport',
                                             title: 'PF Yearly Report',
                                             description: 'Manage PF Yearly Report'
+                                        },
+                                        {
+                                            id: 37,
+                                            name: 'Employee Salary Slip SRKVS Report',
+                                            icon: 'FileType',
+                                            url: '/hrms/reports/employeeSalarySlipSRKVS',
+                                            title: 'Employee Salary Slip SRKVS Report',
+                                            description: 'Employee Salary Slips'
+                                        },
+                                        {
+                                            id: 38,
+                                            name: 'Employee Salary Slip St Mary Report',
+                                            icon: 'FileType',
+                                            url: '/hrms/reports/EmployeeSalarySlipStMary',
+                                            title: 'Employee Salary Slip St Mary Report',
+                                            description: 'Employee Salary Slips'
                                         }
                                     ]
                                 }
                             ]
                         },
-
                         // {
                         //     id: 2,
                         //     name: 'Recruitment',
@@ -3675,148 +4122,148 @@ export async function getUserAccessibleModules() {
                         //                     title: 'Master Job',
                         //                     description: 'Manage Job Positions'
                         //                 },
-                        //                 // {
-                        //                 //     id: 2,
-                        //                 //     name: 'Master Location',
-                        //                 //     icon: 'MapPin',
-                        //                 //     url: '/hrms/recruitment/masters/master-location',
-                        //                 //     title: 'Master Location',
-                        //                 //     description: 'Manage Locations'
-                        //                 // },
-                        //                 // {
-                        //                 //     id: 3,
-                        //                 //     name: 'Master Position',
-                        //                 //     icon: 'Target',
-                        //                 //     url: '/hrms/recruitment/masters/master-position',
-                        //                 //     title: 'Master Position',
-                        //                 //     description: 'Manage Positions'
-                        //                 // },
-                        //                 // {
-                        //                 //     id: 4,
-                        //                 //     name: 'Master Position Type',
-                        //                 //     icon: 'Tag',
-                        //                 //     url: '/hrms/recruitment/masters/master-positionType',
-                        //                 //     title: 'Master Position Type',
-                        //                 //     description: 'Manage Position Types'
-                        //                 // },
-                        //                 // {
-                        //                 //     id: 5,
-                        //                 //     name: 'Master Priority',
-                        //                 //     icon: 'Flag',
-                        //                 //     url: '/hrms/recruitment/masters/master-priority',
-                        //                 //     title: 'Master Priority',
-                        //                 //     description: 'Manage Priority Levels'
-                        //                 // }
+                        //                 {
+                        //                     id: 2,
+                        //                     name: 'Master Location',
+                        //                     icon: 'MapPin',
+                        //                     url: '/hrms/recruitment/masters/master-location',
+                        //                     title: 'Master Location',
+                        //                     description: 'Manage Locations'
+                        //                 },
+                        //                 {
+                        //                     id: 3,
+                        //                     name: 'Master Position',
+                        //                     icon: 'Target',
+                        //                     url: '/hrms/recruitment/masters/master-position',
+                        //                     title: 'Master Position',
+                        //                     description: 'Manage Positions'
+                        //                 },
+                        //                 {
+                        //                     id: 4,
+                        //                     name: 'Master Position Type',
+                        //                     icon: 'Tag',
+                        //                     url: '/hrms/recruitment/masters/master-positionType',
+                        //                     title: 'Master Position Type',
+                        //                     description: 'Manage Position Types'
+                        //                 },
+                        //                 {
+                        //                     id: 5,
+                        //                     name: 'Master Priority',
+                        //                     icon: 'Flag',
+                        //                     url: '/hrms/recruitment/masters/master-priority',
+                        //                     title: 'Master Priority',
+                        //                     description: 'Manage Priority Levels'
+                        //                 }
                         //             ]
                         //         },
-                        // {
-                        //     id: 2,
-                        //     name: 'Transactions',
-                        //     icon: 'FileText',
-                        //     pages: [
-                        //         {
-                        //             id: 1,
-                        //             name: 'Add Candidate',
-                        //             icon: 'UserPlus',
-                        //             url: '/hrms/recruitment/transaction/add-candidate',
-                        //             title: 'Add Candidate',
-                        //             description: 'Add New Candidates'
-                        //         },
                         //         {
                         //             id: 2,
-                        //             name: 'Add Candidate Interview',
-                        //             icon: 'Calendar',
-                        //             url: '/hrms/recruitment/transaction/add-candidate-interview',
-                        //             title: 'Add Candidate Interview',
-                        //             description: 'Add Candidate Interview'
-                        //         },
-                        //         {
-                        //             id: 3,
-                        //             name: 'Candidate Interview List',
-                        //             icon: 'List',
-                        //             url: '/hrms/recruitment/transaction/candidate-interview-list',
-                        //             title: 'Candidate Interview List',
-                        //             description: 'View All Candidate Interviews'
-                        //         },
-                        //         {
-                        //             id: 4,
-                        //             name: 'Interviewer Feedback',
-                        //             icon: 'MessageSquare',
-                        //             url: '/hrms/recruitment/transaction/interviewer-feedback',
-                        //             title: 'Interviewer Feedback',
-                        //             description: 'Manage Interviewer Feedback'
-                        //         },
-                        //         {
-                        //             id: 5,
-                        //             name: 'Job List',
-                        //             icon: 'Briefcase',
-                        //             url: '/hrms/recruitment/transaction/job-list',
-                        //             title: 'Job List',
-                        //             description: 'View All Jobs'
-                        //         },
-                        //         {
-                        //             id: 6,
-                        //             name: 'Job Posting List',
+                        //             name: 'Transactions',
                         //             icon: 'FileText',
-                        //             url: '/hrms/recruitment/transaction/job-posting-list',
-                        //             title: 'Job Posting List',
-                        //             description: 'View All Job Postings'
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Add Candidate',
+                        //                     icon: 'UserPlus',
+                        //                     url: '/hrms/recruitment/transaction/add-candidate',
+                        //                     title: 'Add Candidate',
+                        //                     description: 'Add New Candidates'
+                        //                 },
+                        //                 {
+                        //                     id: 2,
+                        //                     name: 'Add Candidate Interview',
+                        //                     icon: 'Calendar',
+                        //                     url: '/hrms/recruitment/transaction/add-candidate-interview',
+                        //                     title: 'Add Candidate Interview',
+                        //                     description: 'Add Candidate Interview'
+                        //                 }
+                        //                 //         {
+                        //                 //             id: 3,
+                        //                 //             name: 'Candidate Interview List',
+                        //                 //             icon: 'List',
+                        //                 //             url: '/hrms/recruitment/transaction/candidate-interview-list',
+                        //                 //             title: 'Candidate Interview List',
+                        //                 //             description: 'View All Candidate Interviews'
+                        //                 //         },
+                        //                 //         {
+                        //                 //             id: 4,
+                        //                 //             name: 'Interviewer Feedback',
+                        //                 //             icon: 'MessageSquare',
+                        //                 //             url: '/hrms/recruitment/transaction/interviewer-feedback',
+                        //                 //             title: 'Interviewer Feedback',
+                        //                 //             description: 'Manage Interviewer Feedback'
+                        //                 //         },
+                        //                 //         {
+                        //                 //             id: 5,
+                        //                 //             name: 'Job List',
+                        //                 //             icon: 'Briefcase',
+                        //                 //             url: '/hrms/recruitment/transaction/job-list',
+                        //                 //             title: 'Job List',
+                        //                 //             description: 'View All Jobs'
+                        //                 //         },
+                        //                 //         {
+                        //                 //             id: 6,
+                        //                 //             name: 'Job Posting List',
+                        //                 //             icon: 'FileText',
+                        //                 //             url: '/hrms/recruitment/transaction/job-posting-list',
+                        //                 //             title: 'Job Posting List',
+                        //                 //             description: 'View All Job Postings'
+                        //                 //         }
+                        //             ]
                         //         }
-                        //     ]
-                        // },
-                        // {
-                        //     id: 3,
-                        //     name: 'MRF Approval',
-                        //     icon: 'CheckSquare',
-                        //     pages: [
-                        //         {
-                        //             id: 1,
-                        //             name: 'MRF Requisition Form',
-                        //             icon: 'FileCheck',
-                        //             url: '/hrms/recruitment/mrf-approval/mrf-requisition-form',
-                        //             title: 'MRF Requisition Form',
-                        //             description: 'Approve MRF Requests'
-                        //         }
-                        //     ]
-                        // },
-                        // {
-                        //     id: 4,
-                        //     name: 'Feedback',
-                        //     icon: 'MessageSquare',
-                        //     pages: [
-                        //         {
-                        //             id: 1,
-                        //             name: 'Candidate Feedback',
-                        //             icon: 'Star',
-                        //             url: '/hrms/recruitment/feedback/candidate-feedback',
-                        //             title: 'Candidate Feedback',
-                        //             description: 'Record Candidate Feedback'
-                        //         }
-                        //     ]
-                        // },
-                        // {
-                        //     id: 5,
-                        //     name: 'Reports',
-                        //     icon: 'FileText',
-                        //     pages: [
-                        //         {
-                        //             id: 1,
-                        //             name: 'Candidate Report',
-                        //             icon: 'Users',
-                        //             url: '/hrms/recruitment/reports/candidate-report',
-                        //             title: 'Candidate Report',
-                        //             description: 'Candidate Summary Report'
-                        //         },
-                        //         {
-                        //             id: 2,
-                        //             name: 'Interview Report',
-                        //             icon: 'ClipboardList',
-                        //             url: '/hrms/recruitment/reports/interview-report',
-                        //             title: 'Interview Report',
-                        //             description: 'Interview Summary Report'
-                        //         }
-                        //     ]
-                        // }
+                        //         // {
+                        //         //     id: 3,
+                        //         //     name: 'MRF Approval',
+                        //         //     icon: 'CheckSquare',
+                        //         //     pages: [
+                        //         //         {
+                        //         //             id: 1,
+                        //         //             name: 'MRF Requisition Form',
+                        //         //             icon: 'FileCheck',
+                        //         //             url: '/hrms/recruitment/mrf-approval/mrf-requisition-form',
+                        //         //             title: 'MRF Requisition Form',
+                        //         //             description: 'Approve MRF Requests'
+                        //         //         }
+                        //         //     ]
+                        //         // },
+                        //         // {
+                        //         //     id: 4,
+                        //         //     name: 'Feedback',
+                        //         //     icon: 'MessageSquare',
+                        //         //     pages: [
+                        //         //         {
+                        //         //             id: 1,
+                        //         //             name: 'Candidate Feedback',
+                        //         //             icon: 'Star',
+                        //         //             url: '/hrms/recruitment/feedback/candidate-feedback',
+                        //         //             title: 'Candidate Feedback',
+                        //         //             description: 'Record Candidate Feedback'
+                        //         //         }
+                        //         //     ]
+                        //         // },
+                        //         // {
+                        //         //     id: 5,
+                        //         //     name: 'Reports',
+                        //         //     icon: 'FileText',
+                        //         //     pages: [
+                        //         //         {
+                        //         //             id: 1,
+                        //         //             name: 'Candidate Report',
+                        //         //             icon: 'Users',
+                        //         //             url: '/hrms/recruitment/reports/candidate-report',
+                        //         //             title: 'Candidate Report',
+                        //         //             description: 'Candidate Summary Report'
+                        //         //         },
+                        //         //         {
+                        //         //             id: 2,
+                        //         //             name: 'Interview Report',
+                        //         //             icon: 'ClipboardList',
+                        //         //             url: '/hrms/recruitment/reports/interview-report',
+                        //         //             title: 'Interview Report',
+                        //         //             description: 'Interview Summary Report'
+                        //         //         }
+                        //         //     ]
+                        //         // }
                         //     ]
                         // },
                         {
@@ -6142,6 +6589,14 @@ export async function getUserAccessibleModules() {
                                             url: '/library/reports/library-month-end-report',
                                             title: 'Library Month End Report',
                                             description: 'View Library Month End Report'
+                                        },
+                                        {
+                                            id: 30028,
+                                            name: 'Import Library Data',
+                                            icon: 'Upload',
+                                            url: '/library/reports/importlibrarydata',
+                                            title: 'Import Library Data',
+                                            description: 'Import Bulk Library Data'
                                         }
                                     ]
                                 }
@@ -6203,6 +6658,29 @@ export async function getUserAccessibleModules() {
                                             url: '/coe/report/coemonthendreport',
                                             title: 'COE Month End Report',
                                             description: 'Manage COE Month End Report'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 3,
+                                    name: 'Digital Signage',
+                                    icon: 'Monitor',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Configuration',
+                                            icon: 'Settings',
+                                            url: '/digital-signage/configuration',
+                                            title: 'Configuration',
+                                            description: 'Digital Signage Configuration'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Upload and Schedule',
+                                            icon: 'Upload',
+                                            url: '/digital-signage/upload-and-schedule',
+                                            title: 'Upload and Schedule',
+                                            description: 'Upload and Schedule Signage Content'
                                         }
                                     ]
                                 }
@@ -7515,7 +7993,7 @@ export async function getUserAccessibleModules() {
                                             id: 600,
                                             name: 'Master particulars',
                                             icon: 'BadgeIndianRupee',
-                                            url: '/pettycash/masterparticulars',
+                                            url: '/pettycash/master/masterparticulars',
                                             title: 'Master Particulars',
                                             description: 'Manage Master Particulars Details'
                                         }
@@ -7561,7 +8039,7 @@ export async function getUserAccessibleModules() {
                                             id: 60321230,
                                             name: 'Pc Requisition Report',
                                             icon: 'BadgeIndianRupee',
-                                            url: '/pettycash/PcRequisitionReport',
+                                            url: '/pettycash/report/PcRequisitionReport',
                                             title: 'Pc Requisition Report',
                                             description: 'View Pc Requisition Reports'
                                         },
@@ -7569,7 +8047,7 @@ export async function getUserAccessibleModules() {
                                             id: 60321231,
                                             name: 'Income Report',
                                             icon: 'BadgeIndianRupee',
-                                            url: '/pettycash/incomereport',
+                                            url: '/pettycash/report/incomereport',
                                             title: 'Income Report',
                                             description: 'View Income Reports'
                                         },
@@ -7577,16 +8055,139 @@ export async function getUserAccessibleModules() {
                                             id: 60321232,
                                             name: 'Bank Credit And Debit Report',
                                             icon: 'BadgeIndianRupee',
-                                            url: '/pettycash/BankCopyReportVVVS',
+                                            url: '/pettycash/report/BankCopyReportVVVS',
                                             title: 'Bank Credit And Debit Report',
                                             description: 'View Bank Credit And Debit Reports'
                                         }
+                                        // {
+                                        //     id: 60321233,
+                                        //     name: 'PDA Head Wise Report',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/pettycash/report/pdaHeadWiseReport',
+                                        //     title: 'PDA Head Wise Report',
+                                        //     description: 'View PDA Head Wise Report'
+                                        // },
+                                        // {
+                                        //     id: 60321234,
+                                        //     name: 'PDA Debit Credit Report',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/pettycash/report/PDADebitCreditReport',
+                                        //     title: 'PDA Debit CreditReport',
+                                        //     description: 'View PDA Student Debit/Credit Report'
+                                        // }
                                     ]
                                 }
                             ]
                         }
                     ]
                 }
+                // {
+                //     id: 999021,
+                //     name: 'PDA',
+                //     icon: 'BadgeIndianRupee',
+                //     menu: [
+                //         {
+                //             id: 1,
+                //             name: 'PDA',
+                //             icon: 'BadgeIndianRupee',
+                //             sub_menu: [
+                //                 {
+                //                     id: 1,
+                //                     name: 'Masters',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 601,
+                //                             name: 'PDA Master Head',
+                //                             icon: 'Settings',
+                //                             url: '/pda/master/pda-master-head',
+                //                             title: 'PDA Master Head',
+                //                             description: 'Manage PDA Master Head Details'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 2,
+                //                     name: 'Transactions',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 6021,
+                //                             name: 'PDA Transactions SRS',
+                //                             icon: 'Settings',
+                //                             url: '/pda/transaction/pdatransactionsrs',
+                //                             title: 'PDA Transactions SRS',
+                //                             description: 'Manage PDA Transactions SRS'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 3,
+                //                     name: 'Reports',
+                //                     icon: 'BarChart',
+                //                     pages: [
+                //                         {
+                //                             id: 603212,
+                //                             name: 'PDA Debit Credit Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDADebitCreditReport',
+                //                             title: 'PDA Debit Credit Report',
+                //                             description: 'View PDA Debit Credit Reports'
+                //                         },
+                //                         {
+                //                             id: 603213,
+                //                             name: 'PDA Head Wise Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/pdaHeadWiseReport',
+                //                             title: 'PDA Head Wise Report',
+                //                             description: 'View PDA Head Wise Reports'
+                //                         },
+                //                         {
+                //                             id: 603214,
+                //                             name: 'PDA Debit Credit Report SRS',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDADebitCreditReportSRS',
+                //                             title: 'PDA Debit Credit Report SRS',
+                //                             description: 'View PDA Debit Credit Report SRS'
+                //                         },
+                //                         {
+                //                             id: 603215,
+                //                             name: 'PDA Expenditure Import',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/pda-expenditure-import',
+                //                             title: 'PDA Expenditure Import',
+                //                             description: 'View PDA Expenditure Import'
+                //                         },
+                //                         {
+                //                             id: 603216,
+                //                             name: 'PDA Over All Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDAOverAllReport',
+                //                             title: 'PDA OverAll Report',
+                //                             description: 'View PDA OverAll Report'
+                //                         },
+                //                         {
+                //                             id: 603217,
+                //                             name: 'PDA Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDAReport',
+                //                             title: 'PDA Report',
+                //                             description: 'View PDA Report'
+                //                         },
+                //                         {
+                //                             id: 603218,
+                //                             name: 'PDA Summary Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDASummaryReport',
+                //                             title: 'PDA Summary Report',
+                //                             description: 'View PDA Summary Report'
+                //                         }
+                //                     ]
+                //                 }
+                //             ]
+                //         }
+                //     ]
+                // }
             ]
         };
     } else if (session?.role.toUpperCase() === 'STAFF') {
@@ -7599,28 +8200,6 @@ export async function getUserAccessibleModules() {
                     name: 'Staff Portal',
                     icon: 'Settings',
                     menu: [
-                        // {
-                        //     id: 1,
-                        //     name: 'Dashboard',
-                        //     icon: 'LayoutDashboard',
-                        //     sub_menu: [
-                        //         {
-                        //             id: 8000,
-                        //             name: 'Dashboard',
-                        //             icon: 'LayoutDashboard',
-                        //             pages: [
-                        //                 {
-                        //                     id: 8000,
-                        //                     name: 'Staff Dashboard',
-                        //                     icon: 'LayoutDashboard',
-                        //                     url: '/StaffPortal/staff-dashboard',
-                        //                     title: 'Staff Dashboard',
-                        //                     description: 'Overall Staff Statistics'
-                        //                 }
-                        //             ]
-                        //         }
-                        //     ]
-                        // },
                         {
                             id: 2,
                             name: 'Attendance',
@@ -7690,11 +8269,19 @@ export async function getUserAccessibleModules() {
                                     pages: [
                                         {
                                             id: 9001,
-                                            name: 'AI MCQ QUIZ',
+                                            name: 'AI MCQ Quiz',
                                             icon: 'Trophy',
                                             url: '/StaffPortal/ai-mcq-quiz',
-                                            title: 'AI MCQ QUIZ',
+                                            title: 'AI MCQ Quiz',
                                             description: 'Conduct and manage online MCQ quizzes'
+                                        },
+                                        {
+                                            id: 9003,
+                                            name: 'AI Performance Analysis',
+                                            icon: 'BarChart',
+                                            url: '/Exam/exam-module/ai-performance-analysis',
+                                            title: 'AI Performance Analysis',
+                                            description: 'Analyze student performance using AI insights'
                                         },
                                         {
                                             id: 9002,
@@ -7970,22 +8557,22 @@ export async function getUserAccessibleModules() {
                                     name: 'Transaction',
                                     icon: 'FileBarChart',
                                     pages: [
-                                        {
-                                            id: 1,
-                                            name: 'IVRM Interaction',
-                                            icon: 'BookOpenText',
-                                            url: '/StaffPortal/Interactions/IVRM_Interactions',
-                                            title: 'IVRM Interaction',
-                                            description: 'IVRM Interaction'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'NDA IVRM Interaction',
-                                            icon: 'BookOpenText',
-                                            url: '/StaffPortal/Interactions/NDA_IVRM_Interactions',
-                                            title: 'NDA IVRM Interaction',
-                                            description: 'NDA IVRM Interaction'
-                                        },
+                                        // {
+                                        //     id: 1,
+                                        //     name: 'IVRM Interaction',
+                                        //     icon: 'BookOpenText',
+                                        //     url: '/StaffPortal/Interactions/IVRM_Interactions',
+                                        //     title: 'IVRM Interaction',
+                                        //     description: 'IVRM Interaction'
+                                        // },
+                                        // {
+                                        //     id: 2,
+                                        //     name: 'NDA IVRM Interaction',
+                                        //     icon: 'BookOpenText',
+                                        //     url: '/StaffPortal/Interactions/NDA_IVRM_Interactions',
+                                        //     title: 'NDA IVRM Interaction',
+                                        //     description: 'NDA IVRM Interaction'
+                                        // },
                                         {
                                             id: 3,
                                             name: 'SCS Interaction',
@@ -8030,6 +8617,35 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/reports/Sophia/ClassWiseDailyAttendance',
                                             title: 'Sophia Classwise Report',
                                             description: 'Sophia Classwise Report'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    id: 25,
+                    name: 'COE',
+                    icon: 'Calendar',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Calendar of Events',
+                            icon: 'Calendar',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'COE',
+                                    icon: 'Calendar',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'School Events',
+                                            icon: 'Calendar',
+                                            url: '/StudentPortal/coe/',
+                                            title: 'Calendar of Events',
+                                            description: 'View Calendar of Events'
                                         }
                                     ]
                                 }
@@ -8704,6 +9320,113 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 }
+                // {
+                //     id: 999021,
+                //     name: 'PDA',
+                //     icon: 'BadgeIndianRupee',
+                //     menu: [
+                //         {
+                //             id: 1,
+                //             name: 'PDA',
+                //             icon: 'BadgeIndianRupee',
+                //             sub_menu: [
+                //                 {
+                //                     id: 1,
+                //                     name: 'Masters',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 601,
+                //                             name: 'PDA Master Head',
+                //                             icon: 'Settings',
+                //                             url: '/pda/master/pda-master-head',
+                //                             title: 'PDA Master Head',
+                //                             description: 'Manage PDA Master Head Details'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 2,
+                //                     name: 'Transactions',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 6021,
+                //                             name: 'PDA Transactions SRS',
+                //                             icon: 'Settings',
+                //                             url: '/pda/transaction/pdatransactionsrs',
+                //                             title: 'PDA Transactions SRS',
+                //                             description: 'Manage PDA Transactions SRS'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 3,
+                //                     name: 'Reports',
+                //                     icon: 'BarChart',
+                //                     pages: [
+                //                         {
+                //                             id: 603212,
+                //                             name: 'PDA Debit Credit Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/pda-debit-credit-report',
+                //                             title: 'PDA Debit Credit Report',
+                //                             description: 'View PDA Debit Credit Reports'
+                //                         },
+                //                         {
+                //                             id: 603213,
+                //                             name: 'PDA Head Wise Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/pda-head-wise-report',
+                //                             title: 'PDA Head Wise Report',
+                //                             description: 'View PDA Head Wise Reports'
+                //                         },
+                //                         {
+                //                             id: 603214,
+                //                             name: 'PDA Debit Credit Report SRS',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDADebitCreditReportSRS',
+                //                             title: 'PDA Debit Credit Report SRS',
+                //                             description: 'View PDA Debit Credit Report SRS'
+                //                         },
+                //                         {
+                //                             id: 603215,
+                //                             name: 'PDA Expenditure Import',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/pda-expenditure-import',
+                //                             title: 'PDA Expenditure Import',
+                //                             description: 'View PDA Expenditure Import'
+                //                         },
+                //                         {
+                //                             id: 603216,
+                //                             name: 'PDA Over All Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDAOverAllReport',
+                //                             title: 'PDA OverAll Report',
+                //                             description: 'View PDA OverAll Report'
+                //                         },
+                //                         {
+                //                             id: 603217,
+                //                             name: 'PDA Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDAReport',
+                //                             title: 'PDA Report',
+                //                             description: 'View PDA Report'
+                //                         },
+                //                         {
+                //                             id: 603218,
+                //                             name: 'PDA Summary Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDASummaryReport',
+                //                             title: 'PDA Summary Report',
+                //                             description: 'View PDA Summary Report'
+                //                         }
+                //                     ]
+                //                 }
+                //             ]
+                //         }
+                //     ]
+                // }
             ]
         };
     } else {
@@ -8740,6 +9463,114 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 }
+                // {
+                //     id: 999021,
+                //     name: 'PDA',
+                //     icon: 'BadgeIndianRupee',
+                //     menu: [
+                //         {
+                //             id: 1,
+                //             name: 'PDA',
+                //             icon: 'BadgeIndianRupee',
+                //             sub_menu: [
+                //                 {
+                //                     id: 1,
+                //                     name: 'Masters',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 601,
+                //                             name: 'PDA Master Head',
+                //                             icon: 'Settings',
+                //                             url: '/pda/master/pda-master-head',
+                //                             title: 'PDA Master Head',
+                //                             description: 'Manage PDA Master Head Details'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 2,
+                //                     name: 'Transactions',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 6021,
+                //                             name: 'PDA Transactions SRS',
+                //                             icon: 'Settings',
+                //                             url: '/pda/transaction/pdatransactionsrs',
+                //                             title: 'PDA Transactions SRS',
+                //                             description: 'Manage PDA Transactions SRS'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 3,
+                //                     name: 'Reports',
+                //                     icon: 'BarChart',
+                //                     pages: [
+                //                         {
+                //                             id: 603212,
+                //                             name: 'PDA Debit Credit Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDADebitCreditReport',
+                //                             title: 'PDA Debit Credit Report',
+                //                             description: 'View PDA Debit Credit Reports'
+                //                         },
+                //                         {
+                //                             id: 603213,
+                //                             name: 'PDA Head Wise Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDAHeadWiseReport',
+                //                             title: 'PDA Head Wise Report',
+                //                             description: 'View PDA Head Wise Reports'
+                //                         },
+                //                         {
+                //                             id: 603214,
+                //                             name: 'PDA Debit Credit Report SRS',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDADebitCreditReportSRS',
+                //                             title: 'PDA Debit Credit Report SRS',
+                //                             description: 'View PDA Debit Credit Report SRS'
+                //                         },
+                //                         {
+                //                             id: 603215,
+                //                             name: 'PDA Expenditure Import',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/pda-expenditure-import',
+                //                             title: 'PDA Expenditure Import',
+                //                             description: 'View PDA Expenditure Import'
+                //                         },
+                //                         {
+                //                             id: 603216,
+                //                             name: 'PDA Over All Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDAOverAllReport',
+                //                             title: 'PDA OverAll Report',
+                //                             description: 'View PDA OverAll Report'
+                //                         },
+                //                         {
+                //                             id: 603217,
+                //                             name: 'PDA Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDAReport',
+                //                             title: 'PDA Report',
+                //                             description: 'View PDA Report'
+                //                         },
+                //                         {
+                //                             id: 603218,
+                //                             name: 'PDA Summary Report',
+                //                             icon: 'BarChart',
+                //                             url: '/pda/report/PDASummaryReport',
+                //                             title: 'PDA Summary Report',
+                //                             description: 'View PDA Summary Report'
+                //                         }
+                //                     ]
+                //                 }
+                //             ]
+                //         }
+                //     ]
+                // },
+
                 // ,
                 // {
                 //     id: 9,

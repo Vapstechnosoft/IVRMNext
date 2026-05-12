@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import {
   useReportGroupTypes,
@@ -64,6 +64,7 @@ export default function SalarySlipPage() {
 
   const [employees, setEmployees] = useState<EmployeeSalarySlipDisplay[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedEmployeeIds, setSelectedEmployeeIds] = useState<Set<number>>(new Set());
   const [reportData, setReportData] = useState<any>(null);
   const [showReport, setShowReport] = useState(false);
   const [institutionDetails, setInstitutionDetails] = useState({
@@ -71,6 +72,8 @@ export default function SalarySlipPage() {
     address: "",
     logo: "",
   });
+
+  const reportRef = useRef<HTMLDivElement>(null);
 
   // Cascading Dropdown Hooks
   const { data: yearsData } = useLeaveYearDropdown();
@@ -104,6 +107,15 @@ export default function SalarySlipPage() {
       });
     }
   }, [onloadData]);
+
+  useEffect(() => {
+  if (showReport && reportRef.current) {
+    reportRef.current.scrollIntoView({ 
+      behavior: "smooth", 
+      block: "start" 
+    });
+  }
+}, [showReport]);
 
   const handleFilterChange = (newFilters: SalarySlipFiltersType) => {
     setFilters(newFilters);
@@ -177,30 +189,32 @@ export default function SalarySlipPage() {
     searchTerm,
   ]);
 
-  const selectedCount = filteredEmployeesList.filter(
-    (e) => e.isSelected,
-  ).length;
+  const selectedCount = filteredEmployeesList.filter((e) => selectedEmployeeIds.has(e.id)).length;
 
   const handleSelectAll = (checked: boolean) => {
-    setEmployees((prev) =>
-      prev.map((emp) => {
-        const isVisible = filteredEmployeesList.some(
-          (fe) => fe.HRME_Id === emp.HRME_Id,
-        );
-        if (isVisible) {
-          return { ...emp, isSelected: checked };
+    setSelectedEmployeeIds((prev) => {
+      const next = new Set(prev);
+      filteredEmployeesList.forEach((emp) => {
+        if (checked) {
+          next.add(emp.id);
+        } else {
+          next.delete(emp.id);
         }
-        return emp;
-      }),
-    );
+      });
+      return next;
+    });
   };
 
   const handleSelectEmployee = (id: number, checked: boolean) => {
-    setEmployees((prev) =>
-      prev.map((emp) =>
-        emp.id === id ? { ...emp, isSelected: checked } : emp,
-      ),
-    );
+    setSelectedEmployeeIds((prev) => {
+      const next = new Set(prev);
+      if (checked) {
+        next.add(id);
+      } else {
+        next.delete(id);
+      }
+      return next;
+    });
   };
 
   const handleOptionChange = (
@@ -224,7 +238,7 @@ export default function SalarySlipPage() {
     }
 
     const selectedEmpIds = employees
-      .filter((e) => e.isSelected)
+      .filter((e) => selectedEmployeeIds.has(e.id))
       .map((e) => e.HRME_Id);
     if (selectedEmpIds.length === 0) {
       toast.error("Please select at least one employee");
@@ -407,6 +421,7 @@ export default function SalarySlipPage() {
     });
     setEmployees([]);
     setSearchTerm("");
+    setSelectedEmployeeIds(new Set());
     toast.info("Filters have been reset");
   };
 
@@ -423,6 +438,7 @@ export default function SalarySlipPage() {
         filteredEmployees={filteredEmployeesList}
         searchTerm={searchTerm}
         selectedCount={selectedCount}
+        selectedEmployeeIds={selectedEmployeeIds}
         isFiltering={isFiltering}
         isGenerating={isGenerating}
         onFilterChange={handleFilterChange}
@@ -436,7 +452,7 @@ export default function SalarySlipPage() {
       />
 
       {showReport && (
-        <div className="space-y-6">
+        <div className="space-y-6" ref = {reportRef}>
           {/* Global Action Bar */}
           <div className="flex flex-wrap items-center justify-between gap-4 bg-card p-4 rounded-xl border shadow-sm print:hidden">
             <div className="flex items-center gap-2">
