@@ -1,12 +1,13 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm, useWatch } from 'react-hook-form';
+import { useForm, useWatch, Controller } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 import { RefreshCcw, FileText, Loader2 } from 'lucide-react';
 import { SportTopperListFormData, sportTopperListSchema } from '../schema';
 import { useSportTopperListReport } from '@/hooks/sports/useSportTopperListReport';
@@ -41,6 +42,12 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
             spccmscC_Id: []
         },
     });
+
+    const {
+        control,
+        handleSubmit,
+        formState: { errors }
+    } = form;
 
     const watchedType = useWatch({ control: form.control, name: 'type' });
     const watchedYear = useWatch({ control: form.control, name: 'asmaY_Id' });
@@ -125,6 +132,7 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
         setEventList([]);
         setSectionList([]);
         onReset();
+        window.location.reload();
     };
 
     return (
@@ -140,13 +148,13 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
 
                         {/* Report Type Radio */}
-                        <FormField
-                            control={form.control}
-                            name="type"
-                            render={({ field }) => (
-                                <FormItem className="space-y-3">
-                                    <FormLabel>Report Type</FormLabel>
-                                    <FormControl>
+                        <div className="space-y-3">
+                            <Label>Report Type</Label>
+                            <Controller
+                                control={control}
+                                name="type"
+                                render={({ field }) => (
+                                    <div className="flex flex-col gap-2">
                                         <RadioGroup
                                             onValueChange={field.onChange}
                                             defaultValue={field.value}
@@ -161,160 +169,164 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
                                                 <label htmlFor="r2" className="cursor-pointer font-medium">By Class/Section</label>
                                             </div>
                                         </RadioGroup>
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                                        {errors.type && <span className="text-xs font-medium text-destructive">{errors.type.message}</span>}
+                                    </div>
+                                )}
+                            />
+                        </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-end">
                             {/* Academic Year */}
-                            <FormField
-                                control={form.control}
-                                name="asmaY_Id"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className="font-semibold">Academic Year <span className="text-destructive">*</span></FormLabel>
-                                        <Select
-                                            onValueChange={(value) => field.onChange(Number(value))}
-                                            value={field.value?.toString()}
-                                            disabled={initialData.isLoading}
-                                        >
-                                            <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select Year" />
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                {initialData.data?.yearlist?.map((year) => (
-                                                    <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>
-                                                        {year.asmaY_Year}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-
-                            {/* Class Selection (Only if Type == CS) */}
-                            {watchedType === 'CS' && (
-                                <FormField
-                                    control={form.control}
-                                    name="asmcL_Id"
+                            <div className="flex flex-col gap-2">
+                                <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Academic Year</Label>
+                                <Controller
+                                    control={control}
+                                    name="asmaY_Id"
                                     render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel className="font-semibold">Class <span className="text-destructive">*</span></FormLabel>
+                                        <div className="flex flex-col gap-1">
                                             <Select
                                                 onValueChange={(value) => field.onChange(Number(value))}
                                                 value={field.value?.toString()}
-                                                disabled={!watchedYear}
+                                                disabled={initialData.isLoading}
                                             >
-                                                <FormControl>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Select Class" />
-                                                    </SelectTrigger>
-                                                </FormControl>
+                                                <SelectTrigger className={errors.asmaY_Id ? 'border-destructive ring-destructive/20' : ''}>
+                                                    <SelectValue placeholder="Select Year" />
+                                                </SelectTrigger>
                                                 <SelectContent>
-                                                    {classList.map((cls) => (
-                                                        <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()}>
-                                                            {cls.asmcL_ClassName}
+                                                    {initialData.data?.yearlist?.map((year) => (
+                                                        <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>
+                                                            {year.asmaY_Year}
                                                         </SelectItem>
                                                     ))}
                                                 </SelectContent>
                                             </Select>
-                                            <FormMessage />
-                                        </FormItem>
+                                            {errors.asmaY_Id && <span className="text-xs font-medium text-destructive">{errors.asmaY_Id.message}</span>}
+                                        </div>
                                     )}
                                 />
+                            </div>
+
+                            {/* Class Selection (Only if Type == CS) */}
+                            {watchedType === 'CS' && (
+                                <div className="flex flex-col gap-2">
+                                    <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Class</Label>
+                                    <Controller
+                                        control={control}
+                                        name="asmcL_Id"
+                                        render={({ field }) => (
+                                            <div className="flex flex-col gap-1">
+                                                <Select
+                                                    onValueChange={(value) => field.onChange(Number(value))}
+                                                    value={field.value?.toString()}
+                                                    disabled={!watchedYear}
+                                                >
+                                                    <SelectTrigger className={errors.asmcL_Id ? 'border-destructive ring-destructive/20' : ''}>
+                                                        <SelectValue placeholder="Select Class" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {classList.map((cls) => (
+                                                            <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()}>
+                                                                {cls.asmcL_ClassName}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                {errors.asmcL_Id && <span className="text-xs font-medium text-destructive">{errors.asmcL_Id.message}</span>}
+                                            </div>
+                                        )}
+                                    />
+                                </div>
                             )}
 
                             {/* Section Selection (Only if Type == CS) */}
                             {watchedType === 'CS' && (
-                                <FormField
-                                    control={form.control}
-                                    name="asmS_Id"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel className="font-semibold">Section <span className="text-destructive">*</span></FormLabel>
-                                            <FormControl>
+                                <div className="flex flex-col gap-2">
+                                    <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Section</Label>
+                                    <Controller
+                                        control={control}
+                                        name="asmS_Id"
+                                        render={({ field }) => (
+                                            <div className="flex flex-col gap-1">
                                                 <MultiSelect
                                                     options={sectionList.map(s => ({ value: s.asmS_Id.toString(), label: s.asmC_SectionName }))}
                                                     onValueChange={(vals) => field.onChange(vals.map(Number))}
                                                     defaultValue={field.value?.map(String) || []}
                                                     placeholder="Select Sections"
                                                     disabled={!watchedClass || sectionMutation.isPending}
+                                                    className={errors.asmS_Id ? 'border-destructive ring-destructive/20' : ''}
                                                 />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
+                                                {errors.asmS_Id && <span className="text-xs font-medium text-destructive">{errors.asmS_Id.message}</span>}
+                                            </div>
+                                        )}
+                                    />
+                                </div>
                             )}
 
                             {/* House Selection (Always visible per analysis) */}
-                            <FormField
-                                control={form.control}
-                                name="spccmH_Id"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className="font-semibold">House <span className="text-destructive">*</span></FormLabel>
-                                        <FormControl>
+                            <div className="flex flex-col gap-2">
+                                <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">House</Label>
+                                <Controller
+                                    control={control}
+                                    name="spccmH_Id"
+                                    render={({ field }) => (
+                                        <div className="flex flex-col gap-1">
                                             <MultiSelect
                                                 options={houseList.map(h => ({ value: h.spccmH_Id.toString(), label: h.spccmH_HouseName }))}
                                                 onValueChange={(vals) => field.onChange(vals.map(Number))}
                                                 defaultValue={field.value?.map(String) || []}
                                                 placeholder="Select Houses"
                                                 disabled={!watchedYear || classHouseEventMutation.isPending}
+                                                className={errors.spccmH_Id ? 'border-destructive ring-destructive/20' : ''}
                                             />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                                            {errors.spccmH_Id && <span className="text-xs font-medium text-destructive">{errors.spccmH_Id.message}</span>}
+                                        </div>
+                                    )}
+                                />
+                            </div>
 
                             {/* Event Selection */}
-                            <FormField
-                                control={form.control}
-                                name="spccmE_Id"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className="font-semibold">Event <span className="text-destructive">*</span></FormLabel>
-                                        <FormControl>
+                            <div className="flex flex-col gap-2">
+                                <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Event</Label>
+                                <Controller
+                                    control={control}
+                                    name="spccmE_Id"
+                                    render={({ field }) => (
+                                        <div className="flex flex-col gap-1">
                                             <MultiSelect
                                                 options={eventList.map(e => ({ value: e.spccmE_Id.toString(), label: e.spccmE_EventName }))}
                                                 onValueChange={(vals) => field.onChange(vals.map(Number))}
                                                 defaultValue={field.value?.map(String) || []}
                                                 placeholder="Select Events"
                                                 disabled={!watchedYear || classHouseEventMutation.isPending}
+                                                className={errors.spccmE_Id ? 'border-destructive ring-destructive/20' : ''}
                                             />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                                            {errors.spccmE_Id && <span className="text-xs font-medium text-destructive">{errors.spccmE_Id.message}</span>}
+                                        </div>
+                                    )}
+                                />
+                            </div>
 
                             {/* Sports Selection */}
-                            <FormField
-                                control={form.control}
-                                name="spccmscC_Id"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className="font-semibold">Sports</FormLabel>
-                                        <FormControl>
+                            <div className="flex flex-col gap-2">
+                                <Label className="text-sm font-semibold">Sports</Label>
+                                <Controller
+                                    control={control}
+                                    name="spccmscC_Id"
+                                    render={({ field }) => (
+                                        <div className="flex flex-col gap-1">
                                             <MultiSelect
                                                 options={initialData.data?.sportslist?.map(s => ({ value: s.spccmscC_Id.toString(), label: s.spccmscC_SportsCCName })) || []}
                                                 onValueChange={(vals) => field.onChange(vals.map(Number))}
                                                 defaultValue={field.value?.map(String) || []}
                                                 placeholder="Select Sports"
                                                 disabled={initialData.isLoading}
+                                                className={errors.spccmscC_Id ? 'border-destructive ring-destructive/20' : ''}
                                             />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                                            {errors.spccmscC_Id && <span className="text-xs font-medium text-destructive">{errors.spccmscC_Id.message}</span>}
+                                        </div>
+                                    )}
+                                />
+                            </div>
 
                         </div>
 

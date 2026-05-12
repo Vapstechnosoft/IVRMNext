@@ -55,32 +55,41 @@ export interface IStudentAgeCalculationDropdowns {
 
 export const StudentAgeReportSchema = z.object({
     type: z.enum(['House', 'CS']),
-    asmaY_Id: z.coerce.number().min(1, 'Academic Year is required'),
-    spccmcC_Id: z.coerce.number().optional(),
+    asmaY_Id: z.number({ required_error: "Select Academic Year", invalid_type_error: "Select Academic Year" }).min(1, 'Select Academic Year'),
+    spccmcC_Id: z.number().optional(),
     asmcL_Id: z.number().optional(),
-    selectedhouselist: z.array(z.object({ spccmH_Id: z.number() })).optional(),
-    selectedSectionlist: z.array(z.object({ asmS_Id: z.number() })).optional(),
-}).refine(data => {
+    selectedhouselist: z.array(z.object({ spccmH_Id: z.number() })),
+    selectedSectionlist: z.array(z.object({ asmS_Id: z.number() })),
+}).superRefine((data, ctx) => {
+    // Academic Year is already handled by .min(1) above, 
+    // but we can be extra sure if needed.
+
     if (data.type === 'CS') {
-        return !!data.asmcL_Id;
+        if (!data.asmcL_Id || data.asmcL_Id === 0) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Select Class",
+                path: ["asmcL_Id"],
+            });
+        }
+        if (!data.selectedSectionlist || data.selectedSectionlist.length === 0) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Select at least one section",
+                path: ["selectedSectionlist"],
+            });
+        }
     }
-    return true;
-}, {
-    message: "Class is required for Class/Section report",
-    path: ["asmcL_Id"]
-}).refine(data => {
-    if (data.type === 'CS') {
-        return data.selectedSectionlist && data.selectedSectionlist.length > 0;
+    
+    // House selection is mandatory for both types in this report? 
+    // Usually yes, if it's displayed and has an asterisk.
+    if (!data.selectedhouselist || data.selectedhouselist.length === 0) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Select at least one house",
+            path: ["selectedhouselist"],
+        });
     }
-    return true;
-}, {
-    message: "At least one section must be selected",
-    path: ["selectedSectionlist"]
-}).refine(data => {
-    return data.selectedhouselist && data.selectedhouselist.length > 0;
-}, {
-    message: "At least one house must be selected",
-    path: ["selectedhouselist"]
 });
 
 export type StudentAgeReportFormSchema = z.infer<typeof StudentAgeReportSchema>;
