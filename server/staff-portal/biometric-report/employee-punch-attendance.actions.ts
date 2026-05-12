@@ -2,20 +2,20 @@
 
 import { api, type ApiResponse } from '@/lib/apiService';
 import {
+    IEmployeeDetails,
     IEmployeePunchAttendanceFilter,
-    IEmployeePunchAttendanceInitialData,
     IEmployeePunchAttendanceReportData,
 } from '@/types/staff-portal/biometric-report/employee-punch-attendance.types';
 
 const BASE_URL = '/EmployeePunchAttendence';
 
 export const getEmployeePunchAttendanceInitialData = async (): Promise<
-    ApiResponse<IEmployeePunchAttendanceInitialData>
+    ApiResponse<IEmployeeDetails[]>
 > => {
-    const id = 2; // Hardcoded ID as per original controller
-    return await api.get<IEmployeePunchAttendanceInitialData>(
+
+    return await api.get<IEmployeeDetails[]>(
         'portal',
-        `${BASE_URL}/getalldetails/${id}`
+        `${BASE_URL}/getalldetails`
     );
 };
 

@@ -43,8 +43,8 @@ export const useEmployeePunchAttendance = () => {
         const fetchInitialData = async () => {
             try {
                 const response = await getEmployeePunchAttendanceInitialData();
-                if (response.data?.filldepartment && response.data.filldepartment.length > 0) {
-                    setEmployeeDetails(response.data.filldepartment[0]);
+                if (response.data && response.data?.length > 0) {
+                    setEmployeeDetails(response.data[0]);
                 }
             } catch (error) {
                 console.error('Error fetching initial data:', error);
