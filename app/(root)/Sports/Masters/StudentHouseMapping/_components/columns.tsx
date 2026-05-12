@@ -47,31 +47,38 @@ export const columns: ColumnDef<StudentHouseMappingDTO>[] = [
     },
     {
         accessorKey: 'asmaY_Year',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Year' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Year' />,
+        enableSorting: true
     },
     {
         accessorKey: 'spccmH_HouseName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='House Name' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='House Name' />,
+        enableSorting: true
     },
     {
         accessorKey: 'studentname',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
+        enableSorting: true
     },
     {
         accessorKey: 'amsT_AdmNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Adm No.' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Adm No.' />,
+        enableSorting: true
     },
     {
         accessorKey: 'asmcL_ClassName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Class' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Class' />,
+        enableSorting: true
     },
     {
         accessorKey: 'asmC_SectionName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Section' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Section' />,
+        enableSorting: true
     },
     {
         accessorKey: 'spccsH_Remarks',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Remark' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Remark' />,
+        enableSorting: true
     },
     {
         id: 'actions',

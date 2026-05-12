@@ -13,14 +13,17 @@ import { columns } from './_components/columns';
 import UpdateForm from './_components/update-form';
 import ToggleForm from './_components/toggle-form';
 
-export default function StudentHouseMappingPage() {
-    const { loadData, refetchAll } = useStudentHouseMapping();
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+export default function StudentHouseMappingPage(props: { searchParams: SearchParams }) {
+    const searchParams = use(props.searchParams);
+    const { loadData, refetchAll } = useStudentHouseMapping(searchParams);
 
     return (
         <FormProvider<StudentHouseMappingDTO>>
             <StudentHouseMappingContent 
                 response={loadData.data} 
-                isLoading={loadData.isLoading} 
+                isLoading={loadData.isPending || loadData.isFetching} 
                 error={loadData.error} 
                 refetchAll={refetchAll} 
             />

@@ -17,11 +17,12 @@ export async function getStudentHouseMappingLoadData(params?: any) {
     try {
         const urlParams = getSearchParamsUrl(params || {});
         const url = `${API_URL.GET_DETAILS}?${urlParams}`;
-        const response = await api.post<any>('sports', url, {});
+        const response = await api.post<any>('sports', url, params || {});
         return {
             yearlist: response.data?.yearlist || [],
             houseList: response.data?.houseList || [],
             alldata: response.data?.alldata || [],
+            total: response.total || response.data?.total || 0
         };
     } catch (error) {
         console.error('Error fetching load data:', error);
