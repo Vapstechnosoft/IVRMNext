@@ -3460,27 +3460,51 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 21509,
-                                            name: 'BBII Progress Card',
+                                            name: 'Baldwin BBII Progress Card',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/Baldwin/BBIIReport',
-                                            title: 'BBII Progress Card',
-                                            description: 'BBII Progress Card'
+                                            title: 'Baldwin BBII Progress Card',
+                                            description: 'Baldwin BBII Progress Card'
                                         },
                                         {
                                             id: 21510,
-                                            name: 'BCOEDI Report',
+                                            name: 'Baldwin BCOEDI Report',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/Baldwin/BCOEDIReport',
-                                            title: 'BCOEDI Report',
-                                            description: 'BCOEDI Report'
+                                            title: 'Baldwin BCOEDI Report',
+                                            description: 'Baldwin BCOEDI Report'
                                         },
                                         {
                                             id: 21511,
-                                            name: 'BCOEDII Report',
+                                            name: 'Baldwin BCOEDII Report',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/Baldwin/BCOEDIIReport',
-                                            title: 'BCOEDII Report',
-                                            description: 'BCOEDII Report'
+                                            title: 'Baldwin BCOEDII Report',
+                                            description: 'Baldwin BCOEDII Report'
+                                        },
+                                        {
+                                            id: 21512,
+                                            name: 'Baldwin Promotion Report Std IX 20-21',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Baldwin/PromotionReportStdIX_20_21',
+                                            title: 'Baldwin Promotion Report Std IX 20-21',
+                                            description: 'Baldwin Promotion Report Std IX 20-21'
+                                        },
+                                        {
+                                            id: 21513,
+                                            name: 'Baldwin Promotion Report IX',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Baldwin/PromotionReportIX',
+                                            title: 'Baldwin Promotion Report IX',
+                                            description: 'Baldwin Promotion Report IX'
+                                        },
+                                        {
+                                            id: 21514,
+                                            name: 'Baldwin Final P Report BBHS',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Baldwin/Baldwin_Final_P_Report_BBHS',
+                                            title: 'Baldwin Final P Report BBHS',
+                                            description: 'Baldwin Final P Report BBHS'
                                         }
                                     ]
                                 }
