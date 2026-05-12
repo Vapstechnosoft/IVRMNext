@@ -44,8 +44,8 @@ export default function LibraryMonthEndReportPage() {
 
     const handleSearch = (data: ILibraryMonthEndReportRequest) => {
         searchMutation.mutate(data, {
-            onSuccess: (response) => {
-                const rawGridData = (response.griddata || []) as ILibraryMonthEndReportGridData[];
+            onSuccess: (response: any) => {
+                const rawGridData = (response || []) as ILibraryMonthEndReportGridData[];
                 const displayData = processData(rawGridData);
                 setReportDisplayData(displayData);
             }
