@@ -75,25 +75,34 @@ export default function ReportForm({ onReportGenerated, isLoading }: ReportFormP
 
 
 
-    const itemOptions = useMemo(() => detailsData?.data?.get_ICreportdetails?.map((item: any) => ({
-        label: item.invmI_ItemCode ? `${item.invmI_ItemName} : ${item.invmI_ItemCode}` : item.invmI_ItemName,
-        value: item.invmI_Id
-    })) || [], [detailsData]);
+    const getDetailsArray = (data: any) => {
+        if (!data) return [];
+        if (Array.isArray(data.data)) return data.data;
+        if (data.data?.get_ICreportdetails && Array.isArray(data.data.get_ICreportdetails)) return data.data.get_ICreportdetails;
+        return [];
+    };
 
-    const staffOptions = useMemo(() => detailsData?.data?.get_ICreportdetails?.map((item: any) => ({
-        label: item.employeename,
-        value: item.hrmE_Id?.toString()
-    })) || [], [detailsData]);
+    const detailsArray = useMemo(() => getDetailsArray(detailsData), [detailsData]);
 
-    const deptOptions = useMemo(() => detailsData?.data?.get_ICreportdetails?.map((item: any) => ({
-        label: item.hrmD_DepartmentName,
-        value: item.hrmD_Id
-    })) || [], [detailsData]);
+    const itemOptions = useMemo(() => detailsArray.map((item: any) => ({
+        label: item.name || (item.invmI_ItemCode ? `${item.invmI_ItemName} : ${item.invmI_ItemCode}` : item.invmI_ItemName),
+        value: item.id || item.invmI_Id
+    })), [detailsArray]);
 
-    const studentOptions = useMemo(() => detailsData?.data?.get_ICreportdetails?.map((item: any) => ({
-        label: item.studentname,
-        value: item.amsT_Id
-    })) || [], [detailsData]);
+    const staffOptions = useMemo(() => detailsArray.map((item: any) => ({
+        label: item.name || item.employeename,
+        value: (item.id || item.hrmE_Id)?.toString()
+    })), [detailsArray]);
+
+    const deptOptions = useMemo(() => detailsArray.map((item: any) => ({
+        label: item.name || item.hrmD_DepartmentName,
+        value: item.id || item.hrmD_Id
+    })), [detailsArray]);
+
+    const studentOptions = useMemo(() => detailsArray.map((item: any) => ({
+        label: item.name || item.studentname,
+        value: item.id || item.amsT_Id
+    })), [detailsArray]);
 
 
     const onSubmit = (data: InvRItemConsumptionSchema) => {
@@ -224,7 +233,15 @@ export default function ReportForm({ onReportGenerated, isLoading }: ReportFormP
                                 <div className="space-y-2 max-w-xl">
                                     <Label>Select Staff <span className="text-destructive">*</span></Label>
                                     <Controller name="staffArray" control={control} render={({ field }) => (
-                                        <MultiSelect options={staffOptions} onValueChange={(val) => field.onChange(detailsData?.data?.get_ICreportdetails.filter((s: any) => val.includes(s.hrmE_Id.toString())))} defaultValue={field.value?.map((v: any) => v.hrmE_Id.toString())} placeholder="Select Staff..." />
+                                        <MultiSelect 
+                                            options={staffOptions} 
+                                            onValueChange={(val) => {
+                                                const selectedStaff = detailsArray.filter((s: any) => val.includes((s.id || s.hrmE_Id).toString()));
+                                                field.onChange(selectedStaff);
+                                            }} 
+                                            defaultValue={field.value?.map((v: any) => (v.id || v.hrmE_Id).toString())} 
+                                            placeholder="Select Staff..." 
+                                        />
                                     )} />
                                     {errors.staffArray && <FormError>{errors.staffArray.message}</FormError>}
                                 </div>
@@ -255,8 +272,22 @@ export default function ReportForm({ onReportGenerated, isLoading }: ReportFormP
                 )}
 
                 <div className="flex justify-center gap-4 p-4 border-t bg-muted/10">
-                    <Button type="submit" size="lg" className="w-32" isLoading={isLoading}><FileText className="mr-2 h-4 w-4" /> Report</Button>
-                    <Button type="button" variant="destructive" size="lg" className="w-32" onClick={handleCancel}><RefreshCcw className="mr-2 h-4 w-4" /> Reset</Button>
+                    <Button
+                        type="submit"
+                        variant="secondary"
+                        className="w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg"
+                        isLoading={isLoading}
+                    >
+                        <FileText className="mr-2 h-4 w-4" /> Report
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        className="w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg"
+                        onClick={handleCancel}
+                    >
+                        <RefreshCcw className="mr-2 h-4 w-4" /> Reset
+                    </Button>
                 </div>
             </CollapsibleSection>
         </form>

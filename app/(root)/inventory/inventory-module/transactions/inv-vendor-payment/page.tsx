@@ -87,59 +87,6 @@ function InvVendorPaymentContent({
                     </Button>
                 </div>
 
-                {isAddFormOpen && (
-                    <div ref={addFormRef}>
-                        <CollapsibleSection
-                            title='New Vendor Payment'
-                            description='Enter payment details'
-                            defaultOpen={true}
-                            variant='outline'
-                            size='md'
-                            className='animate-in slide-in-from-top-4 duration-300 shadow-md mb-6'
-                            icon={<PlusCircle className='h-5 w-5' />}>
-                            <div className='relative'>
-                                <Button
-                                    type='button'
-                                    onClick={closeAddForm}
-                                    variant='ghost'
-                                    size='sm'
-                                    className='absolute top-[-3.5rem] right-0 hover:bg-destructive/10 text-destructive'>
-                                    <X className='h-4 w-4 mr-1' /> Close
-                                </Button>
-                                <AddVendorPaymentForm onSuccess={closeAddForm} />
-                            </div>
-                        </CollapsibleSection>
-                    </div>
-                )}
-
-                {isEditFormOpen && selectedRow && (
-                    <div ref={editFormRef}>
-                        <CollapsibleSection
-                            title={`Edit Payment: ${selectedRow.invmS_SupplierName} - ${selectedRow.invspT_Id}`}
-                            defaultOpen={true}
-                            variant='outline'
-                            size='md'
-                            className='animate-in slide-in-from-top-4 duration-300 shadow-md mb-6 border-primary/20'
-                            icon={<Pencil className='h-5 w-5' />}>
-                            <div className='relative'>
-                                <Button
-                                    type='button'
-                                    onClick={closeEditForm}
-                                    variant='ghost'
-                                    size='sm'
-                                    className='absolute top-[-3.5rem] right-0 hover:bg-destructive/10 text-destructive'>
-                                    <X className='h-4 w-4 mr-1' /> Close
-                                </Button>
-                                <AddVendorPaymentForm onSuccess={closeEditForm} initialData={selectedRow} />
-                            </div>
-                        </CollapsibleSection>
-                    </div>
-                )}
-
-                {isToggleFormOpen && selectedRow && (
-                    <ToggleVendorPaymentModal rowData={selectedRow} onClose={closeToggleForm} />
-                )}
-
                 <CollapsibleSection
                     title='Payment History'
                     defaultOpen={true}
@@ -159,6 +106,59 @@ function InvVendorPaymentContent({
                         errorTitle='Error Loading Data'
                     />
                 </CollapsibleSection>
+
+                {isToggleFormOpen && selectedRow && (
+                    <ToggleVendorPaymentModal rowData={selectedRow} onClose={closeToggleForm} />
+                )}
+
+                {isAddFormOpen && (
+                    <div ref={addFormRef} className='mt-6'>
+                        <CollapsibleSection
+                            title='New Vendor Payment'
+                            description='Enter payment details'
+                            defaultOpen={true}
+                            variant='outline'
+                            size='md'
+                            className='animate-in slide-in-from-top-4 duration-300 shadow-md border-primary/20'
+                            icon={<PlusCircle className='h-5 w-5' />}>
+                            <div className='relative'>
+                                <Button
+                                    type='button'
+                                    onClick={closeAddForm}
+                                    variant='ghost'
+                                    size='sm'
+                                    className='absolute top-[-3.5rem] right-0 hover:bg-destructive/10 text-destructive'>
+                                    <X className='h-4 w-4 mr-1' /> Close
+                                </Button>
+                                <AddVendorPaymentForm onSuccess={closeAddForm} />
+                            </div>
+                        </CollapsibleSection>
+                    </div>
+                )}
+
+                {isEditFormOpen && selectedRow && (
+                    <div ref={editFormRef} className='mt-6'>
+                        <CollapsibleSection
+                            title={`Edit Payment: ${selectedRow.invmS_SupplierName} - ${selectedRow.invspT_Id}`}
+                            defaultOpen={true}
+                            variant='outline'
+                            size='md'
+                            className='animate-in slide-in-from-top-4 duration-300 shadow-md border-primary/20'
+                            icon={<Pencil className='h-5 w-5' />}>
+                            <div className='relative'>
+                                <Button
+                                    type='button'
+                                    onClick={closeEditForm}
+                                    variant='ghost'
+                                    size='sm'
+                                    className='absolute top-[-3.5rem] right-0 hover:bg-destructive/10 text-destructive'>
+                                    <X className='h-4 w-4 mr-1' /> Close
+                                </Button>
+                                <AddVendorPaymentForm onSuccess={closeEditForm} initialData={selectedRow} />
+                            </div>
+                        </CollapsibleSection>
+                    </div>
+                )}
             </div>
         </div>
     );

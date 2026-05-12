@@ -1,6 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-    getInvVendorPaymentLoadData,
     getInvVendorPaymentGRNDetails,
     saveInvVendorPayment,
     deactivateInvVendorPayment,
@@ -16,11 +15,6 @@ import { toast } from 'sonner';
 
 export const useInvVendorPayment = (searchParams?: any) => {
     const queryClient = useQueryClient();
-
-    const query = useQuery({
-        queryKey: ['inv-vendor-payment', searchParams],
-        queryFn: () => getInvVendorPaymentLoadData(searchParams),
-    });
 
     const vendorPaymentsQuery = useQuery({
         queryKey: ['inv-vendor-payments-list', searchParams],
@@ -56,7 +50,6 @@ export const useInvVendorPayment = (searchParams?: any) => {
         onSuccess: (res: any) => {
             if (res.success) {
                 toast.success(res.message);
-                queryClient.invalidateQueries({ queryKey: ['inv-vendor-payment'] });
                 queryClient.invalidateQueries({ queryKey: ['inv-vendor-payments-list'] });
             } else {
                 toast.error(res.message);
@@ -72,7 +65,6 @@ export const useInvVendorPayment = (searchParams?: any) => {
         onSuccess: (res: any) => {
             if (res.success) {
                 toast.success(res.message);
-                queryClient.invalidateQueries({ queryKey: ['inv-vendor-payment'] });
                 queryClient.invalidateQueries({ queryKey: ['inv-vendor-payments-list'] });
             } else {
                 toast.error(res.message);
@@ -89,7 +81,7 @@ export const useInvVendorPayment = (searchParams?: any) => {
     });
 
     return {
-        ...query,
+        ...vendorPaymentsQuery,
         vendorPayments: vendorPaymentsQuery.data,
         isVendorPaymentsLoading: vendorPaymentsQuery.isLoading,
         paymentModes: paymentModesQuery.data?.data || [],
