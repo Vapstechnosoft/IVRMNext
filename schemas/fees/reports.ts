@@ -851,3 +851,50 @@ export const feeCollectionReportSophiaSchema = z.object({
     deactive: z.boolean().optional(),
     left: z.boolean().optional()
 });
+
+export const feeReceiptDeleteReportSophiaSchema = z.object({
+    academicYearId: z.preprocess(
+        (val) => {
+            if (val === '' || val === undefined || val === null) return undefined;
+            const num = Number(val);
+            return Number.isNaN(num) ? undefined : num;
+        },
+        z
+            .number({
+                required_error: 'Academic Year is required',
+                invalid_type_error: 'Academic Year is required'
+            })
+            .min(1, 'Academic Year is required')
+    ),
+    fromDate: z.string().min(1, 'From Date is required'),
+    toDate: z.string().min(1, 'To Date is required')
+});
+
+export const feePortalReceiptSchema = z.object({
+    academicYearId: z.preprocess(
+        (val) => {
+            if (val === '' || val === undefined || val === null) return undefined;
+            const num = Number(val);
+            return Number.isNaN(num) ? undefined : num;
+        },
+        z
+            .number({
+                required_error: 'Academic Year is required',
+                invalid_type_error: 'Academic Year is required'
+            })
+            .min(1, 'Academic Year is required')
+    ),
+    receiptId: z.preprocess(
+        (val) => {
+            if (val === '' || val === undefined || val === null) return undefined;
+            const num = Number(val);
+            return Number.isNaN(num) ? undefined : num;
+        },
+        z
+            .number({
+                required_error: 'Receipt Name is required',
+                invalid_type_error: 'Receipt Name is required'
+            })
+            .min(1, 'Receipt Name is required')
+    )
+});
