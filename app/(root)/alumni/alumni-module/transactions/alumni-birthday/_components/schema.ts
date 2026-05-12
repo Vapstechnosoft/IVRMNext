@@ -2,10 +2,13 @@ import { z } from 'zod';
 
 export const birthdayFormSchema = z.object({
     radioption: z.enum(['student', 'Staff', 'Alumni']).default('student'),
+    asmaY_Id: z.number().optional(),
+    asmcL_Id: z.number().optional(),
+    asmS_Id: z.number().optional(),
     sms: z.boolean().default(false),
     email: z.boolean().default(false),
     Whatsapp: z.boolean().default(false),
-    selectedParticipants: z.array(z.any()).min(1, 'Please select at least one participant')
+    selectedParticipants: z.array(z.any()).optional()
 });
 
 export const feedbackSchema = z.object({

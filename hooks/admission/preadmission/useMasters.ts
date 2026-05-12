@@ -19,7 +19,10 @@ import { getEmployeeDrowpDown, getMasterClassTeacher, getTeacherClassSection } f
 import { getMasterDocument } from '@/server/admission/preadmission/masters/document';
 import { getMasterReference } from '@/server/admission/preadmission/masters/reference';
 import { getMasterReligion } from '@/server/admission/preadmission/masters/religion';
-import { getMasterReligionCasteCategory } from '@/server/admission/preadmission/masters/religion_caste_category';
+import {
+    getEditMasterReligionCasteCategory,
+    getMasterReligionCasteCategory
+} from '@/server/admission/preadmission/masters/religion_caste_category';
 import { getMasterSection, getSectionSetOrder } from '@/server/admission/preadmission/masters/section';
 import { getMasterSource } from '@/server/admission/preadmission/masters/source';
 import { getConcessionDropdown } from '@/server/admission/preadmission/reports/report';
@@ -295,6 +298,22 @@ export const useMasterReligionCasteCategory = (searchParams?: ApiSearchparams) =
                 queryKey: [ADMISSION_QUERY_KEYS.MASTER_RELIGION_CASTE_CATEGORY]
             });
         }
+    };
+};
+
+export const useEditMasterReligionCasteCategory = (id?: number) => {
+    return {
+        ...useQuery({
+            queryKey: ['edit_master_religion_caste_category', id ?? {}],
+            queryFn: async () => {
+                if (!id || id <= 0) {
+                    return { data: null } as any;
+                }
+                return await getEditMasterReligionCasteCategory(id);
+            },
+            enabled: Boolean(id && id > 0),
+            staleTime: 0
+        })
     };
 };
 

@@ -2119,6 +2119,22 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/feereports/feecollectionreportsophia',
                                             title: 'Fee Collection Sophia',
                                             description: 'Manage Fee Collection Sophia'
+                                        },
+                                        {
+                                            id: 530,
+                                            name: 'Fee Receipt Delete Report Nagarjuna',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feereceiptdeletereportnagarjuna',
+                                            title: 'Fee Receipt Delete Report Nagarjuna',
+                                            description: 'Manage Fee Receipt Delete Report Nagarjuna'
+                                        },
+                                        {
+                                            id: 531,
+                                            name: 'Portal Fee Receipt',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/portalfeereceipt',
+                                            title: 'Portal Fee Receipt',
+                                            description: 'Manage Portal Fee Receipt'
                                         }
                                     ]
                                 }

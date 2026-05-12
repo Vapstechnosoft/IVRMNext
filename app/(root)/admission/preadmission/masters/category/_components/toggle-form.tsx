@@ -43,7 +43,11 @@ export default function ToggleMasterCategoryForm({ rowData, onClose }: ToggleMas
             const response = await toggleMasterCategory(Number(rowData.amC_Id));
 
             if (response.success) {
-                toast.success(response.message);
+                if (isActive === 1) {
+                    toast.error(response.message);
+                } else {
+                    toast.success(response.message);
+                }
                 refetchAll();
                 closeDialog();
             } else {
