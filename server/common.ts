@@ -3283,6 +3283,22 @@ export async function getUserAccessibleModules() {
                                             description: 'Sophia Report Card Pre III'
                                         },
                                         {
+                                            id: 21208,
+                                            name: 'NDA Report Card',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Sophia/NDAReportCard',
+                                            title: 'NDA Report Card',
+                                            description: 'NDA Report Card'
+                                        },
+                                        {
+                                            id: 21210,
+                                            name: 'NDA Report Card I to XII Term',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Sophia/NDAReportCardItoXIITerm',
+                                            title: 'NDA Report Card I to XII Term',
+                                            description: 'NDA Report Card I to XII Term'
+                                        },
+                                        {
                                             id: 21205,
                                             name: 'St. James IV Progress Card',
                                             icon: 'Ticket',
@@ -3458,6 +3474,7 @@ export async function getUserAccessibleModules() {
                                             title: 'St. Marys Final Promotion Report',
                                             description: 'St. Marys Final Promotion Report'
                                         },
+
                                         {
                                             id: 21509,
                                             name: 'Baldwin BBII Progress Card',
@@ -3505,7 +3522,32 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/Baldwin/Baldwin_Final_P_Report_BBHS',
                                             title: 'Baldwin Final P Report BBHS',
                                             description: 'Baldwin Final P Report BBHS'
+                                        },
+                                        {
+                                            id: 21515,
+                                            name: 'Promotion Report TB School',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Turnbridge/PromotionReportTBSchool',
+                                            title: 'Promotion Report TB School',
+                                            description: 'Promotion Report TB School'
+                                        },
+                                        {
+                                            id: 21516,
+                                            name: 'TBS Report School',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Turnbridge/TBSReportSchool',
+                                            title: 'TBS Report School',
+                                            description: 'TBS Report School'
+                                        },
+                                        {
+                                            id: 21517,
+                                            name: 'ProgressCardReportGMVPS X',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/GMVPS/ProgressCardReportGMVPS_X',
+                                            title: 'ProgressCardReportGMVPS X',
+                                            description: 'ProgressCardReportGMVPS X'
                                         }
+
                                     ]
                                 }
                             ]
