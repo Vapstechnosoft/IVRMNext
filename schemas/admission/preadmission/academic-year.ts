@@ -159,6 +159,18 @@ export const PreAdmissionAcademicYearSchema = {
             message: 'Financial Year End Date must be after Start Date',
             path: ['asmaY_RegularFeeTDate']
         }
+    )
+    .refine(
+        (data) => {
+            if (data.asmaY_PreAdm_F_Date && data.asmaY_From_Date) {
+                return new Date(data.asmaY_PreAdm_F_Date) <= new Date(data.asmaY_From_Date);
+            }
+            return true;
+        },
+        {
+            message: 'Pre-Admission Start Date cannot be after Start Date',
+            path: ['asmaY_PreAdm_F_Date']
+        }
     ),
 
     delete: z.object({

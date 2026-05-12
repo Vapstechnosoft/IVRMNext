@@ -78,11 +78,23 @@ export default function AddMasterRackForm({ onSuccess, className = '', subjectLi
                         <InputText
                             label='Building Name'
                             required
+                            placeholder='Enter Building Name'
                             {...register('lmrA_BuildingName')}
                             error={errors.lmrA_BuildingName?.message}
                         />
-                        <InputText label='Rack Name' required {...register('lmrA_RackName')} error={errors.lmrA_RackName?.message} />
-                        <InputText label='Rack Color' {...register('lmrA_DisplayColour')} error={errors.lmrA_DisplayColour?.message} />
+                        <InputText
+                            label='Rack Name'
+                            required
+                            placeholder='Enter Rack Name'
+                            {...register('lmrA_RackName')}
+                            error={errors.lmrA_RackName?.message}
+                        />
+                        <InputText
+                            label='Rack Color'
+                            placeholder='Enter Rack Color'
+                            {...register('lmrA_DisplayColour')}
+                            error={errors.lmrA_DisplayColour?.message}
+                        />
                         <Controller
                             control={control}
                             name='lmS_Id'
@@ -109,7 +121,13 @@ export default function AddMasterRackForm({ onSuccess, className = '', subjectLi
                                 </div>
                             )}
                         />
-                        <InputText label='Floor Name' required {...register('lmrA_FloorName')} error={errors.lmrA_FloorName?.message} />
+                        <InputText
+                            label='Floor Name'
+                            required
+                            placeholder='Enter Floor Name'
+                            {...register('lmrA_FloorName')}
+                            error={errors.lmrA_FloorName?.message}
+                        />
                     </div>
                     <div className='grid grid-cols-1'>
                         <div className='flex flex-col gap-1.5'>
@@ -118,7 +136,7 @@ export default function AddMasterRackForm({ onSuccess, className = '', subjectLi
                             </label>
                             <textarea
                                 className={`flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.lmrA_Location ? 'border-red-500' : ''}`}
-                                placeholder='Location'
+                                placeholder='Enter Location'
                                 {...register('lmrA_Location')}
                             />
                             {errors.lmrA_Location && <span className='text-red-500 text-sm'>{errors.lmrA_Location.message}</span>}

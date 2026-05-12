@@ -1,14 +1,15 @@
 'use client';
 
+import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useLibTransactionReportInitialData, useLibTransactionReportYearList } from '@/hooks/library/reports/useLibTransactionReport';
+import { useLibTransactionReportInitialData } from '@/hooks/library/reports/useLibTransactionReport';
 import type { ILibTransactionReportRequest } from '@/types/library/reports/lib-transaction-report';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, Search, X } from 'lucide-react';
+import { Loader2, Search, X, Printer, FileSpreadsheet } from 'lucide-react';
 import { Controller, useForm } from 'react-hook-form';
 import { useEffect } from 'react';
 import * as z from 'zod';
@@ -24,13 +25,16 @@ const formSchema = z.object({
 interface ReportFormProps {
     onSearch: (data: ILibTransactionReportRequest) => void;
     isLoading: boolean;
+    onPrint: () => void;
+    onExport: () => void;
+    onCancel: () => void;
+    hasData: boolean;
 }
 
-export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
+export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, onCancel, hasData }: ReportFormProps) => {
     const { data: initialDataWrapper, isLoading: isInitialLoading } = useLibTransactionReportInitialData();
     const initialData = (initialDataWrapper as any)?.data || initialDataWrapper;
-    const { data: yearListData, isLoading: isYearListLoading } = useLibTransactionReportYearList();
-    const YearData = (yearListData as any)?.data || yearListData;
+    
     const {
         control,
         handleSubmit,
@@ -56,10 +60,11 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
     const onSubmit = (values: z.infer<typeof formSchema>) => {
         onSearch({
             ...values,
-            Issue_Date: values.Issue_Date.toISOString(),
-            IssueToDate: values.IssueToDate.toISOString()
+            Issue_Date: format(values.Issue_Date, "yyyy-MM-dd'T'HH:mm:ss"),
+            IssueToDate: format(values.IssueToDate, "yyyy-MM-dd'T'HH:mm:ss")
         });
     };
+
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className='mx-auto max-w-5xl space-y-6 p-8 bg-white rounded-lg shadow-sm border border-t-4 border-t-orange-400'>
@@ -80,7 +85,7 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                                 render={({ field }) => (
                                     <Select onValueChange={field.onChange} value={field.value?.toString()}>
                                         <SelectTrigger className='w-full border-muted-foreground/30'>
-                                            <SelectValue placeholder='Select' />
+                                            <SelectValue placeholder='Select Library' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {Array.isArray(initialData?.msterliblist1) &&
@@ -109,11 +114,11 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                                 render={({ field }) => (
                                     <Select onValueChange={field.onChange} value={field.value?.toString()}>
                                         <SelectTrigger className='w-full border-muted-foreground/30'>
-                                            <SelectValue placeholder='Select' />
+                                            <SelectValue placeholder='Select Year' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {Array.isArray(YearData?.departmentList) &&
-                                                YearData?.departmentList?.map((item: any) => (
+                                            {Array.isArray(initialData?.yearlist) &&
+                                                initialData?.yearlist?.map((item: any) => (
                                                     <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
                                                         {item.asmaY_Year}
                                                     </SelectItem>
@@ -125,6 +130,7 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                             {errors.ASMAY_Id && <p className='text-xs text-destructive mt-1'>{errors.ASMAY_Id.message}</p>}
                         </div>
                     </div>
+
 
                     {/* Status Count Checkbox */}
                     <div className='flex items-center gap-4'>
@@ -151,7 +157,7 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
 
             {/* Date Selection Section */}
             <div className='w-full max-w-4xl mx-auto mt-8'>
-                <Label className='font-semibold text-[#4251b1] block mb-4'>ISSUE DATE BETWEEN :-</Label>
+                <Label className='font-semibold text-[#4251b1] block mb-4 uppercase text-xs tracking-wider'>Issue Date Between :-</Label>
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-8'>
                     {/* From Date */}
                     <div className='flex items-center gap-4'>
@@ -214,12 +220,36 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                 <Button
                     type='button'
                     className='w-auto h-8 px-8 py-1 text-xs min-w-[120px] bg-[#ff5a30] hover:bg-[#e64d26] text-white shadow-sm rounded-sm'
-                    onClick={() => reset()}
+                    onClick={() => {
+                        reset();
+                        onCancel();
+                    }}
                     disabled={isLoading}
                 >
                     <X className='mr-1.5 h-3.5 w-3.5' />
                     CANCEL
                 </Button>
+
+                {hasData && (
+                    <>
+                        <Button 
+                            type='button' 
+                            onClick={onPrint}
+                            className='w-auto h-8 px-8 py-1 text-xs min-w-[120px] bg-[#4251b1] hover:bg-[#35418e] text-white shadow-sm rounded-sm'
+                        >
+                            <Printer className='mr-1.5 h-3.5 w-3.5' />
+                            PRINT
+                        </Button>
+                        <Button 
+                            type='button' 
+                            onClick={onExport}
+                            className='w-auto h-8 px-8 py-1 text-xs min-w-[120px] bg-[#4251b1] hover:bg-[#35418e] text-white shadow-sm rounded-sm'
+                        >
+                            <FileSpreadsheet className='mr-1.5 h-3.5 w-3.5' />
+                            EXCEL
+                        </Button>
+                    </>
+                )}
             </div>
         </form>
     );

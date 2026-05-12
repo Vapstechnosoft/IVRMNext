@@ -2119,6 +2119,22 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/feereports/feecollectionreportsophia',
                                             title: 'Fee Collection Sophia',
                                             description: 'Manage Fee Collection Sophia'
+                                        },
+                                        {
+                                            id: 530,
+                                            name: 'Fee Receipt Delete Report Nagarjuna',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feereceiptdeletereportnagarjuna',
+                                            title: 'Fee Receipt Delete Report Nagarjuna',
+                                            description: 'Manage Fee Receipt Delete Report Nagarjuna'
+                                        },
+                                        {
+                                            id: 531,
+                                            name: 'Portal Fee Receipt',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/portalfeereceipt',
+                                            title: 'Portal Fee Receipt',
+                                            description: 'Manage Portal Fee Receipt'
                                         }
                                     ]
                                 }
@@ -3388,6 +3404,22 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 21214,
+                                            name: 'Calcutta Promotion Report I_X',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportI_X',
+                                            title: 'Calcutta Promotion Report I_X',
+                                            description: 'Calcutta Promotion Report I_X'
+                                        },
+                                        {
+                                            id: 21216,
+                                            name: 'Multiple Exam Cumulative Report Calcutta',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Calcatta/MultipleExamCumulativeReportCalcutta',
+                                            title: 'Multiple Exam Cumulative Report Calcutta',
+                                            description: 'Multiple Exam Cumulative Report Calcutta'
+                                        },
+                                        {
+                                            id: 21214,
                                             name: 'St.James XI_XII Progress Card New',
                                             icon: 'Ticket',
                                             url: '/Exam/exam-module/reports/StJames/stjamesxi_xiiprogress-card-report-new',
@@ -3433,6 +3465,38 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/NDS/FinalNdasReportCard',
                                             title: 'NDS Final Report Card',
                                             description: 'NDS Final Report Card'
+                                        },
+                                        {
+                                            id: 21508,
+                                            name: 'St. Marys Final Promotion Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Stella/FinalPromReportSTMary',
+                                            title: 'St. Marys Final Promotion Report',
+                                            description: 'St. Marys Final Promotion Report'
+                                        },
+                                        {
+                                            id: 21509,
+                                            name: 'BBII Progress Card',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Baldwin/BBIIReport',
+                                            title: 'BBII Progress Card',
+                                            description: 'BBII Progress Card'
+                                        },
+                                        {
+                                            id: 21510,
+                                            name: 'BCOEDI Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Baldwin/BCOEDIReport',
+                                            title: 'BCOEDI Report',
+                                            description: 'BCOEDI Report'
+                                        },
+                                        {
+                                            id: 21511,
+                                            name: 'BCOEDII Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Baldwin/BCOEDIIReport',
+                                            title: 'BCOEDII Report',
+                                            description: 'BCOEDII Report'
                                         }
                                     ]
                                 }
