@@ -82,6 +82,7 @@ export default function UpdateMasterReligionForm({ onSuccess, className = '', se
                             label='Religion Name'
                             required
                             id='ivrmmR_Name'
+                            placeholder='Enter Religion Name'
                             {...register('ivrmmR_Name')}
                             defaultValue={row.ivrmmR_Name}
                             error={errors.ivrmmR_Name?.message}

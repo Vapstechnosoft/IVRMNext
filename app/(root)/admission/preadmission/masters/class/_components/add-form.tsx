@@ -86,6 +86,7 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                 reset();
                 refetchAll();
                 onSuccess?.();
+                window.location.href = window.location.pathname;
             } else {
                 toast.error(response.message);
             }
@@ -107,6 +108,7 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                             label='Class Code'
                             required
                             id='asmcl_classcode'
+                            placeholder='Enter Class Code (e.g. C01)'
                             {...register('asmcl_classcode')}
                             error={errors.asmcl_classcode?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
@@ -115,7 +117,16 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                             label='Class Name'
                             required
                             id='asmcl_classname'
+                            placeholder='Enter Class Name (e.g. Class I)'
                             {...register('asmcl_classname')}
+                            onKeyDown={(e) => {
+                                // Allow navigation keys (Backspace, Tab, Arrows, etc.)
+                                if (e.key.length > 1) return;
+                                // Allow only letters and spaces, block numbers and special characters
+                                if (!/^[A-Za-z\s]$/.test(e.key)) {
+                                    e.preventDefault();
+                                }
+                            }}
                             error={errors.asmcl_classname?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />

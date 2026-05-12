@@ -20,6 +20,11 @@ export async function toggleMasterReligionCasteCategory(id: number) {
     return await api.put('admission', url);
 }
 
+export async function getEditMasterReligionCasteCategory(id: number) {
+    const url = `/master_religion_caste_category/Editdata?IRCC_Id=${id}`;
+    return await api.post<any>('admission', url);
+}
+
 export async function getUnmappedCasteCategoryDropdown() {
     const url = '/master_religion_caste_category/unmapped_master_caste_category_drop_down_list';
     return await api.get<IMasterCasteCategoryDropDown[]>('admission', url);

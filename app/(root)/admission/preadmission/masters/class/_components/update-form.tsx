@@ -96,6 +96,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                 reset();
                 refetchAll();
                 onSuccess?.();
+                window.location.href = window.location.pathname;
             } else {
                 toast.error(response.message);
             }
@@ -117,6 +118,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                             label='Class Code'
                             required
                             id='asmcl_classcode'
+                            placeholder='Enter Class Code (e.g. C01)'
                             {...register('asmcl_classcode')}
                             defaultValue={row.asmcL_ClassCode}
                             error={errors.asmcl_classcode?.message}
@@ -126,7 +128,16 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                             label='Class Name'
                             required
                             id='asmcl_classname'
+                            placeholder='Enter Class Name (e.g. Class I)'
                             {...register('asmcl_classname')}
+                            onKeyDown={(e) => {
+                                // Allow navigation keys (Backspace, Tab, Arrows, etc.)
+                                if (e.key.length > 1) return;
+                                // Allow only letters and spaces, block numbers and special characters
+                                if (!/^[A-Za-z\s]$/.test(e.key)) {
+                                    e.preventDefault();
+                                }
+                            }}
                             defaultValue={row.asmcL_ClassName}
                             error={errors.asmcl_classname?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'

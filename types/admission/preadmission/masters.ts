@@ -136,6 +136,8 @@ export interface IMasterSourceList {
 }
 export interface IMasterReligionCasteCategoryList {
     ircC_Id: number;
+    ivrmmR_Id: number;
+    imcC_Id: number;
     ivrmmR_Name: string;
     imcC_CategoryName: string;
     ircC_ActiveFlg: boolean;
