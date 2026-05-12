@@ -38,7 +38,7 @@ import type {
     TrustDTO
 } from '@/types/super-admin/user-creation/staff-user-creation';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2 } from 'lucide-react';
+import { RotateCcw, Save, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -48,7 +48,6 @@ import PageMappingGrids from './_components/page-mapping-grids';
 import SelectionForm from './_components/selection-form';
 import UserDetails from './_components/user-details';
 import ViewUsernamesModal from './_components/view-usernames-modal';
-import { RotateCcw, Save, X } from 'lucide-react';
 
 const formSchema = z.object({
     roleType: z.string().min(1, 'Select Role Type'),
@@ -645,20 +644,17 @@ export default function StaffUserCreationPage() {
         <div className='container mx-auto p-6'>
             <Card className='w-full'>
                 <CardHeader>
-                    <div className='relative flex items-center justify-center min-h-[40px]'>
-                        <CardTitle className='text-center font-bold text-2xl text-primary'>
-                            Institution Staff User Creation
-                        </CardTitle>
+                    <div className='relative flex min-h-[40px] items-center justify-center'>
+                        <CardTitle className='text-center font-bold text-2xl text-primary'>Institution Staff User Creation</CardTitle>
                         <div className='absolute right-0'>
                             <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
+                                type='button'
+                                variant='outline'
+                                size='sm'
                                 onClick={handleReload}
-                                className="rounded-full border-[#2669bc] text-[#2669bc] hover:bg-blue-50"
-                                title="Reload Settings"
-                            >
-                                <RotateCcw className="mr-2 h-3.5 w-3.5" />
+                                className='rounded-full border-[#2669bc] text-[#2669bc] hover:bg-blue-50'
+                                title='Reload Settings'>
+                                <RotateCcw className='mr-2 h-3.5 w-3.5' />
                                 Reload
                             </Button>
                         </div>
@@ -725,22 +721,12 @@ export default function StaffUserCreationPage() {
                             )}
 
                             <div className='flex justify-center gap-4'>
-                                <Button
-                                    type='submit'
-                                    className='px-8 shadow-md'
-                                    size="lg"
-                                >
-                                    <Save className="mr-2 h-4 w-4" />
+                                <Button type='submit' className='px-8 shadow-md' size='lg'>
+                                    <Save className='mr-2 h-4 w-4' />
                                     Save
                                 </Button>
-                                <Button
-                                    type='button'
-                                    variant="outline"
-                                    onClick={() => methods.reset()}
-                                    className='px-8'
-                                    size="lg"
-                                >
-                                    <X className="mr-2 h-4 w-4" />
+                                <Button type='button' variant='outline' onClick={() => methods.reset()} className='px-8' size='lg'>
+                                    <X className='mr-2 h-4 w-4' />
                                     Cancel
                                 </Button>
                             </div>

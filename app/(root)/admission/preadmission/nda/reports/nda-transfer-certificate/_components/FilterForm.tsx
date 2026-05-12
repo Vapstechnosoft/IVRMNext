@@ -121,10 +121,10 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                         <SelectContent className="max-h-64">
                                             {(() => {
                                                 const years = initialData?.data?.accyear || initialData?.accyear || [];
-                                                return Array.isArray(years) && years.map((y: any) => {
+                                                return Array.isArray(years) && years.map((y: any, index: number) => {
                                                     if (!y?.asmaY_Id) return null;
                                                     return (
-                                                        <SelectItem key={y.asmaY_Id} value={y.asmaY_Id?.toString()}>
+                                                        <SelectItem key={`${y.asmaY_Id}-${index}`} value={y.asmaY_Id?.toString()}>
                                                             {y.asmaY_Year}
                                                         </SelectItem>
                                                     );
@@ -266,12 +266,12 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                                 <CommandList>
                                                     <CommandEmpty>{studentListMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : "No student found."}</CommandEmpty>
                                                     <CommandGroup className="max-h-64 overflow-y-auto">
-                                                        {studentList && Array.isArray(studentList) && studentList.map((s: any) => {
+                                                        {studentList && Array.isArray(studentList) && studentList.map((s: any, index: number) => {
                                                             if (!s) return null;
                                                             return (
                                                                 <CommandItem
                                                                     value={s.studentname || ''}
-                                                                    key={s.amsT_Id || Math.random()}
+                                                                    key={`${s.amsT_Id || 'std'}-${index}`}
                                                                     onSelect={() => {
                                                                         field.onChange(s);
                                                                         setStudentOpen(false);

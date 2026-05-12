@@ -115,17 +115,20 @@ export default function UpdateMasterRackForm({
                         <InputText
                             label='Building Name'
                             required
+                            placeholder='Enter Building Name'
                             {...register('lmrA_BuildingName')}
                             error={errors.lmrA_BuildingName?.message}
                         />
                         <InputText
                             label='Rack Name'
                             required
+                            placeholder='Enter Rack Name'
                             {...register('lmrA_RackName')}
                             error={errors.lmrA_RackName?.message}
                         />
                         <InputText
                             label='Rack Color'
+                            placeholder='Enter Rack Color'
                             {...register('lmrA_DisplayColour')}
                             error={errors.lmrA_DisplayColour?.message}
                         />
@@ -158,6 +161,7 @@ export default function UpdateMasterRackForm({
                         <InputText
                             label='Floor Name'
                             required
+                            placeholder='Enter Floor Name'
                             {...register('lmrA_FloorName')}
                             error={errors.lmrA_FloorName?.message}
                         />
@@ -169,7 +173,7 @@ export default function UpdateMasterRackForm({
                             </label>
                             <textarea
                                 className={`flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.lmrA_Location ? 'border-red-500' : ''}`}
-                                placeholder='Location'
+                                placeholder='Enter Location'
                                 {...register('lmrA_Location')}
                             />
                             {errors.lmrA_Location && <span className='text-sm text-red-500'>{errors.lmrA_Location.message}</span>}

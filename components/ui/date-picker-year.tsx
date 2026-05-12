@@ -4,10 +4,10 @@ import { buttonVariants } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import * as React from 'react';
 import { DayPicker, type DropdownProps } from 'react-day-picker';
-import { format } from 'date-fns';
 
 export type DatePickerYearProps = React.ComponentProps<typeof DayPicker> & {
     onSelect?: (date: Date | undefined) => void;
@@ -131,7 +131,7 @@ function DatePickerWithYear({ className, classNames, showOutsideDays = true, sel
                                         handleChange(value);
                                     }}
                                     searchable={false}>
-                                    <SelectTrigger className='h-7 px-2 text-sm font-medium focus:ring-0'>
+                                    <SelectTrigger className='h-7 px-2 font-medium text-sm focus:ring-0'>
                                         <SelectValue>{selected?.props?.children}</SelectValue>
                                     </SelectTrigger>
                                     <SelectContent position='popper' sideOffset={4} className='max-h-40'>
@@ -153,24 +153,19 @@ function DatePickerWithYear({ className, classNames, showOutsideDays = true, sel
                             // Custom caption that displays month name and clickable year selector
                             return (
                                 <div className='flex items-center justify-center gap-2'>
-                                    <span className='text-sm font-medium'>{format(displayMonth, 'MMMM')}</span>
+                                    <span className='font-medium text-sm'>{format(displayMonth, 'MMMM')}</span>
                                     {/* Year Selector - prominent, clickable, and styled like part of the header */}
-                                    <Select 
-                                        value={currentMonth.getFullYear().toString()} 
-                                        onValueChange={handleYearChange} 
-                                        searchable={false}
-                                    >
-                                        <SelectTrigger className='h-auto w-auto px-2 py-1 text-sm font-medium cursor-pointer border-0 bg-transparent shadow-none hover:bg-accent hover:text-accent-foreground focus:ring-2 focus:ring-primary/20 focus-visible:ring-2 focus-visible:ring-primary/20'>
+                                    <Select
+                                        value={currentMonth.getFullYear().toString()}
+                                        onValueChange={handleYearChange}
+                                        searchable={false}>
+                                        <SelectTrigger className='h-auto w-auto cursor-pointer border-0 bg-transparent px-2 py-1 font-medium text-sm shadow-none hover:bg-accent hover:text-accent-foreground focus:ring-2 focus:ring-primary/20 focus-visible:ring-2 focus-visible:ring-primary/20'>
                                             <SelectValue className='font-medium'>{currentMonth.getFullYear()}</SelectValue>
                                         </SelectTrigger>
                                         <SelectContent position='popper' sideOffset={4} className='max-h-60 w-28'>
                                             <ScrollArea className='h-60'>
                                                 {[...years].reverse().map((year) => (
-                                                    <SelectItem 
-                                                        key={year} 
-                                                        value={year.toString()} 
-                                                        className='py-2 text-sm cursor-pointer'
-                                                    >
+                                                    <SelectItem key={year} value={year.toString()} className='cursor-pointer py-2 text-sm'>
                                                         {year}
                                                     </SelectItem>
                                                 ))}
@@ -204,4 +199,3 @@ function DatePickerWithYear({ className, classNames, showOutsideDays = true, sel
 DatePickerWithYear.displayName = 'DatePickerWithYear';
 
 export { DatePickerWithYear };
-

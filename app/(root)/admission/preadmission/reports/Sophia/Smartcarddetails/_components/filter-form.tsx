@@ -5,7 +5,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { SophiaSmartcardReportSchema, type SophiaSmartcardReportFields } from '@/schemas/admission/preadmission/reports/sophia-smartcard-report';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
+import { Label } from '@/components/ui/label';
+import { FormError } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useSophiaSmartcardReport } from '@/hooks/admission/preadmission/reports/useSophiaSmartcardReport';
@@ -70,7 +72,7 @@ export const FilterForm = ({ onSubmit, onReset, onExport, onPrint, hasData, hasS
                         name="ASMAY_Id"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className="font-bold uppercase tracking-wider text-xs">Academic Year <span className="text-red-500">*</span></FormLabel>
+                                <Label className="font-bold uppercase tracking-wider text-xs">Academic Year <span className="text-red-500">*</span></Label>
                                 <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString() || "0"}>
                                     <FormControl>
                                         <SelectTrigger className="border-slate-300">
@@ -85,7 +87,7 @@ export const FilterForm = ({ onSubmit, onReset, onExport, onPrint, hasData, hasS
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {form.formState.errors.ASMAY_Id && <FormError>{form.formState.errors.ASMAY_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -96,7 +98,7 @@ export const FilterForm = ({ onSubmit, onReset, onExport, onPrint, hasData, hasS
                         name="ASMCL_Id"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className="font-bold uppercase tracking-wider text-xs">Class <span className="text-red-500">*</span></FormLabel>
+                                <Label className="font-bold uppercase tracking-wider text-xs">Class <span className="text-red-500">*</span></Label>
                                 <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString() || "0"}>
                                     <FormControl>
                                         <SelectTrigger className="border-slate-300">
@@ -111,7 +113,7 @@ export const FilterForm = ({ onSubmit, onReset, onExport, onPrint, hasData, hasS
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {form.formState.errors.ASMCL_Id && <FormError>{form.formState.errors.ASMCL_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -122,7 +124,7 @@ export const FilterForm = ({ onSubmit, onReset, onExport, onPrint, hasData, hasS
                         name="ASMS_Id"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className="font-bold uppercase tracking-wider text-xs">Section <span className="text-red-500">*</span></FormLabel>
+                                <Label className="font-bold uppercase tracking-wider text-xs">Section <span className="text-red-500">*</span></Label>
                                 <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString() || "0"}>
                                     <FormControl>
                                         <SelectTrigger className="border-slate-300">
@@ -137,7 +139,7 @@ export const FilterForm = ({ onSubmit, onReset, onExport, onPrint, hasData, hasS
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {form.formState.errors.ASMS_Id && <FormError>{form.formState.errors.ASMS_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -148,7 +150,7 @@ export const FilterForm = ({ onSubmit, onReset, onExport, onPrint, hasData, hasS
                         name="SPCCMH_Id"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className="font-bold uppercase tracking-wider text-xs">House</FormLabel>
+                                <Label className="font-bold uppercase tracking-wider text-xs">House</Label>
                                 <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
                                     <FormControl>
                                         <SelectTrigger className="border-slate-300">
@@ -186,13 +188,13 @@ export const FilterForm = ({ onSubmit, onReset, onExport, onPrint, hasData, hasS
                                             <FormControl>
                                                 <RadioGroupItem value="Regular" id="regular" />
                                             </FormControl>
-                                            <FormLabel htmlFor="regular" className="cursor-pointer font-semibold text-slate-700">Regular</FormLabel>
+                                            <Label htmlFor="regular" className="cursor-pointer font-semibold text-slate-700">Regular</Label>
                                         </FormItem>
                                         <FormItem className="flex items-center space-x-2 space-y-0">
                                             <FormControl>
                                                 <RadioGroupItem value="New" id="new" />
                                             </FormControl>
-                                            <FormLabel htmlFor="new" className="cursor-pointer font-semibold text-slate-700">New</FormLabel>
+                                            <Label htmlFor="new" className="cursor-pointer font-semibold text-slate-700">New</Label>
                                         </FormItem>
                                     </RadioGroup>
                                 </FormControl>

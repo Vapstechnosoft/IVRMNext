@@ -6,14 +6,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import * as React from 'react';
-import { DayPicker, type DropdownProps } from 'react-day-picker';
+import { DayPicker } from 'react-day-picker';
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
-function CalendarYear({ className, classNames, showOutsideDays = true, selected, ...props }: CalendarProps) {
+function CalendarYear({ className, classNames, showOutsideDays = true, ...props }: CalendarProps) {
+    // Cast to any: v9 DayPicker props are a discriminated union based on `mode`,
+    // so `selected` doesn't exist on all branches at the type level.
+    const selected = (props as any).selected;
+
     // Helper to derive an initial month from `selected` (Date | Date[] | Range)
     const getInitialMonthFromSelected = (): Date => {
-        const sel = selected as any;
+        const sel = selected;
         if (!sel) return props.month || new Date();
  
         if (sel instanceof Date) return sel;
@@ -27,9 +31,6 @@ function CalendarYear({ className, classNames, showOutsideDays = true, selected,
  
     // Reference to track the current displayed month
     const [currentMonth, setCurrentMonth] = React.useState<Date>(getInitialMonthFromSelected());
-
-    // State to track calendar open status
-    const [_calendarOpen, setCalendarOpen] = React.useState<boolean>(false);
 
     // Update the internal month state when the `month` prop or `selected` prop changes
     React.useEffect(() => {
@@ -45,8 +46,9 @@ function CalendarYear({ className, classNames, showOutsideDays = true, selected,
     // Range of years to show in the year dropdown
     const years = React.useMemo(() => {
         const currentYear = new Date().getFullYear();
+        // v8: toDate instead of endMonth
         const endYear = props.toDate ? props.toDate.getFullYear() : currentYear;
-        const startYear = endYear - 50; // adjust range as desired
+        const startYear = endYear - 50;
 
         return Array.from({ length: endYear - startYear + 1 }, (_, i) => startYear + i);
     }, [props.toDate]);
@@ -58,14 +60,12 @@ function CalendarYear({ className, classNames, showOutsideDays = true, selected,
         newDate.setFullYear(newYear);
  
         setCurrentMonth(newDate);
-        // Call the onMonthChange prop if provided
         props.onMonthChange?.(newDate);
     };
  
     // Custom month change handler to update our internal state
     const handleMonthChange = (month: Date) => {
         setCurrentMonth(month);
-        // Call the original onMonthChange if provided
         props.onMonthChange?.(month);
     };
  
@@ -73,31 +73,12 @@ function CalendarYear({ className, classNames, showOutsideDays = true, selected,
         <div className='relative'>
             {/* Calendar Container with fixed positioning */}
             <div className={cn('overflow-hidden rounded-md border bg-popover shadow-md', 'flex w-auto flex-col', className)}>
-                {/* Year Selector - inside the calendar container */}
-                {/* <div className='flex justify-end px-2 pt-1 pb-0'>
-                    <Select value={currentMonth.getFullYear().toString()} onValueChange={handleYearChange} searchable={false}>
-                        <SelectTrigger className='h-6 w-20 px-2 text-xs focus:ring-0'>
-                            <SelectValue>{currentMonth.getFullYear()}</SelectValue>
-                        </SelectTrigger>
-                        <SelectContent position='popper' sideOffset={4} className='max-h-40'>
-                            <ScrollArea className='h-40'>
-                                {years.map((year) => (
-                                    <SelectItem key={year} value={year.toString()} className='py-1 text-xs'>
-                                        {year}
-                                    </SelectItem>
-                                ))}
-                            </ScrollArea>
-                        </SelectContent>
-                    </Select>
-                </div> */}
                 {/* Main Calendar */}
                 <DayPicker
                     showOutsideDays={showOutsideDays}
                     className={cn('p-1 py-2', className)}
                     classNames={{
                         months: 'flex flex-col sm:flex-row space-y-2 sm:space-x-2 sm:space-y-0',
-                        month: 'space-y-2',
-                        vhidden: 'vhidden hidden',
                         caption: 'flex justify-center pt-0 relative items-center',
                         caption_label: 'text-xs font-medium',
                         caption_dropdowns: cn('flex justify-between gap-1', props.captionLayout === 'dropdown' && 'w-full'),
@@ -121,27 +102,17 @@ function CalendarYear({ className, classNames, showOutsideDays = true, selected,
                         ...classNames
                     }}
                     components={{
-                        Dropdown: ({ value, onChange, children, ...dropdownProps }: DropdownProps) => {
-                            // Only show month dropdown from the original component
+                        IconLeft: ({ ...props }) => <ChevronLeft className='h-3 w-3' />,
+                        IconRight: ({ ...props }) => <ChevronRight className='h-3 w-3' />,
+                        Dropdown: ({ value, onChange, children, ...props }: any) => {
                             const options = React.Children.toArray(children) as React.ReactElement<React.HTMLProps<HTMLOptionElement>>[];
                             const selected = options.find((child) => child.props.value === value);
-                            const handleChange = (value: string) => {
-                                const changeEvent = {
-                                    target: { value }
-                                } as React.ChangeEvent<HTMLSelectElement>;
+                            const handleChange = (val: string) => {
+                                const changeEvent = { target: { value: val } } as React.ChangeEvent<HTMLSelectElement>;
                                 onChange?.(changeEvent);
                             };
-                            // Skip rendering year dropdown in the original component
-                            if (dropdownProps.name === 'year') {
-                                return null;
-                            }
                             return (
-                                <Select
-                                    value={value?.toString()}
-                                    onValueChange={(value) => {
-                                        handleChange(value);
-                                    }}
-                                    searchable={false}>
+                                <Select value={value?.toString()} onValueChange={handleChange}>
                                     <SelectTrigger className='h-6 pr-1.5 text-xs focus:ring-0'>
                                         <SelectValue>{selected?.props?.children}</SelectValue>
                                     </SelectTrigger>
@@ -159,21 +130,11 @@ function CalendarYear({ className, classNames, showOutsideDays = true, selected,
                                     </SelectContent>
                                 </Select>
                             );
-                        },
-                        IconLeft: () => <ChevronLeft className='h-3 w-3' />,
-                        IconRight: () => <ChevronRight className='h-3 w-3' />
-                    }}
-                    month={currentMonth}
-                    selected={selected as any}
-                    onMonthChange={handleMonthChange}
-                    {...props}
-                    onDayClick={(day, modifiers, e) => {
-                        props.onDayClick?.(day, modifiers, e);
-                        if (modifiers.selected && !props.mode?.includes('range')) {
-                            // Close the calendar when a date is selected (for single mode)
-                            setCalendarOpen(false);
                         }
                     }}
+                    month={currentMonth}
+                    onMonthChange={handleMonthChange}
+                    {...props}
                 />
             </div>
         </div>

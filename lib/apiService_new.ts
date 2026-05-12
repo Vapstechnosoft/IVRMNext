@@ -12,7 +12,8 @@ export type ApiBaseUrlKey =
     | 'hrmsfrontoffice'
     | 'hmslms'
     | 'timetable'
-    | 'hrmsrecruitment';
+    | 'hrmsrecruitment'
+    | 'signage';
 
 class ApiServiceNew {
     private instances: Map<string, AxiosInstance>;
@@ -32,7 +33,8 @@ class ApiServiceNew {
             hrmsfrontoffice: process.env.NEXT_PUBLIC_HRMS_FRONTOFFICE_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             hmslms: process.env.NEXT_PUBLIC_HRMS_LMS_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             timetable: process.env.NEXT_PUBLIC_TIMETABLE_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
-            hrmsrecruitment: process.env.NEXT_PUBLIC_HRMS_RECRUITMENT_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || ''
+            hrmsrecruitment: process.env.NEXT_PUBLIC_HRMS_RECRUITMENT_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
+            signage: process.env.NEXT_PUBLIC_SIGNAGE_API_BASE_URL || process.env.SIGNAGE_API_BASE_URL || 'http://172.16.10.77:65501'
         };
 
         // Initialize default instance
@@ -52,17 +54,20 @@ class ApiServiceNew {
                 }
             });
 
-            this.setupInterceptors(instance);
+            this.setupInterceptors(instance, key);
             this.instances.set(key, instance);
         }
 
         return this.instances.get(key)!;
     }
 
-    private setupInterceptors(instance: AxiosInstance): void {
+    private setupInterceptors(instance: AxiosInstance, key: string): void {
         // Request Interceptor
         instance.interceptors.request.use(
             async (config) => {
+                // Skip portal auth for signage as it uses its own X-API-Key system
+                if (key === 'signage') return config;
+
                 try {
                     const session = await auth();
                     if (session?.token) {
@@ -81,7 +86,9 @@ class ApiServiceNew {
         instance.interceptors.response.use(
             (response) => response,
             async (error) => {
-                if (error.response?.status === 401) {
+                // Only trigger global logout for the main application API (default)
+                // and avoid logging out if the signage module has an auth error.
+                if (error.response?.status === 401 && key !== 'signage') {
                     try {
                         await signOut();
                         // Only redirect in browser environment

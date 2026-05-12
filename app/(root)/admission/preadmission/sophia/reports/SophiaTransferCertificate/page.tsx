@@ -7,6 +7,7 @@ import { useReactToPrint } from 'react-to-print';
 import { toast } from 'sonner';
 import {
     useTCInitialData,
+    useTCYearChange,
     useStudentNameRegNo,
     useStudentNameChange,
     useTCGetDetailsRecord
@@ -38,6 +39,7 @@ export default function SophiaTransferCertificate() {
 
     /* -------------------- Hooks -------------------- */
     const { data: initialData } = useTCInitialData();
+    const yearChangeMutation = useTCYearChange();
     const getStudentListMutation = useStudentNameRegNo();
     const studentChangeMutation = useStudentNameChange();
     const getTCDetailsMutation = useTCGetDetailsRecord();
@@ -49,7 +51,12 @@ export default function SophiaTransferCertificate() {
         setAmstId(0);
         setStudentDropdown([]);
         setPrintFlag(false);
-        fetchStudents(id, admName, tcTempPer);
+        try {
+            await yearChangeMutation.mutateAsync(id);
+            fetchStudents(id, admName, tcTempPer);
+        } catch (e) {
+            toast.error('Error updating year data');
+        }
     };
 
     const fetchStudents = async (yId: number, searchBy: string, studentType: string) => {
@@ -60,8 +67,7 @@ export default function SophiaTransferCertificate() {
                 admnoorname: searchBy,
                 tctemporper: studentType
             });
-            const pData = res?.data || res;
-            setStudentDropdown(pData.studentlist || []);
+            setStudentDropdown(res?.data || []);
         } catch (e) {
             toast.error('Failed to load students');
         }
@@ -89,7 +95,8 @@ export default function SophiaTransferCertificate() {
             });
             const pData = res?.data || res;
             if (pData.studentTCList && pData.studentTCList.length > 0) {
-                setReport(pData.studentTCList[0]);
+                // Merge the main student record with the full data object for easier access
+                setReport({ ...pData, ...pData.studentTCList[0] });
                 setPrintFlag(true);
             } else {
                 toast.warning('No records found');
@@ -103,6 +110,40 @@ export default function SophiaTransferCertificate() {
     const handlePrint = useReactToPrint({
         contentRef: printRef,
         documentTitle: `Transfer_Certificate_${report?.studentname || 'Record'}`,
+        pageStyle: `
+            @page { 
+                size: B5; 
+                margin: 10mm; 
+            }
+            @media print {
+                body { 
+                    visibility: hidden;
+                    -webkit-print-color-adjust: exact;
+                }
+                .print-content { 
+                    visibility: visible !important;
+                    display: block !important; 
+                    position: absolute;
+                    left: 0;
+                    top: 0;
+                    width: 176mm !important;
+                    min-height: 250mm !important;
+                    background-color: white !important;
+                    padding: 25px !important;
+                    font-family: "Times New Roman", Times, serif !important;
+                }
+                .print-content p, .print-content div {
+                    white-space: nowrap !important;
+                }
+                .print-content * {
+                    visibility: visible !important;
+                }
+                * {
+                    -webkit-print-color-adjust: exact !important;
+                    color-adjust: exact !important;
+                }
+            }
+        `
     });
 
     const formatClassName = (className: string) => {
@@ -116,7 +157,7 @@ export default function SophiaTransferCertificate() {
 
     const filteredDropdown = useMemo(() => {
         if (!studentSearch) return studentDropdown;
-        return studentDropdown.filter(s => 
+        return studentDropdown.filter(s =>
             s.studentname?.toLowerCase().includes(studentSearch.toLowerCase())
         );
     }, [studentDropdown, studentSearch]);
@@ -194,16 +235,18 @@ export default function SophiaTransferCertificate() {
                                         <div className='p-2 border-b'>
                                             <div className='relative'>
                                                 <Search className='absolute left-2 top-2.5 h-3.5 w-3.5 text-muted-foreground' />
-                                                <Input 
-                                                    placeholder='Search student...' 
+                                                <Input
+                                                    placeholder='Search student...'
                                                     value={studentSearch}
                                                     onChange={(e) => setStudentSearch(e.target.value)}
-                                                    className='h-8 pl-8 text-xs' 
+                                                    className='h-8 pl-8 text-xs'
                                                 />
                                             </div>
                                         </div>
                                         {filteredDropdown.map((s: any) => (
-                                            <SelectItem key={s.amsT_Id} value={s.amsT_Id.toString()}>{s.studentname}</SelectItem>
+                                            <SelectItem key={s.amsT_Id} value={s.amsT_Id.toString()}>
+                                                {s.studentname} {s.astC_TCDate ? `(${format(new Date(s.astC_TCDate), 'dd-MMM-yyyy')})` : ''}
+                                            </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -234,65 +277,63 @@ export default function SophiaTransferCertificate() {
 
             {/* TC Preview Section */}
             {printFlag && report && (
-                <Card className='shadow-2xl border-none overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500'>
+                <Card className='shadow-2xl border-none overflow-hidden'>
                     <CardContent className='p-0'>
-                        <div className='bg-gray-100 p-8 flex justify-center'>
-                            <div ref={printRef} className='bg-white shadow-sm p-16' style={{ width: '210mm', minHeight: '297mm', fontFamily: '"Times New Roman", Times, serif' }}>
-                                <div style={{ marginTop: '100px' }}>
-                                    <h1 className='text-center mb-10'>
-                                        <span style={{ borderBottom: '2px solid black', paddingBottom: '4px', fontSize: '32px', fontWeight: 'bold' }}>
+                        <div className='bg-gray-100 p-4 md:p-8 flex justify-center'>
+                            <div ref={printRef} className='bg-white shadow-sm p-8 sm:p-12 print-content' style={{ width: '176mm', minHeight: '250mm', fontFamily: '"Times New Roman", Times, serif' }}>
+                                <div className='relative flex flex-col h-full'>
+                                    <h1 className='text-center mt-12 mb-8'>
+                                        <span style={{ borderBottom: '2px solid black', paddingBottom: '2px', fontSize: '26px', fontWeight: 'bold' }}>
                                             TRANSFER CERTIFICATE
                                         </span>
                                     </h1>
 
-                                    <div className='flex justify-between items-center mb-2 px-2 text-lg font-bold'>
-                                        <div>Admission Number: {report.amsT_AdmNo}</div>
-                                        <div>Sl. No: {report.astC_TCNO}</div>
+                                    <div className='pt-2 pb-1'>
+                                        <div className='flex justify-between items-center px-2 text-[15px] font-bold text-black'>
+                                            <div>Admission Number: {report.amst_admno}</div>
+                                            <div>Sl. No: {report.astc_tcno}</div>
+                                        </div>
                                     </div>
-                                    <hr className='border-black mb-10' />
+                                    <div className='border-t border-black mb-6'></div>
 
-                                    <div className='space-y-6 text-xl leading-relaxed'>
+                                    <div className='space-y-2.5 text-[15px] leading-relaxed text-black mb-4'>
                                         {[
-                                            { label: 'Name of Pupil', value: report.studentname, num: '1' },
-                                            { label: "Father's Name", value: report.amsT_FatherName, num: '2' },
-                                            { label: "Mother's Name", value: report.amsT_MotherName, num: '3' },
-                                            { label: 'Religion/Caste', value: `${report.religion} / ${report.caste}`, num: '4' },
-                                            { label: 'Nationality', value: report.nationality, num: '5' },
-                                            { label: 'Date of Birth', value: report.amsT_DOB ? format(new Date(report.amsT_DOB), 'dd-MMM-yyyy') : '', num: '6' },
-                                            { label: 'School Last Attended', value: 'N/A', num: '7' },
-                                            { label: 'Date Of Admission', value: report.amsT_Date ? format(new Date(report.amsT_Date), 'dd-MMM-yyyy') : '', num: '8' },
-                                            { label: 'Conduct', value: report.astC_Conduct || 'Good', num: '9' },
+                                            { label: 'Name of Pupil', value: report.studentname?.trim(), num: '1' },
+                                            { label: "Father's Name", value: report.amst_fathername, num: '2' },
+                                            { label: "Mother's Name", value: report.amst_mothername, num: '3' },
+                                            { label: 'Religion/Caste', value: `${report.religion || '-'} / ${report.caste || '-'}`, num: '4' },
+                                            { label: 'Nationality', value: report.nationality || 'Indian', num: '5' },
+                                            { label: 'Date of Birth', value: report.amst_dob ? format(new Date(report.amst_dob), 'dd-MMM-yyyy') : '', num: '6' },
+                                            { label: 'School Last Attended', value: report.institutionname || 'N/A', num: '7' },
+                                            { label: 'Date Of Admission', value: report.amst_date ? format(new Date(report.amst_date), 'dd-MMM-yyyy') : '', num: '8' },
+                                            { label: 'Conduct', value: report.astc_conduct || 'good', num: '9' },
                                             { label: 'Date Of Leaving', value: report.tcdatess ? format(new Date(report.tcdatess), 'dd-MMM-yyyy') : '', num: '10' },
-                                            { label: 'Studying In', value: `${formatClassName(report.Last_Class_Studied)} ${report.asmC_SectionName}`, num: '11' },
-                                            { label: 'Remarks', value: report.astC_Remarks || '-', num: '12' }
+                                            { label: 'Studying In', value: `${report.classname || report.last_class_studied || '-'} ${report.asmc_sectionname || ''}`, num: '11' },
+                                            { label: 'Remarks', value: report.astc_remarks || '-', num: '12' }
                                         ].map((item, i) => (
-                                            <div key={i} className='flex items-baseline'>
-                                                <div className='w-12 text-right mr-4 font-bold'>{item.num}</div>
-                                                <div className='w-64 flex-shrink-0 font-medium'>{item.label}</div>
-                                                <div className='flex-grow border-b border-dotted border-gray-400 pb-1'>
-                                                    <span className='ml-4'>: {item.value}</span>
-                                                </div>
+                                            <div key={i} className='grid grid-cols-[50px_180px_20px_1fr] items-baseline'>
+                                                <div className='text-right mr-6'>{item.num}</div>
+                                                <div className='font-medium'>{item.label}</div>
+                                                <div className='text-center'>:</div>
+                                                <div className='pl-2'>{item.value}</div>
                                             </div>
                                         ))}
                                     </div>
 
-                                    <hr className='border-black my-12' />
-
-                                    <div className='space-y-8 mt-12'>
-                                        <div className='flex justify-between items-center text-xl'>
-                                            <div>PEN No. <span className='border-b border-black px-4 ml-2 font-bold'>{report.AMST_PENNo}</span></div>
-                                            <div>SATS No. <span className='border-b border-black px-4 ml-2 font-bold'>{report.govtno}</span></div>
+                                    <div className='border-t-2 border-black mb-10'></div>
+                                    <div className='space-y-12 mt-2'>
+                                        <div className='flex justify-between items-center text-[15px] font-medium text-black px-4'>
+                                            <div>PEN No.</div>
+                                            <div>SATS No.</div>
                                         </div>
 
-                                        <div className='text-xl italic mt-16 px-4'>
+                                        <div className='text-[15px] px-2 text-black leading-relaxed whitespace-nowrap'>
                                             Certified that the above-mentioned information is in accordance with the school register.
                                         </div>
 
-                                        <div className='flex justify-between items-end mt-32 px-4'>
-                                            <div className='text-xl'>Date: {format(new Date(), 'dd-MMM-yyyy')}</div>
-                                            <div className='text-center'>
-                                                <div className='text-2xl font-bold uppercase tracking-widest' style={{ borderTop: '2px solid black', paddingTop: '8px' }}>PRINCIPAL</div>
-                                            </div>
+                                        <div className='flex justify-between items-center mt-24 px-4 text-black'>
+                                            <div className='text-[15px] font-medium'>Date: {report.astc_tcissuedate ? format(new Date(report.astc_tcissuedate), 'dd-MMM-yyyy') : format(new Date(), 'dd-MMM-yyyy')}</div>
+                                            <div className='text-[15px] font-bold'>PRINCIPAL</div>
                                         </div>
                                     </div>
                                 </div>
@@ -302,22 +343,7 @@ export default function SophiaTransferCertificate() {
                 </Card>
             )}
 
-            <style jsx global>{`
-                @media print {
-                    @page {
-                        margin: 0;
-                        size: A4;
-                    }
-                    body {
-                        margin: 0;
-                        -webkit-print-color-adjust: exact;
-                    }
-                    .print-section {
-                        padding: 0 !important;
-                        margin: 0 !important;
-                    }
-                }
-            `}</style>
+
         </div>
     );
 }

@@ -116,8 +116,8 @@ export function ProfileReportForm({
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent className="rounded-xl border-slate-200 shadow-2xl">
-                                                    {academicList.map((year: any) => (
-                                                        <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()} className="h-12 font-medium">
+                                                    {academicList.map((year: any, index: number) => (
+                                                        <SelectItem key={`${year.asmaY_Id}-${index}`} value={year.asmaY_Id.toString()} className="h-12 font-medium">
                                                             {year.asmaY_Year}
                                                         </SelectItem>
                                                     ))}
@@ -141,8 +141,8 @@ export function ProfileReportForm({
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent className="rounded-xl border-slate-200 shadow-2xl">
-                                                    {classList.map((cls: any) => (
-                                                        <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()} className="h-12 font-medium">
+                                                    {classList.map((cls: any, index: number) => (
+                                                        <SelectItem key={`${cls.asmcL_Id}-${index}`} value={cls.asmcL_Id.toString()} className="h-12 font-medium">
                                                             {cls.asmcL_ClassName}
                                                         </SelectItem>
                                                     ))}
@@ -166,8 +166,8 @@ export function ProfileReportForm({
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent className="rounded-xl border-slate-200 shadow-2xl">
-                                                    {sectionList.map((sec: any) => (
-                                                        <SelectItem key={sec.asmS_Id} value={sec.asmS_Id.toString()} className="h-12 font-medium">
+                                                    {sectionList.map((sec: any, index: number) => (
+                                                        <SelectItem key={`${sec.asmS_Id}-${index}`} value={sec.asmS_Id.toString()} className="h-12 font-medium">
                                                             {sec.asmC_SectionName}
                                                         </SelectItem>
                                                     ))}

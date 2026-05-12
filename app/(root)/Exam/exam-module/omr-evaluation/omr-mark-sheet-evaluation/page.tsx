@@ -349,7 +349,13 @@ export default function OmrMarkSheetEvaluationPage() {
                             </CardHeader>
                             <CardContent className='relative flex-1 p-0'>
                                 {pdfUrl ? (
-                                    <iframe src={`${pdfUrl}`} className='h-full w-full border-none rounded-b-[2rem]' title='Evaluation Result' allowFullScreen allow="fullscreen" />
+                                    <iframe
+                                        src={`${pdfUrl}`}
+                                        className='h-full w-full rounded-b-[2rem] border-none'
+                                        title='Evaluation Result'
+                                        allowFullScreen
+                                        allow='fullscreen'
+                                    />
                                 ) : (
                                     <div className='flex h-full flex-col items-center justify-center p-12 text-center'>
                                         <div className='mb-6 flex h-24 w-24 animate-pulse items-center justify-center rounded-[2rem] bg-slate-800'>
@@ -387,7 +393,7 @@ export default function OmrMarkSheetEvaluationPage() {
                     50% { width: 100%; transform: translateX(0); }
                     100% { width: 0; transform: translateX(100%); }
                 }
-
+ 
                 /* Add outfit font if not loaded */
                 .font-outfit { font-family: var(--font-outfit, sans-serif); }
             `}</style>

@@ -1,10 +1,12 @@
 'use client';
 
 import { format } from 'date-fns';
-import { CalendarIcon, Download, Eye, Loader2, RotateCcw, Search, FileText, Printer, X } from 'lucide-react';
-import { useRef, useState, useMemo, useEffect } from 'react';
+import { Eye, Search, Printer, X, Loader2, Download, RotateCcw, CalendarIcon } from 'lucide-react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { toast } from 'sonner';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -28,7 +30,6 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 
 import {
@@ -43,7 +44,6 @@ import {
 export default function StudentTCApplyPage() {
     const printRef = useRef<HTMLDivElement>(null);
 
-    /* -------------------- Masters & State -------------------- */
     const { data: loadData, isLoading: isLoadDataLoading } = useSophiaStudentTCApplyLoadData();
     const classChangeMutation = useSophiaStudentTCApplyOnChangeClass();
     const studentListMutation = useSophiaStudentTCApplyStudentList();
@@ -51,18 +51,30 @@ export default function StudentTCApplyPage() {
     const tcPdfMutation = useSophiaStudentTCApplyTCPdf();
     const viewStatusMutation = useSophiaStudentTCApplyViewStatus();
 
+    const normalizedLoadData = useMemo(() => {
+        if (!loadData) return null;
+        return (loadData as any).data || loadData;
+    }, [loadData]);
+
     const [academicYearId, setAcademicYearId] = useState<number | null>(null);
     const [classId, setClassId] = useState<number | null>(null);
     const [sectionId, setSectionId] = useState<number | null>(null);
 
     const [sectionList, setSectionList] = useState<any[]>([]);
     const [studentSearchList, setStudentSearchList] = useState<any[]>([]);
-    const [selectedStudents, setSelectedStudents] = useState<any[]>([]);
     const [allRemarks, setAllRemarks] = useState('');
     const [mainSearchQuery, setMainSearchQuery] = useState('');
     const [appliedSearchQuery, setAppliedSearchQuery] = useState('');
 
-    /* Modal States */
+    useEffect(() => {
+        if (normalizedLoadData && !academicYearId) {
+            const currentYear = (normalizedLoadData as any)?.currentYear;
+            if (Array.isArray(currentYear) && currentYear.length > 0) {
+                setAcademicYearId(currentYear[0].asmaY_Id);
+            }
+        }
+    }, [normalizedLoadData, academicYearId]);
+
     const [statusModalOpen, setStatusModalOpen] = useState(false);
     const [statusData, setStatusData] = useState<any[]>([]);
     const [pdfModalOpen, setPdfModalOpen] = useState(false);
@@ -77,27 +89,25 @@ export default function StudentTCApplyPage() {
         "Not Promoted", "Other", "-"
     ];
 
-    /* -------------------- Helpers -------------------- */
     const filteredSearchList = useMemo(() => {
         if (!mainSearchQuery) return studentSearchList;
         const q = mainSearchQuery.toLowerCase();
         return studentSearchList.filter(s =>
-            (s.StudentName || '').toLowerCase().includes(q) ||
-            (s.AMST_AdmNo || '').toLowerCase().includes(q)
+            (s.StudentName || s.studentname || '').toLowerCase().includes(q) ||
+            (s.AMST_AdmNo || s.amst_admno || '').toLowerCase().includes(q)
         );
     }, [studentSearchList, mainSearchQuery]);
 
     const filteredAppliedList = useMemo(() => {
-        const list = (loadData as any)?.studenttcapprovedlist || [];
+        const list = (normalizedLoadData as any)?.studenttcapprovedlist || [];
         if (!appliedSearchQuery) return list;
         const q = appliedSearchQuery.toLowerCase();
         return list.filter((s: any) =>
-            (s.StudentName || '').toLowerCase().includes(q) ||
-            (s.AMST_AdmNo || '').toLowerCase().includes(q)
+            (s.studentname || s.StudentName || '').toLowerCase().includes(q) ||
+            (s.amst_admno || s.AMST_AdmNo || '').toLowerCase().includes(q)
         );
-    }, [loadData, appliedSearchQuery]);
+    }, [normalizedLoadData, appliedSearchQuery]);
 
-    /* -------------------- Handlers -------------------- */
     const onYearChange = (val: string) => {
         setAcademicYearId(Number(val));
         setClassId(null);
@@ -114,7 +124,7 @@ export default function StudentTCApplyPage() {
 
         try {
             const res = await classChangeMutation.mutateAsync({ ASMAY_Id: academicYearId, ASMCL_Id: cId });
-            const list = res?.sectionList || res?.data?.sectionList || [];
+            const list = res?.data || res?.sectionList || (Array.isArray(res) ? res : []);
             setSectionList(Array.isArray(list) ? list : []);
         } catch (e) {
             toast.error('Failed to load sections');
@@ -133,7 +143,7 @@ export default function StudentTCApplyPage() {
                 ASMCL_Id: classId,
                 ASMS_Id: sectionId
             });
-            const list = res?.studentlistsearch || res?.data?.studentlistsearch || [];
+            const list = res?.data || res?.studentlistsearch || (Array.isArray(res) ? res : []);
             if (Array.isArray(list) && list.length > 0) {
                 setStudentSearchList(list.map(s => ({
                     ...s,
@@ -180,28 +190,26 @@ export default function StudentTCApplyPage() {
             return;
         }
 
-        // Validation for dates and remarks
         const invalid = selected.some(s => !s.ASTC_TCDate || !s.ASTC_TCApplicationDate || !s.ASTC_Remarks);
         if (invalid) {
             toast.error('Please fill Date of Leaving, Date and Remarks for all selected students');
             return;
         }
 
-        const tcnumbering = (loadData as any)?.admTransNumSetting?.[0]; // Matching legacy logic for tcnumbering
-
+        const tcnumbering = (normalizedLoadData as any)?.admTransNumSetting?.[0];
         const payload = {
-            StudentTCdata: selected,
+            studentTCdata: selected,
+            tcflagexists: 'notexists',
             transnumconfigsettings: tcnumbering
         };
 
         try {
             const res = await saveMutation.mutateAsync(payload);
-            if (res?.returnval || res?.data?.returnval) {
-                toast.success('Record Saved Successfully...!');
+            if (res?.success || res?.returnval || res?.data?.returnval) {
+                toast.success(res?.message || 'Record Saved Successfully...!');
                 setStudentSearchList([]);
-                // Reload data logic if needed, or just let useQuery handle it
             } else {
-                toast.error('Failed to save record');
+                toast.error(res?.message || 'Failed to save record');
             }
         } catch (e) {
             toast.error('Failed to request TC');
@@ -209,10 +217,17 @@ export default function StudentTCApplyPage() {
     };
 
     const handleViewStatus = async (item: any) => {
+        if (!academicYearId) {
+            toast.error('Academic Year not selected');
+            return;
+        }
         try {
-            const res = await viewStatusMutation.mutateAsync({ AMST_Id: item.AMST_Id });
-            const list = res?.studentapprovedpendingdetails || res?.data?.studentapprovedpendingdetails || [];
-            setStatusData(list);
+            const res = await viewStatusMutation.mutateAsync({
+                AMST_Id: item.amst_id || item.AMST_Id,
+                ASMAY_Id: academicYearId
+            });
+            const list = res?.data || res?.studentapprovedpendingdetails || (Array.isArray(res) ? res : []);
+            setStatusData(Array.isArray(list) ? list : []);
             setStatusModalOpen(true);
         } catch (e) {
             toast.error('Failed to load status');
@@ -221,19 +236,58 @@ export default function StudentTCApplyPage() {
 
     const handleViewPdf = async (item: any) => {
         try {
-            const res = await tcPdfMutation.mutateAsync({ AMST_Id: item.AMST_Id });
-            const list = res?.studenttcpdf || res?.data?.studenttcpdf || [];
-            setPdfData(list);
-            setPdfModalOpen(true);
+            const amstId = item.AMST_Id || item.amst_id || item.amst_Id;
+            const res = await tcPdfMutation.mutateAsync({ AMST_Id: Number(amstId) });
+            const list = res?.data || res?.studenttcpdf || (Array.isArray(res) ? res : [res]);
+            if (list && list.length > 0) {
+                setPdfData(list);
+                setPdfModalOpen(true);
+            } else {
+                toast.error('No TC record found');
+            }
         } catch (e) {
-            toast.error('Failed to load PDF data');
+            toast.error('Failed to load PDF');
         }
     };
 
-    const handlePrint = useReactToPrint({
-        contentRef: printRef,
-        documentTitle: 'Student_Transfer_Certificate'
-    });
+    const handleDownloadPdf = async (item: any) => {
+        const loadingToast = toast.loading('Generating PDF...');
+        try {
+            const amstId = item.AMST_Id || item.amst_id || item.amst_Id;
+            const res = await tcPdfMutation.mutateAsync({ AMST_Id: Number(amstId) });
+            const list = res?.data || res?.studenttcpdf || (Array.isArray(res) ? res : [res]);
+            if (!list || list.length === 0) {
+                toast.dismiss(loadingToast);
+                toast.error('No TC record found');
+                return;
+            }
+            setPdfData(list);
+            setTimeout(async () => {
+                const downloadElement = document.getElementById('download-pdf-content');
+                if (!downloadElement) {
+                    toast.dismiss(loadingToast);
+                    toast.error('PDF generation container not found');
+                    return;
+                }
+                const pdf = new jsPDF('p', 'mm', [176, 250]);
+                const pages = downloadElement.querySelectorAll('.print-page');
+                for (let i = 0; i < pages.length; i++) {
+                    const canvas = await html2canvas(pages[i] as HTMLElement, { scale: 2, useCORS: true });
+                    const imgData = canvas.toDataURL('image/png');
+                    if (i > 0) pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 0, 0, 176, 250);
+                }
+                pdf.save(`TC_${item.studentname || item.StudentName || 'Report'}.pdf`);
+                toast.dismiss(loadingToast);
+                toast.success('Downloaded successfully');
+            }, 800);
+        } catch (e) {
+            toast.dismiss(loadingToast);
+            toast.error('Failed to generate PDF');
+        }
+    };
+
+    const handlePrint = useReactToPrint({ contentRef: printRef });
 
     const handleReset = () => {
         setAcademicYearId(null);
@@ -242,81 +296,54 @@ export default function StudentTCApplyPage() {
         setStudentSearchList([]);
     };
 
-    /* -------------------- UI -------------------- */
     return (
         <div className='min-h-screen p-4 space-y-6'>
-            <CollapsibleSection
-                title='Student TC APPLY'
-                description='Apply for student transfer certificates'
-                defaultOpen={true}
-                variant='outline'
-                className='shadow-lg'>
-
+            <CollapsibleSection title='Student TC APPLY' description='Apply for student transfer certificates' defaultOpen={true} variant='outline' className='shadow-lg'>
                 <div className='bg-white p-6'>
                     <div className='grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto'>
                         <div className='space-y-4'>
                             <Label className='text-sm font-bold'>Academic Year:<span className='text-red-500'>*</span></Label>
                             <Select value={academicYearId?.toString()} onValueChange={onYearChange}>
-                                <SelectTrigger className='h-9 shadow-sm'>
-                                    <SelectValue placeholder='Select Academic Year' />
-                                </SelectTrigger>
+                                <SelectTrigger className='h-9 shadow-sm'><SelectValue placeholder='Select Academic Year' /></SelectTrigger>
                                 <SelectContent>
-                                    {(loadData as any)?.academicList?.map((item: any) => (
-                                        <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                            {item.asmaY_Year}
-                                        </SelectItem>
+                                    {(normalizedLoadData as any)?.academicList?.map((item: any) => (
+                                        <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>{item.asmaY_Year}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                         </div>
-
                         <div className='space-y-4'>
                             <Label className='text-sm font-bold'>Class:<span className='text-red-500'>*</span></Label>
                             <Select value={classId?.toString()} onValueChange={onClassChange}>
-                                <SelectTrigger className='h-9 shadow-sm'>
-                                    <SelectValue placeholder='Select Class' />
-                                </SelectTrigger>
+                                <SelectTrigger className='h-9 shadow-sm'><SelectValue placeholder='Select Class' /></SelectTrigger>
                                 <SelectContent>
-                                    {(loadData as any)?.classlist?.map((item: any) => (
-                                        <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
-                                            {item.asmcL_ClassName}
-                                        </SelectItem>
+                                    {(normalizedLoadData as any)?.classlist?.map((item: any) => (
+                                        <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>{item.asmcL_ClassName}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                         </div>
-
                         <div className='space-y-4'>
                             <Label className='text-sm font-bold'>Section:<span className='text-red-500'>*</span></Label>
                             <Select value={sectionId?.toString()} onValueChange={(v) => setSectionId(Number(v))}>
-                                <SelectTrigger className='h-9 shadow-sm'>
-                                    <SelectValue placeholder='Select Section' />
-                                </SelectTrigger>
+                                <SelectTrigger className='h-9 shadow-sm'><SelectValue placeholder='Select Section' /></SelectTrigger>
                                 <SelectContent>
                                     {sectionList.map((item: any) => (
-                                        <SelectItem key={item.asmS_Id} value={item.asmS_Id.toString()}>
-                                            {item.asmC_SectionName}
-                                        </SelectItem>
+                                        <SelectItem key={item.asmS_Id} value={item.asmS_Id.toString()}>{item.asmC_SectionName}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                         </div>
                     </div>
-
                     <div className='flex flex-wrap justify-center gap-4 pt-8 mt-6 border-t'>
-                        <Button size='sm' onClick={handleSearch} disabled={studentListMutation.isPending} className='min-w-32 bg-[#3f51b5] hover:bg-[#303f9f] text-white shadow-lg rounded-full uppercase transition-all'>
-                            {studentListMutation.isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Search className='mr-2 h-4 w-4' />}
-                            SEARCH
+                        <Button size='sm' onClick={handleSearch} disabled={studentListMutation.isPending} className='min-w-32 bg-[#3f51b5] hover:bg-[#303f9f] text-white shadow-lg rounded-full uppercase'>
+                            {studentListMutation.isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Search className='mr-2 h-4 w-4' />} SEARCH
                         </Button>
-                        <Button size='sm' onClick={handleReset} className='min-w-32 bg-[#ff5722] hover:bg-[#f4511e] text-white shadow-lg rounded-full uppercase transition-all'>
-                            <RotateCcw className='mr-2 h-4 w-4' />
-                            CANCEL
-                        </Button>
+                        <Button size='sm' onClick={handleReset} className='min-w-32 bg-[#ff5722] hover:bg-[#f4511e] text-white shadow-lg rounded-full uppercase'><RotateCcw className='mr-2 h-4 w-4' /> CANCEL</Button>
                     </div>
                 </div>
             </CollapsibleSection>
 
-            {/* Student Search Grid */}
             {studentSearchList.length > 0 && (
                 <div className='space-y-4 animate-in fade-in slide-in-from-top-4'>
                     <div className='flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-xl border shadow-sm'>
@@ -324,13 +351,9 @@ export default function StudentTCApplyPage() {
                         <div className='flex items-center gap-4'>
                             <div className='w-48'>
                                 <Label className='text-[10px] font-bold text-red-500 uppercase'>Remarks for All Selected</Label>
-                                <Select value={allRemarks} onValueChange={applyUniversalRemarks} disabled={!studentSearchList.some(s => s.selected)}>
-                                    <SelectTrigger className='h-8 text-xs'>
-                                        <SelectValue placeholder='-- Select --' />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {remarksOptions.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
-                                    </SelectContent>
+                                <Select value={allRemarks} onValueChange={applyUniversalRemarks}>
+                                    <SelectTrigger className='h-8 text-xs'><SelectValue placeholder='-- Select --' /></SelectTrigger>
+                                    <SelectContent>{remarksOptions.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
                                 </Select>
                             </div>
                             <div className='relative w-48 mt-4'>
@@ -344,22 +367,16 @@ export default function StudentTCApplyPage() {
                             </div>
                         </div>
                     </div>
-
                     <div className='rounded-xl border bg-white shadow-sm overflow-hidden'>
                         <Table>
                             <TableHeader className='bg-gray-50'>
                                 <TableRow>
-                                    <TableHead className='w-[60px] text-center'>SL.NO</TableHead>
-                                    <TableHead className='w-[50px]'>
-                                        <Checkbox
-                                            checked={studentSearchList.length > 0 && studentSearchList.every(s => s.selected)}
-                                            onCheckedChange={(checked) => toggleSelectAll(checked as boolean)}
-                                        />
+                                    <TableHead className='w-[10px] text-center'>SL.NO</TableHead>
+                                    <TableHead className='w-[10px]'>
+                                        <Checkbox checked={studentSearchList.length > 0 && studentSearchList.every(s => s.selected)} onCheckedChange={(checked) => toggleSelectAll(checked as boolean)} />
                                     </TableHead>
                                     <TableHead>Student Name</TableHead>
                                     <TableHead>Adm No.</TableHead>
-                                    <TableHead>Class</TableHead>
-                                    <TableHead>Section</TableHead>
                                     <TableHead className='w-[160px]'>Date of Leaving</TableHead>
                                     <TableHead className='w-[160px]'>Date</TableHead>
                                     <TableHead className='w-[180px]'>Remarks</TableHead>
@@ -369,56 +386,25 @@ export default function StudentTCApplyPage() {
                                 {filteredSearchList.map((s, idx) => (
                                     <TableRow key={idx} className={s.selected ? 'bg-indigo-50/30' : ''}>
                                         <TableCell className='text-center'>{idx + 1}</TableCell>
-                                        <TableCell>
-                                            <Checkbox
-                                                checked={s.selected}
-                                                onCheckedChange={(checked) => onStudentSelect(idx, checked as boolean)}
-                                            />
-                                        </TableCell>
-                                        <TableCell className='font-medium'>{s.StudentName}</TableCell>
-                                        <TableCell>{s.AMST_AdmNo}</TableCell>
-                                        <TableCell>{s.ASMCL_ClassName}</TableCell>
-                                        <TableCell>{s.ASMC_SectionName}</TableCell>
+                                        <TableCell><Checkbox checked={s.selected} onCheckedChange={(checked) => onStudentSelect(idx, checked as boolean)} /></TableCell>
+                                        <TableCell>{s.StudentName || s.studentname}</TableCell>
+                                        <TableCell>{s.AMST_AdmNo || s.amst_admno}</TableCell>
                                         <TableCell>
                                             <Popover>
-                                                <PopoverTrigger asChild>
-                                                    <Button variant='outline' size='sm' disabled={!s.selected} className='h-8 w-full justify-start text-[11px] font-normal'>
-                                                        {s.ASTC_TCDate ? format(new Date(s.ASTC_TCDate), 'dd/MM/yyyy') : 'Select Date'}
-                                                    </Button>
-                                                </PopoverTrigger>
-                                                <PopoverContent align='start' className='p-0'>
-                                                    <DatePickerWithYear
-                                                        mode='single'
-                                                        selected={s.ASTC_TCDate ? new Date(s.ASTC_TCDate) : undefined}
-                                                        onDayClick={(date) => onFieldChange(idx, 'ASTC_TCDate', date)}
-                                                    />
-                                                </PopoverContent>
+                                                <PopoverTrigger asChild><Button variant='outline' size='sm' className='h-8 w-full justify-start text-[11px] font-normal'>{s.ASTC_TCDate ? format(new Date(s.ASTC_TCDate), 'dd/MM/yyyy') : 'Select Date'}</Button></PopoverTrigger>
+                                                <PopoverContent align='start' className='p-0'><DatePickerWithYear mode='single' selected={s.ASTC_TCDate ? new Date(s.ASTC_TCDate) : undefined} onDayClick={(date) => onFieldChange(idx, 'ASTC_TCDate', date)} /></PopoverContent>
                                             </Popover>
                                         </TableCell>
                                         <TableCell>
                                             <Popover>
-                                                <PopoverTrigger asChild>
-                                                    <Button variant='outline' size='sm' disabled={!s.selected} className='h-8 w-full justify-start text-[11px] font-normal'>
-                                                        {s.ASTC_TCApplicationDate ? format(new Date(s.ASTC_TCApplicationDate), 'dd/MM/yyyy') : 'Select Date'}
-                                                    </Button>
-                                                </PopoverTrigger>
-                                                <PopoverContent align='start' className='p-0'>
-                                                    <DatePickerWithYear
-                                                        mode='single'
-                                                        selected={s.ASTC_TCApplicationDate ? new Date(s.ASTC_TCApplicationDate) : undefined}
-                                                        onDayClick={(date) => onFieldChange(idx, 'ASTC_TCApplicationDate', date)}
-                                                    />
-                                                </PopoverContent>
+                                                <PopoverTrigger asChild><Button variant='outline' size='sm' className='h-8 w-full justify-start text-[11px] font-normal'>{s.ASTC_TCApplicationDate ? format(new Date(s.ASTC_TCApplicationDate), 'dd/MM/yyyy') : 'Select Date'}</Button></PopoverTrigger>
+                                                <PopoverContent align='start' className='p-0'><DatePickerWithYear mode='single' selected={s.ASTC_TCApplicationDate ? new Date(s.ASTC_TCApplicationDate) : undefined} onDayClick={(date) => onFieldChange(idx, 'ASTC_TCApplicationDate', date)} /></PopoverContent>
                                             </Popover>
                                         </TableCell>
                                         <TableCell>
                                             <Select value={s.ASTC_Remarks} onValueChange={(v) => onFieldChange(idx, 'ASTC_Remarks', v)} disabled={!s.selected}>
-                                                <SelectTrigger className='h-8 text-[11px]'>
-                                                    <SelectValue placeholder='-- Select --' />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {remarksOptions.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
-                                                </SelectContent>
+                                                <SelectTrigger className='h-8 text-[11px]'><SelectValue placeholder='-- Select --' /></SelectTrigger>
+                                                <SelectContent>{remarksOptions.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
                                             </Select>
                                         </TableCell>
                                     </TableRow>
@@ -426,111 +412,94 @@ export default function StudentTCApplyPage() {
                             </TableBody>
                         </Table>
                     </div>
-
                     <div className='flex justify-center gap-4 py-4'>
                         <Button size='sm' onClick={handleSave} disabled={saveMutation.isPending} className='min-w-32 bg-[#3f51b5] hover:bg-[#303f9f] text-white shadow-lg rounded-full uppercase'>
                             {saveMutation.isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : 'Request'}
                         </Button>
-                        <Button size='sm' variant='outline' onClick={() => setStudentSearchList([])} className='min-w-32 border-red-500 text-red-500 hover:bg-red-50 rounded-full uppercase'>
-                            Cancel
-                        </Button>
+                        <Button size='sm' variant='outline' onClick={() => setStudentSearchList([])} className='min-w-32 border-red-500 text-red-500 hover:bg-red-50 rounded-full uppercase'>Cancel</Button>
                     </div>
                 </div>
             )}
 
-            {/* Applied Details Grid */}
             <div className='space-y-4'>
-                <div className='flex items-center justify-between gap-4 bg-white p-4 rounded-xl border shadow-sm'>
-                    <h3 className='text-lg font-bold text-indigo-900'>STUDENT TC APPLY DETAILS</h3>
-                    <div className='relative w-48'>
+                <div className='flex items-center justify-between bg-white p-4 rounded-xl border shadow-sm relative'>
+                    <h3 className='text-lg font-bold text-indigo-900 uppercase tracking-wider mx-auto'>STUDENT TC APPLY DETAILS</h3>
+                    <div className='absolute right-4 w-48'>
                         <Search className='absolute left-2 top-2 h-4 w-4 text-muted-foreground' />
                         <Input
                             placeholder='Search details...'
                             value={appliedSearchQuery}
                             onChange={(e) => setAppliedSearchQuery(e.target.value)}
-                            className='h-8 pl-8 text-xs border-gray-200'
+                            className='h-8 pl-8 text-xs border-gray-200 rounded-full focus-visible:ring-indigo-500'
                         />
                     </div>
                 </div>
-
                 <div className='rounded-xl border bg-white shadow-sm overflow-hidden'>
                     <Table>
                         <TableHeader className='bg-gray-50'>
                             <TableRow>
-                                <TableHead className='w-[60px] text-center'>SL.NO</TableHead>
+                                <TableHead className='w-[50px] text-center'>SL.NO</TableHead>
                                 <TableHead>Student Name</TableHead>
-                                <TableHead>Adm No.</TableHead>
-                                <TableHead>Class</TableHead>
-                                <TableHead>Section</TableHead>
-                                <TableHead className='text-center'>View</TableHead>
-                                <TableHead className='text-center'>View TC PDF</TableHead>
+                                <TableHead className='text-center'>Adm No.</TableHead>
+                                <TableHead className='text-center'>View Status</TableHead>
+                                <TableHead className='text-center'>View PDF</TableHead>
                                 <TableHead className='text-center'>Status</TableHead>
+                                {/* <TableHead className='text-center'>Download</TableHead> */}
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {filteredAppliedList.length > 0 ? (
-                                filteredAppliedList.map((temp: any, idx: number) => (
-                                    <TableRow key={idx}>
-                                        <TableCell className='text-center'>{idx + 1}</TableCell>
-                                        <TableCell className='font-medium'>{temp.StudentName}</TableCell>
-                                        <TableCell>{temp.AMST_AdmNo}</TableCell>
-                                        <TableCell>{temp.ASMCL_ClassName}</TableCell>
-                                        <TableCell>{temp.ASMC_SectionName}</TableCell>
-                                        <TableCell className='text-center'>
-                                            <Button variant='ghost' size='sm' onClick={() => handleViewStatus(temp)} className='text-indigo-600 h-8 w-8 p-0'>
-                                                <Eye className='h-4 w-4' />
-                                            </Button>
-                                        </TableCell>
-                                        <TableCell className='text-center'>
-                                            {temp.ApprovalStatus === 'Approved' ? (
-                                                <Button variant='ghost' size='sm' onClick={() => handleViewPdf(temp)} className='text-green-600 h-8 w-8 p-0'>
-                                                    <Eye className='h-4 w-4' />
-                                                </Button>
-                                            ) : (
-                                                <Badge variant='outline' className='text-[10px] text-red-500 border-red-200'>Approval Pending</Badge>
-                                            )}
-                                        </TableCell>
-                                        <TableCell className='text-center'>
-                                            {temp.ApprovalStatus === 'Approved' ? (
-                                                <Badge className='bg-green-100 text-green-700 hover:bg-green-100 border-none px-3'>Approved</Badge>
-                                            ) : (
-                                                <Badge variant='outline' className='text-red-500 border-red-200'>Pending</Badge>
-                                            )}
-                                        </TableCell>
-                                    </TableRow>
-                                ))
-                            ) : (
-                                <TableRow>
-                                    <TableCell colSpan={8} className='text-center py-8 text-muted-foreground italic'>No records found</TableCell>
+                            {filteredAppliedList.length > 0 ? filteredAppliedList.map((temp: any, idx: number) => (
+                                <TableRow key={idx}>
+                                    <TableCell className='text-center'>{idx + 1}</TableCell>
+                                    <TableCell className='font-medium'>{temp.studentname || temp.StudentName}</TableCell>
+                                    <TableCell className='text-center'>{temp.amst_admno || temp.AMST_AdmNo}</TableCell>
+                                    <TableCell className='text-center'>
+                                        <Button variant='ghost' size='sm' onClick={() => handleViewStatus(temp)} className='text-indigo-600'><Eye className='h-4 w-4' /></Button>
+                                    </TableCell>
+                                    <TableCell className='text-center'>
+                                        {(temp.approvalstatus || temp.ApprovalStatus) === 'Approved' ? (
+                                            <Button variant='ghost' size='sm' onClick={() => handleViewPdf(temp)} className='text-green-600'><Eye className='h-4 w-4' /></Button>
+                                        ) : (
+                                            <Badge variant='outline' className='text-[10px] text-red-500 border-red-200'>Approval Pending</Badge>
+                                        )}
+                                    </TableCell>
+                                    <TableCell className='text-center'>
+                                        {(temp.approvalstatus || temp.ApprovalStatus) === 'Approved' ? (
+                                            <Badge className='bg-green-100 text-green-700 border-none px-3'>Approved</Badge>
+                                        ) : (
+                                            <Badge variant='outline' className='text-red-500 border-red-200'>{temp.approvalstatus || temp.ApprovalStatus || 'Pending'}</Badge>
+                                        )}
+                                    </TableCell>
+                                    {/* <TableCell className='text-center'>
+                                        {(temp.approvalstatus || temp.ApprovalStatus) === 'Approved' ? (
+                                            <Button variant='ghost' size='sm' onClick={() => handleDownloadPdf(temp)} className='text-blue-600'><Download className='h-4 w-4' /></Button>
+                                        ) : (
+                                            <span className='text-gray-300'>---</span>
+                                        )}
+                                    </TableCell> */}
                                 </TableRow>
+                            )) : (
+                                <TableRow><TableCell colSpan={7} className='text-center py-8 text-muted-foreground italic'>No records found</TableCell></TableRow>
                             )}
                         </TableBody>
                     </Table>
                 </div>
             </div>
 
-            {/* Approval Status Modal */}
             <Dialog open={statusModalOpen} onOpenChange={setStatusModalOpen}>
-                <DialogContent className='max-w-md p-0 overflow-hidden'>
+                <DialogContent className='max-w-xl p-0 overflow-hidden'>
                     <DialogHeader className='p-6 bg-gradient-to-r from-indigo-600 to-blue-500 text-white'>
                         <DialogTitle className='text-lg font-bold uppercase tracking-wider'>Staff Approval Status</DialogTitle>
                     </DialogHeader>
                     <div className='p-6'>
                         <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Approval Name</TableHead>
-                                    <TableHead className='text-center'>Status</TableHead>
-                                </TableRow>
-                            </TableHeader>
+                            <TableHeader><TableRow><TableHead>Approval Name</TableHead><TableHead className='text-center'>Status</TableHead></TableRow></TableHeader>
                             <TableBody>
                                 {statusData.map((s, idx) => (
                                     <TableRow key={idx} className={s.ASCAP_Status === 'Approved' ? 'bg-green-50/50' : 'bg-red-50/50'}>
-                                        <TableCell className='font-medium'>{s.empname}</TableCell>
+                                        <TableCell className='font-medium'>{s.empname?.replace(/\n/g, ' ')}</TableCell>
                                         <TableCell className='text-center'>
-                                            <Badge variant='outline' className={s.ASCAP_Status === 'Approved' ? 'text-green-600 border-green-200' : 'text-red-500 border-red-200'}>
-                                                {s.ASCAP_Status}
-                                            </Badge>
+                                            <Badge variant='outline' className={s.ASCAP_Status === 'Approved' ? 'text-green-600 border-green-200' : 'text-red-500 border-red-200'}>{s.ASCAP_Status}</Badge>
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -543,97 +512,124 @@ export default function StudentTCApplyPage() {
                 </DialogContent>
             </Dialog>
 
-            {/* TC PDF Modal */}
             <Dialog open={pdfModalOpen} onOpenChange={setPdfModalOpen}>
                 <DialogContent className='max-w-4xl max-h-[95vh] flex flex-col p-0 overflow-hidden'>
                     <DialogHeader className='p-4 border-b flex flex-row items-center justify-between space-y-0'>
                         <DialogTitle className='text-base font-bold'>Transfer Certificate Preview</DialogTitle>
                         <div className='flex items-center gap-2 pr-6'>
-                            <Button size='sm' onClick={handlePrint} className='bg-blue-600 hover:bg-blue-700 h-8'>
-                                <Printer className='mr-2 h-4 w-4' /> Print / Download
-                            </Button>
-                            <Button variant='outline' size='sm' onClick={() => setPdfModalOpen(false)} className='h-8'>
-                                <X className='h-4 w-4' />
-                            </Button>
+                            <Button size='sm' onClick={handlePrint} className='bg-blue-600 hover:bg-blue-700 h-8'><Printer className='mr-2 h-4 w-4' /> Print / Download</Button>
+                            <Button variant='outline' size='sm' onClick={() => setPdfModalOpen(false)} className='h-8'><X className='h-4 w-4' /></Button>
                         </div>
                     </DialogHeader>
-
-                    <ScrollArea className='flex-1 p-8 bg-gray-100'>
-                        <div ref={printRef} className='bg-white shadow-2xl mx-auto w-full max-w-[210mm] text-black font-serif' style={{ minHeight: '297mm' }}>
-                            {pdfData.map((report: any, idx: number) => (
-                                <div key={idx} className='p-12 space-y-8 page-break-after-always'>
-                                    <div className='mt-[165px]'>
-                                        <h1 className='text-center text-3xl font-bold underline underline-offset-8 mb-12 uppercase'>TRANSFER CERTIFICATE</h1>
-
-                                        <div className='flex justify-between font-bold mb-4 border-b-2 border-black pb-2 text-lg'>
-                                            <span>Admission Number: {report.amsT_AdmNo}</span>
-                                            <span>
-                                                Sl. No: {report.astC_TCNO && (report.astC_TCNO.split('/').length > 2
-                                                    ? report.astC_TCNO.split('/').slice(1).join('/')
-                                                    : report.astC_TCNO)}
-                                            </span>
-                                        </div>
-
-                                        <div className='space-y-4 text-xl'>
-                                            {[
-                                                { label: '1. Name of Pupil', value: report.studentname },
-                                                { label: "2. Father's Name", value: report.amsT_FatherName },
-                                                { label: "3. Mother's Name", value: report.amsT_MotherName },
-                                                { label: '4. Religion/Caste', value: `${report.religion} / ${report.caste}` },
-                                                { label: '5. Nationality', value: report.nationality },
-                                                { label: '6. Date of Birth', value: report.amsT_DOB ? format(new Date(report.amsT_DOB), 'dd-MMM-yyyy') : '' },
-                                                { label: '7. School Last Attended', value: 'N/A' },
-                                                { label: '8. Date Of Admission', value: report.amsT_Date ? format(new Date(report.amsT_Date), 'dd-MMM-yyyy') : '' },
-                                                { label: '9. Conduct', value: 'Good' },
-                                                { label: '10. Date Of Leaving', value: report.tcdatess ? format(new Date(report.tcdatess), 'dd-MMM-yyyy') : '' },
-                                                { label: '11. Studying In', value: `${report.Last_Class_Studied} ${report.asmC_SectionName}` }
-                                            ].map((item, i) => (
-                                                <div key={i} className='flex items-start'>
-                                                    <span className='w-[240px] font-medium'>{item.label}</span>
-                                                    <span className='flex-1'>: &nbsp;&nbsp; {item.value}</span>
-                                                </div>
-                                            ))}
-                                            {report.astC_Remarks && report.astC_Remarks.trim() !== '' && (
-                                                <div className='flex items-start'>
-                                                    <span className='w-[240px] font-medium'>12. Remarks</span>
-                                                    <span className='flex-1'>: &nbsp;&nbsp; {report.astC_Remarks}</span>
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        <div className='mt-8 pt-8 border-t-2 border-black space-y-8'>
-                                            <div className='flex justify-between text-lg'>
-                                                <div className='flex flex-col gap-2'>
-                                                    <span>PEN No. : {report.AMST_PENNo}</span>
-                                                    <span>SATS No. : {report.govtno}</span>
-                                                </div>
+                    <div className='flex-1 p-8 bg-gray-100/50 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent'>
+                        <div ref={printRef} className='bg-white shadow-2xl mx-auto text-black font-serif p-0 print-content' style={{ width: '176mm' }}>
+                            {tcPdfMutation.isPending ? (
+                                <div className='flex flex-col items-center justify-center h-[500px] text-muted-foreground' style={{ width: '176mm' }}>
+                                    <Loader2 className='h-8 w-8 animate-spin mb-4' />
+                                    <p>Generating Certificate Preview...</p>
+                                </div>
+                            ) : Array.isArray(pdfData) && pdfData.length > 0 ? pdfData.map((report: any, idx: number) => (
+                                <div key={idx} className='p-10 pt-24 pb-20 space-y-5 page-break-after-always bg-white font-serif print-page' style={{ minHeight: '250mm', width: '176mm' }}>
+                                    <div className='text-center space-y-1 mb-8'>
+                                        <h1 className='text-[24px] font-bold border-b-2 border-black inline-block px-4 pb-0 leading-none uppercase tracking-widest times-new-roman'>
+                                            TRANSFER CERTIFICATE
+                                        </h1>
+                                    </div>
+                                    <div className='flex justify-between font-bold border-b border-black pb-0 mb-4 text-[13px] leading-none'>
+                                        <span>Admission Number:<span className='times-new-roman'>{report.amsT_AdmNo || report.AMST_AdmNo || '---'}</span></span>
+                                        <span>Sl. No:<span className='times-new-roman'>{report.astC_TCNO || report.ASTC_TCNO || '---'}</span></span>
+                                    </div>
+                                    <div className='space-y-2 text-[13px] times-new-roman' style={{ marginLeft: '26px' }}>
+                                        {[
+                                            { label: '1. Name of Pupil', value: (report.studentname || report.StudentName)?.toUpperCase() },
+                                            { label: "2. Father's Name", value: (report.amsT_FatherName || report.AMST_FatherName)?.toUpperCase() },
+                                            { label: "3. Mother's Name", value: (report.amsT_MotherName || report.AMST_MotherName)?.toUpperCase() },
+                                            { label: '4. Religion/Caste', value: `${report.religion || ''} / ${report.caste || ''}`.toLowerCase().replace(/\b\w/g, (l) => l.toUpperCase()) },
+                                            { label: '5. Nationality', value: report.nationality || 'Indian' },
+                                            { label: '6. Date of Birth', value: (report.amsT_DOB || report.amst_dob) ? format(new Date(report.amsT_DOB || report.amst_dob), 'dd-MMM-yyyy') : '---' },
+                                            { label: '7. School Last Attended', value: report.Last_Class_Studied || '---' },
+                                            { label: '8. Date Of Admission', value: (report.amsT_Date || report.amst_date) ? format(new Date(report.amsT_Date || report.amst_date), 'dd-MMM-yyyy') : '---' },
+                                            { label: '9. Conduct', value: report.astC_Conduct || 'Good' },
+                                            { label: '10. Date Of Leaving', value: (report.astC_TCIssueDate || report.tcdatess || report.astC_TCDate) ? format(new Date(report.astC_TCIssueDate || report.tcdatess || report.astC_TCDate), 'dd-MMM-yyyy') : '---' },
+                                            { label: '11. Studying In', value: `${report.Last_Class_Studied || report.ASMCL_ClassName || '---'} ${report.asmC_SectionName || ''}` },
+                                            { label: '12. Remarks', value: report.astC_Remarks || '-' }
+                                        ].map((item, i) => (
+                                            <div key={i} className='flex items-start'>
+                                                <span className='w-[190px] flex-shrink-0 font-medium times-new-roman'>{item.label}</span>
+                                                <span className='w-4'>:</span>
+                                                <span className='flex-1 times-new-roman'>{item.value}</span>
                                             </div>
-                                            <p className='mt-8 italic text-lg font-medium'>
-                                                Certified that the above mentioned information is in accordance with the school register.
-                                            </p>
-                                            <div className='mt-16 flex justify-between items-end text-xl font-bold'>
-                                                <span>Date: {report.ASTC_TCApplicationDate ? format(new Date(report.ASTC_TCApplicationDate), 'dd-MMM-yyyy') : format(new Date(), 'dd-MMM-yyyy')}</span>
-                                                <span>PRINCIPAL</span>
-                                            </div>
-                                        </div>
+                                        ))}
+                                    </div>
+                                    <div className='pt-2 mt-4 border-t border-black flex justify-between text-[13px]'>
+                                        <div className='flex gap-1'><span>PEN No.</span><span className='times-new-roman'>: {report.AMST_PENNo || report.amst_penno || ''}</span></div>
+                                        <div className='flex gap-1'><span>SATS No.</span><span className='times-new-roman'>: {report.govtno || report.GOVTNO || ''}</span></div>
+                                    </div>
+                                    <div className='mt-8 pt-2'><p className='times-new-roman text-[16px] font-medium'>Certified that the above mentioned information is in accordance with the school register.</p></div>
+                                    <div className='mt-16 flex justify-between items-end text-[14px]' style={{ marginTop: "50px" }}>
+                                        <span>Date: {format(new Date(), 'dd-MMM-yyyy')}</span>
+                                        <div className='flex flex-col items-center' style={{ marginRight: "80px" }}><div className='w-18 mb-1'></div><span className='text-[16px] uppercase times-new-roman font-bold'>PRINCIPAL</span></div>
                                     </div>
                                 </div>
-                            ))}
+                            )) : <div className='p-20 text-center text-muted-foreground italic' style={{ width: '176mm' }}>No certificate data to display.</div>}
                         </div>
-                    </ScrollArea>
+                    </div>
                 </DialogContent>
             </Dialog>
 
             <style jsx global>{`
                 @media print {
-                    .page-break-after-always {
-                        page-break-after: always !important;
-                    }
-                    .font-serif {
-                        font-family: "Times New Roman", Times, serif !important;
-                    }
+                    @page { size: B5; margin: 0; }
+                    body * { visibility: hidden; }
+                    .print-content, .print-content * { visibility: visible !important; }
+                    .print-content { position: absolute; left: 0; top: 0; width: 176mm !important; display: block !important; }
+                    .print-page { page-break-after: always !important; background: white !important; }
                 }
+                .times-new-roman { font-family: "Times New Roman", Times, serif !important; }
             `}</style>
+
+            <div style={{ position: 'fixed', left: '-9999px', top: 0 }}>
+                <div id='download-pdf-content' className='bg-white text-black font-serif p-0' style={{ width: '176mm' }}>
+                    {Array.isArray(pdfData) && pdfData.length > 0 && pdfData.map((report: any, idx: number) => (
+                        <div key={idx} className='p-10 pt-24 pb-20 space-y-5 page-break-after-always bg-white font-serif print-page' style={{ minHeight: '250mm', width: '176mm' }}>
+                            <div className='text-center space-y-1 mb-8'>
+                                <h1 className='text-[24px] font-bold border-b-2 border-black inline-block px-4 pb-0 leading-none uppercase tracking-widest times-new-roman'>
+                                    TRANSFER CERTIFICATE
+                                </h1>
+                            </div>
+                            <div className='flex justify-between font-bold border-b border-black pb-0 mb-4 text-[13px] leading-none'>
+                                <span>Admission Number: {report.amsT_AdmNo || report.AMST_AdmNo || report.amst_admno || '---'}</span>
+                                <span>Sl. No: {report.astC_TCNO || report.ASTC_TCNO || report.astc_tcno || '---'}</span>
+                            </div>
+                            <table className='w-full text-[15px] border-collapse leading-loose times-new-roman'>
+                                <tbody>
+                                    <tr><td className='w-8 py-1'>1.</td><td className='w-56 py-1'>Name of Pupil</td><td className='w-4 py-1'>:</td><td className='py-1 font-bold uppercase'>{report.StudentName || report.studentname || '---'}</td></tr>
+                                    <tr><td className='py-1'>2.</td><td className='py-1'>Father&apos;s Name</td><td className='py-1'>:</td><td className='py-1 uppercase font-bold'>{report.AMST_FatherName || report.amst_fathername || '---'}</td></tr>
+                                    <tr><td className='py-1'>3.</td><td className='py-1'>Mother&apos;s Name</td><td className='py-1'>:</td><td className='py-1 uppercase font-bold'>{report.AMST_MotherName || report.amst_mothername || '---'}</td></tr>
+                                    <tr><td className='py-1'>4.</td><td className='py-1'>Religion/Caste</td><td className='py-1'>:</td><td className='py-1'>{report.IVRMMR_Name || report.religion || '---'} / {report.IVRMMC_CasteName || report.caste || '---'}</td></tr>
+                                    <tr><td className='py-1'>5.</td><td className='py-1'>Nationality</td><td className='py-1'>:</td><td className='py-1'>{report.IVRMMN_NationalityName || report.nationality || '---'}</td></tr>
+                                    <tr><td className='py-1'>6.</td><td className='py-1'>Date of Birth</td><td className='py-1'>:</td><td className='py-1'>{report.AMST_DOB || report.amst_dob ? format(new Date(report.AMST_DOB || report.amst_dob), 'dd-MMM-yyyy') : '---'}</td></tr>
+                                    <tr><td className='py-1'>7.</td><td className='py-1'>School Last Attended</td><td className='py-1'>:</td><td className='py-1'>---</td></tr>
+                                    <tr><td className='py-1'>8.</td><td className='py-1'>Date of Admission</td><td className='py-1'>:</td><td className='py-1'>{report.AMST_Date || report.amst_date ? format(new Date(report.AMST_Date || report.amst_date), 'dd-MMM-yyyy') : '---'}</td></tr>
+                                    <tr><td className='py-1'>9.</td><td className='py-1'>Conduct</td><td className='py-1'>:</td><td className='py-1'>Good</td></tr>
+                                    <tr><td className='py-1'>10.</td><td className='py-1'>Date of Leaving</td><td className='py-1'>:</td><td className='py-1'>{report.ASTC_TCDate || report.astc_tcdate ? format(new Date(report.ASTC_TCDate || report.astc_tcdate), 'dd-MMM-yyyy') : '---'}</td></tr>
+                                    <tr><td className='py-1'>11.</td><td className='py-1'>Studying In</td><td className='py-1'>:</td><td className='py-1'>{report.ASMCL_ClassName || report.asmcl_classname || '---'} {report.ASMC_SectionName || report.asmc_sectionname || ''}</td></tr>
+                                    {report.ASTC_Remarks && (<tr><td className='py-1'>12.</td><td className='py-1'>Remarks</td><td className='py-1'>:</td><td className='py-1'>{report.ASTC_Remarks || report.astc_remarks || '---'}</td></tr>)}
+                                </tbody>
+                            </table>
+                            <div className='pt-8 border-t border-black mt-8 space-y-4 text-[14px] times-new-roman'>
+                                <div className='flex justify-between font-bold'><span>PEN No: <span className='times-new-roman'>{report.AMST_PENNo || report.amst_pen_no || '---'}</span></span><span>SATS No: <span className='times-new-roman'>{report.AMST_GovernmentNo || report.govtno || '---'}</span></span></div>
+                                <div className='flex justify-between font-bold'><span>APAAR No: <span className='times-new-roman'>{report.AMST_APAARId || report.amst_apaar_id || '---'}</span></span></div>
+                                <div className='pt-4 italic'>Certified that the above mentioned information is in accordance with the school register.</div>
+                            </div>
+                            <div className='pt-20 flex justify-between items-end font-bold text-[16px] times-new-roman'>
+                                <div>Date: {format(new Date(), 'dd-MMM-yyyy')}</div>
+                                <div className='flex flex-col items-center mr-16'><div className='mb-2 h-10'></div><span className='border-t-2 border-transparent'>PRINCIPAL</span></div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
         </div>
     );
 }

@@ -109,7 +109,7 @@ export default function MESProgressCardForm({
                 setLoadingSections(true);
                 console.log("selectedYear", selectedYear);
                 console.log("selectedClass", selectedClass);
-                const { data } = await getSectionsDropDownByAcademicYearandClasslist(selectedClass, selectedYear);
+                const { data } = await getSectionsDropDownByAcademicYearandClasslist(selectedYear, selectedClass);
                 console.log("data", data);
                 if (!data || (Array.isArray(data) && data.length === 0)) {
                     toast.info('No sections found');

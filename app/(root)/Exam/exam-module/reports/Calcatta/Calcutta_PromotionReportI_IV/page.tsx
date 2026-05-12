@@ -12,7 +12,8 @@ export default function CalcuttaPromotionReportItoIVPage() {
     const handleFormSubmit = async (payload: any) => {
         try {
             const res = await getCalcuttaPromotionReportI_IV(payload);
-            setReportData(res);
+            console.log('calcutta promotion report i to iv', res);
+            setReportData({ ...res, EMPG_GroupName: payload.EMPG_GroupName });
             toast.success('Report generated successfully');
         } catch (error: any) {
             toast.error(error.message || 'Failed to generate report');

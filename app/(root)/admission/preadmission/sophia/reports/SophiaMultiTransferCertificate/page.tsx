@@ -1,10 +1,12 @@
 'use client';
 
 import { format } from 'date-fns';
-import { Loader2, Printer, RotateCcw, FileText, Download, Check, Search } from 'lucide-react';
+import { Loader2, Printer, RotateCcw, FileText, Download, Search } from 'lucide-react';
 import { useRef, useState, useMemo, useEffect } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { toast } from 'sonner';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -26,7 +28,7 @@ export default function SophiaMultiTransferCertificatePage() {
     const printRef = useRef<HTMLDivElement>(null);
 
     /* -------------------- Masters & State -------------------- */
-    const { data: loadDataResponse, isLoading: isLoadDataLoading } = useSophiaMultiTCLoadData();
+    const { data: loadDataResponse } = useSophiaMultiTCLoadData();
     const yearChangeMutation = useSophiaMultiTCOnChangeYear();
     const classChangeMutation = useSophiaMultiTCOnChangeClass();
     const sectionChangeMutation = useSophiaMultiTCOnChangeSection();
@@ -37,107 +39,109 @@ export default function SophiaMultiTransferCertificatePage() {
         return {
             accyear: Array.isArray(data?.accyear) ? data.accyear : [],
             accclass: Array.isArray(data?.accclass) ? data.accclass : [],
-            accsection: Array.isArray(data?.accsection) ? data.accsection : [],
         };
     }, [loadDataResponse]);
 
-    const [academicYearId, setAcademicYearId] = useState<number | null>(null);
-    const [classId, setClassId] = useState<number | null>(null);
-    const [sectionId, setSectionId] = useState<number | null>(null);
+    const [asmaY_Id, setAsmaY_Id] = useState<number | null>(null);
+    const [asmcL_Id, setAsmcL_Id] = useState<number | null>(null);
+    const [asmS_Id, setAsmS_Id] = useState<number | null>(null);
 
-    const [classList, setClassList] = useState<any[]>([]);
-    const [sectionList, setSectionList] = useState<any[]>([]);
-    const [studentList, setStudentList] = useState<any[]>([]);
+    const [getclassdetails, setGetclassdetails] = useState<any[]>([]);
+    const [GetSectiondetails, setGetSectiondetails] = useState<any[]>([]);
+    const [getstudentlist, setGetstudentlist] = useState<any[]>([]);
     const [selectedStudentIds, setSelectedStudentIds] = useState<number[]>([]);
-    const [searchQuery, setSearchQuery] = useState('');
+    const [searchchkbx, setSearchchkbx] = useState('');
 
-    const [reportData, setReportData] = useState<any[]>([]);
+    const [getstudentreports, setGetstudentreports] = useState<any[]>([]);
     const [showReport, setShowReport] = useState(false);
-    const [lastClassStudied, setLastClassStudied] = useState<string>('');
-    const [issType, setIssType] = useState<string>('');
-
-    // Effect to initialize class and section lists from loadData
-    useEffect(() => {
-        if (loadData.accclass.length > 0) setClassList(loadData.accclass);
-        if (loadData.accsection.length > 0) setSectionList(loadData.accsection);
-    }, [loadData]);
+    const [asmcL_Id12, setAsmcL_Id12] = useState<string>('');
+    const [ISS, setISS] = useState<string>('');
 
     /* -------------------- Helpers -------------------- */
     const convertToRomanClass = (classValue: string) => {
-        if (!classValue || classValue.trim() === '') return classValue || '';
-        const v = classValue.trim().toLowerCase();
+        if (!classValue || classValue.trim() === '') {
+            return classValue || '';
+        }
+        classValue = classValue.trim();
         const classMap: Record<string, string> = {
             "1st": "I", "2nd": "II", "3rd": "III", "4th": "IV", "5th": "V", "6th": "VI",
             "7th": "VII", "8th": "VIII", "9th": "IX", "10th": "X", "11th": "XI", "12th": "XII"
         };
-        return classMap[v] || classValue;
+        if (classMap[classValue]) {
+            return classMap[classValue];
+        }
+        return classValue;
+    };
+
+    const getSlNo = (astC_TCNO: string) => {
+        if (!astC_TCNO) return '';
+        const parts = astC_TCNO.split('/');
+        return parts.length > 2 ? parts.slice(1).join('/') : astC_TCNO;
     };
 
     const filteredStudents = useMemo(() => {
-        if (!searchQuery) return studentList;
-        return studentList.filter(s =>
-            (s.studentname || '').toLowerCase().includes(searchQuery.toLowerCase())
+        if (!searchchkbx) return getstudentlist;
+        return getstudentlist.filter(s =>
+            (s.studentname || '').toLowerCase().includes(searchchkbx.toLowerCase())
         );
-    }, [studentList, searchQuery]);
+    }, [getstudentlist, searchchkbx]);
 
     /* -------------------- Handlers -------------------- */
-    const onYearChange = async (val: string) => {
+    const onchangeyear = async (val: string) => {
         const id = Number(val);
-        setAcademicYearId(id);
-        setClassId(null);
-        setSectionId(null);
-        setStudentList([]);
+        setAsmaY_Id(id);
+        setAsmcL_Id(null);
+        setAsmS_Id(null);
+        setGetstudentlist([]);
         setSelectedStudentIds([]);
         try {
             const res = await yearChangeMutation.mutateAsync({ ASMAY_Id: id });
-            const data = res?.data || res;
-            const list = data?.getclassdetails || [];
-            setClassList(Array.isArray(list) ? list : []);
+            const responseData = res?.data || res;
+            const list = Array.isArray(responseData) ? responseData : (responseData?.data || responseData?.getclassdetails || []);
+            setGetclassdetails(Array.isArray(list) ? list : []);
         } catch (e) {
             toast.error('Failed to load classes');
         }
     };
 
-    const onClassChange = async (val: string) => {
+    const onchangeclass = async (val: string) => {
         const id = Number(val);
-        setClassId(id);
-        setSectionId(null);
-        setStudentList([]);
+        setAsmcL_Id(id);
+        setAsmS_Id(null);
+        setGetstudentlist([]);
         setSelectedStudentIds([]);
-        if (!academicYearId) return;
+        if (!asmaY_Id) return;
         try {
-            const res = await classChangeMutation.mutateAsync({ ASMAY_Id: academicYearId, ASMCL_Id: id });
-            const data = res?.data || res;
-            const list = data?.getSectiondetails || data?.getsectiondetails || [];
-            setSectionList(Array.isArray(list) ? list : []);
+            const res = await classChangeMutation.mutateAsync({ ASMAY_Id: asmaY_Id, ASMCL_Id: id });
+            const responseData = res?.data || res;
+            const list = Array.isArray(responseData) ? responseData : (responseData?.data || responseData?.getSectiondetails || []);
+            setGetSectiondetails(Array.isArray(list) ? list : []);
         } catch (e) {
             toast.error('Failed to load sections');
         }
     };
 
-    const onSectionChange = async (val: string) => {
+    const onchangesection = async (val: string) => {
         const id = Number(val);
-        setSectionId(id);
+        setAsmS_Id(id);
         setSelectedStudentIds([]);
-        if (!academicYearId || !classId) return;
+        if (!asmaY_Id || !asmcL_Id) return;
         try {
-            const res = await sectionChangeMutation.mutateAsync({ ASMAY_Id: academicYearId, ASMCL_Id: classId, ASMS_Id: id });
-            const rawData = res?.data || res;
-            
-            // Handle both direct array and object with list property
-            const list = Array.isArray(rawData) ? rawData : (rawData?.getstudentdetails || []);
-            
-            setStudentList(Array.isArray(list) ? list.map((s: any) => ({
+            const res = await sectionChangeMutation.mutateAsync({ ASMAY_Id: asmaY_Id, ASMCL_Id: asmcL_Id, ASMS_Id: id });
+            const responseData = res?.data || res;
+            const list = Array.isArray(responseData) ? responseData : (responseData?.data || responseData?.getstudentdetails || []);
+            const normalizedList = (Array.isArray(list) ? list : []).map((s: any) => ({
                 ...s,
-                amsT_Id: s.amsT_Id || s.AMST_Id,
-                studentname: s.studentName || s.studentname || s.student_name
-            })) : []);
+                amsT_Id: s.amsT_Id || s.AMST_Id || s.amst_id,
+                studentName: s.studentname || s.studentName || s.student_name || ''
+            }));
+            setGetstudentlist(normalizedList);
         } catch (e) {
             toast.error('Failed to load students');
         }
     };
 
-    const handleSelectAll = (checked: boolean) => {
+    const OnClickAll = (checked: boolean) => {
         if (checked) {
             setSelectedStudentIds(filteredStudents.map(s => s.amsT_Id));
         } else {
@@ -145,7 +149,7 @@ export default function SophiaMultiTransferCertificatePage() {
         }
     };
 
-    const handleStudentSelect = (id: number, checked: boolean) => {
+    const individual = (id: number, checked: boolean) => {
         if (checked) {
             setSelectedStudentIds(prev => [...prev, id]);
         } else {
@@ -153,8 +157,8 @@ export default function SophiaMultiTransferCertificatePage() {
         }
     };
 
-    const handleReport = async () => {
-        if (!academicYearId || !classId || !sectionId) {
+    const GetReport = async () => {
+        if (!asmaY_Id || !asmcL_Id || !asmS_Id) {
             toast.error('Please select all required fields');
             return;
         }
@@ -163,32 +167,34 @@ export default function SophiaMultiTransferCertificatePage() {
             return;
         }
 
-        const selectedStudents = studentList.filter(s => selectedStudentIds.includes(s.amsT_Id));
+        const selectedStudents = getstudentlist.filter(s => selectedStudentIds.includes(s.amsT_Id));
 
         const payload = {
-            asmaY_Id: academicYearId,
-            asmcL_Id: classId,
-            asmS_Id: sectionId,
+            asmaY_Id: asmaY_Id,
+            asmcL_Id: asmcL_Id,
+            asmS_Id: asmS_Id,
             studentTempList: selectedStudents.map(s => ({
                 amsT_Id: s.amsT_Id,
-                studentName: s.studentname
+                studentName: s.studentName
             }))
         };
 
         try {
             const res = await reportMutation.mutateAsync(payload);
-            const data = res?.getstudentreports || res?.data?.getstudentreports || [];
-            if (Array.isArray(data) && data.length > 0) {
-                const normalized = data.map(item => ({
+            const responseData = res?.data || res;
+            const reportList = responseData?.studentList || responseData?.data?.studentList || responseData?.getstudentreports || [];
+
+            if (Array.isArray(reportList) && reportList.length > 0) {
+                const normalized = reportList.map((item: any) => ({
                     ...item,
-                    RomanClass: convertToRomanClass(item.Last_Class_Studied || '')
+                    RomanClass: convertToRomanClass(item.last_class_studied || item.Last_Class_Studied || '')
                 }));
-                setReportData(normalized);
-                const firstLastClass = normalized[0].Last_Class_Studied || '';
-                setLastClassStudied(firstLastClass);
-                if (firstLastClass === '10th') setIssType('ICSE');
-                else if (firstLastClass === '12th') setIssType('ISC');
-                else setIssType('');
+                setGetstudentreports(normalized);
+                const lastClass = normalized[0].last_class_studied || normalized[0].Last_Class_Studied || '';
+                setAsmcL_Id12(lastClass);
+                if (lastClass === '10th') setISS('ICSE');
+                else if (lastClass === '12th') setISS('ISC');
+                else setISS('');
                 setShowReport(true);
             } else {
                 toast.error('No records found');
@@ -199,27 +205,138 @@ export default function SophiaMultiTransferCertificatePage() {
         }
     };
 
-    const handleReset = () => {
-        setAcademicYearId(null);
-        setClassId(null);
-        setSectionId(null);
-        setClassList([]);
-        setSectionList([]);
-        setStudentList([]);
-        setSelectedStudentIds([]);
-        setReportData([]);
-        setShowReport(false);
-        setSearchQuery('');
+    const Clearid = () => {
+        window.location.reload();
     };
 
-    const handlePrint = useReactToPrint({
+    const printToCart = useReactToPrint({
         contentRef: printRef,
-        documentTitle: 'Sophia_Transfer_Certificates'
+        documentTitle: 'Sophia_Transfer_Certificates',
+        pageStyle: `
+            @page {
+                size: B5 portrait;
+                margin: 0;
+            }
+            @media print {
+                html, body {
+                    height: auto;
+                    margin: 0 !important;
+                    padding: 0 !important;
+                    overflow: visible !important;
+                    -webkit-print-color-adjust: exact;
+                }
+                .pagelayout {
+                    width: 176mm !important;
+                    height: 250mm !important;
+                    padding: 10mm 10mm 30mm 10mm !important;
+                    margin: 0 !important;
+                    page-break-after: always !important;
+                    break-after: page !important;
+                    page-break-inside: avoid !important;
+                    display: block !important;
+                    visibility: visible !important;
+                    background: white !important;
+                }
+                .table-custom {
+                    width: 100% !important;
+                    border-collapse: collapse !important;
+                    border: none !important;
+                    margin-bottom: 5px !important;
+                }
+                .details-table {
+                    margin-left: 32px !important;
+                }
+                .table-custom td {
+                    padding: 5px 2px !important;
+                    vertical-align: top !important;
+                    border: none !important;
+                }
+                .label-col {
+                    width: 160px !important;
+                    font-weight: normal !important;
+                }
+                .colon-col {
+                    width: 20px !important;
+                    text-align: center !important;
+                }
+                .value-col {
+                    font-weight: normal !important;
+                }
+                .student-name-value {
+                    text-transform: uppercase !important;
+                }
+                .font-serif {
+                    font-family: "Times New Roman", Times, serif !important;
+                }
+                h1 {
+                    font-size: 24px !important;
+                    text-align: center !important;
+                    margin-top: 0 !important;
+                    margin-bottom: 30px !important;
+                    display: block !important;
+                    visibility: visible !important;
+                    color: black !important;
+                }
+                .hr-thick {
+                    border: none !important;
+                    border-top: 3px solid black !important;
+                    margin: 5px 0 !important;
+                    display: block !important;
+                    visibility: visible !important;
+                }
+                .footer-text {
+                    font-size: 15px !important;
+                    margin-top: 40px !important;
+                }
+                h1, h3, p, span, td, strong {
+                    color: black !important;
+                    visibility: visible !important;
+                }
+            }
+        `
     });
+
+    const downloadAsPDF = async () => {
+        if (!printRef.current) return;
+        const loadingToast = toast.loading('Generating PDF...');
+        try {
+            const pdf = new jsPDF('p', 'in', [6.93, 9.84]);
+            const studentWraps = printRef.current.querySelectorAll('.pagelayout');
+
+            for (let i = 0; i < studentWraps.length; i++) {
+                const page = studentWraps[i] as HTMLElement;
+
+                if (i > 0) {
+                    pdf.addPage([6.93, 9.84], 'p'); // B5 size in inches
+                }
+
+                const canvas = await html2canvas(page, {
+                    scale: 3,
+                    useCORS: true,
+                    logging: false,
+                    backgroundColor: '#ffffff',
+                });
+
+                const imgData = canvas.toDataURL('image/png');
+                const imgWidth = 6.93; // B5 width in inches
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+                pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+            }
+
+            pdf.save(`Sophia_TC_B5_${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+            toast.dismiss(loadingToast);
+            toast.success('PDF downloaded successfully');
+        } catch (error) {
+            console.error('PDF generation failed:', error);
+            toast.dismiss(loadingToast);
+            toast.error('Failed to generate PDF');
+        }
+    };
 
     /* -------------------- UI Render -------------------- */
     return (
-        <div className='min-h-screen p-4 space-y-6'>
+        <div className='min-h-screen p-4 space-y-6 bg-gray-50/50'>
             <CollapsibleSection
                 title='Transfer Certificate Report'
                 description='Generate Multi-Student Transfer Certificates for Sophia High School'
@@ -227,19 +344,19 @@ export default function SophiaMultiTransferCertificatePage() {
                 variant='outline'
                 className='shadow-lg'>
 
-                <div className='bg-white p-6'>
+                <div className='bg-white p-6 rounded-xl'>
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-8'>
                         {/* Left Side: Dropdowns */}
-                        <div className='space-y-4'>
+                        <div className='space-y-6'>
                             <div className='grid grid-cols-[140px_1fr] items-center gap-4'>
-                                <Label className='text-sm font-bold'>Academic Year:<span className='text-red-500'>*</span></Label>
-                                <Select value={academicYearId?.toString()} onValueChange={onYearChange}>
-                                    <SelectTrigger className='h-9 shadow-sm'>
+                                <Label className='text-sm font-bold text-gray-700'>Academic Year:<strong style={{ color: 'red' }}>*</strong></Label>
+                                <Select value={asmaY_Id?.toString()} onValueChange={onchangeyear}>
+                                    <SelectTrigger className='h-10 shadow-sm border-gray-300'>
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {loadData.accyear.map((item: any) => (
-                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                        {loadData.accyear.map((item: any, index: number) => (
+                                            <SelectItem key={item.asmaY_Id || index} value={item.asmaY_Id?.toString()}>
                                                 {item.asmaY_Year}
                                             </SelectItem>
                                         ))}
@@ -248,14 +365,14 @@ export default function SophiaMultiTransferCertificatePage() {
                             </div>
 
                             <div className='grid grid-cols-[140px_1fr] items-center gap-4'>
-                                <Label className='text-sm font-bold'>Class:<span className='text-red-500'>*</span></Label>
-                                <Select value={classId?.toString()} onValueChange={onClassChange} disabled={!academicYearId}>
-                                    <SelectTrigger className='h-9 shadow-sm'>
+                                <Label className='text-sm font-bold text-gray-700'>Class:<strong style={{ color: 'red' }}>*</strong></Label>
+                                <Select value={asmcL_Id?.toString()} onValueChange={onchangeclass} disabled={!asmaY_Id}>
+                                    <SelectTrigger className='h-10 shadow-sm border-gray-300'>
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {classList.map((item: any) => (
-                                            <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
+                                        {getclassdetails.map((item: any, index: number) => (
+                                            <SelectItem key={item.asmcL_Id || index} value={item.asmcL_Id?.toString()}>
                                                 {item.asmcL_ClassName}
                                             </SelectItem>
                                         ))}
@@ -264,14 +381,14 @@ export default function SophiaMultiTransferCertificatePage() {
                             </div>
 
                             <div className='grid grid-cols-[140px_1fr] items-center gap-4'>
-                                <Label className='text-sm font-bold'>Section:<span className='text-red-500'>*</span></Label>
-                                <Select value={sectionId?.toString()} onValueChange={onSectionChange} disabled={!classId}>
-                                    <SelectTrigger className='h-9 shadow-sm'>
+                                <Label className='text-sm font-bold text-gray-700'>Section:<strong style={{ color: 'red' }}>*</strong></Label>
+                                <Select value={asmS_Id?.toString()} onValueChange={onchangesection} disabled={!asmcL_Id}>
+                                    <SelectTrigger className='h-10 shadow-sm border-gray-300'>
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {sectionList.map((item: any) => (
-                                            <SelectItem key={item.asmS_Id} value={item.asmS_Id.toString()}>
+                                        {GetSectiondetails.map((item: any, index: number) => (
+                                            <SelectItem key={item.asmS_Id || index} value={item.asmS_Id?.toString()}>
                                                 {item.asmC_SectionName}
                                             </SelectItem>
                                         ))}
@@ -281,37 +398,35 @@ export default function SophiaMultiTransferCertificatePage() {
                         </div>
 
                         {/* Right Side: Student Multi-select */}
-                        <div className='space-y-2'>
-                            <div className='flex items-center justify-between'>
-                                <div className='flex items-center space-x-2'>
-                                    <Checkbox
-                                        id='selectAll'
-                                        checked={filteredStudents.length > 0 && selectedStudentIds.length === filteredStudents.length}
-                                        onCheckedChange={(checked) => handleSelectAll(checked as boolean)}
-                                    />
-                                    <Label htmlFor='selectAll' className='text-sm font-bold cursor-pointer'>Student:<span className='text-red-500'>*</span></Label>
-                                </div>
-                                <div className='relative w-48'>
-                                    <Search className='absolute left-2 top-2.5 h-4 w-4 text-muted-foreground' />
-                                    <Input
-                                        placeholder='Search student...'
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                        className='h-9 pl-8 text-xs'
-                                    />
-                                </div>
+                        <div className='space-y-4'>
+                            <div className='flex items-center space-x-2'>
+                                <Checkbox
+                                    id='selectAll'
+                                    checked={filteredStudents.length > 0 && selectedStudentIds.length === filteredStudents.length}
+                                    onCheckedChange={(checked) => OnClickAll(checked as boolean)}
+                                />
+                                <Label htmlFor='selectAll' className='text-sm font-bold cursor-pointer text-gray-700'>Student:<strong style={{ color: 'red' }}>*</strong></Label>
                             </div>
-                            <ScrollArea className='h-[160px] w-full rounded-md border p-4 bg-gray-50/30'>
+                            <div className='relative'>
+                                <Search className='absolute left-2 top-2.5 h-4 w-4 text-muted-foreground' />
+                                <Input
+                                    placeholder='search here...'
+                                    value={searchchkbx}
+                                    onChange={(e) => setSearchchkbx(e.target.value)}
+                                    className='h-9 pl-8 text-xs border-gray-300'
+                                />
+                            </div>
+                            <ScrollArea className='h-[160px] w-full rounded-lg border border-gray-200 p-4 bg-gray-50/50'>
                                 {filteredStudents.length > 0 ? (
                                     <div className='grid grid-cols-1 sm:grid-cols-2 gap-2'>
-                                        {filteredStudents.map((s: any) => (
-                                            <div key={s.amsT_Id} className='flex items-center space-x-2 p-1 hover:bg-white rounded transition-colors'>
+                                        {filteredStudents.map((s: any, index: number) => (
+                                            <div key={s.amsT_Id || index} className='flex items-center space-x-2 p-1.5 hover:bg-white hover:shadow-sm rounded-md transition-all'>
                                                 <Checkbox
                                                     id={`std-${s.amsT_Id}`}
                                                     checked={selectedStudentIds.includes(s.amsT_Id)}
-                                                    onCheckedChange={(checked) => handleStudentSelect(s.amsT_Id, checked as boolean)}
+                                                    onCheckedChange={(checked) => individual(s.amsT_Id, checked as boolean)}
                                                 />
-                                                <Label htmlFor={`std-${s.amsT_Id}`} className='text-xs truncate cursor-pointer font-medium text-gray-700'>
+                                                <Label htmlFor={`std-${s.amsT_Id}`} className='text-xs truncate cursor-pointer font-medium text-gray-600'>
                                                     {s.studentname}
                                                 </Label>
                                             </div>
@@ -319,7 +434,7 @@ export default function SophiaMultiTransferCertificatePage() {
                                     </div>
                                 ) : (
                                     <div className='flex h-full items-center justify-center text-muted-foreground text-xs italic'>
-                                        {studentList.length > 0 ? 'No results found' : 'Select class/section to see students'}
+                                        {getstudentlist.length > 0 ? 'No results found' : 'Select class/section to see students'}
                                     </div>
                                 )}
                             </ScrollArea>
@@ -327,176 +442,238 @@ export default function SophiaMultiTransferCertificatePage() {
                     </div>
 
                     {/* Actions */}
-                    <div className='flex flex-wrap justify-center gap-4 pt-8 mt-6 border-t'>
-                        <Button size='sm' onClick={handleReport} disabled={reportMutation.isPending} className='min-w-32 bg-[#3f51b5] hover:bg-[#303f9f] text-white shadow-lg rounded-full uppercase transition-all'>
+                    <div className='flex flex-wrap justify-center gap-4 pt-8 mt-8 border-t border-gray-100'>
+                        <Button size='sm' onClick={GetReport} disabled={reportMutation.isPending} className='min-w-32 bg-[#3f51b5] hover:bg-[#303f9f] text-white shadow-md rounded-full uppercase font-bold tracking-wider'>
                             {reportMutation.isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <FileText className='mr-2 h-4 w-4' />}
                             REPORT
                         </Button>
-                        <Button size='sm' onClick={handleReset} className='min-w-32 bg-[#ff5722] hover:bg-[#f4511e] text-white shadow-lg rounded-full uppercase transition-all'>
+                        <Button size='sm' onClick={Clearid} className='min-w-32 bg-[#ff5722] hover:bg-[#f4511e] text-white shadow-md rounded-full uppercase font-bold tracking-wider'>
                             <RotateCcw className='mr-2 h-4 w-4' />
                             CANCEL
                         </Button>
-                        <Button size='sm' onClick={handlePrint} disabled={!showReport} className='min-w-32 bg-[#2196f3] hover:bg-[#1976d2] text-white shadow-lg disabled:bg-gray-200 disabled:text-gray-400 rounded-full uppercase transition-all'>
+                        <Button size='sm' onClick={printToCart} disabled={!showReport} className='min-w-32 bg-[#2196f3] hover:bg-[#1976d2] text-white shadow-md disabled:bg-gray-200 disabled:text-gray-400 rounded-full uppercase font-bold tracking-wider'>
                             <Printer className='mr-2 h-4 w-4' />
                             PRINT
+                        </Button>
+                        <Button size='sm' onClick={downloadAsPDF} disabled={!showReport} className='min-w-32 bg-[#ff9800] hover:bg-[#f57c00] text-white shadow-md disabled:bg-gray-200 disabled:text-gray-400 rounded-full uppercase font-bold tracking-wider'>
+                            <Download className='mr-2 h-4 w-4' />
+                            DOWNLOAD PDF
                         </Button>
                     </div>
                 </div>
             </CollapsibleSection>
 
             {/* Certificate Preview Section */}
-            {showReport && reportData.length > 0 && (
-                <div className='mt-8 flex flex-col items-center bg-gray-100 p-4 md:p-8 rounded-3xl border-2 border-dashed border-indigo-200 overflow-auto'>
-                    <div ref={printRef} className='bg-white shadow-2xl w-full max-w-[210mm] text-black font-serif'>
-                        {reportData.map((report: any, index: number) => {
-                            const isHighSchool = lastClassStudied === '10th' || lastClassStudied === '12th';
+            {showReport && getstudentreports.length > 0 && (
+                <div className='mt-8 flex flex-col items-center bg-gray-200 p-4 md:p-12 rounded-3xl border-4 border-double border-indigo-200 overflow-auto'>
+                    <div ref={printRef} id="JSHSTC" className='bg-white shadow-2xl w-[176mm] text-black font-serif'>
+                        {getstudentreports.map((report: any, index: number) => {
+                            const isHighSchool = asmcL_Id12 === '10th' || asmcL_Id12 === '12th';
                             return (
-                                <div key={index} className="page-break-after-always">
+                                <div key={index}>
                                     {/* Transfer Certificate Page */}
-                                    <div className="p-12 min-h-[297mm] flex flex-col">
-                                        <div className="mt-[135px]">
-                                            <h1 className="text-center text-3xl font-bold underline mb-12">TRANSFER CERTIFICATE</h1>
-
-                                            <div className="flex justify-between font-bold mb-4 border-b-2 border-black pb-2 text-lg">
-                                                <span>Admission Number: {report.amsT_AdmNo}</span>
-                                                <span>
-                                                    Sl. No: {report.astC_TCNO && (report.astC_TCNO.split('/').length > 2
-                                                        ? report.astC_TCNO.split('/').slice(1).join('/')
-                                                        : report.astC_TCNO)}
+                                    <div className="pagelayout p-[10mm] w-[176mm] min-h-[250mm] flex flex-col relative" style={{ pageBreakBefore: index > 0 ? 'always' : 'avoid' }}>
+                                        <div style={{ marginTop: '125px' }}>
+                                            <h1 className="text-center">
+                                                <span style={{ borderBottom: '2px solid black', paddingBottom: '4px', fontSize: '24px', display: 'inline-block' }}>
+                                                    TRANSFER CERTIFICATE
                                                 </span>
-                                            </div>
+                                            </h1>
 
-                                            <div className="space-y-4 text-xl">
-                                                <div className="flex items-start">
-                                                    <span className="w-12">1.</span>
-                                                    <span className="w-56">Name of Pupil</span>
-                                                    <span className="flex-1">: &nbsp;&nbsp; {report.studentname}</span>
-                                                </div>
-                                                <div className="flex items-start">
-                                                    <span className="w-12">2.</span>
-                                                    <span className="w-56">Father's Name</span>
-                                                    <span className="flex-1">: &nbsp;&nbsp; {report.amsT_FatherName}</span>
-                                                </div>
-                                                <div className="flex items-start">
-                                                    <span className="w-12">3.</span>
-                                                    <span className="w-56">Mother's Name</span>
-                                                    <span className="flex-1">: &nbsp;&nbsp; {report.amsT_MotherName}</span>
-                                                </div>
-                                                <div className="flex items-start">
-                                                    <span className="w-12">4.</span>
-                                                    <span className="w-56">Religion/Caste</span>
-                                                    <span className="flex-1">: &nbsp;&nbsp; {report.religion} / {report.caste}</span>
-                                                </div>
-                                                <div className="flex items-start">
-                                                    <span className="w-12">5.</span>
-                                                    <span className="w-56">Nationality</span>
-                                                    <span className="flex-1">: &nbsp;&nbsp; {report.nationality}</span>
-                                                </div>
-                                                <div className="flex items-start">
-                                                    <span className="w-12">6.</span>
-                                                    <span className="w-56">Date of Birth</span>
-                                                    <span className="flex-1">: &nbsp;&nbsp; {report.amsT_DOB ? format(new Date(report.amsT_DOB), 'dd-MMM-yyyy') : ''}</span>
-                                                </div>
-                                                <div className="flex items-start">
-                                                    <span className="w-12">7.</span>
-                                                    <span className="w-56">School Last Attended</span>
-                                                    <span className="flex-1">: &nbsp;&nbsp; N/A</span>
-                                                </div>
-                                                <div className="flex items-start">
-                                                    <span className="w-12">8.</span>
-                                                    <span className="w-56">Date Of Admission</span>
-                                                    <span className="flex-1">: &nbsp;&nbsp; {report.amsT_Date ? format(new Date(report.amsT_Date), 'dd-MMM-yyyy') : ''}</span>
-                                                </div>
-                                                <div className="flex items-start">
-                                                    <span className="w-12">9.</span>
-                                                    <span className="w-56">Conduct</span>
-                                                    <span className="flex-1">: &nbsp;&nbsp; Good</span>
-                                                </div>
-                                                <div className="flex items-start">
-                                                    <span className="w-12">10.</span>
-                                                    <span className="w-56">Date Of Leaving</span>
-                                                    <span className="flex-1">: &nbsp;&nbsp; {report.tcdatess ? format(new Date(report.tcdatess), 'dd-MMM-yyyy') : ''}</span>
-                                                </div>
-                                                <div className="flex items-start">
-                                                    <span className="w-12">11.</span>
-                                                    <span className="w-56">Studying In</span>
-                                                    <span className="flex-1">: &nbsp;&nbsp; {report.RomanClass} {report.asmC_SectionName}</span>
-                                                </div>
-                                                {report.astC_Remarks && report.astC_Remarks.trim() !== '' && (
-                                                    <div className="flex items-start">
-                                                        <span className="w-12">12.</span>
-                                                        <span className="w-56">Remarks</span>
-                                                        <span className="flex-1">: &nbsp;&nbsp; {report.astC_Remarks}</span>
+                                            <br />
+                                            {/* Admission + Sl.No */}
+                                            <table className="table-custom w-full">
+                                                <tbody>
+                                                    <tr>
+                                                        <td className="text-left font-bold" style={{ fontSize: '15px' }}>
+                                                            Admission Number: {report.amst_admno || report.amsT_AdmNo}
+                                                        </td>
+                                                        <td className="text-right font-bold" style={{ fontSize: '15px' }}>
+                                                            Sl. No: {getSlNo(report.astc_tcno || report.astC_TCNO)}
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                            <hr style={{ border: 'none', borderTop: '1.5px solid black', margin: '2px 0 10px 0' }} />
+
+                                            {/* TC Details */}
+                                            <table className="table-custom details-table w-full" style={{ marginTop: '-4px', fontSize: '15px', lineHeight: '1.6' }}>
+                                                <tbody>
+                                                    <tr>
+                                                        <td width="22">1.</td>
+                                                        <td className="label-col">Name of Pupil</td>
+                                                        <td className="colon-col">:</td>
+                                                        <td className="value-col student-name-value">{report.studentname}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td width="22">2.</td>
+                                                        <td className="label-col">Father&apos;s Name</td>
+                                                        <td className="colon-col">:</td>
+                                                        <td className="value-col">{report.amst_fathername || report.amsT_FatherName}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td width="22">3.</td>
+                                                        <td className="label-col">Mother&apos;s Name</td>
+                                                        <td className="colon-col">:</td>
+                                                        <td className="value-col">{report.amst_mothername || report.amsT_MotherName}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td width="22">4.</td>
+                                                        <td className="label-col">Religion/Caste</td>
+                                                        <td className="colon-col">:</td>
+                                                        <td className="value-col">{report.religion} / {report.caste}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td width="22">5.</td>
+                                                        <td className="label-col">Nationality</td>
+                                                        <td className="colon-col">:</td>
+                                                        <td className="value-col">{report.nationality}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td width="22">6.</td>
+                                                        <td className="label-col">Date of Birth</td>
+                                                        <td className="colon-col">:</td>
+                                                        <td className="value-col">{report.amst_dob || report.amsT_DOB ? format(new Date(report.amst_dob || report.amsT_DOB), 'dd-MMM-yyyy') : ''}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td width="22">7.</td>
+                                                        <td className="label-col">School Last Attended</td>
+                                                        <td className="colon-col">:</td>
+                                                        <td className="value-col">N/A</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td width="22">8.</td>
+                                                        <td className="label-col">Date Of Admission</td>
+                                                        <td className="colon-col">:</td>
+                                                        <td className="value-col">{report.amst_date || report.amsT_Date ? format(new Date(report.amst_date || report.amsT_Date), 'dd-MMM-yyyy') : ''}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td width="22">9.</td>
+                                                        <td className="label-col">Conduct</td>
+                                                        <td className="colon-col">:</td>
+                                                        <td className="value-col" contentEditable="true" suppressContentEditableWarning={true}>Good</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td width="22">10.</td>
+                                                        <td className="label-col">Date Of Leaving</td>
+                                                        <td className="colon-col">:</td>
+                                                        <td className="value-col" contentEditable="true" suppressContentEditableWarning={true}>{report.tcdatess ? format(new Date(report.tcdatess), 'dd-MMM-yyyy') : ''}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td width="22">11.</td>
+                                                        <td className="label-col">Studying In</td>
+                                                        <td className="colon-col">:</td>
+                                                        <td className="value-col">{report.RomanClass} {report.asmc_sectionname || report.asmC_SectionName}</td>
+                                                    </tr>
+                                                    {(report.astc_remarks || report.astC_Remarks) && (report.astc_remarks || report.astC_Remarks).trim() !== '' && (
+                                                        <tr>
+                                                            <td width="22">12.</td>
+                                                            <td className="label-col">Remarks</td>
+                                                            <td className="colon-col">:</td>
+                                                            <td className="value-col" contentEditable="true" suppressContentEditableWarning={true}>{report.astc_remarks || report.astC_Remarks}</td>
+                                                        </tr>
+                                                    )}
+                                                </tbody>
+                                            </table>
+
+                                            <hr className="hr-thick" />
+
+                                            {/* Footer Info */}
+                                            <div style={{ lineHeight: '1.2', fontSize: '14px' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
+                                                    <div>
+                                                        PEN No.&nbsp;&nbsp;&nbsp;&nbsp; :
+                                                        <span>{report.amst_pen_no || report.AMST_PENNo || ''}</span>
                                                     </div>
-                                                )}
-                                            </div>
-
-                                            <div className="mt-8 pt-4 border-t-2 border-black space-y-4">
-                                                <div className="flex justify-between text-lg">
-                                                    <span>PEN No. : {report.AMST_PENNo}</span>
-                                                    <span>SATS No. : {report.govtno}</span>
+                                                    <div>
+                                                        SATS No.&nbsp;&nbsp;&nbsp;&nbsp; :
+                                                        <span>{report.govtno || ''}</span>
+                                                    </div>
                                                 </div>
-                                                <p className="mt-8 italic text-lg font-medium">
+                                                <br />
+                                                <br />
+                                                <div className="certified-text" style={{ margin: '30px 0', fontFamily: '"Times New Roman", Times, serif', marginTop: '-15px' }}>
                                                     Certified that the above mentioned information is in accordance with the school register.
-                                                </p>
-                                                <div className="mt-16 flex justify-between items-end text-xl font-bold">
-                                                    <span>Date: {report.ASTC_TCApplicationDate ? format(new Date(report.ASTC_TCApplicationDate), 'dd-MMM-yyyy') : ''}</span>
-                                                    <span>PRINCIPAL</span>
+                                                </div>
+
+                                                <div style={{ marginTop: '50px', marginBottom: '200px', fontFamily: '"Times New Roman", Times, serif' }}>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px', marginRight: '72px' }}>
+                                                        <div style={{ fontSize: '18px' }}>Date: {report.astc_tcapplicationdate || report.ASTC_TCApplicationDate ? format(new Date(report.astc_tcapplicationdate || report.ASTC_TCApplicationDate), 'dd-MMM-yyyy') : ''}</div>
+                                                        <div><strong style={{ marginRight: '30px', fontSize: '18px' }}>PRINCIPAL</strong></div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    {/* Additional High School Certificates */}
                                     {isHighSchool && (
                                         <>
                                             {/* Conduct Certificate */}
-                                            <div className="page-break-before-always p-12 min-h-[297mm] flex flex-col items-center justify-center text-center">
-                                                <div className="mt-[135px]">
-                                                    <h2 className="text-4xl font-bold underline decoration-black underline-offset-8 mb-24">CONDUCT CERTIFICATE</h2>
-                                                    <div className="text-3xl italic leading-[3] space-y-6">
-                                                        <p>This is to certify that <strong>{report.studentname}</strong></p>
-                                                        <p>of Standard <strong>{report.RomanClass}</strong> was a student of</p>
-                                                        <p><strong className="text-3xl uppercase">SOPHIA HIGH SCHOOL, Bangalore</strong> and was</p>
-                                                        <p>of <strong>Good</strong> Character.</p>
-                                                    </div>
-                                                    <div className="mt-32 w-full flex justify-between items-end px-4 font-bold text-xl">
-                                                        <span className="font-normal">Date: {report.ASTC_TCApplicationDate ? format(new Date(report.ASTC_TCApplicationDate), 'dd-MMM-yyyy') : ''}</span>
-                                                        <span>PRINCIPAL</span>
-                                                    </div>
+                                            <div className="pagelayout p-[10mm] w-[176mm] min-h-[250mm] flex flex-col font-serif" style={{ pageBreakBefore: 'always' }}>
+                                                <div style={{ margin: '150px 2% 30px 2%', fontSize: '16px', lineHeight: '1.6' }}>
+                                                    <h3 style={{ textAlign: 'center', fontSize: '24px' }}>
+                                                        <strong style={{ color: 'black', textDecoration: 'underline', textUnderlineOffset: '6px' }}>CONDUCT CERTIFICATE</strong>
+                                                    </h3>
+
+                                                    <p style={{ textAlign: 'center', marginTop: '60px', fontSize: '22px', fontStyle: 'italic', lineHeight: '2' }}>
+                                                        This is to certify that <strong>{report.studentname}</strong>
+                                                    </p>
+                                                    <p style={{ textAlign: 'center', marginTop: '-20px', fontSize: '22px', fontStyle: 'italic', lineHeight: '2' }}>
+                                                        of Standard <strong>{report.RomanClass}</strong> was a student of<br />
+                                                    </p>
+                                                    <p style={{ textAlign: 'center', marginTop: '-20px', fontSize: '22px', fontStyle: 'italic', lineHeight: '2' }}>
+                                                        <strong style={{ fontSize: '22px' }}>SOPHIA HIGH SCHOOL, Bangalore </strong>and was<br />
+                                                    </p>
+                                                    <p style={{ textAlign: 'center', marginTop: '-20px', fontSize: '22px', fontStyle: 'italic', lineHeight: '2' }}>
+                                                        of <strong>Good</strong> Character.
+                                                    </p>
+
+                                                    <br /><br />
+                                                    <p style={{ textAlign: 'left', marginTop: '5px' }}>Date: {report.astc_tcapplicationdate || report.ASTC_TCApplicationDate ? format(new Date(report.astc_tcapplicationdate || report.ASTC_TCApplicationDate), 'dd-MMM-yyyy') : ''}</p>
+                                                    <br /><br />
+                                                    <p style={{ textAlign: 'right', marginTop: '-70px', fontWeight: 'bold' }}><strong>PRINCIPAL</strong></p>
                                                 </div>
                                             </div>
 
                                             {/* Course Completion Certificate */}
-                                            <div className="page-break-before-always p-12 min-h-[297mm] flex flex-col text-left">
-                                                <div className="mt-[135px]">
-                                                    <h2 className="text-center text-4xl font-bold underline decoration-black underline-offset-8 mb-24">COURSE COMPLETION CERTIFICATE</h2>
-                                                    <p className="text-3xl leading-relaxed mb-32">
-                                                        This is to certify that <strong>{report.studentname}</strong> has successfully completed the course of studies in Std. <b>{report.RomanClass}</b> leading to the <b>{issType}</b> Examination.
+                                            <div className="pagelayout p-[10mm] w-[176mm] min-h-[250mm] flex flex-col font-serif" style={{ pageBreakBefore: 'always' }}>
+                                                <div style={{ margin: '150px 0% 35px 0%', fontSize: '16px', lineHeight: '1.6' }}>
+                                                    <h3 style={{ textAlign: 'center', fontSize: '24px' }}>
+                                                        <strong style={{ color: 'black', textDecoration: 'underline', textUnderlineOffset: '6px' }}> COURSE COMPLETION <br />CERTIFICATE</strong>
+                                                    </h3>
+
+                                                    <p style={{ textAlign: 'left', marginTop: '60px', fontSize: '20px' }}>
+                                                        This is to certify that <strong>{report.studentname}</strong> has successfully completed the course of studies in Std.
+                                                        <b>{report.RomanClass}</b> leading to the <b>{ISS}</b> Examination.
                                                     </p>
-                                                    <div className="mt-auto flex justify-between items-end font-bold text-xl">
-                                                        <span className="font-normal">Date: {report.ASTC_TCApplicationDate ? format(new Date(report.ASTC_TCApplicationDate), 'dd-MMM-yyyy') : ''}</span>
-                                                        <span>PRINCIPAL</span>
-                                                    </div>
+
+                                                    <br /><br />
+                                                    <p style={{ textAlign: 'left', marginTop: '5px' }}>Date: {report.astc_tcapplicationdate || report.ASTC_TCApplicationDate ? format(new Date(report.astc_tcapplicationdate || report.ASTC_TCApplicationDate), 'dd-MMM-yyyy') : ''}</p>
+                                                    <br /><br />
+                                                    <p style={{ textAlign: 'right', marginTop: '-70px', fontWeight: 'bold' }}>PRINCIPAL</p>
                                                 </div>
                                             </div>
 
                                             {/* Final Certificate */}
-                                            <div className="page-break-before-always p-12 min-h-[297mm] flex flex-col text-justify">
-                                                <div className="mt-[135px]">
-                                                    <h2 className="text-center text-4xl font-bold underline decoration-black underline-offset-8 mb-24">CERTIFICATE</h2>
-                                                    <div className="space-y-12 text-2xl leading-relaxed">
-                                                        <p>
-                                                            1. This is to certify that <strong>{report.studentname}</strong> is not debarred, rusticated or otherwise disqualified from continuing her studies by the school for any malpractice at, in any school examination or for any kind of misbehavior.
-                                                        </p>
-                                                        <p>
-                                                            2. The student does not owe any amount to the school.
-                                                        </p>
-                                                    </div>
-                                                    <div className="mt-32 flex justify-between items-end font-bold text-xl">
-                                                        <span className="font-normal">Date: {report.ASTC_TCApplicationDate ? format(new Date(report.ASTC_TCApplicationDate), 'dd-MMM-yyyy') : ''}</span>
-                                                        <span>PRINCIPAL</span>
-                                                    </div>
+                                            <div className="pagelayout p-[10mm] w-[176mm] min-h-[250mm] flex flex-col font-serif" style={{ pageBreakBefore: 'avoid', pageBreakAfter: 'always' }}>
+                                                <div style={{ margin: '150px 4% 30px 4%', fontSize: '16px', lineHeight: '1.6' }}>
+                                                    <h3 style={{ textAlign: 'center', fontSize: '24px' }}>
+                                                        <strong style={{ color: 'black', textDecoration: 'underline', textUnderlineOffset: '6px' }}>CERTIFICATE</strong>
+                                                    </h3>
+                                                    <p style={{ textAlign: 'justify', marginTop: '60px', fontSize: '18px' }}>
+                                                        1. This is to certify that <strong>{report.studentname}</strong> is not
+                                                        debarred, rusticated or otherwise disqualified from
+                                                        continuing her studies by the school for any
+                                                        malpractice at, in any school examination or for any kind
+                                                        of misbehavior.
+                                                    </p>
+                                                    <p style={{ textAlign: 'justify', fontSize: '18px' }}>
+                                                        2. The student does not owe any amount to the school.
+                                                    </p>
+                                                    <br /><br />
+                                                    <p style={{ textAlign: 'left', marginTop: '5px' }}>Date: {report.astc_tcapplicationdate || report.ASTC_TCApplicationDate ? format(new Date(report.astc_tcapplicationdate || report.ASTC_TCApplicationDate), 'dd-MMM-yyyy') : ''}</p>
+                                                    <br /><br />
+                                                    <p style={{ textAlign: 'right', marginTop: '-70px', fontWeight: 'bold' }}>PRINCIPAL</p>
                                                 </div>
                                             </div>
                                         </>
@@ -509,15 +686,39 @@ export default function SophiaMultiTransferCertificatePage() {
             )}
 
             <style jsx global>{`
+                .table-custom {
+                    border-collapse: collapse;
+                }
+                .table-custom td {
+                    padding: 4px;
+                    vertical-align: top;
+                }
+                .pagelayout {
+                    background-color: white;
+                    box-sizing: border-box;
+                }
+                .details-table {
+                    margin-left: 32px;
+                }
+                .hr-thick {
+                    border: none;
+                    border-top: 1px solid black;
+                    margin: 10px 0;
+                }
+                .font-serif {
+                    font-family: "Times New Roman", Times, serif !important;
+                }
+                [contentEditable="true"] {
+                    outline: none;
+                    border-bottom: 1px dashed transparent;
+                }
+                [contentEditable="true"]:hover {
+                    border-bottom-color: #3f51b5;
+                }
                 @media print {
-                    .page-break-after-always {
-                        page-break-after: always !important;
-                    }
-                    .page-break-before-always {
-                        page-break-before: always !important;
-                    }
-                    .font-serif {
-                        font-family: "Times New Roman", Times, serif !important;
+                    .pagelayout {
+                        margin: 0 !important;
+                        padding: 0.5in !important;
                     }
                 }
             `}</style>
