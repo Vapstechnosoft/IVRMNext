@@ -21,6 +21,7 @@ import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
+import { exportToExcel, printTable } from './excelandprint';
 
 type FormFields = z.infer<typeof feeStudentandAccountWiseReportSophia>;
 
@@ -150,9 +151,30 @@ export default function FeeStudentandAccountwiseReportofSophia() {
             console.log('apiData', apiData);
             const responseJson = typeof apiData === 'string' ? JSON.parse(apiData) : apiData;
             if (responseJson?.data) {
-                setReportData(responseJson.data);
+                const report = responseJson.data ?? [];
+                const mapApiToReportRows = (apiData: any[]): ReportData[] => {
+                    return apiData.map((item, index) => ({
+                        id: index + 1,
+                        amsT_AdmNo: item.amsT_AdmNo,
+                        studentname: item.studentname,
+                        asmcL_ClassName: item.asmcL_ClassName,
+                        paymentDate: item.paymentDate,
+                        accountWiseAmounts: item.accountWiseAmounts,
+                        totalPaidAmount: item.totalPaidAmount
+                    }));
+                };
+                const list = mapApiToReportRows(report);
+
+                setReportData(list || []);
+                // setReportData(responseJson.data);
                 setShowReport(true);
-                toast.success('Report Generated Successfully');
+                if (list.length > 0) {
+                    toast.success('Report Generated Successfully');
+                } else {
+                    toast.error('No Data Found');
+                }
+            } else {
+                toast.error(responseJson.message || 'No Data Found');
             }
         } catch (error: any) {
             console.error('Error generating report:', error);
@@ -160,7 +182,38 @@ export default function FeeStudentandAccountwiseReportofSophia() {
             setShowReport(false);
         }
     };
+    const selectedRows = reportData.filter((r) => selectedIds.includes(r.id));
+    const handleExport = () => {
+        if (!selectedRows.length) {
+            toast.error('Please select at least one record');
+            return;
+        }
+        exportToExcel(selectedRows, 'Fee Student and Account Wise Report');
+    };
 
+    const handlePrint = () => {
+        const selected = reportData.filter((row) => selectedIds.includes(row.id));
+
+        if (!selected || selected.length === 0) {
+            toast.error('No data selected to print');
+            return;
+        }
+        const columnHeaders = ['Sl No', 'Admission No', 'StudentName', 'Class & Division', 'PaymentDate', 'TotalPaidAmount'];
+
+        const printableRows = selected.map((row, index) => {
+            const baseRow = {
+                'Sl No': index + 1,
+                'Admission No': row.amsT_AdmNo || '',
+                StudentName: row.studentname || '',
+                'Class & Division': row.asmcL_ClassName || '',
+                PaymentDate: row.paymentDate ? new Date(row.paymentDate).toLocaleDateString() : '',
+                // "ACNO:2207020304": row.discount || "",
+                TotalPaidAmount: row.totalPaidAmount || ''
+            };
+            return baseRow;
+        });
+        printTable(columnHeaders, printableRows, 'Fee Student and Account Wise Report');
+    };
     return (
         <div className='min-h-screen bg-gray-50 py-8'>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-8'>
@@ -400,20 +453,11 @@ export default function FeeStudentandAccountwiseReportofSophia() {
                             </div>
                             <div className='flex gap-3'>
                                 <div className='mb-4 flex justify-end gap-2'>
-                                    <Button
-                                        size='sm'
-                                        className='h-8 w-auto px-3 text-xs'
-                                        // onClick={handleExportExcel}
-                                    >
+                                    <Button size='sm' className='h-8 w-auto px-3 text-xs' onClick={handleExport}>
                                         Export Excel
                                     </Button>
 
-                                    <Button
-                                        size='sm'
-                                        variant='outline'
-                                        className='h-8 w-auto px-3 text-xs'
-                                        // onClick={handlePrint}
-                                    >
+                                    <Button size='sm' variant='outline' className='h-8 w-auto px-3 text-xs' onClick={handlePrint}>
                                         Print
                                     </Button>
                                 </div>
@@ -455,7 +499,9 @@ export default function FeeStudentandAccountwiseReportofSophia() {
                                                 <td className='border px-2 py-2 text-right'>
                                                     {row.asmcL_ClassName?.toLocaleString() || '-'}
                                                 </td>
-                                                <td className='border px-2 py-2 text-right'>{row.paymentDate?.toLocaleString() || '-'}</td>
+                                                <td className='border px-2 py-2 text-right'>
+                                                    {row.paymentDate ? new Date(row.paymentDate).toLocaleDateString() : '-'}
+                                                </td>
                                                 {/* <td className='border px-2 py-2 text-right'>{row.amaY_RollNo?.toLocaleString() || '-'}</td> */}
                                                 <td className='border px-2 py-2 text-right'>
                                                     {row.totalPaidAmount?.toLocaleString() || '-'}
