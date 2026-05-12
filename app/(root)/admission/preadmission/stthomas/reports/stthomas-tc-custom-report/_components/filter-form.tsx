@@ -4,13 +4,14 @@ import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { StthomasTcCustomReportSchema, type StthomasTcCustomReportFields } from '@/schemas/admission/preadmission/reports/stthomas-tc-custom-report';
-import { 
-    useStthomasTcLoadData, 
-    useStthomasTcYearChange, 
-    useStthomasTcClassChange, 
-    useStthomasTcSectionChange 
+import {
+    useStthomasTcLoadData,
+    useStthomasTcYearChange,
+    useStthomasTcClassChange,
+    useStthomasTcSectionChange
 } from '@/hooks/admission/preadmission/useStthomasTcCustomReport';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
+import { FormError } from '@/components/ui/extension/field';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
@@ -168,7 +169,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                         name="reporttype"
                         render={({ field }) => (
                             <FormItem className="space-y-3 p-4 border rounded-lg bg-slate-50/50">
-                                <FormLabel className="font-bold">Report Type</FormLabel>
+                                <Label className="font-bold">Report Type</Label>
                                 <FormControl>
                                     <RadioGroup
                                         onValueChange={field.onChange}
@@ -200,7 +201,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                         name="temporper"
                         render={({ field }) => (
                             <FormItem className="space-y-3 p-4 border rounded-lg bg-slate-50/50">
-                                <FormLabel className="font-bold">TC Duration</FormLabel>
+                                <Label className="font-bold">TC Duration</Label>
                                 <FormControl>
                                     <RadioGroup
                                         onValueChange={field.onChange}
@@ -234,9 +235,9 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                         name="ASMAY_Id"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className="font-bold whitespace-nowrap">Academic Year <span className="text-red-500">*</span></FormLabel>
-                                <Select 
-                                    onValueChange={(v) => field.onChange(Number(v))} 
+                                <Label className="font-bold whitespace-nowrap">Academic Year <span className="text-red-500">*</span></Label>
+                                <Select
+                                    onValueChange={(v) => field.onChange(Number(v))}
                                     value={field.value ? field.value.toString() : ""}
                                 >
                                     <FormControl>
@@ -252,7 +253,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                         ))}
                                     </SelectContent>
                                 </Select>
-
+                                {form.formState.errors.ASMAY_Id && <FormError>{form.formState.errors.ASMAY_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -263,12 +264,12 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                         name="ASMCL_Id"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className={cn("font-bold", reportType === 'indi' && "after:content-['*'] after:ml-0.5 after:text-red-500")}>
+                                <Label className={cn("font-bold", reportType === 'indi' && "after:content-['*'] after:ml-0.5 after:text-red-500")}>
                                     Class
-                                </FormLabel>
-                                <Select 
+                                </Label>
+                                <Select
                                     disabled={reportType !== 'indi'}
-                                    onValueChange={(v) => field.onChange(Number(v))} 
+                                    onValueChange={(v) => field.onChange(Number(v))}
                                     value={field.value ? field.value.toString() : ""}
                                 >
                                     <FormControl>
@@ -284,7 +285,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                         ))}
                                     </SelectContent>
                                 </Select>
-
+                                {form.formState.errors.ASMCL_Id && <FormError>{form.formState.errors.ASMCL_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -295,12 +296,12 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                         name="ASMS_Id"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className={cn("font-bold", reportType === 'indi' && "after:content-['*'] after:ml-0.5 after:text-red-500")}>
+                                <Label className={cn("font-bold", reportType === 'indi' && "after:content-['*'] after:ml-0.5 after:text-red-500")}>
                                     Section
-                                </FormLabel>
-                                <Select 
+                                </Label>
+                                <Select
                                     disabled={reportType !== 'indi'}
-                                    onValueChange={(v) => field.onChange(Number(v))} 
+                                    onValueChange={(v) => field.onChange(Number(v))}
                                     value={field.value ? field.value.toString() : ""}
                                 >
                                     <FormControl>
@@ -316,7 +317,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                         ))}
                                     </SelectContent>
                                 </Select>
-
+                                {form.formState.errors.ASMS_Id && <FormError>{form.formState.errors.ASMS_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -328,7 +329,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                             name="AMST_Id"
                             render={({ field }) => (
                                 <FormItem className="flex flex-col">
-                                <FormLabel className="font-bold">Student <span className="text-red-500">*</span></FormLabel>
+                                    <Label className="font-bold">Student <span className="text-red-500">*</span></Label>
                                     <Popover open={studentOpen} onOpenChange={setStudentOpen}>
                                         <PopoverTrigger asChild>
                                             <FormControl>
@@ -345,8 +346,8 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                                         : "Select Student"}
                                                     <div className="flex items-center gap-2">
                                                         {field.value ? (
-                                                            <X 
-                                                                className="h-4 w-4 opacity-50 hover:opacity-100" 
+                                                            <X
+                                                                className="h-4 w-4 opacity-50 hover:opacity-100"
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
                                                                     field.onChange(undefined);
@@ -387,7 +388,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                             </Command>
                                         </PopoverContent>
                                     </Popover>
-
+                                    {form.formState.errors.AMST_Id && <FormError>{form.formState.errors.AMST_Id.message}</FormError>}
                                 </FormItem>
                             )}
                         />

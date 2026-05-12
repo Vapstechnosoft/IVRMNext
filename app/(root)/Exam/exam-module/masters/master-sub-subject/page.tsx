@@ -4,7 +4,7 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { GitCompareArrows, Plus, X } from 'lucide-react';
-import { use, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 
 import { MasterViewDetails } from '@/components/ui/set-order/generic-set-order';
 import { useMasterSubSubject } from '@/hooks/exam/exammodule/usemasters';
@@ -29,6 +29,7 @@ export default function MasterSubSubjectPage(props: { searchParams: SearchParams
     );
 }
 
+
 function MasterSubSubjectPageContent({
     response,
     isLoading,
@@ -40,6 +41,9 @@ function MasterSubSubjectPageContent({
     error: any;
     refetchAll: any;
 }) {
+    useEffect(() => {
+        console.log(response);
+    }, [response])
     const { openAddForm } = useFormContext<IMasterSubSubject>();
     const tableProps = useDataTableProps(response);
     const [orderModalOpen, setOrderModalOpen] = useState(false);

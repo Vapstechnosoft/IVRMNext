@@ -111,9 +111,10 @@ export const masterPublisherSchema = {
             .email('Invalid email address'),
 
         lmP_PhoneNo: z
-            .string({ required_error: 'Phone Number is required' })
+            .string()
             .trim()
-            .regex(/^\d{10}$/, 'Phone Number must be exactly 10 digits')
+            .optional()
+            .or(z.literal(''))
     }),
     delete: z.object({
         lmP_Id: deleteIdSchema('lmP_Id')

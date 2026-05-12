@@ -339,46 +339,47 @@ export function NavigationSystem() {
                             </Button>
                         )}
 
-                        {accessibleModule?.data
-                            ?.filter(module => !moduleFilter || module.name === moduleFilter)
-                            ?.map((module) => {
-                                const IconComponent = getIconByName(module.icon);
-                                const isActive = activeModule === module.name;
+                                {accessibleModule?.data
+                                    ?.filter(module => !moduleFilter || module.name === moduleFilter)
+                                    ?.map((module) => {
+                                        const IconComponent = getIconByName(module.icon);
+                                        const isActive = activeModule === module.name;
+                                        const isDigitalSignage = module.name === 'Digital Signage';
 
-                                return (
-                                    <div key={module.id} className="relative py-0.5">
-                                        <Button
-                                            variant='ghost'
-                                            className={cn(
-                                                'nav-button group relative inline-flex items-center gap-2 rounded-full px-4 py-2 transition-all duration-500 z-10',
-                                                'hover:bg-transparent active:scale-95',
-                                                isActive
-                                                    ? 'text-orange-600'
-                                                    : 'text-gray-500 hover:text-orange-600'
-                                            )}
-                                            onMouseEnter={() => setHoveredModule(module.name)}
-                                            onClick={() => handleModuleClick(module.name)}>
+                                        return (
+                                            <div key={module.id} className="relative py-0.5">
+                                                <Button
+                                                    variant='ghost'
+                                                    className={cn(
+                                                        'nav-button group relative inline-flex items-center gap-2 rounded-full px-4 py-2 transition-all duration-500 z-10',
+                                                        'hover:bg-transparent active:scale-95',
+                                                        isActive
+                                                            ? 'text-orange-600'
+                                                            : isDigitalSignage ? 'text-orange-500' : 'text-gray-500 hover:text-orange-600'
+                                                    )}
+                                                    onMouseEnter={() => setHoveredModule(module.name)}
+                                                    onClick={() => handleModuleClick(module.name)}>
 
-                                            {isActive && <AuraGlow />}
+                                                    {isActive && <AuraGlow />}
 
-                                            <motion.div
-                                                whileHover={{ scale: 1.2, x: 2 }}
-                                                transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                                                className={cn(
-                                                    "flex items-center justify-center p-1.5 rounded-full transition-all duration-500",
-                                                    isActive
-                                                        ? "bg-orange-500 text-white shadow-[0_4px_12px_rgba(255,100,0,0.3)]"
-                                                        : "bg-gray-100/50 text-gray-400 group-hover:bg-orange-100 group-hover:text-orange-500"
-                                                )}>
-                                                {IconComponent && <IconComponent className="h-3.5 w-3.5" />}
-                                            </motion.div>
+                                                    <motion.div
+                                                        whileHover={{ scale: 1.2, x: 2 }}
+                                                        transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                                                        className={cn(
+                                                            "flex items-center justify-center p-1.5 rounded-full transition-all duration-500",
+                                                            isActive
+                                                                ? "bg-orange-500 text-white shadow-[0_4px_12px_rgba(255,100,0,0.3)]"
+                                                                : isDigitalSignage ? "bg-orange-100 text-orange-500" : "bg-gray-100/50 text-gray-400 group-hover:bg-orange-100 group-hover:text-orange-500"
+                                                        )}>
+                                                        {IconComponent && <IconComponent className="h-3.5 w-3.5" />}
+                                                    </motion.div>
 
-                                            <span className={cn(
-                                                'text-[12px] font-bold tracking-[0.05em] uppercase whitespace-nowrap transition-colors duration-500 relative z-10',
-                                                isActive ? 'text-orange-600' : 'text-gray-600 group-hover:text-orange-600'
-                                            )}>
-                                                {module.name}
-                                            </span>
+                                                    <span className={cn(
+                                                        'text-[12px] font-bold tracking-[0.05em] uppercase whitespace-nowrap transition-colors duration-500 relative z-10',
+                                                        isActive ? 'text-orange-600' : isDigitalSignage ? 'text-orange-500' : 'text-gray-600 group-hover:text-orange-600'
+                                                    )}>
+                                                        {module.name}
+                                                    </span>
 
                                             <ChevronDown className={cn(
                                                 'h-3 w-3 transition-transform duration-500 ease-out opacity-40 ml-1 relative z-10',
@@ -484,7 +485,8 @@ export function NavigationSystem() {
                                                                                     key={subMenu.id}
                                                                                     className={cn(
                                                                                         'text-left text-[14px] text-[#555] hover:text-orange-600 hover:font-bold transition-all group/item flex items-center justify-between gap-2 pr-2',
-                                                                                        hoveredSubMenu?.subMenuName === subMenu.name && 'text-orange-600 font-bold'
+                                                                                        hoveredSubMenu?.subMenuName === subMenu.name && 'text-orange-600 font-bold',
+                                                                                        subMenu.name === 'Digital Signage' && 'text-orange-500 font-bold'
                                                                                     )}
                                                                                     onMouseEnter={() => setHoveredSubMenu({
                                                                                         menuName: menu.name,

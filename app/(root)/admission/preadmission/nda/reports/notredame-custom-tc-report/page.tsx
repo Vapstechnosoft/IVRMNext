@@ -200,12 +200,12 @@ export default function NotredameCustomTcReportPage() {
                                         <SelectValue placeholder="Select Year" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {(detailsData as any)?.data?.accyear?.map((year: any) => (
-                                            <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>
+                                        {(detailsData as any)?.data?.accyear?.map((year: any, index: number) => (
+                                            <SelectItem key={`${year.asmaY_Id}-${index}`} value={year.asmaY_Id.toString()}>
                                                 {year.asmaY_Year}
                                             </SelectItem>
-                                        )) || (detailsData as any)?.accyear?.map((year: any) => (
-                                            <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>
+                                        )) || (detailsData as any)?.accyear?.map((year: any, index: number) => (
+                                            <SelectItem key={`${year.asmaY_Id}-${index}`} value={year.asmaY_Id.toString()}>
                                                 {year.asmaY_Year}
                                             </SelectItem>
                                         ))}
