@@ -1,13 +1,11 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import { type ApiResponse } from '@/lib/apiService';
 import {
     ISRKVSInitialData,
     ISRKVSSubEvent,
     ISRKVSSubSubEvent,
-    SRKVSSportsReportRecordFormSchema,
-} from '@/types/sports/reports/srkvs-sports-report-record';
+} from '@/types/sports/reports/srkvs-sports-report';
 
 export async function Getdetails(data: { asmaY_Id?: number }) {
     return await api.post<ISRKVSInitialData>('sports', 'SRKVSSportsReport/Getdetails', data);
