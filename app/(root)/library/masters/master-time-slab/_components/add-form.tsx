@@ -51,16 +51,18 @@ export default function AddMasterTimeSlabForm({ onloaddata, onSuccess, className
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             const payload = {
-                LFSE_Id: 0,
-                LFSE_UserType: data.lfsE_UserType,
-                LFSE_SlabTypeFlg: data.lfsE_SlabTypeFlg,
-                LFSE_PerDayFlg: data.lfsE_PerDayFlg,
-                LFSE_FromDay: data.lfsE_FromDay,
-                LFSE_ToDay: data.lfsE_ToDay ?? 0,
-                LFSE_Amount: data.lfsE_Amount
+                lfsE_Id: 0,
+                lfsE_UserType: data.lfsE_UserType,
+                lfsE_SlabTypeFlg: data.lfsE_SlabTypeFlg,
+                lfsE_PerDayFlg: data.lfsE_PerDayFlg === 1 ?true : false,
+                lfsE_FromDay: Number(data.lfsE_FromDay),
+                lfsE_ToDay: data.lfsE_SlabTypeFlg === 'BETWEEN' ? Number(data.lfsE_ToDay) : 0,
+                lfsE_Amount: Number(data.lfsE_Amount),
+                lfsE_ActiveFlg: true
             };
 
             const response = await addOrUpdateMasterTimeSlab(payload);
+
 
             if (response.success) {
                 toast.success(response.message || 'Record Saved Successfully!!!');
@@ -162,6 +164,7 @@ export default function AddMasterTimeSlabForm({ onloaddata, onSuccess, className
                         label='From Day'
                         type='number'
                         required
+                        placeholder='Enter From Day'
                         {...register('lfsE_FromDay')}
                         error={errors.lfsE_FromDay?.message}
                     />
@@ -171,6 +174,7 @@ export default function AddMasterTimeSlabForm({ onloaddata, onSuccess, className
                             label='To Day'
                             type='number'
                             required
+                            placeholder='Enter To Day'
                             {...register('lfsE_ToDay')}
                             error={errors.lfsE_ToDay?.message}
                         />
@@ -181,6 +185,7 @@ export default function AddMasterTimeSlabForm({ onloaddata, onSuccess, className
                         type='number'
                         step='0.01'
                         required
+                        placeholder='Enter Amount'
                         {...register('lfsE_Amount')}
                         error={errors.lfsE_Amount?.message}
                     />

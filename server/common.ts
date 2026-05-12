@@ -1038,7 +1038,7 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/reports/Sophia/ClassWiseDailyAttendance',
                                             title: 'ClassWise Daily Attendance',
                                             description: 'ClassWise Daily Attendance'
-                                        }
+                                        },
                                         // {
                                         //     id: 596,
                                         //     name: 'Student Search',
@@ -1063,19 +1063,19 @@ export async function getUserAccessibleModules() {
                                         //     title: 'Date Of Birth Certificate',
                                         //     description: 'Date Of Birth Certificate'
                                         // },
-                                        // {
-                                        //     id: 599,
-                                        //     name: 'Sophia study certificate',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/sophia/reports/SophiaStudyCertificate',
-                                        //     title: 'Sophia study certificate',
-                                        //     description: 'Sophia study certificate'
-                                        // },
+                                        {
+                                            id: 599,
+                                            name: 'Sophia study certificate',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/sophia/reports/SophiaStudyCertificate',
+                                            title: 'Sophia study certificate',
+                                            description: 'Sophia study certificate'
+                                        },
                                         // {
                                         //     id: 600,
                                         //     name: 'SophiaRegistrationXI',
                                         //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/Sophia/reports/SophiaRegistrationXI',
+                                        //     url: '/admission/preadmission/sophia/reports/SophiaRegistrationXI',
                                         //     title: 'SophiaRegistrationXI',
                                         //     description: 'SophiaRegistrationXI'
                                         // },
@@ -1083,58 +1083,114 @@ export async function getUserAccessibleModules() {
                                         //     id: 600,
                                         //     name: 'SophiaRegistration',
                                         //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/Sophia/reports/SophiaRegistration',
+                                        //     url: '/admission/preadmission/sophia/reports/SophiaRegistration',
                                         //     title: 'SophiaRegistration',
                                         //     description: 'SophiaRegistration'
                                         // },
-                                        // {
-                                        //     id: 601,
-                                        //     name: 'OverallDailyAttendanceReport',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/Sophia/reports/OverallDailyAttendanceReport',
-                                        //     title: 'OverallDailyAttendanceReport',
-                                        //     description: 'OverallDailyAttendanceReport'
-                                        // },
-                                        // {
-                                        //     id: 602,
-                                        //     name: 'Studenttcapply',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/Sophia/reports/Studenttcapply',
-                                        //     title: 'Studenttcapply',
-                                        //     description: 'Studenttcapply'
-                                        // },
-                                        // {
-                                        //     id: 603,
-                                        //     name: 'StudentTcApproval',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/Sophia/reports/StudentTcApproval',
-                                        //     title: 'StudentTcApproval',
-                                        //     description: 'StudentTcApproval'
-                                        // },
-                                        // {
-                                        //     id: 604,
-                                        //     name: 'SophiaMultiTransferCertificate',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/sophia/reports/SophiaMultiTransferCertificate',
-                                        //     title: 'SophiaMultiTransferCertificate',
-                                        //     description: 'SophiaMultiTransferCertificate'
-                                        // },
+                                        {
+                                            id: 601,
+                                            name: 'OverallDailyAttendanceReport',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/sophia/reports/OverallDailyAttendanceReport',
+                                            title: 'OverallDailyAttendanceReport',
+                                            description: 'OverallDailyAttendanceReport'
+                                        },
+                                        {
+                                            id: 602,
+                                            name: 'Studenttcapply',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/sophia/transaction/Studenttcapply',
+                                            title: 'Studenttcapply',
+                                            description: 'Studenttcapply'
+                                        },
+
+                                        {
+                                            id: 603,
+                                            name: 'StudentTcApproval',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/sophia/transaction/StudentTcApproval',
+                                            title: 'StudentTcApproval',
+                                            description: 'StudentTcApproval'
+                                        },
+                                        {
+                                            id: 609,
+                                            name: 'StudentTcCancel',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/sophia/transaction/studentTCCancel',
+                                            title: 'StudentTcCancel',
+                                            description: 'StudentTcCancel'
+                                        },
+                                        {
+                                            id: 604,
+                                            name: 'SophiaMultiTransferCertificate',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/sophia/reports/SophiaMultiTransferCertificate',
+                                            title: 'SophiaMultiTransferCertificate',
+                                            description: 'SophiaMultiTransferCertificate'
+                                        },
                                         // {
                                         //     id: 605,
                                         //     name: 'Attendanceentry',
                                         //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/Sophia/reports/Attendanceentry',
+                                        //     url: '/admission/preadmission/sophia/transaction/Attendanceentry',
                                         //     title: 'Attendanceentry',
                                         //     description: 'Attendanceentry'
                                         // },
-                                        // {
-                                        //     id: 606,
-                                        //     name: 'SophiaStudentParticulars',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/Sophia/reports/SophiaStudentParticulars',
-                                        //     title: 'SophiaStudentParticulars',
-                                        //     description: 'SophiaStudentParticulars'
-                                        // }
+                                        {
+                                            id: 606,
+                                            name: 'SophiaStudentParticulars',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/sophia/reports/SophiaStudentParticulars',
+                                            title: 'SophiaStudentParticulars',
+                                            description: 'SophiaStudentParticulars'
+                                        },
+                                        {
+                                            id: 607,
+                                            name: 'Sophia Transfer Certificate',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/sophia/reports/SophiaTransferCertificate',
+                                            title: 'SophiaTransferCertificate',
+                                            description: 'SophiaTransferCertificate'
+                                        },
+                                        {
+                                            id: 608,
+                                            name: 'Sophia Transfer Certificate New',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/sophia/reports/SophiaTransferCertificateNew',
+                                            title: 'SophiaTransferCertificateNew',
+                                            description: 'SophiaTransferCertificateNew'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 16,
+                                    name: 'St. Thomas Church School',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 61,
+                                            name: 'St. Thomas Admission Form',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/stthomas/admission-form',
+                                            title: 'St. Thomas Admission Form',
+                                            description: 'St. Thomas Admission Form'
+                                        },
+                                        {
+                                            id: 62,
+                                            name: 'Total Strength',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/STCS/total-strength',
+                                            title: 'Total Strength',
+                                            description: 'Total Strength'
+                                        },
+                                        {
+                                            id: 63,
+                                            name: 'St. Thomas TC Custom Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/stthomas/reports/stthomas-tc-custom-report',
+                                            title: 'St. Thomas TC Custom Report',
+                                            description: 'St. Thomas TC Custom Report'
+                                        }
                                     ]
                                 },
                                 {
@@ -3348,6 +3404,22 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 21214,
+                                            name: 'Calcutta Promotion Report I_X',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportI_X',
+                                            title: 'Calcutta Promotion Report I_X',
+                                            description: 'Calcutta Promotion Report I_X'
+                                        },
+                                        {
+                                            id: 21216,
+                                            name: 'Multiple Exam Cumulative Report Calcutta',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Calcatta/MultipleExamCumulativeReportCalcutta',
+                                            title: 'Multiple Exam Cumulative Report Calcutta',
+                                            description: 'Multiple Exam Cumulative Report Calcutta'
+                                        },
+                                        {
+                                            id: 21214,
                                             name: 'St.James XI_XII Progress Card New',
                                             icon: 'Ticket',
                                             url: '/Exam/exam-module/reports/StJames/stjamesxi_xiiprogress-card-report-new',
@@ -3402,8 +3474,41 @@ export async function getUserAccessibleModules() {
                                             title: 'St. Marys Final Promotion Report',
                                             description: 'St. Marys Final Promotion Report'
                                         },
+                                       
+                                        {
+                                            id: 21509,
+                                            name: 'BBII Progress Card',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Baldwin/BBIIReport',
+                                            title: 'BBII Progress Card',
+                                            description: 'BBII Progress Card'
+                                        },
                                         {
                                             id: 21510,
+                                            name: 'BCOEDI Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Baldwin/BCOEDIReport',
+                                            title: 'BCOEDI Report',
+                                            description: 'BCOEDI Report'
+                                        },
+                                        {
+                                            id: 21511,
+                                            name: 'BCOEDII Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Baldwin/BCOEDIIReport',
+                                            title: 'BCOEDII Report',
+                                            description: 'BCOEDII Report'
+                                        },
+                                        {
+                                            id:21512,
+                                            name: 'Final Promotion Report St Peter',
+                                            icon:'BookOpen',
+                                            url:'/Exam/exam-module/reports/StPeter/FinalPromReportstpeter',
+                                            title: 'Final Promotion Report St Peter',
+                                            description: 'Final Promotion Report St Peter'
+                                        },
+                                         {
+                                            id: 21513,
                                             name: 'Promotion Report TB School',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/Turnbridge/PromotionReportTBSchool',
@@ -3411,13 +3516,13 @@ export async function getUserAccessibleModules() {
                                             description: 'Promotion Report TB School'
                                         },
                                         {
-                                            id: 21511,
+                                            id: 21514,
                                             name: 'TBS Report School',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/Turnbridge/TBSReportSchool',
                                             title: 'TBS Report School',
                                             description: 'TBS Report School'
-                                        }
+                                        },
                                     ]
                                 }
                             ]
@@ -4026,6 +4131,14 @@ export async function getUserAccessibleModules() {
                                             icon: 'FileType',
                                             url: '/hrms/reports/employeeSalarySlipSRKVS',
                                             title: 'Employee Salary Slip SRKVS Report',
+                                            description: 'Employee Salary Slips'
+                                        },
+                                        {
+                                            id: 38,
+                                            name: 'Employee Salary Slip St Mary Report',
+                                            icon: 'FileType',
+                                            url: '/hrms/reports/EmployeeSalarySlipStMary',
+                                            title: 'Employee Salary Slip St Mary Report',
                                             description: 'Employee Salary Slips'
                                         }
                                     ]
