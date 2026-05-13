@@ -162,8 +162,8 @@ function FormSections({ refetch }: { refetch: () => void }) {
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Master Library'
-                        description='Update the Master Library details below'
+                        title='Edit Master Subject'
+                        description='Update the Master Subject details below'
                         defaultOpen={true}
                         variant='outline'
                         size='md'

@@ -180,6 +180,7 @@ export default function AddMasterCategoryForm({ onSuccess, className = '' }: Add
                         </div>
                         <InputText
                             label='Category Name'
+                            placeholder='Enter Category Name'
                             required
                             id='amC_Name'
                             {...register('amC_Name')}
@@ -188,6 +189,7 @@ export default function AddMasterCategoryForm({ onSuccess, className = '' }: Add
                         />
                         <InputTextarea
                             label='Category Address'
+                            placeholder='Enter Category Address'
                             id='amC_Address'
                             {...register('amC_Address')}
                             error={errors.amC_Address?.message}

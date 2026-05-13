@@ -11,6 +11,10 @@ import { ReportForm } from './_components/report-form';
 export default function LibraryMonthEndReportPage() {
     const [reportDisplayData, setReportDisplayData] = useState<MonthEndReportDisplayData[]>([]);
 
+    const handlePrint = () => {
+        window.print();
+    };
+
     const searchMutation = useLibraryMonthEndReportSearch();
 
     const processData = (data: ILibraryMonthEndReportGridData[]) => {
@@ -44,8 +48,8 @@ export default function LibraryMonthEndReportPage() {
 
     const handleSearch = (data: ILibraryMonthEndReportRequest) => {
         searchMutation.mutate(data, {
-            onSuccess: (response) => {
-                const rawGridData = (response.griddata || []) as ILibraryMonthEndReportGridData[];
+            onSuccess: (response: any) => {
+                const rawGridData = (response || []) as ILibraryMonthEndReportGridData[];
                 const displayData = processData(rawGridData);
                 setReportDisplayData(displayData);
             }
@@ -55,13 +59,45 @@ export default function LibraryMonthEndReportPage() {
     return (
         <div className='space-y-4'>
             <CollapsibleSection title='Month End Report' defaultOpen={true}>
-                <ReportForm onSearch={handleSearch} isLoading={searchMutation.isPending} />
+                <ReportForm
+                    onSearch={handleSearch}
+                    onPrint={reportDisplayData.length > 0 ? handlePrint : undefined}
+                    isLoading={searchMutation.isPending}
+                />
             </CollapsibleSection>
 
             {reportDisplayData.length > 0 && (
-                <CollapsibleSection title='Library Month End Report List' defaultOpen={true}>
-                    <GenericDataTable columns={LibraryMonthEndReportColumns} data={reportDisplayData} isLoading={false} />
-                </CollapsibleSection>
+                <div className='print-container'>
+                    <style type="text/css" media="print">
+                        {`
+                            @page { size: portrait; margin: 10mm; }
+                            body * { visibility: hidden; }
+                            .print-container, .print-container * { visibility: visible; }
+                            .print-container {
+                                position: absolute;
+                                left: 0;
+                                top: 0;
+                                width: 100%;
+                            }
+                            /* Hide interactive elements and scrolling areas */
+                            .print-container button { display: none !important; }
+                            .print-container .overflow-auto, .print-container .overflow-x-auto, .print-container .max-h-[500px] { 
+                                overflow: visible !important; 
+                                max-height: none !important;
+                            }
+                            table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                            th, td { border: 1px solid #000 !important; padding: 6px; text-align: left; font-size: 12px; color: #000; }
+                            th { background-color: #e5e7eb !important; font-weight: bold; -webkit-print-color-adjust: exact; }
+                            tr { page-break-inside: avoid; }
+                        `}
+                    </style>
+                    <CollapsibleSection title='Library Month End Report List' defaultOpen={true}>
+                        <div className="print-title hidden print:block text-center text-xl font-bold mb-4 uppercase">
+                            Library Month End Report
+                        </div>
+                        <GenericDataTable columns={LibraryMonthEndReportColumns} data={reportDisplayData} isLoading={false} />
+                    </CollapsibleSection>
+                </div>
             )}
         </div>
     );

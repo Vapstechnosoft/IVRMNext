@@ -110,12 +110,9 @@ export const masterClassColumns: ColumnDef<IMasterClassList>[] = [
 function ActionButtonsCell({ rowData }: { rowData: IMasterClassList }) {
     const { openEditForm, openToggleForm } = useFormContext<IMasterClassList>();
 
-    const handleEdit = useCallback(
-        (data: IMasterClassList) => {
-            openEditForm(data);
-        },
-        [openEditForm]
-    );
+    const handleEdit = useCallback((data: IMasterClassList) => {
+        window.location.href = `/admission/preadmission/masters/class?asmcl_id=${data.asmcL_Id}`;
+    }, []);
 
     const handleToggle = useCallback(
         (data: IMasterClassList) => {
