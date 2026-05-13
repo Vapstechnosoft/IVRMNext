@@ -95,7 +95,7 @@ export default function UploadAndSchedule() {
                     className='h-8 px-2'
                     disabled={deleteMedia.isPending}
                     onClick={() => deleteMedia.mutate({ mediaId: row.original.mediaId })}>
-                    <Trash2 className='mr-1 h-4 w-4' /> Delete
+                    <Trash2 className='h-4 w-4' />
                 </Button>
             )
         }
@@ -119,7 +119,7 @@ export default function UploadAndSchedule() {
                     className='h-8 px-2'
                     disabled={deleteSchedule.isPending}
                     onClick={() => deleteSchedule.mutate(row.original.eventId)}>
-                    <Trash2 className='mr-1 h-4 w-4' /> Delete
+                    <Trash2 className='h-4 w-4' />
                 </Button>
             )
         }
