@@ -18,7 +18,7 @@ export async function getSportsCCNameDetails(searchParams?: ApiSearchparams) {
     }
     const urlParams = getSearchParamsUrl(params);
     const url = `/MasterSportsCCName/getDetails?${urlParams}`;
-    return await api.post<SportsCCNameMasterDataDTO>(BASE_URL, url, params || {});
+    return await api.post<SportsCCNameMasterDataDTO>(BASE_URL, url, {});
 }
 
 export async function saveSportsCCName(data: any) {
