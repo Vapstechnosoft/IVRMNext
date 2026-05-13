@@ -3291,6 +3291,22 @@ export async function getUserAccessibleModules() {
                                             description: 'Sophia Report Card Pre III'
                                         },
                                         {
+                                            id: 21208,
+                                            name: 'NDA Report Card',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Sophia/NDAReportCard',
+                                            title: 'NDA Report Card',
+                                            description: 'NDA Report Card'
+                                        },
+                                        {
+                                            id: 21210,
+                                            name: 'NDA Report Card I to XII Term',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Sophia/NDAReportCardItoXIITerm',
+                                            title: 'NDA Report Card I to XII Term',
+                                            description: 'NDA Report Card I to XII Term'
+                                        },
+                                        {
                                             id: 21205,
                                             name: 'St. James IV Progress Card',
                                             icon: 'Ticket',
@@ -3466,30 +3482,80 @@ export async function getUserAccessibleModules() {
                                             title: 'St. Marys Final Promotion Report',
                                             description: 'St. Marys Final Promotion Report'
                                         },
+
                                         {
                                             id: 21509,
-                                            name: 'BBII Progress Card',
+                                            name: 'Baldwin BBII Progress Card',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/Baldwin/BBIIReport',
-                                            title: 'BBII Progress Card',
-                                            description: 'BBII Progress Card'
+                                            title: 'Baldwin BBII Progress Card',
+                                            description: 'Baldwin BBII Progress Card'
                                         },
                                         {
                                             id: 21510,
-                                            name: 'BCOEDI Report',
+                                            name: 'Baldwin BCOEDI Report',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/Baldwin/BCOEDIReport',
-                                            title: 'BCOEDI Report',
-                                            description: 'BCOEDI Report'
+                                            title: 'Baldwin BCOEDI Report',
+                                            description: 'Baldwin BCOEDI Report'
                                         },
                                         {
                                             id: 21511,
-                                            name: 'BCOEDII Report',
+                                            name: 'Baldwin BCOEDII Report',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/Baldwin/BCOEDIIReport',
-                                            title: 'BCOEDII Report',
-                                            description: 'BCOEDII Report'
+                                            title: 'Baldwin BCOEDII Report',
+                                            description: 'Baldwin BCOEDII Report'
+                                        },
+                                        {
+                                            id: 21512,
+                                            name: 'Baldwin Promotion Report Std IX 20-21',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Baldwin/PromotionReportStdIX_20_21',
+                                            title: 'Baldwin Promotion Report Std IX 20-21',
+                                            description: 'Baldwin Promotion Report Std IX 20-21'
+                                        },
+                                        {
+                                            id: 21513,
+                                            name: 'Baldwin Promotion Report IX',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Baldwin/PromotionReportIX',
+                                            title: 'Baldwin Promotion Report IX',
+                                            description: 'Baldwin Promotion Report IX'
+                                        },
+                                        {
+                                            id: 21514,
+                                            name: 'Baldwin Final P Report BBHS',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Baldwin/Baldwin_Final_P_Report_BBHS',
+                                            title: 'Baldwin Final P Report BBHS',
+                                            description: 'Baldwin Final P Report BBHS'
+                                        },
+                                        {
+                                            id: 21515,
+                                            name: 'Promotion Report TB School',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Turnbridge/PromotionReportTBSchool',
+                                            title: 'Promotion Report TB School',
+                                            description: 'Promotion Report TB School'
+                                        },
+                                        {
+                                            id: 21516,
+                                            name: 'TBS Report School',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Turnbridge/TBSReportSchool',
+                                            title: 'TBS Report School',
+                                            description: 'TBS Report School'
+                                        },
+                                        {
+                                            id: 21517,
+                                            name: 'ProgressCardReportGMVPS X',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/GMVPS/ProgressCardReportGMVPS_X',
+                                            title: 'ProgressCardReportGMVPS X',
+                                            description: 'ProgressCardReportGMVPS X'
                                         }
+
                                     ]
                                 }
                             ]
