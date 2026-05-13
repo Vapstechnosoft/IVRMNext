@@ -176,7 +176,7 @@ export const masterDepartmentSchema = {
         lmD_Id: z.number().optional(),
         mI_Id: z.number().optional(),
         lmD_DepartmentName: z.string().min(1, 'Department Name is required'),
-        lmD_DepartmentCode: z.string().min(1, 'Department Code is required'),
+        lmD_DepartmentCode: z.string().optional().or(z.literal('')),
         lmD_ActiveFlg: z.boolean().optional()
     }),
     delete: z.object({

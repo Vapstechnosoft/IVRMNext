@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useLibraryMonthEndReportInitialData } from '@/hooks/library/reports/useLibraryMonthEndReport';
 import type { ILibraryMonthEndReportRequest } from '@/types/library/reports/library-month-end-report';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, Search, X } from 'lucide-react';
+import { Loader2, Printer, Search, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -21,10 +21,11 @@ const formSchema = z.object({
 
 interface ReportFormProps {
     onSearch: (data: ILibraryMonthEndReportRequest) => void;
+    onPrint?: () => void;
     isLoading: boolean;
 }
 
-export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
+export const ReportForm = ({ onSearch, onPrint, isLoading }: ReportFormProps) => {
     const { data: monthEndData, isLoading: isInitialLoading } = useLibraryMonthEndReportInitialData();
     const initialData = (monthEndData as any)?.data || monthEndData;
     
@@ -192,6 +193,17 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                     <X className='mr-1.5 h-3.5 w-3.5' />
                     CANCEL
                 </Button>
+                {onPrint && (
+                    <Button
+                        type='button'
+                        className='w-auto h-8 px-8 py-1 text-xs min-w-[120px] bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-sm rounded-sm'
+                        onClick={onPrint}
+                        disabled={isLoading}
+                    >
+                        <Printer className='mr-1.5 h-3.5 w-3.5' />
+                        PRINT
+                    </Button>
+                )}
             </div>
         </form>
     );
