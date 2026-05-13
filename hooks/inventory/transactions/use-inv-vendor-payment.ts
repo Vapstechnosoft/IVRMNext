@@ -22,14 +22,14 @@ export const useInvVendorPayment = (searchParams?: any) => {
     });
 
     const paymentModesQuery = useQuery({
-        queryKey: ['inv-payment-modes'],
-        queryFn: () => getPaymentModes(),
+        queryKey: ['inv-payment-modes', searchParams],
+        queryFn: () => getPaymentModes(searchParams),
         staleTime: 5 * 60 * 1000, // cache for 5 mins
     });
 
     const suppliersQuery = useQuery({
-        queryKey: ['inv-suppliers-list'],
-        queryFn: () => getSuppliers(),
+        queryKey: ['inv-suppliers-list', searchParams],
+        queryFn: () => getSuppliers(searchParams),
         staleTime: 5 * 60 * 1000,
     });
 

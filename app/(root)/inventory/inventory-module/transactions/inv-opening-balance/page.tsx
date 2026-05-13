@@ -37,12 +37,22 @@ export default function InvOpeningBalancePage(props: { searchParams: SearchParam
         tableSearchVariables.search,
         parseAsString.withOptions({ shallow: false }).withDefault('')
     );
+    const [sortColumn] = useQueryState(
+        tableSearchVariables.sort_column,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
+    const [sortDirection] = useQueryState(
+        tableSearchVariables.sort_direction,
+        parseAsString.withOptions({ shallow: false }).withDefault('asc')
+    );
 
     const queryParams = {
         ...searchParams,
         page: currentPage,
         page_size: pageSize,
-        search_query: searchQuery
+        search_query: searchQuery,
+        sort_column: sortColumn,
+        sort_direction: sortDirection
     };
 
     const { data: response, isLoading, error } = useInvOpeningBalance(queryParams);
@@ -166,8 +176,8 @@ function FormSections({ storeList, itemList }: { storeList: any[], itemList: any
                                 onClick={closeAddForm}
                                 variant='ghost'
                                 size='sm'
-                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                <X className='h-4 w-4 text-destructive' /> Close
+                                className='absolute top-[-3.5rem] right-12 w-fit border p-2 shadow-md hover:bg-destructive/10 text-destructive'>
+                                <X className='h-4 w-4 mr-1' /> Close
                             </Button>
                             <AddOBForm onSuccess={closeAddForm} storeList={storeList} itemList={itemList} />
                         </div>
@@ -190,8 +200,8 @@ function FormSections({ storeList, itemList }: { storeList: any[], itemList: any
                                 onClick={closeEditForm}
                                 variant='ghost'
                                 size='sm'
-                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                <X className='h-4 w-4 text-destructive' /> Close
+                                className='absolute top-[-3.5rem] right-12 w-fit border p-2 shadow-md hover:bg-destructive/10 text-destructive'>
+                                <X className='h-4 w-4 mr-1' /> Close
                             </Button>
                             <AddOBForm
                                 onSuccess={closeEditForm}

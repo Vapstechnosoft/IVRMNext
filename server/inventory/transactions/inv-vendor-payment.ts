@@ -3,12 +3,14 @@
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 
-export async function getPaymentModes() {
-    return await api.get<any>('inventory', `/INV_VendorPaymentFacade/loadPaymentModes`);
+export async function getPaymentModes(searchParams?: ApiSearchparams) {
+    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    return await api.getArray<any>('inventory', `/INV_VendorPaymentFacade/loadPaymentModes?${urlParams}`);
 }
 
-export async function getSuppliers() {
-    return await api.get<any>('inventory', `/INV_T_GRNFacade/loadsuppliers`);
+export async function getSuppliers(searchParams?: ApiSearchparams) {
+    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    return await api.getArray<any>('inventory', `/INV_T_GRNFacade/loadsuppliers?${urlParams}`);
 }
 
 
@@ -39,8 +41,15 @@ export async function getInvGRNItemDetails(invmgrN_Id: number) {
 
 export async function loadVendorPayments(searchParams?: ApiSearchparams) {
     const searchableColumns = "INVMS_SupplierName,INVSPT_ModeOfPayment,INVSPT_PaymentReference,INVSPT_ChequeDDNo,INVSPT_BankName,INVSPT_Remarks";
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, searchableColumns);
-    const url = `/INV_VendorPaymentFacade/loadVendorPayments?${urlParams}&MI_Id=0&ASMAY_Id=0`;
+    
+    // Map sort_column to uppercase as expected by the backend facade
+    const params = { ...searchParams };
+    if (params.sort_column) {
+        params.sort_column = params.sort_column.toUpperCase();
+    }
+    
+    const urlParams = getSearchParamsUrl(params ?? {}, searchableColumns);
+    const url = `/INV_VendorPaymentFacade/loadVendorPayments?${urlParams}`;
     return await api.get<any>('inventory', url);
 }
 

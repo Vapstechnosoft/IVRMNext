@@ -372,7 +372,7 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
             </div>
 
             {/* GRN Grid */}
-            {watchedSupplier && fields.length > 0 && (
+            {!!watchedSupplier && fields.length > 0 && (
                 <div className="border rounded-md overflow-hidden">
                     <Table>
                         <TableHeader>

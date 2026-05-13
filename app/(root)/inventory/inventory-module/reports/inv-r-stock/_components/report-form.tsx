@@ -59,20 +59,29 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
         }
     }, [optionflag, refetchDetails, setValue]);
  
-    const itemOptions = useMemo(() => detailsData?.data?.get_stockdetails?.map((item: any) => ({
-        label: `${item.invmI_ItemName} : ${item.invmI_ItemCode || ''}`,
-        value: item.invmI_Id
-    })) || [], [detailsData]);
+    const detailsArray = useMemo(() => {
+        if (!detailsData) return [];
+        if (Array.isArray(detailsData.data)) return detailsData.data;
+        if (detailsData.data?.get_stockdetails && Array.isArray(detailsData.data.get_stockdetails)) {
+            return detailsData.data.get_stockdetails;
+        }
+        return [];
+    }, [detailsData]);
+
+    const itemOptions = useMemo(() => detailsArray.map((item: any) => ({
+        label: item.name || `${item.invmI_ItemName} : ${item.invmI_ItemCode || ''}`,
+        value: item.id || item.invmI_Id
+    })), [detailsArray]);
  
-    const storeOptions = useMemo(() => detailsData?.data?.get_stockdetails?.map((item: any) => ({
-        label: item.invmS_StoreName,
-        value: item.invmsT_Id
-    })) || [], [detailsData]);
+    const storeOptions = useMemo(() => detailsArray.map((item: any) => ({
+        label: item.name || item.invmS_StoreName,
+        value: item.id || item.invmsT_Id
+    })), [detailsArray]);
  
-    const groupOptions = useMemo(() => detailsData?.data?.get_stockdetails?.map((item: any) => ({
-        label: item.invmG_GroupName,
-        value: item.invmG_Id
-    })) || [], [detailsData]);
+    const groupOptions = useMemo(() => detailsArray.map((item: any) => ({
+        label: item.name || item.invmG_GroupName,
+        value: item.id || item.invmG_Id
+    })), [detailsArray]);
  
     const onSubmit = (data: InvRStockSchema) => {
         generateReportMutation.mutate(data as any, {

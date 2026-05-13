@@ -12,18 +12,52 @@ import { use } from 'react';
 import AddVendorPaymentForm from './_components/add-form';
 import { invVendorPaymentColumns } from './_components/columns';
 import { ToggleVendorPaymentModal } from './_components/toggle-modal';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
+import { tableSearchVariables } from '@/lib/data-table.config';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function InvVendorPaymentPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
+
+    // Pagination & Search State synced with URL
+    const [currentPage] = useQueryState(
+        tableSearchVariables.page,
+        parseAsInteger.withOptions({ shallow: false }).withDefault(1)
+    );
+    const [pageSize] = useQueryState(
+        tableSearchVariables.page_size,
+        parseAsInteger.withOptions({ shallow: false }).withDefault(10)
+    );
+    const [searchQuery] = useQueryState(
+        tableSearchVariables.search,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
+    const [sortColumn] = useQueryState(
+        tableSearchVariables.sort_column,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
+    const [sortDirection] = useQueryState(
+        tableSearchVariables.sort_direction,
+        parseAsString.withOptions({ shallow: false }).withDefault('asc')
+    );
+
+    const queryParams = {
+        ...searchParams,
+        page: currentPage,
+        page_size: pageSize,
+        search_query: searchQuery,
+        sort_column: sortColumn,
+        sort_direction: sortDirection
+    };
+
     const {
         data: response,
         isLoading,
         error,
         vendorPayments,
         isVendorPaymentsLoading
-    } = useInvVendorPayment(searchParams);
+    } = useInvVendorPayment(queryParams);
 
     return (
         <FormProvider<InvVendorPayment>>
@@ -99,6 +133,9 @@ function InvVendorPaymentContent({
                         columns={invVendorPaymentColumns}
                         isLoading={isVendorPaymentsLoading}
                         error={error}
+                        isSearchRequired={true}
+                        manualPagination={true}
+                        manualSorting={true}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading payment records...'
                         noDataTitle='No Payments Found'
@@ -127,7 +164,7 @@ function InvVendorPaymentContent({
                                     onClick={closeAddForm}
                                     variant='ghost'
                                     size='sm'
-                                    className='absolute top-[-3.5rem] right-0 hover:bg-destructive/10 text-destructive'>
+                                    className='absolute top-[-3.5rem] right-12 w-fit border p-2 shadow-md hover:bg-destructive/10 text-destructive'>
                                     <X className='h-4 w-4 mr-1' /> Close
                                 </Button>
                                 <AddVendorPaymentForm onSuccess={closeAddForm} />
@@ -151,7 +188,7 @@ function InvVendorPaymentContent({
                                     onClick={closeEditForm}
                                     variant='ghost'
                                     size='sm'
-                                    className='absolute top-[-3.5rem] right-0 hover:bg-destructive/10 text-destructive'>
+                                    className='absolute top-[-3.5rem] right-12 w-fit border p-2 shadow-md hover:bg-destructive/10 text-destructive'>
                                     <X className='h-4 w-4 mr-1' /> Close
                                 </Button>
                                 <AddVendorPaymentForm onSuccess={closeEditForm} initialData={selectedRow} />
