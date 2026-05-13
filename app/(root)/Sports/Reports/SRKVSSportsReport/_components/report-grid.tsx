@@ -1,6 +1,6 @@
 'use client';
 
-import { ISRKVSReportData } from '@/types/sports/reports/srkvs-sports-report-record';
+import { ISRKVSReportData } from '@/types/sports/reports/srkvs-sports-report';
 import { Button } from '@/components/ui/button';
 import { useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
@@ -29,10 +29,80 @@ export const ReportGrid = ({ data, type }: ReportGridProps) => {
     });
 
     const exportToExcel = () => {
-        const worksheet = XLSX.utils.json_to_sheet(data);
+        if (!data || data.length === 0) return;
+
+        // Flatten grouped data into export rows per report type
+        const rows: Record<string, any>[] = [];
+
+        data.forEach((group) => {
+            (group.RecordDetails || []).forEach((record: any, idx: number) => {
+                if (type === 'Record') {
+                    rows.push({
+                        'Sl.No': idx + 1,
+                        'Category': group.SPCCMCC_CompitionCategory || '',
+                        'Events': record.SPCCMSCCG_SportsCCGroupName || record.groupName || '',
+                        'Timings': `${record.SPCCESTR_Value ?? record.points ?? ''} ${record.SPCCMUOM_UOMName ?? record.uomName ?? ''}`.trim(),
+                        'Year': record.ASMAY_Year || record.academicYear || '',
+                        'Name': record.AMST_FirstName || record.studentName || '',
+                    });
+                } else if (type === 'Start' || type === 'Finish') {
+                    rows.push({
+                        'Sl.No': idx + 1,
+                        'Category': group.SPCCMCC_CompitionCategory || '',
+                        'Group': group.SPCCMSCCG_SportsCCGroupName || '',
+                        'Lane No': idx + 1,
+                        'Roll No': record.AMAY_RollNo ?? record.rollNo ?? '',
+                        'Name': record.AMST_FirstName || record.studentName || '',
+                        'Attempt I': record['I'] ?? '',
+                        'Attempt II': record['II'] ?? '',
+                        'Attempt III': record['III'] ?? '',
+                        ...(type === 'Finish' ? { 'Rank': record.SPCCESTR_Rank ?? record.rank ?? '' } : {}),
+                    });
+                } else if (type === 'Consolidated') {
+                    rows.push({
+                        'Sl.No': idx + 1,
+                        'Group': group.SPCCMSCCG_SportsCCGroupName || '',
+                        'Place': record.SPCCESTR_Rank ?? record.rank ?? '',
+                        'Adm No': record.AMST_AdmNo || record.admNo || '',
+                        'Name': record.AMST_FirstName || record.studentName || '',
+                        'Class': record.ASMCL_ClassName || record.className || '',
+                        'Section': record.ASMC_SectionName || record.sectionName || '',
+                        'Time/Distance': `${record.SPCCESTR_Value ?? record.points ?? ''} ${record.SPCCMUOM_UOMName ?? record.uomName ?? ''}`.trim(),
+                    });
+                } else {
+                    // Indoor / Outdoor / Team / Externals / Selection
+                    rows.push({
+                        'Sl.No': idx + 1,
+                        'Group': group.SPCCMSCCG_SportsCCGroupName || '',
+                        'Place': type === 'Selection' ? idx + 1 : (record.SPCCESTR_Rank ?? record.rank ?? ''),
+                        'Adm No': record.AMST_AdmNo || record.admNo || '',
+                        'Name': record.AMST_FirstName || record.studentName || '',
+                        'Class': record.ASMCL_ClassName || record.className || '',
+                        'Section': record.ASMC_SectionName || record.sectionName || '',
+                    });
+                }
+            });
+        });
+
+        const worksheet = XLSX.utils.json_to_sheet(rows);
         const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
-        XLSX.writeFile(workbook, `Sports_Report_${type}.xlsx`);
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');
+
+        // Generate Blob and trigger browser download (matching class-teacher-report pattern)
+        const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+        const blob = new Blob([excelBuffer], {
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Sports_Report_${type}.xlsx`;
+        document.body.appendChild(link);
+        link.click();
+        setTimeout(() => {
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        }, 100);
     };
 
     if (!data || data.length === 0) {

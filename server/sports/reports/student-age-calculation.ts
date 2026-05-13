@@ -1,6 +1,6 @@
 'use server';
 
-import { api, type ApiResponse } from '@/lib/apiService';
+import { api, getSearchParamsUrl, type ApiResponse } from '@/lib/apiService';
 import { IReportRequest, IStudentAgeCalculationDropdowns, IStudentAgeReport } from '@/types/sports/reports/student-age-calculation';
 
 export async function getStudentAgeReportLoadData(): Promise<IStudentAgeCalculationDropdowns> {
@@ -45,10 +45,12 @@ export async function getSectionsForClass(asmaY_Id: number, asmcL_Id: number): P
     }
 }
 
-export async function getStudentAgeReport(data: IReportRequest): Promise<IStudentAgeReport[]> {
+export async function getStudentAgeReport(data: IReportRequest, searchParams?: any): Promise<IStudentAgeReport[]> {
     try {
         console.info("🟡 [SERVER ACTION] getStudentAgeReport: Generating report");
-        const response = await api.post<any>('sports', 'StudentAgeCalcReport/showdetails', data);
+        const urlParams = getSearchParamsUrl(searchParams || {});
+        const url = `StudentAgeCalcReport/showdetails?${urlParams}`;
+        const response = await api.post<any>('sports', url, data);
         return response?.data?.viewlist || response?.data || [];
     } catch (error) {
         console.error("🔴 [SERVER ACTION] Error in getStudentAgeReport:", error);

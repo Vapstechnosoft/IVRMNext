@@ -2,7 +2,7 @@
 
 import { AdaptiveDialog } from '@/components/ui/extension/adaptive-dialog';
 import { useMasterRackDetails } from '@/hooks/library/useMasters';
-import { deactivateMasterRack } from '@/server/library/masters/rack-details';
+import { toggleMasterRack } from '@/server/library/masters/rack-details';
 import type { IMasterRackDetails } from '@/types/library/masters/rack-details';
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -18,14 +18,14 @@ export default function ToggleRackForm({ rowData, onClose }: ToggleRackFormProps
     const isActive = rowData.lmrA_ActiveFlag;
 
     const mutation = useMutation({
-        mutationFn: deactivateMasterRack,
+        mutationFn: (id: number) => toggleMasterRack(id),
         onSuccess: async (data) => {
-            if (data.returnval) {
-                toast.success(`Record ${isActive ? 'Deactivated' : 'Activated'} Successfully!!!`);
+            if (data.success) {
+                toast.success(data.message || `Record ${isActive ? 'Deactivated' : 'Activated'} Successfully!!!`);
                 await refetchAll();
                 onClose();
             } else {
-                toast.error(`Failed to ${isActive ? 'Deactivate' : 'Activate'} Record`);
+                toast.error(data.message || `Failed to ${isActive ? 'Deactivate' : 'Activate'} Record`);
             }
         },
         onError: (error) => {
@@ -35,7 +35,7 @@ export default function ToggleRackForm({ rowData, onClose }: ToggleRackFormProps
     });
 
     const handleConfirm = () => {
-        mutation.mutate(rowData);
+        mutation.mutate(rowData.lmrA_Id);
     };
 
     return (
