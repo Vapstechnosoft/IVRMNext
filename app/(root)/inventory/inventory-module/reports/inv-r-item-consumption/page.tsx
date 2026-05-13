@@ -101,7 +101,7 @@ export default function InvRItemConsumptionPage(props: { searchParams: Promise<a
         if (!currentPayload) return [];
         try {
             toast.loading(`Fetching all records for ${action}...`, { id: 'fetch-all' });
-            
+
             const p: any = {
                 ...currentPayload,
                 startdate: currentPayload.startdate ? new Date(currentPayload.startdate).toISOString() : undefined,
@@ -109,9 +109,9 @@ export default function InvRItemConsumptionPage(props: { searchParams: Promise<a
             };
 
             const response = await getInvRItemConsumptionReport(p, { ...searchParams, page: 1, page_size: 100000, search_query: searchQuery || '' });
-            
+            console.log('response', response?.data);
             const allData = response?.data?.get_ICReport || [];
-            
+
             if (allData.length === 0) {
                 toast.dismiss('fetch-all');
                 toast.error(`Failed to fetch ${action} data`);
@@ -120,10 +120,10 @@ export default function InvRItemConsumptionPage(props: { searchParams: Promise<a
             toast.dismiss('fetch-all');
             return allData;
         } catch (error) {
-             console.error(`${action} fetch error:`, error);
-             toast.dismiss('fetch-all');
-             toast.error(`Error fetching ${action} data`);
-             return [];
+            console.error(`${action} fetch error:`, error);
+            toast.dismiss('fetch-all');
+            toast.error(`Error fetching ${action} data`);
+            return [];
         }
     };
 

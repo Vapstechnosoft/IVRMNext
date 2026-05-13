@@ -77,30 +77,47 @@ export default function ReportForm({ onReportGenerated, isLoading }: ReportFormP
 
     const getDetailsArray = (data: any) => {
         if (!data) return [];
-        if (Array.isArray(data.data)) return data.data;
-        if (data.data?.get_ICreportdetails && Array.isArray(data.data.get_ICreportdetails)) return data.data.get_ICreportdetails;
+        // Handle common API response structures
+        const resData = data.data;
+
+        // 1. Data is directly in 'data' as an array
+        if (Array.isArray(resData)) return resData;
+
+        // 2. Data is in 'data.$values' (common in this project)
+        if (resData?.$values && Array.isArray(resData.$values)) return resData.$values;
+
+        // 3. Data is in 'data.get_ICreportdetails'
+        if (resData?.get_ICreportdetails) {
+            if (Array.isArray(resData.get_ICreportdetails)) return resData.get_ICreportdetails;
+            if (resData.get_ICreportdetails.$values) return resData.get_ICreportdetails.$values;
+        }
+
+        // 4. Data is in root 'get_ICreportdetails' (legacy or different structure)
+        if (Array.isArray(data.get_ICreportdetails)) return data.get_ICreportdetails;
+        if (data.get_ICreportdetails?.$values) return data.get_ICreportdetails.$values;
+
         return [];
     };
 
     const detailsArray = useMemo(() => getDetailsArray(detailsData), [detailsData]);
 
     const itemOptions = useMemo(() => detailsArray.map((item: any) => ({
-        label: item.name || (item.invmI_ItemCode ? `${item.invmI_ItemName} : ${item.invmI_ItemCode}` : item.invmI_ItemName),
+        label: item.name || (item.invmI_ItemCode ? `${item.invmI_ItemName} : ${item.invmI_ItemCode}` : item.invmI_ItemName) || 'Unknown Item',
         value: item.id || item.invmI_Id
     })), [detailsArray]);
 
     const staffOptions = useMemo(() => detailsArray.map((item: any) => ({
-        label: item.name || item.employeename,
+        label: item.name || item.employeename || 'Unknown Staff',
         value: (item.id || item.hrmE_Id)?.toString()
     })), [detailsArray]);
 
     const deptOptions = useMemo(() => detailsArray.map((item: any) => ({
-        label: item.name || item.hrmD_DepartmentName,
+        label: item.name || item.hrmD_DepartmentName || 'Unknown Department',
         value: item.id || item.hrmD_Id
     })), [detailsArray]);
 
     const studentOptions = useMemo(() => detailsArray.map((item: any) => ({
-        label: item.name || item.studentname,
+        label: item.name || item.studentname || 'Unknown Student',
         value: item.id || item.amsT_Id
     })), [detailsArray]);
 

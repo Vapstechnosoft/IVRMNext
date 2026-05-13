@@ -56,32 +56,49 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
     }, [optionflag, refetchLoadData, setValue]);
  
     // Derived options for MultiSelects
-    const detailsArray = useMemo(() => {
-        if (!loadData) return [];
-        if (Array.isArray(loadData.data)) return loadData.data;
-        if (loadData.data?.get_grn_item_supplier && Array.isArray(loadData.data.get_grn_item_supplier)) {
-            return loadData.data.get_grn_item_supplier;
+    // Data extraction helper
+    const getDetailsArray = (data: any) => {
+        if (!data) return [];
+        const resData = data.data;
+
+        // 1. Data is directly in 'data' as an array
+        if (Array.isArray(resData)) return resData;
+
+        // 2. Data is in 'data.$values'
+        if (resData?.$values && Array.isArray(resData.$values)) return resData.$values;
+
+        // 3. Data is in 'data.get_grn_item_supplier'
+        if (resData?.get_grn_item_supplier) {
+            if (Array.isArray(resData.get_grn_item_supplier)) return resData.get_grn_item_supplier;
+            if (resData.get_grn_item_supplier.$values) return resData.get_grn_item_supplier.$values;
         }
+
+        // 4. Root level properties
+        if (Array.isArray(data.get_grn_item_supplier)) return data.get_grn_item_supplier;
+        if (data.get_grn_item_supplier?.$values) return data.get_grn_item_supplier.$values;
+
         return [];
-    }, [loadData]);
+    };
+
+    const detailsArray = useMemo(() => getDetailsArray(loadData), [loadData]);
  
     const grnOptions = useMemo(() => {
         return detailsArray.map((item: any) => ({
-            label: item.name || item.invmgrN_GRNNo,
+            label: item.name || item.invmgrN_GRNNo || 'Unknown GRN',
             value: (item.id || item.invmgrN_Id)?.toString()
         }));
     }, [detailsArray]);
  
     const itemOptions = useMemo(() => {
         return detailsArray.map((item: any) => ({
-            label: item.name || item.invmI_ItemName,
+            label: item.name || item.invmI_ItemName || 'Unknown Item',
             value: (item.id || item.invmI_Id)?.toString()
         }));
     }, [detailsArray]);
  
     const supplierOptions = useMemo(() => {
         return detailsArray.map((item: any) => ({
-            label: item.name || item.invmS_SupplierName,
+            label: item.name || item.invmS_SupplierName || 'Unknown Supplier',
             value: (item.id || item.invmS_Id)?.toString()
         }));
     }, [detailsArray]);
