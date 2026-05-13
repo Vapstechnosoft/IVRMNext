@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import { ReportForm } from './_components/report-form';
 import { ReportGrid } from './_components/report-grid';
-import { ISRKVSReportData } from '@/types/sports/reports/srkvs-sports-report-record';
+import { ISRKVSReportData } from '@/types/sports/reports/srkvs-sports-report';
 
-export default function SRKVSSportsReportRecordPage() {
+export default function SRKVSSportsReportPage() {
     const [reportData, setReportData] = useState<ISRKVSReportData[]>([]);
     const [reportType, setReportType] = useState<string>('Record');
 

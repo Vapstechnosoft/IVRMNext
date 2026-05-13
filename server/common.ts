@@ -7488,14 +7488,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Student Age Calculation',
                                             description: 'Manage Student Age Calculation'
                                         },
-                                        {
-                                            id: 4,
-                                            name: 'Sport Venuewise Participation Report',
-                                            icon: 'Activity',
-                                            url: '/Sports/Transactions/SportVenuewiseParticipationReport',
-                                            title: 'Sport Venuewise Participation Report',
-                                            description: 'Manage Sport Venuewise Participation Report'
-                                        },
+                                        // {
+                                        //     id: 4,
+                                        //     name: 'Sport Venuewise Participation Report',
+                                        //     icon: 'Activity',
+                                        //     url: '/Sports/Transactions/SportVenuewiseParticipationReport',
+                                        //     title: 'Sport Venuewise Participation Report',
+                                        //     description: 'Manage Sport Venuewise Participation Report'
+                                        // },
                                         {
                                             id: 5,
                                             name: 'Events Mapping',
@@ -7602,11 +7602,11 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 10,
-                                            name: 'SRKVS Sports Report Record',
+                                            name: 'SRKVS Sports Report',
                                             icon: 'FileText',
-                                            url: '/Sports/Reports/SRKVSSportsReportRecord',
-                                            title: 'SRKVS Sports Report Record',
-                                            description: 'View SRKVS Sports Report Record'
+                                            url: '/Sports/Reports/SRKVSSportsReport',
+                                            title: 'SRKVS Sports Report',
+                                            description: 'View SRKVS Sports Report'
                                         },
                                         {
                                             id: 11,
