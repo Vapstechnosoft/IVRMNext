@@ -8,8 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useCLGTransactionCountReportInitialData } from '@/hooks/library/reports/useCLGTransactionCountReport';
 import type { ICLGTransactionCountReportRequest } from '@/types/library/reports/clg-transaction-count-report';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, Search, X } from 'lucide-react';
+import { Loader2, Search, X, Printer, FileSpreadsheet } from 'lucide-react';
 import { Controller, useForm } from 'react-hook-form';
+import { format } from 'date-fns';
 import * as z from 'zod';
 
 const formSchema = z.object({
@@ -23,9 +24,12 @@ const formSchema = z.object({
 interface ReportFormProps {
     onSearch: (data: ICLGTransactionCountReportRequest) => void;
     isLoading: boolean;
+    onPrint?: () => void;
+    onExport?: () => void;
+    hasData: boolean;
 }
 
-export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
+export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData }: ReportFormProps) => {
     const { data: initialDataWrapper, isLoading: isInitialLoading } = useCLGTransactionCountReportInitialData();
     const initialData = (initialDataWrapper as any)?.data || initialDataWrapper;
 
@@ -44,8 +48,8 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
     const onSubmit = (values: z.infer<typeof formSchema>) => {
         onSearch({
             ...values,
-            Issue_Date: values.Issue_Date.toISOString(),
-            IssueToDate: values.IssueToDate.toISOString()
+            Issue_Date: format(values.Issue_Date, "yyyy-MM-dd'T'HH:mm:ss"),
+            IssueToDate: format(values.IssueToDate, "yyyy-MM-dd'T'HH:mm:ss")
         });
     };
 
@@ -139,7 +143,7 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
 
             {/* Date Selection Section */}
             <div className='w-full max-w-4xl mx-auto mt-8'>
-                <Label className='font-semibold text-[#4251b1] block mb-4'>ISSUE DATE BETWEEN :-</Label>
+                <Label className='font-semibold text-[#4251b1] block mb-4 uppercase text-xs tracking-wider'>Issue Date Between :-</Label>
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-8'>
                     {/* From Date */}
                     <div className='flex items-center gap-4'>
@@ -208,6 +212,27 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                     <X className='mr-1.5 h-3.5 w-3.5' />
                     CANCEL
                 </Button>
+
+                {hasData && (
+                    <>
+                        <Button 
+                            type='button' 
+                            onClick={onPrint}
+                            className='w-auto h-8 px-8 py-1 text-xs min-w-[120px] bg-[#4251b1] hover:bg-[#35418e] text-white shadow-sm rounded-sm'
+                        >
+                            <Printer className='mr-1.5 h-3.5 w-3.5' />
+                            PRINT
+                        </Button>
+                        <Button 
+                            type='button' 
+                            onClick={onExport}
+                            className='w-auto h-8 px-8 py-1 text-xs min-w-[120px] bg-[#4251b1] hover:bg-[#35418e] text-white shadow-sm rounded-sm'
+                        >
+                            <FileSpreadsheet className='mr-1.5 h-3.5 w-3.5' />
+                            EXCEL
+                        </Button>
+                    </>
+                )}
             </div>
         </form>
     );

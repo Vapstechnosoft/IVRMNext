@@ -83,6 +83,7 @@ export default function UpdateMasterAuthorForm({ onSuccess, className = '', sele
                         <InputText
                             label='Author Name'
                             required
+                            placeholder='Enter Author Name'
                             id='lmaU_AuthorFirstName'
                             {...register('lmaU_AuthorFirstName')}
                             error={errors.lmaU_AuthorFirstName?.message}
@@ -92,6 +93,7 @@ export default function UpdateMasterAuthorForm({ onSuccess, className = '', sele
                         <InputText
                             label='Email Id'
                             id='lmaU_EmailId'
+                            placeholder='Enter Email Id'
                             {...register('lmaU_EmailId')}
                             error={errors.lmaU_EmailId?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
@@ -106,6 +108,7 @@ export default function UpdateMasterAuthorForm({ onSuccess, className = '', sele
                         <InputText
                             label='Mobile No'
                             id='lmaU_MobileNo'
+                            placeholder='Enter Mobile No'
                             {...register('lmaU_MobileNo')}
                             error={errors.lmaU_MobileNo?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
@@ -114,6 +117,7 @@ export default function UpdateMasterAuthorForm({ onSuccess, className = '', sele
                         <InputText
                             label='Author Address'
                             id='lmaU_Address'
+                            placeholder='Enter Author Address'
                             {...register('lmaU_Address')}
                             error={errors.lmaU_Address?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'

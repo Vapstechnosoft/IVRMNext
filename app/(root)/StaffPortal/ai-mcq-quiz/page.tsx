@@ -23,9 +23,24 @@ import {
     getMarksEntryClasses, 
     getMarksEntrySections 
 } from '@/server/staff-portal/marks-entry';
+import { 
+    getInitialData as getStaffInitialData,
+    getStudentData 
+} from '@/server/staff-portal/attendance-entry';
 import { getStudentList } from '@/server/exam/exam-module/exam-mapping/student-transaction-cce';
+import { getAcademicYearDropdown } from '@/server/admission/preadmission/masters/class_category';
+import { 
+    fetchInitialData as fetchHomeworkInitial,
+    fetchClasses as fetchHomeworkClasses,
+    fetchSections as fetchHomeworkSections
+} from '@/server/upload/transactions/ivrm-homework/server-action';
+import {
+    fetchClasses as fetchClassworkClasses,
+    fetchSections as fetchClassworkSections,
+    fetchClassWorkStudentList
+} from '@/server/upload/transactions/ivrm-classwork/server-action';
 import { AnimatePresence, motion } from 'framer-motion';
-import { BarChart3, CheckCircle2, FileText, Plus, Sparkles, Trophy, Upload, Wand2, X } from 'lucide-react';
+import { BarChart3, Calendar, Check, CheckCircle2, Copy, FileText, Plus, Sparkles, Trophy, Upload, Wand2, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import CountUp from 'react-countup';
 import { toast } from 'sonner';
@@ -37,6 +52,7 @@ export default function OnlineMcqQuizPage() {
     const [file, setFile] = useState<File | null>(null);
     const [questionCount, setQuestionCount] = useState('5');
     const [difficulty, setDifficulty] = useState('Medium');
+    const [topic, setTopic] = useState('');
 
     // Workflow Modes: 'dashboard' | 'create' | 'preview' | 'publish'
     const [viewMode, setViewMode] = useState<'dashboard' | 'create' | 'preview' | 'publish'>('dashboard');
@@ -96,6 +112,7 @@ export default function OnlineMcqQuizPage() {
         formData.append('file', file);
         formData.append('questionCount', questionCount);
         formData.append('difficulty', difficulty);
+        formData.append('topic', topic);
 
         try {
             const response = await fetch('/api/exam/generate-quiz', {
@@ -124,6 +141,7 @@ export default function OnlineMcqQuizPage() {
 
     const [isSaving, setIsSaving] = useState(false);
     const [finalLink, setFinalLink] = useState('');
+    const [isLinkCopied, setIsLinkCopied] = useState(false);
     const [publishedQuizzes, setPublishedQuizzes] = useState<any[]>([]);
     const [selectedAnalytics, setSelectedAnalytics] = useState<any>(null);
     const [_isLoadingAnalytics, setIsLoadingAnalytics] = useState(false);
@@ -134,6 +152,7 @@ export default function OnlineMcqQuizPage() {
     });
 
     // Dropdown Data
+    const [hrmeId, setHrmeId] = useState<number>(0);
     // Loading States
     const [loadingAcademic, setLoadingAcademic] = useState(false);
 
@@ -206,41 +225,119 @@ export default function OnlineMcqQuizPage() {
         calculateStats();
     }, [publishedQuizzes]);
 
+    /**
+     * Resiliently extract array data from various API response formats
+     */
+    const extractListData = (res: any, keys: string[]) => {
+        if (!res) return [];
+        
+        // Priority 1: Check specifically requested keys in res or res.data
+        const targets = [res, res.data].filter(t => t && typeof t === 'object');
+        for (const target of targets) {
+            for (const key of keys) {
+                if (Array.isArray((target as any)[key])) return (target as any)[key];
+            }
+        }
+        
+        // Priority 2: Check if res or res.data itself is the array
+        if (Array.isArray(res)) return res;
+        if (res?.data && Array.isArray(res.data)) return res.data;
+        
+        // Priority 3: Check very common fallback keys
+        const commonKeys = ['data', 'classList', 'classlist', 'sectionList', 'sectionlist', 'yearlist', 'academicYearList', 'yearList'];
+        for (const target of targets) {
+            for (const key of commonKeys) {
+                if (Array.isArray((target as any)[key])) return (target as any)[key];
+            }
+        }
+        
+        return [];
+    };
+
     // Load Initial Staff Data (Academic Years & Initial Classes)
     useEffect(() => {
         const fetchInitial = async () => {
             setLoadingAcademic(true);
             try {
-                const res = await getInitialMarksEntryData();
-                const initialData = res?.data;
-                
-                if (initialData) {
-                    const yrs = initialData.yearlist || [];
-                    setAcademicYears(yrs);
-                    
-                    // Set classes from initial data if any
-                    if (initialData.classlist) {
-                        setClasses(initialData.classlist);
-                    }
+                let allYrs: any[] = [];
+                let allCls: any[] = [];
+                let defaultYear: number | null = null;
 
-                    // Default to the year returned by the API (current year)
-                    if (initialData.asmaY_Id && !publishConfig.academicYearId) {
-                        setPublishConfig(prev => ({ ...prev, academicYearId: String(initialData.asmaY_Id) }));
-                    } else if (yrs.length > 0 && !publishConfig.academicYearId) {
-                        setPublishConfig(prev => ({ ...prev, academicYearId: String(yrs[0].asmaY_Id) }));
-                    }
+                // Fetch from multiple sources in parallel for better coverage
+                const [marksRes, staffRes, globalYrs, hwRes] = await Promise.allSettled([
+                    getInitialMarksEntryData(),
+                    getStaffInitialData(0),
+                    getAcademicYearDropdown(),
+                    fetchHomeworkInitial()
+                ]);
+
+                // Process Marks Entry
+                if (marksRes.status === 'fulfilled' && marksRes.value) {
+                    const res = marksRes.value;
+                    allYrs = [...allYrs, ...extractListData(res, ['yearlist', 'academicYearList'])];
+                    allCls = [...allCls, ...extractListData(res, ['classlist', 'classList'])];
+                    const initialData = res?.data || (res as any);
+                    if (initialData?.asmaY_Id) defaultYear = initialData.asmaY_Id;
+                }
+
+                // Process Staff Initial (Attendance)
+                if (staffRes.status === 'fulfilled' && staffRes.value) {
+                    const res = staffRes.value;
+                    allYrs = [...allYrs, ...extractListData(res, ['academicYearList', 'yearlist'])];
+                    allCls = [...allCls, ...extractListData(res, ['classList', 'classlist'])];
+                    const curYearObj = extractListData(res, ['currentYear'])[0];
+                    if (curYearObj && !defaultYear) defaultYear = curYearObj.asmaY_Id;
+                }
+
+                // Process Homework Initial (to get HRME_Id)
+                if (hwRes.status === 'fulfilled' && hwRes.value) {
+                    const res = hwRes.value;
+                    allYrs = [...allYrs, ...extractListData(res, ['yearlist', 'academicyear'])];
+                    const h_id = res?.data?.hrmE_Id || res?.hrmE_Id || res?.data?.HRME_Id || 0;
+                    if (h_id) setHrmeId(h_id);
+                }
+
+                // Process Global Years
+                if (globalYrs.status === 'fulfilled' && globalYrs.value) {
+                    allYrs = [...allYrs, ...extractListData(globalYrs.value, ['data'])];
+                }
+
+                // De-duplicate Years
+                const seenYrs = new Set();
+                const uniqueYrs = allYrs.filter(y => {
+                    if (!y?.asmaY_Id) return false;
+                    const dup = seenYrs.has(y.asmaY_Id);
+                    seenYrs.add(y.asmaY_Id);
+                    return !dup;
+                });
+
+                // De-duplicate Classes
+                const seenCls = new Set();
+                const uniqueCls = allCls.filter(c => {
+                    if (!c?.asmcL_Id) return false;
+                    const dup = seenCls.has(c.asmcL_Id);
+                    seenCls.add(c.asmcL_Id);
+                    return !dup;
+                });
+
+                setAcademicYears(uniqueYrs);
+                if (uniqueCls.length > 0) setClasses(uniqueCls);
+
+                // Set default year if found
+                if (defaultYear && !publishConfig.academicYearId) {
+                    setPublishConfig(prev => ({ ...prev, academicYearId: String(defaultYear) }));
+                } else if (uniqueYrs.length > 0 && !publishConfig.academicYearId) {
+                    setPublishConfig(prev => ({ ...prev, academicYearId: String(uniqueYrs[0].asmaY_Id) }));
                 }
             } catch (err) {
                 console.error('Initial data fetch failed:', err);
-                // Fallback: If staff portal specific fetch fails, the standard hook will handle it
-                // and GetLoginPrivilege APIs will be tried in subsequent effects
             } finally {
                 setLoadingAcademic(false);
             }
         };
 
         fetchInitial();
-    }, []); // Only on mount
+    }, []);
 
     // Load Privileged Classes
     useEffect(() => {
@@ -252,22 +349,51 @@ export default function OnlineMcqQuizPage() {
 
             setLoadingClasses(true);
             try {
-                // Try Staff Portal specific API first
-                const res = await getMarksEntryClasses(ayId);
-                let data = res?.data?.classlist || [];
+                let allData: any[] = [];
                 
-                // Fallback to global privilege API if portal one returns nothing
-                if (data.length === 0) {
-                    const globalRes = await GetLoginPrivilegeClassesDropdown(ayId);
-                    data = Array.isArray(globalRes?.data) ? globalRes.data : [];
+                // Fetch from multiple sources in parallel
+                const [marksRes, globalRes, staffRes, hwRes, cwRes] = await Promise.allSettled([
+                    getMarksEntryClasses(ayId),
+                    GetLoginPrivilegeClassesDropdown(ayId),
+                    getStaffInitialData(ayId),
+                    fetchHomeworkClasses(ayId, hrmeId),
+                    fetchClassworkClasses(ayId, hrmeId)
+                ]);
+
+                if (marksRes.status === 'fulfilled' && marksRes.value) {
+                    allData = [...allData, ...extractListData(marksRes.value, ['classlist', 'classList'])];
+                }
+                if (globalRes.status === 'fulfilled' && globalRes.value) {
+                    allData = [...allData, ...extractListData(globalRes.value, ['data', 'classList', 'classlist'])];
+                }
+                if (staffRes.status === 'fulfilled' && staffRes.value) {
+                    allData = [...allData, ...extractListData(staffRes.value, ['classList', 'classlist'])];
+                }
+                if (hwRes.status === 'fulfilled' && hwRes.value) {
+                    allData = [...allData, ...extractListData(hwRes.value, ['classlist', 'classList'])];
+                }
+                if (cwRes.status === 'fulfilled' && cwRes.value) {
+                    allData = [...allData, ...extractListData(cwRes.value, ['classlist', 'classList'])];
                 }
 
-                setClasses(data);
-                // Reset dependent selections
-                setPublishConfig(prev => ({ ...prev, targetClass: '', targetSection: '' }));
-                setSections([]);
+                // De-duplicate by asmcL_Id
+                const seen = new Set();
+                const uniqueClasses = allData.filter(item => {
+                    if (!item?.asmcL_Id) return false;
+                    const dup = seen.has(item.asmcL_Id);
+                    seen.add(item.asmcL_Id);
+                    return !dup;
+                });
+
+                setClasses(uniqueClasses);
+                // Reset dependent selections if class list changed significantly
+                // Only reset if current selection is no longer valid
+                if (publishConfig.targetClass && !uniqueClasses.some(c => String(c.asmcL_Id) === publishConfig.targetClass)) {
+                    setPublishConfig(prev => ({ ...prev, targetClass: '', targetSection: '' }));
+                    setSections([]);
+                }
             } catch (err) {
-                console.error(err);
+                console.error("fetchClasses error:", err);
                 toast.error('Failed to load classes');
             } finally {
                 setLoadingClasses(false);
@@ -288,21 +414,52 @@ export default function OnlineMcqQuizPage() {
 
             setLoadingSections(true);
             try {
-                // Try Staff Portal specific API first
-                const res = await getMarksEntrySections(ayId, clId);
-                let data = res?.data?.sectionlist || [];
+                let allData: any[] = [];
 
-                // Fallback to global privilege API if portal one returns nothing
-                if (data.length === 0) {
-                    const globalRes = await GetLoginPrivilegeSectionsDropdown(ayId, clId);
-                    data = Array.isArray(globalRes?.data) ? globalRes.data : [];
+                // Fetch from multiple sources in parallel
+                const [marksRes, globalRes, staffRes, hwRes, cwRes] = await Promise.allSettled([
+                    getMarksEntrySections(ayId, clId),
+                    GetLoginPrivilegeSectionsDropdown(ayId, clId),
+                    getStudentData({
+                        ASMAY_Id: ayId,
+                        ASMCL_Id: clId,
+                        classsecflag: '1'
+                    }),
+                    fetchHomeworkSections(clId, ayId),
+                    fetchClassworkSections(clId, ayId)
+                ]);
+
+                if (marksRes.status === 'fulfilled' && marksRes.value) {
+                    allData = [...allData, ...extractListData(marksRes.value, ['sectionlist', 'sectionList'])];
+                }
+                if (globalRes.status === 'fulfilled' && globalRes.value) {
+                    allData = [...allData, ...extractListData(globalRes.value, ['data', 'sectionlist', 'sectionList'])];
+                }
+                if (staffRes.status === 'fulfilled' && staffRes.value) {
+                    allData = [...allData, ...extractListData(staffRes.value, ['sectionList', 'sectionlist'])];
+                }
+                if (hwRes.status === 'fulfilled' && hwRes.value) {
+                    allData = [...allData, ...extractListData(hwRes.value, ['sectionlist', 'sectionList'])];
+                }
+                if (cwRes.status === 'fulfilled' && cwRes.value) {
+                    allData = [...allData, ...extractListData(cwRes.value, ['sectionlist', 'sectionList'])];
                 }
 
-                setSections(data);
-                // Reset dependent selection
-                setPublishConfig(prev => ({ ...prev, targetSection: '' }));
+                // De-duplicate by asmS_Id
+                const seen = new Set();
+                const uniqueSections = allData.filter(item => {
+                    if (!item?.asmS_Id) return false;
+                    const dup = seen.has(item.asmS_Id);
+                    seen.add(item.asmS_Id);
+                    return !dup;
+                });
+
+                setSections(uniqueSections);
+                if (publishConfig.targetSection && !uniqueSections.some(s => String(s.asmS_Id) === publishConfig.targetSection)) {
+                    setPublishConfig(prev => ({ ...prev, targetSection: '' }));
+                }
             } catch (err) {
-                console.error(err);
+                console.error("fetchSections error:", err);
                 toast.error('Failed to load sections');
             } finally {
                 setLoadingSections(false);
@@ -323,20 +480,51 @@ export default function OnlineMcqQuizPage() {
         const fetchStudents = async () => {
             setLoadingStudents(true);
             try {
-                const params = {
-                    ASMAY_Id: Number(publishConfig.academicYearId),
-                    ASMCL_Id: Number(publishConfig.targetClass),
-                    ASMS_Id: Number(publishConfig.targetSection)
-                };
-                const res = await getStudentList(params);
-                const rawData = res?.data;
-                const students = Array.isArray(rawData) ? rawData : (Array.isArray(rawData?.students) ? rawData.students : []);
+                const ayId = Number(publishConfig.academicYearId);
+                const clId = Number(publishConfig.targetClass);
+                const scId = Number(publishConfig.targetSection);
+
+                let students: any[] = [];
+                
+                // 1. Try primary student list API (CCE Student Transaction)
+                try {
+                    const res = await getStudentList({
+                        ASMAY_Id: ayId,
+                        ASMCL_Id: clId,
+                        ASMS_Id: scId
+                    });
+                    students = extractListData(res, ['studentList', 'studentlist', 'students', 'studentDetails']);
+                } catch (e) { console.warn("getStudentList failed", e); }
+
+                // 2. Fallback 1: Try Attendance Entry student data API
+                if (students.length === 0) {
+                    try {
+                        const res = await getStudentData({
+                            ASMAY_Id: ayId,
+                            ASMCL_Id: clId,
+                            ASMS_Id: scId,
+                            classsecflag: '1',
+                            monthflag: 'D', 
+                            monthflag1: 'Dailyonce',
+                            checksubject: '1'
+                        });
+                        students = extractListData(res, ['studentList', 'studentlist', 'students']);
+                    } catch (e) { console.warn("getStudentData fallback for students failed", e); }
+                }
+
+                // 3. Fallback 2: Try Classwork student list API
+                if (students.length === 0) {
+                    try {
+                        const res = await fetchClassWorkStudentList(clId, scId, ayId);
+                        students = extractListData(res, ['studentlist', 'studentList', 'students']);
+                    } catch (e) { console.warn("fetchClassWorkStudentList fallback failed", e); }
+                }
                 
                 setStudentsList(students);
                 // Default select all
-                setSelectedStudentIds(students.map((s: any) => s.amst_Id || s.amsT_Id));
+                setSelectedStudentIds(students.map((s: any) => s.amst_Id || s.amsT_Id || s.AMST_Id || s.id));
             } catch (err) {
-                console.error(err);
+                console.error("fetchStudents error:", err);
                 toast.error('Failed to load students');
             } finally {
                 setLoadingStudents(false);
@@ -348,7 +536,7 @@ export default function OnlineMcqQuizPage() {
 
     const handleSelectAll = (checked: boolean) => {
         if (checked) {
-            setSelectedStudentIds(studentsList.map((s: any) => s.amst_Id || s.amsT_Id));
+            setSelectedStudentIds(studentsList.map((s: any) => s.amst_Id || s.amsT_Id || s.AMST_Id || s.id));
         } else {
             setSelectedStudentIds([]);
         }
@@ -382,6 +570,8 @@ export default function OnlineMcqQuizPage() {
                     title: quizData?.title || 'AI Assessment',
                     questions: quizData?.questions,
                     duration: publishConfig.duration,
+                    activeFrom: publishConfig.activeFrom,
+                    activeTo: publishConfig.activeTo,
                     difficulty: difficulty,
                     studentIds: selectedStudentIds,
                     academicYearId: Number(publishConfig.academicYearId),
@@ -401,7 +591,10 @@ export default function OnlineMcqQuizPage() {
                 section: publishConfig.targetSection,
                 link: data.exam_link,
                 questionsCount: quizData?.questions.length,
-                studentCount: selectedStudentIds.length
+                studentCount: selectedStudentIds.length,
+                activeFrom: publishConfig.activeFrom,
+                activeTo: publishConfig.activeTo,
+                duration: publishConfig.duration
             };
 
             const updatedList = [newQuiz, ...publishedQuizzes];
@@ -720,6 +913,16 @@ export default function OnlineMcqQuizPage() {
                                         </div>
                                     </div>
 
+                                    <div className="space-y-4">
+                                        <Label className="ml-1 font-black text-slate-400 text-sm uppercase tracking-widest after:ml-0.5 after:text-red-500 after:content-['*']">Topic</Label>
+                                        <Input 
+                                            placeholder="e.g. Photosynthesis, World War II, Calculus..." 
+                                            value={topic} 
+                                            onChange={(e) => setTopic(e.target.value)} 
+                                            className='h-16 rounded-2xl border-none bg-slate-50 font-black' 
+                                        />
+                                    </div>
+
                                     <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
                                         <div className="space-y-4">
                                             <Label className="ml-1 font-black text-slate-400 text-sm uppercase tracking-widest after:ml-0.5 after:text-red-500 after:content-['*']">Question Count</Label>
@@ -830,9 +1033,6 @@ export default function OnlineMcqQuizPage() {
                                                 </SelectContent>
                                             </Select>
                                         </div>
-                                    </div>
-
-                                    <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
                                         <div className="space-y-4">
                                             <Label className="ml-1 font-black text-slate-400 text-sm uppercase tracking-widest after:ml-0.5 after:text-red-500 after:content-['*']">Class</Label>
                                             <Select
@@ -854,6 +1054,9 @@ export default function OnlineMcqQuizPage() {
                                                 </SelectContent>
                                             </Select>
                                         </div>
+                                    </div>
+
+                                    <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
                                         <div className="space-y-4">
                                             <Label className="ml-1 font-black text-slate-400 text-sm uppercase tracking-widest after:ml-0.5 after:text-red-500 after:content-['*']">Section</Label>
                                             <Select
@@ -874,6 +1077,44 @@ export default function OnlineMcqQuizPage() {
                                                     ))}
                                                 </SelectContent>
                                             </Select>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            <Label className="ml-1 font-black text-slate-400 text-sm uppercase tracking-widest after:ml-0.5 after:text-red-500 after:content-['*']">Duration (Minutes)</Label>
+                                            <Input
+                                                type="number"
+                                                value={publishConfig.duration}
+                                                onChange={(e) => setPublishConfig({ ...publishConfig, duration: e.target.value })}
+                                                className='h-16 rounded-2xl border-none bg-slate-50 font-black'
+                                                placeholder="e.g. 30"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
+                                        <div className="space-y-4">
+                                            <Label className="ml-1 font-black text-slate-400 text-sm uppercase tracking-widest">Available From</Label>
+                                            <div className="relative">
+                                                <Input
+                                                    type="datetime-local"
+                                                    value={publishConfig.activeFrom}
+                                                    onChange={(e) => setPublishConfig({ ...publishConfig, activeFrom: e.target.value })}
+                                                    className='h-16 rounded-2xl border-none bg-slate-50 pl-12 font-black'
+                                                />
+                                                <Calendar className="absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-4">
+                                            <Label className="ml-1 font-black text-slate-400 text-sm uppercase tracking-widest">Available Until</Label>
+                                            <div className="relative">
+                                                <Input
+                                                    type="datetime-local"
+                                                    value={publishConfig.activeTo}
+                                                    onChange={(e) => setPublishConfig({ ...publishConfig, activeTo: e.target.value })}
+                                                    className='h-16 rounded-2xl border-none bg-slate-50 pl-12 font-black'
+                                                />
+                                                <Calendar className="absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                                            </div>
                                         </div>
                                     </div>
 
@@ -908,9 +1149,10 @@ export default function OnlineMcqQuizPage() {
                                             ) : (
                                                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                                                     {studentsList.map((student) => {
-                                                        const sId = student.amst_Id || student.amsT_Id;
-                                                        const sName = student.amst_FirstName || student.amsT_FirstName || student.studentName || 'Unknown Student';
-                                                        const sAdmNo = student.amst_AdmNo || student.amsT_AdmNo || student.admissionNo || '';
+                                                        // Resilient property extraction for student details
+                                                        const sId = student.amst_Id || student.amsT_Id || student.AMST_Id || student.id;
+                                                        const sName = student.studentName || student.studentname || student.amsT_FirstName || student.AMST_FirstName || student.amst_FirstName || student.amst_firstname || 'Unknown Student';
+                                                        const sAdmNo = student.amst_AdmNo || student.amsT_AdmNo || student.AMST_AdmNo || student.admissionNo || student.admNo || '';
 
                                                         return (
                                                             <div
@@ -951,6 +1193,75 @@ export default function OnlineMcqQuizPage() {
                                     </div>
                                 </CardContent>
                             </Card>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* Success Link Modal */}
+                <AnimatePresence>
+                    {finalLink && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className='fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-md'
+                        >
+                            <motion.div
+                                initial={{ scale: 0.9, y: 20 }}
+                                animate={{ scale: 1, y: 0 }}
+                                className='w-full max-w-lg overflow-hidden rounded-[3rem] bg-white shadow-2xl'
+                            >
+                                <div className='bg-emerald-500 p-10 text-center text-white'>
+                                    <div className='mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-white/20 backdrop-blur-md'>
+                                        <CheckCircle2 className='h-10 w-10' />
+                                    </div>
+                                    <h2 className='font-black text-3xl'>Assessment Live!</h2>
+                                    <p className='mt-2 font-medium opacity-90'>The quiz has been successfully published.</p>
+                                </div>
+                                <div className='space-y-8 p-10'>
+                                    <div className='space-y-4'>
+                                        <Label className='ml-1 font-black text-slate-400 text-xs uppercase tracking-widest'>Student Access Link</Label>
+                                        <div className='group relative flex items-center gap-2 overflow-hidden rounded-2xl bg-slate-50 p-2'>
+                                            <div className='flex-1 truncate px-4 font-bold text-slate-600 text-sm'>
+                                                {finalLink}
+                                            </div>
+                                            <Button
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(finalLink);
+                                                    setIsLinkCopied(true);
+                                                    toast.success('Link copied to clipboard!');
+                                                    setTimeout(() => setIsLinkCopied(false), 2000);
+                                                }}
+                                                className={cn(
+                                                    'h-12 w-12 rounded-xl transition-all duration-300',
+                                                    isLinkCopied ? 'bg-emerald-500' : 'bg-slate-900 hover:bg-slate-800'
+                                                )}
+                                            >
+                                                {isLinkCopied ? <Check className='h-5 w-5 text-white' /> : <Copy className='h-5 w-5 text-white' />}
+                                            </Button>
+                                        </div>
+                                    </div>
+
+                                    <div className='flex gap-4'>
+                                        <Button
+                                            variant="outline"
+                                            className='h-16 flex-1 rounded-2xl border-2 border-slate-100 font-black uppercase tracking-wider hover:bg-slate-50'
+                                            onClick={() => setFinalLink('')}
+                                        >
+                                            Configure More
+                                        </Button>
+                                        <Button
+                                            className='h-16 flex-1 rounded-2xl bg-slate-900 font-black text-white uppercase tracking-wider hover:bg-slate-800'
+                                            onClick={() => {
+                                                setFinalLink('');
+                                                setViewMode('dashboard');
+                                            }}
+                                        >
+                                            Go to Dashboard
+                                        </Button>
+                                    </div>
+                                </div>
+                            </motion.div>
                         </motion.div>
                     )}
                 </AnimatePresence>

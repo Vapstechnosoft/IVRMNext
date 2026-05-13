@@ -98,9 +98,10 @@ export default function AddMasterVendorForm({ onSuccess, className = '' }: AddMa
                         }}
                         {...register('lmV_VendorName')}
                         error={errors.lmV_VendorName?.message}
+                        placeholder='e.g. Acme Books Dist'
                     />
 
-                    <InputText label='Email Id' id='lmV_EMailId' {...register('lmV_EMailId')} error={errors.lmV_EMailId?.message} />
+                    <InputText label='Email Id' id='lmV_EMailId' {...register('lmV_EMailId')} error={errors.lmV_EMailId?.message} placeholder='e.g. contact@vendor.com' />
                 </div>
 
                 {/* Row 2 */}
@@ -117,6 +118,7 @@ export default function AddMasterVendorForm({ onSuccess, className = '' }: AddMa
                         maxLength={10}
                         {...register('lmV_MobileNo')}
                         error={errors.lmV_MobileNo?.message}
+                        placeholder='10-digit mobile number'
                     />
 
                     <InputText
@@ -129,6 +131,7 @@ export default function AddMasterVendorForm({ onSuccess, className = '' }: AddMa
                         }}
                         {...register('lmV_Address')}
                         error={errors.lmV_Address?.message}
+                        placeholder='Enter full office address'
                     />
                 </div>
 

@@ -13,6 +13,11 @@ export async function getFeeRefundReport(payload: any) {
 }
 
 export async function getFeeCollectionReportVVVS(payload: any) {
-    const url = '/FeeRefund/GetReport';
+    const url = '/FeeDailycollection/VidyavikasDailyCollection';
+    return await api.post<any[]>('fees', url, payload);
+}
+
+export async function getFeeDemandRegisterGMVPS(payload: any) {
+    const url = '/FeeDemandRegisterFacade/DemandRegisterReport';
     return await api.post<any[]>('fees', url, payload);
 }

@@ -6,14 +6,29 @@ export interface IRackReportInitialData {
     racklist: Array<{
         lmrA_Id: number;
         lmrA_RackName: string;
-        lmrA_FloorName?: string; // Optional based on usage
+        lmrA_FloorName?: string;
     }>;
-    floorlist?: Array<any>; // Kept for consistency if API returns it, though unused in JS logic for filtering
+    booklist?: Array<{
+        lmb_Id: number;
+        lmb_BookTitle: string;
+    }>;
+    subjectlist?: Array<{
+        lmsU_Id: number;
+        lmsU_SubjectName: string;
+    }>;
+    floorlist?: Array<any>;
 }
 
 export interface IRackReportRequest {
+    MI_Id?: number;
     LMAL_Id: number;
-    LMRA_RackName: string; // JS passes string name, not ID
+    FromDate?: string;
+    ToDate?: string;
+    LMRA_Id: number | string;
+    LMB_Id?: number;
+    LMSU_Id?: number;
+    IssueStatus?: string;
+    ReturnStatus?: string;
 }
 
 export interface IRackReportGridData {

@@ -36,10 +36,10 @@ export default function DeleteMasterClassForm({ row, cell }: { row?: any; cell?:
             const response: any = await deleteAdmissionForm(id as number);
 
             if (response?.success) {
-                toast.success(response.message ?? 'Deleted successfully');
+                toast.success(response.message ?? 'Record Deleted successfully');
                 closeDialog();
-                // best-effort refresh
-                window.location.reload();
+                // Trigger refresh via custom event instead of full page reload to preserve toast messages
+                window.dispatchEvent(new CustomEvent('admission:changed'));
             } else {
                 toast.error(response?.message ?? 'Delete failed');
             }

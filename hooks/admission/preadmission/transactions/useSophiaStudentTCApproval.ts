@@ -12,7 +12,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 export const useSophiaStudentTCApprovalLoadData = () => {
     return useQuery({
         queryKey: [ADMISSION_QUERY_KEYS.TRANSACTIONS, 'sophia_student_tc_approval', 'load_data'],
-        queryFn: () => getSophiaStudentTCApprovalLoadData({ dup: '' }),
+        queryFn: () => getSophiaStudentTCApprovalLoadData({ Flag: '' }),
         staleTime: 0
     });
 };
@@ -27,12 +27,12 @@ export const useSophiaStudentTCApprovalDetails = (asmayId: number) => {
 
 export const useSophiaStudentTCApprovalSave = () => {
     return useMutation({
-        mutationFn: (data: { SelectedTCDATAlist: any[] }) => saveSophiaStudentTCApprovalData(data)
+        mutationFn: (data: { selectedTCDATAlist: any[] }) => saveSophiaStudentTCApprovalData(data)
     });
 };
 
 export const useSophiaStudentTCApprovalUpdateIDs = () => {
     return useMutation({
-        mutationFn: (data: { STUDENTDATA: any[] }) => updateSophiaStudentTCApprovalIDs(data)
+        mutationFn: (data: { studentdata: any[] }) => updateSophiaStudentTCApprovalIDs(data)
     });
 };

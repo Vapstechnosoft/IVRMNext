@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLibraryMonthEndReportInitialData } from '@/hooks/library/reports/useLibraryMonthEndReport';
@@ -14,6 +15,7 @@ import * as z from 'zod';
 const formSchema = z.object({
     ASMAY_Id: z.preprocess((val) => Number(val), z.number().min(1, 'Academic Year is required')),
     IVRM_Month_Id: z.preprocess((val) => Number(val), z.number().min(1, 'Month is required')),
+    LMRA_Id: z.preprocess((val) => Number(val), z.number().min(1, 'Library is required')),
     year: z.string().min(1, 'Year is required')
 });
 
@@ -23,15 +25,12 @@ interface ReportFormProps {
 }
 
 export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
-    const { data: initialDataWrapper, isLoading: isInitialLoading } = useLibraryMonthEndReportInitialData();
-    const initialData = (initialDataWrapper as any)?.data || initialDataWrapper;
+    const { data: monthEndData, isLoading: isInitialLoading } = useLibraryMonthEndReportInitialData();
+    const initialData = (monthEndData as any)?.data || monthEndData;
     
-    const [yearsList, setYearsList] = useState<string[]>([]);
-
     const {
         control,
         handleSubmit,
-        watch,
         setValue,
         formState: { errors },
         reset
@@ -40,31 +39,13 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
         defaultValues: {}
     });
 
-    const selectedAcademicYearId = watch('ASMAY_Id');
-
-    useEffect(() => {
-        if (selectedAcademicYearId && initialData?.acdlist) {
-            const selectedYear = initialData.acdlist.find((y: any) => y.asmaY_Id === selectedAcademicYearId);
-            if (selectedYear) {
-                const yearParts = selectedYear.asmaY_Year.split('-');
-                if (yearParts.length >= 1) {
-                    const y1 = yearParts[0];
-                    const y2 = yearParts[1];
-                    const tempYears = [];
-                    if (y1) tempYears.push(y1);
-                    if (y2) tempYears.push(y2);
-                    setYearsList(tempYears);
-                } else {
-                    setYearsList([selectedYear.asmaY_Year]);
-                }
-            }
-        } else {
-            setYearsList([]);
-        }
-    }, [selectedAcademicYearId, initialData]);
-
     const onSubmit = (values: z.infer<typeof formSchema>) => {
-        onSearch(values);
+        onSearch({
+            ASMAY_Id: values.ASMAY_Id,
+            IVRM_Month_Id: values.IVRM_Month_Id,
+            year: values.year,
+            LMRA_Id: values.LMRA_Id
+        });
     };
 
     return (
@@ -136,6 +117,35 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                         </div>
                     </div>
 
+                    {/* Library (LMRA_Id) */}
+                    <div className='flex items-center gap-4'>
+                        <Label className='min-w-[150px] text-right font-medium text-sm'>
+                            Library:<span className='text-red-500'>*</span>
+                        </Label>
+                        <div className='flex-1'>
+                            <Controller
+                                control={control}
+                                name='LMRA_Id'
+                                render={({ field }) => (
+                                    <Select onValueChange={field.onChange} value={field.value?.toString()}>
+                                        <SelectTrigger className='w-full border-muted-foreground/30'>
+                                            <SelectValue placeholder='Select Library' />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {Array.isArray(initialData?.msterliblist1) &&
+                                                initialData?.msterliblist1?.map((item: any) => (
+                                                    <SelectItem key={item.lmaL_Id} value={item.lmaL_Id.toString()}>
+                                                        {item.lmaL_LibraryName}
+                                                    </SelectItem>
+                                                ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                            {errors.LMRA_Id && <p className='text-xs text-destructive mt-1'>{errors.LMRA_Id.message}</p>}
+                        </div>
+                    </div>
+
                     {/* Year */}
                     <div className='flex items-center gap-4'>
                         <Label className='min-w-[150px] text-right font-medium text-sm'>
@@ -146,18 +156,12 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                                 control={control}
                                 name='year'
                                 render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value} disabled={yearsList.length === 0}>
-                                        <SelectTrigger className='w-full border-muted-foreground/30'>
-                                            <SelectValue placeholder='Select' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {yearsList.map((y) => (
-                                                <SelectItem key={y} value={y}>
-                                                    {y}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                    <Input
+                                        {...field}
+                                        value={field.value ?? ''}
+                                        placeholder='Enter Year (e.g. 2024)'
+                                        className='w-full border-muted-foreground/30'
+                                    />
                                 )}
                             />
                             {errors.year && <p className='text-xs text-destructive mt-1'>{errors.year.message}</p>}

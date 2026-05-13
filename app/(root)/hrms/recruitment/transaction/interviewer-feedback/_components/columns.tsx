@@ -19,29 +19,34 @@ export const interviewerFeedbackColumns: ColumnDef<InterviewerFeedback>[] = [
         enableSorting: false
     },
     {
-        accessorKey: 'candidateName',
+        accessorKey: 'hrcD_FullName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Candidate Name' />,
-        cell: ({ row }) => <div className='font-medium'>{row.getValue('candidateName')}</div>
+        cell: ({ row }) => <div className='font-medium'>{row.getValue('hrcD_FullName')}</div>
     },
     {
-        accessorKey: 'interviewDate',
+        accessorKey: 'hrcisC_InterviewRounds',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Interview Type' />,
+        cell: ({ row }) => <div>{row.getValue('hrcisC_InterviewRounds')}</div>
+    },
+    {
+        accessorKey: 'hrcisC_InterviewDate',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Interview Date' />,
-        cell: ({ row }) => <div>{new Date(row.getValue('interviewDate')).toLocaleDateString()}</div>
+        cell: ({ row }) => <div>{new Date(row.getValue('hrcisC_InterviewDate')).toLocaleDateString()}</div>
     },
+    // {
+    //     accessorKey: 'rating',
+    //     header: ({ column }) => <DataTableColumnHeader column={column} title='Rating' />,
+    //     cell: ({ row }) => <div>{row.getValue('rating')}</div>
+    // },
+    // {
+    //     accessorKey: 'recommendation',
+    //     header: ({ column }) => <DataTableColumnHeader column={column} title='Recommendation' />,
+    //     cell: ({ row }) => <div>{row.getValue('recommendation')}</div>
+    // },
     {
-        accessorKey: 'interviewerName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Interviewer' />,
-        cell: ({ row }) => <div>{row.getValue('interviewerName')}</div>
-    },
-    {
-        accessorKey: 'rating',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Rating' />,
-        cell: ({ row }) => <div>{row.getValue('rating')}</div>
-    },
-    {
-        accessorKey: 'recommendation',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Recommendation' />,
-        cell: ({ row }) => <div>{row.getValue('recommendation')}</div>
+        accessorKey: 'hrcisC_Status',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
+        cell: ({ row }) => <div>{row.getValue('hrcisC_Status')}</div>
     },
     {
         id: 'actions',
