@@ -97,7 +97,6 @@ export default function UpdateMasterDepartmentForm({ onSuccess, className = '', 
                         />
                         <InputText
                             label='Department Code'
-                            required
                             placeholder='Enter Department Code'
                             {...register('lmD_DepartmentCode')}
                             error={errors.lmD_DepartmentCode?.message}

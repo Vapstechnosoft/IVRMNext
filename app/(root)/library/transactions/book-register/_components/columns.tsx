@@ -23,15 +23,15 @@ export const BookRegisterColumns: ColumnDef<BookRegisterPayload>[] = [
         enableHiding: false
     },
     {
+        accessorKey: 'lmB_BookTitle',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Book Title' />,
+        cell: ({ row }) => <div className='min-w-[150px]'>{row.getValue('lmB_BookTitle')}</div>
+    },
+    {
         accessorKey: 'lmbanO_AccessionNo',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Accession No' />,
         cell: ({ row }) => <div>{row.getValue('lmbanO_AccessionNo')}</div>,
         size: 100
-    },
-    {
-        accessorKey: 'lmB_BookTitle',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Book Title' />,
-        cell: ({ row }) => <div className='min-w-[150px]'>{row.getValue('lmB_BookTitle')}</div>
     },
     {
         accessorKey: 'lmP_PublisherName',
@@ -39,19 +39,19 @@ export const BookRegisterColumns: ColumnDef<BookRegisterPayload>[] = [
         cell: ({ row }) => <div>{row.getValue('lmP_PublisherName') || '-'}</div>
     },
     {
-        accessorKey: 'authoR_FullName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Author Name' />,
-        cell: ({ row }) => <div>{row.getValue('authoR_FullName') || '-'}</div>
+        accessorKey: 'lmD_DepartmentName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Dept Name' />,
+        cell: ({ row }) => <div>{(row.original as any).lmD_DepartmentName || '-'}</div>
     },
     {
-        accessorKey: 'lmC_CategoryName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Category Name' />,
-        cell: ({ row }) => <div>{row.getValue('lmC_CategoryName') || '-'}</div>
+        accessorKey: 'lmS_SubjectName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Subject Name' />,
+        cell: ({ row }) => <div>{(row.original as any).lmS_SubjectName || '-'}</div>
     },
     {
         accessorKey: 'lmL_LanguageName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Language' />,
-        cell: ({ row }) => <div>{row.getValue('lmL_LanguageName')}</div>
+        cell: ({ row }) => <div>{row.getValue('lmL_LanguageName') || '-'}</div>
     },
     {
         accessorKey: 'lmrA_RackName',
@@ -78,6 +78,16 @@ export const BookRegisterColumns: ColumnDef<BookRegisterPayload>[] = [
                 </Badge>
             );
         }
+    },
+    {
+        accessorKey: 'authoR_FullName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Author Name' />,
+        cell: ({ row }) => <div>{row.getValue('authoR_FullName') || '-'}</div>
+    },
+    {
+        accessorKey: 'mB_Remarks',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Remark' />,
+        cell: ({ row }) => <div>{row.getValue('mB_Remarks') || '-'}</div>
     },
     {
         id: 'actions',
