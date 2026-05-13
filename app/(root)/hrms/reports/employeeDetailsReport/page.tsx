@@ -303,7 +303,7 @@ function EmployeeDetailsReportContent() {
       filterEmployees(payload, {
         onSuccess: (res: any) => {
           if (res.data) {
-            setFilteredEmployeeDropdown(res.data.employeedropdown || []);
+            setFilteredEmployeeDropdown(res.data.employeeDetails || []);
             setFilteredEmployeeTypeDropdown(
               res.data.employeeTypedropdown || [],
             );
