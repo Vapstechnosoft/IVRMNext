@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { createExamCustomStringSchema, createStringSchema, deleteIdSchema } from '../../validationSchemas';
+import { createAlphaNumericSchema, createExamCustomStringSchema, createStringSchema, deleteIdSchema } from '../../validationSchemas';
 
 export const loginSchema = z.object({
     email: z.string({ message: 'Email is required' }),
@@ -69,7 +69,7 @@ export const masterSubExamSchema = {
         emsE_Id: z.number().int({ message: 'Sub Exam Id is required' }).optional(),
         mI_Id: z.number().int().optional(),
         emsE_SubExamName: createExamCustomStringSchema('Sub Exam Name', 1, 100),
-        emsE_SubExamCode: createExamCustomStringSchema('Sub Exam Code', 1, 50)
+        emsE_SubExamCode: createAlphaNumericSchema('Sub Exam Code', 1, 50)
     }),
 
     delete: z.object({
