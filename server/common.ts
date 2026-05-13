@@ -3556,6 +3556,30 @@ export async function getUserAccessibleModules() {
                                             description: 'TBS Report School'
                                         },
                                         {
+                                            id: 215161,
+                                            name: 'Multiple Exam Progress Card Report New',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Turnbridge/MultipleExamProgressCardReportNew',
+                                            title: 'Multiple Exam Progress Card Report New',
+                                            description: 'Multiple Exam Progress Card Report New'
+                                        },
+                                        {
+                                            id: 215162,
+                                            name: 'TB School Primary',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Turnbridge/TBSchoolPrimary',
+                                            title: 'TB School Primary',
+                                            description: 'TB School Primary'
+                                        },
+                                        {
+                                            id: 215163,
+                                            name: 'Subject Sub Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Subjectsubsubjectsubexamcumreport',
+                                            title: 'Subject Sub Report',
+                                            description: 'Subject Sub-Subject Sub-Exam Cumulative Report'
+                                        },
+                                        {
                                             id: 21517,
                                             name: 'ProgressCardReportGMVPS X',
                                             icon: 'BookOpen',
