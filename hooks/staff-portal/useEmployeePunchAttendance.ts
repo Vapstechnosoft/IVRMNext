@@ -13,10 +13,10 @@ import {
 } from '@/types/staff-portal/biometric-report/employee-punch-attendance.types';
 
 const formSchema = z.object({
-    fromdate: z.date({
+    fromdate: z.string({
         required_error: 'From date is required.',
     }),
-    todate: z.date({
+    todate: z.string({
         required_error: 'To date is required.',
     }),
 });
