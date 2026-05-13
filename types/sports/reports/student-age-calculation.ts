@@ -1,21 +1,21 @@
 import { z } from 'zod';
 
 export interface IStudentAgeReport {
-    AMST_Id: number;
-    AMST_FirstName?: string;
-    AMST_MiddleName?: string;
-    AMST_LastName?: string;
-    AMST_Name: string; // From backend: AMST_Name
-    AMST_AdmNo: string;
-    ASMCL_ClassName: string;
-    ASMC_SectionName: string;
-    SPCCMH_HouseName?: string;
-    AMST_DOB: string | Date;
-    Years: number;
-    Months: number; // Age Months
-    Monthsd: number; // Months
-    Days: number;
-    SPCCMCL_CompitionLevel?: string; // Competition Category
+    amsT_Id: number;
+    amsT_FirstName?: string;
+    amsT_MiddleName?: string;
+    amsT_LastName?: string;
+    amsT_Name: string;
+    amsT_Admno: string;
+    asmcL_Classname: string;
+    asmC_Sectionname: string;
+    spccmH_Housename?: string;
+    amsT_DOb: string | Date;
+    years: number;
+    months: number;
+    monthsd: number;
+    days?: number;
+    spccmcL_compitionLevel?: string;
 }
 
 export interface IReportRequest {
@@ -25,6 +25,8 @@ export interface IReportRequest {
     spccmcC_Id?: number;
     selectedhouselist?: { spccmH_Id: number }[];
     selectedSectionlist?: { asmS_Id: number }[];
+    search_column?: string;
+    search_query?: string;
 }
 
 export interface IStudentAgeCalculationDropdowns {

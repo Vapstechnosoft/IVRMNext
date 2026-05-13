@@ -119,7 +119,7 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                     <div className='grid grid-cols-1 gap-5 md:grid-cols-2 '>
                         <div className='group flex flex-col gap-2'>
                             <Label htmlFor='lmS_ParentId' className='whitespace-nowrap font-medium'>
-                                Parent Subject <span className='ml-1 text-red-500'>*</span>:
+                                Parent Name <span className='ml-1 text-red-500'>*</span>:
                             </Label>
                             <div className='w-100'>
                                 <Controller

@@ -11,33 +11,35 @@ export interface IAvailableBooksReportInitialData {
 }
 
 export interface IAvailableBooksReportRequest {
-    type: string;
-    type2: string;
-    fromdate?: string;
-    toDate?: string;
-    lmD_Id: number;
+    Type: string;
+    Type2: string;
+    LMD_Id: number;
+    LMAL_Id: number;
+    Fromdate?: string;
+    ToDate?: string;
     statuscount: boolean;
-    lmaL_Id: number;
     subjectsthomos: boolean;
+    stthomosSubject: any[];
 }
 
 export interface IAvailableBooksReportGridData {
-    lmb_EntryDate: string;
-    lmbano_AccessionNo: string;
-    lmb_BookTitle: string;
-    lmb_ISBNNo: string;
-    lmb_CallNo: string;
-    lmb_ClassNo: string;
-    lmb_NetPrice: number;
-    lmb_BookType: string;
-    lmd_DepartmentName: string;
+    lmB_EntryDate: string;
+    lmbanO_AccessionNo: string;
+    lmB_BookTitle: string;
+    lmB_ISBNNo?: string;
+    lmB_CallNo: string;
+    lmB_ClassNo?: string;
+    lmB_NetPrice: number;
+    lmB_BookType: string;
+    lmD_DepartmentName: string;
     authorName: string;
-    lmp_PublisherName: string;
-    lml_LanguageName: string;
-    lms_SubjectName: string;
-    lmb_PurOrDonated: string;
+    lmP_PublisherName: string;
+    lmL_LanguageName: string;
+    lmS_SubjectName: string;
+    lmB_PurOrDonated?: string;
+    lmB_Price?: number;
+    lmB_BillNo?: string;
+    lmB_PurchaseDate?: string;
 }
 
-export interface IAvailableBooksReportResponse {
-    griddata: IAvailableBooksReportGridData[];
-}
+export type IAvailableBooksReportResponse = IAvailableBooksReportGridData[];
