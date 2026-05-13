@@ -1,5 +1,5 @@
 'use client';
-
+ 
 import { useState, use, useRef, useEffect } from 'react';
 import { Heading } from '@/components/layout/heading';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
@@ -21,14 +21,15 @@ import { useReactToPrint } from 'react-to-print';
 import { InvRGRNPrint } from './_components/inv-r-grn-print';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
-
+import { format } from 'date-fns';
+ 
 interface ReportTotals {
     basic: number;
     tax: number;
     discount: number;
     final: number;
 }
-
+ 
 const calculateReportTotals = (data: any[]): ReportTotals => {
     return data.reduce((acc: ReportTotals, curr: any) => {
         // Handle casing and report type variations
@@ -37,9 +38,9 @@ const calculateReportTotals = (data: any[]): ReportTotals => {
         const tax = curr.invtgrn_taxamt ?? curr.invtgrN_TaxAmt ?? curr.grnTax ?? curr.grntax ?? 0;
         const discount = curr.invtgrn_discountamt ?? curr.invtgrN_DiscountAmt ?? curr.grnDiscount ?? curr.grndiscount ?? 0;
         const amount = curr.invtgrn_amount ?? curr.invtgrN_Amount ?? curr.grnAmount ?? curr.grnamount ?? 0;
-
+ 
         const basic = Number(qty) * Number(rate);
-
+ 
         return {
             basic: acc.basic + basic,
             tax: acc.tax + Number(tax),
@@ -48,12 +49,12 @@ const calculateReportTotals = (data: any[]): ReportTotals => {
         };
     }, { basic: 0, tax: 0, discount: 0, final: 0 } as ReportTotals);
 };
-
+ 
 export default function InvRGRNPage(props: { searchParams: Promise<any> }) {
     const searchParams = use(props.searchParams);
     const [currentPayload, setCurrentPayload] = useState<IInvRGRNPayload | null>(null);
     const queryClient = useQueryClient();
-
+ 
     // Pagination State synced with URL (same as DataTable)
     const [currentPage, setCurrentPage] = useQueryState(
         tableSearchVariables.page,
@@ -67,15 +68,15 @@ export default function InvRGRNPage(props: { searchParams: Promise<any> }) {
         tableSearchVariables.search,
         parseAsString.withOptions({ shallow: false }).withDefault('')
     );
-
+ 
     const [printData, setPrintData] = useState<IInvRGRNReportData[]>([]);
     const componentRef = useRef<HTMLDivElement>(null);
-
+ 
     const { data: reportResult, isFetching } = useInvRGRNReportQuery(currentPayload, { ...searchParams, page: currentPage, page_size: pageSize, search_query: searchQuery });
-
+ 
     const reportData = reportResult?.data?.get_grnreport || [];
     const totalRecords = reportResult?.total || 0;
-
+ 
     // Handle initial report generation (Page 1)
     const handleReportGenerated = (data: IInvRGRNReportData[], payload: IInvRGRNPayload, total: number) => {
         if (total === 0) {
@@ -83,7 +84,6 @@ export default function InvRGRNPage(props: { searchParams: Promise<any> }) {
         }
         
         // Seed the query cache with the data we just got from the form submit
-        // This prevents the hook from needing to immediately re-fetch
         queryClient.setQueryData(['invRGRNReport', payload, { ...searchParams, page: 1, page_size: pageSize, search_query: '' }], {
             success: true,
             data: { get_grnreport: data, get_grn_item_supplier: [] },
@@ -91,34 +91,34 @@ export default function InvRGRNPage(props: { searchParams: Promise<any> }) {
             page: 1,
             page_size: pageSize
         });
-
+ 
         setCurrentPayload(payload);
-
+ 
         // Reset to page 1
         setCurrentPage(1);
         setSearchQuery(null);
     };
-
+ 
     // Show toast for empty search results
     useEffect(() => {
         if (!isFetching && searchQuery && reportData.length === 0) {
             toast.error("No record found");
         }
     }, [isFetching, reportData.length, searchQuery]);
-
+ 
     const columns = getColumns(currentPayload?.typeflag || 'All', (currentPayload as any)?.optionflag, currentPage, pageSize);
-
+ 
     // Calculate Totals (Client side sum of CURRENT PAGE)
     const totals = calculateReportTotals(reportData);
-
+ 
     // Validate if Final approx Basic + Tax - Discount. Use API 'amount' as truth, or calculated if 0.
     const displayFinal = totals.final > 0 ? totals.final : (totals.basic + totals.tax - totals.discount);
-
+ 
     const handlePrintContent = useReactToPrint({
         contentRef: componentRef,
         documentTitle: 'GRN_Report'
     });
-
+ 
     const fetchAllData = async (action: 'print' | 'excel') => {
         if (!currentPayload) return [];
         try {
@@ -142,7 +142,7 @@ export default function InvRGRNPage(props: { searchParams: Promise<any> }) {
              return [];
         }
     };
-
+ 
     const handlePrint = async () => {
         const allData = await fetchAllData('print');
         if (allData.length > 0) {
@@ -153,14 +153,14 @@ export default function InvRGRNPage(props: { searchParams: Promise<any> }) {
             }, 500);
         }
     };
-
+ 
     const handleExportExcel = async () => {
         const allData = await fetchAllData('excel');
         if (allData.length > 0) {
             let dataToExport: any[] = [];
             const typeflag = currentPayload?.typeflag || 'All';
             const optionflag = currentPayload?.optionflag;
-
+ 
             if (typeflag === 'All' || typeflag === 'Detailed') {
                 dataToExport = allData.map((row: any, index: number) => ({
                     "SL.No": index + 1,
@@ -208,7 +208,7 @@ export default function InvRGRNPage(props: { searchParams: Promise<any> }) {
                     }));
                 }
             }
-
+ 
             const worksheet = XLSX.utils.json_to_sheet(dataToExport);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "GRN Report");
@@ -218,79 +218,105 @@ export default function InvRGRNPage(props: { searchParams: Promise<any> }) {
             toast.success('Excel downloaded successfully');
         }
     };
-
+ 
     return (
-        <div className="space-y-6">
+        <div className="container mx-auto px-4 py-6 space-y-6">
             <Heading
                 title="GRN Report"
                 description="Generate Goods Receipt Note Reports"
             />
-
-
+ 
             <ReportForm
                 onReportGenerated={handleReportGenerated}
             />
-
+ 
             {currentPayload && (
                 <CollapsibleSection title="Report Result" defaultOpen={true}>
-                    <div className="p-4 space-y-4">
-                        <div className="flex justify-between items-center bg-muted/20 p-2 rounded border">
-                            <div className="flex gap-2 items-center">
-                                <span className="font-semibold text-sm">Total Records:</span>
-                                <Badge variant="secondary">{totalRecords}</Badge>
+                    <div className="p-6 space-y-8 bg-white text-slate-900 rounded-lg shadow-sm border border-slate-200">
+                        {/* Header Section */}
+                        <div className="flex flex-col items-center justify-center space-y-3 mb-8 border-b border-slate-200 pb-6">
+                            <h3 className="text-3xl font-bold uppercase tracking-tight text-slate-800 text-center">
+                                GRN Report
+                            </h3>
+                            <div className="w-24 h-1 bg-primary rounded-full"></div>
+                            <p className="text-lg font-medium text-slate-600 uppercase tracking-wide">
+                                {currentPayload.startdate ? format(new Date(currentPayload.startdate), 'dd/MM/yyyy') : 'N/A'} - {currentPayload.enddate ? format(new Date(currentPayload.enddate), 'dd/MM/yyyy') : 'N/A'}
+                            </p>
+                        </div>
+
+                        <div className="flex justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-sm">
+                            <div className="flex gap-4 items-center">
+                                <div className="flex gap-2 items-center">
+                                    <span className="font-semibold text-slate-500 uppercase tracking-wider text-xs">Total Records:</span>
+                                    <Badge variant="secondary" className="bg-slate-200 text-slate-700 hover:bg-slate-200">{totalRecords}</Badge>
+                                </div>
+                                <div className="h-4 w-[1px] bg-slate-300"></div>
+                                <div className="flex gap-2 items-center">
+                                    <span className="font-semibold text-slate-500 uppercase tracking-wider text-xs">Type:</span>
+                                    <Badge variant="outline" className="border-primary/30 text-primary uppercase text-[10px]">{currentPayload.typeflag}</Badge>
+                                </div>
                             </div>
-                            <div className="flex gap-2 items-center">
-                                <Button variant="outline" size="sm" onClick={handleExportExcel}>
+                            <div className="flex gap-3 items-center">
+                                <Button
+                                    variant="outline"
+                                    className="w-fit border-green-600 text-green-700 hover:bg-green-50 shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg"
+                                    onClick={handleExportExcel}
+                                >
                                     <FileSpreadsheet className="mr-2 h-4 w-4" /> Export Excel
                                 </Button>
-                                <Button variant="outline" size="sm" onClick={handlePrint}>
+                                <Button
+                                    variant="secondary"
+                                    className="w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg"
+                                    onClick={handlePrint}
+                                >
                                     <Printer className="mr-2 h-4 w-4" /> Print
                                 </Button>
                             </div>
                         </div>
-
-                        <GenericDataTable
-                            data={reportData}
-                            columns={columns}
-                            isLoading={isFetching} // Use isFetching to show loading on page changes/search
-                            totalItems={totalRecords}
-                            isSearchRequired={true}
-                            noDataTitle="No GRN Found"
-                            noDataDescription="No records found matching your search criteria."
-                        />
-
-                        {/* Summary Card */}
-                        {reportData.length > 0 && (
-                            <div className="flex justify-end">
-                                <Card className="w-full md:w-[400px] bg-muted/10">
-                                    <CardHeader className="py-3">
-                                        <CardTitle className="text-sm font-semibold uppercase text-muted-foreground">Summary (Current Page)</CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="space-y-2 text-sm pt-0">
-                                        <div className="flex justify-between">
-                                            <span>Total Amount (Basic):</span>
-                                            <span className="font-mono">{totals.basic.toFixed(2)}</span>
-                                        </div>
-                                        <div className="flex justify-between text-green-600">
-                                            <span>Total Tax (+):</span>
-                                            <span className="font-mono">{totals.tax.toFixed(2)}</span>
-                                        </div>
-                                        <div className="flex justify-between text-destructive">
-                                            <span>Total Discount (-):</span>
-                                            <span className="font-mono">{totals.discount.toFixed(2)}</span>
-                                        </div>
-                                        <div className="border-t pt-2 mt-2 flex justify-between font-bold text-lg">
-                                            <span>Final Amount:</span>
-                                            <span className="font-mono">{displayFinal.toFixed(2)}</span>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </div>
-                        )}
+ 
+                        <div className="space-y-4">
+                            <GenericDataTable
+                                data={reportData}
+                                columns={columns}
+                                isLoading={isFetching}
+                                totalItems={totalRecords}
+                                isSearchRequired={true}
+                                noDataTitle="No GRN Found"
+                                noDataDescription="No records found matching your search criteria."
+                            />
+ 
+                            {reportData.length > 0 && (
+                                <div className="flex justify-end mt-4">
+                                    <Card className="w-full md:w-[400px] bg-muted/10 print:bg-transparent print:border-none print:shadow-none">
+                                        <CardHeader className="py-3">
+                                            <CardTitle className="text-sm font-semibold uppercase text-muted-foreground print:text-black">Summary (Current Page)</CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="space-y-2 text-sm pt-0">
+                                            <div className="flex justify-between">
+                                                <span>Total Amount (Basic):</span>
+                                                <span className="font-mono">{totals.basic.toFixed(2)}</span>
+                                            </div>
+                                            <div className="flex justify-between text-green-600 print:text-black">
+                                                <span>Total Tax (+):</span>
+                                                <span className="font-mono">{totals.tax.toFixed(2)}</span>
+                                            </div>
+                                            <div className="flex justify-between text-destructive print:text-black">
+                                                <span>Total Discount (-):</span>
+                                                <span className="font-mono">{totals.discount.toFixed(2)}</span>
+                                            </div>
+                                            <div className="border-t pt-2 mt-2 flex justify-between font-bold text-lg">
+                                                <span>Final Amount:</span>
+                                                <span className="font-mono">{displayFinal.toFixed(2)}</span>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </CollapsibleSection>
             )}
-
+ 
             {/* Hidden Print Component */}
             <div
                 style={{

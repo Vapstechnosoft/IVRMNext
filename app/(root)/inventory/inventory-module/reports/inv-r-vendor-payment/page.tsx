@@ -258,7 +258,7 @@ export default function VendorPaymentReportPage(props: { searchParams: Promise<a
     };
 
     return (
-        <div className="space-y-6">
+        <div className="container mx-auto px-4 py-6 space-y-6">
             <Heading
                 title="Vendor Payment Report"
                 description="View overall and vendor-wise payment reports."
@@ -271,17 +271,43 @@ export default function VendorPaymentReportPage(props: { searchParams: Promise<a
 
             {currentPayload && (
                 <CollapsibleSection title="Report Result" defaultOpen={true}>
-                    <div className="p-4 space-y-4">
-                        <div className="flex justify-between items-center bg-muted/20 p-2 rounded border">
-                            <div className="flex gap-2 items-center">
-                                <span className="font-semibold text-sm">Total Records:</span>
-                                <Badge variant="secondary">{totalRecords}</Badge>
+                    <div className="p-6 space-y-8 bg-white text-slate-900 rounded-lg shadow-sm border border-slate-200">
+                        {/* Header Section */}
+                        <div className="flex flex-col items-center justify-center space-y-3 mb-8 border-b border-slate-200 pb-6">
+                            <h3 className="text-3xl font-bold uppercase tracking-tight text-slate-800 text-center">
+                                Vendor Payment Report
+                            </h3>
+                            <div className="w-24 h-1 bg-primary rounded-full"></div>
+                            <p className="text-lg font-medium text-slate-600 uppercase tracking-wide">
+                                {currentPayload.Fromdate ? format(new Date(currentPayload.Fromdate), 'dd/MM/yyyy') : 'N/A'} - {currentPayload.Todate ? format(new Date(currentPayload.Todate), 'dd/MM/yyyy') : 'N/A'}
+                            </p>
+                        </div>
+
+                        <div className="flex justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-sm">
+                            <div className="flex gap-4 items-center">
+                                <div className="flex gap-2 items-center">
+                                    <span className="font-semibold text-slate-500 uppercase tracking-wider text-xs">Total Records:</span>
+                                    <Badge variant="secondary" className="bg-slate-200 text-slate-700 hover:bg-slate-200">{totalRecords}</Badge>
+                                </div>
+                                <div className="h-4 w-[1px] bg-slate-300"></div>
+                                <div className="flex gap-2 items-center">
+                                    <span className="font-semibold text-slate-500 uppercase tracking-wider text-xs">Type:</span>
+                                    <Badge variant="outline" className="border-primary/30 text-primary uppercase text-[10px]">{currentPayload.reporttype}</Badge>
+                                </div>
                             </div>
-                            <div className="flex gap-2 items-center">
-                                <Button variant="outline" size="sm" onClick={handleExportExcel}>
+                            <div className="flex gap-3 items-center">
+                                <Button
+                                    variant="outline"
+                                    className="w-fit border-green-600 text-green-700 hover:bg-green-50 shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg"
+                                    onClick={handleExportExcel}
+                                >
                                     <FileSpreadsheet className="mr-2 h-4 w-4" /> Export Excel
                                 </Button>
-                                <Button variant="outline" size="sm" onClick={handlePrint}>
+                                <Button
+                                    variant="secondary"
+                                    className="w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg"
+                                    onClick={handlePrint}
+                                >
                                     <Printer className="mr-2 h-4 w-4" /> Print
                                 </Button>
                             </div>
@@ -301,31 +327,37 @@ export default function VendorPaymentReportPage(props: { searchParams: Promise<a
                         </div>
 
                         {/* Summary Footer */}
-                        <div className="flex justify-end">
-                            <Card className="w-full md:w-1/3 bg-muted/10">
-                                <CardHeader className="py-2">
-                                    <CardTitle className="text-sm">Summary</CardTitle>
-                                </CardHeader>
-                                <CardContent className="py-2 text-sm">
-                                    <div className="flex justify-between py-1 border-b">
-                                        <span className="font-semibold">Total Amount:</span>
-                                        <span>{totals.amount.toFixed(2)}</span>
-                                    </div>
-                                    {reportType === "Vendor" && (
-                                        <>
-                                            <div className="flex justify-between py-1 border-b">
-                                                <span className="font-semibold">Total Paid:</span>
-                                                <span>{totals.paid.toFixed(2)}</span>
-                                            </div>
-                                            <div className="flex justify-between py-1">
-                                                <span className="font-semibold">Total Balance:</span>
-                                                <span>{totals.balance.toFixed(2)}</span>
-                                            </div>
-                                        </>
-                                    )}
-                                </CardContent>
-                            </Card>
-                        </div>
+                        {reportData.length > 0 && (
+                            <div className="flex justify-end mt-4">
+                                <Card className="w-full md:w-[400px] bg-muted/10 print:bg-transparent print:border-none print:shadow-none">
+                                    <CardHeader className="py-3">
+                                        <CardTitle className="text-sm font-semibold uppercase text-muted-foreground print:text-black">Summary</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-2 text-sm pt-0">
+                                        <div className="flex justify-between font-medium">
+                                            <span>Total Amount:</span>
+                                            <span className="font-mono">{totals.amount.toFixed(2)}</span>
+                                        </div>
+                                        {reportType === "Vendor" && (
+                                            <>
+                                                <div className="flex justify-between text-green-600 print:text-black">
+                                                    <span>Total Paid:</span>
+                                                    <span className="font-mono">{totals.paid.toFixed(2)}</span>
+                                                </div>
+                                                <div className="flex justify-between text-destructive print:text-black">
+                                                    <span>Total Balance:</span>
+                                                    <span className="font-mono">{totals.balance.toFixed(2)}</span>
+                                                </div>
+                                            </>
+                                        )}
+                                        <div className="border-t pt-2 mt-2 flex justify-between font-bold text-lg">
+                                            <span>Net Total:</span>
+                                            <span className="font-mono">{(totals.amount).toFixed(2)}</span>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        )}
                     </div>
                 </CollapsibleSection>
             )}
