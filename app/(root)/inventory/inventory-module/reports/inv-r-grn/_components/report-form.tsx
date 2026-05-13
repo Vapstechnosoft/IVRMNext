@@ -56,26 +56,35 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
     }, [optionflag, refetchLoadData, setValue]);
  
     // Derived options for MultiSelects
-    const grnOptions = useMemo(() => {
-        return loadData?.data?.get_grn_item_supplier?.map((item: any) => ({
-            label: item.invmgrN_GRNNo,
-            value: item.invmgrN_Id?.toString()
-        })) || [];
+    const detailsArray = useMemo(() => {
+        if (!loadData) return [];
+        if (Array.isArray(loadData.data)) return loadData.data;
+        if (loadData.data?.get_grn_item_supplier && Array.isArray(loadData.data.get_grn_item_supplier)) {
+            return loadData.data.get_grn_item_supplier;
+        }
+        return [];
     }, [loadData]);
+ 
+    const grnOptions = useMemo(() => {
+        return detailsArray.map((item: any) => ({
+            label: item.name || item.invmgrN_GRNNo,
+            value: (item.id || item.invmgrN_Id)?.toString()
+        }));
+    }, [detailsArray]);
  
     const itemOptions = useMemo(() => {
-        return loadData?.data?.get_grn_item_supplier?.map((item: any) => ({
-            label: item.invmI_ItemName,
-            value: item.invmI_Id?.toString()
-        })) || [];
-    }, [loadData]);
+        return detailsArray.map((item: any) => ({
+            label: item.name || item.invmI_ItemName,
+            value: (item.id || item.invmI_Id)?.toString()
+        }));
+    }, [detailsArray]);
  
     const supplierOptions = useMemo(() => {
-        return loadData?.data?.get_grn_item_supplier?.map((item: any) => ({
-            label: item.invmS_SupplierName,
-            value: item.invmS_Id?.toString()
-        })) || [];
-    }, [loadData]);
+        return detailsArray.map((item: any) => ({
+            label: item.name || item.invmS_SupplierName,
+            value: (item.id || item.invmS_Id)?.toString()
+        }));
+    }, [detailsArray]);
  
     const onSubmit = (data: InvRGRNSchema) => {
         generateReportMutation.mutate(
@@ -240,12 +249,12 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
                                             <MultiSelect
                                                 options={grnOptions}
                                                 onValueChange={(val) => {
-                                                    const selectedObjects = loadData?.data?.get_grn_item_supplier
-                                                        ?.filter((i: any) => val.includes(i.invmgrN_Id.toString()))
+                                                    const selectedObjects = detailsArray
+                                                        ?.filter((i: any) => val.includes((i.id || i.invmgrN_Id)?.toString()))
                                                         .map((i: any) => ({ ...i, checked: true }));
                                                     field.onChange(selectedObjects);
                                                 }}
-                                                defaultValue={field.value?.map((v: any) => v.invmgrN_Id.toString())}
+                                                defaultValue={field.value?.map((v: any) => (v.id || v.invmgrN_Id)?.toString())}
                                                 placeholder="Select GRN..."
                                             />
                                         )}
@@ -264,12 +273,12 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
                                             <MultiSelect
                                                 options={itemOptions}
                                                 onValueChange={(val) => {
-                                                    const selectedObjects = loadData?.data?.get_grn_item_supplier
-                                                        ?.filter((i: any) => val.includes(i.invmI_Id.toString()))
+                                                    const selectedObjects = detailsArray
+                                                        ?.filter((i: any) => val.includes((i.id || i.invmI_Id)?.toString()))
                                                         .map((i: any) => ({ ...i, checked: true }));
                                                     field.onChange(selectedObjects);
                                                 }}
-                                                defaultValue={field.value?.map((v: any) => v.invmI_Id.toString())}
+                                                defaultValue={field.value?.map((v: any) => (v.id || v.invmI_Id)?.toString())}
                                                 placeholder="Select Item..."
                                             />
                                         )}
@@ -288,12 +297,12 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
                                             <MultiSelect
                                                 options={supplierOptions}
                                                 onValueChange={(val) => {
-                                                    const selectedObjects = loadData?.data?.get_grn_item_supplier
-                                                        ?.filter((i: any) => val.includes(i.invmS_Id.toString()))
+                                                    const selectedObjects = detailsArray
+                                                        ?.filter((i: any) => val.includes((i.id || i.invmS_Id)?.toString()))
                                                         .map((i: any) => ({ ...i, checked: true }));
                                                     field.onChange(selectedObjects);
                                                 }}
-                                                defaultValue={field.value?.map((v: any) => v.invmS_Id.toString())}
+                                                defaultValue={field.value?.map((v: any) => (v.id || v.invmS_Id)?.toString())}
                                                 placeholder="Select Supplier..."
                                             />
                                         )}
