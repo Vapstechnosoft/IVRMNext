@@ -6,31 +6,33 @@ const BASE_URL = "/StudentAttendanceEntry";
 
 /**
  * Loads initial data for Student Attendance Entry.
- * @param yearId The academic year ID.
  */
-export async function getInitialData(portalType?: string | number) {
-  const url = portalType !== undefined && portalType !== null && portalType !== ''
+export async function getInitialData(portalType?: string) {
+  const url = portalType
     ? `/StudentAttendanceEntry/getinitialdata?stringmobileorportal=${portalType}`
     : '/StudentAttendanceEntry/getinitialdata';
-  const res = await api.get<any>('admission', url);
-  return res?.data || res;
+  return await api.get<any>('admission', url);
 }
+
 /**
  * Gets student data based on criteria (Class/Section/Year).
  */
 export async function getStudentData(data: {
-  asmay_Id: number;
-  asmcl_Id: number;
+  asmaY_Id: number;
+  asmcL_Id: number;
   asmS_Id: number;
-  asamdM_Entry_DateTime: string;
+  asa_FromDate: string;
   monthflag: string;
   monthflag1: string;
   classsecflag: string;
   checksubject: string;
+  monthid: number;
+  ismS_Id: number;
+  ttmP_Id: number;
 }) {
-  const res = await api.post<any>('admission', '/StudentAttendanceEntry/getstudentdata', data);
-  return res?.data || res;
+  return await api.post<any>('admission', '/StudentAttendanceEntry/getstudentdata', data);
 }
+
 /**
  * Gets month class held for monthly attendance.
  */
@@ -43,25 +45,23 @@ export async function getMonthClassHeld(data: {
   monthflag1: string;
   asamdM_Entry_DateTime: string;
 }) {
-  const res = await api.post<any>('admission', '/StudentAttendanceEntry/getmonthclassheld', data);
-  return res?.data || res;
+  return await api.post<any>('admission', '/StudentAttendanceEntry/getmonthclassheld', data);
 }
 
 /**
  * Gets date wise attendance details.
  */
 export async function getDateWiseAttendance(data: {
-  asmay_Id: number;
-  asmcl_Id: number;
+  asmaY_Id: number;
+  asmcL_Id: number;
   asmS_Id: number;
-  asamdM_Entry_DateTime: string;
   monthflag: string;
+  monthflag1: string;
+  asa_FromDate: string;
   monthid: number;
 }) {
-  const res = await api.post<any>('admission', '/StudentAttendanceEntry/getdatewiseatt', data);
-  return res?.data || res;
+  return await api.post<any>('admission', '/StudentAttendanceEntry/getdatewiseatt', data);
 }
-
 
 /**
  * Gets batch list for a subject.
@@ -72,9 +72,9 @@ export async function getBatchList(data: {
   ASMS_Id: number;
   ismS_Id: number;
 }) {
-  const res = await api.post<any>('admission', `/StudentAttendanceEntry/getbatchlist?ASMAY_Id=${data.ASMAY_Id}&ASMCL_Id=${data.ASMCL_Id}&ASMS_Id=${data.ASMS_Id}&ismS_Id=${data.ismS_Id}`);
-  return res?.data || res;
+  return await api.post<any>('admission', `/StudentAttendanceEntry/getbatchlist?ASMAY_Id=${data.ASMAY_Id}&ASMCL_Id=${data.ASMCL_Id}&ASMS_Id=${data.ASMS_Id}&ismS_Id=${data.ismS_Id}`);
 }
+
 /**
  * Gets student list for period wise attendance.
  */
@@ -89,14 +89,14 @@ export async function getStdListPeriod(data: {
   att_entry_type: string;
   asasB_Id: number;
 }) {
-  const res = await api.post<any>('admission', '/StudentAttendanceEntry/getstdlistperiod', data);
-  return res?.data || res;
+  return await api.post<any>('admission', '/StudentAttendanceEntry/getstdlistperiod', data);
 }
+
 /**
  * Saves student attendance entry.
  */
 export async function saveAttendance(payload: any): Promise<ApiResponse<any>> {
-  return await api.post('admission', `${BASE_URL}`, payload);
+  return await api.post('admission', '/StudentAttendanceEntry/SaveStudentAttendance', payload);
 }
 
 /**
@@ -112,22 +112,18 @@ export async function viewAttendanceDetailsStaffWise(data: {
   if (data.att_entry_type) {
     url += `&att_entry_type=${data.att_entry_type}`;
   }
-  const res = await api.post<any>('admission', url);
-  return res?.data || res;
+  return await api.post<any>('admission', url);
 }
 
 /**
  * Deletes attendance for a criteria.
  */
 export async function deleteAttendance(data: any) {
-  const res = await api.post<any>('admission', '/StudentAttendanceEntry/Deleteattendance', data);
-  return res?.data || res;
+  return await api.post<any>('admission', '/StudentAttendanceEntry/Deleteattendance', data);
 }
-
 
 export async function deleteAttendanceRecordWise(data: {
   ASA_Id: number;
 }) {
-  const res = await api.post<any>('admission', `/StudentAttendanceEntry/AttendanceDeleteRecordWise?asaId=${data.ASA_Id}`);
-  return res?.data || res;
+  return await api.post<any>('admission', `/StudentAttendanceEntry/AttendanceDeleteRecordWise?asaId=${data.ASA_Id}`);
 }

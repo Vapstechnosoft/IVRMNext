@@ -16,13 +16,15 @@ export default function EventsStudentSRKVSPage() {
     const [isAddFormOpen, setIsAddFormOpen] = useState(false);
 
     const { gridData } = useEventsStudentSRKVS();
-    // Verify if gridData.data is the wrapper { success, data: [] } or just the array
+    // Normalize: gridData.data is ApiResponse<IEventsStudentSRKVSData[]>
     const dataList = gridData.data?.data || (Array.isArray(gridData.data) ? gridData.data : []) || [];
     console.log("Page - Data List for Table:", dataList);
     const tableProps = {
         data: dataList,
         totalItems: dataList.length,
-        success: gridData.data?.success,
+        // If data is present, treat as success — prevents "UOMList not found" from
+        // blocking the table even when the backend sends success:false with records
+        success: dataList.length > 0 ? true : (gridData.data?.success ?? true),
         errorMessage: gridData.data?.message
     };
 

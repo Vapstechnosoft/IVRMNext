@@ -1,13 +1,25 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useMasterCaste } from '@/hooks/admission/preadmission/useMasters';
 import type { IMasterCasteList } from '@/types/admission/preadmission/masters';
-import { Plus, X } from 'lucide-react';
-import { use } from 'react';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle
+} from '@/components/ui/alert-dialog';
+import { Spinner } from '@/components/ui/spinner';
+import { deleteMasterCaste } from '@/server/admission/preadmission/masters/caste';
+import { Plus, Trash2, X } from 'lucide-react';
+import { use, useState } from 'react';
+import { toast } from 'sonner';
 import AddMasterCasteForm from './_components/add-form';
 import { masterCasteColumns } from './_components/columns';
 import UpdateMasterCasteForm from './_components/update-form';
@@ -17,11 +29,11 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function MasterCastePage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
 
-    const { data: response, isLoading, error } = useMasterCaste(searchParams);
+    const { data: response, isLoading, error, refetchAll } = useMasterCaste(searchParams);
 
     return (
         <FormProvider<IMasterCasteList>>
-            <MasterCastePageContent response={response} isLoading={isLoading} error={error} />
+            <MasterCastePageContent response={response} isLoading={isLoading} error={error} onRefresh={refetchAll} />
         </FormProvider>
     );
 }
@@ -29,11 +41,13 @@ export default function MasterCastePage(props: { searchParams: SearchParams }) {
 function MasterCastePageContent({
     response,
     isLoading,
-    error
+    error,
+    onRefresh
 }: {
     response: any;
     isLoading: boolean;
     error: any;
+    onRefresh: () => void;
 }) {
     const { openAddForm } = useFormContext<IMasterCasteList>();
     const tableProps = useDataTableProps(response);
@@ -73,15 +87,45 @@ function MasterCastePageContent({
                 </CollapsibleSection>
 
                 {/* Forms */}
-                <FormSections />
+                <FormSections onRefresh={onRefresh} />
             </div>
         </div>
     );
 }
 
-function FormSections() {
-    const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
-        useFormContext<IMasterCasteList>();
+function FormSections({ onRefresh }: { onRefresh: () => void }) {
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        isDeleteFormOpen,
+        selectedRow,
+        closeAddForm,
+        closeEditForm,
+        closeDeleteForm,
+        addFormRef,
+        editFormRef
+    } = useFormContext<IMasterCasteList>();
+
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const handleDelete = async () => {
+        if (!selectedRow) return;
+        setIsDeleting(true);
+        try {
+            const res = await deleteMasterCaste(selectedRow.imC_Id, selectedRow.imcC_Id);
+            if (res.success) {
+                toast.success(res.message || 'Master Caste deleted successfully');
+                closeDeleteForm();
+                onRefresh();
+            } else {
+                toast.error(res.message || 'Failed to delete Master Caste');
+            }
+        } catch (error) {
+            toast.error('An error occurred while deleting');
+        } finally {
+            setIsDeleting(false);
+        }
+    };
 
     return (
         <>
@@ -104,7 +148,12 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddMasterCasteForm onSuccess={closeAddForm} />
+                            <AddMasterCasteForm
+                                onSuccess={() => {
+                                    closeAddForm();
+                                    onRefresh();
+                                }}
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -128,11 +177,51 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateMasterCasteForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                            <UpdateMasterCasteForm
+                                selectedRow={selectedRow}
+                                onSuccess={() => {
+                                    closeEditForm();
+                                    onRefresh();
+                                }}
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>
             )}
+
+            {/* Delete Confirmation */}
+            <AlertDialog open={isDeleteFormOpen} onOpenChange={closeDeleteForm}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the caste{' '}
+                            <span className='font-bold text-foreground'>"{selectedRow?.imC_CasteName}"</span> and remove it
+                            from our servers.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={(e) => {
+                                e.preventDefault();
+                                handleDelete();
+                            }}
+                            disabled={isDeleting}
+                            className='bg-destructive text-destructive-foreground hover:bg-destructive/90'>
+                            {isDeleting ? (
+                                <>
+                                    <Spinner className='mr-2 h-4 w-4' /> Deleting...
+                                </>
+                            ) : (
+                                <>
+                                    <Trash2 className='mr-2 h-4 w-4' /> Delete
+                                </>
+                            )}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </>
     );
 }

@@ -22,8 +22,12 @@ import { useStudentClassDropDown, useStudentSectionDropDown } from '@/hooks/fees
 import { useFeeDefaulterReport } from '@/hooks/fees/useReports';
 import { useFeeMasterConfiguration, useFeeTransactionListStThomas } from '@/hooks/fees/useTrasactions';
 import { feesStudentTransactionSchema } from '@/schemas/fees/trasactions';
-import { getFeeHead, getStudentDetails, masterBank, saveFeeTransaction } from '@/server/fees/trasactions/fee_student_transaction';
-import { searchStudentNamestsstthomas } from '@/server/fees/trasactions/fee_transaction_stthomas';
+import { masterBank, saveFeeTransaction } from '@/server/fees/trasactions/fee_student_transaction';
+import {
+    getFeeHeadsstthomas,
+    getStudentDetailssstthomas,
+    searchStudentNamestsstthomas
+} from '@/server/fees/trasactions/fee_transaction_stthomas';
 import type {
     IFeeTDetails,
     IFeeTermDetails,
@@ -256,7 +260,7 @@ export default function StudentFeeTransactionStThomas({ onSuccess, asmayId }: Fe
                 };
 
                 // console.log('term details payload', JSON.stringify(payload));
-                const termArray = await getStudentDetails(payload);
+                const termArray = await getStudentDetailssstthomas(payload);
                 const termList = JSON.parse(JSON.stringify(termArray.masterGroupDetails || []));
                 const disableTerms = JSON.parse(JSON.stringify(termArray.termDetails || []));
                 const studentDetails = JSON.parse(JSON.stringify(termArray.fillstudents || []));
@@ -312,7 +316,7 @@ export default function StudentFeeTransactionStThomas({ onSuccess, asmayId }: Fe
                     multiplegroups: selectedTerm.toString(),
                     fyP_Date: todaysDate
                 };
-                const termListArray = await getFeeHead(payload);
+                const termListArray = await getFeeHeadsstthomas(payload);
                 const feeDetails = JSON.parse(JSON.stringify(termListArray.feeStudentTermInfo || []));
                 const narrationDropDown = JSON.parse(JSON.stringify(termListArray.masterNarrations || []));
                 const modeofPaymentList = JSON.parse(JSON.stringify(termListArray.modeOfPaymentDTOs || []));

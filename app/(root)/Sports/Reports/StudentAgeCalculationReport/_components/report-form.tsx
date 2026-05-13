@@ -24,18 +24,19 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, List, X, Search } from "lucide-react";
 import { toast } from "sonner";
-import { StudentAgeReportSchema, type StudentAgeReportFormSchema, type IStudentAgeReport, type IStudentAgeCalculationDropdowns } from "@/types/sports/reports/student-age-calculation";
+import { StudentAgeReportSchema, type StudentAgeReportFormSchema, type IStudentAgeReport, type IStudentAgeCalculationDropdowns, type IReportRequest } from "@/types/sports/reports/student-age-calculation";
 import { useStudentAgeCalculationReport } from "@/hooks/sports/useStudentAgeCalculationReport";
 import { getClassesForYear, getSectionsForClass } from "@/server/sports/reports/student-age-calculation";
 import { Input } from "@/components/ui/input";
 
 interface ReportFormProps {
-    onReportGenerated: (data: IStudentAgeReport[]) => void;
+    onReportGenerated: (data: IStudentAgeReport[], payload: IReportRequest) => void;
     onReset: () => void;
+    isPending?: boolean;
 }
 
-export default function ReportForm({ onReportGenerated, onReset }: ReportFormProps) {
-    const { initialData, generateReport } = useStudentAgeCalculationReport();
+export default function ReportForm({ onReportGenerated, onReset, isPending }: ReportFormProps) {
+    const { initialData } = useStudentAgeCalculationReport();
 
     const [classList, setClassList] = useState<IStudentAgeCalculationDropdowns['classList']>([]);
     const [sectionList, setSectionList] = useState<IStudentAgeCalculationDropdowns['sectionList']>([]);
@@ -129,27 +130,12 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
     }, [watchedYear, watchedClass, watchedType]);
 
     const onSubmit = (data: StudentAgeReportFormSchema) => {
-        // Prepare payload strictly matching legacy
-        const payload = {
+        const payload: IReportRequest = {
             ...data,
             asmcL_Id: data.type === 'House' ? 0 : data.asmcL_Id,
             selectedSectionlist: data.type === 'House' ? [] : data.selectedSectionlist,
         };
-
-        generateReport.mutate(payload as any, {
-            onSuccess: (responseData) => {
-                onReportGenerated(responseData || []);
-                if (responseData && responseData.length > 0) {
-                    toast.success('Report generated successfully');
-                } else {
-                    toast.info('No records found');
-                }
-            },
-            onError: (error) => {
-                console.error("Report Generation Error:", error);
-                toast.error('Failed to generate report');
-            }
-        });
+        onReportGenerated([], payload);
     };
 
     const handleCancel = () => {
@@ -417,8 +403,8 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
                 </div>
 
                 <div className="flex justify-center gap-4 pt-6 border-t">
-                    <Button type="submit" disabled={generateReport.isPending} className="px-10">
-                        {generateReport.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <List className="mr-2 h-4 w-4" />}
+                    <Button type="submit" disabled={isPending} className="px-10">
+                        {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <List className="mr-2 h-4 w-4" />}
                         Report
                     </Button>
                     <Button type="button" variant="destructive" onClick={handleCancel} className="px-10">

@@ -28,7 +28,7 @@ export const masterReligionColumns: ColumnDef<IMasterReligionList>[] = [
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center font-bold text-black' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-left font-bold text-black' />,
         accessorFn: (row: any) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />

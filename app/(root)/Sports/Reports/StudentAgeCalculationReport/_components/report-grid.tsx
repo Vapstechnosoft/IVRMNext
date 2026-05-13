@@ -11,11 +11,11 @@ import { Search } from 'lucide-react';
 import { useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
 
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+
 interface ReportGridProps {
     data: IStudentAgeReport[];
-    searchQuery: string;
-    onSearchChange: (query: string) => void;
-    manualPagination?: boolean;
+    isLoading?: boolean;
 }
 
 const columns: ColumnDef<IStudentAgeReport>[] = [
@@ -25,69 +25,139 @@ const columns: ColumnDef<IStudentAgeReport>[] = [
         cell: ({ row }) => row.index + 1,
     },
     {
-        accessorKey: 'AMST_AdmNo',
+        accessorKey: 'amsT_Admno',
         header: 'Adm. No.',
+        cell: ({ row }) => row.original.amsT_Admno || '-'
     },
     {
         header: 'Student Name',
-        accessorKey: 'AMST_Name',
-        cell: ({ row }) => row.original.AMST_Name || '-'
+        accessorKey: 'amsT_Name',
+        cell: ({ row }) => row.original.amsT_Name || '-'
     },
     {
-        accessorKey: 'ASMCL_ClassName',
+        accessorKey: 'asmcL_Classname',
         header: 'Class',
+        cell: ({ row }) => row.original.asmcL_Classname || '-'
     },
     {
-        accessorKey: 'ASMC_SectionName',
+        accessorKey: 'asmC_Sectionname',
         header: 'Section',
+        cell: ({ row }) => row.original.asmC_Sectionname || '-'
     },
     {
-        accessorKey: 'SPCCMH_HouseName',
+        accessorKey: 'spccmH_Housename',
         header: 'House Name',
-        cell: ({ row }) => row.original.SPCCMH_HouseName || '-'
+        cell: ({ row }) => row.original.spccmH_Housename || '-'
     },
     {
-        accessorKey: 'AMST_DOB',
+        accessorKey: 'amsT_DOb',
         header: 'DOB',
         cell: ({ row }) => {
-            const date = new Date(row.original.AMST_DOB);
+            if (!row.original.amsT_DOb) return '-';
+            const date = new Date(row.original.amsT_DOb);
             return isNaN(date.getTime()) ? '-' : date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
         }
     },
     {
-        accessorKey: 'Months',
+        accessorKey: 'months',
         header: 'Age Months',
+        cell: ({ row }) => row.original.months ?? '-'
     },
     {
-        accessorKey: 'Years',
+        accessorKey: 'years',
         header: 'Years',
+        cell: ({ row }) => row.original.years ?? '-'
     },
     {
-        accessorKey: 'Monthsd',
+        accessorKey: 'monthsd',
         header: 'Months',
+        cell: ({ row }) => row.original.monthsd ?? '-'
     },
     {
-        accessorKey: 'SPCCMCL_CompitionLevel',
+        accessorKey: 'spccmcL_compitionLevel',
         header: 'Competition Category',
-        cell: ({ row }) => row.original.SPCCMCL_CompitionLevel || '-'
+        cell: ({ row }) => row.original.spccmcL_compitionLevel || '-'
     },
 ];
 
-export default function ReportGrid({ data, searchQuery, onSearchChange, manualPagination = true }: ReportGridProps) {
+// Column header labels for print table
+const printHeaders = [
+    'SL.No.', 'Adm. No.', 'Student Name', 'Class', 'Section', 'House Name', 'DOB', 'Age Months', 'Years', 'Months', 'Competition Category'
+];
+
+// Accessor keys matching columns order
+const printAccessors: (keyof IStudentAgeReport)[] = [
+    'amsT_Id', 'amsT_Admno', 'amsT_Name', 'asmcL_Classname', 'asmC_Sectionname', 'spccmH_Housename', 'amsT_DOb', 'months', 'years', 'monthsd', 'spccmcL_compitionLevel'
+];
+
+function buildPrintHtml(data: IStudentAgeReport[]): string {
+    const rows = data.map((row, idx) => {
+        const cells = printAccessors.map((key, colIdx) => {
+            // SL. No. column
+            if (colIdx === 0) return `<td style="border:1px solid #000;padding:6px 10px;text-align:center;">${idx + 1}</td>`;
+            
+            let val: any = row[key];
+            if (key === 'amsT_DOb' && val) {
+                const date = new Date(val);
+                val = isNaN(date.getTime()) ? '-' : date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+            }
+            
+            const displayVal = (val !== null && val !== undefined ? String(val) : '-');
+            return `<td style="border:1px solid #000;padding:6px 10px;text-align:center;">${displayVal}</td>`;
+        }).join('');
+        return `<tr>${cells}</tr>`;
+    }).join('');
+
+    const headerCells = printHeaders.map(h =>
+        `<th style="border:1px solid #000;padding:6px 10px;background:#f3f4f6;text-align:center;font-weight:bold;">${h}</th>`
+    ).join('');
+
+    return `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8"/>
+            <title>Student Age Calculation Report</title>
+            <style>
+                * { box-sizing: border-box; }
+                body { font-family: Arial, sans-serif; font-size: 10px; margin: 20px; background: #fff; color: #000; }
+                h2 { text-align: center; text-transform: uppercase; text-decoration: underline; margin-bottom: 16px; font-size: 16px; }
+                table { width: 100%; border-collapse: collapse; }
+                @media print {
+                    body { margin: 10mm; }
+                    @page { size: A4 landscape; margin: 10mm; }
+                }
+            </style>
+        </head>
+        <body>
+            <h2>Student Age Calculation Report</h2>
+            <table>
+                <thead><tr>${headerCells}</tr></thead>
+                <tbody>${rows.length > 0 ? rows : '<tr><td colspan="' + printHeaders.length + '" style="text-align:center;padding:20px;">No Records Found</td></tr>'}</tbody>
+            </table>
+        </body>
+        </html>
+    `;
+}
+
+export default function ReportGrid({ data, isLoading }: ReportGridProps) {
     const componentRef = useRef<HTMLDivElement>(null);
 
-    const handlePrint = useReactToPrint({
-        contentRef: componentRef,
-        documentTitle: 'Student_Age_Calculation_Report',
-        pageStyle: `
-          @page { size: portrait; margin: 20mm; }
-          @media print {
-            body { -webkit-print-color-adjust: exact; }
-            table { border-collapse: collapse !important; width: 100% !important; }
-            th, td { border: 1px solid #000 !important; padding: 8px !important; text-align: center !important; }
-          }
-        `
-    });
+    const handlePrint = () => {
+        const html = buildPrintHtml(data);
+        const printWindow = window.open('', '_blank', 'width=1200,height=800');
+        if (!printWindow) return;
+
+        printWindow.document.open();
+        printWindow.document.write(html);
+        printWindow.document.close();
+
+        printWindow.onload = () => {
+            printWindow.focus();
+            printWindow.print();
+            printWindow.close();
+        };
+    };
 
     const exportToExcel = () => {
         const worksheet = XLSX.utils.json_to_sheet(data);
@@ -95,12 +165,6 @@ export default function ReportGrid({ data, searchQuery, onSearchChange, manualPa
         XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
         XLSX.writeFile(workbook, "StudentAgeCalculationReport.xlsx");
     };
-
-    const filteredData = data.filter(item => {
-        const fullName = `${item.AMST_FirstName} ${item.AMST_MiddleName} ${item.AMST_LastName}`.toLowerCase();
-        return fullName.includes(searchQuery.toLowerCase()) ||
-            item.AMST_AdmNo.toLowerCase().includes(searchQuery.toLowerCase());
-    });
 
     return (
         <div className="space-y-4">
@@ -120,83 +184,24 @@ export default function ReportGrid({ data, searchQuery, onSearchChange, manualPa
                         </Button>
                     </div>
                 </div>
-                <div className="relative w-64">
-                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        placeholder="Search here..."
-                        className="pl-8"
-                        value={searchQuery}
-                        onChange={(e) => onSearchChange(e.target.value)}
-                    />
-                </div>
             </div>
 
-            <div ref={componentRef} className="bg-white p-6 rounded-lg shadow-sm border min-h-[400px]">
-                <style jsx global>{`
-                    @media screen {
-                        .print-only { display: none !important; }
-                    }
-                    @media print {
-                        .screen-only { display: none !important; }
-                        .print-only { display: block !important; }
-                        body { -webkit-print-color-adjust: exact !important; background: white !important; }
-                    }
-                `}</style>
+            <div className="bg-white p-6 rounded-lg shadow-sm border min-h-[400px]">
                 <div className="mb-6 text-center">
                     <h1 className="text-2xl font-bold uppercase underline text-primary">Student Age Calculation Report</h1>
                 </div>
 
-                <div className="screen-only">
-                    {filteredData.length > 0 ? (
-                        <DataTable
-                            columns={columns}
-                            data={filteredData}
-                            totalItems={filteredData.length}
-                            manualPagination={false}
-                        />
-                    ) : (
-                        <div className="py-20 text-center border-2 border-dashed rounded-xl bg-muted/30">
-                            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
-                                <Search className="h-8 w-8 text-muted-foreground" />
-                            </div>
-                            <h3 className="text-xl font-semibold mb-2">No records found</h3>
-                            <p className="text-muted-foreground">Try adjusting your filters or search query to find what you're looking for.</p>
-                        </div>
-                    )}
-                </div>
-
-                <div className="print-only overflow-x-auto">
-                    <table className="w-full border-collapse border border-gray-300 text-center text-[10pt]">
-                        <thead>
-                            <tr className="bg-gray-100">
-                                {columns.map((col: any, i) => (
-                                    <th key={i} className="border border-gray-300 p-2 font-bold whitespace-nowrap">
-                                        {typeof col.header === 'string' ? col.header : ''}
-                                    </th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredData.length > 0 ? (
-                                filteredData.map((row, rowIndex) => (
-                                    <tr key={rowIndex}>
-                                        {columns.map((col: any, colIndex) => (
-                                            <td key={colIndex} className="border border-gray-300 p-2">
-                                                {col.accessorKey ? (row as any)[col.accessorKey] : 
-                                                 col.cell ? (col.cell as any)({ row: { original: row, index: rowIndex } }) : ''}
-                                            </td>
-                                        ))}
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan={columns.length} className="border border-gray-300 p-10 text-center text-muted-foreground font-medium">
-                                        No Records Found
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
+                <div>
+                    <GenericDataTable<IStudentAgeReport>
+                        columns={columns}
+                        data={data}
+                        isLoading={!!isLoading}
+                        totalItems={data.length}
+                        manualPagination={false}
+                        manualFiltering={true}
+                        showSearchColumns={true}
+                        loadingMessage="Generating report..."
+                    />
                 </div>
             </div>
         </div>

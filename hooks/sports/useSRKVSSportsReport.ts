@@ -5,12 +5,12 @@ import {
     get_SportsName,
     get_uom_Name,
     showdetails
-} from '@/server/sports/reports/srkvs-sports-report-record';
+} from '@/server/sports/reports/srkvs-sports-report';
 
-export const useSRKVSSportsReportRecord = () => {
+export const useSRKVSSportsReport = () => {
     // Initial Load
     const loadData = useQuery({
-        queryKey: ['srkvsSportsReportRecordDropdowns'],
+        queryKey: ['srkvsSportsReportDropdowns'],
         queryFn: async () => {
             const response = await Getdetails({});
             return response.data;

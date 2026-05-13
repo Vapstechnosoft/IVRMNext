@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 // Schema for the form
-export const SRKVSSportsReportRecordSchema = z.object({
+export const SRKVSSportsReportSchema = z.object({
     ASMAY_Id: z.number().min(1, { message: 'Academic Year is required' }),
     SPCCME_Id: z.number().min(1, { message: 'Event is required' }),
     Type: z.enum(['Record', 'Start', 'Finish', 'Consolidated', 'Indoor', 'Outdoor', 'Team', 'Externals', 'Selection'], {
@@ -28,7 +28,7 @@ export const SRKVSSportsReportRecordSchema = z.object({
     selectedSubSubEvents: z.array(z.object({ spccmsccG_Id: z.number() })).optional(),
 });
 
-export type SRKVSSportsReportRecordFormSchema = z.infer<typeof SRKVSSportsReportRecordSchema>;
+export type SRKVSSportsReportFormSchema = z.infer<typeof SRKVSSportsReportSchema>;
 
 // API Response Interfaces
 export interface ISRKVSYear {
