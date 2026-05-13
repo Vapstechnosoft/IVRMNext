@@ -2884,8 +2884,43 @@ export async function getUserAccessibleModules() {
                                     icon: 'Building2',
                                     pages: [
                                         { id: 21515, name: 'Promotion Report TB School', icon: 'BookOpen', url: '/Exam/exam-module/reports/Turnbridge/PromotionReportTBSchool', title: 'Promotion Report TB School', description: 'Promotion Report TB School' },
+
                                         { id: 21516, name: 'TBS Report School', icon: 'BookOpen', url: '/Exam/exam-module/reports/Turnbridge/TBSReportSchool', title: 'TBS Report School', description: 'TBS Report School' },
-                                        { id: 21031, name: 'TBS Report School', icon: 'BookOpen', url: '/Exam/exam-module/reports/tbs-report-school', title: 'TBS Report School', description: 'TBS Report School' }
+
+                                        { id: 21031, name: 'TBS Report School', icon: 'BookOpen', url: '/Exam/exam-module/reports/tbs-report-school', title: 'TBS Report School', description: 'TBS Report School' },
+                                        {
+                                            id: 215161,
+                                            name: 'Multiple Exam Progress Card Report New',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Turnbridge/MultipleExamProgressCardReportNew',
+                                            title: 'Multiple Exam Progress Card Report New',
+                                            description: 'Multiple Exam Progress Card Report New'
+                                        },
+                                        {
+                                            id: 215162,
+                                            name: 'TB School Primary',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Turnbridge/TBSchoolPrimary',
+                                            title: 'TB School Primary',
+                                            description: 'TB School Primary'
+                                        },
+                                        {
+                                            id: 215163,
+                                            name: 'Subject Sub Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Subjectsubsubjectsubexamcumreport',
+                                            title: 'Subject Sub Report',
+                                            description: 'Subject Sub-Subject Sub-Exam Cumulative Report'
+                                        },
+                                        {
+                                            id: 215164,
+                                            name: 'General Send SMS',
+                                            icon: 'Send',
+                                            url: '/Exam/exam-module/reports/GeneralSendSMSSRKVS',
+                                            title: 'General Send SMS SRKVS',
+                                            description: 'Send SMS and Email to students based on performance'
+                                        },
+
                                     ]
                                 },
                                 // ==================== Notredame ====================
