@@ -2912,6 +2912,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Subject Sub Report',
                                             description: 'Subject Sub-Subject Sub-Exam Cumulative Report'
                                         },
+                                        {
+                                            id: 215164,
+                                            name: 'General Send SMS',
+                                            icon: 'Send',
+                                            url: '/Exam/exam-module/reports/GeneralSendSMSSRKVS',
+                                            title: 'General Send SMS SRKVS',
+                                            description: 'Send SMS and Email to students based on performance'
+                                        },
 
                                     ]
                                 },
