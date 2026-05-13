@@ -17,11 +17,16 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function ProgramMasterPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error, refetchAll } = useMasterPrograms(searchParams);
+    const { loadData, refetchAll } = useMasterPrograms(searchParams);
 
     return (
         <FormProvider<IMasterProgram>>
-            <ProgramMasterPageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
+            <ProgramMasterPageContent 
+                response={loadData.data} 
+                isLoading={loadData.isPending || loadData.isFetching} 
+                error={loadData.error} 
+                refetchAll={refetchAll} 
+            />
         </FormProvider>
     );
 }

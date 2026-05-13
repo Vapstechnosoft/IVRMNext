@@ -1,12 +1,13 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm, useWatch } from 'react-hook-form';
+import { useForm, useWatch, Controller } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 import { RefreshCcw, FileText, Loader2 } from 'lucide-react';
 import { SportHouseReportFormData, sportHouseReportSchema } from '../schema';
 import { useSportHouseReport } from '@/hooks/sports/useSportHouseReport';
@@ -37,6 +38,12 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
             asmS_Id: []
         },
     });
+
+    const {
+        control,
+        handleSubmit,
+        formState: { errors }
+    } = form;
 
     const watchedType = useWatch({ control: form.control, name: 'type' });
     const watchedYear = useWatch({ control: form.control, name: 'asmaY_Id' });
@@ -121,6 +128,7 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
         setHouseList([]);
         setSectionList([]);
         onReset();
+        window.location.reload();
     };
 
     return (
@@ -136,13 +144,13 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
 
                         {/* Report Type Radio */}
-                        <FormField
-                            control={form.control}
-                            name="type"
-                            render={({ field }) => (
-                                <FormItem className="space-y-3">
-                                    <FormLabel>Report Type</FormLabel>
-                                    <FormControl>
+                        <div className="space-y-3">
+                            <Label>Report Type</Label>
+                            <Controller
+                                control={control}
+                                name="type"
+                                render={({ field }) => (
+                                    <div className="flex flex-col gap-2">
                                         <RadioGroup
                                             onValueChange={field.onChange}
                                             defaultValue={field.value}
@@ -157,117 +165,119 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
                                                 <label htmlFor="r2" className="cursor-pointer font-medium">By Class/Section</label>
                                             </div>
                                         </RadioGroup>
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                                        {errors.type && <span className="text-xs font-medium text-destructive">{errors.type.message}</span>}
+                                    </div>
+                                )}
+                            />
+                        </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-end">
                             {/* Academic Year */}
-                            <FormField
-                                control={form.control}
-                                name="asmaY_Id"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className="font-semibold">Academic Year <span className="text-destructive">*</span></FormLabel>
-                                        <Select
-                                            onValueChange={(value) => field.onChange(Number(value))}
-                                            value={field.value?.toString()}
-                                            disabled={initialData.isLoading}
-                                        >
-                                            <FormControl>
-                                                <SelectTrigger>
+                            <div className="flex flex-col gap-2">
+                                <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Academic Year</Label>
+                                <Controller
+                                    control={control}
+                                    name="asmaY_Id"
+                                    render={({ field }) => (
+                                        <div className="flex flex-col gap-1">
+                                            <Select
+                                                onValueChange={(value) => field.onChange(Number(value))}
+                                                value={field.value?.toString()}
+                                                disabled={initialData.isLoading}
+                                            >
+                                                <SelectTrigger className={errors.asmaY_Id ? 'border-destructive ring-destructive/20' : ''}>
                                                     <SelectValue placeholder="Select Year" />
                                                 </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                {initialData.data?.yearlist?.map((year) => (
-                                                    <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>
-                                                        {year.asmaY_Year}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                                                <SelectContent>
+                                                    {initialData.data?.yearlist?.map((year) => (
+                                                        <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>
+                                                            {year.asmaY_Year}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            {errors.asmaY_Id && <span className="text-xs font-medium text-destructive">{errors.asmaY_Id.message}</span>}
+                                        </div>
+                                    )}
+                                />
+                            </div>
 
                             {/* House Selection (Visible for both types) */}
-                            <FormField
-                                control={form.control}
-                                name="spccmH_Id"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className="font-semibold">House <span className={watchedType === 'House' ? "text-destructive" : ""}>*</span></FormLabel>
-                                        <FormControl>
+                            <div className="flex flex-col gap-2">
+                                <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">House</Label>
+                                <Controller
+                                    control={control}
+                                    name="spccmH_Id"
+                                    render={({ field }) => (
+                                        <div className="flex flex-col gap-1">
                                             <MultiSelect
                                                 options={houseList.map(h => ({ value: h.spccmH_Id.toString(), label: h.spccmH_HouseName }))}
                                                 onValueChange={(vals) => field.onChange(vals.map(Number))}
                                                 defaultValue={field.value?.map(String) || []}
                                                 placeholder="Select Houses"
                                                 disabled={!watchedYear || classHouseMutation.isPending}
+                                                className={errors.spccmH_Id ? 'border-destructive ring-destructive/20' : ''}
                                             />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                                            {errors.spccmH_Id && <span className="text-xs font-medium text-destructive">{errors.spccmH_Id.message}</span>}
+                                        </div>
+                                    )}
+                                />
+                            </div>
 
                             {/* Class Selection (Only if Type == CS) */}
                             {watchedType === 'CS' && (
-                                <FormField
-                                    control={form.control}
-                                    name="asmcL_Id"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel className="font-semibold">Class <span className="text-destructive">*</span></FormLabel>
-                                            <Select
-                                                onValueChange={(value) => field.onChange(Number(value))}
-                                                value={field.value?.toString()}
-                                                disabled={!watchedYear}
-                                            >
-                                                <FormControl>
-                                                    <SelectTrigger>
+                                <div className="flex flex-col gap-2">
+                                    <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Class</Label>
+                                    <Controller
+                                        control={control}
+                                        name="asmcL_Id"
+                                        render={({ field }) => (
+                                            <div className="flex flex-col gap-1">
+                                                <Select
+                                                    onValueChange={(value) => field.onChange(Number(value))}
+                                                    value={field.value?.toString()}
+                                                    disabled={!watchedYear}
+                                                >
+                                                    <SelectTrigger className={errors.asmcL_Id ? 'border-destructive ring-destructive/20' : ''}>
                                                         <SelectValue placeholder="Select Class" />
                                                     </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    {classList.map((cls) => (
-                                                        <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()}>
-                                                            {cls.asmcL_ClassName}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
+                                                    <SelectContent>
+                                                        {classList.map((cls) => (
+                                                            <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()}>
+                                                                {cls.asmcL_ClassName}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                {errors.asmcL_Id && <span className="text-xs font-medium text-destructive">{errors.asmcL_Id.message}</span>}
+                                            </div>
+                                        )}
+                                    />
+                                </div>
                             )}
 
                             {/* Section Selection (Only if Type == CS) */}
                             {watchedType === 'CS' && (
-                                <FormField
-                                    control={form.control}
-                                    name="asmS_Id"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel className="font-semibold">Section <span className="text-destructive">*</span></FormLabel>
-                                            <FormControl>
+                                <div className="flex flex-col gap-2">
+                                    <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Section</Label>
+                                    <Controller
+                                        control={control}
+                                        name="asmS_Id"
+                                        render={({ field }) => (
+                                            <div className="flex flex-col gap-1">
                                                 <MultiSelect
                                                     options={sectionList.map(s => ({ value: s.asmS_Id.toString(), label: s.asmC_SectionName }))}
                                                     onValueChange={(vals) => field.onChange(vals.map(Number))}
                                                     defaultValue={field.value?.map(String) || []}
                                                     placeholder="Select Sections"
                                                     disabled={!watchedClass || sectionMutation.isPending}
+                                                    className={errors.asmS_Id ? 'border-destructive ring-destructive/20' : ''}
                                                 />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
+                                                {errors.asmS_Id && <span className="text-xs font-medium text-destructive">{errors.asmS_Id.message}</span>}
+                                            </div>
+                                        )}
+                                    />
+                                </div>
                             )}
                         </div>
 
