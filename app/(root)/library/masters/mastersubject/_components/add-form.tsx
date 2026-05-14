@@ -126,7 +126,10 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                                     name='lmS_ParentId'
                                     control={control}
                                     render={({ field }) => (
-                                        <Select value={field.value?.toString() || ''}>
+                                        <Select 
+                                            onValueChange={(val) => field.onChange(Number(val))} 
+                                            value={field.value?.toString() || ''}
+                                        >
                                             <SelectTrigger className='w-full'>
                                                 <SelectValue placeholder='Select Parent Subject' />
                                             </SelectTrigger>
@@ -140,8 +143,8 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                                                         Error loading Parent Subjects
                                                     </SelectItem>
                                                 ) : (
-                                                    category?.data?.map((item) => (
-                                                        <SelectItem key={item.ismS_Id} value={item.ismS_Id.toString()}>
+                                                    category?.data?.map((item: any) => (
+                                                        <SelectItem key={item.ismS_Id || Math.random()} value={item.ismS_Id?.toString() || ''}>
                                                             {item.ismS_SubjectName}
                                                         </SelectItem>
                                                     ))

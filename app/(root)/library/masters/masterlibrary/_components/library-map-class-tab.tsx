@@ -84,8 +84,8 @@ export function LibraryMapClassTab() {
                                             <SelectValue placeholder='--Select Library--' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {libraries.map((lib: any) => (
-                                                <SelectItem key={lib.lmaL_Id} value={lib.lmaL_Id.toString()}>
+                                            {(libraries || []).map((lib: any) => (
+                                                <SelectItem key={lib.lmaL_Id || `lib-${Math.random()}`} value={lib.lmaL_Id?.toString() || ''}>
                                                     {lib.lmaL_LibraryName}
                                                 </SelectItem>
                                             ))}

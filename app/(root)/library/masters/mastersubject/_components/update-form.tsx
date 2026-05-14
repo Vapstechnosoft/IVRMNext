@@ -125,8 +125,8 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                                                         Error loading
                                                     </SelectItem>
                                                 ) : (
-                                                    parentData?.data?.map((item) => (
-                                                        <SelectItem key={item.ismS_Id} value={item.ismS_Id.toString()}>
+                                                    parentData?.data?.map((item: any) => (
+                                                        <SelectItem key={item.ismS_Id || Math.random()} value={item.ismS_Id?.toString() || ''}>
                                                             {item.ismS_SubjectName}
                                                         </SelectItem>
                                                     ))
