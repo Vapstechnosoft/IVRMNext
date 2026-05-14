@@ -4,7 +4,7 @@ import { api, getSearchParamsUrl } from '@/lib/apiService';
 import { ApiSearchparams } from '@/types';
 
 export async function getInvRSalesLoadData() {
-    return await api.post<any>('inventory', '/INV_R_SalesFacade/getStudentlist', {});
+    return await api.get<any>('inventory', '/INV_R_SalesFacade/getloaddata');
 }
 
 export async function getInvRSalesDetails(optionflag: string) {
@@ -12,12 +12,14 @@ export async function getInvRSalesDetails(optionflag: string) {
     return await api.get<any>('inventory', url);
 }
 
-export async function getInvRSalesClassData() {
-    return await api.post<any>('inventory', '/INV_R_SalesFacade/radiochange', { type: 'C' });
+export async function getInvRSalesClassData(type: string) {
+    return await api.post<any>('inventory', '/INV_R_SalesFacade/radiochange', { type });
 }
 
 export async function getInvRSalesStudentList(payload: any) {
-    return await api.post<any>('inventory', '/INV_R_SalesFacade/getStudentlist', payload);
+    const url = `/INV_R_SalesFacade/getStudentlist`;
+    console.log("getInvRSalesStudentList Payload:", payload);
+    return await api.post<any>('inventory', url, payload);
 }
 
 export async function getInvRSalesReport(payload: any, searchParams?: ApiSearchparams) {

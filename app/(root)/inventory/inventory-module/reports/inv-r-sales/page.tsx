@@ -1,6 +1,6 @@
 'use client';
  
-import { use, useRef, useState, useEffect } from 'react';
+import { use, useRef, useState, useEffect, useMemo } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { Heading } from '@/components/layout/heading';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
@@ -60,21 +60,54 @@ export default function InvRSalesPage(props: { searchParams: Promise<any> }) {
     const [currentPayload, setCurrentPayload] = useState<InvRSalesSchema | null>(null);
     const [printData, setPrintData] = useState<any[]>([]);
  
-    const payloadForHook = currentPayload ? {
-        ...currentPayload,
-        startdate: currentPayload.startdate instanceof Date ? currentPayload.startdate.toISOString() : currentPayload.startdate,
-        enddate: currentPayload.enddate instanceof Date ? currentPayload.enddate.toISOString() : currentPayload.enddate,
-    } : null;
- 
-    const { data: reportResult, isFetching } = useInvRSalesReportQuery(payloadForHook as any, {
+    const mapReportPayload = (payload: InvRSalesSchema | null) => {
+        if (!payload) return null;
+
+        const p: any = {
+            ...payload,
+            startdate: payload.startdate ? format(payload.startdate, 'yyyy-MM-dd') : "",
+            enddate: payload.enddate ? format(payload.enddate, 'yyyy-MM-dd') : "",
+            selectionflag: payload.individualflag,
+        };
+
+        // Date logic
+        if (!payload.bw_dates) {
+            p.startdate = "";
+            p.enddate = "";
+        }
+
+        // Mapping for Backend
+        if (payload.optionflag === 'Student') {
+            if (payload.individualflag === 'C') {
+                p.clsarray = payload.studentArray;
+            } else if (payload.individualflag === 'CS') {
+                p.secarray = payload.studentArray;
+            }
+        } else if (payload.optionflag === 'Item') {
+            p.itemarray = payload.itemArray;
+        } else if (payload.optionflag === 'Saleno') {
+            p.salenoarray = payload.salesArray;
+        } else if (payload.optionflag === 'Staff') {
+            p.hrme_id = payload.singleStaffId;
+        } else if (payload.optionflag === 'Customer') {
+            p.invmc_id = payload.singleCustomerId;
+        }
+
+        return p;
+    };
+
+    const payloadForHook = useMemo(() => mapReportPayload(currentPayload), [currentPayload]);
+
+    const { data: reportResult, isFetching } = useInvRSalesReportQuery(payloadForHook, {
         ...searchParams,
         page: currentPage,
         page_size: pageSize,
-        search_query: searchQuery
+        search_query: searchQuery,
+        search_columns: 'invmsl_SalesNo,invmi_ItemName,membername'
     });
  
-    const reportData = reportResult?.data?.get_SalesReport || [];
-    const totalRecords = reportResult?.total || 0;
+    const reportData = Array.isArray(reportResult?.data) ? reportResult.data : (reportResult?.data?.get_SalesReport || []);
+    const totalRecords = reportResult?.total || (Array.isArray(reportResult?.data) ? reportResult.data.length : 0);
  
     const handleReportSubmit = (payload: InvRSalesSchema | null) => {
         // Handle reset or empty
@@ -124,15 +157,17 @@ export default function InvRSalesPage(props: { searchParams: Promise<any> }) {
         try {
             toast.loading(`Fetching all records for ${action}...`, { id: 'fetch-all' });
             
-            const p: any = {
-                ...currentPayload,
-                startdate: currentPayload.startdate instanceof Date ? currentPayload.startdate.toISOString() : currentPayload.startdate,
-                enddate: currentPayload.enddate instanceof Date ? currentPayload.enddate.toISOString() : currentPayload.enddate,
-            };
+            const p = mapReportPayload(currentPayload);
  
-            const response = await getInvRSalesReport(p, { ...searchParams, page: 1, page_size: 100000, search_query: searchQuery || '' });
+            const response = await getInvRSalesReport(p, { 
+                ...searchParams, 
+                page: 1, 
+                page_size: 100000, 
+                search_query: searchQuery || '',
+                search_columns: 'invmsl_SalesNo,invmi_ItemName,membername'
+            });
             
-            const allData = response?.data?.get_SalesReport || [];
+            const allData = Array.isArray(response?.data) ? response.data : (response?.data?.get_SalesReport || []);
             
             if (allData.length === 0) {
                 toast.dismiss('fetch-all');

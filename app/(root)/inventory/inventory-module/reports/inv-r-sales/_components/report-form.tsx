@@ -1,5 +1,5 @@
 'use client';
- 
+
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { invRSalesSchema, type InvRSalesSchema } from '@/schemas/inventory/reports/inv-r-sales';
@@ -19,12 +19,12 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
 import { Check, ChevronsUpDown } from 'lucide-react';
- 
+
 interface ReportFormProps {
     onSubmit: (payload: InvRSalesSchema) => void;
     isLoading?: boolean;
 }
- 
+
 export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
     const form = useForm<InvRSalesSchema>({
         resolver: zodResolver(invRSalesSchema),
@@ -47,9 +47,9 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
             singleCustomerId: undefined,
         }
     });
- 
+
     const { control, handleSubmit, watch, setValue, reset, formState: { errors } } = form;
- 
+
     // Watched values
     const typeflag = watch('typeflag');
     const optionflag = watch('optionflag');
@@ -57,13 +57,13 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
     const bw_dates = watch('bw_dates');
     const classId = watch('classId');
     const sectionId = watch('sectionId');
- 
+
     const { data: loadData } = useInvRSalesLoadData();
     const { data: detailsData, refetch: refetchDetails } = useInvRSalesDetails(optionflag);
     const { data: classData, refetch: refetchClasses } = useInvRSalesClassData(individualflag);
     const { data: sectionData, refetch: refetchSections } = useInvRSalesSectionList(classId, individualflag);
-    const { data: studentListData, refetch: refetchStudentList } = useInvRSalesStudentList(classId, sectionId, individualflag);
- 
+    const { data: studentListData, refetch: refetchStudentList } = useInvRSalesStudentList(classId, sectionId, individualflag, optionflag);
+
     useEffect(() => {
         if (optionflag) {
             refetchDetails();
@@ -78,7 +78,7 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
             setValue('singleCustomerId', undefined);
         }
     }, [optionflag, refetchDetails, setValue]);
- 
+
     useEffect(() => {
         if (individualflag) {
             refetchClasses();
@@ -87,7 +87,7 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
             setValue('studentArray', []);
         }
     }, [individualflag, refetchClasses, setValue]);
- 
+
     useEffect(() => {
         if (classId) {
             if (individualflag === 'CS') {
@@ -100,41 +100,43 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
             }
         }
     }, [classId, individualflag, refetchSections, refetchStudentList, setValue]);
- 
+
     useEffect(() => {
         if (classId && sectionId && individualflag === 'CS') {
             refetchStudentList();
             setValue('studentArray', []);
         }
     }, [classId, sectionId, individualflag, refetchStudentList, setValue]);
- 
+
     const grnSalesOptions = useMemo(() => {
         return detailsData?.data?.get_salesdetails?.map((item: any) => ({
             label: item.invmsL_SalesNo,
             value: item.invmsL_Id?.toString()
         })) || [];
     }, [detailsData]);
- 
+
     const itemOptions = useMemo(() => detailsData?.data?.get_salesdetails?.map((item: any) => ({
         label: item.invmI_ItemName,
         value: item.invmI_Id?.toString()
     })) || [], [detailsData]);
- 
+
     const staffOptions = useMemo(() => detailsData?.data?.get_salesdetails?.map((item: any) => ({
         label: item.employeename,
         value: item.hrmE_Id
     })) || [], [detailsData]);
- 
+
     const customerOptions = useMemo(() => detailsData?.data?.get_salesdetails?.map((item: any) => ({
         label: item.invmC_CustomerName,
         value: item.invmC_Id
     })) || [], [detailsData]);
- 
-    const allStudentsOptions = useMemo(() => detailsData?.data?.get_salesdetails?.map((item: any) => ({
-        label: `${item.studentname} : ${item.amsT_AdmNo}`,
-        value: item.amsT_Id
-    })) || [], [detailsData]);
- 
+
+    useEffect(() => {
+        if (optionflag === 'Student' && !individualflag) {
+            setValue('individualflag', 'C');
+        }
+    }, [optionflag, individualflag, setValue]);
+
+
     const classOptions = useMemo(() => {
         if (Array.isArray(classData?.data)) return classData.data;
         return classData?.data?.get_class || [];
@@ -144,21 +146,21 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
         return sectionData?.data?.get_Section || [];
     }, [sectionData]);
     const studentList = useMemo(() => Array.isArray(studentListData?.data) ? studentListData.data : (studentListData?.data?.get_Studentlist || []), [studentListData]);
- 
+
     const studentListOptions = useMemo(() => studentList.map((item: any) => ({
         label: `${item.studentName || item.studentname} : ${item.amsT_AdmNo}`,
         value: item.amsT_Id?.toString()
     })), [studentList]);
- 
+
     const handleFormSubmit = (data: InvRSalesSchema) => {
         onSubmit(data);
     };
- 
+
     const handleCancel = () => {
         reset();
         onSubmit({} as InvRSalesSchema);
     };
- 
+
     const GenericCombobox = ({ options, value, onChange, placeholder }: any) => {
         const [open, setOpen] = useState(false);
         return (
@@ -200,7 +202,7 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
             </Popover>
         )
     };
- 
+
     return (
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
             <CollapsibleSection title="Report Configuration" defaultOpen={true}>
@@ -228,7 +230,7 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
                             )} />
                         </div>
                     </div>
- 
+
                     {/* Sub Options */}
                     {(typeflag === 'Overall' || typeflag === 'Detailed') && (
                         <div className="space-y-3 bg-muted/20 p-4 rounded-md border">
@@ -251,7 +253,7 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
                             {errors.optionflag && <FormError>{errors.optionflag.message}</FormError>}
                         </div>
                     )}
- 
+
                     {/* Student Selection Mode */}
                     {optionflag === 'Student' && (
                         <div className="space-y-3 bg-muted/20 p-4 rounded-md border">
@@ -261,7 +263,6 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
                                 control={control}
                                 render={({ field }) => (
                                     <RadioGroup onValueChange={field.onChange} value={field.value || ""} className="flex flex-col space-y-1">
-                                        <div className="flex items-center space-x-2"><RadioGroupItem value="" id="ind0" /><Label htmlFor="ind0">Direct Search</Label></div>
                                         <div className="flex items-center space-x-2"><RadioGroupItem value="C" id="ind1" /><Label htmlFor="ind1">Class</Label></div>
                                         <div className="flex items-center space-x-2"><RadioGroupItem value="CS" id="ind2" /><Label htmlFor="ind2">Class/Section</Label></div>
                                     </RadioGroup>
@@ -269,7 +270,7 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
                             />
                         </div>
                     )}
- 
+
                     {/* Date Filters */}
                     <div className="space-y-3 bg-muted/20 p-4 rounded-md border">
                         <div className="flex items-center space-x-2 mb-4">
@@ -284,7 +285,7 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
                         )}
                     </div>
                 </div>
- 
+
                 <div className="p-4 pt-0">
                     <div className="bg-background rounded-md border border-dashed p-4 space-y-4">
                         {optionflag === 'Saleno' && (
@@ -296,7 +297,7 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
                                 {errors.salesArray && <FormError>{errors.salesArray.message}</FormError>}
                             </div>
                         )}
- 
+
                         {optionflag === 'Item' && (
                             <div className="space-y-2 max-w-xl">
                                 <Label>Select Item <span className="text-destructive">*</span></Label>
@@ -306,7 +307,7 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
                                 {errors.itemArray && <FormError>{errors.itemArray.message}</FormError>}
                             </div>
                         )}
- 
+
                         {optionflag === 'Staff' && (
                             <div className="space-y-2 max-w-xl">
                                 <Label>Select Staff <span className="text-destructive">*</span></Label>
@@ -316,7 +317,7 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
                                 {errors.singleStaffId && <FormError>{errors.singleStaffId.message}</FormError>}
                             </div>
                         )}
- 
+
                         {optionflag === 'Customer' && (
                             <div className="space-y-2 max-w-xl">
                                 <Label>Select Customer <span className="text-destructive">*</span></Label>
@@ -326,19 +327,9 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
                                 {errors.singleCustomerId && <FormError>{errors.singleCustomerId.message}</FormError>}
                             </div>
                         )}
- 
+
                         {optionflag === 'Student' && (
                             <div className="space-y-4">
-                                {(!individualflag || individualflag === '') && (
-                                    <div className="space-y-2 max-w-xl">
-                                        <Label>Student Name <span className="text-destructive">*</span></Label>
-                                        <Controller name="singleStudentId" control={control} render={({ field }) => (
-                                            <GenericCombobox options={allStudentsOptions} value={field.value} onChange={field.onChange} placeholder="Student" />
-                                        )} />
-                                        {errors.singleStudentId && <FormError>{errors.singleStudentId.message}</FormError>}
-                                    </div>
-                                )}
- 
                                 {(individualflag === 'C' || individualflag === 'CS') && (
                                     <div className="space-y-2 max-w-xl">
                                         <Label>Class <span className="text-destructive">*</span></Label>
@@ -353,7 +344,7 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
                                         {errors.classId && <FormError>{errors.classId.message}</FormError>}
                                     </div>
                                 )}
- 
+
                                 {individualflag === 'CS' && classId && (
                                     <div className="space-y-2 max-w-xl">
                                         <Label>Section <span className="text-destructive">*</span></Label>
@@ -368,7 +359,7 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
                                         {errors.sectionId && <FormError>{errors.sectionId.message}</FormError>}
                                     </div>
                                 )}
- 
+
                                 {(individualflag === 'C' || individualflag === 'CS') && studentListOptions.length > 0 && (
                                     <div className="space-y-2 max-w-xl">
                                         <Label>Select Students <span className="text-destructive">*</span></Label>
@@ -382,7 +373,7 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
                         )}
                     </div>
                 </div>
- 
+
                 <div className="flex justify-center gap-4 p-4 border-t bg-muted/10">
                     <Button
                         type="submit"
