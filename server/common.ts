@@ -2859,6 +2859,16 @@ export async function getUserAccessibleModules() {
                                     ]
                                 },
                                 {
+                                    id: 2021,
+                                    name: 'Notredame',
+                                    icon: 'Building2',
+                                    pages: [
+                                        { id: 34010, name: 'Notredame Performance Analysis Report', icon: 'BookOpen', url: '/Exam/exam-module/reports/Notredame/AnalysisReport', title: 'Notredame Performance Analysis Report', description: 'Performance Analysis Report for Notredame' },
+                                        { id: 34011, name: 'Samartha Progress Card Report', icon: 'FileText', url: '/Exam/exam-module/reports/Notredame/Samartha_ProgressCardReport', title: 'Samartha Progress Card Report', description: 'Progress Card Report for Samartha students' },
+                                        { id: 34012, name: 'Samartha Progress Card Report Promotion', icon: 'TrendingUp', url: '/Exam/exam-module/reports/Notredame/Samartha_ProgressCardReportpromotion', title: 'Samartha Progress Card Report Promotion', description: 'Promotion Progress Card Report for Samartha students' }
+                                    ]
+                                },
+                                {
                                     "id": 2001,
                                     "name": "StThomos",
                                     "icon": "Building2",
