@@ -4,6 +4,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { invRStockSchema, type InvRStockSchema } from '@/schemas/inventory/reports/inv-r-stock';
 import { useInvRStockDetails, useInvRStockReport } from '@/hooks/inventory/reports/use-inv-r-stock';
+import { IInvRStockPayload } from '@/types/inventory/reports/inv-r-stock';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -84,10 +85,21 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
     })), [detailsArray]);
  
     const onSubmit = (data: InvRStockSchema) => {
-        generateReportMutation.mutate(data as any, {
+        const payload: IInvRStockPayload = {
+            optionflag: data.optionflag,
+            overallflag: data.overallflag ? 'Overall' : '',
+            bw_dates: data.bw_dates,
+            startdate: data.bw_dates && data.startdate ? format(data.startdate, 'yyyy-MM-dd') : '',
+            enddate: data.bw_dates && data.enddate ? format(data.enddate, 'yyyy-MM-dd') : '',
+            INVMI_Id: data.invmI_Id,
+            INVMST_Id: data.invmsT_Id,
+            INVMG_Id: data.invmG_Id,
+        };
+
+        generateReportMutation.mutate(payload, {
             onSuccess: (res) => {
                 if (res.success) {
-                    onReportGenerated(res.data.get_StockReport, data, res.total || 0);
+                    onReportGenerated(res.data, payload, res.total || 0);
                 } else {
                     onReportGenerated([], null, 0);
                 }
