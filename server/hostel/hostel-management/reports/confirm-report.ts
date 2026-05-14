@@ -1,4 +1,4 @@
-'use client';
+'use server';
 
 import { api } from '@/lib/apiService';
 import { format } from 'date-fns';
@@ -18,7 +18,7 @@ export interface ConfirmReportDto {
     }>;
 }
 
-export async function getConfirmReport(values: any): Promise<ConfirmReportDto | null> {
+export async function getConfirmReport(values: any): Promise<ConfirmReportDto> {
     try {
         const payload = {
             "type": values.type,
@@ -30,5 +30,5 @@ export async function getConfirmReport(values: any): Promise<ConfirmReportDto | 
     } catch (error) {
         console.error('Error fetching confirm report:', error);
     }
-    return null;
+    return { grid_list: [] };
 }

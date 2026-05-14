@@ -9,6 +9,7 @@ export const studentRequestConfirmSchema = z.object({
     HRMRM_Id: z.string({
         required_error: "Room assignment is required for approval",
     }).optional(),
+    HLHSREQ_RequestDate: z.any().optional(),
 });
 
 export const staffApprovalSchema = z.object({
