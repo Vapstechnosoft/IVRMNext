@@ -21,7 +21,7 @@ export interface IAlumniGalleryResponse {
 
 export async function getAlumniGalleryData(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'algA_GalleryName');
-    const url = `/Alumni_Gallery/get_loaddata?IVRMRT_Id=30&Role_flag=Alumni&${urlParams}`;
+    const url = `/Alumni_Gallery/get_loaddata?${urlParams}`;
     return await api.get<IAlumniGalleryResponse>('alumni', url);
 }
 

@@ -958,3 +958,14 @@ export const baldwinReportSchema = z.object({
 });
 
 export type BaldwinReportSchema = z.infer<typeof baldwinReportSchema>;
+
+export const finalPromReportChinmayI_IXSchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    OverAlltotal: z.boolean().default(false),
+    OverAlClass: z.boolean().default(false),
+    ECTEX_NotApplToTotalFlg: z.boolean().default(false),
+    reopen_date: z.string().min(1, 'Reopen Date is required'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
+});
