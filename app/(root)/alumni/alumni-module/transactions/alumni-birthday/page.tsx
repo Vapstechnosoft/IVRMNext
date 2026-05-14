@@ -9,7 +9,7 @@ import {
 } from '@/server/alumni/alumni-student-birthday';
 import html2canvas from 'html2canvas';
 import { Loader2, Cake, Search, Download, Printer, PartyPopper } from 'lucide-react';
-import { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { toast } from 'sonner';
 import Swal from 'sweetalert2';
 import BirthdayForm from './_components/birthday-form';
@@ -35,6 +35,13 @@ export default function AlumniStudentBirthdayPage() {
     // Feedback State
     const [feedbackOpen, setFeedbackOpen] = useState(false);
     const [feedbackQuestions, setFeedbackQuestions] = useState<any[]>([]);
+
+    // Communication Channels
+    const [sms, setSms] = useState(false);
+    const [email, setEmail] = useState(false);
+    const [whatsapp, setWhatsapp] = useState(false);
+
+    const isAnySelected = sms || email || whatsapp;
 
     const fetchData = async () => {
         try {
@@ -71,7 +78,7 @@ export default function AlumniStudentBirthdayPage() {
         fetchData();
     }, []);
 
-    const handleCategoryChange = async (type: string, values?: any) => {
+    const handleCategoryChange = React.useCallback(async (type: string, values?: any) => {
         setCategory(type);
         setSearching(true);
         setSelectedRows([]);
@@ -94,7 +101,7 @@ export default function AlumniStudentBirthdayPage() {
         } finally {
             setSearching(false);
         }
-    };
+    }, []);
 
     const handleSendWishes = async (values: IBirthdayFormValues) => {
         if (selectedRows.length === 0) {
@@ -121,9 +128,10 @@ export default function AlumniStudentBirthdayPage() {
             for (const person of selectedRows) {
                 const id = category === 'Staff' ? person.hrmE_Id : person.amsT_Id;
 
-                // Capture both classic and premium if needed, but legacy logic mostly sent one image.
-                // We'll capture the classic template as the default payload image.
-                const element = document.getElementById(`birthday-card-classic-${id}`);
+                // Try to find any available template for this person
+                const element =
+                    document.getElementById(`birthday-card-premium-${id}`) ||
+                    document.getElementById(`birthday-card-classic-${id}`);
 
                 let imageBase64 = null;
                 if (element && (values.Whatsapp || values.email)) {
@@ -131,9 +139,10 @@ export default function AlumniStudentBirthdayPage() {
                         useCORS: true,
                         allowTaint: false,
                         scale: 2,
-                        backgroundColor: '#ffffff'
+                        backgroundColor: '#ffffff',
+                        logging: false
                     });
-                    imageBase64 = canvas.toDataURL('image/jpeg', 0.8).replace(/^data:image\/jpeg;base64,/, "");
+                    imageBase64 = canvas.toDataURL('image/jpeg', 0.9).replace(/^data:image\/jpeg;base64,/, "");
                 }
 
                 wishesPayload.push({
@@ -151,11 +160,11 @@ export default function AlumniStudentBirthdayPage() {
                 whatsappFlag: String(values.Whatsapp)
             });
 
-            if (res.smsStatus || res.emailStatus || res.whatsappstatus) {
-                Swal.fire('Success', 'Birthday wishes sent successfully!', 'success');
-                setSelectedRows([]);
+            if (res.success) {
+                await Swal.fire('Success', res.message || 'Birthday wishes sent successfully!', 'success');
+                window.location.reload();
             } else {
-                toast.error('Failed to send wishes');
+                Swal.fire('Error', res.message || 'Failed to send wishes', 'error');
             }
         } catch (error) {
             console.error('Send failed:', error);
@@ -187,30 +196,24 @@ export default function AlumniStudentBirthdayPage() {
 
     return (
         <div className='p-8 space-y-8 min-h-screen bg-[#f8fafc] print:bg-white print:p-0'>
-            {/* Legacy Dashboard Header */}
-            <div className='space-y-4 print:hidden'>
-                <h1 className='text-xl font-bold text-slate-800 uppercase tracking-tight'>
-                    Dashboard
-                </h1>
-                <div className='h-[1px] w-full bg-orange-400' />
-            </div>
-
-            <div className='flex flex-col md:flex-row md:items-center justify-between gap-6 print:hidden'>
-                <div className='flex items-center gap-3 text-slate-500'>
-                    <Cake className="h-5 w-5 text-orange-400" />
-                    <span className='text-sm font-bold uppercase tracking-wider'>Birthday Module Management</span>
+            <div className='flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 bg-white border border-b-0 rounded-t-3xl shadow-sm print:hidden'>
+                <div className='flex items-center gap-3'>
+                    <div className='p-2 bg-orange-100 rounded-xl'>
+                        <Cake className="h-5 w-5 text-orange-600" />
+                    </div>
+                    <span className='text-sm font-black uppercase tracking-[2px] text-slate-400'>Birthday Module Management</span>
                 </div>
                 <div className='flex items-center gap-4'>
-                    <Badge variant="outline" className="h-10 px-6 rounded-xl border-slate-200 text-slate-500 bg-white text-[10px] font-black tracking-widest">
+                    <Badge variant="outline" className="h-11 px-6 rounded-2xl border-slate-200 text-slate-400 bg-slate-50/50 text-[10px] font-black tracking-widest border-none">
                         {participants.length} TOTAL RECORDS
                     </Badge>
                     <Button
-                        variant="secondary"
+                        variant="outline"
                         size="icon"
                         onClick={handlePrint}
-                        className="h-10 w-10 rounded-xl shadow-sm bg-white hover:bg-slate-50 border border-slate-200"
+                        className="h-11 w-11 rounded-2xl shadow-sm bg-white hover:bg-slate-50 border-slate-200"
                     >
-                        <Printer className="h-4 w-4 text-slate-600" />
+                        <Printer className="h-4 w-4 text-slate-400" />
                     </Button>
                 </div>
             </div>
@@ -218,6 +221,11 @@ export default function AlumniStudentBirthdayPage() {
             <BirthdayForm
                 initialData={initialData}
                 onTypeChange={handleCategoryChange}
+                onChannelChange={(channels) => {
+                    setSms(channels.sms);
+                    setEmail(channels.email);
+                    setWhatsapp(channels.Whatsapp);
+                }}
                 onSubmit={handleSendWishes}
                 onCancel={() => window.location.reload()}
                 isLoading={sending}
@@ -227,94 +235,124 @@ export default function AlumniStudentBirthdayPage() {
                 <div className='lg:col-span-12 space-y-12'>
 
                     {/* List Section */}
-                    <div className="print:hidden">
-                        <ParticipantTable
-                            data={participants}
-                            type={category}
-                            selectedRows={selectedRows}
-                            onRowSelectionChange={setSelectedRows}
-                            isLoading={searching}
-                        />
-                    </div>
+                    {participants.length > 0 && (
+                        <div className="print:hidden space-y-4 animate-in fade-in slide-in-from-top-4 duration-700">
+                            <div className='flex items-center justify-between p-6 bg-gradient-to-r from-[#1e40af] to-[#3b82f6] border rounded-t-3xl shadow-lg'>
+                                <div className='flex items-center gap-4'>
+                                    <div className='p-2 bg-white/20 rounded-xl backdrop-blur-sm'>
+                                        <Search className="h-5 w-5 text-white" />
+                                    </div>
+                                    <span className='text-sm font-black uppercase tracking-[3px] text-white'>Birthday List Management</span>
+                                </div>
+                            </div>
+
+                            <div className='relative group'>
+                                <ParticipantTable
+                                    data={participants}
+                                    type={category}
+                                    selectedRows={selectedRows}
+                                    onRowSelectionChange={setSelectedRows}
+                                    isLoading={searching}
+                                />
+                            </div>
+                        </div>
+                    )}
 
                     {/* Preview Section - Modern Grid */}
-                    <div className="space-y-8">
+                    {/* <div className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">
                         <div className="flex items-center justify-between border-b border-slate-200 pb-6 print:hidden">
                             <div className="flex items-center gap-4">
-                                <div className="p-2 bg-amber-500 rounded-xl">
-                                    <Search className="h-5 w-5 text-white" />
+                                <div className="p-3 bg-gradient-to-br from-amber-400 to-orange-600 rounded-2xl shadow-lg shadow-orange-200">
+                                    <Search className="h-6 w-6 text-white" />
                                 </div>
-                                <h2 className="text-2xl font-black text-slate-800 tracking-tight uppercase">Wish Preview Gallery</h2>
+                                <div>
+                                    <h2 className="text-2xl font-black text-slate-800 tracking-tight uppercase">Wish Preview Gallery</h2>
+                                    <p className="text-slate-400 text-[10px] font-bold tracking-[2px] uppercase mt-1">Live visualization of outgoing wishes</p>
+                                </div>
                             </div>
-                            <div className="flex gap-2">
-                                <Badge className="bg-slate-100 text-slate-500 rounded-lg px-4 h-8 font-black text-[10px] tracking-widest border-none">
-                                    {selectedRows.length} SELECTED
-                                </Badge>
+                            <div className="flex gap-3">
+                                {selectedRows.length > 0 && (
+                                    <Badge className="bg-primary/10 text-primary rounded-full px-6 h-10 font-black text-[10px] tracking-widest border-none flex items-center gap-2">
+                                        <div className="h-2 w-2 bg-primary rounded-full animate-pulse" />
+                                        {selectedRows.length} RECIPIENTS SELECTED
+                                    </Badge>
+                                )}
                             </div>
                         </div>
 
                         {selectedRows.length > 0 ? (
                             <Tabs defaultValue="classic" className="w-full print:hidden">
-                                <div className="flex justify-center mb-8">
-                                    <TabsList className="bg-slate-100 p-1.5 rounded-2xl h-14 border shadow-inner">
-                                        <TabsTrigger value="classic" className="rounded-xl h-11 px-8 font-black text-[10px] tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-lg">CLASSIC CARDS</TabsTrigger>
-                                        <TabsTrigger value="premium" className="rounded-xl h-11 px-8 font-black text-[10px] tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-lg text-primary">PREMIUM TEMPLATE</TabsTrigger>
+                                <div className="flex justify-center mb-10">
+                                    <TabsList className="bg-slate-100/80 backdrop-blur-sm p-1.5 rounded-[2rem] h-16 border shadow-inner">
+                                        <TabsTrigger value="classic" className="rounded-[1.5rem] h-12 px-10 font-black text-[10px] tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-xl data-[state=active]:text-primary transition-all duration-300">
+                                            CLASSIC THEME
+                                        </TabsTrigger>
+                                        <TabsTrigger value="premium" className="rounded-[1.5rem] h-12 px-10 font-black text-[10px] tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-xl data-[state=active]:text-orange-600 transition-all duration-300">
+                                            PREMIUM TEMPLATE
+                                        </TabsTrigger>
                                     </TabsList>
                                 </div>
 
-                                <TabsContent value="classic" className="mt-0">
-                                    <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8 items-center justify-items-center animate-in fade-in duration-700'>
+                                <TabsContent value="classic" className="mt-0 focus-visible:outline-none">
+                                    <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-10 items-center justify-items-center animate-in zoom-in-95 fade-in duration-700'>
                                         {selectedRows.map((person) => (
-                                            <BirthdayTemplate
-                                                key={`classic-${category === 'Staff' ? person.hrmE_Id : person.amsT_Id}`}
-                                                participant={person}
-                                                type={category}
-                                                variant="classic"
-                                            />
+                                            <div key={`classic-container-${category === 'Staff' ? person.hrmE_Id : person.amsT_Id}`} className="hover:scale-105 transition-transform duration-500">
+                                                <BirthdayTemplate
+                                                    participant={person}
+                                                    type={category}
+                                                    variant="classic"
+                                                />
+                                            </div>
                                         ))}
                                     </div>
                                 </TabsContent>
 
-                                <TabsContent value="premium" className="mt-0">
-                                    <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-12 items-center justify-items-center animate-in fade-in duration-700'>
+                                <TabsContent value="premium" className="mt-0 focus-visible:outline-none">
+                                    <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-12 items-center justify-items-center animate-in zoom-in-95 fade-in duration-700'>
                                         {selectedRows.map((person) => (
-                                            <BirthdayTemplate
-                                                key={`premium-${category === 'Staff' ? person.hrmE_Id : person.amsT_Id}`}
-                                                participant={person}
-                                                type={category}
-                                                variant="premium"
-                                            />
+                                            <div key={`premium-container-${category === 'Staff' ? person.hrmE_Id : person.amsT_Id}`} className="hover:scale-105 transition-transform duration-500">
+                                                <BirthdayTemplate
+                                                    participant={person}
+                                                    type={category}
+                                                    variant="premium"
+                                                />
+                                            </div>
                                         ))}
                                     </div>
                                 </TabsContent>
                             </Tabs>
                         ) : (
-                            <div className='flex h-96 w-full flex-col items-center justify-center rounded-[40px] border-4 border-dashed border-slate-200 bg-slate-50/50 print:hidden group'>
-                                <div className="p-6 bg-white rounded-3xl shadow-xl border border-slate-100 group-hover:scale-110 transition-transform duration-500">
-                                    <Cake className="h-16 w-16 text-slate-200 group-hover:text-primary transition-colors" />
+                            <div className='flex h-96 w-full flex-col items-center justify-center rounded-[3rem] border-4 border-dashed border-slate-200 bg-white/50 print:hidden group hover:border-primary/20 transition-colors duration-500'>
+                                <div className="p-8 bg-white rounded-3xl shadow-2xl border border-slate-100 group-hover:scale-110 group-hover:rotate-6 transition-all duration-700">
+                                    <Cake className="h-20 w-20 text-slate-200 group-hover:text-primary transition-colors duration-500" />
                                 </div>
-                                <p className="mt-6 font-black text-slate-300 tracking-[4px] uppercase text-xs">Select participants to see card previews</p>
+                                <p className="mt-8 font-black text-slate-300 tracking-[6px] uppercase text-[10px] group-hover:text-slate-400 transition-colors">Select participants to generate previews</p>
                             </div>
                         )}
 
-                        {/* Print Layout - Only visible when printing */}
                         <div className="hidden print:block">
-                            <div className='grid grid-cols-2 gap-12 items-center justify-items-center'>
+                            <div className='grid grid-cols-2 gap-16 items-center justify-items-center'>
                                 {selectedRows.map((person) => (
                                     <BirthdayTemplate
                                         key={`print-${category === 'Staff' ? person.hrmE_Id : person.amsT_Id}`}
                                         participant={person}
                                         type={category}
-                                        variant="premium"
+                                        variant={initialData?.mI_Id === 30 ? "premium" : "classic"}
                                     />
                                 ))}
                             </div>
                         </div>
-                    </div>
+                    </div> */}
                 </div>
             </div>
 
-            <FeedbackDialog open={feedbackOpen} onOpenChange={setFeedbackOpen} questions={feedbackQuestions} />
+            <FeedbackDialog
+                open={feedbackOpen}
+                onOpenChange={setFeedbackOpen}
+                questions={feedbackQuestions}
+                mI_Id={initialData?.mI_Id}
+                hrmE_Id={initialData?.hrmE_Id}
+            />
 
             {/* Loading Overlay for Sending */}
             {sending && (

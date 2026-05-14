@@ -49,7 +49,7 @@ export default function ExportPreadmissionToAdmissionPage(props: { searchParams:
         isError: preadmissionClassError
     } = usePreadmissionClassDropdown();
 
-    const [classId, setClassId] = useState<number>(0);
+    const [classId, setClassId] = useState<number | null>(null);
 
     const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
     const [selectedStudents, setSelectedStudents] = useState<IPreadmissionApplicationList[]>([]);
@@ -141,35 +141,37 @@ export default function ExportPreadmissionToAdmissionPage(props: { searchParams:
                 </div>
             </div>
 
-            <div className='container space-y-4 p-1'>
-                {/* Data Table Section */}
-                <CollapsibleSection
-                    defaultOpen={true}
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    {selectedStudents.length > 0 && (
-                        <div className='flex w-full justify-end'>
-                            <Button onClick={() => setIsStatusDialogOpen(true)} variant='default' className='h-8 w-fit gap-2'>
-                                <CheckSquare className='h-4 w-4' />
-                                Export to Admission ({selectedStudents.length})
-                            </Button>
-                        </div>
-                    )}
-                    <GenericDataTable<IPreadmissionApplicationList>
-                        {...tableProps}
-                        ref={tableRef}
-                        columns={exportPreadmissionToAdmissionColumns}
-                        isLoading={activePreadmissionDeLoading || isLoading}
-                        error={error}
-                        loadingMessage='Loading confirmed preadmissions...'
-                        noDataTitle='No Data Found'
-                        noDataDescription='No confirmed preadmissions found.'
-                        errorTitle='Error Loading confirmed preadmissions'
-                        onRowSelectionChange={handleSelectStudent}
-                    />
-                </CollapsibleSection>
-            </div>
+            {classId !== null && (
+                <div className='container space-y-4 p-1'>
+                    {/* Data Table Section */}
+                    <CollapsibleSection
+                        defaultOpen={true}
+                        variant='default'
+                        size='lg'
+                        className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                        {selectedStudents.length > 0 && (
+                            <div className='flex w-full justify-end'>
+                                <Button onClick={() => setIsStatusDialogOpen(true)} variant='default' className='h-8 w-fit gap-2'>
+                                    <CheckSquare className='h-4 w-4' />
+                                    Export to Admission ({selectedStudents.length})
+                                </Button>
+                            </div>
+                        )}
+                        <GenericDataTable<IPreadmissionApplicationList>
+                            {...tableProps}
+                            ref={tableRef}
+                            columns={exportPreadmissionToAdmissionColumns}
+                            isLoading={activePreadmissionDeLoading || isLoading}
+                            error={error}
+                            loadingMessage='Loading confirmed preadmissions...'
+                            noDataTitle='No Data Found'
+                            noDataDescription='No confirmed preadmissions found.'
+                            errorTitle='Error Loading confirmed preadmissions'
+                            onRowSelectionChange={handleSelectStudent}
+                        />
+                    </CollapsibleSection>
+                </div>
+            )}
             <ExportPreadmissionToAdmissionDialog
                 isOpen={isStatusDialogOpen}
                 onClose={onUpdateAdmissionStatusClose}

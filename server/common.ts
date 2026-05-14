@@ -5309,16 +5309,15 @@ export async function getUserAccessibleModules() {
                                             url: '/alumni/alumni-module/transactions/coe-events',
                                             title: 'COE Events',
                                             description: 'COE Events Management'
+                                        },
+                                        {
+                                            id: 15,
+                                            name: 'Alumni Birthday Wishes',
+                                            icon: 'Cake',
+                                            url: '/alumni/alumni-module/transactions/alumni-birthday',
+                                            title: 'Alumni Birthday Wishes',
+                                            description: 'Alumni Birthday Wishes Management'
                                         }
-                                        // ,
-                                        // {
-                                        //     id: 15,
-                                        //     name: 'Student Birthday Wishes',
-                                        //     icon: 'Cake',
-                                        //     url: '/alumni/alumni-module/transactions/student-birthday-wishes',
-                                        //     title: 'Student Birthday Wishes',
-                                        //     description: 'Student Birthday Wishes Management'
-                                        // }
                                     ]
                                 },
                                 {
@@ -8557,22 +8556,22 @@ export async function getUserAccessibleModules() {
                                     name: 'Transaction',
                                     icon: 'FileBarChart',
                                     pages: [
-                                        // {
-                                        //     id: 1,
-                                        //     name: 'IVRM Interaction',
-                                        //     icon: 'BookOpenText',
-                                        //     url: '/StaffPortal/Interactions/IVRM_Interactions',
-                                        //     title: 'IVRM Interaction',
-                                        //     description: 'IVRM Interaction'
-                                        // },
-                                        // {
-                                        //     id: 2,
-                                        //     name: 'NDA IVRM Interaction',
-                                        //     icon: 'BookOpenText',
-                                        //     url: '/StaffPortal/Interactions/NDA_IVRM_Interactions',
-                                        //     title: 'NDA IVRM Interaction',
-                                        //     description: 'NDA IVRM Interaction'
-                                        // },
+                                        {
+                                            id: 1,
+                                            name: 'IVRM Interaction',
+                                            icon: 'BookOpenText',
+                                            url: '/StaffPortal/Interactions/IVRM_Interactions',
+                                            title: 'IVRM Interaction',
+                                            description: 'IVRM Interaction'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'NDA IVRM Interaction',
+                                            icon: 'BookOpenText',
+                                            url: '/StaffPortal/Interactions/NDA_IVRM_Interactions',
+                                            title: 'NDA IVRM Interaction',
+                                            description: 'NDA IVRM Interaction'
+                                        },
                                         {
                                             id: 3,
                                             name: 'SCS Interaction',
