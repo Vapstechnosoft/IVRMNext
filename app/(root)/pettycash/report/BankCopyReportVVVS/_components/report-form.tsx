@@ -8,7 +8,7 @@ import * as z from 'zod';
 import { useAcademicYearList } from '@/hooks/pettycash/report/usePDAReport';
 import { Label } from '@/components/ui/extension/field';
 import { FileDown, Printer, Search, RotateCcw } from 'lucide-react';
-import { useEffect } from 'react';
+
 
 const formSchema = z.object({
     ASMAY_Id: z.string().min(1, { message: 'Academic Year is required' }),
@@ -50,7 +50,7 @@ export default function BankCopyReportForm({
 }: BankCopyReportFormProps) {
     const { data: yearList } = useAcademicYearList();
 
-    console.log('academic year')
+
 
     const {
         control,
@@ -73,12 +73,7 @@ export default function BankCopyReportForm({
         ? yearsRaw 
         : (yearsRaw as any)?.acayyearbind || (yearsRaw as any)?.$values || [];
 
-    useEffect(() => {
-        if (years.length > 0 && !getValues('ASMAY_Id')) {
-            setValue('ASMAY_Id', years[0].asmaY_Id.toString());
-            setValue('ASMAY_Year', years[0].asmaY_Year);
-        }
-    }, [years, setValue, getValues]);
+
 
     function onSubmit(values: BankCopyFormValues) {
         onSearch(values);
@@ -107,7 +102,7 @@ export default function BankCopyReportForm({
                                 if (selectedYear) setValue('ASMAY_Year', selectedYear.asmaY_Year);
                             }} value={field.value}>
                                 <SelectTrigger className='w-full h-9 text-xs'>
-                                    <SelectValue placeholder='Select Year' />
+                                    <SelectValue placeholder='Select Academic Year' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {years?.map((year: any) => (
