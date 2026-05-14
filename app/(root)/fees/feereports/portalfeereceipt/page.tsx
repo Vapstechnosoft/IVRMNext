@@ -11,7 +11,6 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { feeReceiptLogo } from '@/hooks/fees/useReports';
 import { feePortalReceiptSchema } from '@/schemas/fees/reports';
-import { feeClassWiseDueListreportSophia } from '@/server/fees/reports/sophia_reports';
 import { getStudentFeeReceiptDropDown, getStudentPortalPrintDetails } from '@/server/fees/reports/studentfee_pages';
 import type { CurrentPaymentDetails, StudentPortalPrintDetails } from '@/types/fees/transactions/transactions';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -61,11 +60,10 @@ export default function FeeReceiptDeleteReportNagarjuna() {
     const selectedReceiptId = watch('receiptId');
     const printRef = useRef<HTMLDivElement>(null);
     const [academicYears, setAcademicYears] = useState<IAcademicYear[]>([]);
-    const [reportData, setReportData] = useState<IFeeClassWiseDueListReportofSophia[]>([]);
     const [feeReceiptData, setFeeReceiptData] = useState<any[]>([]);
     const [isFeeReceiptLoading, setisFeeReceiptLoading] = useState(false);
     const [studentDetails, setStudentDetails] = useState<StudentPortalPrintDetails[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [currentPaymentDetails, setCurrentPaymentDetails] = useState<CurrentPaymentDetails[]>([]);
 
     const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
@@ -85,11 +83,6 @@ export default function FeeReceiptDeleteReportNagarjuna() {
             setAcademicYears(formatted);
         }
     }, [academicData, academicError]);
-
-    useEffect(() => {
-        setReportData([]);
-        // setSelectedIds([]);
-    }, [selctedAcademicYearId]);
 
     const fetchFeeReceiptDetails = async () => {
         if (!selctedAcademicYearId) return;
@@ -166,27 +159,8 @@ export default function FeeReceiptDeleteReportNagarjuna() {
         fetchStudentPrintDetails();
     }, [selctedAcademicYearId, selectedReceiptId]);
 
-    const onSubmit: SubmitHandler<FormFields> = async (data) => {
-        setReportData([]);
+    const onSubmit: SubmitHandler<FormFields> = async () => {
         // setSelectedIds([]);
-
-        try {
-            const payload = {
-                customflag: 'DUELIST',
-                asmaY_Id: data.academicYearId,
-                radioval: ''
-            };
-
-            const apiData = await feeClassWiseDueListreportSophia(payload);
-            const responseJson = typeof apiData === 'string' ? JSON.parse(apiData) : apiData;
-            if (responseJson?.data) {
-                setReportData(responseJson.data);
-                toast.success('Report Generated Successfully');
-            }
-        } catch (error: any) {
-            console.error('Error generating report:', error);
-            toast.error(error.message || 'Failed to generate report');
-        }
     };
 
     // Update your printTable function to handle grouped data
@@ -496,187 +470,197 @@ export default function FeeReceiptDeleteReportNagarjuna() {
                         </div>
                     </Card>
                     <div className='mt-10'>
-                        {studentDetails.length > 0 && (
-                            <div ref={printRef}>
-                                <CollapsibleSection defaultOpen={true}>
-                                    <div className='mt-10 rounded-lg border bg-white shadow-xl'>
-                                        <div className='flex items-center justify-between border-b bg-primary/5 px-8 py-6'>
-                                            <div className='mb-6 text-center'>
-                                                <h2 className='font-bold text-2xl text-primary'> Portal Fee Receipt</h2>
-                                            </div>
+                        {loading ? (
+                            <div className='flex min-h-[400px] items-center justify-center rounded-lg border bg-white shadow-xl'>
+                                <div className='text-center'>
+                                    <div className='mb-4 inline-block h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent'></div>
+                                    <p className='text-gray-500'>Loading receipt data...</p>
+                                </div>
+                            </div>
+                        ) : (
+                            studentDetails.length > 0 && (
+                                <div ref={printRef}>
+                                    <CollapsibleSection defaultOpen={true}>
+                                        <div className='mt-10 rounded-lg border bg-white shadow-xl'>
+                                            <div className='flex items-center justify-between border-b bg-primary/5 px-8 py-6'>
+                                                <div className='mb-6 text-center'>
+                                                    <h2 className='font-bold text-2xl text-primary'> Portal Fee Receipt</h2>
+                                                </div>
 
-                                            <div className='flex gap-2'>
-                                                <Button
-                                                    size='sm'
-                                                    //  onClick={handlePrint}
-                                                    className='h-8 px-3 text-xs'
-                                                >
-                                                    Print
-                                                </Button>
+                                                <div className='flex gap-2'>
+                                                    <Button
+                                                        size='sm'
+                                                        //  onClick={handlePrint}
+                                                        className='h-8 px-3 text-xs'
+                                                    >
+                                                        Print
+                                                    </Button>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div className='flex items-center gap-4 border-b pb-4'>
-                                            <div className='text-center'>
-                                                {logodata && <img src={logodata} alt='Institute Logo' className='mx-auto' />}
+                                            <div className='flex items-center gap-4 border-b pb-4'>
+                                                <div className='text-center'>
+                                                    {logodata && <img src={logodata} alt='Institute Logo' className='mx-auto' />}
+                                                </div>
                                             </div>
-                                        </div>
-                                        <h5 className='my-4 text-center font-bold'>FEE RECEIPT</h5>
+                                            <h5 className='my-4 text-center font-bold'>FEE RECEIPT</h5>
 
-                                        {/* Student Details Section */}
-                                        <div className='mt-4 ml-10 text-sm'>
-                                            <table className='w-full border-collapse'>
-                                                <tbody>
-                                                    <tr>
-                                                        <td className='w-1/5 py-1 align-top font-semibold'>Receipt No</td>
-                                                        <td className='w-2/5 py-1 align-top'>
-                                                            : {studentDetails[0]?.fyp_receipt_no || ''}
-                                                        </td>
-                                                        <td className='w-1/5 py-1 pl-8 align-top font-semibold'>Date</td>
-                                                        <td className='w-2/5 py-1 align-top'>
-                                                            :{' '}
-                                                            {studentDetails[0]?.fyp_date
-                                                                ? new Date(studentDetails[0].fyp_date).toLocaleDateString()
-                                                                : ''}
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td className='py-1 align-top font-semibold'>Adm No</td>
-                                                        <td className='py-1 align-top'>: {studentDetails[0]?.admno || ''}</td>
-                                                        <td className='py-1 pl-8 align-top font-semibold'>Academic Year</td>
-                                                        <td className='py-1 align-top'>: {''}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td className='py-1 align-top font-semibold'>Name</td>
-                                                        <td className='py-1 align-top'>
-                                                            : {studentDetails[0]?.amst_firstname || ''}{' '}
-                                                            {studentDetails[0]?.amst_middlename || ''}
-                                                            {studentDetails[0]?.amst_lastname || ''}
-                                                        </td>
-                                                        <td className='py-1 pl-8 align-top font-semibold'>Class/Sec</td>
-                                                        <td className='py-1 align-top'>
-                                                            : {studentDetails[0]?.classname || ''}/ {studentDetails[0]?.sectionname || ''}
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td className='py-1 align-top font-semibold'>Father</td>
-                                                        <td className='py-1 align-top'>: {studentDetails[0]?.fathername || ''}</td>
-                                                        <td className='py-1 pl-8 align-top font-semibold'>Type</td>
-                                                        <td className='py-1 align-top'>: {''}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td className='py-1 align-top font-semibold'>Mother</td>
-                                                        <td className='py-1 align-top'>: {studentDetails[0]?.mothername || ''}</td>
-                                                        <td className='py-1 pl-8 align-top font-semibold'>Period</td>
-                                                        <td className='py-1 align-top'>: {''}</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                        {/* Render all receipts */}
-                                        <div className='border-b pb-8 last:border-b-0'>
-                                            <div className='mx-auto max-w-6xl bg-white p-6 text-black '>
-                                                {/* Fee Rows Table */}
-                                                <table className='w-full border-collapse border text-xs'>
-                                                    <thead className='bg-gray-100'>
-                                                        <tr>
-                                                            <th className='border p-1'>SL.NO</th>
-                                                            <th className='border p-1'>Head Name</th>
-                                                            <th className='border p-1'>Fee Name</th>
-                                                            <th className='border p-1'>Paid Amount</th>
-                                                        </tr>
-                                                    </thead>
+                                            {/* Student Details Section */}
+                                            <div className='mt-4 ml-10 text-sm'>
+                                                <table className='w-full border-collapse'>
                                                     <tbody>
-                                                        {studentDetails.map((row: any, index) => (
-                                                            <tr key={index + 1}>
-                                                                <td className='border p-1 text-center'>{index + 1}</td>
-                                                                <td className='border p-1'>{row.fmh_feename}</td>
-
-                                                                <td className='border p-1 text-right'>
-                                                                    ₹{row.fma_amount?.toLocaleString('en-IN') ?? '0'}
-                                                                </td>
-                                                                <td className='border p-1 text-right'>
-                                                                    ₹{row.ftp_paid_amt?.toLocaleString('en-IN') ?? '0'}
-                                                                </td>
-                                                            </tr>
-                                                        ))}
-                                                        {/* Total Row */}
-                                                        <tr className='bg-gray-50 font-bold'>
-                                                            <td className='border p-1 text-right' colSpan={2}>
-                                                                NET AMOUNT
+                                                        <tr>
+                                                            <td className='w-1/5 py-1 align-top font-semibold'>Receipt No</td>
+                                                            <td className='w-2/5 py-1 align-top'>
+                                                                : {studentDetails[0]?.fyp_receipt_no || ''}
                                                             </td>
-                                                            <td className='border p-1 text-right'>
-                                                                ₹
-                                                                {studentDetails
-                                                                    .reduce((sum: any, row: any) => sum + (row.fma_amount || 0), 0)
-                                                                    .toLocaleString('en-IN')}
+                                                            <td className='w-1/5 py-1 pl-8 align-top font-semibold'>Date</td>
+                                                            <td className='w-2/5 py-1 align-top'>
+                                                                :{' '}
+                                                                {studentDetails[0]?.fyp_date
+                                                                    ? new Date(studentDetails[0].fyp_date).toLocaleDateString()
+                                                                    : ''}
                                                             </td>
-                                                            <td className='border p-1 text-right'>
-                                                                ₹
-                                                                {studentDetails
-                                                                    .reduce((sum: any, row: any) => sum + (row.ftp_paid_amt || 0), 0)
-                                                                    .toLocaleString('en-IN')}
+                                                        </tr>
+                                                        <tr>
+                                                            <td className='py-1 align-top font-semibold'>Adm No</td>
+                                                            <td className='py-1 align-top'>: {studentDetails[0]?.admno || ''}</td>
+                                                            <td className='py-1 pl-8 align-top font-semibold'>Academic Year</td>
+                                                            <td className='py-1 align-top'>: {''}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td className='py-1 align-top font-semibold'>Name</td>
+                                                            <td className='py-1 align-top'>
+                                                                : {studentDetails[0]?.amst_firstname || ''}{' '}
+                                                                {studentDetails[0]?.amst_middlename || ''}
+                                                                {studentDetails[0]?.amst_lastname || ''}
                                                             </td>
+                                                            <td className='py-1 pl-8 align-top font-semibold'>Class/Sec</td>
+                                                            <td className='py-1 align-top'>
+                                                                : {studentDetails[0]?.classname || ''}/{' '}
+                                                                {studentDetails[0]?.sectionname || ''}
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td className='py-1 align-top font-semibold'>Father</td>
+                                                            <td className='py-1 align-top'>: {studentDetails[0]?.fathername || ''}</td>
+                                                            <td className='py-1 pl-8 align-top font-semibold'>Type</td>
+                                                            <td className='py-1 align-top'>: {''}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td className='py-1 align-top font-semibold'>Mother</td>
+                                                            <td className='py-1 align-top'>: {studentDetails[0]?.mothername || ''}</td>
+                                                            <td className='py-1 pl-8 align-top font-semibold'>Period</td>
+                                                            <td className='py-1 align-top'>: {''}</td>
                                                         </tr>
                                                     </tbody>
                                                 </table>
+                                            </div>
+                                            {/* Render all receipts */}
+                                            <div className='border-b pb-8 last:border-b-0'>
+                                                <div className='mx-auto max-w-6xl bg-white p-6 text-black '>
+                                                    {/* Fee Rows Table */}
+                                                    <table className='w-full border-collapse border text-xs'>
+                                                        <thead className='bg-gray-100'>
+                                                            <tr>
+                                                                <th className='border p-1'>SL.NO</th>
+                                                                <th className='border p-1'>Head Name</th>
+                                                                <th className='border p-1'>Fee Name</th>
+                                                                <th className='border p-1'>Paid Amount</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {studentDetails.map((row: any, index) => (
+                                                                <tr key={index + 1}>
+                                                                    <td className='border p-1 text-center'>{index + 1}</td>
+                                                                    <td className='border p-1'>{row.fmh_feename}</td>
 
-                                                {/* Payment Rows Table */}
-                                                <h3 className='mt-6 font-bold text-sm'>CURRENT PAYMENT DETAIL</h3>
-                                                <table className='mt-2 w-full border-collapse border text-xs'>
-                                                    <thead className='bg-gray-100'>
-                                                        <tr>
-                                                            <th className='border p-1'>SL.NO</th>
-                                                            <th className='border p-1'>AMOUNT</th>
-                                                            <th className='border p-1'>BANK</th>
-                                                            <th className='border p-1'>DD.NO</th>
-                                                            <th className='border p-1'>DATE</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {currentPaymentDetails.map((p: any, index) => (
-                                                            <tr key={index + 1}>
-                                                                <td className='border p-1 text-center'>{index + 1}</td>
-                                                                <td className='border p-1 text-right'>
-                                                                    ₹{p.ftP_Paid_Amt?.toLocaleString('en-IN') || '0'}
+                                                                    <td className='border p-1 text-right'>
+                                                                        ₹{row.fma_amount?.toLocaleString('en-IN') ?? '0'}
+                                                                    </td>
+                                                                    <td className='border p-1 text-right'>
+                                                                        ₹{row.ftp_paid_amt?.toLocaleString('en-IN') ?? '0'}
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                            {/* Total Row */}
+                                                            <tr className='bg-gray-50 font-bold'>
+                                                                <td className='border p-1 text-right' colSpan={2}>
+                                                                    NET AMOUNT
                                                                 </td>
-                                                                <td className='border p-1 text-center'>{p.fyP_Bank_Or_Cash ?? '-'}</td>
-                                                                <td className='border p-1 text-center'>{p.fyP_DD_Cheque_No ?? '-'}</td>
-                                                                <td className='border p-1 text-center'>
-                                                                    {p.fyP_DD_Cheque_Date
-                                                                        ? new Date(p.fyP_DD_Cheque_Date).toLocaleDateString()
-                                                                        : ''}
+                                                                <td className='border p-1 text-right'>
+                                                                    ₹
+                                                                    {studentDetails
+                                                                        .reduce((sum: any, row: any) => sum + (row.fma_amount || 0), 0)
+                                                                        .toLocaleString('en-IN')}
+                                                                </td>
+                                                                <td className='border p-1 text-right'>
+                                                                    ₹
+                                                                    {studentDetails
+                                                                        .reduce((sum: any, row: any) => sum + (row.ftp_paid_amt || 0), 0)
+                                                                        .toLocaleString('en-IN')}
                                                                 </td>
                                                             </tr>
-                                                        ))}
-                                                        {/* Payment Total */}
-                                                        {/* <tr className='bg-gray-50 font-bold'>
+                                                        </tbody>
+                                                    </table>
+
+                                                    {/* Payment Rows Table */}
+                                                    <h3 className='mt-6 font-bold text-sm'>CURRENT PAYMENT DETAIL</h3>
+                                                    <table className='mt-2 w-full border-collapse border text-xs'>
+                                                        <thead className='bg-gray-100'>
+                                                            <tr>
+                                                                <th className='border p-1'>SL.NO</th>
+                                                                <th className='border p-1'>AMOUNT</th>
+                                                                <th className='border p-1'>BANK</th>
+                                                                <th className='border p-1'>DD.NO</th>
+                                                                <th className='border p-1'>DATE</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {currentPaymentDetails.map((p: any, index) => (
+                                                                <tr key={index + 1}>
+                                                                    <td className='border p-1 text-center'>{index + 1}</td>
+                                                                    <td className='border p-1 text-right'>
+                                                                        ₹{p.ftP_Paid_Amt?.toLocaleString('en-IN') || '0'}
+                                                                    </td>
+                                                                    <td className='border p-1 text-center'>{p.fyP_Bank_Or_Cash ?? '-'}</td>
+                                                                    <td className='border p-1 text-center'>{p.fyP_DD_Cheque_No ?? '-'}</td>
+                                                                    <td className='border p-1 text-center'>
+                                                                        {p.fyP_DD_Cheque_Date
+                                                                            ? new Date(p.fyP_DD_Cheque_Date).toLocaleDateString()
+                                                                            : ''}
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                            {/* Payment Total */}
+                                                            {/* <tr className='bg-gray-50 font-bold'>
                                                                             <td className='border p-1 text-center'>TOTAL</td>
                                                                             <td className='border p-1 text-right'>
                                                                                 ₹{report.paymentRows.reduce((sum, p) => sum + (p.amount || 0), 0).toLocaleString('en-IN')}
                                                                             </td>
                                                                             <td className='border p-1 text-center' colSpan={3}>-</td>
                                                                         </tr> */}
-                                                    </tbody>
-                                                </table>
+                                                        </tbody>
+                                                    </table>
 
-                                                {/* Footer Section */}
-                                                <div className='mt-4 text-sm'>
-                                                    <p>
-                                                        <b>Amount Received:</b> {numberToWords(currentPaymentDetails[0]?.ftP_Paid_Amt)}
-                                                    </p>
-                                                    <p>
-                                                        <b>Note:</b> This receipt is valid subject to realisation of Cheque
-                                                    </p>
-                                                </div>
+                                                    {/* Footer Section */}
+                                                    <div className='mt-4 text-sm'>
+                                                        <p>
+                                                            <b>Amount Received:</b> {numberToWords(currentPaymentDetails[0]?.ftP_Paid_Amt)}
+                                                        </p>
+                                                        <p>
+                                                            <b>Note:</b> This receipt is valid subject to realisation of Cheque
+                                                        </p>
+                                                    </div>
 
-                                                <div className='mt-10 flex justify-end'>
-                                                    <p className='border-t pt-2 text-sm'>AUTHORIZED SIGNATORY</p>
+                                                    <div className='mt-10 flex justify-end'>
+                                                        <p className='border-t pt-2 text-sm'>AUTHORIZED SIGNATORY</p>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </CollapsibleSection>
-                            </div>
+                                    </CollapsibleSection>
+                                </div>
+                            )
                         )}
                     </div>
                 </div>
