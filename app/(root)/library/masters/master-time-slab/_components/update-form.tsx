@@ -37,7 +37,17 @@ export default function UpdateMasterTimeSlabForm({ onloaddata, onSuccess, classN
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterTimeSlabSchema.addOrUpdate),
-        mode: 'onChange'
+        mode: 'onChange',
+        defaultValues: {
+            lfsE_Id: (row as any).lfsE_Id ?? (row as any).LFSE_Id ?? 0,
+            lfsE_UserType: (row as any).lfsE_UserType ?? (row as any).LFSE_UserType ?? '',
+            lfsE_SlabTypeFlg: (row as any).lfsE_SlabTypeFlg ?? (row as any).LFSE_SlabTypeFlg ?? '',
+            lfsE_PerDayFlg: (row as any).lfsE_PerDayFlg === true || (row as any).lfsE_PerDayFlg === 1 || (row as any).LFSE_PerDayFlg === true || (row as any).LFSE_PerDayFlg === 1 ? 1 : 0,
+            lfsE_FromDay: (row as any).lfsE_FromDay ?? (row as any).LFSE_FromDay ?? 0,
+            lfsE_ToDay: (row as any).lfsE_ToDay ?? (row as any).LFSE_ToDay ?? 0,
+            lfsE_Amount: (row as any).lfsE_Amount ?? (row as any).LFSE_Amount ?? 0,
+            lfsE_ActiveFlg: (row as any).lfsE_ActiveFlg ?? (row as any).LFSE_ActiveFlg ?? true
+        }
     });
 
     const slabType = watch('lfsE_SlabTypeFlg');
@@ -48,7 +58,7 @@ export default function UpdateMasterTimeSlabForm({ onloaddata, onSuccess, classN
                 lfsE_Id: (row as any).lfsE_Id ?? (row as any).LFSE_Id,
                 lfsE_UserType: (row as any).lfsE_UserType ?? (row as any).LFSE_UserType ?? '',
                 lfsE_SlabTypeFlg: (row as any).lfsE_SlabTypeFlg ?? (row as any).LFSE_SlabTypeFlg ?? '',
-                lfsE_PerDayFlg: (row as any).lfsE_PerDayFlg ?? (row as any).LFSE_PerDayFlg ?? 0,
+                lfsE_PerDayFlg: (row as any).lfsE_PerDayFlg === true || (row as any).lfsE_PerDayFlg === 1 || (row as any).LFSE_PerDayFlg === true || (row as any).LFSE_PerDayFlg === 1 ? 1 : 0,
                 lfsE_FromDay: (row as any).lfsE_FromDay ?? (row as any).LFSE_FromDay ?? 0,
                 lfsE_ToDay: (row as any).lfsE_ToDay ?? (row as any).LFSE_ToDay ?? 0,
                 lfsE_Amount: (row as any).lfsE_Amount ?? (row as any).LFSE_Amount ?? 0,
@@ -57,19 +67,22 @@ export default function UpdateMasterTimeSlabForm({ onloaddata, onSuccess, classN
         }
     }, [row, reset]);
 
+
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             const payload = {
-                LFSE_Id: row.lfsE_Id,
-                LFSE_UserType: data.lfsE_UserType,
-                LFSE_SlabTypeFlg: data.lfsE_SlabTypeFlg,
-                LFSE_PerDayFlg: data.lfsE_PerDayFlg,
-                LFSE_FromDay: data.lfsE_FromDay,
-                LFSE_ToDay: data.lfsE_ToDay ?? 0,
-                LFSE_Amount: data.lfsE_Amount
+                lfsE_Id: (row as any).lfsE_Id ?? (row as any).LFSE_Id,
+                lfsE_UserType: data.lfsE_UserType,
+                lfsE_SlabTypeFlg: data.lfsE_SlabTypeFlg,
+              lfsE_PerDayFlg: data.lfsE_PerDayFlg === 1 ?true : false,
+                lfsE_FromDay: Number(data.lfsE_FromDay),
+                lfsE_ToDay: data.lfsE_SlabTypeFlg === 'BETWEEN' ? Number(data.lfsE_ToDay) : 0,
+                lfsE_Amount: Number(data.lfsE_Amount),
+                lfsE_ActiveFlg: row.lfsE_ActiveFlg
             };
 
             const response = await addOrUpdateMasterTimeSlab(payload);
+
 
             if (response.success) {
                 toast.success(response.message || 'Record Updated Successfully!!!');
@@ -89,7 +102,7 @@ export default function UpdateMasterTimeSlabForm({ onloaddata, onSuccess, classN
                 lfsE_Id: (row as any).lfsE_Id ?? (row as any).LFSE_Id,
                 lfsE_UserType: (row as any).lfsE_UserType ?? (row as any).LFSE_UserType ?? '',
                 lfsE_SlabTypeFlg: (row as any).lfsE_SlabTypeFlg ?? (row as any).LFSE_SlabTypeFlg ?? '',
-                lfsE_PerDayFlg: (row as any).lfsE_PerDayFlg ?? (row as any).LFSE_PerDayFlg ?? 0,
+                lfsE_PerDayFlg: (row as any).lfsE_PerDayFlg === true || (row as any).lfsE_PerDayFlg === 1 || (row as any).LFSE_PerDayFlg === true || (row as any).LFSE_PerDayFlg === 1 ? 1 : 0,
                 lfsE_FromDay: (row as any).lfsE_FromDay ?? (row as any).LFSE_FromDay ?? 0,
                 lfsE_ToDay: (row as any).lfsE_ToDay ?? (row as any).LFSE_ToDay ?? 0,
                 lfsE_Amount: (row as any).lfsE_Amount ?? (row as any).LFSE_Amount ?? 0,
@@ -97,6 +110,7 @@ export default function UpdateMasterTimeSlabForm({ onloaddata, onSuccess, classN
             });
         }
     };
+
 
     return (
         <div className={className}>
@@ -183,6 +197,7 @@ export default function UpdateMasterTimeSlabForm({ onloaddata, onSuccess, classN
                         label='From Day'
                         type='number'
                         required
+                        placeholder='Enter From Day'
                         {...register('lfsE_FromDay')}
                         error={errors.lfsE_FromDay?.message}
                     />
@@ -192,6 +207,7 @@ export default function UpdateMasterTimeSlabForm({ onloaddata, onSuccess, classN
                             label='To Day'
                             type='number'
                             required
+                            placeholder='Enter To Day'
                             {...register('lfsE_ToDay')}
                             error={errors.lfsE_ToDay?.message}
                         />
@@ -202,6 +218,7 @@ export default function UpdateMasterTimeSlabForm({ onloaddata, onSuccess, classN
                         type='number'
                         step='0.01'
                         required
+                        placeholder='Enter Amount'
                         {...register('lfsE_Amount')}
                         error={errors.lfsE_Amount?.message}
                     />

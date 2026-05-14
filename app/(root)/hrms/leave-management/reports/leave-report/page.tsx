@@ -1,16 +1,11 @@
 'use client';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { useState, useMemo } from 'react';
+import { useMasterLeaveDropdown } from '@/hooks/hrms/useMasters';
+import { usePeriodLeaveReportEmployees, useReportDepartments, useReportDesignations, useReportGroupTypes } from '@/hooks/hrms/useReports';
+import { useMemo, useState } from 'react';
 import { type LeaveReportRow, leaveReportColumns } from './_components/columns';
 import { type LeaveReportFilters as FiltersType, LeaveReportFilters } from './_components/filters';
-import {
-    useReportGroupTypes,
-    useReportDepartments,
-    useReportDesignations,
-    usePeriodLeaveReportEmployees
-} from '@/hooks/hrms/useReports';
-import { useMasterLeaveDropdown } from '@/hooks/hrms/useMasters';
 
 export default function LeaveReportPage() {
     const [rows, setRows] = useState<LeaveReportRow[]>([]);
@@ -34,7 +29,7 @@ export default function LeaveReportPage() {
     const { data: departmentsData } = useReportDepartments(groupTypeIds);
     const deptIds = filters.selectedDepartments.join(',');
     const { data: designationsData } = useReportDesignations(groupTypeIds, deptIds);
-    const { data: leavesData } = useMasterLeaveDropdown();
+    const { data: leavesData, isLoading: isLoadingLeaves } = useMasterLeaveDropdown();
 
     // Fetch employees based on selected departments and designations
     // NOTE: Using PeriodLeaveReportEmployees API which is specifically designed for leave reports
@@ -220,23 +215,23 @@ export default function LeaveReportPage() {
                     isLoadingDepartments={false}
                     isLoadingDesignations={false}
                     isLoadingEmployees={isLoadingEmployees}
+                    isLoadingLeaves={isLoadingLeaves}
                     errors={errors}
                     isGenerating={isGenerating}
                     onFilterChange={handleFilterChange}
                     onReport={handleReport}
                     onCancel={handleClear}
                 />
-                {
-                    rows.length > 0 && (
-                <CollapsibleSection
-                    title='Leave Report'
-                    description=''
-                    defaultOpen={rows.length > 0}
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable data={rows} columns={leaveReportColumns} totalItems={rows.length} isLoading={false} />
-                </CollapsibleSection>
+                {rows.length > 0 && (
+                    <CollapsibleSection
+                        title='Leave Report'
+                        description=''
+                        defaultOpen={rows.length > 0}
+                        variant='default'
+                        size='lg'
+                        className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                        <GenericDataTable data={rows} columns={leaveReportColumns} totalItems={rows.length} isLoading={false} />
+                    </CollapsibleSection>
                 )}
             </div>
         </div>

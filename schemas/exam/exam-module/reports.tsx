@@ -912,3 +912,49 @@ export const calcuttaPromotionReportItoVSchema = z
     });
 
 export type CalcuttaPromotionReportItoVSchema = z.infer<typeof calcuttaPromotionReportItoVSchema>;
+
+export const multipleExamCumulativeReportCalcuttaSchema = z.object({
+    asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
+    asmcL_Id: z.number({ required_error: 'Class is required' }).min(1, { message: 'Please select Class' }),
+    asmS_Id: z.number({ required_error: 'Section is required' }).min(1, { message: 'Please select Section' }),
+    emgR_Id: z.number({ required_error: 'Grade is required' }).min(1, { message: 'Please select Grade' }),
+    examlist: z.array(z.object({
+        emE_Id: z.number()
+    })).min(1, { message: 'Please select at least one Exam' }),
+    empsG_PercentValue: z.number().optional().default(0),
+    flag: z.string().optional().default("4"),
+    emE_Id: z.number().optional().default(0),
+    reporttype: z.string().optional().default(""),
+    empG_GroupName: z.string().optional().default("")
+});
+
+
+
+export type MultipleExamCumulativeReportCalcuttaValues = z.infer<typeof multipleExamCumulativeReportCalcuttaSchema>;
+
+export const finalPromReportSTMarySchema = z.object({
+    ASMAY_Id: z.string({ required_error: 'Academic Year is required' }).min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string({ required_error: 'Class is required' }).min(1, 'Class is required'),
+    ASMS_Id: z.string({ required_error: 'Section is required' }).min(1, 'Section is required'),
+    date: z.string({ required_error: 'Reopen Date is required' }).min(1, 'Reopen Date is required'),
+    remarks: z.string({ required_error: 'Promoted to std is required' }).min(1, 'Promoted to std is required'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
+});
+
+export type FinalPromReportSTMarySchema = z.infer<typeof finalPromReportSTMarySchema>;
+
+export const baldwinReportSchema = z.object({
+    ASMAY_Id: z.string({ required_error: 'Academic Year is required' }).min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string({ required_error: 'Class is required' }).min(1, 'Class is required'),
+    ASMS_Id: z.string({ required_error: 'Section is required' }).min(1, 'Section is required'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student'),
+    workingDays: z.string().optional().default(''),
+    presentDays: z.string().optional().default(''),
+    includeLeftStudents: z.boolean().default(false),
+    dontShowRank: z.boolean().default(true),
+    printLogo: z.boolean().default(true),
+    left_logo: z.boolean().default(true),
+    right_logo: z.boolean().default(true)
+});
+
+export type BaldwinReportSchema = z.infer<typeof baldwinReportSchema>;

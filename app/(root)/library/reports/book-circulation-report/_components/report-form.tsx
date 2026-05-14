@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Search, X } from 'lucide-react';
+import { Loader2, Search, X, FileText, Printer, FileSpreadsheet, LayoutGrid } from 'lucide-react';
 import { useBookCirculationReportInitialData } from '@/hooks/library/reports/useBookCirculationReport';
 import { IBookCirculationReportRequest, IBookCirculationReportInitialData } from '@/types/library/reports/book-circulation-report';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -66,9 +66,12 @@ type ReportFormValues = z.infer<typeof reportFormSchema>;
 interface ReportFormProps {
     onSearch: (data: IBookCirculationReportRequest) => void;
     isLoading: boolean;
+    onPrint: () => void;
+    onExport: () => void;
+    hasData: boolean;
 }
 
-export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
+export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData }: ReportFormProps) => {
     const { data: initialData, isLoading: isInitialLoading } = useBookCirculationReportInitialData() as { data: IBookCirculationReportInitialData | undefined, isLoading: boolean };
 
     // Local state for multi-select to handle UI before sync with form
@@ -175,279 +178,280 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
     }
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="text-lg">Filters</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        {/* Library */}
-                        <div>
-                            <Label>Library Name <span className="text-red-500">*</span></Label>
-                            <Select onValueChange={(v) => setValue('LMAL_Id', Number(v))}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select Library" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {initialData?.lib_list?.map((lib) => (
-                                        <SelectItem key={lib.lmaL_Id} value={lib.lmaL_Id.toString()}>
-                                            {lib.lmaL_LibraryName}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            {errors.LMAL_Id && <p className="text-sm text-red-500 mt-1">{errors.LMAL_Id.message}</p>}
+        <form onSubmit={handleSubmit(onSubmit)} className='mx-auto max-w-4xl space-y-3 p-3 bg-white rounded-lg shadow-md border-t-4 border-[#3f51b5]'>
+            {/* Member Type Selection at top - Centered */}
+            <div className='flex justify-center pb-3 border-b border-slate-100'>
+                <RadioGroup
+                    defaultValue="Student"
+                    onValueChange={(v) => setValue('AGType', v as any)}
+                    className="flex flex-wrap justify-center gap-6"
+                >
+                    {['Student', 'Staff', 'Guest', 'Department'].map((type) => (
+                        <div key={type} className="flex items-center space-x-2">
+                            <RadioGroupItem value={type} id={`r-${type}`} className="w-3.5 h-3.5 border-[#4454B4] text-[#4454B4]" />
+                            <Label htmlFor={`r-${type}`} className="text-xs font-semibold cursor-pointer text-slate-700">{type}</Label>
                         </div>
+                    ))}
+                </RadioGroup>
+            </div>
 
-                        {/* Member Type - AGType */}
-                        <div>
-                            <Label className="mb-2 block font-semibold">Member Type <span className="text-red-500">*</span></Label>
+            {/* Library Selection - Compact Row */}
+            <div className='flex justify-center pt-1'>
+                <div className='flex items-center gap-3 w-full max-w-xl'>
+                    <Label className='min-w-[120px] text-right font-bold text-xs text-[#4454B4]'>
+                        Library Name:<span className='text-red-500'>*</span>
+                    </Label>
+                    <div className='flex-1'>
+                        <Select onValueChange={(v) => setValue('LMAL_Id', Number(v))}>
+                            <SelectTrigger className='w-full border-slate-300 h-8 text-xs'>
+                                <SelectValue placeholder="Select Library" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {initialData?.lib_list?.map((lib) => (
+                                    <SelectItem key={lib.lmaL_Id} value={lib.lmaL_Id.toString()} className="text-xs">
+                                        {lib.lmaL_LibraryName}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        {errors.LMAL_Id && <p className="text-[9px] text-red-500 mt-0.5">{errors.LMAL_Id.message}</p>}
+                    </div>
+                </div>
+            </div>
+
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-6 pt-2'>
+                {/* Left Column: Book Type & Transaction Status */}
+                <div className='space-y-4'>
+                    {/* BOOK TYPE Box */}
+                    <div className='border rounded-sm shadow-sm overflow-hidden'>
+                        <div className='bg-slate-50 border-b py-0.5 text-center'>
+                            <Label className='font-bold text-[#4454B4] text-[10px] tracking-widest uppercase'>BOOK TYPE</Label>
+                        </div>
+                        <div className='p-3'>
                             <RadioGroup
-                                defaultValue="Student"
-                                onValueChange={(v) => setValue('AGType', v as any)}
-                                className="flex flex-wrap gap-4 p-3 border rounded-md justify-around bg-slate-50"
+                                defaultValue="all"
+                                onValueChange={(v) => setValue('Type', v)}
+                                className="grid grid-cols-3 gap-y-2 gap-x-1"
                             >
-                                {['Student', 'Staff', 'Guest', 'Department'].map((type) => (
-                                    <div key={type} className="flex items-center space-x-2">
-                                        <RadioGroupItem value={type} id={`r-${type}`} />
-                                        <Label htmlFor={`r-${type}`}>{type}</Label>
+                                {[
+                                    { id: 'all', label: 'ALL' },
+                                    { id: 'Issue', label: 'Issue' },
+                                    { id: 'Reference', label: 'Reference' },
+                                    { id: 'Issuable', label: 'Issuable' },
+                                    { id: 'NotIssuable', label: 'Not Issuable' },
+                                    { id: 'ReferenceonlyIssuable', label: 'Ref Iss' },
+                                    { id: 'ReferenceonlyNon-Issuable', label: 'Ref Non-Iss' }
+                                ].map((bt) => (
+                                    <div key={bt.id} className="flex items-center space-x-1.5">
+                                        <RadioGroupItem value={bt.id} id={`bt-${bt.id}`} className="w-3 h-3" />
+                                        <Label htmlFor={`bt-${bt.id}`} className="text-[9px] font-medium cursor-pointer text-slate-600">{bt.label}</Label>
                                     </div>
                                 ))}
                             </RadioGroup>
                         </div>
+                    </div>
 
-                        {/* Book Type - Type */}
-                        <div>
-                            <Label className="mb-2 block font-semibold">Book Type <span className="text-red-500">*</span></Label>
-                            <RadioGroup
-                                defaultValue="all"
-                                onValueChange={(v) => setValue('Type', v)}
-                                className="grid grid-cols-2 md:grid-cols-2 gap-2 p-3 border rounded-md bg-slate-50"
-                            >
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="all" id="bt-all" />
-                                    <Label htmlFor="bt-all">ALL</Label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="Issue" id="bt-Issue" />
-                                    <Label htmlFor="bt-Issue">Issue</Label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="Reference" id="bt-Reference" />
-                                    <Label htmlFor="bt-Reference">Reference</Label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="Issuable" id="bt-Issuable" />
-                                    <Label htmlFor="bt-Issuable">Issuable</Label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="NotIssuable" id="bt-NotIssuable" />
-                                    <Label htmlFor="bt-NotIssuable">Not Issuable</Label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="ReferenceonlyIssuable" id="bt-RefIssuable" />
-                                    <Label htmlFor="bt-RefIssuable">Ref only Issuable</Label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="ReferenceonlyNon-Issuable" id="bt-RefNonIssuable" />
-                                    <Label htmlFor="bt-RefNonIssuable">Ref only Non-Issuable</Label>
-                                </div>
-                            </RadioGroup>
+                    {/* TRANSACTION STATUS Box */}
+                    <div className='border rounded-sm shadow-sm overflow-hidden'>
+                        <div className='bg-slate-50 border-b py-0.5 text-center'>
+                            <Label className='font-bold text-[#4454B4] text-[10px] tracking-widest uppercase'>TRANSACTION STATUS</Label>
                         </div>
-
-                        {/* Transaction Status - TrnType */}
-                        <div>
-                            <Label className="mb-2 block font-semibold">Transaction Status <span className="text-red-500">*</span></Label>
+                        <div className='p-3'>
                             <RadioGroup
                                 defaultValue="all"
                                 onValueChange={(v) => setValue('TrnType', v)}
-                                className="flex gap-4 p-3 border rounded-md justify-around bg-slate-50"
+                                className="flex justify-around items-center"
                             >
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="all" id="t-all" />
-                                    <Label htmlFor="t-all">ALL</Label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="Issue" id="t-issue" />
-                                    <Label htmlFor="t-issue">Issue</Label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="Return" id="t-return" />
-                                    <Label htmlFor="t-return">Return</Label>
-                                </div>
+                                {['ALL', 'Issue', 'Return'].map((status) => (
+                                    <div key={status} className="flex items-center space-x-1.5">
+                                        <RadioGroupItem value={status === 'ALL' ? 'all' : status} id={`t-${status}`} className="w-3 h-3" />
+                                        <Label htmlFor={`t-${status}`} className="text-[9px] font-medium cursor-pointer text-slate-600">{status}</Label>
+                                    </div>
+                                ))}
                             </RadioGroup>
                         </div>
+                    </div>
+                </div>
 
-                    </CardContent>
-                </Card>
-
-                <div className="space-y-6">
-                    {/* Student Filters */}
+                {/* Right Column: Student Selection Boxes */}
+                <div className='space-y-3'>
                     {agType === 'Student' && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-lg">Student Filters</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                {/* Class Selection */}
-                                <div>
-                                    <Label>Class Name <span className="text-red-500">*</span></Label>
-                                    <div className="border rounded-md p-2 h-40 overflow-y-auto space-y-2 bg-white">
-                                        <div className="flex items-center space-x-2 pb-2 border-b">
-                                            <Checkbox
-                                                id="cls-all"
-                                                checked={initialData?.classList?.length === selectedClasses.length && initialData?.classList?.length > 0}
-                                                onCheckedChange={(checked) => handleAllClassesToggle(checked as boolean)}
-                                            />
-                                            <Label htmlFor="cls-all" className="font-bold">All</Label>
-                                        </div>
+                        <>
+                            <div className='flex items-start gap-3'>
+                                <Label className='min-w-[80px] text-right font-bold text-[10px] pt-1.5 text-slate-600'>Class Name :*</Label>
+                                <div className='flex-1 border border-slate-200 rounded-sm p-0.5 h-28 overflow-y-auto bg-white'>
+                                    <div className="flex items-center space-x-1.5 pb-0.5 border-b mb-0.5 bg-slate-50 px-1">
+                                        <Checkbox
+                                            id="cls-all"
+                                            checked={initialData?.classList?.length === selectedClasses.length}
+                                            onCheckedChange={(checked) => handleAllClassesToggle(checked as boolean)}
+                                            className="w-3 h-3"
+                                        />
+                                        <Label htmlFor="cls-all" className="text-[10px] font-bold cursor-pointer">All</Label>
+                                    </div>
+                                    <div className="px-1">
                                         {initialData?.classList?.map((cls) => (
-                                            <div key={cls.asmcL_Id} className="flex items-center space-x-2">
+                                            <div key={cls.asmcL_Id} className="flex items-center space-x-1.5 py-0.5">
                                                 <Checkbox
                                                     id={`cls-${cls.asmcL_Id}`}
                                                     checked={selectedClasses.includes(cls.asmcL_Id)}
                                                     onCheckedChange={() => handleClassToggle(cls.asmcL_Id)}
+                                                    className="w-3 h-3"
                                                 />
-                                                <Label htmlFor={`cls-${cls.asmcL_Id}`}>{cls.asmcL_ClassName}</Label>
+                                                <Label htmlFor={`cls-${cls.asmcL_Id}`} className="text-[9px] cursor-pointer text-slate-600">{cls.asmcL_ClassName}</Label>
                                             </div>
                                         ))}
                                     </div>
-                                    {(errors.selectedClasslist || (errors as any).selectedClasslist?.root) &&
-                                        <p className="text-sm text-red-500 mt-1">Select Class</p>
-                                    }
                                 </div>
+                            </div>
 
-                                {/* Section Selection */}
-                                <div>
-                                    <Label>Section Name <span className="text-red-500">*</span></Label>
-                                    <div className="border rounded-md p-2 h-40 overflow-y-auto space-y-2 bg-white">
-                                        <div className="flex items-center space-x-2 pb-2 border-b">
-                                            <Checkbox
-                                                id="sec-all"
-                                                checked={initialData?.sectionList?.length === selectedSections.length && initialData?.sectionList?.length > 0}
-                                                onCheckedChange={(checked) => handleAllSectionsToggle(checked as boolean)}
-                                            />
-                                            <Label htmlFor="sec-all" className="font-bold">All</Label>
-                                        </div>
+                            <div className='flex items-start gap-3'>
+                                <Label className='min-w-[80px] text-right font-bold text-[10px] pt-1.5 text-slate-600'>Section Name :*</Label>
+                                <div className='flex-1 border border-slate-200 rounded-sm p-0.5 h-28 overflow-y-auto bg-white'>
+                                    <div className="flex items-center space-x-1.5 pb-0.5 border-b mb-0.5 bg-slate-50 px-1">
+                                        <Checkbox
+                                            id="sec-all"
+                                            checked={initialData?.sectionList?.length === selectedSections.length}
+                                            onCheckedChange={(checked) => handleAllSectionsToggle(checked as boolean)}
+                                            className="w-3 h-3"
+                                        />
+                                        <Label htmlFor="sec-all" className="text-[10px] font-bold cursor-pointer">All</Label>
+                                    </div>
+                                    <div className="px-1">
                                         {initialData?.sectionList?.map((sec) => (
-                                            <div key={sec.asmS_Id} className="flex items-center space-x-2">
+                                            <div key={sec.asmS_Id} className="flex items-center space-x-1.5 py-0.5">
                                                 <Checkbox
                                                     id={`sec-${sec.asmS_Id}`}
                                                     checked={selectedSections.includes(sec.asmS_Id)}
                                                     onCheckedChange={() => handleSectionToggle(sec.asmS_Id)}
+                                                    className="w-3 h-3"
                                                 />
-                                                <Label htmlFor={`sec-${sec.asmS_Id}`}>{sec.asmC_SectionName}</Label>
+                                                <Label htmlFor={`sec-${sec.asmS_Id}`} className="text-[9px] cursor-pointer text-slate-600">{sec.asmC_SectionName}</Label>
                                             </div>
                                         ))}
                                     </div>
-                                    {errors.selectedSectionlist && <p className="text-sm text-red-500 mt-1">{errors.selectedSectionlist.message}</p>}
                                 </div>
-                            </CardContent>
-                        </Card>
+                            </div>
+                        </>
                     )}
-
-                    {/* Date Filters */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-lg">Date Filters</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            {/* Issue Date */}
-                            <div className="space-y-2">
-                                <div className="flex items-center space-x-2">
-                                    <Checkbox
-                                        id="issue-count"
-                                        checked={issueCount}
-                                        onCheckedChange={(c) => {
-                                            setValue('Issuecount', c as boolean);
-                                        }}
-                                    />
-                                    <Label htmlFor="issue-count">Issue Date</Label>
-                                </div>
-
-                                <div className="flex gap-2">
-                                    <div className="flex-1 space-y-1">
-                                        <span className="text-xs text-muted-foreground">From</span>
-                                        <CalendarDatePicker
-                                            date={issueFromDate}
-                                            setDate={(d) => setValue('IssueFromDate', d)}
-                                            placeholder="From Date"
-                                            disabled={!issueCount}
-                                        />
-                                    </div>
-                                    <div className="flex-1 space-y-1">
-                                        <span className="text-xs text-muted-foreground">To</span>
-                                        <CalendarDatePicker
-                                            date={watch('IssueToDate')}
-                                            setDate={(d) => setValue('IssueToDate', d)}
-                                            placeholder="To Date"
-                                            minDate={issueFromDate}
-                                            disabled={!issueCount}
-                                        />
-                                    </div>
-                                </div>
-                                {errors.IssueToDate && <p className="text-sm text-red-500">{errors.IssueToDate.message}</p>}
-                            </div>
-
-                            {/* Due Date */}
-                            <div className="space-y-2">
-                                <div className="flex items-center space-x-2">
-                                    <Checkbox
-                                        id="due-count"
-                                        checked={dueCount}
-                                        onCheckedChange={(c) => setValue('Duecount', c as boolean)}
-                                    />
-                                    <Label htmlFor="due-count">Due Date</Label>
-                                </div>
-                                <div className="flex gap-2">
-                                    <div className="flex-1 space-y-1">
-                                        <span className="text-xs text-muted-foreground">From</span>
-                                        <CalendarDatePicker
-                                            date={dueFromDate}
-                                            setDate={(d) => setValue('DueFromdate', d)}
-                                            placeholder="From Date"
-                                            disabled={!dueCount}
-                                        />
-                                    </div>
-                                    <div className="flex-1 space-y-1">
-                                        <span className="text-xs text-muted-foreground">To</span>
-                                        <CalendarDatePicker
-                                            date={watch('DueTodate')}
-                                            setDate={(d) => setValue('DueTodate', d)}
-                                            placeholder="To Date"
-                                            minDate={dueFromDate}
-                                            disabled={!dueCount}
-                                        />
-                                    </div>
-                                </div>
-                                {errors.DueTodate && <p className="text-sm text-red-500">{errors.DueTodate.message}</p>}
-                            </div>
-                        </CardContent>
-                    </Card>
                 </div>
             </div>
 
-            <div className="flex justify-center gap-4">
-                <Button type="submit" disabled={isLoading}>
-                    {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
-                    Report
+            {/* Date Filters Row - Very Compact Layout */}
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-x-8 pt-3 border-t border-slate-100'>
+                <div className='space-y-1.5'>
+                    <div className='flex items-center gap-2'>
+                        <Checkbox
+                            id="issue-count"
+                            checked={issueCount}
+                            onCheckedChange={(c) => setValue('Issuecount', c as boolean)}
+                            className="w-3.5 h-3.5"
+                        />
+                        <Label htmlFor="issue-count" className="text-[11px] font-bold cursor-pointer text-slate-700">Issue Date</Label>
+                    </div>
+                    <div className='flex items-center gap-2 pl-6'>
+                        <Label className='text-[9px] font-medium text-slate-500 whitespace-nowrap'>Date Between</Label>
+                        <div className='flex-1 flex items-center gap-1.5'>
+                            <CalendarDatePicker
+                                date={issueFromDate}
+                                setDate={(d) => setValue('IssueFromDate', d)}
+                                placeholder="From"
+                                disabled={!issueCount}
+                            />
+                            <span className='text-[9px] font-bold text-slate-400'>-</span>
+                            <CalendarDatePicker
+                                date={watch('IssueToDate')}
+                                setDate={(d) => setValue('IssueToDate', d)}
+                                placeholder="To"
+                                minDate={issueFromDate}
+                                disabled={!issueCount}
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <div className='space-y-1.5'>
+                    <div className='flex items-center gap-2'>
+                        <Checkbox
+                            id="due-count"
+                            checked={dueCount}
+                            onCheckedChange={(c) => setValue('Duecount', c as boolean)}
+                            className="w-3.5 h-3.5"
+                        />
+                        <Label htmlFor="due-count" className="text-[11px] font-bold cursor-pointer text-slate-700">Due Date</Label>
+                    </div>
+                    <div className='flex items-center gap-2 pl-6'>
+                        <Label className='text-[9px] font-medium text-slate-500 whitespace-nowrap'>Date Between</Label>
+                        <div className='flex-1 flex items-center gap-1.5'>
+                            <CalendarDatePicker
+                                date={dueFromDate}
+                                setDate={(d) => setValue('DueFromdate', d)}
+                                placeholder="From"
+                                disabled={!dueCount}
+                            />
+                            <span className='text-[9px] font-bold text-slate-400'>-</span>
+                            <CalendarDatePicker
+                                date={watch('DueTodate')}
+                                setDate={(d) => setValue('DueTodate', d)}
+                                placeholder="To"
+                                minDate={dueFromDate}
+                                disabled={!dueCount}
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Action Buttons - Compact Row */}
+            <div className='flex flex-row flex-wrap justify-center gap-3 pt-4 mt-2'>
+                <Button 
+                    type='submit' 
+                    disabled={isLoading}
+                    className='w-fit min-w-[120px] bg-[#3f51b5] hover:bg-[#303f9f] text-white px-4 h-8 shadow-sm rounded-sm border-none text-[10px] font-bold uppercase tracking-wider'
+                >
+                    {isLoading ? <Loader2 className='mr-1.5 h-3.5 w-3.5 animate-spin' /> : <LayoutGrid className='mr-1.5 h-3.5 w-3.5' />}
+                    REPORT
                 </Button>
-                <Button type="button" variant="destructive" onClick={() => {
-                    reset({
-                        AGType: 'Student',
-                        Type: 'all',
-                        TrnType: 'all',
-                        Issuecount: false,
-                        Duecount: false,
-                        selectedClasslist: [],
-                        selectedSectionlist: []
-                    });
-                    setSelectedClasses([]);
-                    setSelectedSections([]);
-                }}>
-                    <X className="mr-2 h-4 w-4" />
-                    Cancel
+                
+                <Button 
+                    type='button' 
+                    className='w-fit min-w-[120px] bg-[#ff5722] hover:bg-[#e64a19] text-white px-4 h-8 shadow-sm rounded-sm border-none text-[10px] font-bold uppercase tracking-wider'
+                    onClick={() => {
+                        reset({
+                            AGType: 'Student',
+                            Type: 'all',
+                            TrnType: 'all',
+                            Issuecount: false,
+                            Duecount: false,
+                            selectedClasslist: [],
+                            selectedSectionlist: []
+                        });
+                        setSelectedClasses([]);
+                        setSelectedSections([]);
+                    }}
+                >
+                    <X className='mr-1.5 h-3.5 w-3.5' />
+                    CANCEL
+                </Button>
+
+                <Button 
+                    type='button' 
+                    onClick={onPrint}
+                    disabled={!hasData}
+                    className='w-fit min-w-[120px] bg-[#3f51b5] hover:bg-[#303f9f] text-white px-4 h-8 shadow-sm rounded-sm border-none text-[10px] font-bold uppercase tracking-wider'
+                >
+                    <Printer className='mr-1.5 h-3.5 w-3.5' />
+                    PRINT
+                </Button>
+
+                <Button 
+                    type='button' 
+                    onClick={onExport}
+                    disabled={!hasData}
+                    className='w-fit min-w-[120px] bg-[#3f51b5] hover:bg-[#303f9f] text-white px-4 h-8 shadow-sm rounded-sm border-none text-[10px] font-bold uppercase tracking-wider'
+                >
+                    <FileSpreadsheet className='mr-1.5 h-3.5 w-3.5' />
+                    EXPORT TO EXCEL
                 </Button>
             </div>
         </form>
@@ -461,12 +465,12 @@ function CalendarDatePicker({ date, setDate, placeholder, minDate, disabled }: {
                 <Button
                     variant={"outline"}
                     className={cn(
-                        "w-full justify-start text-left font-normal",
+                        "w-full justify-start text-left font-normal h-7 px-2 text-[10px]",
                         !date && "text-muted-foreground"
                     )}
                     disabled={disabled}
                 >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    <CalendarIcon className="mr-1.5 h-3 w-3" />
                     {date ? format(date, "dd/MM/yyyy") : <span>{placeholder}</span>}
                 </Button>
             </PopoverTrigger>

@@ -56,7 +56,7 @@ export const masterCasteColumns: ColumnDef<IMasterCasteList>[] = [
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IMasterCasteList }) {
-    const { openEditForm } = useFormContext<IMasterCasteList>();
+    const { openEditForm, openDeleteForm } = useFormContext<IMasterCasteList>();
 
     const handleEdit = useCallback(
         (data: IMasterCasteList) => {
@@ -65,5 +65,19 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterCasteList }) {
         [openEditForm]
     );
 
-    return <ActionButtons rowData={rowData} buttons={{ edit: true, toggle: false, delete: false }} onEdit={handleEdit} />;
+    const handleDelete = useCallback(
+        (data: IMasterCasteList) => {
+            openDeleteForm(data);
+        },
+        [openDeleteForm]
+    );
+
+    return (
+        <ActionButtons
+            rowData={rowData}
+            buttons={{ edit: true, toggle: false, delete: true }}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+        />
+    );
 }

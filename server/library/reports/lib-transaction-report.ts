@@ -1,5 +1,6 @@
 'use server';
 
+import { auth } from '@/lib/auth';
 import { api } from '@/lib/apiService';
 import type {
     ILibTransactionReportGridData,
@@ -8,7 +9,7 @@ import type {
     ILibTransactionReportYearListData
 } from '@/types/library/reports/lib-transaction-report';
 
-const FACADE = '/LibTransactionReportFacade';
+const FACADE = 'LibTransactionReport';
 
 const extractList = (list: any) => {
     if (!list) return [];
@@ -21,39 +22,47 @@ const extractList = (list: any) => {
 };
 
 // Get initial data for the report form
-// Uses the same endpoint as CLG Transaction Count Report:
-// GET LibTransactionReportFacade/Getdetails/2 → returns { msterliblist1, yearlist }
 export async function getLibTransactionReportInitialData() {
-    // api.get() returns the HTTP body directly:
-    // { success, message, data: { msterliblist1: [...], yearlist: [...] } }
-    const response = await api.get<any>('library', '/AvailableBooksReport/getdetails');
-    const data = response?.data ?? {};
+    const session = await auth();
+    if (!session?.mi_id) {
+        throw new Error('Authentication required');
+    }
+
+    const payload = {
+        MI_Id: session.mi_id
+    };
+
+    // api/LibTransactionReport/library_countreport_getdetails
+    const url = `${FACADE}/library_countreport_getdetails`;
+    const response = await api.get<any>('library', url, { params: payload });
+    const data = response?.data ?? response;
 
     return {
-        msterliblist1: extractList(data.msterliblist1 ?? data.libraryList ?? []),
-        yearlist: extractList(data.yearlist ?? data.yearList ?? [])
+        msterliblist1: extractList(data.subjectList || data.msterliblist1 || []),
+        yearlist: extractList(data.departmentList || data.yearlist || [])
     } as ILibTransactionReportInitialData;
-}
-
-export async function getLibTransactionReportYearList() {
-    // api.get() returns the HTTP body directly:
-    // { success, message, data: { msterliblist1: [...], yearlist: [...] } }
-    const response = await api.get<any>('library', '/LibTransactionReport/library_countreport_getdetails');
-    const data = response?.data ?? {};
-
-    return {
-        departmentList: extractList(data.yearlist ?? data.departmentList ?? [])
-    } as ILibTransactionReportYearListData;
 }
 
 // Get report data
 export async function getLibTransactionReportSearch(data: ILibTransactionReportRequest) {
-    const url = `${FACADE}/get_report`;
-    const response = await api.post<any>('library', url, data);
+    const session = await auth();
+    if (!session?.mi_id) {
+        throw new Error('Authentication required');
+    }
+
+    const payload = {
+        ...data,
+        MI_Id: session.mi_id,
+        IVRMUL_Id: session.roleId || 0
+    };
+
+    const url = `${FACADE}/get-transaction-count-report`;
+    const response = await api.post<any>('library', url, payload);
     const responseData = response.data || response;
 
     return {
-        alldata: extractList(responseData.alldata || responseData.reportlist || []),
-        classlist: extractList(responseData.classlist)
+        alldata: extractList(responseData.alldata || responseData.reportlist || responseData.griddata || responseData.statuslist || (Array.isArray(responseData) ? responseData : [])),
+        classlist: extractList(responseData.classlist || [])
     };
 }
+

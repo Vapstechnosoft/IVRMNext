@@ -19,10 +19,10 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { useSRKVSSportsReportRecord } from '@/hooks/sports/useSRKVSSportsReportRecord';
+import { useSRKVSSportsReport } from '@/hooks/sports/useSRKVSSportsReport';
 import {
-    SRKVSSportsReportRecordFormSchema,
-    SRKVSSportsReportRecordSchema,
+    SRKVSSportsReportFormSchema,
+    SRKVSSportsReportSchema,
     ISRKVSReportData,
     ISRKVSYear,
     ISRKVSMasterEvent,
@@ -32,7 +32,7 @@ import {
     ISRKVSSubEvent,
     ISRKVSSubSubEvent,
     ISRKVSReportItem,
-} from '@/types/sports/reports/srkvs-sports-report-record';
+} from '@/types/sports/reports/srkvs-sports-report';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
@@ -45,6 +45,27 @@ interface ReportFormProps {
     onTypeChange: (type: any) => void;
 }
 
+// Helper to normalize flat item field names (API returns camelCase)
+const normalizeItem = (item: any): any => {
+    // If already using old-style PascalCase DB fields, return as-is
+    if (item.SPCCMCC_CompitionCategory || item.AMST_FirstName) return item;
+    // Map camelCase API response fields to the expected property names
+    return {
+        ...item,
+        SPCCMCC_CompitionCategory: item.categoryName,
+        SPCCMSCCG_SportsCCGroupName: item.groupName,
+        AMAY_RollNo: item.rollNo,
+        AMST_FirstName: item.studentName,
+        AMST_AdmNo: item.admNo,
+        ASMCL_ClassName: item.className,
+        ASMC_SectionName: item.sectionName,
+        SPCCMUOM_UOMName: item.uomName,
+        ASMAY_Year: item.academicYear,
+        SPCCESTR_Value: item.points,
+        SPCCESTR_Rank: item.rank,
+    };
+};
+
 // Helper to group data
 const groupData = (flatData: any[], type: string): ISRKVSReportData[] => {
     if (!flatData || flatData.length === 0) return [];
@@ -52,14 +73,14 @@ const groupData = (flatData: any[], type: string): ISRKVSReportData[] => {
     // Check if already grouped (has RecordDetails)
     if (flatData[0].RecordDetails) return flatData as ISRKVSReportData[];
 
+    const normalized = flatData.map(normalizeItem);
     const groups: { [key: string]: ISRKVSReportData } = {};
 
-    flatData.forEach((item: ISRKVSReportItem) => {
+    normalized.forEach((item: any) => {
         let key = '';
         if (type === 'Record' || type === 'Consolidated' || type === 'Indoor' || type === 'Outdoor' || type === 'Team' || type === 'Externals' || type === 'Selection') {
             key = item.SPCCMCC_CompitionCategory || 'Unknown';
         } else if (type === 'Start' || type === 'Finish') {
-            // For Start/Finish, we might want to group by Category AND Event Group
             key = (item.SPCCMCC_CompitionCategory || '') + '_' + (item.SPCCMSCCG_SportsCCGroupName || '');
         } else {
             key = item.SPCCMCC_CompitionCategory || 'Default';
@@ -79,7 +100,7 @@ const groupData = (flatData: any[], type: string): ISRKVSReportData[] => {
 };
 
 export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps) => {
-    const { loadData, getClass, getSportsName, getUomName, generateReport } = useSRKVSSportsReportRecord();
+    const { loadData, getClass, getSportsName, getUomName, generateReport } = useSRKVSSportsReport();
     const { data: initialData, isLoading: isInitialLoading } = loadData;
 
     const [academicYears, setAcademicYears] = useState<ISRKVSYear[]>([]);
@@ -90,8 +111,8 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
     const [subEvents, setSubEvents] = useState<ISRKVSSubEvent[]>([]);
     const [subSubEvents, setSubSubEvents] = useState<ISRKVSSubSubEvent[]>([]);
 
-    const form = useForm<SRKVSSportsReportRecordFormSchema>({
-        resolver: zodResolver(SRKVSSportsReportRecordSchema),
+    const form = useForm<SRKVSSportsReportFormSchema>({
+        resolver: zodResolver(SRKVSSportsReportSchema),
         defaultValues: {
             Type: 'Record',
             ASMAY_Id: undefined,
@@ -114,7 +135,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
     // Initial Data Load
     useEffect(() => {
         if (initialData) {
-            setAcademicYears(initialData.yearlist || []);
+            setAcademicYears(Array.isArray(initialData.yearlist) ? initialData.yearlist : []);
         }
     }, [initialData]);
 
@@ -123,10 +144,10 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
         if (watchedYear) {
             getClass.mutate({ asmaY_Id: watchedYear }, {
                 onSuccess: (data) => {
-                    setCategories(data?.categoryList || []);
-                    setCompetitionLevels(data?.competetionLevel || []);
-                    setMasterEvents(data?.masterEvent || []);
-                    setMainEvents(data?.getMasterEvent || []);
+                    setCategories(Array.isArray(data?.categoryList) ? data.categoryList : []);
+                    setCompetitionLevels(Array.isArray(data?.competetionLevel) ? data.competetionLevel : []);
+                    setMasterEvents(Array.isArray(data?.masterEvent) ? data.masterEvent : []);
+                    setMainEvents(Array.isArray(data?.getMasterEvent) ? data.getMasterEvent : []);
                 }
             });
         }
@@ -138,7 +159,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
             if (['Start', 'Finish', 'Indoor', 'Outdoor', 'Team', 'Externals'].includes(watchedType)) {
                 getSportsName.mutate({ asmaY_Id: watchedYear, spccmsccG_Id: watchedMainEvent }, {
                     onSuccess: (data) => {
-                        setSubEvents(data?.sportsCCList || []);
+                        setSubEvents(Array.isArray(data?.sportsCCList) ? data.sportsCCList : []);
                     }
                 });
             }
@@ -151,7 +172,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
             if (['Start', 'Finish', 'Indoor', 'Outdoor', 'Team', 'Externals'].includes(watchedType)) {
                 getUomName.mutate({ asmaY_Id: watchedYear, spccmscC_Id: watchedSubEvent }, {
                     onSuccess: (data) => {
-                        setSubSubEvents(data?.getsubsubevent || []);
+                        setSubSubEvents(Array.isArray(data?.getsubsubevent) ? data.getsubsubevent : []);
                     }
                 });
             }
@@ -165,7 +186,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
     }, [watchedType, onTypeChange]);
 
 
-    const onSubmit = (data: SRKVSSportsReportRecordFormSchema) => {
+    const onSubmit = (data: SRKVSSportsReportFormSchema) => {
         const payload: any = {
             ASMAY_Id: data.ASMAY_Id,
             Type: data.Type,
@@ -203,7 +224,12 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
 
         generateReport.mutate(payload, {
             onSuccess: (responseData) => {
-                const rawData = responseData?.getReport || responseData?.getReportfinish || responseData || [];
+                // Pick the first non-empty array from the response
+                const rawData =
+                    (responseData?.getReport?.length ? responseData.getReport : null) ||
+                    (responseData?.gettsreport?.length ? responseData.gettsreport : null) ||
+                    (responseData?.getReportfinish?.length ? responseData.getReportfinish : null) ||
+                    (Array.isArray(responseData) ? responseData : []);
                 const groupedData = groupData(rawData, data.Type);
                 onReportGenerated(groupedData);
                 if (rawData && rawData.length > 0) {
