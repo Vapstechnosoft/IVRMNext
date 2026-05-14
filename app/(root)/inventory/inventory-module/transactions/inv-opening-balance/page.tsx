@@ -37,12 +37,27 @@ export default function InvOpeningBalancePage(props: { searchParams: SearchParam
         tableSearchVariables.search,
         parseAsString.withOptions({ shallow: false }).withDefault('')
     );
+    const [sortColumn] = useQueryState(
+        tableSearchVariables.sort_column,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
+    const [sortDirection] = useQueryState(
+        tableSearchVariables.sort_direction,
+        parseAsString.withOptions({ shallow: false }).withDefault('asc')
+    );
+    const [searchColumns] = useQueryState(
+        tableSearchVariables.search_columns,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
 
     const queryParams = {
         ...searchParams,
         page: currentPage,
         page_size: pageSize,
-        search_query: searchQuery
+        search_query: searchQuery,
+        search_columns: searchColumns,
+        sort_column: sortColumn,
+        sort_direction: sortDirection
     };
 
     const { data: response, isLoading, error } = useInvOpeningBalance(queryParams);
@@ -81,13 +96,14 @@ function InvOpeningBalancePageContent({
 
     const { toggleActiveMutation, storesQuery } = useInvOpeningBalance(); // Unused here, kept if logic needs restore
 
-    const tableProps = useDataTableProps(response?.data, {
-        dataKey: 'get_openingbalance',
+    const tableProps = useDataTableProps(response, {
+        dataKey: 'data',
         totalKey: 'total'
     });
 
-    // Force fetching from new API in AddOBForm by passing empty list
-    const storeList: any[] = [];
+    // Extract dropdown data if available in the initial load response
+    const storeList = response?.data?.get_Store || [];
+    const itemList = response?.data?.get_item || [];
 
     return (
         <div className='min-h-screen'>
@@ -111,11 +127,12 @@ function InvOpeningBalancePageContent({
                     icon={<Wallet className='h-5 w-5' />}>
                     <GenericDataTable<IInvOpeningBalance>
                         {...tableProps}
-                        data={response?.data?.get_openingbalance || []}
+                        data={response?.data || []}
                         columns={invOpeningBalanceColumns}
                         isLoading={isLoading}
                         error={error}
                         isSearchRequired={true}
+                        showSearchColumns={true}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Retrieving Opening Balance records...'
                         noDataTitle='No Records Found'
@@ -126,7 +143,7 @@ function InvOpeningBalancePageContent({
 
                 <FormSections
                     storeList={storeList}
-                    itemList={response?.data?.get_item || []}
+                    itemList={itemList}
                 />
 
                 {isToggleFormOpen && selectedRow && (
@@ -166,8 +183,8 @@ function FormSections({ storeList, itemList }: { storeList: any[], itemList: any
                                 onClick={closeAddForm}
                                 variant='ghost'
                                 size='sm'
-                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                <X className='h-4 w-4 text-destructive' /> Close
+                                className='absolute top-[-3.5rem] right-12 w-fit border p-2 shadow-md hover:bg-destructive/10 text-destructive'>
+                                <X className='h-4 w-4 mr-1' /> Close
                             </Button>
                             <AddOBForm onSuccess={closeAddForm} storeList={storeList} itemList={itemList} />
                         </div>
@@ -190,8 +207,8 @@ function FormSections({ storeList, itemList }: { storeList: any[], itemList: any
                                 onClick={closeEditForm}
                                 variant='ghost'
                                 size='sm'
-                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                <X className='h-4 w-4 text-destructive' /> Close
+                                className='absolute top-[-3.5rem] right-12 w-fit border p-2 shadow-md hover:bg-destructive/10 text-destructive'>
+                                <X className='h-4 w-4 mr-1' /> Close
                             </Button>
                             <AddOBForm
                                 onSuccess={closeEditForm}
