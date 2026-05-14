@@ -104,13 +104,45 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
     }, [detailsArray]);
  
     const onSubmit = (data: InvRGRNSchema) => {
+        const payload = {
+            ...data,
+            optionflag: data.optionflag?.replace('_1', ''), // Strip suffix for backend compatibility
+            bwdateflag: data.bw_dates,
+            startdate: data.startdate ? format(data.startdate, 'yyyy-MM-dd') : "",
+            enddate: data.enddate ? format(data.enddate, 'yyyy-MM-dd') : "",
+            grnArray: data.grnArray?.map((g: any) => ({
+                ...g,
+                INVMGRN_Id: g.invmgrN_Id || g.id || g.INVMGRN_Id
+            })),
+            itemArray: data.itemArray?.map((i: any) => ({
+                ...i,
+                INVMI_Id: i.invmI_Id || i.id || i.INVMI_Id
+            })),
+            supplierArray: data.supplierArray?.map((s: any) => ({
+                ...s,
+                INVMS_Id: s.invmS_Id || s.id || s.INVMS_Id
+            })),
+        };
+
         generateReportMutation.mutate(
             // @ts-ignore - casting simpler types for mock payload
-            { payload: data },
+            { payload: payload },
             {
                 onSuccess: (res) => {
                     if (res.success) {
-                        onReportGenerated(res.data.get_grnreport, data, res.total || 0);
+                        // Handle varied data structures
+                        let reportData = [];
+                        if (Array.isArray(res.data)) {
+                            reportData = res.data;
+                        } else if (res.data?.$values) {
+                            reportData = res.data.$values;
+                        } else if (res.data?.get_grnreport) {
+                            reportData = Array.isArray(res.data.get_grnreport) 
+                                ? res.data.get_grnreport 
+                                : res.data.get_grnreport?.$values || [];
+                        }
+
+                        onReportGenerated(reportData, payload, res.total || 0);
                     }
                 }
             });

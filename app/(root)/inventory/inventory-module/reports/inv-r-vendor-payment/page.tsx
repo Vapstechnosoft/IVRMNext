@@ -168,12 +168,6 @@ export default function VendorPaymentReportPage(props: { searchParams: Promise<a
         }, { amount: 0, paid: 0, balance: 0 });
     }, [detailsData]);
 
-    const tableProps = useDataTableProps({
-        enablePagination: true,
-        enableSorting: true,
-        enableSearching: true,
-        isSearchRequired: true,
-    });
 
     const handlePrintContent = useReactToPrint({
         contentRef: componentRef,
@@ -189,7 +183,10 @@ export default function VendorPaymentReportPage(props: { searchParams: Promise<a
                 ...currentPayload,
             };
 
-            const response = await getInvVendorPaymentReport(p, { ...searchParams, page: 1, page_size: 100000, search_query: searchQuery || '' });
+            const response = await getInvVendorPaymentReport(
+                { ...currentPayload, search_query: searchQuery || '' }, 
+                { ...searchParams, page: 1, page_size: 100000, search_query: searchQuery || '' }
+            );
             
             const allData = response?.data || [];
             
@@ -315,7 +312,6 @@ export default function VendorPaymentReportPage(props: { searchParams: Promise<a
 
                         <div className="relative">
                             <GenericDataTable
-                                {...tableProps}
                                 data={reportData}
                                 columns={columns as any}
                                 isLoading={isFetching}
