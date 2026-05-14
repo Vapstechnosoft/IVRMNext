@@ -13,11 +13,8 @@ import { MasterHouseDesignationColumns } from './_components/columns';
 import UpdateMasterHouseDesignationForm from './_components/update-form';
 import ToggleMasterHouseDesignationForm from './_components/toggle-form';
 
-type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-
-export default function MasterHouseDesignationPage(props: { searchParams: SearchParams }) {
-    const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error, refetchAll } = useMasterHouseDesignation(searchParams);
+export default function MasterHouseDesignationPage() {
+    const { data: response, isPending, isFetching, error, refetchAll } = useMasterHouseDesignation();
 
     return (
         <FormProvider<IMasterHouseDesignation>>
@@ -25,7 +22,7 @@ export default function MasterHouseDesignationPage(props: { searchParams: Search
                 <div className='container space-y-4 p-1'>
                     <MasterHouseDesignationPageContent
                         response={response}
-                        isLoading={isLoading}
+                        isLoading={isPending || isFetching}
                         error={error}
                         refetchAll={refetchAll}
                     />

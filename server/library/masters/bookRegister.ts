@@ -53,9 +53,19 @@ export async function getInitialData() {
         const categoryUrl = `/MasterCategory/master-books-category-list`;
         const categoryResponse = await api.get<any>('library', categoryUrl);
 
+        // Fetch subject list
+        const subjectUrl = `/BookRegister/book-regester-subject-dropdown`;
+        const subjectResponse = await api.get<any>('library', subjectUrl);
+
+        // Fetch department list
+        const departmentUrl = `/BookRegister/department-dropdown`;
+        const departmentResponse = await api.get<any>('library', departmentUrl);
+
         return {
             ...(mainLoadResponse || {}),
-            categorylist: categoryResponse?.data || mainLoadResponse?.categorylist || []
+            categorylist: categoryResponse?.data || mainLoadResponse?.categorylist || [],
+            subjectlist: subjectResponse?.subjectlist || subjectResponse?.subjectList || subjectResponse?.data || mainLoadResponse?.subjectlist || [],
+            deptlist: departmentResponse?.deptlist || departmentResponse?.deptList || departmentResponse?.data || mainLoadResponse?.deptlist || []
         };
     } catch (error) {
         return { success: false, message: 'Failed to fetch initial data' };
