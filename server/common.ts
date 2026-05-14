@@ -2165,6 +2165,14 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/omr-evaluation/omr-mark-sheet-evaluation',
                                             title: 'OMR Sheet Evaluator',
                                             description: 'Evaluate OMR mark sheets'
+                                        },
+                                        {
+                                            id: 1000,
+                                            name: 'AI MCQ Quiz',
+                                            icon: 'Trophy',
+                                            url: '/Exam/exam-module/online-quiz/online-mcq-quiz',
+                                            title: 'AI MCQ Quiz',
+                                            description: 'Conduct and manage online MCQ quizzes'
                                         }
                                     ]
                                 },
@@ -3555,7 +3563,6 @@ export async function getUserAccessibleModules() {
                                             title: 'ProgressCardReportGMVPS X',
                                             description: 'ProgressCardReportGMVPS X'
                                         }
-
                                     ]
                                 }
                             ]
