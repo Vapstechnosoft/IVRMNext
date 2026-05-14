@@ -2127,14 +2127,6 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/feereports/feereceiptdeletereportnagarjuna',
                                             title: 'Fee Receipt Delete Report Nagarjuna',
                                             description: 'Manage Fee Receipt Delete Report Nagarjuna'
-                                        },
-                                        {
-                                            id: 531,
-                                            name: 'Portal Fee Receipt',
-                                            icon: 'BadgeIndianRupee',
-                                            url: '/fees/feereports/portalfeereceipt',
-                                            title: 'Portal Fee Receipt',
-                                            description: 'Manage Portal Fee Receipt'
                                         }
                                     ]
                                 }
@@ -8875,6 +8867,22 @@ export async function getUserAccessibleModules() {
                                             url: '/StudentPortal/masters/feeonlinpayment',
                                             title: 'Fee Online Payment',
                                             description: 'Pay Fees Online'
+                                        },
+                                        {
+                                            id: 532,
+                                            name: 'Student Fee Details',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feedetails',
+                                            title: 'Student Fee Details',
+                                            description: 'Manage Student Fee Details'
+                                        },
+                                        {
+                                            id: 531,
+                                            name: 'Portal Fee Receipt',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/portalfeereceipt',
+                                            title: 'Portal Fee Receipt',
+                                            description: 'Manage Portal Fee Receipt'
                                         }
                                     ]
                                 }
