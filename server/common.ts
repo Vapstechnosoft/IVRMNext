@@ -2921,6 +2921,14 @@ export async function getUserAccessibleModules() {
                                             title: 'General Send SMS SRKVS',
                                             description: 'Send SMS and Email to students based on performance'
                                         },
+                                        {
+                                            id: 215165,
+                                            name: 'Multiple Exam Cumulative Report',
+                                            icon: 'FileText',
+                                            url: '/Exam/exam-module/reports/SRKVS/MultipleExamCumulativeReport',
+                                            title: 'Multiple Exam Cumulative Report',
+                                            description: 'Consolidated marks sheet for multiple exams'
+                                        },
 
                                     ]
                                 },
